@@ -4,104 +4,119 @@
 
 > **What You Will Learn & Build:** Define matching frame attachments without averaging depth or physical primitive addresses. By the final checkpoint (`96zzzzzzzl-choose-bounded-frame-quality`), you will choose coherent colour samples from actual geometry, physical viewport, device budget and recovery without changing original sources or owner queries.
 
-## 1. Visual Pipeline & WebGPU Architecture (Black & White Schematics)
+## 1. Visual WebGPU Explanation & Architecture (Black & White Schematics)
 
 <div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg viewBox="0 0 840 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg width="840" height="256" viewBox="0 0 840 256" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
       <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
   </defs>
-  <rect x="4" y="4" width="832" height="212" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Lesson 22.5 Execution Flow: Coherent multisampling and frame-resource ownership</text>
-  <text x="20" y="46" font-size="11.5" fill="#111111">Concrete data pipeline you build in this lesson (19 Checkpoints: 96zzzzzzu-keep-depth-and-address-samples-separate → 96zzzzzzzl-choose-bounded-frame-quality)</text>
-  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
+  <rect x="4" y="4" width="832" height="248" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Section 10 Visual Explanation: Shared GPU Storage Arena, f64 Floating Origin, Reversed-Z, 4x MSAA & Matrix Shader</text>
+  <text x="20" y="45" font-size="11" fill="#111111">Left: Growable storage arena + vertex pulling. Center: Camera-relative f64→f32 floating origin & Reversed-Z. Right: 4x MSAA + Matrix.</text>
+  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
   
+    <rect x="18" y="64" width="255" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="145" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">A. Shared GPU Storage Arena</text>
+    <rect x="34" y="100" width="222" height="32" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <rect x="34" y="100" width="65" height="32" fill="url(#hatch)" stroke="#111111" stroke-width="1.2"/>
+    <rect x="145" y="100" width="55" height="32" fill="url(#hatch)" stroke="#111111" stroke-width="1.2"/>
+    <text x="122" y="120" text-anchor="middle" font-size="9" font-weight="700" fill="#111111">Free Span</text>
+    <text x="145" y="156" text-anchor="middle" font-size="9.5" font-weight="700" fill="#111111">Vertex Pulling (@builtin(vertex_index))</text>
+    <text x="145" y="176" text-anchor="middle" font-size="9.5" fill="#111111">8-byte Draw Slots -&gt; ObjectRecord</text>
+    <text x="145" y="194" text-anchor="middle" font-size="9.5" fill="#111111">slot_table.wgsl resolves owner IDs</text>
+
+    <line x1="273" y1="154" x2="295" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="297" y="64" width="265" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="429" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">B. f64 Floating Origin &amp; Reversed-Z</text>
+    <rect x="313" y="98" width="233" height="54" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.2"/>
+    <text x="429" y="116" text-anchor="middle" font-size="10" font-weight="700" fill="#111111">rel_f32 = (world_f64 - anchor_f64) as f32</text>
+    <text x="429" y="134" text-anchor="middle" font-size="9.5" fill="#111111">Eliminates f32 vertex jitter at 10^12 m!</text>
+    <rect x="313" y="162" width="233" height="64" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="429" y="180" text-anchor="middle" font-size="10" font-weight="700" fill="#111111">Reversed-Z Depth (GreaterEqual)</text>
+    <text x="429" y="198" text-anchor="middle" font-size="9.5" fill="#111111">Near Plane = 1.0  →  Far Plane = 0.0</text>
+    <text x="429" y="214" text-anchor="middle" font-size="9" fill="#111111">Preserves live camera across .pb reload</text>
+
+    <line x1="562" y1="154" x2="584" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="586" y="64" width="236" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="704" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">C. 4x MSAA &amp; Matrix Shader</text>
+    <rect x="602" y="98" width="204" height="128" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="704" y="118" text-anchor="middle" font-size="10" font-weight="700" fill="#111111">Coherent 1x / 4x Sample Targets</text>
+    <text x="614" y="138" font-size="9.5" fill="#111111">• Color + Depth32Float at 4x MSAA</text>
+    <text x="614" y="156" font-size="9.5" fill="#111111">• Rg32Uint Pick Target stays 1x</text>
+    <text x="614" y="176" font-size="9.5" font-weight="700" fill="#111111">• matrix.wgsl procedural cells:</text>
+    <text x="614" y="192" font-size="9" fill="#111111">  3-decimal digits, 0 blank, plate-less</text>
+    <text x="614" y="207" font-size="9" fill="#111111">  world title &amp; yellow selected border</text>
     
-    <rect x="18" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="89" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
-    <line x1="28" y1="92" x2="151" y2="92" stroke="#111111" stroke-width="0.75"/>
-    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">One sample count</text>
-    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="183" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="254" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
-    <line x1="193" y1="92" x2="316" y2="92" stroke="#111111" stroke-width="0.75"/>
-    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">matching depth and</text>
-    <text x="254" y="124" text-anchor="middle" font-size="11" fill="#111111">primitive images</text>
-    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="348" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
-    <line x1="358" y1="92" x2="481" y2="92" stroke="#111111" stroke-width="0.75"/>
-    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">direct sample reads</text>
-    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="513" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="584" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
-    <line x1="523" y1="92" x2="646" y2="92" stroke="#111111" stroke-width="0.75"/>
-    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">colour-only resolve</text>
-    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="678" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="749" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
-    <line x1="688" y1="92" x2="811" y2="92" stroke="#111111" stroke-width="0.75"/>
-    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">Active original</text>
-    <text x="749" y="124" text-anchor="middle" font-size="11" fill="#111111">geometry + physical</text>
-    <text x="749" y="140" text-anchor="middle" font-size="11" fill="#111111">pixels/density…</text>
-    
-    <rect x="18" y="162" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="32" y="181" font-size="11" font-weight="700" fill="#111111">Files You Edit in Lesson 22.5:</text>
-    <text x="215" y="181" font-size="11" fill="#111111">src/frame_targets.rs  ·  src/primitive_image.rs  ·  src/lib.rs  ·  src/frame_target_tests.rs  ·  src/renderer.rs  ·  src/global_outline_tests.rs</text>
-    <text x="32" y="198" font-size="10.5" fill="#111111">19 Checkpoints: 96zzzzzzu-keep-depth-and-address-samples-separate → 96zzzzzzzl-choose-bounded-frame-quality — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
-  
 </svg>
 </div>
 
 <div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg viewBox="0 0 840 240" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg width="840" height="214" viewBox="0 0 840 214" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
       <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
   </defs>
-  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Section 10 Production Architecture: Shared GPU Storage Arena, f64 Floating Origin, Reversed-Z, 4x MSAA & Matrix Shader</text>
-  <text x="20" y="46" font-size="11.5" fill="#111111">How the maintained viewer pulls vertices from one growable GPU arena, eliminates jitter at 10^12 units, and renders procedural Matrices.</text>
-  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
+  <rect x="4" y="4" width="832" height="206" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Lesson 22.5 Pipeline Schematic: Coherent multisampling and frame-resource ownership</text>
+  <text x="20" y="45" font-size="11" fill="#111111">Step-by-step data flow you implement in this lesson (19 Checkpoints: 96zzzzzzu-keep-depth-and-address-samples-separate → 96zzzzzzzl-choose-bounded-frame-quality)</text>
+  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
   
-    <rect x="18" y="68" width="250" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="143" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">1. Shared GPU Arena (Ch 19–20)</text>
-    <text x="28" y="108" font-size="10.5" fill="#111111">• 1 Growable Storage Buffer Arena</text>
-    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#111111">• Vertex Pulling (@builtin(vertex_index))</text>
-    <text x="28" y="144" font-size="10.5" fill="#111111">• 8-byte Draw Slots -&gt; ObjectRecord</text>
-    <text x="28" y="162" font-size="10.5" fill="#111111">• slot_table.wgsl maps Rg32Uint</text>
-    <text x="28" y="178" font-size="10.5" fill="#111111">  primitive IDs to Element/Face owners</text>
-    <text x="28" y="194" font-size="10" fill="#111111">• Free-list span reuse after GPU lease</text>
-
-    <line x1="268" y1="138" x2="298" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
-
-    <rect x="300" y="68" width="265" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="432" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">2. f64 Floating Origin &amp; Reversed-Z (Ch 21)</text>
-    <text x="312" y="108" font-size="10.5" font-weight="600" fill="#111111">• rel_f32 = (world_f64 - anchor_f64) as f32</text>
-    <text x="312" y="125" font-size="10" fill="#111111">  Zero vertex/grid jitter even at 10^12 m!</text>
-    <text x="312" y="144" font-size="10.5" font-weight="600" fill="#111111">• Reversed-Z Depth (GreaterEqual):</text>
-    <text x="312" y="160" font-size="10" fill="#111111">  Near plane = 1.0, Far plane = 0.0</text>
-    <text x="312" y="178" font-size="10.5" fill="#111111">• Held world base grid &amp; preserved</text>
-    <text x="312" y="193" font-size="10.5" fill="#111111">  live camera during Session reload</text>
-
-    <line x1="565" y1="138" x2="595" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
-
-    <rect x="597" y="68" width="223" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="708" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">3. 4x MSAA &amp; Matrix Shader (Ch 22)</text>
-    <text x="609" y="108" font-size="10.5" fill="#111111">• Coherent 1x/4x MSAA sample targets</text>
-    <text x="609" y="126" font-size="10.5" font-weight="600" fill="#111111">• matrix.wgsl (16w header + 3w/cell):</text>
-    <text x="609" y="142" font-size="10" fill="#111111">  Heatmap + procedural 3-decimal digits</text>
-    <text x="609" y="157" font-size="10" fill="#111111">  (0 cell blank; plate-less title; yellow</text>
-    <text x="609" y="172" font-size="10" fill="#111111">  selected border; Rg32Uint whole pick)</text>
-    <text x="609" y="190" font-size="10" fill="#111111">• Coalesced single-flight frame scheduler</text>
     
+    <rect x="18" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="89" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
+    <line x1="28" y1="90" x2="151" y2="90" stroke="#111111" stroke-width="0.75"/>
+    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">One sample count</text>
+    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="183" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="254" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
+    <line x1="193" y1="90" x2="316" y2="90" stroke="#111111" stroke-width="0.75"/>
+    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">matching depth and</text>
+    <text x="254" y="124" text-anchor="middle" font-size="11" fill="#111111">primitive images</text>
+    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="348" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="419" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
+    <line x1="358" y1="90" x2="481" y2="90" stroke="#111111" stroke-width="0.75"/>
+    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">direct sample reads</text>
+    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="513" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="584" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
+    <line x1="523" y1="90" x2="646" y2="90" stroke="#111111" stroke-width="0.75"/>
+    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">colour-only resolve</text>
+    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="678" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="749" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
+    <line x1="688" y1="90" x2="811" y2="90" stroke="#111111" stroke-width="0.75"/>
+    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">Active original</text>
+    <text x="749" y="124" text-anchor="middle" font-size="11" fill="#111111">geometry + physical</text>
+    <text x="749" y="140" text-anchor="middle" font-size="11" fill="#111111">pixels/density…</text>
+    
+    <rect x="18" y="158" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="32" y="177" font-size="11" font-weight="700" fill="#111111">Files Modified in Lesson 22.5:</text>
+    <text x="235" y="177" font-size="11" fill="#111111">src/frame_targets.rs  ·  src/primitive_image.rs  ·  src/lib.rs  ·  src/frame_target_tests.rs  ·  src/renderer.rs  ·  src/global_outline_tests.rs</text>
+    <text x="32" y="194" font-size="10.5" fill="#111111">19 Checkpoints: 96zzzzzzu-keep-depth-and-address-samples-separate → 96zzzzzzzl-choose-bounded-frame-quality — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
+  
 </svg>
 </div>
 
@@ -146,11 +161,41 @@ Before writing code, review how the three layers in this chapter talk to each ot
 
 ## 4. Step-by-Step Coding Notebook (Concept + Implementation)
 
-Work through each notebook cell below in order inside `workspace/journey`. Read the **Concept Walkthrough** and **Self-Check Q&A** first, then expand the **Implementation** block to type and verify the code.
+Work through each notebook cell below in order inside `workspace/journey`. Study the **Visual Step Trace**, read the **Concept Walkthrough** and **Self-Check Q&A**, then expand the **Implementation** block to type and verify the code.
 
 <a id="checkpoint-96zzzzzzu-keep-depth-and-address-samples-separate"></a>
 
 ### Step 1 of 19 · Keep depth and address samples separate (`96zzzzzzu-keep-depth-and-address-samples-separate`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 1/19 Visual Trace (96zzzzzzu-keep-depth-and-address-samples-separate): Keep depth and address samples separate</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/frame_targets.rs, src/primitive_image.rs, src/lib.rs, src/frame_target_tests.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">One sample count</text>
+    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">matching depth and</text>
+    <text x="316" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">primitive…</text>
+    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">direct sample reads</text>
+    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">colour-only resolve</text>
+    
+</svg>
+</div>
 
 - **Goal:** Define matching frame attachments without averaging depth or physical primitive addresses.
 - **Data Flow Trace:** `One sample count → matching depth and primitive images → direct sample reads → colour-only resolve`
@@ -301,6 +346,37 @@ After that block, append this supplied code:
 <a id="checkpoint-96zzzzzzv-reuse-coherent-frame-targets"></a>
 
 ### Step 2 of 19 · Reuse coherent frame targets (`96zzzzzzv-reuse-coherent-frame-targets`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 2/19 Visual Trace (96zzzzzzv-reuse-coherent-frame-targets): Reuse coherent frame targets</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/renderer.rs, src/lib.rs, src/global_outline_tests.rs, src/contact_feature_tests.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Existing renderer</text>
+    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">one target owner</text>
+    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">unchanged extent retains</text>
+    <text x="521" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">views</text>
+    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">real resize replaces</text>
+    <text x="726" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">matching…</text>
+    
+</svg>
+</div>
 
 - **Goal:** Retain frame attachments at equal extent and replace them coherently during real resizing.
 - **Data Flow Trace:** `Existing renderer → one target owner → unchanged extent retains views → real resize replaces matching attachments`
@@ -2138,6 +2214,36 @@ After that block, append this supplied code:
 
 ### Step 3 of 19 · Keep resolved colours in the canvas format (`96zzzzzzw-match-resolve-base-and-view-formats`)
 
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 3/19 Visual Trace (96zzzzzzw-match-resolve-base-and-view-formats): Keep resolved colours in the canvas format</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/frame_targets.rs, src/renderer.rs, src/browser.rs, src/frame_target_tests.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Actual canvas base format</text>
+    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">explicit colour view</text>
+    <text x="316" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">format</text>
+    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">matching frame attachments</text>
+    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">colour-only resolve</text>
+    
+</svg>
+</div>
+
 - **Goal:** Preserve flat colours by matching the base texture formats and rendering view formats at both ends of a resolve.
 - **Data Flow Trace:** `Actual canvas base format → explicit colour view format → matching frame attachments → colour-only resolve`
 - **Files You Touch:** `src/frame_targets.rs` (*Retain identical-format callers and accept an explicit compatible base/view pair.*) · `src/renderer.rs` (*Keep the output base format beside the existing colour view format.*) · `src/browser.rs` (*Pass the actual canvas base and rendering view formats separately.*) · `src/frame_target_tests.rs` (*Extend the existing actual GPU fixture across matching base/view pairs while retaining every depth/address, resize and release assertion.*)
@@ -3690,6 +3796,38 @@ Update the existing block with this supplied code; keep unchanged lines:
 <a id="checkpoint-96zzzzzzx-reuse-count-specific-surface-pipelines"></a>
 
 ### Step 4 of 19 · Reuse surface pipelines for each sample count (`96zzzzzzx-reuse-count-specific-surface-pipelines`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 4/19 Visual Trace (96zzzzzzx-reuse-count-specific-surface-pipelines): Reuse surface pipelines for each sample count</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/sample_pipelines.rs, src/surface_pipelines.rs, src/renderer.rs, src/instance_gpu.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Existing surface</text>
+    <text x="111" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">descriptor</text>
+    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">count-specific shader</text>
+    <text x="316" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">inputs</text>
+    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">lazy pipeline pair</text>
+    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">unchanged original</text>
+    <text x="726" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">geometry…</text>
+    
+</svg>
+</div>
 
 - **Goal:** Match ordinary and shared surface shaders and pipeline descriptors to the requested sample count while retaining original geometry and previously compiled variants.
 - **Data Flow Trace:** `Existing surface descriptor → count-specific shader inputs → lazy pipeline pair → unchanged original geometry and records`
@@ -5747,6 +5885,38 @@ After that block, append this supplied code:
 
 ### Step 5 of 19 · Generate ink shaders for physical samples (`96zzzzzzy-generate-ink-for-physical-samples`)
 
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 5/19 Visual Trace (96zzzzzzy-generate-ink-for-physical-samples): Generate ink shaders for physical samples</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/ink_plane.wgsl, src/finite_visibility.wgsl, src/finite_stroke.wgsl, src/finite_chain.wgsl</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Explicit sample argument</text>
+    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">matching depth and</text>
+    <text x="316" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original…</text>
+    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">sample-qualified pixel</text>
+    <text x="521" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">coordinates</text>
+    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">count-specific shader and</text>
+    <text x="726" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">pipeline…</text>
+    
+</svg>
+</div>
+
 - **Goal:** Carry an explicit physical sample through finite-ink visibility and generate colour shaders whose coordinates, depth, primitive addresses and pipeline descriptor use the same sample count.
 - **Data Flow Trace:** `Explicit sample argument → matching depth and original primitive reads → sample-qualified pixel coordinates → count-specific shader and pipeline descriptor`
 - **Files You Touch:** `src/ink_plane.wgsl` (*Carry the explicit physical sample through original finite-ink visibility; single-sample queries continue passing0.*) · `src/finite_visibility.wgsl` (*Carry the explicit physical sample through original finite-ink visibility; single-sample queries continue passing0.*) · `src/finite_stroke.wgsl` (*Carry the explicit physical sample through original finite-ink visibility; single-sample queries continue passing0.*) · `src/finite_chain.wgsl` (*Carry the explicit physical sample through original finite-ink visibility; single-sample queries continue passing0.*) · `src/finite_marker.wgsl` (*Carry the explicit physical sample through original finite-ink visibility; single-sample queries continue passing0.*) · `src/finite_stroke_pick.wgsl` (*Carry the explicit physical sample through original finite-ink visibility; single-sample queries continue passing0.*) · `src/finite_chain_pick.wgsl` (*Carry the explicit physical sample through original finite-ink visibility; single-sample queries continue passing0.*) · `src/finite_marker_pick.wgsl` (*Carry the explicit physical sample through original finite-ink visibility; single-sample queries continue passing0.*) · `src/finite_sources.rs` (*Generate only four-sample actual depth/address access and sample-qualified coverage; retain the original one-sample marker position.*) · `src/tile_shader_tests.rs` (*Retain every original compute/colour/query shader recipe and validate both counts across all six finite-ink styles with the same parser and full Naga assertions.*) · `src/finite_ink.rs` (*Carry the requested count from the pipeline descriptor into its shader recipe.*)
@@ -6939,6 +7109,38 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 ### Step 6 of 19 · Cache matching ink pipelines and bindings (`96zzzzzzz-cache-ink-pipelines-with-independent-queries`)
 
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 6/19 Visual Trace (96zzzzzzz-cache-ink-pipelines-with-independent-queries): Cache matching ink pipelines and bindings</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/stroke_gpu.rs, src/finite_ink.rs, src/finite_sample_tests.rs, src/ink_pixels_tests.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Shared static vertex</text>
+    <text x="111" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">attributes</text>
+    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">matching colour</text>
+    <text x="316" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">pipeline/layout…</text>
+    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">cached count switch</text>
+    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">fresh independent query</text>
+    <text x="726" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">bindings</text>
+    
+</svg>
+</div>
+
 - **Goal:** Retain matching finite-ink colour pipelines and binding layouts for both sample counts while keeping integer queries independent and sharing the original vertex-layout constants.
 - **Data Flow Trace:** `Shared static vertex attributes → matching colour pipeline/layout pair → cached count switch → fresh independent query bindings`
 - **Files You Touch:** `src/stroke_gpu.rs` (*Declare one shared static vertex-layout recipe; retain the original field offsets and strides.*) · `src/finite_ink.rs` (*Extract the binding recipe behind an explicit count parameter.*) · `src/finite_sample_tests.rs` (*Exercise actual six-family GPU colour coverage0..4, fresh independent original queries, exact return and cached pipeline/layout identities; optional proof exports remain portable.*) · `src/ink_pixels_tests.rs` (*Exercise actual six-family GPU colour coverage0..4, fresh independent original queries, exact return and cached pipeline/layout identities; optional proof exports remain portable.*)
@@ -7712,6 +7914,43 @@ Copy this supplied file:
 <a id="checkpoint-96zzzzzzza-retarget-existing-overlay-lanes"></a>
 
 ### Step 7 of 19 · Retarget existing overlay lanes (`96zzzzzzza-retarget-existing-overlay-lanes`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 7/19 Visual Trace (96zzzzzzza-retarget-existing-overlay-lanes): Retarget existing overlay lanes</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/stroke_gpu.rs, src/highlight.rs, src/tool_preview.rs, src/measure_gpu.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="91" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Requested count</text>
+    <line x1="164" y1="68" x2="180" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="182" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="255" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">lazy nonempty lane</text>
+    <text x="255" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">adoption</text>
+    <line x1="328" y1="68" x2="344" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="346" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="419" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">matching colour</text>
+    <text x="419" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">recipe</text>
+    <line x1="492" y1="68" x2="508" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="510" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="583" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">retained vertices</text>
+    <text x="583" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">and…</text>
+    <line x1="656" y1="68" x2="672" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="674" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="747" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">existing overlay</text>
+    <text x="747" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">owners</text>
+    
+</svg>
+</div>
 
 - **Goal:** Apply one requested sample count through existing overlay lanes while retaining their original vertices, IDs, query pipelines and previously compiled colour recipes.
 - **Data Flow Trace:** `Requested count → lazy nonempty lane adoption → matching colour recipe → retained vertices and IDs → existing overlay owners`
@@ -8581,6 +8820,36 @@ Copy this supplied file:
 
 ### Step 8 of 19 · Read section crossings at each sample (`96zzzzzzzb-read-section-crossings-at-each-sample`)
 
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 8/19 Visual Trace (96zzzzzzzb-read-section-crossings-at-each-sample): Read section crossings at each sample</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/cap_pipeline.rs, src/cap_color.wgsl, src/cap_pick_pipeline.rs, src/caps_gpu.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Original closed solid</text>
+    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">physical-sample crossings</text>
+    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">matching cap colour and</text>
+    <text x="521" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">plane…</text>
+    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">original cap owner query</text>
+    
+</svg>
+</div>
+
 - **Goal:** Match section crossing images and cap colour/depth to each physical sample while retaining original solid geometry, cached recipes and independent single-sample original-owner queries.
 - **Data Flow Trace:** `Original closed solid → physical-sample crossings → matching cap colour and plane depth → original cap owner query`
 - **Files You Touch:** `src/cap_pipeline.rs` (*Match active cap image, pipeline and physical sample count while retaining original geometry and independent one-sample queries.*) · `src/cap_color.wgsl` (*Use the actual physical sample in the same cap fragment calculation at both counts.*) · `src/cap_pick_pipeline.rs` (*Match active cap image, pipeline and physical sample count while retaining original geometry and independent one-sample queries.*) · `src/caps_gpu.rs` (*Match active cap image, pipeline and physical sample count while retaining original geometry and independent one-sample queries.*) · `src/cap_image.rs` (*Match active cap image, pipeline and physical sample count while retaining original geometry and independent one-sample queries.*) · `src/sample_surface_tests.rs` (*Retain the complete existing ordinary/shared surface fixture and add actual solid, hatch, selected cap, original-owner query, geometry/source preservation and exact return checks at both counts.*)
@@ -9365,6 +9634,36 @@ Update the existing block with this supplied code; keep unchanged lines:
 <a id="checkpoint-96zzzzzzzc-compose-cloud-depth-with-physical-addresses"></a>
 
 ### Step 9 of 19 · Compose cloud colour, depth and queries (`96zzzzzzzc-compose-cloud-depth-with-physical-addresses`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 9/19 Visual Trace (96zzzzzzzc-compose-cloud-depth-with-physical-addresses): Compose cloud colour, depth and queries</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/cloud_gpu.rs, src/cloud_resolve.wgsl, src/renderer.rs, src/sheet_gpu.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Original cloud points</text>
+    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">coherent opaque</text>
+    <text x="316" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">colour/depth/zero…</text>
+    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">actual ink occlusion</text>
+    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">fresh original-owner query</text>
+    
+</svg>
+</div>
 
 - **Goal:** Make nearer original clouds agree across visible colour, physical depth/addresses and independent original-owner queries, including ink in front and behind.
 - **Data Flow Trace:** `Original cloud points → coherent opaque colour/depth/zero surface address → actual ink occlusion → fresh original-owner query`
@@ -11938,6 +12237,39 @@ After that block, append this supplied code:
 
 ### Step 10 of 19 · Cache cloud and sheet sample recipes (`96zzzzzzzca-cache-cloud-and-sheet-samples`)
 
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 10/19 Visual Trace (96zzzzzzzca-cache-cloud-and-sheet-samples): Cache cloud and sheet sample recipes</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/cloud_gpu.rs, src/renderer.rs, src/sheet_gpu.rs, src/sheet_pipeline.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Original cloud/drawing</text>
+    <text x="111" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">sources</text>
+    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">retained point/pen</text>
+    <text x="316" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">resources</text>
+    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">cached count-specific</text>
+    <text x="521" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">colour…</text>
+    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">independent original</text>
+    <text x="726" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">owners</text>
+    
+</svg>
+</div>
+
 - **Goal:** Cache count-specific original cloud and sheet colour recipes while retaining original source geometry, point images/raster, drawing placements/IDs and independent one-sample owner queries.
 - **Data Flow Trace:** `Original cloud/drawing sources → retained point/pen resources → cached count-specific colour recipes → independent original owners`
 - **Files You Touch:** `src/cloud_gpu.rs` (*Cache matching cloud colour recipes while retaining source columns, point images/raster, original-owner queries and current appearance.*) · `src/renderer.rs` (*Late-created clouds adopt the current count before preparing source records.*) · `src/sheet_gpu.rs` (*Retain original drawing, raster/font resources and independent owner queries while caching matching colour recipes.*) · `src/sheet_pipeline.rs` (*Retain original drawing, raster/font resources and independent owner queries while caching matching colour recipes.*) · `src/cloud_address_tests.rs` (*Extend every existing physical address/rear-front source/cropped-query assertion to both counts and require real exact sample returns with full cached cloud usage retained.*) · `src/cloud_composite_tests.rs` (*Retain existing alpha/shading/viewport-edge/default/full-frame/original-owner parity assertions and extend them to all16settings at both physical counts.*) · `src/sample_surface_tests.rs` (*Retain every prior surface/section assertion and add actual sheet/cloud composition at both counts, complete sources/geometry/cache retention, exact returns and fresh original owners.*)
@@ -14303,6 +14635,38 @@ After that block, append this supplied code:
 
 ### Step 11 of 19 · Retarget cached text colour (`96zzzzzzzd-retarget-cached-text`)
 
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 11/19 Visual Trace (96zzzzzzzd-retarget-cached-text): Retarget cached text colour</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/text_plate.rs, src/text_plane.rs, src/scene_text_gpu.rs, src/renderer.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Original text/shaping</text>
+    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">retained font/atlas/world</text>
+    <text x="316" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">raster</text>
+    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">cached matching colour</text>
+    <text x="521" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">recipes</text>
+    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">independent original-owner</text>
+    <text x="726" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">queries</text>
+    
+</svg>
+</div>
+
 - **Goal:** Match world text, nameplates and screen glyph colour to physical sample counts while retaining original sources, shaping, fonts, atlas contents, world-plane raster images and independent original-owner queries.
 - **Data Flow Trace:** `Original text/shaping → retained font/atlas/world raster → cached matching colour recipes → independent original-owner queries`
 - **Files You Touch:** `src/text_plate.rs` (*Retain original drawing, raster/font resources and independent owner queries while caching matching colour recipes.*) · `src/text_plane.rs` (*Retain original drawing, raster/font resources and independent owner queries while caching matching colour recipes.*) · `src/scene_text_gpu.rs` (*Retain original drawing, raster/font resources and independent owner queries while caching matching colour recipes.*) · `src/renderer.rs` (*Late-created text adopts the current renderer count.*) · `src/sample_surface_tests.rs` (*Extend the supplied actual fixture to cached text colour without introducing the complete renderer API before all remaining consumers.*)
@@ -16493,6 +16857,36 @@ After that block, append this supplied code:
 
 ### Step 12 of 19 · Cache section masks and the final outline blend (`96zzzzzzze-cache-outline-section-recipes`)
 
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 12/19 Visual Trace (96zzzzzzze-cache-outline-section-recipes): Cache section masks and the final outline blend</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/outline_caps.rs, src/outline_composite.rs, src/outline_gpu.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Original section address</text>
+    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">matching physical coverage</text>
+    <text x="316" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">sample</text>
+    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">retained outline search</text>
+    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">one cached final blend</text>
+    
+</svg>
+</div>
+
 - **Goal:** Prepare count-specific section coverage and outline colour recipes while retaining original addresses, one-sample search images and one final black blend.
 - **Data Flow Trace:** `Original section address → matching physical coverage sample → retained outline search → one cached final blend`
 - **Files You Touch:** `src/outline_caps.rs` (*Match physical face/section coverage and colour recipes while retaining one-sample outline search images and a single final blend.*) · `src/outline_composite.rs` (*Match physical face/section coverage and colour recipes while retaining one-sample outline search images and a single final blend.*) · `src/outline_gpu.rs` (*Keep this prerequisite independently compilable: its current coverage producer is still one-sample. The next lesson passes the active physical count.*)
@@ -17058,6 +17452,36 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 <a id="checkpoint-96zzzzzzzf-resolve-float-outline-coverage"></a>
 
 ### Step 13 of 19 · Resolve float outline coverage (`96zzzzzzzf-resolve-float-outline-coverage`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 13/19 Visual Trace (96zzzzzzzf-resolve-float-outline-coverage): Resolve float outline coverage</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/outline_gpu.rs, src/outline_caps.rs, src/renderer.rs, src/sample_surface_tests.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Original physical</text>
+    <text x="111" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">face/section…</text>
+    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">float-only resolve</text>
+    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">retained search images</text>
+    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">one matching final blend</text>
+    
+</svg>
+</div>
 
 - **Goal:** Feed physical face and section coverage into the retained one-sample outline search and blend the selected/global result once, without resolving integer addresses or depth.
 - **Data Flow Trace:** `Original physical face/section coverage → float-only resolve → retained search images → one matching final blend`
@@ -19135,6 +19559,33 @@ After that block, append this supplied code:
 
 ### Step 14 of 19 · Retarget original ambient properties (`96zzzzzzzg-retarget-original-ambient-properties`)
 
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 14/19 Visual Trace (96zzzzzzzg-retarget-original-ambient-properties): Retarget original ambient properties</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/ambient_source_pipeline.rs, src/ambient_source_gpu.rs, src/ambient_image.rs, src/ambient_images.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Original face radii/normals</text>
+    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">matching physical source</text>
+    <text x="420" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">recipes/images</text>
+    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">retained one-sample ambient</text>
+    <text x="694" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">hierarchy</text>
+    
+</svg>
+</div>
+
 - **Goal:** Prepare cached physical-sample original radius and normal sources while retaining original geometry and the one-sample ambient hierarchy, filters and history images.
 - **Data Flow Trace:** `Original face radii/normals → matching physical source recipes/images → retained one-sample ambient hierarchy`
 - **Files You Touch:** `src/ambient_source_pipeline.rs` (*Prepare cached original-radius/normal sample recipes and retarget only their full-resolution source images; retain the one-sample ambient hierarchy and filters.*) · `src/ambient_source_gpu.rs` (*Prepare cached original-radius/normal sample recipes and retarget only their full-resolution source images; retain the one-sample ambient hierarchy and filters.*) · `src/ambient_image.rs` (*Prepare cached original-radius/normal sample recipes and retarget only their full-resolution source images; retain the one-sample ambient hierarchy and filters.*) · `src/ambient_images.rs` (*Prepare cached original-radius/normal sample recipes and retarget only their full-resolution source images; retain the one-sample ambient hierarchy and filters.*) · `src/ambient.wgsl` (*Prepare cached original-radius/normal sample recipes and retarget only their full-resolution source images; retain the one-sample ambient hierarchy and filters.*) · `src/ambient_pipeline.rs` (*Assemble the matching original-property/depth input declarations while keeping the coarse hierarchy single-sample.*) · `src/ambient_shader_contract.rs` (*Retain both existing full Naga contracts and additionally validate both assembled original-property sample modes before their consumer is connected.*)
@@ -20196,6 +20647,38 @@ After that block, append this supplied code:
 
 ### Step 15 of 19 · Share ambient shader recipes (`96zzzzzzzh-share-ambient-shader-recipes`)
 
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 15/19 Visual Trace (96zzzzzzzh-share-ambient-shader-recipes): Share ambient shader recipes</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/ambient_pipeline.rs, src/ambient_groups.rs, src/ambient_gpu.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Three distinct shader</text>
+    <text x="111" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">sources</text>
+    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">shared modules</text>
+    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">explicit</text>
+    <text x="521" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">vertex/fragment/count…</text>
+    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">retained composition</text>
+    <text x="726" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">inputs</text>
+    
+</svg>
+</div>
+
 - **Goal:** Reuse ambient shader modules and one pipeline factory, prepare matching physical input layouts and connect retained composition bindings before activating sparse sample corrections.
 - **Data Flow Trace:** `Three distinct shader sources → shared modules → explicit vertex/fragment/count recipes → retained composition inputs`
 - **Files You Touch:** `src/ambient_pipeline.rs` (*Share actual ambient shader modules, match physical inputs and prepare bounded sparse sample corrections while retaining the coarse one-sample recipes.*) · `src/ambient_groups.rs` (*Share actual ambient shader modules, match physical inputs and prepare bounded sparse sample corrections while retaining the coarse one-sample recipes.*) · `src/ambient_gpu.rs` (*Connect the retained camera and bounded one-sample work buffers to the current ambient groups.*)
@@ -20674,6 +21157,42 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 <a id="checkpoint-96zzzzzzzi-correct-ambient-at-physical-samples"></a>
 
 ### Step 16 of 19 · Correct ambient at physical samples (`96zzzzzzzi-correct-ambient-at-physical-samples`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 16/19 Visual Trace (96zzzzzzzi-correct-ambient-at-physical-samples): Correct ambient at physical samples</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/ambient_gpu.rs, src/ambient_groups.rs, src/renderer.rs, src/ambient_sample_inspect.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="91" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Matching original</text>
+    <text x="91" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">physical…</text>
+    <line x1="164" y1="68" x2="180" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="182" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="255" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">representative</text>
+    <text x="255" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">coarse…</text>
+    <line x1="328" y1="68" x2="344" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="346" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="419" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">changed-sample</text>
+    <text x="419" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">corrections</text>
+    <line x1="492" y1="68" x2="508" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="510" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="583" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">unique bounded tiles</text>
+    <line x1="656" y1="68" x2="672" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="674" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="747" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">indirect colour draw</text>
+    
+</svg>
+</div>
 
 - **Goal:** Connect matching original depth/address/radius/normal samples to bounded sparse ambient correction while retaining coarse images, source geometry and cached recipes.
 - **Data Flow Trace:** `Matching original physical inputs → representative coarse shading → changed-sample corrections → unique bounded tiles → indirect colour draw`
@@ -21175,6 +21694,36 @@ After that block, append this supplied code:
 
 ### Step 17 of 19 · Cache physical depth-pyramid inputs (`96zzzzzzzj-cache-physical-depth-pyramid-inputs`)
 
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 17/19 Visual Trace (96zzzzzzzj-cache-physical-depth-pyramid-inputs): Cache physical depth-pyramid inputs</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/pyramid_pipeline.rs, src/pyramid_gpu.rs, src/pyramid_gpu_tests.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Matching physical depth</text>
+    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">cached source recipe</text>
+    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">representative sample zero</text>
+    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">six retained single-sample</text>
+    <text x="726" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">levels</text>
+    
+</svg>
+</div>
+
 - **Goal:** Cache physical depth inputs while retaining the six one-sample coarse images and their encoded radius/pixel addresses.
 - **Data Flow Trace:** `Matching physical depth → cached source recipe → representative sample zero → six retained single-sample levels`
 - **Files You Touch:** `src/pyramid_pipeline.rs` (*Cache the matching physical-depth input recipe; retain the exact render descriptor, one-sample reductions and six coarse image levels.*) · `src/pyramid_gpu.rs` (*Retain coarse image identities and reduction groups; invalidate only an incompatible physical-depth input binding and its prepared result.*) · `src/pyramid_gpu_tests.rs` (*Extend the existing actual six-level positive-depth/radius-address GPU assertions to both physical inputs. The isolated fixture retargets only its active consumers until the next production API step.*)
@@ -21314,6 +21863,32 @@ Update the existing block with this supplied code; keep unchanged lines:
 <a id="checkpoint-96zzzzzzzk-retarget-the-complete-colour-frame"></a>
 
 ### Step 18 of 19 · Retarget the complete colour frame (`96zzzzzzzk-retarget-the-complete-colour-frame`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 18/19 Visual Trace (96zzzzzzzk-retarget-the-complete-colour-frame): Retarget the complete colour frame</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/renderer.rs, src/browser.rs, src/cloud_address_tests.rs, src/sample_surface_tests.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">One count owner</text>
+    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">compatible cached colour consumers</text>
+    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">matching attachments; independent</text>
+    <text x="694" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">original-owner…</text>
+    
+</svg>
+</div>
 
 - **Goal:** Retarget every active colour consumer and frame attachment through one production API while preserving independent original-owner queries.
 - **Data Flow Trace:** `One count owner → compatible cached colour consumers → matching attachments; independent original-owner queries retained`
@@ -23471,6 +24046,32 @@ After that block, append this supplied code:
 <a id="checkpoint-96zzzzzzzl-choose-bounded-frame-quality"></a>
 
 ### Step 19 of 19 · Choose bounded frame quality (`96zzzzzzzl-choose-bounded-frame-quality`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 19/19 Visual Trace (96zzzzzzzl-choose-bounded-frame-quality): Choose bounded frame quality</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/sample_quality.rs, src/lib.rs, src/renderer.rs, src/browser.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Active original geometry + physical</text>
+    <text x="146" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">pixels/density…</text>
+    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">one quality policy</text>
+    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">complete-frame count API</text>
+    
+</svg>
+</div>
 
 - **Goal:** Choose coherent colour samples from actual geometry, physical viewport, device budget and recovery without changing original sources or owner queries.
 - **Data Flow Trace:** `Active original geometry + physical pixels/density + budget + retained override → one quality policy → complete-frame count API`

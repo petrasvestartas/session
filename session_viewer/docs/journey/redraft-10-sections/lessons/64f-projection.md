@@ -4,106 +4,132 @@
 
 > **What You Will Learn & Build:** Measure point spacing in the current projection. By the final checkpoint (`64t-clouds`), you will exercise original clouds and real view-dependent detail.
 
-## 1. Visual Pipeline & WebGPU Architecture (Black & White Schematics)
+## 1. Visual WebGPU Explanation & Architecture (Black & White Schematics)
 
 <div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg viewBox="0 0 840 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg width="840" height="256" viewBox="0 0 840 256" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
       <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
   </defs>
-  <rect x="4" y="4" width="832" height="212" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Lesson 11.3 Execution Flow: View-dependent LOD and cached point splats</text>
-  <text x="20" y="46" font-size="11.5" fill="#111111">Concrete data pipeline you build in this lesson (19 Checkpoints: 64f-projection → 64t-clouds)</text>
-  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
+  <rect x="4" y="4" width="832" height="248" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Chapter 9 Visual Explanation: 2D (u,v) Trim Loops → 3D Trimmed B-Rep Surface, Bore Holes & Crease Normals</text>
+  <text x="20" y="45" font-size="11" fill="#111111">Left: 2D parameter domain (u,v) with outer + hole loops. Center: 3D trimmed face + wires. Right: Smooth G1 vs split crease normals.</text>
+  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
   
+    <!-- Panel A: 2D (u,v) Parameter Domain Trim Loops -->
+    <rect x="18" y="64" width="250" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="143" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">A. 2D (u, v) Parameter Domain</text>
+    <!-- Outer CCW loop square -->
+    <rect x="68" y="96" width="150" height="96" fill="url(#hatch)" stroke="#111111" stroke-width="1.75"/>
+    <!-- Inner CW hole loop circle (white cutout!) -->
+    <circle cx="143" cy="144" r="26" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+    <text x="143" y="148" text-anchor="middle" font-size="9" font-weight="700" fill="#111111">Hole (CW)</text>
+    <text x="143" y="109" text-anchor="middle" font-size="9" font-weight="700" fill="#111111">Outer Loop (CCW)</text>
+    <text x="143" y="210" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">Trimmed domain in (u, v) ∈ [0,1]²</text>
+    <text x="143" y="225" text-anchor="middle" font-size="9" fill="#111111">Validated loop closure &amp; orientation</text>
+
+    <line x1="268" y1="154" x2="290" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <!-- Panel B: 3D Curved B-Rep Surface Patch with Bore Hole -->
+    <rect x="292" y="64" width="275" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="429" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">B. 3D B-Rep Surface S(u,v) + Wires</text>
+    <!-- Curved 3D patch shape -->
+    <path d="M 325 170 Q 380 95 450 110 L 535 145 Q 470 195 395 190 Z" fill="url(#hatch)" stroke="#111111" stroke-width="2"/>
+    <!-- Elliptical 3D bore hole cutout in white -->
+    <ellipse cx="430" cy="148" rx="28" ry="15" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+    <text x="430" y="151" text-anchor="middle" font-size="8.5" font-weight="700" fill="#111111">Empty Bore</text>
+    <text x="429" y="210" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">Shaded Face + Analytical Boundary Wires</text>
+    <text x="429" y="225" text-anchor="middle" font-size="9" fill="#111111">Unified Rg32Uint [brep_owner_id, sub_id]</text>
+
+    <line x1="567" y1="154" x2="589" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <!-- Panel C: Smooth G1 vs Crease-Split Normals -->
+    <rect x="591" y="64" width="231" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="706" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">C. Smooth vs. Crease Normals</text>
+    <!-- Smooth curve on left -->
+    <path d="M 608 175 Q 645 130 682 175" fill="none" stroke="#111111" stroke-width="2"/>
+    <circle cx="645" cy="152" r="3.5" fill="#111111"/>
+    <line x1="645" y1="152" x2="645" y2="105" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+    <text x="645" y="100" text-anchor="middle" font-size="9" font-weight="700" fill="#111111">1 Shared N</text>
+    <text x="645" y="192" text-anchor="middle" font-size="9" fill="#111111">Smooth G1</text>
+    <!-- Sharp crease corner on right -->
+    <polyline points="718,175 758,142 798,175" fill="none" stroke="#111111" stroke-width="2"/>
+    <circle cx="758" cy="142" r="3.5" fill="#111111"/>
+    <line x1="758" y1="142" x2="730" y2="106" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+    <line x1="758" y1="142" x2="786" y2="106" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+    <text x="758" y="100" text-anchor="middle" font-size="9" font-weight="700" fill="#111111">Split N1 ≠ N2</text>
+    <text x="758" y="192" text-anchor="middle" font-size="9" fill="#111111">Sharp Crease</text>
+    <text x="706" y="218" text-anchor="middle" font-size="9" fill="#111111">Crease edges split vertices so shading</text>
+    <text x="706" y="231" text-anchor="middle" font-size="9" fill="#111111">stays crisp across mechanical edges</text>
     
-    <rect x="18" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="89" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
-    <line x1="28" y1="92" x2="151" y2="92" stroke="#111111" stroke-width="0.75"/>
-    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">source spacing and</text>
-    <text x="89" y="124" text-anchor="middle" font-size="11" fill="#111111">model</text>
-    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="183" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="254" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
-    <line x1="193" y1="92" x2="316" y2="92" stroke="#111111" stroke-width="0.75"/>
-    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">camera distance or</text>
-    <text x="254" y="124" text-anchor="middle" font-size="11" fill="#111111">half-height</text>
-    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="348" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
-    <line x1="358" y1="92" x2="481" y2="92" stroke="#111111" stroke-width="0.75"/>
-    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">physical pixel</text>
-    <text x="419" y="124" text-anchor="middle" font-size="11" fill="#111111">spacing</text>
-    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="513" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="584" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
-    <line x1="523" y1="92" x2="646" y2="92" stroke="#111111" stroke-width="0.75"/>
-    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">split decision</text>
-    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="678" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="749" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
-    <line x1="688" y1="92" x2="811" y2="92" stroke="#111111" stroke-width="0.75"/>
-    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">original cloud</text>
-    <text x="749" y="124" text-anchor="middle" font-size="11" fill="#111111">fixture</text>
-    
-    <rect x="18" y="162" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="32" y="181" font-size="11" font-weight="700" fill="#111111">Files You Edit in Lesson 11.3:</text>
-    <text x="215" y="181" font-size="11" fill="#111111">src/cloud_lod.rs  ·  src/lib.rs  ·  src/cloud_tests.rs  ·  src/cloud_points.wgsl  ·  src/cloud_normals.rs  ·  src/cloud_resolve.wgsl</text>
-    <text x="32" y="198" font-size="10.5" fill="#111111">19 Checkpoints: 64f-projection → 64t-clouds — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
-  
 </svg>
 </div>
 
 <div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg viewBox="0 0 840 240" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg width="840" height="214" viewBox="0 0 840 214" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
       <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
   </defs>
-  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Chapter 9 CAD B-Rep Pipeline: Topological Loops/Trims, Crease Normals & Analytical Boundary Wires</text>
-  <text x="20" y="46" font-size="11.5" fill="#111111">How exact Boundary Representations (B-Rep) combine shaded trimmed surface meshes with crisp analytical boundary & isoline curves.</text>
-  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
+  <rect x="4" y="4" width="832" height="206" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Lesson 11.3 Pipeline Schematic: View-dependent LOD and cached point splats</text>
+  <text x="20" y="45" font-size="11" fill="#111111">Step-by-step data flow you implement in this lesson (19 Checkpoints: 64f-projection → 64t-clouds)</text>
+  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
   
-    <rect x="18" y="68" width="245" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="140" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">1. B-Rep Topological Validation</text>
-    <text x="28" y="108" font-size="10.5" fill="#111111">• Solid -&gt; Faces -&gt; Loops (Outer + Holes)</text>
-    <text x="28" y="126" font-size="10.5" fill="#111111">• Trim curves in 2D (u, v) domain</text>
-    <text x="28" y="144" font-size="10.5" font-weight="600" fill="#111111">• Validate orientation, loop closure,</text>
-    <text x="28" y="160" font-size="10.5" font-weight="600" fill="#111111">  and manifold edge adjacency</text>
-    <text x="28" y="180" font-size="10.5" fill="#111111">• Preserve exact NURBS surface source</text>
-
-    <line x1="263" y1="112" x2="295" y2="112" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
-    <line x1="263" y1="175" x2="295" y2="175" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
-
-    <rect x="297" y="68" width="275" height="68" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="309" y="86" font-size="11" font-weight="700" fill="#111111">2A. Shaded Trimmed Faces (Surface Lane)</text>
-    <text x="309" y="104" font-size="10.5" fill="#111111">• Tessellate within (u,v) trim loops</text>
-    <text x="309" y="120" font-size="10.5" fill="#111111">• Smooth normals across G1; split at creases!</text>
-
-    <rect x="297" y="145" width="275" height="68" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="309" y="163" font-size="11" font-weight="700" fill="#111111">2B. Boundary Wires &amp; Isolines (Ribbon Lane)</text>
-    <text x="309" y="181" font-size="10.5" fill="#111111">• Extract 3D topological edges + UV isolines</text>
-    <text x="309" y="197" font-size="10.5" fill="#111111">• Render via ribbon.wgsl with depth bias</text>
-
-    <line x1="572" y1="138" x2="602" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
-
-    <rect x="604" y="68" width="216" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="712" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">3. Unified B-Rep Sub-Picking</text>
-    <text x="616" y="108" font-size="10.5" fill="#111111">• Every triangle &amp; wire carries</text>
-    <text x="616" y="124" font-size="10.5" font-weight="600" fill="#111111">  [brep_owner_id, sub_id]</text>
-    <text x="616" y="144" font-size="10" fill="#111111">• Click selects whole B-Rep solid</text>
-    <text x="616" y="159" font-size="10" fill="#111111">  or drills into Face #i / Edge #j</text>
-    <text x="616" y="178" font-size="10.5" fill="#111111">• Outlines &amp; Point Clouds (Sec 6)</text>
-    <text x="616" y="193" font-size="10" fill="#111111">  share the same owner ID contract</text>
     
+    <rect x="18" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="89" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
+    <line x1="28" y1="90" x2="151" y2="90" stroke="#111111" stroke-width="0.75"/>
+    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">source spacing and</text>
+    <text x="89" y="124" text-anchor="middle" font-size="11" fill="#111111">model</text>
+    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="183" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="254" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
+    <line x1="193" y1="90" x2="316" y2="90" stroke="#111111" stroke-width="0.75"/>
+    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">camera distance or</text>
+    <text x="254" y="124" text-anchor="middle" font-size="11" fill="#111111">half-height</text>
+    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="348" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="419" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
+    <line x1="358" y1="90" x2="481" y2="90" stroke="#111111" stroke-width="0.75"/>
+    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">physical pixel</text>
+    <text x="419" y="124" text-anchor="middle" font-size="11" fill="#111111">spacing</text>
+    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="513" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="584" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
+    <line x1="523" y1="90" x2="646" y2="90" stroke="#111111" stroke-width="0.75"/>
+    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">split decision</text>
+    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="678" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="749" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
+    <line x1="688" y1="90" x2="811" y2="90" stroke="#111111" stroke-width="0.75"/>
+    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">original cloud</text>
+    <text x="749" y="124" text-anchor="middle" font-size="11" fill="#111111">fixture</text>
+    
+    <rect x="18" y="158" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="32" y="177" font-size="11" font-weight="700" fill="#111111">Files Modified in Lesson 11.3:</text>
+    <text x="235" y="177" font-size="11" fill="#111111">src/cloud_lod.rs  ·  src/lib.rs  ·  src/cloud_tests.rs  ·  src/cloud_points.wgsl  ·  src/cloud_normals.rs  ·  src/cloud_resolve.wgsl</text>
+    <text x="32" y="194" font-size="10.5" fill="#111111">19 Checkpoints: 64f-projection → 64t-clouds — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
+  
 </svg>
 </div>
 
@@ -148,11 +174,41 @@ Before writing code, review how the three layers in this chapter talk to each ot
 
 ## 4. Step-by-Step Coding Notebook (Concept + Implementation)
 
-Work through each notebook cell below in order inside `workspace/journey`. Read the **Concept Walkthrough** and **Self-Check Q&A** first, then expand the **Implementation** block to type and verify the code.
+Work through each notebook cell below in order inside `workspace/journey`. Study the **Visual Step Trace**, read the **Concept Walkthrough** and **Self-Check Q&A**, then expand the **Implementation** block to type and verify the code.
 
 <a id="checkpoint-64f-projection"></a>
 
 ### Step 1 of 19 · Measure point spacing in the current projection (`64f-projection`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 1/19 Visual Trace (64f-projection): Measure point spacing in the current projection</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/cloud_lod.rs, src/lib.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">source spacing and model</text>
+    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">camera distance or</text>
+    <text x="316" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">half-height</text>
+    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">physical pixel spacing</text>
+    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">split decision</text>
+    
+</svg>
+</div>
 
 - **Goal:** Measure point spacing in the current projection.
 - **Data Flow Trace:** `source spacing and model → camera distance or half-height → physical pixel spacing → split decision`
@@ -207,6 +263,35 @@ After that block, type:
 <a id="checkpoint-64g-detail"></a>
 
 ### Step 2 of 19 · Walk only detail whose screen spacing needs refinement (`64g-detail`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 2/19 Visual Trace (64g-detail): Walk only detail whose screen spacing needs refinement</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/cloud_lod.rs, src/cloud_tests.rs, src/lib.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">root run</text>
+    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">screen-spacing decision</text>
+    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">chosen children</text>
+    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">bounded source runs</text>
+    
+</svg>
+</div>
 
 - **Goal:** Walk only detail whose screen spacing needs refinement.
 - **Data Flow Trace:** `root run → screen-spacing decision → chosen children → bounded source runs`
@@ -297,6 +382,23 @@ After that block, append this supplied code:
 
 ### Step 3 of 19 · Declare point-cloud records and decode source normals (`64h-shaders`)
 
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 3/19 Visual Trace (64h-shaders): Declare point-cloud records and decode source normals</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/cloud_points.wgsl</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="804" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">declare point-cloud records and decode source normals</text>
+    
+</svg>
+</div>
+
 - **Goal:** Match the existing forty-word row layout and decode packed normals with a guarded inverse-transpose transform.
 - **Data Flow Trace:** `declare point-cloud records and decode source normals`
 - **Files You Touch:** `src/cloud_points.wgsl` (*Match the existing forty-word row layout and decode packed normals with a guarded inverse-transpose transform.*)
@@ -331,6 +433,23 @@ Create the file and type:
 <a id="checkpoint-64ha-project-original-cloud-rows-to-bounded-point-splats"></a>
 
 ### Step 4 of 19 · Project original cloud rows to bounded point splats (`64ha-project-original-cloud-rows-to-bounded-point-splats`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 4/19 Visual Trace (64ha-project-original-cloud-rows-to-bounded-point-splats): Project original cloud rows to bounded point splats</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/cloud_points.wgsl</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="804" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">project original cloud rows to bounded point splats</text>
+    
+</svg>
+</div>
 
 - **Goal:** Find the owning row by its original point interval and project one source position to a bounded screen disc.
 - **Data Flow Trace:** `project original cloud rows to bounded point splats`
@@ -500,6 +619,23 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 ### Step 5 of 19 · Rasterize source point discs with integer ownership (`64hb-rasterize-source-point-discs-with-integer-ownership`)
 
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 5/19 Visual Trace (64hb-rasterize-source-point-discs-with-integer-ownership): Rasterize source point discs with integer ownership</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/cloud_points.wgsl</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="804" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">rasterize source point discs with integer ownership</text>
+    
+</svg>
+</div>
+
 - **Goal:** Expand each projected point into a bounded quad, reject fragments outside its disc and preserve original owner addresses.
 - **Data Flow Trace:** `rasterize source point discs with integer ownership`
 - **Files You Touch:** `src/cloud_points.wgsl` (*Expand each projected point into a bounded quad, reject fragments outside its disc and preserve original owner addresses.*)
@@ -613,6 +749,23 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 ### Step 6 of 19 · Encode original cloud normals and resolve point targets (`64hc-encode-original-cloud-normals-and-resolve-point-targets`)
 
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 6/19 Visual Trace (64hc-encode-original-cloud-normals-and-resolve-point-targets): Encode original cloud normals and resolve point targets</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/cloud_normals.rs, src/lib.rs, src/cloud_resolve.wgsl</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="804" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">encode original cloud normals and resolve point targets</text>
+    
+</svg>
+</div>
+
 - **Goal:** Pack source normals once and resolve color, depth and original owner IDs with one pixel convention.
 - **Data Flow Trace:** `encode original cloud normals and resolve point targets`
 - **Files You Touch:** `src/cloud_normals.rs` (*Copy current production oct-normal packing.*) · `src/lib.rs` (*Register the source component.*) · `src/cloud_resolve.wgsl` (*Resolve cached forward depth and original whole-owner IDs through a bounded pick-window origin.*)
@@ -678,6 +831,23 @@ Create the file and type:
 <a id="checkpoint-64hd-check-cloud-shaders-on-the-actual-browser-device"></a>
 
 ### Step 7 of 19 · Check cloud shaders on the actual browser device (`64hd-check-cloud-shaders-on-the-actual-browser-device`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 7/19 Visual Trace (64hd-check-cloud-shaders-on-the-actual-browser-device): Check cloud shaders on the actual browser device</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/shader_check.rs, src/lib.rs, Cargo.toml, src/renderer.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="804" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">check cloud shaders on the actual browser device</text>
+    
+</svg>
+</div>
 
 - **Goal:** Await real shader compilation info before connecting the point passes.
 - **Data Flow Trace:** `check cloud shaders on the actual browser device`
@@ -856,6 +1026,35 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 ### Step 8 of 19 · Upload original point columns once per shared source (`64i-columns`)
 
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 8/19 Visual Trace (64i-columns): Upload original point columns once per shared source</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/cloud_gpu.rs, src/lib.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">immutable original columns</text>
+    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">checked GPU buffers</text>
+    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">shared upload</text>
+    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">independent instance frame</text>
+    
+</svg>
+</div>
+
 - **Goal:** Upload original point columns once per shared source.
 - **Data Flow Trace:** `immutable original columns → checked GPU buffers → shared upload → independent instance frame`
 - **Files You Touch:** `src/cloud_gpu.rs` (*Create checked original column uploads and explicit view facts.*) · `src/lib.rs` (*Register the source component.*)
@@ -910,6 +1109,35 @@ After that block, type:
 
 ### Step 9 of 19 · Own the cached cloud images and frame identity (`64j-targets`)
 
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 9/19 Visual Trace (64j-targets): Own the cached cloud images and frame identity</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/cloud_gpu.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">source draw owners</text>
+    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">cached images</text>
+    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">full frame key</text>
+    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">truthful allocation counts</text>
+    
+</svg>
+</div>
+
 - **Goal:** Own the cached cloud images and frame identity.
 - **Data Flow Trace:** `source draw owners → cached images → full frame key → truthful allocation counts`
 - **Files You Touch:** `src/cloud_gpu.rs` (*Own cached colour/depth/IDs, per-instance draw records and complete frame identity.*)
@@ -953,6 +1181,35 @@ After that block, type:
 <a id="checkpoint-64k-layouts"></a>
 
 ### Step 10 of 19 · Bind source storage and cached pixels explicitly (`64k-layouts`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 10/19 Visual Trace (64k-layouts): Bind source storage and cached pixels explicitly</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/cloud_gpu.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">source storage layouts</text>
+    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">point pipeline</text>
+    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">cached pixel layouts</text>
+    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">scene-depth comparison</text>
+    
+</svg>
+</div>
 
 - **Goal:** Bind source storage and cached pixels explicitly.
 - **Data Flow Trace:** `source storage layouts → point pipeline → cached pixel layouts → scene-depth comparison`
@@ -1359,6 +1616,35 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 <a id="checkpoint-64l-pipelines"></a>
 
 ### Step 11 of 19 · Create a lazy cloud lane with reusable pipelines (`64l-pipelines`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 11/19 Visual Trace (64l-pipelines): Create a lazy cloud lane with reusable pipelines</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/cloud_gpu.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">current shaders</text>
+    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">reusable pipelines</text>
+    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">shared settings</text>
+    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">consistent radius units</text>
+    
+</svg>
+</div>
 
 - **Goal:** Create a lazy cloud lane with reusable pipelines.
 - **Data Flow Trace:** `current shaders → reusable pipelines → shared settings → consistent radius units`
@@ -1830,6 +2116,35 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 ### Step 12 of 19 · Share column uploads across placed cloud rows (`64m-cache`)
 
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 12/19 Visual Trace (64m-cache): Share column uploads across placed cloud rows</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/cloud_gpu.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">source pointer identity</text>
+    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">shared columns</text>
+    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">independent row records</text>
+    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">pruned owners</text>
+    
+</svg>
+</div>
+
 - **Goal:** Share column uploads across placed cloud rows.
 - **Data Flow Trace:** `source pointer identity → shared columns → independent row records → pruned owners`
 - **Files You Touch:** `src/cloud_gpu.rs` (*Reuse original GPU columns across row placements and count actual shared allocations.*)
@@ -1875,6 +2190,35 @@ Edit the existing block to match this code; keep unchanged lines:
 <a id="checkpoint-64n-records"></a>
 
 ### Step 13 of 19 · Encode each source run in the exact 160-byte layout (`64n-records`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 13/19 Visual Trace (64n-records): Encode each source run in the exact 160-byte layout</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/cloud_gpu.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">chosen original run</text>
+    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">cumulative count</text>
+    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">40 exact words</text>
+    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">original source lookup</text>
+    
+</svg>
+</div>
 
 - **Goal:** Encode each source run in the exact 160-byte layout.
 - **Data Flow Trace:** `chosen original run → cumulative count → 40 exact words → original source lookup`
@@ -2507,6 +2851,35 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 ### Step 14 of 19 · Keep one shared record budget for the whole view (`64o-runs`)
 
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 14/19 Visual Trace (64o-runs): Keep one shared record budget for the whole view</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/cloud_gpu.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">current view</text>
+    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">chosen runs</text>
+    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">shared record budget</text>
+    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">capacity-bounded upload</text>
+    
+</svg>
+</div>
+
 - **Goal:** Keep one shared record budget for the whole view.
 - **Data Flow Trace:** `current view → chosen runs → shared record budget → capacity-bounded upload`
 - **Files You Touch:** `src/cloud_gpu.rs` (*Select bounded view runs and grow record storage only to used capacity.*)
@@ -2552,6 +2925,36 @@ Edit the existing block to match this code; keep unchanged lines:
 <a id="checkpoint-64p-frame"></a>
 
 ### Step 15 of 19 · Cache the nearest point frame until its inputs change (`64p-frame`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 15/19 Visual Trace (64p-frame): Cache the nearest point frame until its inputs change</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/cloud_gpu.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">changed frame facts</text>
+    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">chosen source records</text>
+    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">cached nearest points</text>
+    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">shared colour and pick</text>
+    <text x="726" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">resolve</text>
+    
+</svg>
+</div>
 
 - **Goal:** Cache the nearest point frame until its inputs change.
 - **Data Flow Trace:** `changed frame facts → chosen source records → cached nearest points → shared colour and pick resolve`
@@ -3406,6 +3809,35 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 ### Step 16 of 19 · Create and release the cloud renderer only when needed (`64q-owner`)
 
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 16/19 Visual Trace (64q-owner): Create and release the cloud renderer only when needed</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/renderer.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">scene cloud rows</text>
+    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">lazy lane</text>
+    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">reused source owners</text>
+    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">immediate Close cleanup</text>
+    
+</svg>
+</div>
+
 - **Goal:** Create and release the cloud renderer only when needed.
 - **Data Flow Trace:** `scene cloud rows → lazy lane → reused source owners → immediate Close cleanup`
 - **Files You Touch:** `src/renderer.rs` (*Connect lazy cloud scene owners, explicit source sharing, counters and immediate cleanup.*)
@@ -4033,6 +4465,36 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 <a id="checkpoint-64r-draw"></a>
 
 ### Step 17 of 19 · Use the cached cloud depth in colour and integer passes (`64r-draw`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 17/19 Visual Trace (64r-draw): Use the cached cloud depth in colour and integer passes</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/renderer.rs, src/pick_gpu.rs, src/pick_encode.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">prepared cached points</text>
+    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">scene depth</text>
+    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">bounded original whole</text>
+    <text x="521" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">owner</text>
+    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">existing selection</text>
+    
+</svg>
+</div>
 
 - **Goal:** Use the cached cloud depth in colour and integer passes.
 - **Data Flow Trace:** `prepared cached points → scene depth → bounded original whole owner → existing selection`
@@ -4909,6 +5371,35 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 <a id="checkpoint-64s-diagnostics"></a>
 
 ### Step 18 of 19 · Expose cloud source payload detail and actual GPU resources (`64s-diagnostics`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 18/19 Visual Trace (64s-diagnostics): Expose cloud source payload detail and actual GPU resources</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/memory.rs, src/browser.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">current camera facts</text>
+    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">chosen detail</text>
+    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">source and GPU diagnostics</text>
+    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">visible preparation errors</text>
+    
+</svg>
+</div>
 
 - **Goal:** Expose cloud source payload detail and actual GPU resources.
 - **Data Flow Trace:** `current camera facts → chosen detail → source and GPU diagnostics → visible preparation errors`
@@ -5857,6 +6348,35 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 <a id="checkpoint-64t-clouds"></a>
 
 ### Step 19 of 19 · Exercise original clouds and real view-dependent detail (`64t-clouds`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 19/19 Visual Trace (64t-clouds): Exercise original clouds and real view-dependent detail</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/cloud.rs, src/editor.rs, src/commands.rs, src/cloud_tests.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original cloud fixture</text>
+    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">current-view detail</text>
+    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">shared source uploads</text>
+    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">reversible row edits</text>
+    
+</svg>
+</div>
 
 - **Goal:** Exercise original clouds and real view-dependent detail.
 - **Data Flow Trace:** `original cloud fixture → current-view detail → shared source uploads → reversible row edits`

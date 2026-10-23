@@ -4,105 +4,120 @@
 
 > **What You Will Learn & Build:** Prepare bounded row reuse without moving surviving originals. By the final checkpoint (`96zzzzh-pick-caps-through-shared-records`), you will connect both cap crossing passes to current records and retain original owners.
 
-## 1. Visual Pipeline & WebGPU Architecture (Black & White Schematics)
+## 1. Visual WebGPU Explanation & Architecture (Black & White Schematics)
 
 <div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg viewBox="0 0 840 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg width="840" height="256" viewBox="0 0 840 256" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
       <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
   </defs>
-  <rect x="4" y="4" width="832" height="212" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Lesson 20.5 Execution Flow: Original picks, ambient metadata and cap consumers</text>
-  <text x="20" y="46" font-size="11.5" fill="#111111">Concrete data pipeline you build in this lesson (16 Checkpoints: 96zzzs-allocate-stable-object-record-rows → 96zzzzh-pick-caps-through-shared-records)</text>
-  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
+  <rect x="4" y="4" width="832" height="248" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Section 10 Visual Explanation: Shared GPU Storage Arena, f64 Floating Origin, Reversed-Z, 4x MSAA & Matrix Shader</text>
+  <text x="20" y="45" font-size="11" fill="#111111">Left: Growable storage arena + vertex pulling. Center: Camera-relative f64→f32 floating origin & Reversed-Z. Right: 4x MSAA + Matrix.</text>
+  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
   
+    <rect x="18" y="64" width="255" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="145" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">A. Shared GPU Storage Arena</text>
+    <rect x="34" y="100" width="222" height="32" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <rect x="34" y="100" width="65" height="32" fill="url(#hatch)" stroke="#111111" stroke-width="1.2"/>
+    <rect x="145" y="100" width="55" height="32" fill="url(#hatch)" stroke="#111111" stroke-width="1.2"/>
+    <text x="122" y="120" text-anchor="middle" font-size="9" font-weight="700" fill="#111111">Free Span</text>
+    <text x="145" y="156" text-anchor="middle" font-size="9.5" font-weight="700" fill="#111111">Vertex Pulling (@builtin(vertex_index))</text>
+    <text x="145" y="176" text-anchor="middle" font-size="9.5" fill="#111111">8-byte Draw Slots -&gt; ObjectRecord</text>
+    <text x="145" y="194" text-anchor="middle" font-size="9.5" fill="#111111">slot_table.wgsl resolves owner IDs</text>
+
+    <line x1="273" y1="154" x2="295" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="297" y="64" width="265" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="429" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">B. f64 Floating Origin &amp; Reversed-Z</text>
+    <rect x="313" y="98" width="233" height="54" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.2"/>
+    <text x="429" y="116" text-anchor="middle" font-size="10" font-weight="700" fill="#111111">rel_f32 = (world_f64 - anchor_f64) as f32</text>
+    <text x="429" y="134" text-anchor="middle" font-size="9.5" fill="#111111">Eliminates f32 vertex jitter at 10^12 m!</text>
+    <rect x="313" y="162" width="233" height="64" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="429" y="180" text-anchor="middle" font-size="10" font-weight="700" fill="#111111">Reversed-Z Depth (GreaterEqual)</text>
+    <text x="429" y="198" text-anchor="middle" font-size="9.5" fill="#111111">Near Plane = 1.0  →  Far Plane = 0.0</text>
+    <text x="429" y="214" text-anchor="middle" font-size="9" fill="#111111">Preserves live camera across .pb reload</text>
+
+    <line x1="562" y1="154" x2="584" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="586" y="64" width="236" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="704" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">C. 4x MSAA &amp; Matrix Shader</text>
+    <rect x="602" y="98" width="204" height="128" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="704" y="118" text-anchor="middle" font-size="10" font-weight="700" fill="#111111">Coherent 1x / 4x Sample Targets</text>
+    <text x="614" y="138" font-size="9.5" fill="#111111">• Color + Depth32Float at 4x MSAA</text>
+    <text x="614" y="156" font-size="9.5" fill="#111111">• Rg32Uint Pick Target stays 1x</text>
+    <text x="614" y="176" font-size="9.5" font-weight="700" fill="#111111">• matrix.wgsl procedural cells:</text>
+    <text x="614" y="192" font-size="9" fill="#111111">  3-decimal digits, 0 blank, plate-less</text>
+    <text x="614" y="207" font-size="9" fill="#111111">  world title &amp; yellow selected border</text>
     
-    <rect x="18" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="89" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
-    <line x1="28" y1="92" x2="151" y2="92" stroke="#111111" stroke-width="0.75"/>
-    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">Original IDs plus</text>
-    <text x="89" y="124" text-anchor="middle" font-size="11" fill="#111111">previous rows</text>
-    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="183" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="254" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
-    <line x1="193" y1="92" x2="316" y2="92" stroke="#111111" stroke-width="0.75"/>
-    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">retained rows and</text>
-    <text x="254" y="124" text-anchor="middle" font-size="11" fill="#111111">reused holes</text>
-    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="348" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
-    <line x1="358" y1="92" x2="481" y2="92" stroke="#111111" stroke-width="0.75"/>
-    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">Current record and</text>
-    <text x="419" y="124" text-anchor="middle" font-size="11" fill="#111111">explicit plane</text>
-    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="513" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="584" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
-    <line x1="523" y1="92" x2="646" y2="92" stroke="#111111" stroke-width="0.75"/>
-    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">atomic crossings</text>
-    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="678" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="749" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
-    <line x1="688" y1="92" x2="811" y2="92" stroke="#111111" stroke-width="0.75"/>
-    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">original integer</text>
-    <text x="749" y="124" text-anchor="middle" font-size="11" fill="#111111">cap owner</text>
-    
-    <rect x="18" y="162" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="32" y="181" font-size="11" font-weight="700" fill="#111111">Files You Edit in Lesson 20.5:</text>
-    <text x="215" y="181" font-size="11" fill="#111111">src/instance_gpu.rs  ·  src/global_outline_tests.rs  ·  src/object_rows.rs  ·  src/triangle_pick.wgsl  ·  src/pick_pipeline.rs  ·  src/pick_gpu.rs</text>
-    <text x="32" y="198" font-size="10.5" fill="#111111">16 Checkpoints: 96zzzs-allocate-stable-object-record-rows → 96zzzzh-pick-caps-through-shared-records — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
-  
 </svg>
 </div>
 
 <div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg viewBox="0 0 840 240" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg width="840" height="214" viewBox="0 0 840 214" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
       <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
   </defs>
-  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Section 10 Production Architecture: Shared GPU Storage Arena, f64 Floating Origin, Reversed-Z, 4x MSAA & Matrix Shader</text>
-  <text x="20" y="46" font-size="11.5" fill="#111111">How the maintained viewer pulls vertices from one growable GPU arena, eliminates jitter at 10^12 units, and renders procedural Matrices.</text>
-  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
+  <rect x="4" y="4" width="832" height="206" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Lesson 20.5 Pipeline Schematic: Original picks, ambient metadata and cap consumers</text>
+  <text x="20" y="45" font-size="11" fill="#111111">Step-by-step data flow you implement in this lesson (16 Checkpoints: 96zzzs-allocate-stable-object-record-rows → 96zzzzh-pick-caps-through-shared-records)</text>
+  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
   
-    <rect x="18" y="68" width="250" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="143" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">1. Shared GPU Arena (Ch 19–20)</text>
-    <text x="28" y="108" font-size="10.5" fill="#111111">• 1 Growable Storage Buffer Arena</text>
-    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#111111">• Vertex Pulling (@builtin(vertex_index))</text>
-    <text x="28" y="144" font-size="10.5" fill="#111111">• 8-byte Draw Slots -&gt; ObjectRecord</text>
-    <text x="28" y="162" font-size="10.5" fill="#111111">• slot_table.wgsl maps Rg32Uint</text>
-    <text x="28" y="178" font-size="10.5" fill="#111111">  primitive IDs to Element/Face owners</text>
-    <text x="28" y="194" font-size="10" fill="#111111">• Free-list span reuse after GPU lease</text>
-
-    <line x1="268" y1="138" x2="298" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
-
-    <rect x="300" y="68" width="265" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="432" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">2. f64 Floating Origin &amp; Reversed-Z (Ch 21)</text>
-    <text x="312" y="108" font-size="10.5" font-weight="600" fill="#111111">• rel_f32 = (world_f64 - anchor_f64) as f32</text>
-    <text x="312" y="125" font-size="10" fill="#111111">  Zero vertex/grid jitter even at 10^12 m!</text>
-    <text x="312" y="144" font-size="10.5" font-weight="600" fill="#111111">• Reversed-Z Depth (GreaterEqual):</text>
-    <text x="312" y="160" font-size="10" fill="#111111">  Near plane = 1.0, Far plane = 0.0</text>
-    <text x="312" y="178" font-size="10.5" fill="#111111">• Held world base grid &amp; preserved</text>
-    <text x="312" y="193" font-size="10.5" fill="#111111">  live camera during Session reload</text>
-
-    <line x1="565" y1="138" x2="595" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
-
-    <rect x="597" y="68" width="223" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="708" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">3. 4x MSAA &amp; Matrix Shader (Ch 22)</text>
-    <text x="609" y="108" font-size="10.5" fill="#111111">• Coherent 1x/4x MSAA sample targets</text>
-    <text x="609" y="126" font-size="10.5" font-weight="600" fill="#111111">• matrix.wgsl (16w header + 3w/cell):</text>
-    <text x="609" y="142" font-size="10" fill="#111111">  Heatmap + procedural 3-decimal digits</text>
-    <text x="609" y="157" font-size="10" fill="#111111">  (0 cell blank; plate-less title; yellow</text>
-    <text x="609" y="172" font-size="10" fill="#111111">  selected border; Rg32Uint whole pick)</text>
-    <text x="609" y="190" font-size="10" fill="#111111">• Coalesced single-flight frame scheduler</text>
     
+    <rect x="18" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="89" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
+    <line x1="28" y1="90" x2="151" y2="90" stroke="#111111" stroke-width="0.75"/>
+    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">Original IDs plus</text>
+    <text x="89" y="124" text-anchor="middle" font-size="11" fill="#111111">previous rows</text>
+    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="183" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="254" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
+    <line x1="193" y1="90" x2="316" y2="90" stroke="#111111" stroke-width="0.75"/>
+    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">retained rows and</text>
+    <text x="254" y="124" text-anchor="middle" font-size="11" fill="#111111">reused holes</text>
+    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="348" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="419" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
+    <line x1="358" y1="90" x2="481" y2="90" stroke="#111111" stroke-width="0.75"/>
+    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">Current record and</text>
+    <text x="419" y="124" text-anchor="middle" font-size="11" fill="#111111">explicit plane</text>
+    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="513" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="584" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
+    <line x1="523" y1="90" x2="646" y2="90" stroke="#111111" stroke-width="0.75"/>
+    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">atomic crossings</text>
+    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="678" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="749" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
+    <line x1="688" y1="90" x2="811" y2="90" stroke="#111111" stroke-width="0.75"/>
+    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">original integer</text>
+    <text x="749" y="124" text-anchor="middle" font-size="11" fill="#111111">cap owner</text>
+    
+    <rect x="18" y="158" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="32" y="177" font-size="11" font-weight="700" fill="#111111">Files Modified in Lesson 20.5:</text>
+    <text x="235" y="177" font-size="11" fill="#111111">src/instance_gpu.rs  ·  src/global_outline_tests.rs  ·  src/object_rows.rs  ·  src/triangle_pick.wgsl  ·  src/pick_pipeline.rs  ·  src/pick_gpu.rs</text>
+    <text x="32" y="194" font-size="10.5" fill="#111111">16 Checkpoints: 96zzzs-allocate-stable-object-record-rows → 96zzzzh-pick-caps-through-shared-records — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
+  
 </svg>
 </div>
 
@@ -144,11 +159,32 @@ Before writing code, review how the three layers in this chapter talk to each ot
 
 ## 4. Step-by-Step Coding Notebook (Concept + Implementation)
 
-Work through each notebook cell below in order inside `workspace/journey`. Read the **Concept Walkthrough** and **Self-Check Q&A** first, then expand the **Implementation** block to type and verify the code.
+Work through each notebook cell below in order inside `workspace/journey`. Study the **Visual Step Trace**, read the **Concept Walkthrough** and **Self-Check Q&A**, then expand the **Implementation** block to type and verify the code.
 
 <a id="checkpoint-96zzzs-allocate-stable-object-record-rows"></a>
 
 ### Step 1 of 16 · Allocate stable object record rows (`96zzzs-allocate-stable-object-record-rows`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 1/16 Visual Trace (96zzzs-allocate-stable-object-record-rows): Allocate stable object record rows</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/instance_gpu.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="393" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="214" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Original IDs plus previous rows</text>
+    <line x1="411" y1="68" x2="427" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="429" y="42" width="393" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="625" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">retained rows and reused holes</text>
+    
+</svg>
+</div>
 
 - **Goal:** Prepare bounded row reuse without moving surviving originals.
 - **Data Flow Trace:** `Original IDs plus previous rows → retained rows and reused holes`
@@ -238,6 +274,31 @@ After that block, append this supplied code:
 <a id="checkpoint-96zzzt-retain-live-surface-record-rows"></a>
 
 ### Step 2 of 16 · Retain live surface record rows (`96zzzt-retain-live-surface-record-rows`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 2/16 Visual Trace (96zzzt-retain-live-surface-record-rows): Retain live surface record rows</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/instance_gpu.rs, src/global_outline_tests.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Live original IDs</text>
+    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">stable record indices</text>
+    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">existing draw slots</text>
+    
+</svg>
+</div>
 
 - **Goal:** Connect stable row reuse to the existing surface record table.
 - **Data Flow Trace:** `Live original IDs → stable record indices → existing draw slots`
@@ -479,6 +540,32 @@ Update the existing block with this supplied code; keep unchanged lines:
 <a id="checkpoint-96zzzu-prepare-shared-record-pick-consumers"></a>
 
 ### Step 3 of 16 · Prepare shared record pick consumers (`96zzzu-prepare-shared-record-pick-consumers`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 3/16 Visual Trace (96zzzu-prepare-shared-record-pick-consumers): Prepare shared record pick consumers</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/object_rows.rs, src/instance_gpu.rs, src/triangle_pick.wgsl</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Object record</text>
+    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">flat original owner plus physical</text>
+    <text x="420" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">primitive</text>
+    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">integer pick fragment</text>
+    
+</svg>
+</div>
 
 - **Goal:** Share the storage layout and shader adaptation before connecting first picks.
 - **Data Flow Trace:** `Object record → flat original owner plus physical primitive → integer pick fragment`
@@ -757,6 +844,32 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 <a id="checkpoint-96zzzv-pick-originals-through-shared-records"></a>
 
 ### Step 4 of 16 · Pick originals through shared records (`96zzzv-pick-originals-through-shared-records`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 4/16 Visual Trace (96zzzv-pick-originals-through-shared-records): Pick originals through shared records</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/instance_gpu.rs, src/pick_pipeline.rs, src/pick_gpu.rs, src/pick_encode.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Current shared record and slot</text>
+    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original owner and physical</text>
+    <text x="420" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">primitive</text>
+    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">existing asynchronous readback</text>
+    
+</svg>
+</div>
 
 - **Goal:** Connect first surface picks to current shared object records.
 - **Data Flow Trace:** `Current shared record and slot → original owner and physical primitive → existing asynchronous readback`
@@ -1466,6 +1579,32 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 ### Step 5 of 16 · Read source faces through shared records (`96zzzw-read-source-faces-through-shared-records`)
 
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 5/16 Visual Trace (96zzzw-read-source-faces-through-shared-records): Read source faces through shared records</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/instance_gpu.rs, src/face_pick.wgsl, src/face_pick.rs, src/pick_encode.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Current object record</text>
+    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original source face plus original</text>
+    <text x="420" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">owner</text>
+    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">existing face readback</text>
+    
+</svg>
+</div>
+
 - **Goal:** Connect original source-face picking to the same current object records.
 - **Data Flow Trace:** `Current object record → original source face plus original owner → existing face readback`
 - **Files You Touch:** `src/instance_gpu.rs` (*Reuse current-record validation and slot binding for consumers with different geometry layouts.*) · `src/face_pick.wgsl` (*Carry original ownership into the source-face fragment as an unsigned value.*) · `src/face_pick.rs` (*Keep a shared-record source-face state beside the existing fallback.*) · `src/pick_encode.rs` (*Share the original object table with both first and source-face pick passes.*)
@@ -1946,6 +2085,32 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 ### Step 6 of 16 · Pack existing ambient radius in object records (`96zzzx-pack-existing-ambient-radius-in-object-records`)
 
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 6/16 Visual Trace (96zzzx-pack-existing-ambient-radius-in-object-records): Pack existing ambient radius in object records</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/gpu_mesh.rs, src/renderer.rs, src/ambient_sources.wgsl, src/ambient_source_pipeline.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Existing placed-source radius</text>
+    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">exact float bits in aligned object</text>
+    <text x="420" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">record</text>
+    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">prepared property vertex entry</text>
+    
+</svg>
+</div>
+
 - **Goal:** Carry the existing source radius in a spare aligned record word.
 - **Data Flow Trace:** `Existing placed-source radius → exact float bits in aligned object record → prepared property vertex entry`
 - **Files You Touch:** `src/gpu_mesh.rs` (*Store the existing source radius in the spare aligned word and write only a changed value.*) · `src/renderer.rs` (*Reuse the existing source-bound calculations before refreshing shared records.*) · `src/ambient_sources.wgsl` (*Reuse the surface view and object declarations instead of repeating their storage contract.*) · `src/ambient_source_pipeline.rs` (*Assemble property shading with the surface record and geometry helpers already written.*)
@@ -2293,6 +2458,32 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 ### Step 7 of 16 · Read ambient properties through shared records (`96zzzy-read-ambient-properties-through-shared-records`)
 
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 7/16 Visual Trace (96zzzy-read-ambient-properties-through-shared-records): Read ambient properties through shared records</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/ambient_source_pipeline.rs, src/ambient_source_gpu.rs, src/ambient_gpu.rs, src/renderer.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Current object row and arena</text>
+    <text x="146" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">geometry</text>
+    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original source normals and radius</text>
+    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">existing ambient recipe</text>
+    
+</svg>
+</div>
+
 - **Goal:** Connect source normal and radius drawing to the existing object table.
 - **Data Flow Trace:** `Current object row and arena geometry → original source normals and radius → existing ambient recipe`
 - **Files You Touch:** `src/ambient_source_pipeline.rs` (*Own the shared property state beside its existing fallback.*) · `src/ambient_source_gpu.rs` (*Accept the existing renderer object table.*) · `src/ambient_gpu.rs` (*Keep the object table available while preparing original source properties.*) · `src/renderer.rs` (*Use the same current object records for rendering, picking and ambient properties.*) · `src/ambient_gpu_tests.rs` (*Supply an exact shared-versus-uniform ambient comparison while retaining every original cache, source, shading and release assertion.*)
@@ -2611,6 +2802,31 @@ Update the existing block with this supplied code; keep unchanged lines:
 
 ### Step 8 of 16 · Share the object record shader schema (`96zzzz-share-the-object-record-shader-schema`)
 
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 8/16 Visual Trace (96zzzz-share-the-object-record-shader-schema): Share the object record shader schema</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/object_settings.wgsl, src/triangle.wgsl, src/cap_count.wgsl, src/finite_project.wgsl</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">One aligned object declaration</text>
+    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">raster and compute shader assembly</text>
+    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">unchanged GPU bytes</text>
+    
+</svg>
+</div>
+
 - **Goal:** Keep one aligned object record declaration across drawing, caps and projection.
 - **Data Flow Trace:** `One aligned object declaration → raster and compute shader assembly → unchanged GPU bytes`
 - **Files You Touch:** `src/object_settings.wgsl` (*Write the existing aligned record schema once.*) · `src/triangle.wgsl` (*Use the record declaration supplied by shared shader assembly.*) · `src/cap_count.wgsl` (*Cap crossings use the identical record declaration.*) · `src/finite_project.wgsl` (*Projection uses the same byte-compatible model and range fields.*) · `src/object_record.rs` (*Expose the shared declaration through the existing record owner.*) · `src/clipping_gpu.rs` (*Assemble every clipped raster consumer with the shared record declaration.*) · `src/finite_project_source.rs` (*Compute projection includes the same declaration before its packed geometry helper.*) · `src/object_record_tests.rs` (*Verify that projection uses the same aligned members as both raster states after consolidating the flag vector.*)
@@ -2884,6 +3100,31 @@ Update the existing block with this supplied code; keep unchanged lines:
 <a id="checkpoint-96zzzza-prepare-shared-record-triangle-projection"></a>
 
 ### Step 9 of 16 · Prepare shared record triangle projection (`96zzzza-prepare-shared-record-triangle-projection`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 9/16 Visual Trace (96zzzza-prepare-shared-record-triangle-projection): Prepare shared record triangle projection</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/instance_gpu.rs, src/finite_project.wgsl, src/finite_project_source.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Current packed-record match</text>
+    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">object row</text>
+    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">prepared projection shader lookup</text>
+    
+</svg>
+</div>
 
 - **Goal:** Prepare the compute shader to select the same current object row.
 - **Data Flow Trace:** `Current packed-record match → object row → prepared projection shader lookup`
@@ -3263,6 +3504,32 @@ After that block, append this supplied code:
 <a id="checkpoint-96zzzzb-project-triangles-through-shared-records"></a>
 
 ### Step 10 of 16 · Project triangles through shared records (`96zzzzb-project-triangles-through-shared-records`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 10/16 Visual Trace (96zzzzb-project-triangles-through-shared-records): Project triangles through shared records</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/tile_pipelines.rs, src/tile_gpu.rs, src/renderer.rs, src/global_outline_tests.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Current object row and arena</text>
+    <text x="146" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">interval</text>
+    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">existing triangle projection</text>
+    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">unchanged finite visibility</text>
+    
+</svg>
+</div>
 
 - **Goal:** Connect finite triangle projection to the current shared object table.
 - **Data Flow Trace:** `Current object row and arena interval → existing triangle projection → unchanged finite visibility`
@@ -4193,6 +4460,31 @@ Update the existing block with this supplied code; keep unchanged lines:
 
 ### Step 11 of 16 · Prepare shared record cap counting (`96zzzzc-prepare-shared-record-cap-counting`)
 
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 11/16 Visual Trace (96zzzzc-prepare-shared-record-cap-counting): Prepare shared record cap counting</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/cap_count.wgsl, src/cap_pipeline.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Selected object and plane</text>
+    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">existing crossing function</text>
+    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">unchanged cap color and owner</text>
+    
+</svg>
+</div>
+
 - **Goal:** Separate cap crossing geometry from the object resource and vertex format.
 - **Data Flow Trace:** `Selected object and plane → existing crossing function → unchanged cap color and owner`
 - **Files You Touch:** `src/cap_count.wgsl` (*Use the existing object shader adapter for cap crossing entries.*) · `src/cap_pipeline.rs` (*Reuse the existing pipeline descriptor with an explicit vertex-buffer format.*)
@@ -4481,6 +4773,27 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 ### Step 12 of 16 · Prepare cap plane and arena bindings (`96zzzzd-prepare-cap-plane-and-arena-bindings`)
 
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 12/16 Visual Trace (96zzzzd-prepare-cap-plane-and-arena-bindings): Prepare cap plane and arena bindings</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/cap_geometry.rs, src/lib.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="393" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="214" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Explicit plane plus current arena buffers</text>
+    <line x1="411" y1="68" x2="427" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="429" y="42" width="393" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="625" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">reusable cap geometry group</text>
+    
+</svg>
+</div>
+
 - **Goal:** Prepare explicit plane parameters with current immutable arena bindings.
 - **Data Flow Trace:** `Explicit plane plus current arena buffers → reusable cap geometry group`
 - **Files You Touch:** `src/cap_geometry.rs` (*Keep explicit plane parameters and arena binding replacement in one resource owner.*) · `src/lib.rs` (*Declare the resource without connecting it to drawing yet.*)
@@ -4592,6 +4905,32 @@ After that block, append this supplied code:
 <a id="checkpoint-96zzzze-count-cap-color-through-shared-records"></a>
 
 ### Step 13 of 16 · Count cap color through shared records (`96zzzze-count-cap-color-through-shared-records`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 13/16 Visual Trace (96zzzze-count-cap-color-through-shared-records): Count cap color through shared records</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/cap_count.wgsl, src/cap_pipeline.rs, src/caps_gpu.rs, src/renderer.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Current object row plus explicit</text>
+    <text x="146" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">plane</text>
+    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original crossing count</text>
+    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">unchanged cap color and depth</text>
+    
+</svg>
+</div>
 
 - **Goal:** Connect cap crossing color to current object records and explicit planes.
 - **Data Flow Trace:** `Current object row plus explicit plane → original crossing count → unchanged cap color and depth`
@@ -5545,6 +5884,32 @@ Update the existing block with this supplied code; keep unchanged lines:
 <a id="checkpoint-96zzzzf-prepare-shared-record-cap-picks"></a>
 
 ### Step 14 of 16 · Prepare shared record cap picks (`96zzzzf-prepare-shared-record-cap-picks`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 14/16 Visual Trace (96zzzzf-prepare-shared-record-cap-picks): Prepare shared record cap picks</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/cap_count.wgsl, src/cap_pick_pipeline.rs, src/current_inventory.json</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Existing pick resources plus</text>
+    <text x="146" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">explicit…</text>
+    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">shared vertex entry</text>
+    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">unchanged crossing fragments</text>
+    
+</svg>
+</div>
 
 - **Goal:** Prepare both cap pick crossing states without changing original ownership.
 - **Data Flow Trace:** `Existing pick resources plus explicit arena range → shared vertex entry → unchanged crossing fragments`
@@ -8704,6 +9069,32 @@ Update the existing block with this supplied code; keep unchanged lines:
 <a id="checkpoint-96zzzzg-own-shared-record-cap-pick-resources"></a>
 
 ### Step 15 of 16 · Own shared record cap pick resources (`96zzzzg-own-shared-record-cap-pick-resources`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 15/16 Visual Trace (96zzzzg-own-shared-record-cap-pick-resources): Own shared record cap pick resources</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/cap_geometry.rs, src/cap_pick_gpu.rs, src/current_inventory.json</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Pick preparation</text>
+    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">bounded plane values and current</text>
+    <text x="420" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">bindings</text>
+    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">existing pick lifetime</text>
+    
+</svg>
+</div>
 
 - **Goal:** Reuse explicit plane and arena bindings under the existing pick lifetime.
 - **Data Flow Trace:** `Pick preparation → bounded plane values and current bindings → existing pick lifetime`
@@ -11937,6 +12328,31 @@ Update the existing block with this supplied code; keep unchanged lines:
 <a id="checkpoint-96zzzzh-pick-caps-through-shared-records"></a>
 
 ### Step 16 of 16 · Pick caps through shared records (`96zzzzh-pick-caps-through-shared-records`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 16/16 Visual Trace (96zzzzh-pick-caps-through-shared-records): Pick caps through shared records</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/cap_pick_gpu.rs, src/caps_gpu.rs, src/pick_encode.rs, src/cap_pick_tests.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Current record and explicit plane</text>
+    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">atomic crossings</text>
+    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">original integer cap owner</text>
+    
+</svg>
+</div>
 
 - **Goal:** Connect both cap crossing passes to current records and retain original owners.
 - **Data Flow Trace:** `Current record and explicit plane → atomic crossings → original integer cap owner`

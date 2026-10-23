@@ -4,102 +4,138 @@
 
 > **What You Will Learn & Build:** Build a browser listener owner that detaches every registered event before freeing the Rust callback and its captured data. By the final checkpoint (`33b-cache`), you will distinguish a reusable cached page from a final exit so Back navigation cannot restore an already-disposed viewer.
 
-## 1. Visual Pipeline & WebGPU Architecture (Black & White Schematics)
+## 1. Visual WebGPU Explanation & Architecture (Black & White Schematics)
 
 <div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg viewBox="0 0 840 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg width="840" height="256" viewBox="0 0 840 256" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
       <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
   </defs>
-  <rect x="4" y="4" width="832" height="212" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Lesson 4.1 Execution Flow: Browser callbacks with a real lifetime</text>
-  <text x="20" y="46" font-size="11.5" fill="#111111">Concrete data pipeline you build in this lesson (3 Checkpoints: 33-owner → 33b-cache)</text>
-  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
+  <rect x="4" y="4" width="832" height="248" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Chapter 4 Visual Explanation: Browser Lifetime State Machine, Circular Fault Ring-Buffer & GPU Recovery</text>
+  <text x="20" y="45" font-size="11" fill="#111111">Left: Active ↔ Hidden (bfcache) ↔ Device Lost state transitions. Center: Bounded circular fault ring. Right: Rc/Drop listener guard.</text>
+  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
+  
+    <!-- Panel A: State Machine Diagram -->
+    <rect x="18" y="64" width="280" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="158" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">A. Browser &amp; GPU State Machine</text>
+    <rect x="34" y="98" width="110" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="89" y="118" text-anchor="middle" font-size="10" font-weight="700" fill="#111111">Active Frame</text>
+    <text x="89" y="132" text-anchor="middle" font-size="9" fill="#111111">Heartbeat ON</text>
+    <rect x="174" y="98" width="110" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="229" y="118" text-anchor="middle" font-size="10" font-weight="700" fill="#111111">Tab Hidden</text>
+    <text x="229" y="132" text-anchor="middle" font-size="9" fill="#111111">Timers Paused</text>
+    <line x1="144" y1="114" x2="172" y2="114" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+    <line x1="174" y1="128" x2="146" y2="128" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+    <!-- Bottom recovery state -->
+    <rect x="54" y="172" width="210" height="56" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="159" y="191" text-anchor="middle" font-size="10" font-weight="700" fill="#111111">Device Lost → Conservative Rebuild</text>
+    <text x="159" y="206" text-anchor="middle" font-size="9.5" fill="#111111">Re-create Adapter/Device at safe 1x MSAA</text>
+    <text x="159" y="220" text-anchor="middle" font-size="9" fill="#111111">&amp; restore retained Editor scene</text>
+    <line x1="89" y1="142" x2="115" y2="170" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+    <line x1="195" y1="172" x2="125" y2="144" stroke="#111111" stroke-width="1.5" stroke-dasharray="3,3" marker-end="url(#arrow)"/>
+
+    <line x1="298" y1="154" x2="320" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <!-- Panel B: Circular Fault Ring-Buffer -->
+    <rect x="322" y="64" width="240" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="442" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">B. Bounded Fault Ring-Buffer</text>
+    <circle cx="442" cy="144" r="46" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+    <circle cx="442" cy="144" r="22" fill="#ffffff" stroke="#111111" stroke-width="1.2"/>
+    <line x1="442" y1="98" x2="442" y2="122" stroke="#111111" stroke-width="1.2"/>
+    <line x1="442" y1="166" x2="442" y2="190" stroke="#111111" stroke-width="1.2"/>
+    <line x1="396" y1="144" x2="420" y2="144" stroke="#111111" stroke-width="1.2"/>
+    <line x1="464" y1="144" x2="488" y2="144" stroke="#111111" stroke-width="1.2"/>
+    <line x1="410" y1="112" x2="426" y2="128" stroke="#111111" stroke-width="1.2"/>
+    <line x1="458" y1="160" x2="474" y2="176" stroke="#111111" stroke-width="1.2"/>
+    <line x1="474" y1="112" x2="458" y2="128" stroke="#111111" stroke-width="1.2"/>
+    <line x1="426" y1="160" x2="410" y2="176" stroke="#111111" stroke-width="1.2"/>
+    <text x="442" y="148" text-anchor="middle" font-size="9" font-weight="700" fill="#111111">v1 JSON</text>
+    <text x="442" y="210" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">Fixed capacity: overwrites oldest</text>
+    <text x="442" y="225" text-anchor="middle" font-size="9" fill="#111111">Uncaptured GPU errors never OOM</text>
+
+    <line x1="562" y1="154" x2="584" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <!-- Panel C: Rc/Drop Event Listener Guard -->
+    <rect x="586" y="64" width="236" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="704" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">C. Rc / Drop Listener Table</text>
+    <rect x="602" y="98" width="204" height="54" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.2"/>
+    <text x="704" y="116" text-anchor="middle" font-size="10" font-weight="700" fill="#111111">Runtime::new() Registration</text>
+    <text x="614" y="133" font-size="9.5" fill="#111111">Stores (EventTarget, type, Closure)</text>
+    <text x="614" y="146" font-size="9.5" fill="#111111">Uses Weak::upgrade() in callbacks</text>
+    <line x1="704" y1="152" x2="704" y2="170" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+    <rect x="602" y="172" width="204" height="56" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="704" y="190" text-anchor="middle" font-size="10" font-weight="700" fill="#111111">impl Drop for Runtime</text>
+    <text x="614" y="207" font-size="9.5" fill="#111111">Calls remove_event_listener()</text>
+    <text x="614" y="220" font-size="9.5" font-weight="600" fill="#111111">Zero leaked WASM closures!</text>
+    
+</svg>
+</div>
+
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
+<svg width="840" height="214" viewBox="0 0 840 214" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+  </defs>
+  <rect x="4" y="4" width="832" height="206" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Lesson 4.1 Pipeline Schematic: Browser callbacks with a real lifetime</text>
+  <text x="20" y="45" font-size="11" fill="#111111">Step-by-step data flow you implement in this lesson (3 Checkpoints: 33-owner → 33b-cache)</text>
+  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
   
     
-    <rect x="18" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="89" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
-    <line x1="28" y1="92" x2="151" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <rect x="18" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="89" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
+    <line x1="28" y1="90" x2="151" y2="90" stroke="#111111" stroke-width="0.75"/>
     <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">Rust Closure</text>
     <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
 
-    <rect x="183" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="254" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
-    <line x1="193" y1="92" x2="316" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <rect x="183" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="254" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
+    <line x1="193" y1="90" x2="316" y2="90" stroke="#111111" stroke-width="0.75"/>
     <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">successful</text>
     <text x="254" y="124" text-anchor="middle" font-size="11" fill="#111111">EventTarget</text>
     <text x="254" y="140" text-anchor="middle" font-size="11" fill="#111111">bindings</text>
     <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
 
-    <rect x="348" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
-    <line x1="358" y1="92" x2="481" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <rect x="348" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="419" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
+    <line x1="358" y1="90" x2="481" y2="90" stroke="#111111" stroke-width="0.75"/>
     <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">owner Drop</text>
     <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
 
-    <rect x="513" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="584" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
-    <line x1="523" y1="92" x2="646" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <rect x="513" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="584" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
+    <line x1="523" y1="90" x2="646" y2="90" stroke="#111111" stroke-width="0.75"/>
     <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">remove handlers</text>
     <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
 
-    <rect x="678" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="749" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
-    <line x1="688" y1="92" x2="811" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <rect x="678" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="749" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
+    <line x1="688" y1="90" x2="811" y2="90" stroke="#111111" stroke-width="0.75"/>
     <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">free captured</text>
     <text x="749" y="124" text-anchor="middle" font-size="11" fill="#111111">values</text>
     
-    <rect x="18" y="162" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="32" y="181" font-size="11" font-weight="700" fill="#111111">Files You Edit in Lesson 4.1:</text>
-    <text x="215" y="181" font-size="11" fill="#111111">src/listeners.rs  ·  src/lib.rs  ·  src/browser_runtime.rs  ·  src/browser.rs  ·  Cargo.toml</text>
-    <text x="32" y="198" font-size="10.5" fill="#111111">3 Checkpoints: 33-owner → 33b-cache — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
+    <rect x="18" y="158" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="32" y="177" font-size="11" font-weight="700" fill="#111111">Files Modified in Lesson 4.1:</text>
+    <text x="235" y="177" font-size="11" fill="#111111">src/listeners.rs  ·  src/lib.rs  ·  src/browser_runtime.rs  ·  src/browser.rs  ·  Cargo.toml</text>
+    <text x="32" y="194" font-size="10.5" fill="#111111">3 Checkpoints: 33-owner → 33b-cache — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
   
-</svg>
-</div>
-
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg viewBox="0 0 840 240" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
-  <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
-    </marker>
-  </defs>
-  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Chapter 4 Browser & WebGPU Lifetime: Rc/Drop Listener Guards, Fault Ring-Buffer & Device Recovery</text>
-  <text x="20" y="46" font-size="11.5" fill="#111111">How a production WASM viewer survives tab backgrounding, DOM teardown, and WebGPU device-lost faults without leaking or crashing.</text>
-  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
-  
-    <rect x="18" y="68" width="190" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="113" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">1. Active Runtime Owner</text>
-    <text x="28" y="108" font-size="10.5" fill="#111111">• Rc&lt;RefCell&lt;Runtime&gt;&gt;</text>
-    <text x="28" y="126" font-size="10.5" fill="#111111">• Closure::wrap listener table</text>
-    <text x="28" y="144" font-size="10.5" font-weight="600" fill="#111111">• Drop removes EventListeners</text>
-    <text x="28" y="162" font-size="10.5" fill="#111111">• Late callbacks after dispose</text>
-    <text x="28" y="177" font-size="10.5" fill="#111111">  become safe no-ops</text>
-
-    <line x1="208" y1="138" x2="238" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
-
-    <rect x="240" y="68" width="265" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="372" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">2. Lifecycle &amp; Fault Telemetry</text>
-    <text x="252" y="108" font-size="10.5" fill="#111111">• visibilitychange / pagehide (bfcache):</text>
-    <text x="252" y="123" font-size="10" fill="#111111">  Pause heartbeat timers &amp; animation frame</text>
-    <text x="252" y="143" font-size="10.5" font-weight="600" fill="#111111">• device.on_uncaptured_error:</text>
-    <text x="252" y="158" font-size="10" fill="#111111">  Record into bounded ring-buffer (schema v1)</text>
-    <text x="252" y="175" font-size="10" fill="#111111">• Exportable Diagnostic JSON Report</text>
-    <text x="252" y="193" font-size="10" fill="#111111">• pageshow: resume cleanly</text>
-
-    <line x1="505" y1="138" x2="535" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
-
-    <rect x="537" y="68" width="283" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="678" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">3. Conservative GPU Device Recovery</text>
-    <text x="549" y="108" font-size="10.5" fill="#111111">• Detect GPUDevice lost / surface outdated</text>
-    <text x="549" y="126" font-size="10.5" font-weight="600" fill="#111111">• Request fresh Adapter &amp; Device at safe</text>
-    <text x="549" y="142" font-size="10.5" font-weight="600" fill="#111111">  1x sample count &amp; conservative density</text>
-    <text x="549" y="160" font-size="10.5" fill="#111111">• Rebuild pipelines &amp; re-upload retained</text>
-    <text x="549" y="176" font-size="10.5" fill="#111111">  Editor scene without losing user edits!</text>
-    
 </svg>
 </div>
 
@@ -127,11 +163,45 @@ Before writing code, review how the three layers in this chapter talk to each ot
 
 ## 4. Step-by-Step Coding Notebook (Concept + Implementation)
 
-Work through each notebook cell below in order inside `workspace/journey`. Read the **Concept Walkthrough** and **Self-Check Q&A** first, then expand the **Implementation** block to type and verify the code.
+Work through each notebook cell below in order inside `workspace/journey`. Study the **Visual Step Trace**, read the **Concept Walkthrough** and **Self-Check Q&A**, then expand the **Implementation** block to type and verify the code.
 
 <a id="checkpoint-33-owner"></a>
 
 ### Step 1 of 3 · Own browser listeners instead of forgetting callbacks (`33-owner`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 1/3 Visual Trace (33-owner): Own browser listeners instead of forgetting callbacks</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/listeners.rs, src/lib.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="91" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Rust Closure</text>
+    <line x1="164" y1="68" x2="180" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="182" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="255" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">successful</text>
+    <text x="255" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">EventTarget…</text>
+    <line x1="328" y1="68" x2="344" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="346" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="419" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">owner Drop</text>
+    <line x1="492" y1="68" x2="508" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="510" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="583" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">remove handlers</text>
+    <line x1="656" y1="68" x2="672" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="674" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="747" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">free captured values</text>
+    
+</svg>
+</div>
 
 - **Goal:** Build a browser listener owner that detaches every registered event before freeing the Rust callback and its captured data.
 - **Data Flow Trace:** `Rust Closure → successful EventTarget bindings → owner Drop → remove handlers → free captured values`
@@ -203,6 +273,40 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 <a id="checkpoint-33a-runtime"></a>
 
 ### Step 2 of 3 · Dispose the viewer without leaving pending work alive (`33a-runtime`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 2/3 Visual Trace (33a-runtime): Dispose the viewer without leaving pending work alive</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/browser_runtime.rs, src/lib.rs, src/browser.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="91" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Live runtime</text>
+    <line x1="164" y1="68" x2="180" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="182" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="255" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">pagehide</text>
+    <line x1="328" y1="68" x2="344" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="346" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="419" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">cancel read/fetch</text>
+    <line x1="492" y1="68" x2="508" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="510" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="583" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">detach eighteen</text>
+    <text x="583" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">listeners</text>
+    <line x1="656" y1="68" x2="672" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="674" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="747" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">release captures</text>
+    
+</svg>
+</div>
 
 - **Goal:** Bind real viewer input to owned callbacks and cancel pending file/source authority when the page hides.
 - **Data Flow Trace:** `Live runtime → pagehide → next microtask → cancel read/fetch → detach eighteen listeners → release captures`
@@ -971,6 +1075,36 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 ### Step 3 of 3 · Keep a cached viewer ready for Back navigation (`33b-cache`)
 
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 3/3 Visual Trace (33b-cache): Keep a cached viewer ready for Back navigation</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: Cargo.toml, src/browser.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">pagehide</text>
+    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">cancel drag</text>
+    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">persisted?</text>
+    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">keep owner for cached</text>
+    <text x="726" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">return;…</text>
+    
+</svg>
+</div>
+
 - **Goal:** Distinguish a reusable cached page from a final exit so Back navigation cannot restore an already-disposed viewer.
 - **Data Flow Trace:** `pagehide → cancel drag → persisted? → keep owner for cached return; otherwise deferred disposal`
 - **Files You Touch:** `Cargo.toml` (*Enable the browser event type that tells us whether the page may return from its cache.*) · `src/browser.rs` (*Cancel an unfinished drag, retain the cached page’s live owner, and dispose only a final page exit.*)
@@ -1078,6 +1212,8 @@ REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../recovery.md) to save or restore any checkpoint ID.
 
 ## 6. Lesson Summary & Expected Visual Result
+
+![Recorded visual output for Lesson 4.1 (33b-cache)](../../screenshots/journey/33b-cache-browser.png)
 
 In the debug console, run `window.dispatchEvent(new PageTransitionEvent("pagehide", {persisted: true}))`, then the same for `"pageshow"`. `window.wasmBindings.runtime_running()` stays true and typed commands still work.
 

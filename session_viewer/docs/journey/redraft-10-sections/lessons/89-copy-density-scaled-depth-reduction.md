@@ -4,87 +4,99 @@
 
 > **What You Will Learn & Build:** Write the density policy and nearest-positive depth/radius reduction. By the final checkpoint (`89h-exercise-actual-depth-levels-and-cache-release`), you will exercise actual depth levels and cache release.
 
-## 1. Visual Pipeline & WebGPU Architecture (Black & White Schematics)
+## 1. Visual WebGPU Explanation & Architecture (Black & White Schematics)
 
 <div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg viewBox="0 0 840 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg width="840" height="256" viewBox="0 0 840 256" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
       <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
   </defs>
-  <rect x="4" y="4" width="832" height="212" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Lesson 18.1 Execution Flow: A retained depth and radius pyramid</text>
-  <text x="20" y="46" font-size="11.5" fill="#111111">Concrete data pipeline you build in this lesson (9 Checkpoints: 89-copy-density-scaled-depth-reduction → 89h-exercise-actual-depth-levels-and-cache-release)</text>
-  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
+  <rect x="4" y="4" width="832" height="248" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Section 9 Visual Explanation: @compute Tile Visibility Binning, Clipping Winding Caps & Horizon GTAO</text>
+  <text x="20" y="45" font-size="11" fill="#111111">Left: Screen tiles binning covering triangles in @compute. Center: Winding-number section cap with bore hole. Right: GTAO horizon rays.</text>
+  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
   
-    
-    <rect x="18" y="68" width="253" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="144" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
-    <line x1="28" y1="92" x2="261" y2="92" stroke="#111111" stroke-width="0.75"/>
-    <text x="144" y="108" text-anchor="middle" font-size="11" fill="#111111">original rendered depth</text>
-    <line x1="271" y1="108" x2="291" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+    <rect x="18" y="64" width="250" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="143" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">A. @compute Tile Binning (CSR)</text>
+    <rect x="68" y="96" width="150" height="90" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <line x1="118" y1="96" x2="118" y2="186" stroke="#111111" stroke-width="0.75"/>
+    <line x1="168" y1="96" x2="168" y2="186" stroke="#111111" stroke-width="0.75"/>
+    <line x1="68" y1="126" x2="218" y2="126" stroke="#111111" stroke-width="0.75"/>
+    <line x1="68" y1="156" x2="218" y2="156" stroke="#111111" stroke-width="0.75"/>
+    <polygon points="90,110 195,135 130,175" fill="url(#hatch)" stroke="#111111" stroke-width="1.75"/>
+    <text x="143" y="210" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">atomicAdd + Prefix-Sum Tile Offsets</text>
 
-    <rect x="293" y="68" width="253" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
-    <line x1="303" y1="92" x2="536" y2="92" stroke="#111111" stroke-width="0.75"/>
-    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">density-scaled hierarchy</text>
-    <line x1="546" y1="108" x2="566" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+    <line x1="268" y1="154" x2="290" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
 
-    <rect x="568" y="68" width="253" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
-    <line x1="578" y1="92" x2="811" y2="92" stroke="#111111" stroke-width="0.75"/>
-    <text x="694" y="108" text-anchor="middle" font-size="11" fill="#111111">nearest positive depth and radius</text>
+    <rect x="292" y="64" width="275" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="429" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">B. Clipping Plane &amp; Winding Section Cap</text>
+    <rect x="344" y="102" width="170" height="84" fill="url(#hatch)" stroke="#111111" stroke-width="2"/>
+    <circle cx="429" cy="144" r="22" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+    <text x="429" y="148" text-anchor="middle" font-size="9" font-weight="700" fill="#111111">Winding = 0</text>
+    <text x="429" y="210" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">Non-zero winding fills solid, keeps bore open</text>
+
+    <line x1="567" y1="154" x2="589" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="591" y="64" width="231" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="706" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">C. Horizon GTAO (ssao.wgsl)</text>
+    <polyline points="620,175 685,175 706,135 727,175 792,175" fill="none" stroke="#111111" stroke-width="2"/>
+    <circle cx="706" cy="175" r="4" fill="#111111"/>
+    <line x1="706" y1="175" x2="665" y2="120" stroke="#111111" stroke-width="1.2" marker-end="url(#arrow)"/>
+    <line x1="706" y1="175" x2="747" y2="120" stroke="#111111" stroke-width="1.2" marker-end="url(#arrow)"/>
+    <text x="706" y="210" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">6-Mip Depth Pyramid + Bilateral Blur</text>
     
-    <rect x="18" y="162" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="32" y="181" font-size="11" font-weight="700" fill="#111111">Files You Edit in Lesson 18.1:</text>
-    <text x="215" y="181" font-size="11" fill="#111111">src/pyramid_size.rs  ·  src/lib.rs  ·  src/ambient_depth.wgsl  ·  src/pyramid_prepare.wgsl  ·  src/pyramid_image.rs  ·  src/pyramid_pipeline.rs</text>
-    <text x="32" y="198" font-size="10.5" fill="#111111">9 Checkpoints: 89-copy-density-scaled-depth-reduction → 89h-exercise-actual-depth-levels-and-cache-release — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
-  
 </svg>
 </div>
 
 <div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg viewBox="0 0 840 240" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg width="840" height="214" viewBox="0 0 840 214" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
       <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
   </defs>
-  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Section 9 Compute Tile Visibility, Clipping Half-Spaces, Winding Section Caps & Horizon GTAO (Ch 17–18)</text>
-  <text x="20" y="46" font-size="11.5" fill="#111111">How @compute shaders bin triangles into screen tiles for hidden-line removal, clip solids with winding caps, and shade crevices.</text>
-  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
+  <rect x="4" y="4" width="832" height="206" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Lesson 18.1 Pipeline Schematic: A retained depth and radius pyramid</text>
+  <text x="20" y="45" font-size="11" fill="#111111">Step-by-step data flow you implement in this lesson (9 Checkpoints: 89-copy-density-scaled-depth-reduction → 89h-exercise-actual-depth-levels-and-cache-release)</text>
+  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
   
-    <rect x="18" y="68" width="250" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="143" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">1. @compute Tile Visibility (Ch 17)</text>
-    <text x="28" y="108" font-size="10.5" fill="#111111">• projected_triangle.wgsl projects tris</text>
-    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#111111">• atomicAdd tile counts + prefix-sum CSR</text>
-    <text x="28" y="144" font-size="10.5" fill="#111111">• ink_visibility.wgsl tests center-line</text>
-    <text x="28" y="160" font-size="10.5" fill="#111111">  against covering triangles in tile</text>
-    <text x="28" y="178" font-size="10.5" fill="#111111">• Hidden lines dashed/faded cleanly!</text>
-
-    <line x1="268" y1="138" x2="298" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
-
-    <rect x="300" y="68" width="265" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="432" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">2. Clipping &amp; Winding Caps (Ch 17)</text>
-    <text x="312" y="108" font-size="10.5" fill="#111111">• Half-space: dot(pos_world, plane) &lt; 0</text>
-    <text x="312" y="126" font-size="10.5" font-weight="600" fill="#111111">• Signed front/back crossing count</text>
-    <text x="312" y="142" font-size="10" fill="#111111">  at clip plane depth (cap.wgsl):</text>
-    <text x="312" y="158" font-size="10" fill="#111111">  Fills closed solid interiors while</text>
-    <text x="312" y="173" font-size="10" fill="#111111">  leaving internal bores hollow!</text>
-    <text x="312" y="191" font-size="10.5" fill="#111111">• Cap picks resolve to solid owner_id</text>
-
-    <line x1="565" y1="138" x2="595" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
-
-    <rect x="597" y="68" width="223" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="708" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">3. Horizon GTAO &amp; X-Ray (Ch 18)</text>
-    <text x="609" y="108" font-size="10.5" fill="#111111">• ambient_depth.wgsl -&gt; 6-mip pyramid</text>
-    <text x="609" y="126" font-size="10.5" font-weight="600" fill="#111111">• ssao.wgsl + bilateral blur +</text>
-    <text x="609" y="142" font-size="10.5" font-weight="600" fill="#111111">  ambient_composite.wgsl (Arctic)</text>
-    <text x="609" y="160" font-size="10" fill="#111111">• Glass / X-Ray translucent shells</text>
-    <text x="609" y="175" font-size="10" fill="#111111">  allow picking interior Wood joints</text>
     
+    <rect x="18" y="66" width="253" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="144" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
+    <line x1="28" y1="90" x2="261" y2="90" stroke="#111111" stroke-width="0.75"/>
+    <text x="144" y="108" text-anchor="middle" font-size="11" fill="#111111">original rendered depth</text>
+    <line x1="271" y1="108" x2="291" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="293" y="66" width="253" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="419" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
+    <line x1="303" y1="90" x2="536" y2="90" stroke="#111111" stroke-width="0.75"/>
+    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">density-scaled hierarchy</text>
+    <line x1="546" y1="108" x2="566" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="568" y="66" width="253" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="694" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
+    <line x1="578" y1="90" x2="811" y2="90" stroke="#111111" stroke-width="0.75"/>
+    <text x="694" y="108" text-anchor="middle" font-size="11" fill="#111111">nearest positive depth and radius</text>
+    
+    <rect x="18" y="158" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="32" y="177" font-size="11" font-weight="700" fill="#111111">Files Modified in Lesson 18.1:</text>
+    <text x="235" y="177" font-size="11" fill="#111111">src/pyramid_size.rs  ·  src/lib.rs  ·  src/ambient_depth.wgsl  ·  src/pyramid_prepare.wgsl  ·  src/pyramid_image.rs  ·  src/pyramid_pipeline.rs</text>
+    <text x="32" y="194" font-size="10.5" fill="#111111">9 Checkpoints: 89-copy-density-scaled-depth-reduction → 89h-exercise-actual-depth-levels-and-cache-release — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
+  
 </svg>
 </div>
 
@@ -119,11 +131,36 @@ Before writing code, review how the three layers in this chapter talk to each ot
 
 ## 4. Step-by-Step Coding Notebook (Concept + Implementation)
 
-Work through each notebook cell below in order inside `workspace/journey`. Read the **Concept Walkthrough** and **Self-Check Q&A** first, then expand the **Implementation** block to type and verify the code.
+Work through each notebook cell below in order inside `workspace/journey`. Study the **Visual Step Trace**, read the **Concept Walkthrough** and **Self-Check Q&A**, then expand the **Implementation** block to type and verify the code.
 
 <a id="checkpoint-89-copy-density-scaled-depth-reduction"></a>
 
 ### Step 1 of 9 · Reduce depth and radius at a bounded display resolution (`89-copy-density-scaled-depth-reduction`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 1/9 Visual Trace (89-copy-density-scaled-depth-reduction): Reduce depth and radius at a bounded display resolution</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/pyramid_size.rs, src/lib.rs, src/ambient_depth.wgsl</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original rendered depth</text>
+    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">density-scaled hierarchy</text>
+    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">nearest positive depth and radius</text>
+    
+</svg>
+</div>
 
 - **Goal:** Write the density policy and nearest-positive depth/radius reduction.
 - **Data Flow Trace:** `original rendered depth → density-scaled hierarchy → nearest positive depth and radius`
@@ -193,6 +230,31 @@ Create the file and type:
 
 ### Step 2 of 9 · Prepare linear original depth and radius addresses (`89a-prepare-linear-original-depth-and-radius-addresses`)
 
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 2/9 Visual Trace (89a-prepare-linear-original-depth-and-radius-addresses): Prepare linear original depth and radius addresses</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/pyramid_prepare.wgsl</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original rendered depth</text>
+    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">density-scaled hierarchy</text>
+    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">nearest positive depth and radius</text>
+    
+</svg>
+</div>
+
 - **Goal:** Prepare linear original depth and radius addresses.
 - **Data Flow Trace:** `original rendered depth → density-scaled hierarchy → nearest positive depth and radius`
 - **Files You Touch:** `src/pyramid_prepare.wgsl` (*Adapt the earlier forward-depth image to linear depth and packed radius addresses.*)
@@ -226,6 +288,31 @@ Create the file and type:
 <a id="checkpoint-89b-own-six-real-depth-and-radius-levels"></a>
 
 ### Step 3 of 9 · Own six real depth and radius levels (`89b-own-six-real-depth-and-radius-levels`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 3/9 Visual Trace (89b-own-six-real-depth-and-radius-levels): Own six real depth and radius levels</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/pyramid_image.rs, src/lib.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original rendered depth</text>
+    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">density-scaled hierarchy</text>
+    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">nearest positive depth and radius</text>
+    
+</svg>
+</div>
 
 - **Goal:** Own six real depth and radius levels.
 - **Data Flow Trace:** `original rendered depth → density-scaled hierarchy → nearest positive depth and radius`
@@ -281,6 +368,31 @@ After that block, type:
 
 ### Step 4 of 9 · Build prepare and nearest-depth pipelines (`89c-build-prepare-and-nearest-depth-pipelines`)
 
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 4/9 Visual Trace (89c-build-prepare-and-nearest-depth-pipelines): Build prepare and nearest-depth pipelines</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/pyramid_pipeline.rs, src/lib.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original rendered depth</text>
+    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">density-scaled hierarchy</text>
+    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">nearest positive depth and radius</text>
+    
+</svg>
+</div>
+
 - **Goal:** Build prepare and nearest-depth pipelines.
 - **Data Flow Trace:** `original rendered depth → density-scaled hierarchy → nearest positive depth and radius`
 - **Files You Touch:** `src/pyramid_pipeline.rs` (*Build current depth/radius preparation and reduction pipelines.*) · `src/lib.rs` (*Register the completed section component.*)
@@ -334,6 +446,31 @@ After that block, type:
 <a id="checkpoint-89d-prepare-cached-pyramid-inputs-and-images"></a>
 
 ### Step 5 of 9 · Prepare cached pyramid inputs and images (`89d-prepare-cached-pyramid-inputs-and-images`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 5/9 Visual Trace (89d-prepare-cached-pyramid-inputs-and-images): Prepare cached pyramid inputs and images</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/pyramid_gpu.rs, src/lib.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original rendered depth</text>
+    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">density-scaled hierarchy</text>
+    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">nearest positive depth and radius</text>
+    
+</svg>
+</div>
 
 - **Goal:** Prepare cached pyramid inputs and images.
 - **Data Flow Trace:** `original rendered depth → density-scaled hierarchy → nearest positive depth and radius`
@@ -389,6 +526,31 @@ After that block, type:
 
 ### Step 6 of 9 · Encode six levels only when inputs change (`89e-encode-six-levels-only-when-inputs-change`)
 
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 6/9 Visual Trace (89e-encode-six-levels-only-when-inputs-change): Encode six levels only when inputs change</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/pyramid_gpu.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original rendered depth</text>
+    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">density-scaled hierarchy</text>
+    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">nearest positive depth and radius</text>
+    
+</svg>
+</div>
+
 - **Goal:** Encode six levels only when inputs change.
 - **Data Flow Trace:** `original rendered depth → density-scaled hierarchy → nearest positive depth and radius`
 - **Files You Touch:** `src/pyramid_gpu.rs` (*Validate the current camera and encode changed pyramid contents.*)
@@ -432,6 +594,31 @@ Edit the existing block to match this code; keep unchanged lines:
 <a id="checkpoint-89f-expose-actual-pyramid-allocation-and-levels"></a>
 
 ### Step 7 of 9 · Expose actual pyramid allocation and levels (`89f-expose-actual-pyramid-allocation-and-levels`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 7/9 Visual Trace (89f-expose-actual-pyramid-allocation-and-levels): Expose actual pyramid allocation and levels</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/pyramid_gpu.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original rendered depth</text>
+    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">density-scaled hierarchy</text>
+    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">nearest positive depth and radius</text>
+    
+</svg>
+</div>
 
 - **Goal:** Expose actual pyramid allocation and levels.
 - **Data Flow Trace:** `original rendered depth → density-scaled hierarchy → nearest positive depth and radius`
@@ -480,6 +667,31 @@ Edit the existing block to match this code; keep unchanged lines:
 <a id="checkpoint-89g-route-original-depth-into-the-pyramid-owner"></a>
 
 ### Step 8 of 9 · Route original depth into the pyramid owner (`89g-route-original-depth-into-the-pyramid-owner`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 8/9 Visual Trace (89g-route-original-depth-into-the-pyramid-owner): Route original depth into the pyramid owner</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/renderer.rs, src/browser.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original rendered depth</text>
+    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">density-scaled hierarchy</text>
+    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">nearest positive depth and radius</text>
+    
+</svg>
+</div>
 
 - **Goal:** Route original depth into the pyramid owner.
 - **Data Flow Trace:** `original rendered depth → density-scaled hierarchy → nearest positive depth and radius`
@@ -1205,6 +1417,31 @@ Edit the existing block to match this code; keep unchanged lines:
 <a id="checkpoint-89h-exercise-actual-depth-levels-and-cache-release"></a>
 
 ### Step 9 of 9 · Exercise actual depth levels and cache release (`89h-exercise-actual-depth-levels-and-cache-release`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 9/9 Visual Trace (89h-exercise-actual-depth-levels-and-cache-release): Exercise actual depth levels and cache release</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/pyramid_gpu_tests.rs, src/renderer.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original rendered depth</text>
+    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">density-scaled hierarchy</text>
+    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">nearest positive depth and radius</text>
+    
+</svg>
+</div>
 
 - **Goal:** Exercise actual depth levels and cache release.
 - **Data Flow Trace:** `original rendered depth → density-scaled hierarchy → nearest positive depth and radius`

@@ -4,98 +4,110 @@
 
 > **What You Will Learn & Build:** Reject open geometry, choose a world point near the mesh and reuse the shared swept-volume helper. By the final checkpoint (`84zod-explode-supported-original-families`), you will count derived pieces before allocating them.
 
-## 1. Visual Pipeline & WebGPU Architecture (Black & White Schematics)
+## 1. Visual WebGPU Explanation & Architecture (Black & White Schematics)
 
 <div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg viewBox="0 0 840 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg width="840" height="256" viewBox="0 0 840 256" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
       <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
   </defs>
-  <rect x="4" y="4" width="832" height="212" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Lesson 16.4 Execution Flow: Measurements, temporary marks and retained CAD pieces</text>
-  <text x="20" y="46" font-size="11.5" fill="#111111">Concrete data pipeline you build in this lesson (37 Checkpoints: 84-measure-original-curves-surfaces-and-closed-solids → 84zod-explode-supported-original-families)</text>
-  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
+  <rect x="4" y="4" width="832" height="248" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Section 8 Visual Explanation: Orthonormal Plane Frames, Parametric Solids, Loft/Sweep & Rational Control Edits</text>
+  <text x="20" y="45" font-size="11" fill="#111111">Left: Orthonormal Plane (origin, X, Y, Z). Center: Loft/Extrude surfacing across section curves. Right: Rational NURBS control drag.</text>
+  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
   
+    <rect x="18" y="64" width="245" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="140" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">A. Orthonormal Plane Frame (f64)</text>
+    <circle cx="115" cy="162" r="4" fill="#111111"/>
+    <line x1="115" y1="162" x2="115" y2="100" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
+    <line x1="115" y1="162" x2="195" y2="178" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
+    <line x1="115" y1="162" x2="175" y2="122" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
+    <text x="115" y="94" text-anchor="middle" font-size="9.5" font-weight="700" fill="#111111">Z = X × Y</text>
+    <text x="206" y="182" font-size="9.5" font-weight="700" fill="#111111">X</text>
+    <text x="186" y="122" font-size="9.5" font-weight="700" fill="#111111">Y</text>
+    <text x="140" y="212" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">Rejects collinear / non-finite axes</text>
+
+    <line x1="263" y1="154" x2="285" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="287" y="64" width="275" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="424" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">B. Loft / Sweep / Extrude Surfacing</text>
+    <path d="M 320 175 Q 370 120 420 165 L 520 135 Q 470 90 420 135 Z" fill="url(#hatch)" stroke="#111111" stroke-width="1.75"/>
+    <text x="424" y="212" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">Parametric Solids &amp; Surfacing Recipes</text>
+
+    <line x1="562" y1="154" x2="584" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="586" y="64" width="236" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="704" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">C. Rational Control-Point Deform</text>
+    <polyline points="615,175 665,110 745,115 790,175" fill="none" stroke="#111111" stroke-width="1" stroke-dasharray="3,3"/>
+    <path d="M 615 175 C 655 125, 750 125, 790 175" fill="none" stroke="#111111" stroke-width="2"/>
+    <circle cx="665" cy="110" r="4.5" fill="#111111"/>
+    <circle cx="745" cy="115" r="4.5" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="704" y="212" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">Preserves rational weight w on drag</text>
     
-    <rect x="18" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="89" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
-    <line x1="28" y1="92" x2="151" y2="92" stroke="#111111" stroke-width="0.75"/>
-    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">original geometry</text>
-    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="183" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="254" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
-    <line x1="193" y1="92" x2="316" y2="92" stroke="#111111" stroke-width="0.75"/>
-    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">placed source</text>
-    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="348" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
-    <line x1="358" y1="92" x2="481" y2="92" stroke="#111111" stroke-width="0.75"/>
-    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">measure or refusal</text>
-    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="513" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="584" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
-    <line x1="523" y1="92" x2="646" y2="92" stroke="#111111" stroke-width="0.75"/>
-    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">original family</text>
-    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="678" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="749" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
-    <line x1="688" y1="92" x2="811" y2="92" stroke="#111111" stroke-width="0.75"/>
-    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">pure calculation</text>
-    
-    <rect x="18" y="162" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="32" y="181" font-size="11" font-weight="700" fill="#111111">Files You Edit in Lesson 16.4:</text>
-    <text x="215" y="181" font-size="11" fill="#111111">src/measure_volume.rs  ·  src/lib.rs  ·  src/scene.rs  ·  src/bounds_original.rs  ·  src/source_edit.rs  ·  src/gpu_geometry.rs</text>
-    <text x="32" y="198" font-size="10.5" fill="#111111">37 Checkpoints: 84-measure-original-curves-surfaces-and-closed-solids → 84zod-explode-supported-original-families — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
-  
 </svg>
 </div>
 
 <div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg viewBox="0 0 840 240" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg width="840" height="214" viewBox="0 0 840 214" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
       <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
   </defs>
-  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Section 8 Precision CAD Frames, Solid Primitives, Surfacing & Sub-Object Deformation (Chapters 14–16)</text>
-  <text x="20" y="46" font-size="11.5" fill="#111111">How double-precision coordinate frames (Plane), parametric solids, Loft/Sweep/Extrude surfaces, and Gumball control edits work.</text>
-  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
+  <rect x="4" y="4" width="832" height="206" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Lesson 16.4 Pipeline Schematic: Measurements, temporary marks and retained CAD pieces</text>
+  <text x="20" y="45" font-size="11" fill="#111111">Step-by-step data flow you implement in this lesson (37 Checkpoints: 84-measure-original-curves-surfaces-and-closed-solids → 84zod-explode-supported-original-families)</text>
+  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
   
-    <rect x="18" y="68" width="245" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="140" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">1. Orthonormal Frames (Ch 14)</text>
-    <text x="28" y="108" font-size="10.5" fill="#111111">• Plane { origin: Vec3d, x, y, z }</text>
-    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#111111">• Rejects non-finite / collinear axes</text>
-    <text x="28" y="144" font-size="10.5" fill="#111111">• Basis change: World &lt;-&gt; Local Plane</text>
-    <text x="28" y="162" font-size="10.5" fill="#111111">• Exact Mirror, Rotate3D, Orient,</text>
-    <text x="28" y="178" font-size="10.5" fill="#111111">  and Align frame transformations</text>
-
-    <line x1="263" y1="138" x2="293" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
-
-    <rect x="295" y="68" width="265" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="427" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">2. Solids &amp; Surfacing (Ch 15–16)</text>
-    <text x="307" y="108" font-size="10.5" fill="#111111">• Parametric Box, Cylinder, Sphere, Cone</text>
-    <text x="307" y="126" font-size="10.5" font-weight="600" fill="#111111">• Extrude, Revolve, Loft, Sweep, Planar</text>
-    <text x="307" y="144" font-size="10.5" fill="#111111">• Curve Split, Trim, Extend, Join, Fillet</text>
-    <text x="307" y="162" font-size="10.5" fill="#111111">• Every operation commits an atomic</text>
-    <text x="307" y="178" font-size="10.5" fill="#111112">  session_rust kernel transaction</text>
-
-    <line x1="560" y1="138" x2="590" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
-
-    <rect x="592" y="68" width="228" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="706" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">3. Rational Control-Point Deform</text>
-    <text x="604" y="108" font-size="10.5" fill="#111111">• Pick NURBS control point or vertex</text>
-    <text x="604" y="126" font-size="10.5" font-weight="600" fill="#111111">• Preserve homogeneous weight w</text>
-    <text x="604" y="142" font-size="10.5" font-weight="600" fill="#111111">  on rational curve control drags!</text>
-    <text x="604" y="162" font-size="10.5" fill="#111111">• Rebuild derived GPU tessellation</text>
-    <text x="604" y="178" font-size="10.5" fill="#111111">  in-place while keeping Object ID</text>
     
+    <rect x="18" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="89" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
+    <line x1="28" y1="90" x2="151" y2="90" stroke="#111111" stroke-width="0.75"/>
+    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">original geometry</text>
+    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="183" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="254" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
+    <line x1="193" y1="90" x2="316" y2="90" stroke="#111111" stroke-width="0.75"/>
+    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">placed source</text>
+    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="348" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="419" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
+    <line x1="358" y1="90" x2="481" y2="90" stroke="#111111" stroke-width="0.75"/>
+    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">measure or refusal</text>
+    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="513" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="584" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
+    <line x1="523" y1="90" x2="646" y2="90" stroke="#111111" stroke-width="0.75"/>
+    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">original family</text>
+    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="678" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="749" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
+    <line x1="688" y1="90" x2="811" y2="90" stroke="#111111" stroke-width="0.75"/>
+    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">pure calculation</text>
+    
+    <rect x="18" y="158" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="32" y="177" font-size="11" font-weight="700" fill="#111111">Files Modified in Lesson 16.4:</text>
+    <text x="235" y="177" font-size="11" fill="#111111">src/measure_volume.rs  ·  src/lib.rs  ·  src/scene.rs  ·  src/bounds_original.rs  ·  src/source_edit.rs  ·  src/gpu_geometry.rs</text>
+    <text x="32" y="194" font-size="10.5" fill="#111111">37 Checkpoints: 84-measure-original-curves-surfaces-and-closed-solids → 84zod-explode-supported-original-families — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
+  
 </svg>
 </div>
 
@@ -157,11 +169,36 @@ Before writing code, review how the three layers in this chapter talk to each ot
 
 ## 4. Step-by-Step Coding Notebook (Concept + Implementation)
 
-Work through each notebook cell below in order inside `workspace/journey`. Read the **Concept Walkthrough** and **Self-Check Q&A** first, then expand the **Implementation** block to type and verify the code.
+Work through each notebook cell below in order inside `workspace/journey`. Study the **Visual Step Trace**, read the **Concept Walkthrough** and **Self-Check Q&A**, then expand the **Implementation** block to type and verify the code.
 
 <a id="checkpoint-84-measure-original-curves-surfaces-and-closed-solids"></a>
 
 ### Step 1 of 37 · Measure original closed-solid volume (`84-measure-original-curves-surfaces-and-closed-solids`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 1/37 Visual Trace (84-measure-original-curves-surfaces-and-closed-solids): Measure original closed-solid volume</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/measure_volume.rs, src/lib.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original geometry</text>
+    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">placed source</text>
+    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">measure or refusal</text>
+    
+</svg>
+</div>
 
 - **Goal:** Reject open geometry, choose a world point near the mesh and reuse the shared swept-volume helper.
 - **Data Flow Trace:** `original geometry → placed source → measure or refusal`
@@ -301,6 +338,31 @@ After that block, append this supplied code:
 <a id="checkpoint-84a-validate-an-original-box-and-derive-wire-only-display"></a>
 
 ### Step 2 of 37 · Validate an original box and derive wire-only display (`84a-validate-an-original-box-and-derive-wire-only-display`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 2/37 Visual Trace (84a-validate-an-original-box-and-derive-wire-only-display): Validate an original box and derive wire-only display</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/scene.rs, src/bounds_original.rs, src/lib.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original box frame</text>
+    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">finite orthonormal validation</text>
+    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">twelve display edges</text>
+    
+</svg>
+</div>
 
 - **Goal:** Validate an original box and derive wire-only display.
 - **Data Flow Trace:** `original box frame → finite orthonormal validation → twelve display edges`
@@ -1216,6 +1278,35 @@ After that block, type:
 <a id="checkpoint-84b-adopt-original-boxes-and-retain-precise-placed-bounds"></a>
 
 ### Step 3 of 37 · Adopt original boxes and retain precise placed bounds (`84b-adopt-original-boxes-and-retain-precise-placed-bounds`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 3/37 Visual Trace (84b-adopt-original-boxes-and-retain-precise-placed-bounds): Adopt original boxes and retain precise placed bounds</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/bounds_original.rs, src/scene.rs, src/source_edit.rs, src/gpu_geometry.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original corners</text>
+    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">world placement</text>
+    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">stable source row</text>
+    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">checked replacement</text>
+    
+</svg>
+</div>
 
 - **Goal:** Adopt original boxes and retain precise placed bounds.
 - **Data Flow Trace:** `original corners → world placement → stable source row → checked replacement`
@@ -2351,6 +2442,35 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 ### Step 4 of 37 · Save and reopen the original box frame (`84c-save-and-reopen-the-original-box-frame`)
 
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 4/37 Visual Trace (84c-save-and-reopen-the-original-box-frame): Save and reopen the original box frame</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/geometry_snapshot.rs, src/document_source.rs, src/document_geometry.rs, src/archive_identity.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original box owner</text>
+    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">protobuf box record</text>
+    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">checked source import</text>
+    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">same original frame</text>
+    
+</svg>
+</div>
+
 - **Goal:** Save and reopen the original box frame.
 - **Data Flow Trace:** `original box owner → protobuf box record → checked source import → same original frame`
 - **Files You Touch:** `src/geometry_snapshot.rs` (*Retain validated original OBB records through mixed document persistence.*) · `src/document_source.rs` (*Retain validated original OBB records through mixed document persistence.*) · `src/document_geometry.rs` (*Retain validated original OBB records through mixed document persistence.*) · `src/archive_identity.rs` (*Retain validated original OBB records through mixed document persistence.*) · `src/source_validate.rs` (*Retain validated original OBB records through mixed document persistence.*)
@@ -3299,6 +3419,31 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 ### Step 5 of 37 · Own temporary measurement labels without scene identities (`84d-own-temporary-measurement-labels-without-scene-identities`)
 
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 5/37 Visual Trace (84d-own-temporary-measurement-labels-without-scene-identities): Own temporary measurement labels without scene identities</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/measure_mark.rs, src/lib.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">numeric value and points</text>
+    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">unused label IDs</text>
+    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">temporary presentation words</text>
+    
+</svg>
+</div>
+
 - **Goal:** Own temporary measurement labels without scene identities.
 - **Data Flow Trace:** `numeric value and points → unused label IDs → temporary presentation words`
 - **Files You Touch:** `src/measure_mark.rs` (*Own temporary points, unit suffixes and collision-free labels.*) · `src/lib.rs` (*Register the measurement component.*)
@@ -3353,6 +3498,31 @@ After that block, type:
 
 ### Step 6 of 37 · Report distance and world bounding lengths (`84e-report-distance-and-world-bounding-lengths`)
 
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 6/37 Visual Trace (84e-report-distance-and-world-bounding-lengths): Report distance and world bounding lengths</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/measure_mark.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">selected bounds or two points</text>
+    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">world extents and deltas</text>
+    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">formatted result</text>
+    
+</svg>
+</div>
+
 - **Goal:** Report distance and world bounding lengths.
 - **Data Flow Trace:** `selected bounds or two points → world extents and deltas → formatted result`
 - **Files You Touch:** `src/measure_mark.rs` (*Resolve world selected bounds and distance without changing source geometry.*)
@@ -3398,6 +3568,31 @@ After that block, type:
 
 ### Step 7 of 37 · Collect only supported finite original measurements (`84f-collect-only-supported-finite-original-measurements`)
 
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 7/37 Visual Trace (84f-collect-only-supported-finite-original-measurements): Collect only supported finite original measurements</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/measure_mark.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">selected original owners</text>
+    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">placed source copies</text>
+    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">supported totals and refusals</text>
+    
+</svg>
+</div>
+
 - **Goal:** Collect only supported finite original measurements.
 - **Data Flow Trace:** `selected original owners → placed source copies → supported totals and refusals`
 - **Files You Touch:** `src/measure_mark.rs` (*Collect original length, area and volume while keeping refusals explicit.*)
@@ -3441,6 +3636,31 @@ After that block, type:
 <a id="checkpoint-84g-format-totals-refusals-and-three-axis-box-extents"></a>
 
 ### Step 8 of 37 · Format totals refusals and three-axis box extents (`84g-format-totals-refusals-and-three-axis-box-extents`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 8/37 Visual Trace (84g-format-totals-refusals-and-three-axis-box-extents): Format totals refusals and three-axis box extents</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/measure_mark.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">finite total and refusals</text>
+    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">current value formatting</text>
+    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">temporary result chip</text>
+    
+</svg>
+</div>
 
 - **Goal:** Format totals refusals and three-axis box extents.
 - **Data Flow Trace:** `finite total and refusals → current value formatting → temporary result chip`
@@ -3486,6 +3706,31 @@ Edit the existing block to match this code; keep unchanged lines:
 <a id="checkpoint-84h-keep-measurements-outside-geometry-history"></a>
 
 ### Step 9 of 37 · Keep measurements outside geometry history (`84h-keep-measurements-outside-geometry-history`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 9/37 Visual Trace (84h-keep-measurements-outside-geometry-history): Keep measurements outside geometry history</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/editor.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">selected whole owner or face</text>
+    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">measurement or original box</text>
+    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">unchanged or single history entry</text>
+    
+</svg>
+</div>
 
 - **Goal:** Keep measurements outside geometry history.
 - **Data Flow Trace:** `selected whole owner or face → measurement or original box → unchanged or single history entry`
@@ -4665,6 +4910,31 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 <a id="checkpoint-84i-accept-two-distance-points-through-the-drawing-tool"></a>
 
 ### Step 10 of 37 · Accept two distance points through the drawing tool (`84i-accept-two-distance-points-through-the-drawing-tool`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 10/37 Visual Trace (84i-accept-two-distance-points-through-the-drawing-tool): Accept two distance points through the drawing tool</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/tool.rs, src/editor.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">drawing-plane or world points</text>
+    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">existing snapping tool</text>
+    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">temporary measured pair</text>
+    
+</svg>
+</div>
 
 - **Goal:** Accept two distance points through the drawing tool.
 - **Data Flow Trace:** `drawing-plane or world points → existing snapping tool → temporary measured pair`
@@ -6156,6 +6426,31 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 ### Step 11 of 37 · Register measurements and end temporary marks predictably (`84j-register-measurements-and-end-temporary-marks-predictably`)
 
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 11/37 Visual Trace (84j-register-measurements-and-end-temporary-marks-predictably): Register measurements and end temporary marks predictably</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/editor.rs, src/commands.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">current command vocabulary</text>
+    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">checked measurement action</text>
+    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">explicit mark lifecycle</text>
+    
+</svg>
+</div>
+
 - **Goal:** Register measurements and end temporary marks predictably.
 - **Data Flow Trace:** `current command vocabulary → checked measurement action → explicit mark lifecycle`
 - **Files You Touch:** `src/editor.rs` (*Connect transient mark cleanup and completed-mark Escape.*) · `src/commands.rs` (*Register original BoundingBox and current numerical measurement commands.*)
@@ -7566,6 +7861,31 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 ### Step 12 of 37 · Draw cached unpickable measurement strokes (`84k-draw-cached-unpickable-measurement-strokes`)
 
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 12/37 Visual Trace (84k-draw-cached-unpickable-measurement-strokes): Draw cached unpickable measurement strokes</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/stroke_gpu.rs, src/measure_gpu.rs, src/lib.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">temporary point pair</text>
+    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">cached CSS-width stroke</text>
+    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">overlay colour pass</text>
+    
+</svg>
+</div>
+
 - **Goal:** Draw cached unpickable measurement strokes.
 - **Data Flow Trace:** `temporary point pair → cached CSS-width stroke → overlay colour pass`
 - **Files You Touch:** `src/stroke_gpu.rs` (*Add a colour-only overlay lane with explicit depth behaviour.*) · `src/measure_gpu.rs` (*Cache unchanged marks and account for their actual stroke allocation.*) · `src/lib.rs` (*Register the measurement component.*)
@@ -7641,6 +7961,35 @@ After that block, type:
 <a id="checkpoint-84l-merge-measurement-chips-with-cached-scene-text"></a>
 
 ### Step 13 of 37 · Merge measurement chips with cached scene text (`84l-merge-measurement-chips-with-cached-scene-text`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 13/37 Visual Trace (84l-merge-measurement-chips-with-cached-scene-text): Merge measurement chips with cached scene text</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/renderer.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">unchanged mark guard</text>
+    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">merged cached text</text>
+    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">stroke overlay</text>
+    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">value chip</text>
+    
+</svg>
+</div>
 
 - **Goal:** Merge measurement chips with cached scene text.
 - **Data Flow Trace:** `unchanged mark guard → merged cached text → stroke overlay → value chip`
@@ -8330,6 +8679,31 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 <a id="checkpoint-84m-exercise-original-boxes-and-temporary-distance-annotations"></a>
 
 ### Step 14 of 37 · Exercise original boxes and temporary distance annotations (`84m-exercise-original-boxes-and-temporary-distance-annotations`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 14/37 Visual Trace (84m-exercise-original-boxes-and-temporary-distance-annotations): Exercise original boxes and temporary distance annotations</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/browser.rs, src/measure_tests.rs, src/lib.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original solid</text>
+    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">reversible wire box</text>
+    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">temporary distance line and value</text>
+    
+</svg>
+</div>
 
 - **Goal:** Exercise original boxes and temporary distance annotations.
 - **Data Flow Trace:** `original solid → reversible wire box → temporary distance line and value`
@@ -9413,6 +9787,31 @@ After that block, append this supplied code:
 
 ### Step 15 of 37 · Describe removable CAD parts (`84zza-describe-removable-cad-parts`)
 
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 15/37 Visual Trace (84zza-describe-removable-cad-parts): Describe removable CAD parts</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/trim_parts.rs, src/lib.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original CAD geometry</text>
+    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">removable parts</text>
+    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">retained source geometry</text>
+    
+</svg>
+</div>
+
 - **Goal:** Represent curve intervals, BRep face groups and mesh sides without replacing the original CAD geometry.
 - **Data Flow Trace:** `original CAD geometry → removable parts → retained source geometry`
 - **Files You Touch:** `src/trim_parts.rs` (*Type the original CAD part representation and seam-aware curve helpers.*) · `src/lib.rs` (*Register the shared part owner.*)
@@ -9466,6 +9865,31 @@ After that block, type:
 <a id="checkpoint-84zzb-read-trim-part-previews"></a>
 
 ### Step 16 of 37 · Read trim part previews (`84zzb-read-trim-part-previews`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 16/37 Visual Trace (84zzb-read-trim-part-previews): Read trim part previews</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/trim_parts.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original CAD geometry</text>
+    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">removable parts</text>
+    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">retained source geometry</text>
+    
+</svg>
+</div>
 
 - **Goal:** Expose part counts, sampled curve outlines, section edges and meshes through one Parts owner.
 - **Data Flow Trace:** `original CAD geometry → removable parts → retained source geometry`
@@ -9578,6 +10002,31 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 ### Step 17 of 37 · Collect curve crossings (`84zzc-collect-curve-crossings`)
 
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 17/37 Visual Trace (84zzc-collect-curve-crossings): Collect curve crossings</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/trim_parts.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original CAD geometry</text>
+    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">removable parts</text>
+    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">retained source geometry</text>
+    
+</svg>
+</div>
+
 - **Goal:** Collect kernel curve intersections, filter open endpoints and merge a closed seam.
 - **Data Flow Trace:** `original CAD geometry → removable parts → retained source geometry`
 - **Files You Touch:** `src/trim_parts.rs` (*Add this part-building behavior to the existing owner.*)
@@ -9659,6 +10108,31 @@ Edit the existing block to match this code; keep unchanged lines:
 <a id="checkpoint-84zzd-preserve-trimmed-source-types"></a>
 
 ### Step 18 of 37 · Preserve trimmed source types (`84zzd-preserve-trimmed-source-types`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 18/37 Visual Trace (84zzd-preserve-trimmed-source-types): Preserve trimmed source types</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/trim_parts.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original CAD geometry</text>
+    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">removable parts</text>
+    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">retained source geometry</text>
+    
+</svg>
+</div>
 
 - **Goal:** Rebuild kept curves in their original source family with their presentation.
 - **Data Flow Trace:** `original CAD geometry → removable parts → retained source geometry`
@@ -9792,6 +10266,31 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 ### Step 19 of 37 · Group faces by cutting planes (`84zze-group-faces-by-cutting-planes`)
 
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 19/37 Visual Trace (84zze-group-faces-by-cutting-planes): Group faces by cutting planes</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/trim_parts.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original CAD geometry</text>
+    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">removable parts</text>
+    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">retained source geometry</text>
+    
+</svg>
+</div>
+
 - **Goal:** Extend a plane-plane intersection past surface control points.
 - **Data Flow Trace:** `original CAD geometry → removable parts → retained source geometry`
 - **Files You Touch:** `src/trim_parts.rs` (*Add this part-building behavior to the existing owner.*)
@@ -9912,6 +10411,31 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 <a id="checkpoint-84zzf-cut-planar-brep-faces"></a>
 
 ### Step 20 of 37 · Cut planar BRep faces (`84zzf-cut-planar-brep-faces`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 20/37 Visual Trace (84zzf-cut-planar-brep-faces): Cut planar BRep faces</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/trim_parts.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original CAD geometry</text>
+    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">removable parts</text>
+    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">retained source geometry</text>
+    
+</svg>
+</div>
 
 - **Goal:** Find crossed planar faces, split them through the kernel and collect section edges.
 - **Data Flow Trace:** `original CAD geometry → removable parts → retained source geometry`
@@ -10043,6 +10567,31 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 <a id="checkpoint-84zzg-assemble-removable-face-groups"></a>
 
 ### Step 21 of 37 · Assemble removable face groups (`84zzg-assemble-removable-face-groups`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 21/37 Visual Trace (84zzg-assemble-removable-face-groups): Assemble removable face groups</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/trim_parts.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original CAD geometry</text>
+    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">removable parts</text>
+    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">retained source geometry</text>
+    
+</svg>
+</div>
 
 - **Goal:** Combine curve regions, fallback fence planes and crossed plane sections into one Parts value.
 - **Data Flow Trace:** `original CAD geometry → removable parts → retained source geometry`
@@ -10198,6 +10747,31 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 ### Step 22 of 37 · Mark retained BRep topology (`84zzh-mark-retained-brep-topology`)
 
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 22/37 Visual Trace (84zzh-mark-retained-brep-topology): Mark retained BRep topology</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/trim_parts.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original CAD geometry</text>
+    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">removable parts</text>
+    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">retained source geometry</text>
+    
+</svg>
+</div>
+
 - **Goal:** Walk retained faces through wires and edges to mark their surfaces, vertices and curve tables.
 - **Data Flow Trace:** `original CAD geometry → removable parts → retained source geometry`
 - **Files You Touch:** `src/trim_parts.rs` (*Add this part-building behavior to the existing owner.*)
@@ -10335,6 +10909,31 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 ### Step 23 of 37 · Rebuild retained BRep tables (`84zzi-rebuild-retained-brep-tables`)
 
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 23/37 Visual Trace (84zzi-rebuild-retained-brep-tables): Rebuild retained BRep tables</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/trim_parts.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original CAD geometry</text>
+    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">removable parts</text>
+    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">retained source geometry</text>
+    
+</svg>
+</div>
+
 - **Goal:** Compact marked BRep tables and rewrite every reference.
 - **Data Flow Trace:** `original CAD geometry → removable parts → retained source geometry`
 - **Files You Touch:** `src/trim_parts.rs` (*Add this part-building behavior to the existing owner.*)
@@ -10377,6 +10976,31 @@ Edit the existing block to match this code; keep unchanged lines:
 <a id="checkpoint-84zzj-split-mesh-faces-at-a-plane"></a>
 
 ### Step 24 of 37 · Split mesh faces at a plane (`84zzj-split-mesh-faces-at-a-plane`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 24/37 Visual Trace (84zzj-split-mesh-faces-at-a-plane): Split mesh faces at a plane</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/trim_parts.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original CAD geometry</text>
+    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">removable parts</text>
+    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">retained source geometry</text>
+    
+</svg>
+</div>
 
 - **Goal:** Classify mesh vertices, reuse one cut vertex per original edge and build both clipped face rings.
 - **Data Flow Trace:** `original CAD geometry → removable parts → retained source geometry`
@@ -10528,6 +11152,31 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 ### Step 25 of 37 · Compact both trimmed mesh sides (`84zzk-compact-both-trimmed-mesh-sides`)
 
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 25/37 Visual Trace (84zzk-compact-both-trimmed-mesh-sides): Compact both trimmed mesh sides</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/trim_parts.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original CAD geometry</text>
+    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">removable parts</text>
+    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">retained source geometry</text>
+    
+</svg>
+</div>
+
 - **Goal:** Compact each clipped mesh side to only its used vertices, rewrite its faces and preserve source name and color.
 - **Data Flow Trace:** `original CAD geometry → removable parts → retained source geometry`
 - **Files You Touch:** `src/trim_parts.rs` (*Add this part-building behavior to the existing owner.*)
@@ -10570,6 +11219,31 @@ Edit the existing block to match this code; keep unchanged lines:
 <a id="checkpoint-84zzl-rebuild-kept-cad-parts"></a>
 
 ### Step 26 of 37 · Rebuild kept CAD parts (`84zzl-rebuild-kept-cad-parts`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 26/37 Visual Trace (84zzl-rebuild-kept-cad-parts): Rebuild kept CAD parts</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/trim_parts.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original CAD geometry</text>
+    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">removable parts</text>
+    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">retained source geometry</text>
+    
+</svg>
+</div>
 
 - **Goal:** Merge adjacent kept curve intervals, remove BRep face groups and return the retained mesh half.
 - **Data Flow Trace:** `original CAD geometry → removable parts → retained source geometry`
@@ -10690,6 +11364,31 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 <a id="checkpoint-84zzm-connect-original-trim-recipes"></a>
 
 ### Step 27 of 37 · Connect original trim recipes (`84zzm-connect-original-trim-recipes`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 27/37 Visual Trace (84zzm-connect-original-trim-recipes): Connect original trim recipes</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/trim_parts.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original CAD geometry</text>
+    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">removable parts</text>
+    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">retained source geometry</text>
+    
+</svg>
+</div>
 
 - **Goal:** Route original curves, surfaces, BReps and meshes through the shared part builders.
 - **Data Flow Trace:** `original CAD geometry → removable parts → retained source geometry`
@@ -10946,6 +11645,31 @@ After that block, append this supplied code:
 
 ### Step 28 of 37 · Index selection loops by pixel row (`84zna-index-selection-loops-by-pixel-row`)
 
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 28/37 Visual Trace (84zna-index-selection-loops-by-pixel-row): Index selection loops by pixel row</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/selection_region.rs, src/lib.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original CAD samples</text>
+    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">screen region</text>
+    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">window or crossing result</text>
+    
+</svg>
+</div>
+
 - **Goal:** Build a row index for the even-odd point test.
 - **Data Flow Trace:** `original CAD samples → screen region → window or crossing result`
 - **Files You Touch:** `src/selection_region.rs` (*Type the shared selection region and row index.*) · `src/lib.rs` (*Register the selection owner.*)
@@ -11016,6 +11740,31 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 <a id="checkpoint-84znb-test-window-membership-and-segment-crossings"></a>
 
 ### Step 29 of 37 · Test window membership and segment crossings (`84znb-test-window-membership-and-segment-crossings`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 29/37 Visual Trace (84znb-test-window-membership-and-segment-crossings): Test window membership and segment crossings</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/selection_region.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original CAD samples</text>
+    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">screen region</text>
+    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">window or crossing result</text>
+    
+</svg>
+</div>
 
 - **Goal:** Complete Region with point membership and segment clipping against the rectangle.
 - **Data Flow Trace:** `original CAD samples → screen region → window or crossing result`
@@ -11117,6 +11866,31 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 <a id="checkpoint-84znc-sample-original-cad-families-for-selection"></a>
 
 ### Step 30 of 37 · Sample original CAD families for selection (`84znc-sample-original-cad-families-for-selection`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 30/37 Visual Trace (84znc-sample-original-cad-families-for-selection): Sample original CAD families for selection</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/selection_region.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original CAD samples</text>
+    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">screen region</text>
+    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">window or crossing result</text>
+    
+</svg>
+</div>
 
 - **Goal:** Reuse original curve corners, curved domains, mesh vertices and BRep references as bounded selection samples.
 - **Data Flow Trace:** `original CAD samples → screen region → window or crossing result`
@@ -11246,6 +12020,31 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 ### Step 31 of 37 · Collect original boundary strokes (`84znd-collect-original-boundary-strokes`)
 
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 31/37 Visual Trace (84znd-collect-original-boundary-strokes): Collect original boundary strokes</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/selection_region.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original CAD samples</text>
+    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">screen region</text>
+    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">window or crossing result</text>
+    
+</svg>
+</div>
+
 - **Goal:** Build surface grids and closed mesh outlines, then combine BRep vertices, edges and curved faces.
 - **Data Flow Trace:** `original CAD samples → screen region → window or crossing result`
 - **Files You Touch:** `src/selection_region.rs` (*Extend the existing original selection owner.*)
@@ -11351,6 +12150,31 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 <a id="checkpoint-84zne-test-crossing-selection-on-original-strokes"></a>
 
 ### Step 32 of 37 · Test crossing selection on original strokes (`84zne-test-crossing-selection-on-original-strokes`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 32/37 Visual Trace (84zne-test-crossing-selection-on-original-strokes): Test crossing selection on original strokes</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/selection_region.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original CAD samples</text>
+    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">screen region</text>
+    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">window or crossing result</text>
+    
+</svg>
+</div>
 
 - **Goal:** Dispatch original geometry families to their shared stroke builders.
 - **Data Flow Trace:** `original CAD samples → screen region → window or crossing result`
@@ -11475,6 +12299,31 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 <a id="checkpoint-84znf-connect-window-and-bounds-selection-tests"></a>
 
 ### Step 33 of 37 · Connect window and bounds selection tests (`84znf-connect-window-and-bounds-selection-tests`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 33/37 Visual Trace (84znf-connect-window-and-bounds-selection-tests): Connect window and bounds selection tests</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/selection_region.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original CAD samples</text>
+    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">screen region</text>
+    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">window or crossing result</text>
+    
+</svg>
+</div>
 
 - **Goal:** Add projection, conservative screen bounds and complete-enclosure dispatch.
 - **Data Flow Trace:** `original CAD samples → screen region → window or crossing result`
@@ -11655,6 +12504,31 @@ After that block, append this supplied code:
 
 ### Step 34 of 37 · Classify originals and isolate one mesh face (`84zoa-classify-originals-and-isolate-one-mesh-face`)
 
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 34/37 Visual Trace (84zoa-classify-originals-and-isolate-one-mesh-face): Classify originals and isolate one mesh face</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/source_shape.rs, src/lib.rs, src/explode_geometry.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original family</text>
+    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">pure calculation</text>
+    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">result or refusal</text>
+    
+</svg>
+</div>
+
 - **Goal:** Name each original geometry kind once.
 - **Data Flow Trace:** `original family → pure calculation → result or refusal`
 - **Files You Touch:** `src/source_shape.rs` (*Type the whole original helpers introduced today.*) · `src/lib.rs` (*Compile the shared original geometry classifier.*) · `src/explode_geometry.rs` (*Type the whole original helpers introduced today.*)
@@ -11739,6 +12613,31 @@ After that block, type:
 <a id="checkpoint-84zob-copy-original-brep-edges-and-pcurves"></a>
 
 ### Step 35 of 37 · Copy original BRep edges and pcurves (`84zob-copy-original-brep-edges-and-pcurves`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 35/37 Visual Trace (84zob-copy-original-brep-edges-and-pcurves): Copy original BRep edges and pcurves</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/explode_geometry.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original family</text>
+    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">pure calculation</text>
+    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">result or refusal</text>
+    
+</svg>
+</div>
 
 - **Goal:** Copy an edge, its endpoint vertices and its surface pcurves into a new BRep.
 - **Data Flow Trace:** `original family → pure calculation → result or refusal`
@@ -11851,6 +12750,31 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 ### Step 36 of 37 · Build one original BRep face (`84zoc-build-one-original-brep-face`)
 
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 36/37 Visual Trace (84zoc-build-one-original-brep-face): Build one original BRep face</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/explode_geometry.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original family</text>
+    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">pure calculation</text>
+    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">result or refusal</text>
+    
+</svg>
+</div>
+
 - **Goal:** Reuse the copied-edge helper to rebuild one face surface, ordered wire references and one oriented shell.
 - **Data Flow Trace:** `original family → pure calculation → result or refusal`
 - **Files You Touch:** `src/explode_geometry.rs` (*Extend this original owner with today’s complete helper.*)
@@ -11948,6 +12872,31 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 <a id="checkpoint-84zod-explode-supported-original-families"></a>
 
 ### Step 37 of 37 · Explode supported original families (`84zod-explode-supported-original-families`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 37/37 Visual Trace (84zod-explode-supported-original-families): Explode supported original families</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/explode_geometry.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original family</text>
+    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">pure calculation</text>
+    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">result or refusal</text>
+    
+</svg>
+</div>
 
 - **Goal:** Count derived pieces before allocating them.
 - **Data Flow Trace:** `original family → pure calculation → result or refusal`

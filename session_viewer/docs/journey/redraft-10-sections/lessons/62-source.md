@@ -4,103 +4,142 @@
 
 > **What You Will Learn & Build:** Own original scene words and font metrics. By the final checkpoint (`62o-labels`), you will create pick move and delete the original scene labels.
 
-## 1. Visual Pipeline & WebGPU Architecture (Black & White Schematics)
+## 1. Visual WebGPU Explanation & Architecture (Black & White Schematics)
 
 <div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg viewBox="0 0 840 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg width="840" height="256" viewBox="0 0 840 256" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
       <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
   </defs>
-  <rect x="4" y="4" width="832" height="212" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Lesson 10.4 Execution Flow: Original world labels, plates and integer picks</text>
-  <text x="20" y="46" font-size="11.5" fill="#111111">Concrete data pipeline you build in this lesson (37 Checkpoints: 62-source → 62o-labels)</text>
-  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
+  <rect x="4" y="4" width="832" height="248" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Chapter 10 Visual Explanation: Shelf-Packed R8Unorm Font Atlas, 3D World Text vs. Billboard & Matrix Shader</text>
+  <text x="20" y="45" font-size="11" fill="#111111">Left: Shelf-packed glyph atlas with 1px gutter. Center: Foreshortened 3D plane text vs billboard. Right: Procedural matrix.wgsl.</text>
+  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
   
+    <!-- Panel A: Shelf-Packed Glyph Atlas Texture -->
+    <rect x="18" y="64" width="245" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="140" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">A. R8Unorm Shelf Glyph Atlas</text>
+    <rect x="52" y="94" width="176" height="100" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <!-- Shelf 1 -->
+    <line x1="52" y1="138" x2="228" y2="138" stroke="#111111" stroke-width="1"/>
+    <rect x="58" y="100" width="32" height="32" fill="#ffffff" stroke="#111111" stroke-width="1" stroke-dasharray="2,2"/>
+    <text x="74" y="123" text-anchor="middle" font-size="18" font-weight="700" fill="#111111">A</text>
+    <rect x="96" y="100" width="32" height="32" fill="#ffffff" stroke="#111111" stroke-width="1" stroke-dasharray="2,2"/>
+    <text x="112" y="123" text-anchor="middle" font-size="18" font-weight="700" fill="#111111">B</text>
+    <rect x="134" y="100" width="28" height="32" fill="#ffffff" stroke="#111111" stroke-width="1" stroke-dasharray="2,2"/>
+    <text x="148" y="123" text-anchor="middle" font-size="18" font-weight="700" fill="#111111">g</text>
+    <!-- Shelf 2 -->
+    <rect x="58" y="144" width="28" height="32" fill="#ffffff" stroke="#111111" stroke-width="1" stroke-dasharray="2,2"/>
+    <text x="72" y="167" text-anchor="middle" font-size="17" font-weight="700" fill="#111111">0</text>
+    <rect x="92" y="144" width="28" height="32" fill="#ffffff" stroke="#111111" stroke-width="1" stroke-dasharray="2,2"/>
+    <text x="106" y="167" text-anchor="middle" font-size="17" font-weight="700" fill="#111111">1</text>
+    <text x="140" y="210" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">1px transparent gutter prevents bleed</text>
+    <text x="140" y="225" text-anchor="middle" font-size="9" fill="#111111">queue.write_texture uploads dirty rects</text>
+
+    <line x1="263" y1="154" x2="285" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <!-- Panel B: 3D World-Plane Text vs Screen Billboard -->
+    <rect x="287" y="64" width="265" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="419" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">B. World-Plane vs. Billboard Text</text>
+    <!-- Tilted 3D World Text Quad -->
+    <polygon points="304,168 388,142 406,174 322,200" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="342" y="175" font-size="11" font-weight="700" fill="#111111" transform="rotate(-16 342 175)">WORLD</text>
+    <text x="355" y="216" text-anchor="middle" font-size="9" fill="#111111">text_plane.wgsl (3D)</text>
+    <!-- Screen-aligned Billboard with Leader Line -->
+    <rect x="432" y="102" width="104" height="34" rx="5" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="484" y="123" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Label #42</text>
+    <line x1="464" y1="136" x2="438" y2="178" stroke="#111111" stroke-width="1.5"/>
+    <circle cx="438" cy="178" r="3.5" fill="#111111"/>
+    <text x="484" y="216" text-anchor="middle" font-size="9" fill="#111111">text.wgsl (Billboard)</text>
+
+    <line x1="552" y1="154" x2="574" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <!-- Panel C: Procedural Matrix Shader (matrix.wgsl) -->
+    <rect x="576" y="64" width="246" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="699" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">C. Procedural Matrix (matrix.wgsl)</text>
+    <text x="699" y="100" text-anchor="middle" font-size="10" font-weight="700" fill="#111111">Stiffness K (3×3) — Plate-less Title</text>
+    <!-- 3x2 Matrix Grid -->
+    <rect x="604" y="108" width="190" height="84" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+    <line x1="667" y1="108" x2="667" y2="192" stroke="#111111" stroke-width="1"/>
+    <line x1="730" y1="108" x2="730" y2="192" stroke="#111111" stroke-width="1"/>
+    <line x1="604" y1="150" x2="794" y2="150" stroke="#111111" stroke-width="1"/>
+    <text x="635" y="133" text-anchor="middle" font-size="10" font-weight="700" fill="#111111">0.425</text>
+    <!-- Zero cell left blank intentionally! -->
+    <text x="698" y="133" text-anchor="middle" font-size="9" fill="#111111">(0 blank)</text>
+    <text x="762" y="133" text-anchor="middle" font-size="10" font-weight="700" fill="#111111">-1.200</text>
+    <rect x="604" y="150" width="63" height="42" fill="url(#hatch)" stroke="#111111" stroke-width="1"/>
+    <text x="635" y="175" text-anchor="middle" font-size="10" font-weight="700" fill="#111111">3.142</text>
+    <text x="698" y="175" text-anchor="middle" font-size="10" font-weight="700" fill="#111111">0.008</text>
+    <text x="762" y="175" text-anchor="middle" font-size="9" fill="#111111">(0 blank)</text>
+    <text x="699" y="212" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">16-word header + 3 words/cell</text>
+    <text x="699" y="226" text-anchor="middle" font-size="9" fill="#111111">Whole-matrix Rg32Uint pick + border</text>
     
-    <rect x="18" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="89" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
-    <line x1="28" y1="92" x2="151" y2="92" stroke="#111111" stroke-width="0.75"/>
-    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">original words and</text>
-    <text x="89" y="124" text-anchor="middle" font-size="11" fill="#111111">placement</text>
-    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="183" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="254" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
-    <line x1="193" y1="92" x2="316" y2="92" stroke="#111111" stroke-width="0.75"/>
-    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">shared source</text>
-    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="348" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
-    <line x1="358" y1="92" x2="481" y2="92" stroke="#111111" stroke-width="0.75"/>
-    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">checked shaping</text>
-    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="513" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="584" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
-    <line x1="523" y1="92" x2="646" y2="92" stroke="#111111" stroke-width="0.75"/>
-    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">derived extent</text>
-    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="678" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="749" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
-    <line x1="688" y1="92" x2="811" y2="92" stroke="#111111" stroke-width="0.75"/>
-    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">original text</text>
-    <text x="749" y="124" text-anchor="middle" font-size="11" fill="#111111">example</text>
-    
-    <rect x="18" y="162" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="32" y="181" font-size="11" font-weight="700" fill="#111111">Files You Edit in Lesson 10.4:</text>
-    <text x="215" y="181" font-size="11" fill="#111111">src/scene_label.rs  ·  src/lib.rs  ·  src/text.rs  ·  src/scene.rs  ·  src/hierarchy.rs  ·  src/document.rs</text>
-    <text x="32" y="198" font-size="10.5" fill="#111111">37 Checkpoints: 62-source → 62o-labels — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
-  
 </svg>
 </div>
 
 <div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg viewBox="0 0 840 240" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg width="840" height="214" viewBox="0 0 840 214" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
       <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
   </defs>
-  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Chapter 10 WebGPU Text & Shared Arena Pipeline: Glyph Atlas Packing, World/Billboard Text & Matrix Shader</text>
-  <text x="20" y="46" font-size="11.5" fill="#111111">How crisp typography (text_plane.wgsl / text.wgsl) and procedural cell digits (matrix.wgsl) render in 3D world space.</text>
-  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
+  <rect x="4" y="4" width="832" height="206" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Lesson 10.4 Pipeline Schematic: Original world labels, plates and integer picks</text>
+  <text x="20" y="45" font-size="11" fill="#111111">Step-by-step data flow you implement in this lesson (37 Checkpoints: 62-source → 62o-labels)</text>
+  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
   
-    <rect x="18" y="68" width="235" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="135" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">1. Shelf-Packed Glyph Atlas</text>
-    <text x="28" y="108" font-size="10.5" fill="#111111">• Rasterize needed Unicode codepoints</text>
-    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#111111">• Pack into R8Unorm GPU Atlas Texture</text>
-    <text x="28" y="142" font-size="10" fill="#111111">  with 1px padding (no bilinear bleed!)</text>
-    <text x="28" y="160" font-size="10.5" fill="#111111">• queue.write_texture dirty rects only</text>
-    <text x="28" y="178" font-size="10.5" fill="#111111">• Layout baseline, kerning &amp; line</text>
-    <text x="28" y="193" font-size="10.5" fill="#111111">  wraps into instanced glyph quads</text>
-
-    <line x1="253" y1="138" x2="283" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
-
-    <rect x="285" y="68" width="265" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="417" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">2. World-Plane vs Screen Billboard</text>
-    <text x="297" y="108" font-size="10.5" font-weight="600" fill="#111111">• text_plane.wgsl (3D World Text):</text>
-    <text x="297" y="123" font-size="10" fill="#111111">  q_world = origin + u*plane_x + v*plane_y</text>
-    <text x="297" y="138" font-size="10" fill="#111111">  Foreshortens naturally with 3D perspective</text>
-    <text x="297" y="158" font-size="10.5" font-weight="600" fill="#111111">• text.wgsl (Screen-Aligned Label):</text>
-    <text x="297" y="173" font-size="10" fill="#111111">  Expands along camera Right/Up vectors;</text>
-    <text x="297" y="188" font-size="10" fill="#111111">  optional background plate + 3D leader line</text>
-
-    <line x1="550" y1="138" x2="580" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
-
-    <rect x="582" y="68" width="238" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="701" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">3. Whole-Text Pick &amp; Matrix (Sec 10)</text>
-    <text x="594" y="108" font-size="10.5" fill="#111111">• Clicking any glyph or plate writes</text>
-    <text x="594" y="124" font-size="10.5" font-weight="600" fill="#111111">  the parent Text owner_id to Rg32Uint</text>
-    <text x="594" y="144" font-size="10.5" fill="#111111">• Later in Sec 10 (matrix.wgsl):</text>
-    <text x="594" y="160" font-size="10" fill="#111111">  16-word header + 3 words/cell renders</text>
-    <text x="594" y="175" font-size="10" fill="#111111">  procedural 3-decimal digits (0 blank)</text>
-    <text x="594" y="190" font-size="10" fill="#111111">  + plate-less world title &amp; yellow select</text>
     
+    <rect x="18" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="89" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
+    <line x1="28" y1="90" x2="151" y2="90" stroke="#111111" stroke-width="0.75"/>
+    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">original words and</text>
+    <text x="89" y="124" text-anchor="middle" font-size="11" fill="#111111">placement</text>
+    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="183" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="254" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
+    <line x1="193" y1="90" x2="316" y2="90" stroke="#111111" stroke-width="0.75"/>
+    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">shared source</text>
+    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="348" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="419" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
+    <line x1="358" y1="90" x2="481" y2="90" stroke="#111111" stroke-width="0.75"/>
+    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">checked shaping</text>
+    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="513" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="584" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
+    <line x1="523" y1="90" x2="646" y2="90" stroke="#111111" stroke-width="0.75"/>
+    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">derived extent</text>
+    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="678" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="749" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
+    <line x1="688" y1="90" x2="811" y2="90" stroke="#111111" stroke-width="0.75"/>
+    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">original text</text>
+    <text x="749" y="124" text-anchor="middle" font-size="11" fill="#111111">example</text>
+    
+    <rect x="18" y="158" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="32" y="177" font-size="11" font-weight="700" fill="#111111">Files Modified in Lesson 10.4:</text>
+    <text x="235" y="177" font-size="11" fill="#111111">src/scene_label.rs  ·  src/lib.rs  ·  src/text.rs  ·  src/scene.rs  ·  src/hierarchy.rs  ·  src/document.rs</text>
+    <text x="32" y="194" font-size="10.5" fill="#111111">37 Checkpoints: 62-source → 62o-labels — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
+  
 </svg>
 </div>
 
@@ -162,11 +201,41 @@ Before writing code, review how the three layers in this chapter talk to each ot
 
 ## 4. Step-by-Step Coding Notebook (Concept + Implementation)
 
-Work through each notebook cell below in order inside `workspace/journey`. Read the **Concept Walkthrough** and **Self-Check Q&A** first, then expand the **Implementation** block to type and verify the code.
+Work through each notebook cell below in order inside `workspace/journey`. Study the **Visual Step Trace**, read the **Concept Walkthrough** and **Self-Check Q&A**, then expand the **Implementation** block to type and verify the code.
 
 <a id="checkpoint-62-source"></a>
 
 ### Step 1 of 37 · Own original scene words and font metrics (`62-source`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 1/37 Visual Trace (62-source): Own original scene words and font metrics</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/scene_label.rs, src/lib.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original words and</text>
+    <text x="111" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">placement</text>
+    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">shared source</text>
+    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">checked shaping</text>
+    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">derived extent</text>
+    
+</svg>
+</div>
 
 - **Goal:** Own original scene words and font metrics.
 - **Data Flow Trace:** `original words and placement → shared source → checked shaping → derived extent`
@@ -222,6 +291,35 @@ After that block, type:
 <a id="checkpoint-62a-placements"></a>
 
 ### Step 2 of 37 · Transform the label frame without changing its source (`62a-placements`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 2/37 Visual Trace (62a-placements): Transform the label frame without changing its source</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/text.rs, src/scene_label.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">shared original placement</text>
+    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">instance model</text>
+    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">checked world frame</text>
+    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">presentation label</text>
+    
+</svg>
+</div>
 
 - **Goal:** Transform the label frame without changing its source.
 - **Data Flow Trace:** `shared original placement → instance model → checked world frame → presentation label`
@@ -291,6 +389,35 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### Step 3 of 37 · Measure the world-sized label and its padded plate (`62b-bounds`)
 
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 3/37 Visual Trace (62b-bounds): Measure the world-sized label and its padded plate</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/scene_label.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">font-unit extent</text>
+    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">world-height ratio</text>
+    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">padded corners</text>
+    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">fit bounds</text>
+    
+</svg>
+</div>
+
 - **Goal:** Measure the world-sized label and its padded plate.
 - **Data Flow Trace:** `font-unit extent → world-height ratio → padded corners → fit bounds`
 - **Files You Touch:** `src/scene_label.rs` (*Derive source-owned world bounds without replacing f64 coordinates by display floats.*)
@@ -336,6 +463,35 @@ Edit the existing block to match this code; keep unchanged lines:
 <a id="checkpoint-62c-rows"></a>
 
 ### Step 4 of 37 · Register text rows and release them with the scene (`62c-rows`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 4/37 Visual Trace (62c-rows): Register text rows and release them with the scene</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/scene.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">validated text</text>
+    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">stable row</text>
+    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">current layer</text>
+    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">explicit scene release</text>
+    
+</svg>
+</div>
 
 - **Goal:** Register text rows and release them with the scene.
 - **Data Flow Trace:** `validated text → stable row → current layer → explicit scene release`
@@ -1113,6 +1269,35 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 <a id="checkpoint-62d-identity"></a>
 
 ### Step 5 of 37 · Include label owners in selection layers and history (`62d-identity`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 5/37 Visual Trace (62d-identity): Include label owners in selection layers and history</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/scene.rs, src/hierarchy.rs, src/document.rs, src/memory.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">stable label owner</text>
+    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">layer eligibility</text>
+    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">one history transaction</text>
+    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">shared source reuse</text>
+    
+</svg>
+</div>
 
 - **Goal:** Include label owners in selection layers and history.
 - **Data Flow Trace:** `stable label owner → layer eligibility → one history transaction → shared source reuse`
@@ -2908,6 +3093,36 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 ### Step 6 of 37 · Select a label through its projected plate (`62e-rectangles`)
 
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 6/37 Visual Trace (62e-rectangles): Select a label through its projected plate</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/scene_label_screen.rs, src/lib.rs, src/rect_select.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original placed label</text>
+    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">projected plate</text>
+    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">window or crossing</text>
+    <text x="521" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">rectangle</text>
+    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">eligible owner</text>
+    
+</svg>
+</div>
+
 - **Goal:** Select a label through its projected plate.
 - **Data Flow Trace:** `original placed label → projected plate → window or crossing rectangle → eligible owner`
 - **Files You Touch:** `src/scene_label_screen.rs` (*Project source-owned plate extents for rectangle selection.*) · `src/lib.rs` (*Register the source component.*) · `src/rect_select.rs` (*Include only eligible original label owners in rectangle results.*)
@@ -2984,6 +3199,35 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### Step 7 of 37 · Supply the text buffer and target adapters (`62f-gpu-support`)
 
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 7/37 Visual Trace (62f-gpu-support): Supply the text buffer and target adapters</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/text_gpu_support.rs, src/lib.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">current text vertices</text>
+    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">bounded buffer</text>
+    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">explicit bindings</text>
+    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">colour and integer targets</text>
+    
+</svg>
+</div>
+
 - **Goal:** Supply the text buffer and target adapters.
 - **Data Flow Trace:** `current text vertices → bounded buffer → explicit bindings → colour and integer targets`
 - **Files You Touch:** `src/text_gpu_support.rs` (*Adapt current text buffers and bindings to this cumulative renderer.*) · `src/lib.rs` (*Register the source component.*)
@@ -3038,6 +3282,35 @@ After that block, type:
 
 ### Step 8 of 37 · Keep plane clipping correct in a small pick window (`62g-plane-shader`)
 
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 8/37 Visual Trace (62g-plane-shader): Keep plane clipping correct in a small pick window</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/text_plane.wgsl</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original clip position</text>
+    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">cropped integer draw</text>
+    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original canvas clip</text>
+    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">original row id</text>
+    
+</svg>
+</div>
+
 - **Goal:** Keep plane clipping correct in a small pick window.
 - **Data Flow Trace:** `original clip position → cropped integer draw → original canvas clip → original row id`
 - **Files You Touch:** `src/text_plane.wgsl` (*Keep original clip coordinates through the bounded pick crop and shade actual rounded coverage.*)
@@ -3072,6 +3345,32 @@ Create the file and type:
 
 ### Step 9 of 37 · Draw the current rounded nameplate and its original ID (`62h-plate-shader`)
 
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 9/37 Visual Trace (62h-plate-shader): Draw the current rounded nameplate and its original ID</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/text_plate.wgsl</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">projected plate</text>
+    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">rounded distance</text>
+    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">colour coverage or original integer</text>
+    <text x="694" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">id</text>
+    
+</svg>
+</div>
+
 - **Goal:** Draw the current rounded nameplate and its original ID.
 - **Data Flow Trace:** `projected plate → rounded distance → colour coverage or original integer id`
 - **Files You Touch:** `src/text_plate.wgsl` (*Shade current rounded plates and preserve integer coverage ownership.*)
@@ -3105,6 +3404,23 @@ Create the file and type:
 <a id="checkpoint-62i-coverage"></a>
 
 ### Step 10 of 37 · Keep CSS pixels separate from framebuffer pixels (`62i-coverage`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 10/37 Visual Trace (62i-coverage): Keep CSS pixels separate from framebuffer pixels</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/scene_text_gpu.rs, src/lib.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="804" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">keep css pixels separate from framebuffer pixels</text>
+    
+</svg>
+</div>
 
 - **Goal:** Validate one uniform device scale before allocating or positioning text. Keep world origins in f64 and GPU matrices in f32.
 - **Data Flow Trace:** `keep css pixels separate from framebuffer pixels`
@@ -3163,6 +3479,23 @@ After that block, type:
 
 ### Step 11 of 37 · Project an original label into framebuffer coordinates (`62ia-project-an-original-label-into-framebuffer-coordinates`)
 
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 11/37 Visual Trace (62ia-project-an-original-label-into-framebuffer-coordinates): Project an original label into framebuffer coordinates</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/scene_text_gpu.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="804" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">project an original label into framebuffer coordinates</text>
+    
+</svg>
+</div>
+
 - **Goal:** Subtract the declared scene origin before projection. Cull invalid depth and apply the CSS/device scale once.
 - **Data Flow Trace:** `project an original label into framebuffer coordinates`
 - **Files You Touch:** `src/scene_text_gpu.rs` (*Add this part of project an original label into framebuffer coordinates.*)
@@ -3207,6 +3540,23 @@ After that block, type:
 <a id="checkpoint-62ib-give-nameplate-vertices-one-gpu-owner"></a>
 
 ### Step 12 of 37 · Give nameplate vertices one GPU owner (`62ib-give-nameplate-vertices-one-gpu-owner`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 12/37 Visual Trace (62ib-give-nameplate-vertices-one-gpu-owner): Give nameplate vertices one GPU owner</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/text_plate.rs, src/scene_text_gpu.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="804" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">give nameplate vertices one gpu owner</text>
+    
+</svg>
+</div>
 
 - **Goal:** Keep the rectangle input separate from the retained vertex buffer and its color/ID pipelines.
 - **Data Flow Trace:** `give nameplate vertices one gpu owner`
@@ -3264,6 +3614,23 @@ After that block, type:
 
 ### Step 13 of 37 · Build nameplate color and object-ID pipelines (`62ic-build-nameplate-color-and-object-id-pipelines`)
 
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 13/37 Visual Trace (62ic-build-nameplate-color-and-object-id-pipelines): Build nameplate color and object-ID pipelines</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/text_plate.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="804" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">build nameplate color and object-id pipelines</text>
+    
+</svg>
+</div>
+
 - **Goal:** Prepare color and original-ID pipelines for nameplate geometry.
 - **Data Flow Trace:** `build nameplate color and object-id pipelines`
 - **Files You Touch:** `src/text_plate.rs` (*Add this part of build nameplate color and object-id pipelines.*)
@@ -3309,6 +3676,23 @@ After that block, type:
 
 ### Step 14 of 37 · Own and release nameplate draw resources (`62id-own-and-release-nameplate-draw-resources`)
 
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 14/37 Visual Trace (62id-own-and-release-nameplate-draw-resources): Own and release nameplate draw resources</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/text_plate.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="804" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">own and release nameplate draw resources</text>
+    
+</svg>
+</div>
+
 - **Goal:** Construct the buffers and pipelines once, draw physical and overlay plates in their declared phases, and reset logical vertex counts independently of capacity.
 - **Data Flow Trace:** `own and release nameplate draw resources`
 - **Files You Touch:** `src/text_plate.rs` (*Add this part of own and release nameplate draw resources.*)
@@ -3353,6 +3737,23 @@ After that block, type:
 <a id="checkpoint-62ie-upload-nameplate-rectangles-in-one-physical-coordinate-system"></a>
 
 ### Step 15 of 37 · Upload nameplate rectangles in one physical coordinate system (`62ie-upload-nameplate-rectangles-in-one-physical-coordinate-system`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 15/37 Visual Trace (62ie-upload-nameplate-rectangles-in-one-physical-coordinate-system): Upload nameplate rectangles in one physical coordinate system</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/text_plate.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="804" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">upload nameplate rectangles in one physical coordinate system</text>
+    
+</svg>
+</div>
 
 - **Goal:** Generate the packed rectangle vertices once and retain the split between depth-tested plates and screen overlays.
 - **Data Flow Trace:** `upload nameplate rectangles in one physical coordinate system`
@@ -3400,6 +3801,23 @@ After that block, type:
 
 ### Step 16 of 37 · Place the plate around the shaped label (`62if-place-the-plate-around-the-shaped-label`)
 
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 16/37 Visual Trace (62if-place-the-plate-around-the-shaped-label): Place the plate around the shaped label</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/scene_text_gpu.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="804" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">place the plate around the shaped label</text>
+    
+</svg>
+</div>
+
 - **Goal:** Compute padding and rounded bounds in the same coordinate system as glyph placement. Define text statistics as observations, not source data.
 - **Data Flow Trace:** `place the plate around the shaped label`
 - **Files You Touch:** `src/scene_text_gpu.rs` (*Add this part of place the plate around the shaped label.*)
@@ -3444,6 +3862,23 @@ After that block, type:
 <a id="checkpoint-62ig-give-world-text-a-bounded-coverage-cache"></a>
 
 ### Step 17 of 37 · Give world text a bounded coverage cache (`62ig-give-world-text-a-bounded-coverage-cache`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 17/37 Visual Trace (62ig-give-world-text-a-bounded-coverage-cache): Give world text a bounded coverage cache</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/text_plane.rs, src/scene_text_gpu.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="804" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">give world text a bounded coverage cache</text>
+    
+</svg>
+</div>
 
 - **Goal:** A cached plane owns its texture and bind group. Drop destroys the texture; a changed placement may reuse the raster while font/text changes invalidate it.
 - **Data Flow Trace:** `give world text a bounded coverage cache`
@@ -3501,6 +3936,23 @@ After that block, type:
 
 ### Step 18 of 37 · Choose bounded glyph raster resolution (`62ih-choose-bounded-glyph-raster-resolution`)
 
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 18/37 Visual Trace (62ih-choose-bounded-glyph-raster-resolution): Choose bounded glyph raster resolution</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/text_plane.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="804" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">choose bounded glyph raster resolution</text>
+    
+</svg>
+</div>
+
 - **Goal:** Relate projected world height to framebuffer pixels, fit the shaped extent within the texture limit, and read mask/color/subpixel coverage consistently.
 - **Data Flow Trace:** `choose bounded glyph raster resolution`
 - **Files You Touch:** `src/text_plane.rs` (*Add this part of choose bounded glyph raster resolution.*)
@@ -3545,6 +3997,23 @@ After that block, type:
 <a id="checkpoint-62ii-rasterize-the-shaped-run-into-owned-coverage-bytes"></a>
 
 ### Step 19 of 37 · Rasterize the shaped run into owned coverage bytes (`62ii-rasterize-the-shaped-run-into-owned-coverage-bytes`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 19/37 Visual Trace (62ii-rasterize-the-shaped-run-into-owned-coverage-bytes): Rasterize the shaped run into owned coverage bytes</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/text_plane.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="804" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">rasterize the shaped run into owned coverage bytes</text>
+    
+</svg>
+</div>
 
 - **Goal:** Allocate bounded coverage storage from the shaped glyph bounds.
 - **Data Flow Trace:** `rasterize the shaped run into owned coverage bytes`
@@ -3592,6 +4061,23 @@ After that block, type:
 
 ### Step 20 of 37 · Upload and bind one world-text coverage texture (`62ij-upload-and-bind-one-world-text-coverage-texture`)
 
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 20/37 Visual Trace (62ij-upload-and-bind-one-world-text-coverage-texture): Upload and bind one world-text coverage texture</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/text_plane.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="804" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">upload and bind one world-text coverage texture</text>
+    
+</svg>
+</div>
+
 - **Goal:** Create the R8 coverage texture, upload rows with the declared byte layout, and bind the texture/sampler into one cached owner.
 - **Data Flow Trace:** `upload and bind one world-text coverage texture`
 - **Files You Touch:** `src/text_plane.rs` (*Add this part of upload and bind one world-text coverage texture.*)
@@ -3636,6 +4122,23 @@ After that block, type:
 <a id="checkpoint-62ik-build-the-world-plane-text-quad"></a>
 
 ### Step 21 of 37 · Build the world-plane text quad (`62ik-build-the-world-plane-text-quad`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 21/37 Visual Trace (62ik-build-the-world-plane-text-quad): Build the world-plane text quad</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/text_plane.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="804" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">build the world-plane text quad</text>
+    
+</svg>
+</div>
 
 - **Goal:** Transform the original text plane into rebased GPU vertices. Keep original label placement and color independent of the generated quad.
 - **Data Flow Trace:** `build the world-plane text quad`
@@ -3683,6 +4186,23 @@ After that block, type:
 
 ### Step 22 of 37 · Build world-text color and ID pipelines (`62il-build-world-text-color-and-id-pipelines`)
 
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 22/37 Visual Trace (62il-build-world-text-color-and-id-pipelines): Build world-text color and ID pipelines</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/text_plane.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="804" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">build world-text color and id pipelines</text>
+    
+</svg>
+</div>
+
 - **Goal:** The plane shader reads coverage while color and integer targets retain their distinct fragment contracts. Declare the same vertex layout for both passes.
 - **Data Flow Trace:** `build world-text color and id pipelines`
 - **Files You Touch:** `src/text_plane.rs` (*Add this part of build world-text color and id pipelines.*)
@@ -3728,6 +4248,23 @@ After that block, type:
 <a id="checkpoint-62im-own-the-world-text-buffer-and-pipeline-lifetime"></a>
 
 ### Step 23 of 37 · Own the world-text buffer and pipeline lifetime (`62im-own-the-world-text-buffer-and-pipeline-lifetime`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 23/37 Visual Trace (62im-own-the-world-text-buffer-and-pipeline-lifetime): Own the world-text buffer and pipeline lifetime</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/text_plane.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="804" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">own the world-text buffer and pipeline lifetime</text>
+    
+</svg>
+</div>
 
 - **Goal:** Create retained GPU resources, replace target-dependent pipelines on retarget, and distinguish reset, release and capacity accounting.
 - **Data Flow Trace:** `own the world-text buffer and pipeline lifetime`
@@ -3775,6 +4312,23 @@ After that block, type:
 
 ### Step 24 of 37 · Rebuild only invalid world-text cache entries (`62in-rebuild-only-invalid-world-text-cache-entries`)
 
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 24/37 Visual Trace (62in-rebuild-only-invalid-world-text-cache-entries): Rebuild only invalid world-text cache entries</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/text_plane.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="804" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">rebuild only invalid world-text cache entries</text>
+    
+</svg>
+</div>
+
 - **Goal:** Match a label to its cache entry, validate the total texture budget before upload, and replace or append one owned entry.
 - **Data Flow Trace:** `rebuild only invalid world-text cache entries`
 - **Files You Touch:** `src/text_plane.rs` (*Add this part of rebuild only invalid world-text cache entries.*)
@@ -3820,6 +4374,23 @@ After that block, type:
 <a id="checkpoint-62io-prepare-and-draw-the-retained-world-text-planes"></a>
 
 ### Step 25 of 37 · Prepare and draw the retained world-text planes (`62io-prepare-and-draw-the-retained-world-text-planes`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 25/37 Visual Trace (62io-prepare-and-draw-the-retained-world-text-planes): Prepare and draw the retained world-text planes</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/text_plane.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="804" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">prepare and draw the retained world-text planes</text>
+    
+</svg>
+</div>
 
 - **Goal:** Prune expired labels, skip clipped/empty planes, reuse valid rasters, build the current quads and issue draws from retained cache indices.
 - **Data Flow Trace:** `prepare and draw the retained world-text planes`
@@ -3867,6 +4438,23 @@ After that block, type:
 
 ### Step 26 of 37 · Collect anchored and overlay glyph work separately (`62ip-collect-anchored-and-overlay-glyph-work-separately`)
 
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 26/37 Visual Trace (62ip-collect-anchored-and-overlay-glyph-work-separately): Collect anchored and overlay glyph work separately</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/scene_text_gpu.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="804" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">collect anchored and overlay glyph work separately</text>
+    
+</svg>
+</div>
+
 - **Goal:** Return borrow-scoped TextAreas alongside plate inputs and per-label depths. The borrowed runs survive through preparation; no new source owner is created.
 - **Data Flow Trace:** `collect anchored and overlay glyph work separately`
 - **Files You Touch:** `src/scene_text_gpu.rs` (*Add this part of collect anchored and overlay glyph work separately.*)
@@ -3911,6 +4499,23 @@ After that block, type:
 <a id="checkpoint-62iq-give-the-text-lane-its-retained-resource-owners"></a>
 
 ### Step 27 of 37 · Give the text lane its retained resource owners (`62iq-give-the-text-lane-its-retained-resource-owners`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 27/37 Visual Trace (62iq-give-the-text-lane-its-retained-resource-owners): Give the text lane its retained resource owners</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/scene_text_gpu.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="804" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">give the text lane its retained resource owners</text>
+    
+</svg>
+</div>
 
 - **Goal:** Declare the lane and its caches, atlas, viewport, pipelines and preparation witness. Build glyph renderers against the appropriate depth predicates.
 - **Data Flow Trace:** `give the text lane its retained resource owners`
@@ -3958,6 +4563,23 @@ After that block, type:
 
 ### Step 28 of 37 · Construct and rebuild the text lane once (`62ir-construct-and-rebuild-the-text-lane-once`)
 
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 28/37 Visual Trace (62ir-construct-and-rebuild-the-text-lane-once): Construct and rebuild the text lane once</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/scene_text_gpu.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="804" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">construct and rebuild the text lane once</text>
+    
+</svg>
+</div>
+
 - **Goal:** Initialize font/raster resources and world/plate owners. Rebuild atlas-dependent resources when fonts change while keeping original labels in the document.
 - **Data Flow Trace:** `construct and rebuild the text lane once`
 - **Files You Touch:** `src/scene_text_gpu.rs` (*Add this part of construct and rebuild the text lane once.*)
@@ -4002,6 +4624,23 @@ After that block, type:
 <a id="checkpoint-62is-reset-the-text-lane-and-record-scoped-preparation-costs"></a>
 
 ### Step 29 of 37 · Reset the text lane and record scoped preparation costs (`62is-reset-the-text-lane-and-record-scoped-preparation-costs`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 29/37 Visual Trace (62is-reset-the-text-lane-and-record-scoped-preparation-costs): Reset the text lane and record scoped preparation costs</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/scene_text_gpu.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="804" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">reset the text lane and record scoped preparation costs</text>
+    
+</svg>
+</div>
 
 - **Goal:** Retarget pipelines, clear logical work and release owned world/plate resources. Report raster images and buffer capacities with their actual scope.
 - **Data Flow Trace:** `reset the text lane and record scoped preparation costs`
@@ -4049,6 +4688,23 @@ After that block, type:
 
 ### Step 30 of 37 · Prepare glyphs only when the witness changes (`62it-prepare-glyphs-only-when-the-witness-changes`)
 
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 30/37 Visual Trace (62it-prepare-glyphs-only-when-the-witness-changes): Prepare glyphs only when the witness changes</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/scene_text_gpu.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="804" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">prepare glyphs only when the witness changes</text>
+    
+</svg>
+</div>
+
 - **Goal:** Skip text preparation when its complete frame witness is unchanged.
 - **Data Flow Trace:** `prepare glyphs only when the witness changes`
 - **Files You Touch:** `src/scene_text_gpu.rs` (*Add this part of prepare glyphs only when the witness changes.*)
@@ -4094,6 +4750,23 @@ After that block, type:
 <a id="checkpoint-62iu-draw-the-prepared-text-passes-in-order"></a>
 
 ### Step 31 of 37 · Draw the prepared text passes in order (`62iu-draw-the-prepared-text-passes-in-order`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 31/37 Visual Trace (62iu-draw-the-prepared-text-passes-in-order): Draw the prepared text passes in order</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/scene_text_gpu.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="804" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">draw the prepared text passes in order</text>
+    
+</svg>
+</div>
 
 - **Goal:** Draw world planes, depth-tested plates and anchored glyphs before overlay plates/glyphs. Connect this completed lane to the frame in the next existing lesson.
 - **Data Flow Trace:** `draw the prepared text passes in order`
@@ -4168,6 +4841,35 @@ After that block, append this supplied code:
 <a id="checkpoint-62j-frame-pass"></a>
 
 ### Step 32 of 37 · Prepare the full text frame and load the scene depth (`62j-frame-pass`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 32/37 Visual Trace (62j-frame-pass): Prepare the full text frame and load the scene depth</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/renderer.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">camera and CSS density</text>
+    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">text frame</text>
+    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">current lane preparation</text>
+    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">colour/depth load pass</text>
+    
+</svg>
+</div>
 
 - **Goal:** Prepare the full text frame and load the scene depth.
 - **Data Flow Trace:** `camera and CSS density → text frame → current lane preparation → colour/depth load pass`
@@ -4697,6 +5399,36 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 <a id="checkpoint-62k-lane-labels"></a>
 
 ### Step 33 of 37 · Merge original scene labels with the screen specimen (`62k-lane-labels`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 33/37 Visual Trace (62k-lane-labels): Merge original scene labels with the screen specimen</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/renderer.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">visible source labels and</text>
+    <text x="111" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">overlays</text>
+    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">stable label ids</text>
+    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">one lazy document</text>
+    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">reused shaping</text>
+    
+</svg>
+</div>
 
 - **Goal:** Merge original scene labels with the screen specimen.
 - **Data Flow Trace:** `visible source labels and overlays → stable label ids → one lazy document → reused shaping`
@@ -5294,6 +6026,36 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 <a id="checkpoint-62l-picking"></a>
 
 ### Step 34 of 37 · Draw original text IDs through bounded readback (`62l-picking`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 34/37 Visual Trace (62l-picking): Draw original text IDs through bounded readback</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/renderer.rs, src/pick_gpu.rs, src/pick_encode.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">current camera text</text>
+    <text x="111" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">preparation</text>
+    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">bounded integer pass</text>
+    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original owner</text>
+    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">current derived bounds</text>
+    
+</svg>
+</div>
 
 - **Goal:** Draw original text IDs through bounded readback.
 - **Data Flow Trace:** `current camera text preparation → bounded integer pass → original owner → current derived bounds`
@@ -6110,6 +6872,35 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 ### Step 35 of 37 · Fetch missing whole fonts as one checked set (`62m-whole-fonts`)
 
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 35/37 Visual Trace (62m-whole-fonts): Fetch missing whole fonts as one checked set</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/text_fonts.rs, src/lib.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">subset coverage miss</text>
+    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">bounded font requests</text>
+    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">complete font set</text>
+    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">atomic adoption</text>
+    
+</svg>
+</div>
+
 - **Goal:** Fetch missing whole fonts as one checked set.
 - **Data Flow Trace:** `subset coverage miss → bounded font requests → complete font set → atomic adoption`
 - **Files You Touch:** `src/text_fonts.rs` (*Fetch and validate the current whole fonts without letting stale replies survive Close.*) · `src/lib.rs` (*Register the source component.*)
@@ -6163,6 +6954,35 @@ After that block, type:
 <a id="checkpoint-62n-diagnostics"></a>
 
 ### Step 36 of 37 · Show current text sources metrics and preparation errors (`62n-diagnostics`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 36/37 Visual Trace (62n-diagnostics): Show current text sources metrics and preparation errors</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/browser.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">font delivery</text>
+    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">current derived bounds</text>
+    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">truthful diagnostics</text>
+    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">visible error status</text>
+    
+</svg>
+</div>
 
 - **Goal:** Show current text sources metrics and preparation errors.
 - **Data Flow Trace:** `font delivery → current derived bounds → truthful diagnostics → visible error status`
@@ -7179,6 +7999,36 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 ### Step 37 of 37 · Create pick move and delete the original scene labels (`62o-labels`)
 
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 37/37 Visual Trace (62o-labels): Create pick move and delete the original scene labels</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/editor.rs, src/commands.rs, src/scene_label_tests.rs, src/lib.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original text example</text>
+    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">current placement and</text>
+    <text x="316" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">coverage</text>
+    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original integer pick</text>
+    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">one reversible edit</text>
+    
+</svg>
+</div>
+
 - **Goal:** Create pick move and delete the original scene labels.
 - **Data Flow Trace:** `original text example → current placement and coverage → original integer pick → one reversible edit`
 - **Files You Touch:** `src/editor.rs` (*Connect original label examples through the existing scene transactions and command dock.*) · `src/commands.rs` (*Connect original label examples through the existing scene transactions and command dock.*) · `src/scene_label_tests.rs` (*Copy original-word/f64 placement, source sharing, layer/copy/delete/Undo/Close, bounds, rectangle and invalid-source regressions.*) · `src/lib.rs` (*Register the source component.*) · `src/pick_gpu_tests.rs` (*Copy actual plane/anchor/billboard/nameplate depth, integer IDs, rounded styles, clip-window agreement, atomic fonts and resource-release checks.*)
@@ -8128,6 +8978,8 @@ REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
 
 ## 6. Lesson Summary & Expected Visual Result
+
+![Recorded visual output for Lesson 10.4 (62o-labels)](../../../screenshots/journey/62o-labels-browser.png)
 
 Type Close, Example CAD, Example Scene Text, Fit and View Isometric; use Select Next twice. The original world-sized label appears on a selected yellow plate. Move, Undo, Redo and Delete operate on its stable scene row. Example Anchor keeps CSS-sized ink at depth; Example Nameplate overlays its source center; Example Billboard preserves world size while facing the camera. Ω fetches the current whole fonts. Close releases the labels. Save explicitly refuses text until mixed persistence connects.
 

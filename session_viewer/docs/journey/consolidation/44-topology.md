@@ -4,103 +4,141 @@
 
 > **What You Will Learn & Build:** Preserve source faces and edges. By the final checkpoint (`44l-input`), you will select and inspect original faces, edges and controls.
 
-## 1. Visual Pipeline & WebGPU Architecture (Black & White Schematics)
+## 1. Visual WebGPU Explanation & Architecture (Black & White Schematics)
 
 <div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg viewBox="0 0 840 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg width="840" height="256" viewBox="0 0 840 256" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
       <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
   </defs>
-  <rect x="4" y="4" width="832" height="212" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Lesson 6.3 Execution Flow: Pick original faces, edges and controls</text>
-  <text x="20" y="46" font-size="11.5" fill="#111111">Concrete data pipeline you build in this lesson (14 Checkpoints: 44-topology → 44l-input)</text>
-  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
+  <rect x="4" y="4" width="832" height="248" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Chapter 6 Visual Explanation: Offscreen Rg32Uint Integer Pick Grid, Spiral Search & 256-Byte Staging Copy</text>
+  <text x="20" y="45" font-size="11" fill="#111111">Left: Cropped Rg32Uint pixel window around cursor with spiral search. Center: 256-byte row alignment. Right: Priority & view ticket.</text>
+  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
   
+    <!-- Panel A: 5x5 Pixel Grid with Spiral Halo Search -->
+    <rect x="18" y="64" width="275" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="155" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">A. Rg32Uint Crop &amp; Spiral Search</text>
+    <!-- 5x5 grid at x=75..225, y=94..194 (cell = 30x20) -->
+    <rect x="75" y="94" width="150" height="100" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <line x1="105" y1="94" x2="105" y2="194" stroke="#111111" stroke-width="0.75"/>
+    <line x1="135" y1="94" x2="135" y2="194" stroke="#111111" stroke-width="0.75"/>
+    <line x1="165" y1="94" x2="165" y2="194" stroke="#111111" stroke-width="0.75"/>
+    <line x1="195" y1="94" x2="195" y2="194" stroke="#111111" stroke-width="0.75"/>
+    <line x1="75" y1="114" x2="225" y2="114" stroke="#111111" stroke-width="0.75"/>
+    <line x1="75" y1="134" x2="225" y2="134" stroke="#111111" stroke-width="0.75"/>
+    <line x1="75" y1="154" x2="225" y2="154" stroke="#111111" stroke-width="0.75"/>
+    <line x1="75" y1="174" x2="225" y2="174" stroke="#111111" stroke-width="0.75"/>
+    <!-- Highlighted hit cell at (165, 114) -->
+    <rect x="165" y="114" width="30" height="20" fill="url(#hatch)" stroke="#111111" stroke-width="2"/>
+    <!-- Spiral path from center (150, 144) outward -->
+    <polyline points="150,144 180,144 180,124" fill="none" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+    <circle cx="150" cy="144" r="3" fill="#111111"/>
+    <text x="155" y="210" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">Each pixel = vec2&lt;u32&gt;(owner_id, sub_id)</text>
+    <text x="155" y="225" text-anchor="middle" font-size="9" fill="#111111">Priority: Point Glyph &gt; Wire Edge &gt; Face</text>
+
+    <line x1="293" y1="154" x2="315" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <!-- Panel B: 256-Byte Aligned Staging Copy -->
+    <rect x="317" y="64" width="265" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="449" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">B. 256-Byte Staging Row Alignment</text>
+    <!-- Row 0 -->
+    <rect x="335" y="102" width="120" height="26" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <rect x="455" y="102" width="110" height="26" fill="url(#hatch)" stroke="#111111" stroke-width="1.2" stroke-dasharray="3,2"/>
+    <text x="395" y="119" text-anchor="middle" font-size="9.5" font-weight="700" fill="#111111">Crop Row 0 (W×8 B)</text>
+    <text x="510" y="119" text-anchor="middle" font-size="9" fill="#111111">Pad to 256 B</text>
+    <!-- Row 1 -->
+    <rect x="335" y="136" width="120" height="26" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <rect x="455" y="136" width="110" height="26" fill="url(#hatch)" stroke="#111111" stroke-width="1.2" stroke-dasharray="3,2"/>
+    <text x="395" y="153" text-anchor="middle" font-size="9.5" font-weight="700" fill="#111111">Crop Row 1 (W×8 B)</text>
+    <text x="510" y="153" text-anchor="middle" font-size="9" fill="#111111">Pad to 256 B</text>
+    <!-- Dimension line 0..256 -->
+    <line x1="335" y1="176" x2="565" y2="176" stroke="#111111" stroke-width="1.2" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
+    <text x="450" y="191" text-anchor="middle" font-size="9.5" font-weight="700" fill="#111111">bytes_per_row = align_to(W * 8, 256)</text>
+    <text x="450" y="212" text-anchor="middle" font-size="9.5" fill="#111111">copy_texture_to_buffer -&gt; map_async(Read)</text>
+    <text x="450" y="226" text-anchor="middle" font-size="9" fill="#111111">Single in-flight readback coalesces bursts</text>
+
+    <line x1="582" y1="154" x2="604" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <!-- Panel C: View-Revision Ticket & Sub-Selection -->
+    <rect x="606" y="64" width="216" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="714" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">C. Revision Ticket &amp; Sub-ID</text>
+    <rect x="620" y="98" width="188" height="54" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.2"/>
+    <text x="714" y="115" text-anchor="middle" font-size="10" font-weight="700" fill="#111111">PickTicket Verification</text>
+    <text x="630" y="131" font-size="9.5" fill="#111111">ticket.view_rev == current_rev?</text>
+    <text x="630" y="145" font-size="9" font-weight="600" fill="#111111">Mismatch -&gt; Discard stale hit!</text>
+    <rect x="620" y="162" width="188" height="66" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="714" y="179" text-anchor="middle" font-size="10" font-weight="700" fill="#111111">Decoded Sub-Element</text>
+    <text x="630" y="195" font-size="9.5" fill="#111111">• R = Object ID (1-based)</text>
+    <text x="630" y="209" font-size="9.5" fill="#111111">• G = Face / Edge / Control Pt</text>
+    <text x="630" y="222" font-size="9" fill="#111111">• Shift+Click preserves order</text>
     
-    <rect x="18" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="89" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
-    <line x1="28" y1="92" x2="151" y2="92" stroke="#111111" stroke-width="0.75"/>
-    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">source polygon</text>
-    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="183" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="254" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
-    <line x1="193" y1="92" x2="316" y2="92" stroke="#111111" stroke-width="0.75"/>
-    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">cached or fan</text>
-    <text x="254" y="124" text-anchor="middle" font-size="11" fill="#111111">triangles</text>
-    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="348" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
-    <line x1="358" y1="92" x2="481" y2="92" stroke="#111111" stroke-width="0.75"/>
-    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">original face table</text>
-    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="513" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="584" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
-    <line x1="523" y1="92" x2="646" y2="92" stroke="#111111" stroke-width="0.75"/>
-    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">original edge</text>
-    <text x="584" y="124" text-anchor="middle" font-size="11" fill="#111111">endpoints</text>
-    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="678" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="749" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
-    <line x1="688" y1="92" x2="811" y2="92" stroke="#111111" stroke-width="0.75"/>
-    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">mode command</text>
-    
-    <rect x="18" y="162" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="32" y="181" font-size="11" font-weight="700" fill="#111111">Files You Edit in Lesson 6.3:</text>
-    <text x="215" y="181" font-size="11" fill="#111111">src/mesh_parts.rs  ·  src/lib.rs  ·  src/mesh.rs  ·  src/mesh_parts_tests.rs  ·  src/sub_id.rs  ·  src/pick_sources.rs</text>
-    <text x="32" y="198" font-size="10.5" fill="#111111">14 Checkpoints: 44-topology → 44l-input — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
-  
 </svg>
 </div>
 
 <div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg viewBox="0 0 840 240" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg width="840" height="214" viewBox="0 0 840 214" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
       <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
   </defs>
-  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Chapter 6 WebGPU Integer Picking: Cropped Rg32Uint Offscreen Pass & Async Staging Buffer Readback</text>
-  <text x="20" y="46" font-size="11.5" fill="#111111">How the GPU identifies exact sub-elements (Face, Edge, Control Point) under the cursor without color-picking precision loss.</text>
-  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
+  <rect x="4" y="4" width="832" height="206" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Lesson 6.3 Pipeline Schematic: Pick original faces, edges and controls</text>
+  <text x="20" y="45" font-size="11" fill="#111111">Step-by-step data flow you implement in this lesson (14 Checkpoints: 44-topology → 44l-input)</text>
+  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
   
-    <rect x="18" y="68" width="205" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="120" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">1. Cursor Crop Window</text>
-    <text x="28" y="108" font-size="10.5" fill="#111111">• Cursor at (px, py), radius R</text>
-    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#111111">• Target: TextureFormat::Rg32Uint</text>
-    <text x="28" y="142" font-size="10" fill="#111111">  Channel R = owner_id (u32)</text>
-    <text x="28" y="157" font-size="10" fill="#111111">  Channel G = sub_id (Face/Edge/CP)</text>
-    <text x="28" y="176" font-size="10.5" fill="#111111">• Priority: Point Glyph &gt; Wire Edge</text>
-    <text x="28" y="192" font-size="10.5" fill="#111111">  &gt; Surface Face (Depth32Float)</text>
-
-    <line x1="223" y1="138" x2="253" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
-
-    <rect x="255" y="68" width="280" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="395" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">2. 256-Byte Aligned Staging Copy</text>
-    <text x="267" y="108" font-size="10.5" fill="#111111">• WebGPU rule: bytes_per_row MUST be</text>
-    <text x="267" y="124" font-size="10.5" font-weight="600" fill="#111111">  a multiple of 256 (COPY_BYTES_PER_ROW)</text>
-    <text x="267" y="144" font-size="10.5" fill="#111111">• encoder.copy_texture_to_buffer(...)</text>
-    <text x="267" y="162" font-size="10.5" fill="#111111">• Stamp request with Ticket:</text>
-    <text x="267" y="178" font-size="10" font-weight="600" fill="#111111">  { pick_id, view_revision, shift_mode }</text>
-    <text x="267" y="195" font-size="10" fill="#111111">• Coalesce bursts into 1 in-flight map_async</text>
-
-    <line x1="535" y1="138" x2="565" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
-
-    <rect x="567" y="68" width="253" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="693" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">3. Spiral Search &amp; Sub-Selection</text>
-    <text x="579" y="108" font-size="10.5" fill="#111111">• buffer.map_async(MapMode::Read).await</text>
-    <text x="579" y="126" font-size="10.5" font-weight="600" fill="#111111">• Stale view_revision? Discard/Retry!</text>
-    <text x="579" y="144" font-size="10.5" fill="#111111">• Search center pixel -&gt; spiral halo</text>
-    <text x="579" y="162" font-size="10.5" fill="#111111">• Decode (owner_id, sub_id) -&gt; Object,</text>
-    <text x="579" y="178" font-size="10.5" fill="#111111">  Face, Edge, or NURBS Control Point</text>
-    <text x="579" y="195" font-size="10.5" fill="#111111">• Shift+Click: ordered selection list</text>
     
+    <rect x="18" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="89" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
+    <line x1="28" y1="90" x2="151" y2="90" stroke="#111111" stroke-width="0.75"/>
+    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">source polygon</text>
+    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="183" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="254" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
+    <line x1="193" y1="90" x2="316" y2="90" stroke="#111111" stroke-width="0.75"/>
+    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">cached or fan</text>
+    <text x="254" y="124" text-anchor="middle" font-size="11" fill="#111111">triangles</text>
+    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="348" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="419" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
+    <line x1="358" y1="90" x2="481" y2="90" stroke="#111111" stroke-width="0.75"/>
+    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">original face table</text>
+    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="513" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="584" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
+    <line x1="523" y1="90" x2="646" y2="90" stroke="#111111" stroke-width="0.75"/>
+    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">original edge</text>
+    <text x="584" y="124" text-anchor="middle" font-size="11" fill="#111111">endpoints</text>
+    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="678" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="749" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
+    <line x1="688" y1="90" x2="811" y2="90" stroke="#111111" stroke-width="0.75"/>
+    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">mode command</text>
+    
+    <rect x="18" y="158" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="32" y="177" font-size="11" font-weight="700" fill="#111111">Files Modified in Lesson 6.3:</text>
+    <text x="235" y="177" font-size="11" fill="#111111">src/mesh_parts.rs  ·  src/lib.rs  ·  src/mesh.rs  ·  src/mesh_parts_tests.rs  ·  src/sub_id.rs  ·  src/pick_sources.rs</text>
+    <text x="32" y="194" font-size="10.5" fill="#111111">14 Checkpoints: 44-topology → 44l-input — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
+  
 </svg>
 </div>
 
@@ -139,11 +177,40 @@ Before writing code, review how the three layers in this chapter talk to each ot
 
 ## 4. Step-by-Step Coding Notebook (Concept + Implementation)
 
-Work through each notebook cell below in order inside `workspace/journey`. Read the **Concept Walkthrough** and **Self-Check Q&A** first, then expand the **Implementation** block to type and verify the code.
+Work through each notebook cell below in order inside `workspace/journey`. Study the **Visual Step Trace**, read the **Concept Walkthrough** and **Self-Check Q&A**, then expand the **Implementation** block to type and verify the code.
 
 <a id="checkpoint-44-topology"></a>
 
 ### Step 1 of 14 · Preserve source faces and edges (`44-topology`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 1/14 Visual Trace (44-topology): Preserve source faces and edges</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/mesh_parts.rs, src/lib.rs, src/mesh.rs, src/mesh_parts_tests.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">source polygon</text>
+    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">cached or fan triangles</text>
+    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original face table</text>
+    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">original edge endpoints</text>
+    
+</svg>
+</div>
 
 - **Goal:** Preserve source faces and edges.
 - **Data Flow Trace:** `source polygon → cached or fan triangles → original face table → original edge endpoints`
@@ -462,6 +529,35 @@ After that block, type:
 
 ### Step 2 of 14 · Tag the kind of a picked part (`44a-tags`)
 
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 2/14 Visual Trace (44a-tags): Tag the kind of a picked part</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/sub_id.rs, src/pick_sources.rs, src/lib.rs, src/mesh_parts_tests.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">zero reservation</text>
+    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">kind tag</text>
+    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">bounded address</text>
+    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">checked decoder</text>
+    
+</svg>
+</div>
+
 - **Goal:** Tag the kind of a picked part.
 - **Data Flow Trace:** `zero reservation → kind tag → bounded address → checked decoder`
 - **Files You Touch:** `src/sub_id.rs` (*Encode source part kinds without zero or tag collisions.*) · `src/pick_sources.rs` (*Define typed targets, modes and bounded source tables.*) · `src/lib.rs` (*Register the component and copied checks.*) · `src/mesh_parts_tests.rs` (*Copy tag boundaries and collision checks.*)
@@ -555,6 +651,35 @@ After that block, append this supplied code:
 
 ### Step 3 of 14 · Map visible ink back to original sources (`44b-sources`)
 
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 3/14 Visual Trace (44b-sources): Map visible ink back to original sources</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/pick_sources.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">visible rows</text>
+    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original source keys</text>
+    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">ordered instance addresses</text>
+    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">locked-owner zero</text>
+    
+</svg>
+</div>
+
 - **Goal:** Map visible ink back to original sources.
 - **Data Flow Trace:** `visible rows → original source keys → ordered instance addresses → locked-owner zero`
 - **Files You Touch:** `src/pick_sources.rs` (*Build ordered face, edge, control and GPU owner streams.*)
@@ -599,6 +724,35 @@ After that block, type:
 <a id="checkpoint-44c-resolve"></a>
 
 ### Step 4 of 14 · Validate a part against the current source (`44c-resolve`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 4/14 Visual Trace (44c-resolve): Validate a part against the current source</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/selection.rs, src/lib.rs, src/pick_sources.rs, src/pick_sources_tests.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">typed pixel</text>
+    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">current owner</text>
+    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">bounded table lookup</text>
+    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">original part validation</text>
+    
+</svg>
+</div>
 
 - **Goal:** Validate a part against the current source.
 - **Data Flow Trace:** `typed pixel → current owner → bounded table lookup → original part validation`
@@ -715,6 +869,36 @@ After that block, type:
 <a id="checkpoint-44d-pulling"></a>
 
 ### Step 5 of 14 · Reuse visible geometry for face identities (`44d-pulling`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 5/14 Visual Trace (44d-pulling): Reuse visible geometry for face identities</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/pick_crop.wgsl, src/face_pick.wgsl, src/gpu_geometry.rs, src/gpu_mesh.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">shared position and index</text>
+    <text x="111" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">buffers</text>
+    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">vertex pulling</text>
+    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">source polygon address</text>
+    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">integer face pixel</text>
+    
+</svg>
+</div>
 
 - **Goal:** Reuse visible geometry for face identities.
 - **Data Flow Trace:** `shared position and index buffers → vertex pulling → source polygon address → integer face pixel`
@@ -1027,6 +1211,31 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 ### Step 6 of 14 · Create the integer source-face pipeline (`44e-pipeline`)
 
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 6/14 Visual Trace (44e-pipeline): Create the integer source-face pipeline</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/face_pick.rs, src/lib.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">view and model settings</text>
+    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">source storage bindings</text>
+    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">cropped integer face pipeline</text>
+    
+</svg>
+</div>
+
 - **Goal:** Create the integer source-face pipeline.
 - **Data Flow Trace:** `view and model settings → source storage bindings → cropped integer face pipeline`
 - **Files You Touch:** `src/face_pick.rs` (*Create the compatible source-face layout and pipeline.*) · `src/lib.rs` (*Register the component and copied checks.*)
@@ -1083,6 +1292,35 @@ After that block, type:
 
 ### Step 7 of 14 · Upload only original-face metadata (`44f-metadata`)
 
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 7/14 Visual Trace (44f-metadata): Upload only original-face metadata</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/face_pick.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">existing geometry</text>
+    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">per-triangle face stream</text>
+    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original face base</text>
+    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">source-face draw</text>
+    
+</svg>
+</div>
+
 - **Goal:** Upload only original-face metadata.
 - **Data Flow Trace:** `existing geometry → per-triangle face stream → original face base → source-face draw`
 - **Files You Touch:** `src/face_pick.rs` (*Upload bounded face metadata and draw from existing geometry.*)
@@ -1129,6 +1367,35 @@ Edit the existing block to match this code; keep unchanged lines:
 <a id="checkpoint-44g-edge-ink"></a>
 
 ### Step 8 of 14 · Draw original boundary edges consistently (`44g-edge-ink`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 8/14 Visual Trace (44g-edge-ink): Draw original boundary edges consistently</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/renderer.rs, src/pick_window.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">source edge endpoints</text>
+    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">placed CSS-width ink</text>
+    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">shared coverage</text>
+    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">original source addresses</text>
+    
+</svg>
+</div>
 
 - **Goal:** Draw original boundary edges consistently.
 - **Data Flow Trace:** `source edge endpoints → placed CSS-width ink → shared coverage → original source addresses`
@@ -1775,6 +2042,40 @@ Edit the existing block to match this code; keep unchanged lines:
 <a id="checkpoint-44h-mode-gpu"></a>
 
 ### Step 9 of 14 · Pick source parts with visible coverage (`44h-mode-gpu`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 9/14 Visual Trace (44h-mode-gpu): Pick source parts with visible coverage</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/pick_gpu.rs, src/pick_encode.rs, src/pick_pipeline.rs, src/stroke_gpu.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="91" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">mode admission</text>
+    <line x1="164" y1="68" x2="180" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="182" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="255" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">shared crop settings</text>
+    <line x1="328" y1="68" x2="344" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="346" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="419" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">depth occluders</text>
+    <line x1="492" y1="68" x2="508" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="510" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="583" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">typed face or ink</text>
+    <text x="583" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">IDs</text>
+    <line x1="656" y1="68" x2="672" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="674" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="747" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">original target</text>
+    
+</svg>
+</div>
 
 - **Goal:** Pick source parts with visible coverage.
 - **Data Flow Trace:** `mode admission → shared crop settings → depth occluders → typed face or ink IDs → original target`
@@ -2976,6 +3277,36 @@ After that block, append this supplied code:
 
 ### Step 10 of 14 · Highlight original edges and controls (`44i-ink-highlight`)
 
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 10/14 Visual Trace (44i-ink-highlight): Highlight original edges and controls</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/highlight.rs, src/lib.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original target</text>
+    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">derived display overlay</text>
+    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">yellow fringe</text>
+    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">unchanged source and</text>
+    <text x="726" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">history</text>
+    
+</svg>
+</div>
+
 - **Goal:** Highlight original edges and controls.
 - **Data Flow Trace:** `original target → derived display overlay → yellow fringe → unchanged source and history`
 - **Files You Touch:** `src/highlight.rs` (*Own derived overlay lanes, drawing and GPU byte accounting.*) · `src/lib.rs` (*Register the component and copied checks.*)
@@ -3032,6 +3363,35 @@ After that block, type:
 
 ### Step 11 of 14 · Build highlights from original ink targets (`44ia-original-ink`)
 
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 11/14 Visual Trace (44ia-original-ink): Build highlights from original ink targets</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/highlight.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original edge or control</text>
+    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">placed source positions</text>
+    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">wider yellow overlay</text>
+    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">unchanged original ink</text>
+    
+</svg>
+</div>
+
 - **Goal:** Build highlights from original ink targets.
 - **Data Flow Trace:** `original edge or control → placed source positions → wider yellow overlay → unchanged original ink`
 - **Files You Touch:** `src/highlight.rs` (*Build original edge, curve and control overlays.*)
@@ -3080,6 +3440,35 @@ Edit the existing block to match this code; keep unchanged lines:
 <a id="checkpoint-44j-face-highlight"></a>
 
 ### Step 12 of 14 · Highlight one original face without recolouring its parent (`44j-face-highlight`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 12/14 Visual Trace (44j-face-highlight): Highlight one original face without recolouring its parent</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/highlight.rs, src/renderer.rs, src/pick_gpu_tests.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">source face key</text>
+    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">matching display triangles</text>
+    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">read-only selected overlay</text>
+    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">black boundary ink</text>
+    
+</svg>
+</div>
 
 - **Goal:** Highlight one original face without recolouring its parent.
 - **Data Flow Trace:** `source face key → matching display triangles → read-only selected overlay → black boundary ink`
@@ -3787,6 +4176,36 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 <a id="checkpoint-44k-selection"></a>
 
 ### Step 13 of 14 · Keep part selection outside document history (`44k-selection`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 13/14 Visual Trace (44k-selection): Keep part selection outside document history</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/selection.rs, src/editor.rs, src/selection_tests.rs, src/lib.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">current original target</text>
+    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">part selection</text>
+    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">whole-object command guard</text>
+    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">history-independent</text>
+    <text x="726" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">presentation</text>
+    
+</svg>
+</div>
 
 - **Goal:** Keep part selection outside document history.
 - **Data Flow Trace:** `current original target → part selection → whole-object command guard → history-independent presentation`
@@ -4554,6 +4973,37 @@ After that block, type:
 <a id="checkpoint-44l-input"></a>
 
 ### Step 14 of 14 · Select and inspect original faces, edges and controls (`44l-input`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 14/14 Visual Trace (44l-input): Select and inspect original faces, edges and controls</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/browser.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">mode command</text>
+    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">actual cursor readback</text>
+    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">current original source</text>
+    <text x="521" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">target</text>
+    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">visible highlight and</text>
+    <text x="726" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">Selection…</text>
+    
+</svg>
+</div>
 
 - **Goal:** Select and inspect original faces, edges and controls.
 - **Data Flow Trace:** `mode command → actual cursor readback → current original source target → visible highlight and Selection result`
@@ -5643,6 +6093,8 @@ REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../recovery.md) to save or restore any checkpoint ID.
 
 ## 6. Lesson Summary & Expected Visual Result
+
+![Recorded visual output for Lesson 6.3 (44l-input)](../../screenshots/journey/44l-input.png)
 
 Close; Example Box; Fit; Select Face, then click a face and type Selection. Repeat Select Edge on its boundary. Try Example Curve, Controls On and Select Control.
 

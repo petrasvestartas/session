@@ -4,103 +4,132 @@
 
 > **What You Will Learn & Build:** Run the state checks. A valid box passes; non-finite coordinates and missing vertex references are rejected. By the final checkpoint (`26a-keys`), you will let canvas F fit the selection and platform shortcuts run Undo or Redo through existing actions.
 
-## 1. Visual Pipeline & WebGPU Architecture (Black & White Schematics)
+## 1. Visual WebGPU Explanation & Architecture (Black & White Schematics)
 
 <div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg viewBox="0 0 840 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg width="840" height="256" viewBox="0 0 840 256" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
       <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
   </defs>
-  <rect x="4" y="4" width="832" height="212" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Lesson 3.3 Execution Flow: Validated files, bounds and useful projections</text>
-  <text x="20" y="46" font-size="11.5" fill="#111111">Concrete data pipeline you build in this lesson (14 Checkpoints: 22a-records → 26a-keys)</text>
-  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
+  <rect x="4" y="4" width="832" height="248" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Chapter 3 Visual Explanation: Local Kernel Mesh → 4x4 World Placement, AABB Fit & Incremental GPU Sync</text>
+  <text x="20" y="45" font-size="11" fill="#111111">Left: Local f64 mesh placed in world space by 4x4 matrix M. Center: Transactional .pb decode gate. Right: Dirty-flag GPU sync.</text>
+  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
   
+    <!-- Panel A: Local Space -> World Placement & AABB -->
+    <rect x="18" y="64" width="275" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="155" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">A. Local Source → World Placement</text>
+    <!-- Local mesh box at (0,0) -->
+    <rect x="38" y="128" width="54" height="44" rx="2" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <line x1="38" y1="172" x2="98" y2="172" stroke="#111111" stroke-width="1" marker-end="url(#arrow)"/>
+    <line x1="38" y1="172" x2="38" y2="115" stroke="#111111" stroke-width="1" marker-end="url(#arrow)"/>
+    <text x="65" y="154" text-anchor="middle" font-size="9" font-weight="700" fill="#111111">Local</text>
+    <text x="65" y="186" text-anchor="middle" font-size="9" fill="#111111">(0,0,0) f64</text>
+    <!-- Transform arrow -->
+    <line x1="102" y1="145" x2="152" y2="132" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+    <text x="127" y="126" text-anchor="middle" font-size="9.5" font-weight="700" fill="#111111">M (4x4)</text>
+    <!-- Placed rotated box inside dashed World AABB -->
+    <rect x="164" y="96" width="108" height="86" rx="3" fill="#ffffff" stroke="#111111" stroke-width="1" stroke-dasharray="4,3"/>
+    <polygon points="196,104 260,126 240,174 176,152" fill="url(#hatch)" stroke="#111111" stroke-width="1.75"/>
+    <text x="218" y="194" text-anchor="middle" font-size="9" font-weight="600" fill="#111111">Dashed: World AABB (Fit)</text>
+    <rect x="30" y="204" width="250" height="30" rx="5" fill="#ffffff" stroke="#111111" stroke-width="1"/>
+    <text x="155" y="218" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">Cold CPU source dropped after GPU upload;</text>
+    <text x="155" y="229" text-anchor="middle" font-size="9" fill="#111111">re-fetched by SHA/revision only when edited</text>
+
+    <line x1="293" y1="154" x2="315" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <!-- Panel B: Transactional .pb Decode Gate -->
+    <rect x="317" y="64" width="235" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="434" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">B. Transactional .pb Gate</text>
+    <rect x="333" y="96" width="203" height="42" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.2"/>
+    <text x="434" y="113" text-anchor="middle" font-size="10" font-weight="700" fill="#111111">Async Fetch Ticket #N</text>
+    <text x="434" y="128" text-anchor="middle" font-size="9.5" fill="#111111">Cancels stale #N-1; checks byte cap</text>
+    <line x1="434" y1="138" x2="434" y2="154" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+    <rect x="333" y="156" width="203" height="78" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="434" y="174" text-anchor="middle" font-size="10" font-weight="700" fill="#111111">Atomic Validation Commit</text>
+    <text x="345" y="192" font-size="9.5" fill="#111111">• Valid topology -&gt; Replace Scene</text>
+    <text x="345" y="208" font-size="9.5" fill="#111111">• Corrupt bytes -&gt; Reject cleanly</text>
+    <text x="345" y="223" font-size="9.5" font-weight="600" fill="#111111">  (Zero partial scene corruption!)</text>
+
+    <line x1="552" y1="154" x2="574" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <!-- Panel C: Incremental GPU Sync -->
+    <rect x="576" y="64" width="246" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="699" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">C. Incremental GPU Sync</text>
+    <rect x="590" y="96" width="218" height="64" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="699" y="114" text-anchor="middle" font-size="10" font-weight="700" fill="#111111">Path 1: Camera Orbit / Pan / Fit</text>
+    <text x="602" y="131" font-size="9.5" fill="#111111">• sync_scene = false, redraw = true</text>
+    <text x="602" y="147" font-size="9.5" font-weight="600" fill="#111111">• Writes 64-byte camera uniform ONLY</text>
+    <rect x="590" y="170" width="218" height="64" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="699" y="188" text-anchor="middle" font-size="10" font-weight="700" fill="#111111">Path 2: Mesh / Placement Edit</text>
+    <text x="602" y="205" font-size="9.5" fill="#111111">• sync_scene = true, redraw = true</text>
+    <text x="602" y="221" font-size="9.5" font-weight="600" fill="#111111">• Re-uploads dirty object buffers only</text>
     
-    <rect x="18" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="89" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
-    <line x1="28" y1="92" x2="151" y2="92" stroke="#111111" stroke-width="0.75"/>
-    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">Raw proto::Mesh</text>
-    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="183" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="254" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
-    <line x1="193" y1="92" x2="316" y2="92" stroke="#111111" stroke-width="0.75"/>
-    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">validation</text>
-    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="348" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
-    <line x1="358" y1="92" x2="481" y2="92" stroke="#111111" stroke-width="0.75"/>
-    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">accepted record or</text>
-    <text x="419" y="124" text-anchor="middle" font-size="11" fill="#111111">error</text>
-    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="513" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="584" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
-    <line x1="523" y1="92" x2="646" y2="92" stroke="#111111" stroke-width="0.75"/>
-    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">keyboard press</text>
-    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="678" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="749" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
-    <line x1="688" y1="92" x2="811" y2="92" stroke="#111111" stroke-width="0.75"/>
-    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">text ownership</text>
-    
-    <rect x="18" y="162" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="32" y="181" font-size="11" font-weight="700" fill="#111111">Files You Edit in Lesson 3.3:</text>
-    <text x="215" y="181" font-size="11" fill="#111111">Cargo.toml  ·  src/document.rs  ·  src/lib.rs  ·  src/specimen.rs  ·  examples/sample.rs  ·  src/document_tests.rs</text>
-    <text x="32" y="198" font-size="10.5" fill="#111111">14 Checkpoints: 22a-records → 26a-keys — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
-  
 </svg>
 </div>
 
 <div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg viewBox="0 0 840 240" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg width="840" height="214" viewBox="0 0 840 214" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
       <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
   </defs>
-  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Chapter 3 Architecture: Transactional Protobuf (.pb) Decode, World Placements & Incremental GPU Sync</text>
-  <text x="20" y="46" font-size="11.5" fill="#111111">Separating exact session_rust kernel geometry from GPU display buffers so view changes never re-upload unchanged meshes.</text>
-  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
+  <rect x="4" y="4" width="832" height="206" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Lesson 3.3 Pipeline Schematic: Validated files, bounds and useful projections</text>
+  <text x="20" y="45" font-size="11" fill="#111111">Step-by-step data flow you implement in this lesson (14 Checkpoints: 22a-records → 26a-keys)</text>
+  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
   
-    <rect x="18" y="68" width="185" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="110" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">1. Async .pb File / URL I/O</text>
-    <text x="28" y="108" font-size="10.5" fill="#111111">• Ticket #N (cancels #N-1)</text>
-    <text x="28" y="126" font-size="10.5" fill="#111111">• Bounded Protobuf decode</text>
-    <text x="28" y="144" font-size="10.5" font-weight="600" fill="#111111">• Topological validation</text>
-    <text x="28" y="162" font-size="10.5" fill="#111111">• Corrupt file? Reject with</text>
-    <text x="28" y="177" font-size="10.5" fill="#111111">  ZERO partial scene mutation</text>
-
-    <line x1="203" y1="138" x2="233" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
-
-    <rect x="235" y="68" width="275" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="372" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">2. Editor Owner (Browser-Independent)</text>
-    <text x="247" y="108" font-size="10.5" fill="#111111">• Kernel Mesh (local-space f64 coordinates)</text>
-    <text x="247" y="126" font-size="10.5" fill="#111111">• Placement 4x4 Matrix (world transform)</text>
-    <text x="247" y="144" font-size="10.5" font-weight="600" fill="#111111">• Releasable Source Ownership:</text>
-    <text x="247" y="160" font-size="10" fill="#111111">  Drop cold CPU source after GPU upload;</text>
-    <text x="247" y="175" font-size="10" fill="#111111">  re-fetch exact SHA/revision on edit!</text>
-    <text x="247" y="195" font-size="10.5" fill="#111111">• Emits Change { sync_scene, redraw }</text>
-
-    <line x1="510" y1="115" x2="542" y2="115" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
-    <line x1="510" y1="175" x2="542" y2="175" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
-
-    <rect x="544" y="68" width="276" height="68" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="556" y="86" font-size="11" font-weight="700" fill="#111111">3A. Geometry Changed (sync_scene = true)</text>
-    <text x="556" y="104" font-size="10.5" fill="#111111">• Upload changed mesh vertex/index buffers</text>
-    <text x="556" y="120" font-size="10.5" fill="#111111">• Retain unchanged object GPU allocations</text>
-
-    <rect x="544" y="145" width="276" height="68" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="556" y="163" font-size="11" font-weight="700" fill="#111111">3B. View / Camera Only (sync_scene = false)</text>
-    <text x="556" y="181" font-size="10.5" fill="#111111">• queue.write_buffer(camera_uniform) ONLY</text>
-    <text x="556" y="197" font-size="10.5" fill="#111111">• Zero geometry re-uploads during Orbit/Fit!</text>
     
+    <rect x="18" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="89" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
+    <line x1="28" y1="90" x2="151" y2="90" stroke="#111111" stroke-width="0.75"/>
+    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">Raw proto::Mesh</text>
+    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="183" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="254" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
+    <line x1="193" y1="90" x2="316" y2="90" stroke="#111111" stroke-width="0.75"/>
+    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">validation</text>
+    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="348" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="419" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
+    <line x1="358" y1="90" x2="481" y2="90" stroke="#111111" stroke-width="0.75"/>
+    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">accepted record or</text>
+    <text x="419" y="124" text-anchor="middle" font-size="11" fill="#111111">error</text>
+    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="513" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="584" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
+    <line x1="523" y1="90" x2="646" y2="90" stroke="#111111" stroke-width="0.75"/>
+    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">keyboard press</text>
+    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="678" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="749" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
+    <line x1="688" y1="90" x2="811" y2="90" stroke="#111111" stroke-width="0.75"/>
+    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">text ownership</text>
+    
+    <rect x="18" y="158" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="32" y="177" font-size="11" font-weight="700" fill="#111111">Files Modified in Lesson 3.3:</text>
+    <text x="235" y="177" font-size="11" fill="#111111">Cargo.toml  ·  src/document.rs  ·  src/lib.rs  ·  src/specimen.rs  ·  examples/sample.rs  ·  src/document_tests.rs</text>
+    <text x="32" y="194" font-size="10.5" fill="#111111">14 Checkpoints: 22a-records → 26a-keys — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
+  
 </svg>
 </div>
 
@@ -139,11 +168,36 @@ Before writing code, review how the three layers in this chapter talk to each ot
 
 ## 4. Step-by-Step Coding Notebook (Concept + Implementation)
 
-Work through each notebook cell below in order inside `workspace/journey`. Read the **Concept Walkthrough** and **Self-Check Q&A** first, then expand the **Implementation** block to type and verify the code.
+Work through each notebook cell below in order inside `workspace/journey`. Study the **Visual Step Trace**, read the **Concept Walkthrough** and **Self-Check Q&A**, then expand the **Implementation** block to type and verify the code.
 
 <a id="checkpoint-22a-records"></a>
 
 ### Step 1 of 14 · Validate a raw mesh record (`22a-records`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 1/14 Visual Trace (22a-records): Validate a raw mesh record</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: Cargo.toml, src/document.rs, src/lib.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Raw proto::Mesh</text>
+    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">validation</text>
+    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">accepted record or error</text>
+    
+</svg>
+</div>
 
 - **Goal:** Run the state checks. A valid box passes; non-finite coordinates and missing vertex references are rejected.
 - **Data Flow Trace:** `Raw proto::Mesh → validation → accepted record or error`
@@ -226,6 +280,31 @@ After that block, type:
 <a id="checkpoint-22b-session"></a>
 
 ### Step 2 of 14 · Validate session identity and build a sample file (`22b-session`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 2/14 Visual Trace (22b-session): Validate session identity and build a sample file</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/document.rs, src/specimen.rs, examples/sample.rs, src/lib.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Source GUIDs and flat rows</text>
+    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">validated Session shape; specimen</text>
+    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">sample.pb</text>
+    
+</svg>
+</div>
 
 - **Goal:** Validate a real Session and its source identities before browser import.
 - **Data Flow Trace:** `Source GUIDs and flat rows → validated Session shape; specimen → sample.pb`
@@ -508,6 +587,36 @@ After that block, type:
 <a id="checkpoint-22c-decode"></a>
 
 ### Step 3 of 14 · Decode and prepare the whole import (`22c-decode`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 3/14 Visual Trace (22c-decode): Decode and prepare the whole import</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/document.rs, src/document_tests.rs, src/lib.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Bytes</text>
+    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">decoded record</text>
+    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">validation</text>
+    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">shared Session and</text>
+    <text x="726" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">prepared…</text>
+    
+</svg>
+</div>
 
 - **Goal:** Run the state checks. Invalid bytes, oversized data and unsupported records are refused before scene insertion.
 - **Data Flow Trace:** `Bytes → decoded record → validation → shared Session and prepared Mesh values`
@@ -822,6 +931,35 @@ After that block, type:
 <a id="checkpoint-22d-import"></a>
 
 ### Step 4 of 14 · Commit an import as one undoable action (`22d-import`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 4/14 Visual Trace (22d-import): Commit an import as one undoable action</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/scene.rs, src/editor.rs, src/document_tests.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Loaded document</text>
+    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">one history edit</text>
+    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">rows with source identity</text>
+    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">display</text>
+    
+</svg>
+</div>
 
 - **Goal:** Run the state checks. One Undo removes the whole file; Redo restores its IDs and shared source; a failed import preserves selection and redo.
 - **Data Flow Trace:** `Loaded document → one history edit → rows with source identity → display`
@@ -1370,6 +1508,35 @@ Update the existing block with this supplied code; keep unchanged lines:
 
 ### Step 5 of 14 · Prepare asynchronous file delivery (`22e-file-reader`)
 
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 5/14 Visual Trace (22e-file-reader): Prepare asynchronous file delivery</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/file_input.rs, index.html, src/lib.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Selected File</text>
+    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">request token</text>
+    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">await array_buffer</text>
+    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">owned byte event</text>
+    
+</svg>
+</div>
+
 - **Goal:** Build and run the checkpoint. The current scene and commands remain available; file selection is connected next.
 - **Data Flow Trace:** `Selected File → request token → await array_buffer → owned byte event`
 - **Files You Touch:** `src/file_input.rs` (*Read file bytes asynchronously; reject stale request numbers and return completion to the editor callback.*) · `index.html` (*Keep the HTML page small. Feature input belongs to the command dock drawn inside the canvas.*) · `src/lib.rs` (*Expose the complete file-reader component while preparing its browser integration.*)
@@ -1452,6 +1619,39 @@ Edit the existing block to match this code; keep unchanged lines:
 <a id="checkpoint-23-import"></a>
 
 ### Step 6 of 14 · Open a file through the command line (`23-import`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 6/14 Visual Trace (23-import): Open a file through the command line</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/lib.rs, src/browser.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="91" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Open</text>
+    <line x1="164" y1="68" x2="180" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="182" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="255" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">hidden picker</text>
+    <line x1="328" y1="68" x2="344" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="346" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="419" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">viewer-file</text>
+    <line x1="492" y1="68" x2="508" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="510" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="583" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Action::Import</text>
+    <line x1="656" y1="68" x2="672" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="674" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="747" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">upload and redraw</text>
+    
+</svg>
+</div>
 
 - **Goal:** Import a real mesh-session file, keep its source identity, and undo the whole import as one action.
 - **Data Flow Trace:** `Open → hidden picker → latest read → viewer-file → Action::Import → upload and redraw`
@@ -2089,6 +2289,31 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 ### Step 7 of 14 · Measure the displayed scene bounds (`23a-bounds`)
 
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 7/14 Visual Trace (23a-bounds): Measure the displayed scene bounds</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/bounds.rs, src/scene.rs, src/lib.rs, src/fit_tests.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Displayed vertices</text>
+    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">coordinate minima/maxima</text>
+    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">centre and radius</text>
+    
+</svg>
+</div>
+
 - **Goal:** Run the state checks. Known corners give the expected centre and radius; a scene with no objects has no bounds.
 - **Data Flow Trace:** `Displayed vertices → coordinate minima/maxima → centre and radius`
 - **Files You Touch:** `src/bounds.rs` (*Store coordinate minima/maxima; compute the centre and enclosing-sphere radius from them.*) · `src/scene.rs` (*Accumulate displayed vertices into f64 bounds; return None for an empty scene.*) · `src/lib.rs` (*Register the bounds module beside Camera.*) · `src/fit_tests.rs` (*Optional authoring fixture. Check measured bounds and the empty-scene result.*)
@@ -2208,6 +2433,27 @@ Edit the existing block to match this code; keep unchanged lines:
 <a id="checkpoint-23b-fit-camera"></a>
 
 ### Step 8 of 14 · Fit the camera around the bounds (`23b-fit-camera`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 8/14 Visual Trace (23b-fit-camera): Fit the camera around the bounds</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/camera.rs, src/fit_tests.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="393" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="214" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Bounds centre/radius and aspect</text>
+    <line x1="411" y1="68" x2="427" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="429" y="42" width="393" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="625" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">camera target, distance and clipping</text>
+    
+</svg>
+</div>
 
 - **Goal:** Run the state checks. Every corner remains inside the view across scales and aspect ratios, and fitting preserves orientation.
 - **Data Flow Trace:** `Bounds centre/radius and aspect → camera target, distance and clipping`
@@ -2671,6 +2917,39 @@ After that block, append this supplied code:
 <a id="checkpoint-24-fit"></a>
 
 ### Step 9 of 14 · Run Fit through the command line (`24-fit`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 9/14 Visual Trace (24-fit): Run Fit through the command line</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/editor.rs, src/browser.rs, src/fit_tests.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="91" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Typed Fit</text>
+    <line x1="164" y1="68" x2="180" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="182" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="255" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Editor</text>
+    <line x1="328" y1="68" x2="344" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="346" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="419" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Scene::bounds</text>
+    <line x1="492" y1="68" x2="508" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="510" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="583" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Camera::fit</text>
+    <line x1="656" y1="68" x2="672" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="674" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="747" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">redraw</text>
+    
+</svg>
+</div>
 
 - **Goal:** Frame all current objects without rotating them or changing the document.
 - **Data Flow Trace:** `Typed Fit → Editor → Scene::bounds → Camera::fit → redraw`
@@ -3432,6 +3711,31 @@ After that block, append this supplied code:
 
 ### Step 10 of 14 · Build perspective and orthographic camera matrices (`24a-projection`)
 
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 10/14 Visual Trace (24a-projection): Build perspective and orthographic camera matrices</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/camera.rs, src/projection_tests.rs, src/lib.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Projection enum</text>
+    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">camera matrix</text>
+    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">drawing and inverse-matrix rays</text>
+    
+</svg>
+</div>
+
 - **Goal:** Run the state checks. Switching preserves target-plane scale; orthographic size ignores depth and its pick rays are parallel.
 - **Data Flow Trace:** `Projection enum → camera matrix → drawing and inverse-matrix rays`
 - **Files You Touch:** `src/camera.rs` (*Name the projection choices with an enum; derive copying and equality for this small value.*) · `src/projection_tests.rs` (*Optional authoring fixture. Check target-plane scale, depth-independent size and parallel picking rays.*) · `src/lib.rs` (*Register the new checks without changing the production browser entry point.*)
@@ -3892,6 +4196,31 @@ After that block, append this supplied code:
 
 ### Step 11 of 14 · Fit and change projection through the editor (`24b-projection-actions`)
 
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 11/14 Visual Trace (24b-projection-actions): Fit and change projection through the editor</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/camera.rs, src/editor.rs, src/projection_tests.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Selected projection</text>
+    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">fit opening; Action::Projection</text>
+    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">view-only change</text>
+    
+</svg>
+</div>
+
 - **Goal:** Run the state checks. Orthographic fitting contains every corner in tall and wide views; close picking and document Undo keep the chosen view coherent.
 - **Data Flow Trace:** `Selected projection → fit opening; Action::Projection → view-only change`
 - **Files You Touch:** `src/camera.rs` (*Fit the sphere through a perspective half-angle or the smaller orthographic half-extent.*) · `src/editor.rs` (*Carry the requested projection in Action for the named view commands.*) · `src/projection_tests.rs` (*Optional authoring fixture. Import bounds and editor actions for fitting, selection and history checks.*)
@@ -4223,6 +4552,36 @@ After that block, append this supplied code:
 <a id="checkpoint-25-projection"></a>
 
 ### Step 12 of 14 · Run the named projection commands (`25-projection`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 12/14 Visual Trace (25-projection): Run the named projection commands</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/browser.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Named View command</text>
+    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Projection value</text>
+    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Editor</text>
+    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">camera matrix and reported</text>
+    <text x="726" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">mode</text>
+    
+</svg>
+</div>
 
 - **Goal:** Switch between perspective and orthographic views while keeping fitting, zoom and picking coherent.
 - **Data Flow Trace:** `Named View command → Projection value → Editor → camera matrix and reported mode`
@@ -4794,6 +5153,39 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 <a id="checkpoint-26-selected"></a>
 
 ### Step 13 of 14 · Frame one object without changing its size (`26-selected`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 13/14 Visual Trace (26-selected): Frame one object without changing its size</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/scene.rs, src/editor.rs, src/browser.rs, src/lib.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="91" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Fit Selected</text>
+    <line x1="164" y1="68" x2="180" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="182" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="255" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Editor</text>
+    <line x1="328" y1="68" x2="344" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="346" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="419" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">selected bounds</text>
+    <line x1="492" y1="68" x2="508" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="510" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="583" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Camera::fit</text>
+    <line x1="656" y1="68" x2="672" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="674" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="747" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">frame</text>
+    
+</svg>
+</div>
 
 - **Goal:** Run Fit Selected while keeping geometry, selection and document history unchanged.
 - **Data Flow Trace:** `Fit Selected → Editor → stable ObjectId → selected bounds → Camera::fit → frame`
@@ -5593,6 +5985,39 @@ Copy this supplied file:
 
 ### Step 14 of 14 · Fit and step history from the keyboard (`26a-keys`)
 
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 14/14 Visual Trace (26a-keys): Fit and step history from the keyboard</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/shortcuts.rs, src/panel.rs, src/browser.rs, src/lib.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="91" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">keyboard press</text>
+    <line x1="164" y1="68" x2="180" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="182" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="255" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">text ownership</text>
+    <line x1="328" y1="68" x2="344" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="346" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="419" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">existing command</text>
+    <line x1="492" y1="68" x2="508" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="510" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="583" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">editor action</text>
+    <line x1="656" y1="68" x2="672" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="674" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="747" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">redraw</text>
+    
+</svg>
+</div>
+
 - **Goal:** Let canvas F fit the selection and platform shortcuts run Undo or Redo through existing actions.
 - **Data Flow Trace:** `keyboard press → text ownership → existing command → editor action → redraw`
 - **Files You Touch:** `src/shortcuts.rs` (*Classify canvas Fit and available history keys without owning browser or document state.*) · `src/panel.rs` (*Use current text focus and content to decide shortcut ownership.*) · `src/browser.rs` (*Echo an accepted shortcut through the same command route before the panel consumes typing.*) · `src/lib.rs` (*Register the shared shortcut policy.*) · `src/shortcuts_tests.rs` (*Copy the modifier and text-ownership checks.*)
@@ -6257,6 +6682,8 @@ REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
 
 ## 6. Lesson Summary & Expected Visual Result
+
+![Recorded visual output for Lesson 3.3 (26a-keys)](../../../screenshots/journey/26a-keys-browser.png)
 
 Select an object, click the canvas, then press F. Ctrl+Z undoes a document edit; Ctrl+Y or Ctrl+Shift+Z redoes it. Use Cmd on macOS.
 

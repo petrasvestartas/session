@@ -4,102 +4,141 @@
 
 > **What You Will Learn & Build:** Separate browser requests from editor actions. By the final checkpoint (`47c-route`), you will route the command field through the typed registry.
 
-## 1. Visual Pipeline & WebGPU Architecture (Black & White Schematics)
+## 1. Visual WebGPU Explanation & Architecture (Black & White Schematics)
 
 <div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg viewBox="0 0 840 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg width="840" height="256" viewBox="0 0 840 256" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
       <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
   </defs>
-  <rect x="4" y="4" width="832" height="212" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Lesson 7.2 Execution Flow: Typed commands and host requests</text>
-  <text x="20" y="46" font-size="11.5" fill="#111111">Concrete data pipeline you build in this lesson (4 Checkpoints: 47-registry → 47c-route)</text>
-  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
+  <rect x="4" y="4" width="832" height="248" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Chapter 7 Visual Explanation: Construction-Plane Ray Intersection, Snap Priority & 3D Gumball Gizmo</text>
+  <text x="20" y="45" font-size="11" fill="#111111">Left: Intersecting cursor ray with construction plane (P0, N). Center: Snap priority radius. Right: Perspective-scaled 3D Gumball.</text>
+  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
   
+    <!-- Panel A: Construction Plane Ray Hit -->
+    <rect x="18" y="64" width="265" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="150" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">A. Ray–Plane Hit (Construction Grid)</text>
+    <!-- Tilted 3D plane parallelogram -->
+    <polygon points="40,165 180,125 260,155 120,195" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <line x1="75" y1="155" x2="155" y2="185" stroke="#111111" stroke-width="0.75" stroke-dasharray="2,2"/>
+    <line x1="110" y1="145" x2="190" y2="175" stroke="#111111" stroke-width="0.75" stroke-dasharray="2,2"/>
+    <line x1="145" y1="135" x2="225" y2="165" stroke="#111111" stroke-width="0.75" stroke-dasharray="2,2"/>
+    <!-- Plane normal N -->
+    <line x1="150" y1="160" x2="150" y2="104" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+    <text x="164" y="112" font-size="9.5" font-weight="700" fill="#111111">N</text>
+    <!-- Ray from top-left hitting plane at (150, 160) -->
+    <line x1="55" y1="96" x2="146" y2="157" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
+    <circle cx="150" cy="160" r="4.5" fill="#111111"/>
+    <text x="90" y="112" font-size="9.5" font-weight="700" fill="#111111">Ray O+t·D</text>
+    <text x="150" y="214" text-anchor="middle" font-size="9.5" font-weight="700" fill="#111111">t = dot(P0 - O, N) / dot(D, N)</text>
+    <text x="150" y="229" text-anchor="middle" font-size="9" fill="#111111">Preview rubber-band updates before commit</text>
+
+    <line x1="283" y1="154" x2="305" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <!-- Panel B: Snap Priority Radius -->
+    <rect x="307" y="64" width="240" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="427" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">B. Snap Priority Within Radius</text>
+    <!-- Snap radius circle -->
+    <circle cx="427" cy="144" r="44" fill="#ffffff" stroke="#111111" stroke-width="1.2" stroke-dasharray="4,3"/>
+    <!-- Geometry segment passing through snap circle -->
+    <line x1="365" y1="168" x2="465" y2="120" stroke="#111111" stroke-width="2"/>
+    <!-- Endpoint square (winner #1) -->
+    <rect x="459" y="114" width="12" height="12" fill="url(#hatch)" stroke="#111111" stroke-width="1.75"/>
+    <!-- Midpoint triangle (#2) -->
+    <polygon points="415,137 409,149 421,149" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="480" y="123" font-size="9" font-weight="700" fill="#111111">1. End</text>
+    <text x="382" y="146" font-size="9" font-weight="700" fill="#111111">2. Mid</text>
+    <text x="427" y="208" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">Priority: Endpoint &gt; Midpoint</text>
+    <text x="427" y="223" text-anchor="middle" font-size="9" fill="#111111">&gt; Curve Nearest &gt; Grid Step</text>
+
+    <line x1="547" y1="154" x2="569" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <!-- Panel C: 3D Gumball Gizmo (widget.wgsl) -->
+    <rect x="571" y="64" width="251" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="696" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">C. 3D Gumball Gizmo (widget.wgsl)</text>
+    <!-- Center origin at (685, 160) -->
+    <circle cx="685" cy="160" r="4.5" fill="#111111"/>
+    <!-- Z Axis (Up) -->
+    <line x1="685" y1="160" x2="685" y2="98" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
+    <text x="685" y="92" text-anchor="middle" font-size="9.5" font-weight="700" fill="#111111">Z</text>
+    <!-- X Axis (Down-Right) + Scale Box -->
+    <line x1="685" y1="160" x2="758" y2="182" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
+    <rect x="730" y="170" width="8" height="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="770" y="186" font-size="9.5" font-weight="700" fill="#111111">X</text>
+    <!-- Y Axis (Up-Right) -->
+    <line x1="685" y1="160" x2="742" y2="122" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
+    <text x="752" y="122" font-size="9.5" font-weight="700" fill="#111111">Y</text>
+    <!-- Rotation Arc between Z and X -->
+    <path d="M 685 122 A 38 38 0 0 1 722 171" fill="none" stroke="#111111" stroke-width="1.5" stroke-dasharray="3,2"/>
+    <text x="696" y="210" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">Scaled by clip.w for constant pixel size</text>
+    <text x="696" y="225" text-anchor="middle" font-size="9" fill="#111111">Arrows=Move · Arcs=Rotate · Boxes=Scale</text>
     
-    <rect x="18" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="89" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
-    <line x1="28" y1="92" x2="151" y2="92" stroke="#111111" stroke-width="0.75"/>
-    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">shown names</text>
-    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="183" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="254" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
-    <line x1="193" y1="92" x2="316" y2="92" stroke="#111111" stroke-width="0.75"/>
-    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">typed host requests</text>
-    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="348" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
-    <line x1="358" y1="92" x2="481" y2="92" stroke="#111111" stroke-width="0.75"/>
-    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">action factories</text>
-    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="513" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="584" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
-    <line x1="523" y1="92" x2="646" y2="92" stroke="#111111" stroke-width="0.75"/>
-    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">one vocabulary</text>
-    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="678" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="749" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
-    <line x1="688" y1="92" x2="811" y2="92" stroke="#111111" stroke-width="0.75"/>
-    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">actual command</text>
-    <text x="749" y="124" text-anchor="middle" font-size="11" fill="#111111">field</text>
-    
-    <rect x="18" y="162" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="32" y="181" font-size="11" font-weight="700" fill="#111111">Files You Edit in Lesson 7.2:</text>
-    <text x="215" y="181" font-size="11" fill="#111111">src/commands.rs  ·  src/lib.rs  ·  src/offset.rs  ·  src/commands_tests.rs  ·  src/panel.rs  ·  src/browser.rs</text>
-    <text x="32" y="198" font-size="10.5" fill="#111111">4 Checkpoints: 47-registry → 47c-route — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
-  
 </svg>
 </div>
 
 <div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg viewBox="0 0 840 240" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg width="840" height="214" viewBox="0 0 840 214" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
       <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
   </defs>
-  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Chapter 7 Interactive CAD Manipulation: Construction-Plane Ray Hit, Snap Priority & 3D Gumball (widget.wgsl)</text>
-  <text x="20" y="46" font-size="11.5" fill="#111111">How 2D mouse drags become exact 3D CAD coordinates via construction planes, geometric snapping, and constant-screen-size Gumball handles.</text>
-  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
+  <rect x="4" y="4" width="832" height="206" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Lesson 7.2 Pipeline Schematic: Typed commands and host requests</text>
+  <text x="20" y="45" font-size="11" fill="#111111">Step-by-step data flow you implement in this lesson (4 Checkpoints: 47-registry → 47c-route)</text>
+  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
   
-    <rect x="18" y="68" width="240" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="138" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">1. Construction Plane &amp; Snapping</text>
-    <text x="28" y="108" font-size="10.5" fill="#111111">• Ray R(t) = O + t·D intersects Plane(P0, N):</text>
-    <text x="28" y="124" font-size="10.5" font-weight="700" fill="#111111">  t = dot(P0 - O, N) / dot(D, N)</text>
-    <text x="28" y="144" font-size="10.5" font-weight="600" fill="#111111">• Snap Priority within pixel radius:</text>
-    <text x="28" y="160" font-size="10" fill="#111111">  1. Endpoint / Vertex   2. Midpoint</text>
-    <text x="28" y="175" font-size="10" fill="#111111">  3. Curve Nearest       4. Grid Step</text>
-    <text x="28" y="193" font-size="10" fill="#111111">• Typed "x,y,z" overrides cursor ray</text>
-
-    <line x1="258" y1="138" x2="288" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
-
-    <rect x="290" y="68" width="250" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="415" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">2. Tool State &amp; Preview Overlay</text>
-    <text x="302" y="108" font-size="10.5" fill="#111111">• Active Tool (Line / Polyline / Point)</text>
-    <text x="302" y="126" font-size="10.5" font-weight="600" fill="#111111">• Rubber-band preview buffer:</text>
-    <text x="302" y="142" font-size="10" fill="#111111">  Updates every pointermove without</text>
-    <text x="302" y="157" font-size="10" fill="#111111">  polluting Undo history stack</text>
-    <text x="302" y="176" font-size="10.5" fill="#111111">• Enter / Final Click -&gt; 1 atomic Undo</text>
-    <text x="302" y="192" font-size="10.5" fill="#111111">• Escape -&gt; cancel &amp; clear preview</text>
-
-    <line x1="540" y1="138" x2="570" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
-
-    <rect x="572" y="68" width="248" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="696" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">3. 3D Gumball Widget (widget.wgsl)</text>
-    <text x="584" y="108" font-size="10.5" fill="#111111">• Placed at selection bounding center</text>
-    <text x="584" y="126" font-size="10.5" font-weight="600" fill="#111111">• Scaled by camera distance w so</text>
-    <text x="584" y="142" font-size="10.5" font-weight="600" fill="#111111">  handles stay constant pixel size!</text>
-    <text x="584" y="160" font-size="10" fill="#111111">• Axis arrows (Translate X/Y/Z)</text>
-    <text x="584" y="175" font-size="10" fill="#111111">• Arc rings (Rotate) + Boxes (Scale)</text>
-    <text x="584" y="192" font-size="10" fill="#111111">• Picked via Rg32Uint widget sub_id</text>
     
+    <rect x="18" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="89" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
+    <line x1="28" y1="90" x2="151" y2="90" stroke="#111111" stroke-width="0.75"/>
+    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">shown names</text>
+    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="183" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="254" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
+    <line x1="193" y1="90" x2="316" y2="90" stroke="#111111" stroke-width="0.75"/>
+    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">typed host requests</text>
+    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="348" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="419" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
+    <line x1="358" y1="90" x2="481" y2="90" stroke="#111111" stroke-width="0.75"/>
+    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">action factories</text>
+    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="513" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="584" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
+    <line x1="523" y1="90" x2="646" y2="90" stroke="#111111" stroke-width="0.75"/>
+    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">one vocabulary</text>
+    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="678" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="749" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
+    <line x1="688" y1="90" x2="811" y2="90" stroke="#111111" stroke-width="0.75"/>
+    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">actual command</text>
+    <text x="749" y="124" text-anchor="middle" font-size="11" fill="#111111">field</text>
+    
+    <rect x="18" y="158" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="32" y="177" font-size="11" font-weight="700" fill="#111111">Files Modified in Lesson 7.2:</text>
+    <text x="235" y="177" font-size="11" fill="#111111">src/commands.rs  ·  src/lib.rs  ·  src/offset.rs  ·  src/commands_tests.rs  ·  src/panel.rs  ·  src/browser.rs</text>
+    <text x="32" y="194" font-size="10.5" fill="#111111">4 Checkpoints: 47-registry → 47c-route — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
+  
 </svg>
 </div>
 
@@ -128,11 +167,40 @@ Before writing code, review how the three layers in this chapter talk to each ot
 
 ## 4. Step-by-Step Coding Notebook (Concept + Implementation)
 
-Work through each notebook cell below in order inside `workspace/journey`. Read the **Concept Walkthrough** and **Self-Check Q&A** first, then expand the **Implementation** block to type and verify the code.
+Work through each notebook cell below in order inside `workspace/journey`. Study the **Visual Step Trace**, read the **Concept Walkthrough** and **Self-Check Q&A**, then expand the **Implementation** block to type and verify the code.
 
 <a id="checkpoint-47-registry"></a>
 
 ### Step 1 of 4 · Separate browser requests from editor actions (`47-registry`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 1/4 Visual Trace (47-registry): Separate browser requests from editor actions</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/commands.rs, src/lib.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">shown names</text>
+    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">typed host requests</text>
+    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">action factories</text>
+    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">one vocabulary</text>
+    
+</svg>
+</div>
 
 - **Goal:** Separate browser requests from editor actions.
 - **Data Flow Trace:** `shown names → typed host requests → action factories → one vocabulary`
@@ -190,6 +258,36 @@ After that block, type:
 
 ### Step 2 of 4 · Register the existing editor command factories (`47a-actions`)
 
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 2/4 Visual Trace (47a-actions): Register the existing editor command factories</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/commands.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">shown command name</text>
+    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">noncapturing factory</text>
+    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">typed action</text>
+    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">existing editor</text>
+    <text x="726" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">transaction</text>
+    
+</svg>
+</div>
+
 - **Goal:** Register the existing editor command factories.
 - **Data Flow Trace:** `shown command name → noncapturing factory → typed action → existing editor transaction`
 - **Files You Touch:** `src/commands.rs` (*Register existing actions without duplicating command names in parsing branches.*)
@@ -239,6 +337,37 @@ Edit the existing block to match this code; keep unchanged lines:
 <a id="checkpoint-47b-parse"></a>
 
 ### Step 3 of 4 · Parse the longest command and validate its arguments (`47b-parse`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 3/4 Visual Trace (47b-parse): Parse the longest command and validate its arguments</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/commands.rs, src/offset.rs, src/commands_tests.rs, src/lib.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">typed words</text>
+    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">longest known name</text>
+    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">checked argument count and</text>
+    <text x="521" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">finite…</text>
+    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">typed request or visible</text>
+    <text x="726" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">error</text>
+    
+</svg>
+</div>
 
 - **Goal:** Parse the longest command and validate its arguments.
 - **Data Flow Trace:** `typed words → longest known name → checked argument count and finite numbers → typed request or visible error`
@@ -347,6 +476,41 @@ After that block, type:
 <a id="checkpoint-47c-route"></a>
 
 ### Step 4 of 4 · Route the command field through the typed registry (`47c-route`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 4/4 Visual Trace (47c-route): Route the command field through the typed registry</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/panel.rs, src/browser.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="91" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">actual command field</text>
+    <line x1="164" y1="68" x2="180" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="182" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="255" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">canonical registry</text>
+    <text x="255" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">name</text>
+    <line x1="328" y1="68" x2="344" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="346" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="419" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">typed parse</text>
+    <line x1="492" y1="68" x2="508" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="510" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="583" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">browser request or</text>
+    <text x="583" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">editor…</text>
+    <line x1="656" y1="68" x2="672" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="674" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="747" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">one dock answer</text>
+    
+</svg>
+</div>
 
 - **Goal:** Route the command field through the typed registry.
 - **Data Flow Trace:** `actual command field → canonical registry name → typed parse → browser request or editor action → one dock answer`
@@ -1734,6 +1898,8 @@ REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
 
 ## 6. Lesson Summary & Expected Visual Result
+
+![Recorded visual output for Lesson 7.2 (47c-route)](../../../screenshots/journey/47c-route.png)
 
 Close; Example Box; Select Next; Move 1 -2 .03; Undo. Type OpenReplace with the compact spelling, cancel its chooser, then try Delete all and Move NaN,0,0. Invalid commands leave geometry and history unchanged.
 

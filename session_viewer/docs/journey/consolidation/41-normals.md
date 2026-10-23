@@ -4,107 +4,144 @@
 
 > **What You Will Learn & Build:** Retain a checked normal stream from the original kernel adapter while preserving source attributes and the existing position/colour layout. By the final checkpoint (`41f-input`), you will enable the finite depth-correct grid through actual dock input, preserving grid view state, source history and unchanged geometry during camera navigation.
 
-## 1. Visual Pipeline & WebGPU Architecture (Black & White Schematics)
+## 1. Visual WebGPU Explanation & Architecture (Black & White Schematics)
 
 <div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg viewBox="0 0 840 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg width="840" height="256" viewBox="0 0 840 256" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
       <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
   </defs>
-  <rect x="4" y="4" width="832" height="212" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Lesson 5.7 Execution Flow: Normals, placement and a depth-correct construction grid</text>
-  <text x="20" y="46" font-size="11.5" fill="#111111">Concrete data pipeline you build in this lesson (8 Checkpoints: 41-normals → 41f-input)</text>
-  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
+  <rect x="4" y="4" width="832" height="248" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Chapter 5 Visual Explanation: Homogeneous Near-Clip, Screen-Space Ribbon Quad Extrusion & Point Discs</text>
+  <text x="20" y="45" font-size="11" fill="#111111">Left: Clipping to w > near before perspective divide. Center: Extruding segment pA→pB along normal n. Right: SDF point disc.</text>
+  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
   
+    <!-- Panel A: Homogeneous Near-Plane Clip -->
+    <rect x="18" y="64" width="245" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="140" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">A. Homogeneous Clip (w &gt; near)</text>
+    <!-- Near plane vertical line at x=115 -->
+    <line x1="115" y1="96" x2="115" y2="196" stroke="#111111" stroke-width="1.75"/>
+    <text x="115" y="92" text-anchor="middle" font-size="9" font-weight="700" fill="#111111">w = near plane</text>
+    <!-- Eye at (65, 148) -->
+    <circle cx="65" cy="148" r="4" fill="#111111"/>
+    <text x="65" y="164" text-anchor="middle" font-size="9" fill="#111111">Camera</text>
+    <!-- Segment from behind camera B(45, 180) through B'(115, 152) to A(225, 108) -->
+    <line x1="45" y1="180" x2="115" y2="152" stroke="#111111" stroke-width="1.5" stroke-dasharray="3,3"/>
+    <line x1="115" y1="152" x2="225" y2="108" stroke="#111111" stroke-width="2.5"/>
+    <circle cx="45" cy="180" r="3" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <circle cx="115" cy="152" r="4" fill="#111111"/>
+    <circle cx="225" cy="108" r="4" fill="#111111"/>
+    <text x="58" y="192" font-size="9" fill="#111111">B (w &lt; 0)</text>
+    <text x="142" y="164" font-size="9.5" font-weight="700" fill="#111111">Clipped B'</text>
+    <text x="225" y="102" text-anchor="middle" font-size="9.5" font-weight="700" fill="#111111">A (w &gt; near)</text>
+    <text x="140" y="218" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">Clip in 4D BEFORE xyz / w divide</text>
+    <text x="140" y="232" text-anchor="middle" font-size="9" fill="#111111">so behind-camera endpoints never flip!</text>
+
+    <line x1="263" y1="154" x2="285" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <!-- Panel B: Screen-Space Ribbon Quad Extrusion -->
+    <rect x="287" y="64" width="295" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="434" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">B. Screen-Space Ribbon Quad (6 Verts)</text>
+    <!-- Outer AA feather quad (dashed) -->
+    <polygon points="316,120 516,92 528,162 328,190" fill="#ffffff" stroke="#111111" stroke-width="1" stroke-dasharray="3,3"/>
+    <!-- Core stroke quad -->
+    <polygon points="319,130 519,102 525,152 325,180" fill="url(#hatch)" stroke="#111111" stroke-width="1.75"/>
+    <!-- Center line pA -> pB -->
+    <line x1="322" y1="155" x2="522" y2="127" stroke="#111111" stroke-width="2"/>
+    <circle cx="322" cy="155" r="4" fill="#111111"/>
+    <circle cx="522" cy="127" r="4" fill="#111111"/>
+    <!-- Normal vector n = (-dir.y, dir.x) -->
+    <line x1="422" y1="141" x2="416" y2="104" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+    <text x="458" y="114" font-size="9.5" font-weight="700" fill="#111111">n = (-dir.y, dir.x)</text>
+    <text x="315" y="172" font-size="9.5" font-weight="700" fill="#111111">pA</text>
+    <text x="532" y="130" font-size="9.5" font-weight="700" fill="#111111">pB</text>
+    <text x="434" y="208" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">offset = n * (half_width_px + 1px_AA)</text>
+    <text x="434" y="223" text-anchor="middle" font-size="9" fill="#111111">Constant CSS pixel width at any 3D zoom</text>
+
+    <line x1="582" y1="154" x2="604" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <!-- Panel C: Point Marker SDF Disc (glyph.wgsl) -->
+    <rect x="606" y="64" width="216" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="714" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">C. Point Marker Disc (SDF)</text>
+    <!-- Bounding 2D screen quad -->
+    <rect x="664" y="96" width="100" height="100" rx="2" fill="#ffffff" stroke="#111111" stroke-width="1.2" stroke-dasharray="4,3"/>
+    <!-- Outer AA circle and Inner solid circle -->
+    <circle cx="714" cy="146" r="42" fill="#ffffff" stroke="#111111" stroke-width="1" stroke-dasharray="2,2"/>
+    <circle cx="714" cy="146" r="34" fill="url(#hatch)" stroke="#111111" stroke-width="1.75"/>
+    <circle cx="714" cy="146" r="3" fill="#111111"/>
+    <line x1="714" y1="146" x2="748" y2="146" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+    <text x="731" y="141" text-anchor="middle" font-size="9.5" font-weight="700" fill="#111111">r</text>
+    <text x="714" y="213" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">d = length(uv); discard d &gt; r+1</text>
+    <text x="714" y="227" text-anchor="middle" font-size="9" fill="#111111">smoothstep feathers 1px rim</text>
     
-    <rect x="18" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="89" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
-    <line x1="28" y1="92" x2="151" y2="92" stroke="#111111" stroke-width="0.75"/>
-    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">original vertex</text>
-    <text x="89" y="124" text-anchor="middle" font-size="11" fill="#111111">normal attributes</text>
-    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="183" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="254" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
-    <line x1="193" y1="92" x2="316" y2="92" stroke="#111111" stroke-width="0.75"/>
-    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">kernel normal</text>
-    <text x="254" y="124" text-anchor="middle" font-size="11" fill="#111111">extraction</text>
-    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="348" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
-    <line x1="358" y1="92" x2="481" y2="92" stroke="#111111" stroke-width="0.75"/>
-    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">finite normalized</text>
-    <text x="419" y="124" text-anchor="middle" font-size="11" fill="#111111">display stream</text>
-    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="513" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="584" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
-    <line x1="523" y1="92" x2="646" y2="92" stroke="#111111" stroke-width="0.75"/>
-    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">retained payload</text>
-    <text x="584" y="124" text-anchor="middle" font-size="11" fill="#111111">accounting</text>
-    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="678" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="749" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
-    <line x1="688" y1="92" x2="811" y2="92" stroke="#111111" stroke-width="0.75"/>
-    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">View Grid On / Off</text>
-    
-    <rect x="18" y="162" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="32" y="181" font-size="11" font-weight="700" fill="#111111">Files You Edit in Lesson 5.7:</text>
-    <text x="215" y="181" font-size="11" fill="#111111">src/normals.rs  ·  src/lib.rs  ·  src/mesh.rs  ·  src/memory.rs  ·  src/normal_source_tests.rs  ·  src/normal_matrix_tests.rs</text>
-    <text x="32" y="198" font-size="10.5" fill="#111111">8 Checkpoints: 41-normals → 41f-input — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
-  
 </svg>
 </div>
 
 <div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg viewBox="0 0 840 240" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg width="840" height="214" viewBox="0 0 840 214" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
       <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
   </defs>
-  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Chapter 5 WebGPU Shader Geometry: Screen-Space Ribbon Extrusion (ribbon.wgsl), Joins & Point Discs</text>
-  <text x="20" y="46" font-size="11.5" fill="#111111">Why 1-pixel hardware GL_LINES fail in CAD—and how vertex shaders extrude 3D segments into crisp, constant-CSS-pixel screen quads.</text>
-  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
+  <rect x="4" y="4" width="832" height="206" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Lesson 5.7 Pipeline Schematic: Normals, placement and a depth-correct construction grid</text>
+  <text x="20" y="45" font-size="11" fill="#111111">Step-by-step data flow you implement in this lesson (8 Checkpoints: 41-normals → 41f-input)</text>
+  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
   
-    <rect x="18" y="68" width="215" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="125" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">1. Homogeneous Near-Clip</text>
-    <text x="28" y="108" font-size="10.5" fill="#111111">• Input: 3D segment (A, B) + width</text>
-    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#111111">• Clip to w &gt; near BEFORE divide!</text>
-    <text x="28" y="143" font-size="10" fill="#111111">  (If B is behind camera, dividing</text>
-    <text x="28" y="158" font-size="10" fill="#111111">   xyz/w flips the line across screen!)</text>
-    <text x="28" y="178" font-size="10.5" fill="#111111">• Project clipped A', B' to physical</text>
-    <text x="28" y="193" font-size="10.5" fill="#111111">  viewport pixels: pA, pB</text>
-
-    <line x1="233" y1="138" x2="263" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
-
-    <rect x="265" y="68" width="285" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="407" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">2. Screen-Space Quad Extrusion (6 Verts)</text>
-    <!-- Mini Visual of Extruded Line Quad -->
-    <polygon points="292,120 432,100 438,130 298,150" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <line x1="295" y1="135" x2="435" y2="115" stroke="#111111" stroke-width="2" stroke-dasharray="4,3"/>
-    <circle cx="295" cy="135" r="3.5" fill="#111111"/>
-    <circle cx="435" cy="115" r="3.5" fill="#111111"/>
-    <text x="282" y="168" font-size="10" fill="#111111">dir = normalize(pB - pA)</text>
-    <text x="282" y="183" font-size="10" font-weight="600" fill="#111111">perp = vec2(-dir.y, dir.x) * (half_w + AA)</text>
-    <text x="282" y="198" font-size="10" fill="#111111">vector.wgsl adds miter/bevel joins &amp; arrows</text>
-
-    <line x1="550" y1="138" x2="580" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
-
-    <rect x="582" y="68" width="238" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="701" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">3. Analytical AA &amp; Point Discs</text>
-    <text x="594" y="108" font-size="10.5" fill="#111111">• ribbon.wgsl: smoothstep coverage</text>
-    <text x="594" y="123" font-size="10.5" fill="#111111">  from signed edge distance</text>
-    <text x="594" y="143" font-size="10.5" font-weight="600" fill="#111111">• glyph.wgsl (Point Markers):</text>
-    <text x="594" y="158" font-size="10" fill="#111111">  Screen quad around 3D point; discard</text>
-    <text x="594" y="173" font-size="10" fill="#111111">  outside radius r, feather 1px rim</text>
-    <text x="594" y="193" font-size="10.5" fill="#111111">• NURBS: evaluate spans -&gt; polyline</text>
     
+    <rect x="18" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="89" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
+    <line x1="28" y1="90" x2="151" y2="90" stroke="#111111" stroke-width="0.75"/>
+    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">original vertex</text>
+    <text x="89" y="124" text-anchor="middle" font-size="11" fill="#111111">normal attributes</text>
+    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="183" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="254" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
+    <line x1="193" y1="90" x2="316" y2="90" stroke="#111111" stroke-width="0.75"/>
+    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">kernel normal</text>
+    <text x="254" y="124" text-anchor="middle" font-size="11" fill="#111111">extraction</text>
+    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="348" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="419" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
+    <line x1="358" y1="90" x2="481" y2="90" stroke="#111111" stroke-width="0.75"/>
+    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">finite normalized</text>
+    <text x="419" y="124" text-anchor="middle" font-size="11" fill="#111111">display stream</text>
+    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="513" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="584" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
+    <line x1="523" y1="90" x2="646" y2="90" stroke="#111111" stroke-width="0.75"/>
+    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">retained payload</text>
+    <text x="584" y="124" text-anchor="middle" font-size="11" fill="#111111">accounting</text>
+    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="678" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="749" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
+    <line x1="688" y1="90" x2="811" y2="90" stroke="#111111" stroke-width="0.75"/>
+    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">View Grid On / Off</text>
+    
+    <rect x="18" y="158" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="32" y="177" font-size="11" font-weight="700" fill="#111111">Files Modified in Lesson 5.7:</text>
+    <text x="235" y="177" font-size="11" fill="#111111">src/normals.rs  ·  src/lib.rs  ·  src/mesh.rs  ·  src/memory.rs  ·  src/normal_source_tests.rs  ·  src/normal_matrix_tests.rs</text>
+    <text x="32" y="194" font-size="10.5" fill="#111111">8 Checkpoints: 41-normals → 41f-input — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
+  
 </svg>
 </div>
 
@@ -137,11 +174,43 @@ Before writing code, review how the three layers in this chapter talk to each ot
 
 ## 4. Step-by-Step Coding Notebook (Concept + Implementation)
 
-Work through each notebook cell below in order inside `workspace/journey`. Read the **Concept Walkthrough** and **Self-Check Q&A** first, then expand the **Implementation** block to type and verify the code.
+Work through each notebook cell below in order inside `workspace/journey`. Study the **Visual Step Trace**, read the **Concept Walkthrough** and **Self-Check Q&A**, then expand the **Implementation** block to type and verify the code.
 
 <a id="checkpoint-41-normals"></a>
 
 ### Step 1 of 8 · Retain checked source normals beside display positions (`41-normals`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 1/8 Visual Trace (41-normals): Retain checked source normals beside display positions</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/normals.rs, src/lib.rs, src/mesh.rs, src/memory.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original vertex normal</text>
+    <text x="111" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">attributes</text>
+    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">kernel normal extraction</text>
+    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">finite normalized display</text>
+    <text x="521" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">stream</text>
+    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">retained payload</text>
+    <text x="726" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">accounting</text>
+    
+</svg>
+</div>
 
 - **Goal:** Retain a checked normal stream from the original kernel adapter while preserving source attributes and the existing position/colour layout.
 - **Data Flow Trace:** `original vertex normal attributes → kernel normal extraction → finite normalized display stream → retained payload accounting`
@@ -466,6 +535,36 @@ Copy this supplied file:
 
 ### Step 2 of 8 · Transform normals with nonuniform surface placement (`41a-placement`)
 
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 2/8 Visual Trace (41a-placement): Transform normals with nonuniform surface placement</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/normals.rs, src/lib.rs, src/normal_matrix_tests.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">accepted affine placement</text>
+    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">cofactor columns</text>
+    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">bounded common scale</text>
+    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">oriented world-normal</text>
+    <text x="726" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">matrix</text>
+    
+</svg>
+</div>
+
 - **Goal:** Prepare a finite oriented normal matrix that stays perpendicular under nonuniform scale, shear, reflection and flattening.
 - **Data Flow Trace:** `accepted affine placement → cofactor columns → bounded common scale → oriented world-normal matrix`
 - **Files You Touch:** `src/normals.rs` (*Prepare bounded cofactor columns for oriented affine normal transformation.*) · `src/lib.rs` (*Register nonuniform, reflected and singular placement checks.*) · `src/normal_matrix_tests.rs` (*Copy perpendicularity, translation independence, winding, collapse and finite-range checks.*)
@@ -584,6 +683,36 @@ Copy this supplied file:
 <a id="checkpoint-41b-drawing"></a>
 
 ### Step 3 of 8 · Draw smooth normals and sharp surface faces (`41b-drawing`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 3/8 Visual Trace (41b-drawing): Draw smooth normals and sharp surface faces</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/gpu_geometry.rs, src/renderer.rs, src/gpu_mesh.rs, src/scene.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">checked source normals</text>
+    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">shared GPU normal buffer</text>
+    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">per-row cofactor uniform</text>
+    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">interpolated world</text>
+    <text x="726" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">direction…</text>
+    
+</svg>
+</div>
 
 - **Goal:** Upload the retained source normal stream and its oriented placement matrix, with real smooth interpolation and explicit flat-face fallback.
 - **Data Flow Trace:** `checked source normals → shared GPU normal buffer → per-row cofactor uniform → interpolated world direction or derivative face normal`
@@ -1207,6 +1336,37 @@ Copy this supplied file:
 <a id="checkpoint-41c-view"></a>
 
 ### Step 4 of 8 · Reveal oriented world normals in the renderer (`41c-view`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 4/8 Visual Trace (41c-view): Reveal oriented world normals in the renderer</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/editor.rs, src/triangle.wgsl, src/renderer.rs, src/browser.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">source normals or sharp</text>
+    <text x="111" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">derivatives</text>
+    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">actual front-facing</text>
+    <text x="316" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">orientation</text>
+    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">world-normal RGB</text>
+    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">view-only camera settings</text>
+    
+</svg>
+</div>
 
 - **Goal:** Draw an oriented world-normal diagnostic with sharp-face winding and finite source smoothing, independently of source history.
 - **Data Flow Trace:** `source normals or sharp derivatives → actual front-facing orientation → world-normal RGB → view-only camera settings`
@@ -3154,6 +3314,43 @@ Copy this supplied file:
 
 ### Step 5 of 8 · Inspect smooth normals and face winding through commands (`41ca-input`)
 
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 5/8 Visual Trace (41ca-input): Inspect smooth normals and face winding through commands</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/normal_example.rs, src/editor.rs, src/browser.rs, src/lib.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="91" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">sharp / smooth /</text>
+    <text x="91" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">winding…</text>
+    <line x1="164" y1="68" x2="180" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="182" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="255" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">one original mesh</text>
+    <text x="255" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">insertion</text>
+    <line x1="328" y1="68" x2="344" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="346" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="419" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">View Normals</text>
+    <text x="419" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">diagnostic</text>
+    <line x1="492" y1="68" x2="508" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="510" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="583" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">actual direction</text>
+    <text x="583" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">pixels</text>
+    <line x1="656" y1="68" x2="672" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="674" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="747" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">source Save / reopen</text>
+    
+</svg>
+</div>
+
 - **Goal:** Compare sharp/smooth source surfaces and actual face winding through real commands, retaining source history and editable normal attributes.
 - **Data Flow Trace:** `sharp / smooth / winding specimen command → one original mesh insertion → View Normals diagnostic → actual direction pixels → source Save / reopen`
 - **Files You Touch:** `src/normal_example.rs` (*Create original source specimens with missing, smooth or oppositely wound normals.*) · `src/editor.rs` (*Expose source insertion and normal diagnostics as separate editor actions.*) · `src/browser.rs` (*Expose normal specimens and diagnostics in actual dock completion and Help.*) · `src/lib.rs` (*Register source normal attributes, view independence, history and editable roundtrip checks.*) · `src/normal_input_tests.rs` (*Copy source normal attributes, exact protobuf roundtrip, independent view mode, one-step history and Close checks.*)
@@ -4481,6 +4678,37 @@ Copy this supplied file:
 
 ### Step 6 of 8 · Bound the ground grid and its camera depth range (`41d-grid`)
 
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 6/8 Visual Trace (41d-grid): Bound the ground grid and its camera depth range</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/grid.rs, src/lib.rs, src/camera.rs, src/grid_source_tests.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">checked spacing and</text>
+    <text x="111" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">bounded…</text>
+    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">finite floor lines and BRG</text>
+    <text x="316" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">axes</text>
+    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">corner/axis depth reach</text>
+    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">camera far range</text>
+    
+</svg>
+</div>
+
 - **Goal:** Prepare a finite bounded ground grid with current BRG axis colours and include its distant corners in the camera depth range.
 - **Data Flow Trace:** `checked spacing and bounded cell count → finite floor lines and BRG axes → corner/axis depth reach → camera far range`
 - **Files You Touch:** `src/grid.rs` (*Validate and prepare finite grid lines, current axis colours and depth-reach reference points.*) · `src/lib.rs` (*Register bounded ground-grid preparation and camera-range checks.*) · `src/camera.rs` (*Retain the enabled grid extent independently of source scene bounds.*) · `src/grid_source_tests.rs` (*Copy checked grid capacity, source colour values, invalid input and actual camera corner-depth checks.*)
@@ -4915,6 +5143,42 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 <a id="checkpoint-41e-drawing"></a>
 
 ### Step 7 of 8 · Draw a depth-correct grid with shared stroke buffers (`41e-drawing`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 7/8 Visual Trace (41e-drawing): Draw a depth-correct grid with shared stroke buffers</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/depth.rs, src/stroke_gpu.rs, src/renderer.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="91" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">checked grid strokes</text>
+    <line x1="164" y1="68" x2="180" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="182" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="255" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">shared 44-byte lane</text>
+    <line x1="328" y1="68" x2="344" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="346" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="419" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">read-only strict</text>
+    <text x="419" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">depth</text>
+    <line x1="492" y1="68" x2="508" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="510" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="583" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">actual floor/axis</text>
+    <text x="583" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">pixels</text>
+    <line x1="656" y1="68" x2="672" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="674" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="747" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">change-only buffer</text>
+    <text x="747" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">ownership</text>
+    
+</svg>
+</div>
 
 - **Goal:** Draw the bounded grid and BRG axes using the shared CSS stroke layout, with actual surface depth and exact independent grid-resource accounting.
 - **Data Flow Trace:** `checked grid strokes → shared 44-byte lane → read-only strict depth → actual floor/axis pixels → change-only buffer ownership`
@@ -5636,6 +5900,42 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 <a id="checkpoint-41f-input"></a>
 
 ### Step 8 of 8 · Inspect the ground grid through actual commands (`41f-input`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 8/8 Visual Trace (41f-input): Inspect the ground grid through actual commands</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/editor.rs, src/browser.rs, src/lib.rs, src/grid_input_tests.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="91" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">View Grid On / Off</text>
+    <line x1="164" y1="68" x2="180" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="182" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="255" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">validated camera</text>
+    <text x="255" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">grid…</text>
+    <line x1="328" y1="68" x2="344" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="346" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="419" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">cached renderer grid</text>
+    <text x="419" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">lane</text>
+    <line x1="492" y1="68" x2="508" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="510" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="583" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">actual BRG pixels</text>
+    <text x="583" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">and…</text>
+    <line x1="656" y1="68" x2="672" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="674" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="747" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">view-only history</text>
+    
+</svg>
+</div>
 
 - **Goal:** Enable the finite depth-correct grid through actual dock input, preserving grid view state, source history and unchanged geometry during camera navigation.
 - **Data Flow Trace:** `View Grid On / Off → validated camera grid setting → cached renderer grid lane → actual BRG pixels and source occlusion → view-only history`
@@ -7065,6 +7365,8 @@ REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../recovery.md) to save or restore any checkpoint ID.
 
 ## 6. Lesson Summary & Expected Visual Result
+
+![Recorded visual output for Lesson 5.7 (41f-input)](../../screenshots/journey/41f-input-browser.png)
 
 Close, type View Grid On and View Isometric. Inspect pink X, yellow-green Y and blue Z axes; View Grid Off releases the grid allocation.
 

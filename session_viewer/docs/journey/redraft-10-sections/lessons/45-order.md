@@ -4,102 +4,140 @@
 
 > **What You Will Learn & Build:** Preserve unique selections in pick order. By the final checkpoint (`45c-input`), you will collect multiple objects with Shift-click and commands.
 
-## 1. Visual Pipeline & WebGPU Architecture (Black & White Schematics)
+## 1. Visual WebGPU Explanation & Architecture (Black & White Schematics)
 
 <div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg viewBox="0 0 840 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg width="840" height="256" viewBox="0 0 840 256" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
       <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
   </defs>
-  <rect x="4" y="4" width="832" height="212" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Lesson 6.4 Execution Flow: Ordered multi-selection and atomic edits</text>
-  <text x="20" y="46" font-size="11.5" fill="#111111">Concrete data pipeline you build in this lesson (5 Checkpoints: 45-order → 45c-input)</text>
-  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
+  <rect x="4" y="4" width="832" height="248" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Chapter 6 Visual Explanation: Offscreen Rg32Uint Integer Pick Grid, Spiral Search & 256-Byte Staging Copy</text>
+  <text x="20" y="45" font-size="11" fill="#111111">Left: Cropped Rg32Uint pixel window around cursor with spiral search. Center: 256-byte row alignment. Right: Priority & view ticket.</text>
+  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
   
+    <!-- Panel A: 5x5 Pixel Grid with Spiral Halo Search -->
+    <rect x="18" y="64" width="275" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="155" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">A. Rg32Uint Crop &amp; Spiral Search</text>
+    <!-- 5x5 grid at x=75..225, y=94..194 (cell = 30x20) -->
+    <rect x="75" y="94" width="150" height="100" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <line x1="105" y1="94" x2="105" y2="194" stroke="#111111" stroke-width="0.75"/>
+    <line x1="135" y1="94" x2="135" y2="194" stroke="#111111" stroke-width="0.75"/>
+    <line x1="165" y1="94" x2="165" y2="194" stroke="#111111" stroke-width="0.75"/>
+    <line x1="195" y1="94" x2="195" y2="194" stroke="#111111" stroke-width="0.75"/>
+    <line x1="75" y1="114" x2="225" y2="114" stroke="#111111" stroke-width="0.75"/>
+    <line x1="75" y1="134" x2="225" y2="134" stroke="#111111" stroke-width="0.75"/>
+    <line x1="75" y1="154" x2="225" y2="154" stroke="#111111" stroke-width="0.75"/>
+    <line x1="75" y1="174" x2="225" y2="174" stroke="#111111" stroke-width="0.75"/>
+    <!-- Highlighted hit cell at (165, 114) -->
+    <rect x="165" y="114" width="30" height="20" fill="url(#hatch)" stroke="#111111" stroke-width="2"/>
+    <!-- Spiral path from center (150, 144) outward -->
+    <polyline points="150,144 180,144 180,124" fill="none" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+    <circle cx="150" cy="144" r="3" fill="#111111"/>
+    <text x="155" y="210" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">Each pixel = vec2&lt;u32&gt;(owner_id, sub_id)</text>
+    <text x="155" y="225" text-anchor="middle" font-size="9" fill="#111111">Priority: Point Glyph &gt; Wire Edge &gt; Face</text>
+
+    <line x1="293" y1="154" x2="315" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <!-- Panel B: 256-Byte Aligned Staging Copy -->
+    <rect x="317" y="64" width="265" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="449" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">B. 256-Byte Staging Row Alignment</text>
+    <!-- Row 0 -->
+    <rect x="335" y="102" width="120" height="26" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <rect x="455" y="102" width="110" height="26" fill="url(#hatch)" stroke="#111111" stroke-width="1.2" stroke-dasharray="3,2"/>
+    <text x="395" y="119" text-anchor="middle" font-size="9.5" font-weight="700" fill="#111111">Crop Row 0 (W×8 B)</text>
+    <text x="510" y="119" text-anchor="middle" font-size="9" fill="#111111">Pad to 256 B</text>
+    <!-- Row 1 -->
+    <rect x="335" y="136" width="120" height="26" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <rect x="455" y="136" width="110" height="26" fill="url(#hatch)" stroke="#111111" stroke-width="1.2" stroke-dasharray="3,2"/>
+    <text x="395" y="153" text-anchor="middle" font-size="9.5" font-weight="700" fill="#111111">Crop Row 1 (W×8 B)</text>
+    <text x="510" y="153" text-anchor="middle" font-size="9" fill="#111111">Pad to 256 B</text>
+    <!-- Dimension line 0..256 -->
+    <line x1="335" y1="176" x2="565" y2="176" stroke="#111111" stroke-width="1.2" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
+    <text x="450" y="191" text-anchor="middle" font-size="9.5" font-weight="700" fill="#111111">bytes_per_row = align_to(W * 8, 256)</text>
+    <text x="450" y="212" text-anchor="middle" font-size="9.5" fill="#111111">copy_texture_to_buffer -&gt; map_async(Read)</text>
+    <text x="450" y="226" text-anchor="middle" font-size="9" fill="#111111">Single in-flight readback coalesces bursts</text>
+
+    <line x1="582" y1="154" x2="604" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <!-- Panel C: View-Revision Ticket & Sub-Selection -->
+    <rect x="606" y="64" width="216" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="714" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">C. Revision Ticket &amp; Sub-ID</text>
+    <rect x="620" y="98" width="188" height="54" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.2"/>
+    <text x="714" y="115" text-anchor="middle" font-size="10" font-weight="700" fill="#111111">PickTicket Verification</text>
+    <text x="630" y="131" font-size="9.5" fill="#111111">ticket.view_rev == current_rev?</text>
+    <text x="630" y="145" font-size="9" font-weight="600" fill="#111111">Mismatch -&gt; Discard stale hit!</text>
+    <rect x="620" y="162" width="188" height="66" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="714" y="179" text-anchor="middle" font-size="10" font-weight="700" fill="#111111">Decoded Sub-Element</text>
+    <text x="630" y="195" font-size="9.5" fill="#111111">• R = Object ID (1-based)</text>
+    <text x="630" y="209" font-size="9.5" fill="#111111">• G = Face / Edge / Control Pt</text>
+    <text x="630" y="222" font-size="9" fill="#111111">• Shift+Click preserves order</text>
     
-    <rect x="18" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="89" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
-    <line x1="28" y1="92" x2="151" y2="92" stroke="#111111" stroke-width="0.75"/>
-    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">valid source owners</text>
-    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="183" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="254" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
-    <line x1="193" y1="92" x2="316" y2="92" stroke="#111111" stroke-width="0.75"/>
-    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">unique membership</text>
-    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="348" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
-    <line x1="358" y1="92" x2="481" y2="92" stroke="#111111" stroke-width="0.75"/>
-    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">original pick order</text>
-    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="513" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="584" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
-    <line x1="523" y1="92" x2="646" y2="92" stroke="#111111" stroke-width="0.75"/>
-    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">stable primary row</text>
-    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="678" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="749" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
-    <line x1="688" y1="92" x2="811" y2="92" stroke="#111111" stroke-width="0.75"/>
-    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">accepted pointer</text>
-    <text x="749" y="124" text-anchor="middle" font-size="11" fill="#111111">modifiers</text>
-    
-    <rect x="18" y="162" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="32" y="181" font-size="11" font-weight="700" fill="#111111">Files You Edit in Lesson 6.4:</text>
-    <text x="215" y="181" font-size="11" fill="#111111">src/object_selection.rs  ·  src/lib.rs  ·  src/scene.rs  ·  src/object_selection_tests.rs  ·  src/editor.rs  ·  src/rehydrate_tests.rs</text>
-    <text x="32" y="198" font-size="10.5" fill="#111111">5 Checkpoints: 45-order → 45c-input — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
-  
 </svg>
 </div>
 
 <div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg viewBox="0 0 840 240" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg width="840" height="214" viewBox="0 0 840 214" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
       <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
   </defs>
-  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Chapter 6 WebGPU Integer Picking: Cropped Rg32Uint Offscreen Pass & Async Staging Buffer Readback</text>
-  <text x="20" y="46" font-size="11.5" fill="#111111">How the GPU identifies exact sub-elements (Face, Edge, Control Point) under the cursor without color-picking precision loss.</text>
-  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
+  <rect x="4" y="4" width="832" height="206" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Lesson 6.4 Pipeline Schematic: Ordered multi-selection and atomic edits</text>
+  <text x="20" y="45" font-size="11" fill="#111111">Step-by-step data flow you implement in this lesson (5 Checkpoints: 45-order → 45c-input)</text>
+  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
   
-    <rect x="18" y="68" width="205" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="120" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">1. Cursor Crop Window</text>
-    <text x="28" y="108" font-size="10.5" fill="#111111">• Cursor at (px, py), radius R</text>
-    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#111111">• Target: TextureFormat::Rg32Uint</text>
-    <text x="28" y="142" font-size="10" fill="#111111">  Channel R = owner_id (u32)</text>
-    <text x="28" y="157" font-size="10" fill="#111111">  Channel G = sub_id (Face/Edge/CP)</text>
-    <text x="28" y="176" font-size="10.5" fill="#111111">• Priority: Point Glyph &gt; Wire Edge</text>
-    <text x="28" y="192" font-size="10.5" fill="#111111">  &gt; Surface Face (Depth32Float)</text>
-
-    <line x1="223" y1="138" x2="253" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
-
-    <rect x="255" y="68" width="280" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="395" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">2. 256-Byte Aligned Staging Copy</text>
-    <text x="267" y="108" font-size="10.5" fill="#111111">• WebGPU rule: bytes_per_row MUST be</text>
-    <text x="267" y="124" font-size="10.5" font-weight="600" fill="#111111">  a multiple of 256 (COPY_BYTES_PER_ROW)</text>
-    <text x="267" y="144" font-size="10.5" fill="#111111">• encoder.copy_texture_to_buffer(...)</text>
-    <text x="267" y="162" font-size="10.5" fill="#111111">• Stamp request with Ticket:</text>
-    <text x="267" y="178" font-size="10" font-weight="600" fill="#111111">  { pick_id, view_revision, shift_mode }</text>
-    <text x="267" y="195" font-size="10" fill="#111111">• Coalesce bursts into 1 in-flight map_async</text>
-
-    <line x1="535" y1="138" x2="565" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
-
-    <rect x="567" y="68" width="253" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="693" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">3. Spiral Search &amp; Sub-Selection</text>
-    <text x="579" y="108" font-size="10.5" fill="#111111">• buffer.map_async(MapMode::Read).await</text>
-    <text x="579" y="126" font-size="10.5" font-weight="600" fill="#111111">• Stale view_revision? Discard/Retry!</text>
-    <text x="579" y="144" font-size="10.5" fill="#111111">• Search center pixel -&gt; spiral halo</text>
-    <text x="579" y="162" font-size="10.5" fill="#111111">• Decode (owner_id, sub_id) -&gt; Object,</text>
-    <text x="579" y="178" font-size="10.5" fill="#111111">  Face, Edge, or NURBS Control Point</text>
-    <text x="579" y="195" font-size="10.5" fill="#111111">• Shift+Click: ordered selection list</text>
     
+    <rect x="18" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="89" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
+    <line x1="28" y1="90" x2="151" y2="90" stroke="#111111" stroke-width="0.75"/>
+    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">valid source owners</text>
+    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="183" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="254" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
+    <line x1="193" y1="90" x2="316" y2="90" stroke="#111111" stroke-width="0.75"/>
+    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">unique membership</text>
+    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="348" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="419" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
+    <line x1="358" y1="90" x2="481" y2="90" stroke="#111111" stroke-width="0.75"/>
+    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">original pick order</text>
+    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="513" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="584" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
+    <line x1="523" y1="90" x2="646" y2="90" stroke="#111111" stroke-width="0.75"/>
+    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">stable primary row</text>
+    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="678" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="749" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
+    <line x1="688" y1="90" x2="811" y2="90" stroke="#111111" stroke-width="0.75"/>
+    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">accepted pointer</text>
+    <text x="749" y="124" text-anchor="middle" font-size="11" fill="#111111">modifiers</text>
+    
+    <rect x="18" y="158" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="32" y="177" font-size="11" font-weight="700" fill="#111111">Files Modified in Lesson 6.4:</text>
+    <text x="235" y="177" font-size="11" fill="#111111">src/object_selection.rs  ·  src/lib.rs  ·  src/scene.rs  ·  src/object_selection_tests.rs  ·  src/editor.rs  ·  src/rehydrate_tests.rs</text>
+    <text x="32" y="194" font-size="10.5" fill="#111111">5 Checkpoints: 45-order → 45c-input — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
+  
 </svg>
 </div>
 
@@ -129,11 +167,40 @@ Before writing code, review how the three layers in this chapter talk to each ot
 
 ## 4. Step-by-Step Coding Notebook (Concept + Implementation)
 
-Work through each notebook cell below in order inside `workspace/journey`. Read the **Concept Walkthrough** and **Self-Check Q&A** first, then expand the **Implementation** block to type and verify the code.
+Work through each notebook cell below in order inside `workspace/journey`. Study the **Visual Step Trace**, read the **Concept Walkthrough** and **Self-Check Q&A**, then expand the **Implementation** block to type and verify the code.
 
 <a id="checkpoint-45-order"></a>
 
 ### Step 1 of 5 · Preserve unique selections in pick order (`45-order`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 1/5 Visual Trace (45-order): Preserve unique selections in pick order</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/object_selection.rs, src/lib.rs, src/scene.rs, src/object_selection_tests.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">valid source owners</text>
+    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">unique membership</text>
+    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">original pick order</text>
+    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">stable primary row</text>
+    
+</svg>
+</div>
 
 - **Goal:** Preserve unique selections in pick order.
 - **Data Flow Trace:** `valid source owners → unique membership → original pick order → stable primary row`
@@ -252,6 +319,36 @@ After that block, type:
 <a id="checkpoint-45a-batch"></a>
 
 ### Step 2 of 5 · Commit mixed selection edits atomically (`45a-batch`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 2/5 Visual Trace (45a-batch): Commit mixed selection edits atomically</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/editor.rs, src/rehydrate_tests.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">selected original rows</text>
+    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">one transaction</text>
+    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">checked placements</text>
+    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">complete commit or</text>
+    <text x="726" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">rollback</text>
+    
+</svg>
+</div>
 
 - **Goal:** Commit mixed selection edits atomically.
 - **Data Flow Trace:** `selected original rows → one transaction → checked placements → complete commit or rollback`
@@ -1070,6 +1167,36 @@ Update the existing block with this supplied code; keep unchanged lines:
 
 ### Step 3 of 5 · Connect multi-hit state and highlight every selected row (`45b-membership`)
 
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 3/5 Visual Trace (45b-membership): Connect multi-hit state and highlight every selected row</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/editor.rs, src/highlight.rs, src/renderer.rs, src/multi_selection_tests.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">plain or additive target</text>
+    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">current ordered membership</text>
+    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">exclusive part mode</text>
+    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">shared geometry with</text>
+    <text x="726" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">selected…</text>
+    
+</svg>
+</div>
+
 - **Goal:** Connect multi-hit state and highlight every selected row.
 - **Data Flow Trace:** `plain or additive target → current ordered membership → exclusive part mode → shared geometry with selected settings`
 - **Files You Touch:** `src/editor.rs` (*Adopt unique multi-hit membership and repair it after source changes.*) · `src/highlight.rs` (*Present every selected original row while sharing primary geometry.*) · `src/renderer.rs` (*Present every selected original row while sharing primary geometry.*) · `src/multi_selection_tests.rs` (*Copy ordering, exclusive parts, mixed transactions, rollback, eligibility and release checks.*) · `src/lib.rs` (*Register the component and copied checks.*) · `src/pick_gpu_tests.rs` (*Copy actual multiple-mesh pixels, shared geometry and preserved pick ownership.*) · `src/browser.rs` (*Refresh cached selection settings after Select All, even when the editor returns a view-only change.*)
@@ -1850,6 +1977,36 @@ After that block, type:
 
 ### Step 4 of 5 · Cycle every eligible original geometry owner (`45bb-cycle`)
 
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 4/5 Visual Trace (45bb-cycle): Cycle every eligible original geometry owner</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/scene.rs, src/selection_cycle_tests.rs, src/lib.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">all original geometry</text>
+    <text x="111" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">lanes</text>
+    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">visible unlocked owners</text>
+    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">stable ID order</text>
+    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">next or wrap</text>
+    
+</svg>
+</div>
+
 - **Goal:** Cycle visible unlocked mesh, line, path and point rows in stable owner order.
 - **Data Flow Trace:** `all original geometry lanes → visible unlocked owners → stable ID order → next or wrap`
 - **Files You Touch:** `src/scene.rs` (*Cycle all original owners after applying visibility and locking.*) · `src/selection_cycle_tests.rs` (*Copy mixed-owner, visibility, lock and wraparound checks.*) · `src/lib.rs` (*Register the copied original-owner cycling check.*)
@@ -1935,6 +2092,41 @@ After that block, type:
 <a id="checkpoint-45c-input"></a>
 
 ### Step 5 of 5 · Collect multiple objects with Shift-click and commands (`45c-input`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 5/5 Visual Trace (45c-input): Collect multiple objects with Shift-click and commands</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/browser.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="91" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">accepted pointer</text>
+    <text x="91" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">modifiers</text>
+    <line x1="164" y1="68" x2="180" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="182" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="255" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">checked GPU request</text>
+    <line x1="328" y1="68" x2="344" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="346" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="419" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">current original hit</text>
+    <line x1="492" y1="68" x2="508" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="510" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="583" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">replace or additive</text>
+    <text x="583" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">membership</text>
+    <line x1="656" y1="68" x2="672" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="674" y="42" width="146" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="747" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">one batch command</text>
+    
+</svg>
+</div>
 
 - **Goal:** Collect multiple objects with Shift-click and commands.
 - **Data Flow Trace:** `accepted pointer modifiers → checked GPU request → current original hit → replace or additive membership → one batch command`
@@ -2978,6 +3170,8 @@ REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
 
 ## 6. Lesson Summary & Expected Visual Result
+
+![Recorded visual output for Lesson 6.4 (45c-input)](../../../screenshots/journey/45c-input.png)
 
 Close; Example Box; Select Next; Move -2,0,0; Example Box; Fit. Click one box and Shift-click the other. Type Selection, Move 0,0,1 and Undo. Select All, Delete and Undo must restore both.
 

@@ -4,93 +4,108 @@
 
 > **What You Will Learn & Build:** Reuse the existing geometry buffers for shader vertex reads. By the final checkpoint (`96zzb-read-section-visibility-from-one-image`), you will use one physical primitive address for mesh and section ink visibility.
 
-## 1. Visual Pipeline & WebGPU Architecture (Black & White Schematics)
+## 1. Visual WebGPU Explanation & Architecture (Black & White Schematics)
 
 <div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg viewBox="0 0 840 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg width="840" height="256" viewBox="0 0 840 256" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
       <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
   </defs>
-  <rect x="4" y="4" width="832" height="212" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Lesson 20.1 Execution Flow: Shared surface geometry and finite visibility addresses</text>
-  <text x="20" y="46" font-size="11.5" fill="#111111">Concrete data pipeline you build in this lesson (21 Checkpoints: 96zh-bind-the-shared-geometry-as-storage → 96zzb-read-section-visibility-from-one-image)</text>
-  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
+  <rect x="4" y="4" width="832" height="248" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Section 10 Visual Explanation: Shared GPU Storage Arena, f64 Floating Origin, Reversed-Z, 4x MSAA & Matrix Shader</text>
+  <text x="20" y="45" font-size="11" fill="#111111">Left: Growable storage arena + vertex pulling. Center: Camera-relative f64→f32 floating origin & Reversed-Z. Right: 4x MSAA + Matrix.</text>
+  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
+  
+    <rect x="18" y="64" width="255" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="145" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">A. Shared GPU Storage Arena</text>
+    <rect x="34" y="100" width="222" height="32" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <rect x="34" y="100" width="65" height="32" fill="url(#hatch)" stroke="#111111" stroke-width="1.2"/>
+    <rect x="145" y="100" width="55" height="32" fill="url(#hatch)" stroke="#111111" stroke-width="1.2"/>
+    <text x="122" y="120" text-anchor="middle" font-size="9" font-weight="700" fill="#111111">Free Span</text>
+    <text x="145" y="156" text-anchor="middle" font-size="9.5" font-weight="700" fill="#111111">Vertex Pulling (@builtin(vertex_index))</text>
+    <text x="145" y="176" text-anchor="middle" font-size="9.5" fill="#111111">8-byte Draw Slots -&gt; ObjectRecord</text>
+    <text x="145" y="194" text-anchor="middle" font-size="9.5" fill="#111111">slot_table.wgsl resolves owner IDs</text>
+
+    <line x1="273" y1="154" x2="295" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="297" y="64" width="265" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="429" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">B. f64 Floating Origin &amp; Reversed-Z</text>
+    <rect x="313" y="98" width="233" height="54" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.2"/>
+    <text x="429" y="116" text-anchor="middle" font-size="10" font-weight="700" fill="#111111">rel_f32 = (world_f64 - anchor_f64) as f32</text>
+    <text x="429" y="134" text-anchor="middle" font-size="9.5" fill="#111111">Eliminates f32 vertex jitter at 10^12 m!</text>
+    <rect x="313" y="162" width="233" height="64" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="429" y="180" text-anchor="middle" font-size="10" font-weight="700" fill="#111111">Reversed-Z Depth (GreaterEqual)</text>
+    <text x="429" y="198" text-anchor="middle" font-size="9.5" fill="#111111">Near Plane = 1.0  →  Far Plane = 0.0</text>
+    <text x="429" y="214" text-anchor="middle" font-size="9" fill="#111111">Preserves live camera across .pb reload</text>
+
+    <line x1="562" y1="154" x2="584" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="586" y="64" width="236" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="704" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">C. 4x MSAA &amp; Matrix Shader</text>
+    <rect x="602" y="98" width="204" height="128" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="704" y="118" text-anchor="middle" font-size="10" font-weight="700" fill="#111111">Coherent 1x / 4x Sample Targets</text>
+    <text x="614" y="138" font-size="9.5" fill="#111111">• Color + Depth32Float at 4x MSAA</text>
+    <text x="614" y="156" font-size="9.5" fill="#111111">• Rg32Uint Pick Target stays 1x</text>
+    <text x="614" y="176" font-size="9.5" font-weight="700" fill="#111111">• matrix.wgsl procedural cells:</text>
+    <text x="614" y="192" font-size="9" fill="#111111">  3-decimal digits, 0 blank, plate-less</text>
+    <text x="614" y="207" font-size="9" fill="#111111">  world title &amp; yellow selected border</text>
+    
+</svg>
+</div>
+
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
+<svg width="840" height="214" viewBox="0 0 840 214" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
+  </defs>
+  <rect x="4" y="4" width="832" height="206" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Lesson 20.1 Pipeline Schematic: Shared surface geometry and finite visibility addresses</text>
+  <text x="20" y="45" font-size="11" fill="#111111">Step-by-step data flow you implement in this lesson (21 Checkpoints: 96zh-bind-the-shared-geometry-as-storage → 96zzb-read-section-visibility-from-one-image)</text>
+  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
   
     
-    <rect x="18" y="68" width="253" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="144" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
-    <line x1="28" y1="92" x2="261" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <rect x="18" y="66" width="253" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="144" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
+    <line x1="28" y1="90" x2="261" y2="90" stroke="#111111" stroke-width="0.75"/>
     <text x="144" y="108" text-anchor="middle" font-size="11" fill="#111111">Follow gpu_geometry.rs,</text>
     <text x="144" y="124" text-anchor="middle" font-size="11" fill="#111111">triangle.wgsl, gpu_mesh.rs,</text>
     <text x="144" y="140" text-anchor="middle" font-size="11" fill="#111111">instance_gpu.rs…</text>
     <line x1="271" y1="108" x2="291" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
 
-    <rect x="293" y="68" width="253" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
-    <line x1="303" y1="92" x2="536" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <rect x="293" y="66" width="253" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="419" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
+    <line x1="303" y1="90" x2="536" y2="90" stroke="#111111" stroke-width="0.75"/>
     <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">Follow the cap address from color</text>
     <text x="419" y="124" text-anchor="middle" font-size="11" fill="#111111">or cropped picking to the fitted</text>
     <text x="419" y="140" text-anchor="middle" font-size="11" fill="#111111">source…</text>
     <line x1="546" y1="108" x2="566" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
 
-    <rect x="568" y="68" width="253" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="694" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
-    <line x1="578" y1="92" x2="811" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <rect x="568" y="66" width="253" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="694" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
+    <line x1="578" y1="90" x2="811" y2="90" stroke="#111111" stroke-width="0.75"/>
     <text x="694" y="108" text-anchor="middle" font-size="11" fill="#111111">GPU Frame Output</text>
     
-    <rect x="18" y="162" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="32" y="181" font-size="11" font-weight="700" fill="#111111">Files You Edit in Lesson 20.1:</text>
-    <text x="215" y="181" font-size="11" fill="#111111">src/gpu_geometry.rs  ·  src/triangle.wgsl  ·  src/instance_gpu.rs  ·  src/triangle_pick.wgsl  ·  src/face_pick.wgsl  ·  src/gpu_mesh.rs</text>
-    <text x="32" y="198" font-size="10.5" fill="#111111">21 Checkpoints: 96zh-bind-the-shared-geometry-as-storage → 96zzb-read-section-visibility-from-one-image — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
+    <rect x="18" y="158" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="32" y="177" font-size="11" font-weight="700" fill="#111111">Files Modified in Lesson 20.1:</text>
+    <text x="235" y="177" font-size="11" fill="#111111">src/gpu_geometry.rs  ·  src/triangle.wgsl  ·  src/instance_gpu.rs  ·  src/triangle_pick.wgsl  ·  src/face_pick.wgsl  ·  src/gpu_mesh.rs</text>
+    <text x="32" y="194" font-size="10.5" fill="#111111">21 Checkpoints: 96zh-bind-the-shared-geometry-as-storage → 96zzb-read-section-visibility-from-one-image — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
   
-</svg>
-</div>
-
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg viewBox="0 0 840 240" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
-  <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
-    </marker>
-  </defs>
-  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Section 10 Production Architecture: Shared GPU Storage Arena, f64 Floating Origin, Reversed-Z, 4x MSAA & Matrix Shader</text>
-  <text x="20" y="46" font-size="11.5" fill="#111111">How the maintained viewer pulls vertices from one growable GPU arena, eliminates jitter at 10^12 units, and renders procedural Matrices.</text>
-  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
-  
-    <rect x="18" y="68" width="250" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="143" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">1. Shared GPU Arena (Ch 19–20)</text>
-    <text x="28" y="108" font-size="10.5" fill="#111111">• 1 Growable Storage Buffer Arena</text>
-    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#111111">• Vertex Pulling (@builtin(vertex_index))</text>
-    <text x="28" y="144" font-size="10.5" fill="#111111">• 8-byte Draw Slots -&gt; ObjectRecord</text>
-    <text x="28" y="162" font-size="10.5" fill="#111111">• slot_table.wgsl maps Rg32Uint</text>
-    <text x="28" y="178" font-size="10.5" fill="#111111">  primitive IDs to Element/Face owners</text>
-    <text x="28" y="194" font-size="10" fill="#111111">• Free-list span reuse after GPU lease</text>
-
-    <line x1="268" y1="138" x2="298" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
-
-    <rect x="300" y="68" width="265" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="432" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">2. f64 Floating Origin &amp; Reversed-Z (Ch 21)</text>
-    <text x="312" y="108" font-size="10.5" font-weight="600" fill="#111111">• rel_f32 = (world_f64 - anchor_f64) as f32</text>
-    <text x="312" y="125" font-size="10" fill="#111111">  Zero vertex/grid jitter even at 10^12 m!</text>
-    <text x="312" y="144" font-size="10.5" font-weight="600" fill="#111111">• Reversed-Z Depth (GreaterEqual):</text>
-    <text x="312" y="160" font-size="10" fill="#111111">  Near plane = 1.0, Far plane = 0.0</text>
-    <text x="312" y="178" font-size="10.5" fill="#111111">• Held world base grid &amp; preserved</text>
-    <text x="312" y="193" font-size="10.5" fill="#111111">  live camera during Session reload</text>
-
-    <line x1="565" y1="138" x2="595" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
-
-    <rect x="597" y="68" width="223" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="708" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">3. 4x MSAA &amp; Matrix Shader (Ch 22)</text>
-    <text x="609" y="108" font-size="10.5" fill="#111111">• Coherent 1x/4x MSAA sample targets</text>
-    <text x="609" y="126" font-size="10.5" font-weight="600" fill="#111111">• matrix.wgsl (16w header + 3w/cell):</text>
-    <text x="609" y="142" font-size="10" fill="#111111">  Heatmap + procedural 3-decimal digits</text>
-    <text x="609" y="157" font-size="10" fill="#111111">  (0 cell blank; plate-less title; yellow</text>
-    <text x="609" y="172" font-size="10" fill="#111111">  selected border; Rg32Uint whole pick)</text>
-    <text x="609" y="190" font-size="10" fill="#111111">• Coalesced single-flight frame scheduler</text>
-    
 </svg>
 </div>
 
@@ -137,11 +152,29 @@ Before writing code, review how the three layers in this chapter talk to each ot
 
 ## 4. Step-by-Step Coding Notebook (Concept + Implementation)
 
-Work through each notebook cell below in order inside `workspace/journey`. Read the **Concept Walkthrough** and **Self-Check Q&A** first, then expand the **Implementation** block to type and verify the code.
+Work through each notebook cell below in order inside `workspace/journey`. Study the **Visual Step Trace**, read the **Concept Walkthrough** and **Self-Check Q&A**, then expand the **Implementation** block to type and verify the code.
 
 <a id="checkpoint-96zh-bind-the-shared-geometry-as-storage"></a>
 
 ### Step 1 of 21 · Bind the shared geometry as storage (`96zh-bind-the-shared-geometry-as-storage`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 1/21 Visual Trace (96zh-bind-the-shared-geometry-as-storage): Bind the shared geometry as storage</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/gpu_geometry.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="804" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">Follow gpu_geometry.rs, triangle.wgsl, gpu_mesh.rs, instance_gpu.rs and renderer.rs in this cumulative checkpoint;</text>
+    <text x="420" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">compare…</text>
+    
+</svg>
+</div>
 
 - **Goal:** Reuse the existing geometry buffers for shader vertex reads.
 - **Data Flow Trace:** `Follow gpu_geometry.rs, triangle.wgsl, gpu_mesh.rs, instance_gpu.rs and renderer.rs in this cumulative checkpoint; compare the maintained engine/gpu/ and shaders/triangle.wgsl ownership.`
@@ -320,6 +353,24 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 <a id="checkpoint-96zi-read-source-vertices-through-one-shader-helper"></a>
 
 ### Step 2 of 21 · Read source vertices through one shader helper (`96zi-read-source-vertices-through-one-shader-helper`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 2/21 Visual Trace (96zi-read-source-vertices-through-one-shader-helper): Read source vertices through one shader helper</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/triangle.wgsl, src/instance_gpu.rs, src/triangle_pick.wgsl, src/face_pick.wgsl</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="804" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">Follow gpu_geometry.rs, triangle.wgsl, gpu_mesh.rs, instance_gpu.rs and renderer.rs in this cumulative checkpoint;</text>
+    <text x="420" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">compare…</text>
+    
+</svg>
+</div>
 
 - **Goal:** Define the same vertex reader for ordinary and instanced drawing.
 - **Data Flow Trace:** `Follow gpu_geometry.rs, triangle.wgsl, gpu_mesh.rs, instance_gpu.rs and renderer.rs in this cumulative checkpoint; compare the maintained engine/gpu/ and shaders/triangle.wgsl ownership.`
@@ -605,6 +656,24 @@ Edit the existing block to match this code; keep unchanged lines:
 <a id="checkpoint-96zj-activate-shared-vertex-pulling-for-color"></a>
 
 ### Step 3 of 21 · Activate shared vertex pulling for color (`96zj-activate-shared-vertex-pulling-for-color`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 3/21 Visual Trace (96zj-activate-shared-vertex-pulling-for-color): Activate shared vertex pulling for color</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/triangle.wgsl, src/gpu_mesh.rs, src/renderer.rs, src/highlight.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="804" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">Follow gpu_geometry.rs, triangle.wgsl, gpu_mesh.rs, instance_gpu.rs and renderer.rs in this cumulative checkpoint;</text>
+    <text x="420" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">compare…</text>
+    
+</svg>
+</div>
 
 - **Goal:** Rasterize ordinary and instanced triangles from their shared storage buffers.
 - **Data Flow Trace:** `Follow gpu_geometry.rs, triangle.wgsl, gpu_mesh.rs, instance_gpu.rs and renderer.rs in this cumulative checkpoint; compare the maintained engine/gpu/ and shaders/triangle.wgsl ownership.`
@@ -1593,6 +1662,24 @@ After that block, append this supplied code:
 
 ### Step 4 of 21 · Assign frame triangle ranges (`96zk-assign-frame-triangle-ranges`)
 
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 4/21 Visual Trace (96zk-assign-frame-triangle-ranges): Assign frame triangle ranges</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/gpu_mesh.rs, src/triangle.wgsl, src/cap_count.wgsl, src/renderer.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="804" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">Follow gpu_geometry.rs, triangle.wgsl, gpu_mesh.rs, instance_gpu.rs and renderer.rs in this cumulative checkpoint;</text>
+    <text x="420" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">compare…</text>
+    
+</svg>
+</div>
+
 - **Goal:** Give every placed color triangle the address of its projected record.
 - **Data Flow Trace:** `Follow gpu_geometry.rs, triangle.wgsl, gpu_mesh.rs, instance_gpu.rs and renderer.rs in this cumulative checkpoint; compare the maintained engine/gpu/ and shaders/triangle.wgsl ownership.`
 - **Files You Touch:** `src/gpu_mesh.rs` (*Retain the row’s projected interval across object-style updates.*) · `src/triangle.wgsl` (*A triangle address must never turn an unselected original yellow.*) · `src/cap_count.wgsl` (*Section counting reads the same selection bit.*) · `src/renderer.rs` (*Assign the same row-order prefix sums used by projection before copying instance records.*) · `src/global_outline_tests.rs` (*Supply actual shared placements, frame intervals, low-bit selection, later edits, original integer picks, invalid packing and visibility rebuilding.*)
@@ -2153,6 +2240,24 @@ After that block, append this supplied code:
 <a id="checkpoint-96zl-own-the-integer-primitive-image"></a>
 
 ### Step 5 of 21 · Own the integer primitive image (`96zl-own-the-integer-primitive-image`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 5/21 Visual Trace (96zl-own-the-integer-primitive-image): Own the integer primitive image</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/primitive_image.rs, src/lib.rs, src/renderer.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="804" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">Follow gpu_geometry.rs, triangle.wgsl, gpu_mesh.rs, instance_gpu.rs and renderer.rs in this cumulative checkpoint;</text>
+    <text x="420" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">compare…</text>
+    
+</svg>
+</div>
 
 - **Goal:** Allocate the frame image that will name rasterized triangles.
 - **Data Flow Trace:** `Follow gpu_geometry.rs, triangle.wgsl, gpu_mesh.rs, instance_gpu.rs and renderer.rs in this cumulative checkpoint; compare the maintained engine/gpu/ and shaders/triangle.wgsl ownership.`
@@ -2912,6 +3017,24 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 <a id="checkpoint-96zm-write-triangle-addresses-beside-color"></a>
 
 ### Step 6 of 21 · Write triangle addresses beside color (`96zm-write-triangle-addresses-beside-color`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 6/21 Visual Trace (96zm-write-triangle-addresses-beside-color): Write triangle addresses beside color</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/triangle.wgsl, src/renderer.rs, src/instance_gpu.rs, src/global_outline_tests.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="804" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">Follow gpu_geometry.rs, triangle.wgsl, gpu_mesh.rs, instance_gpu.rs and renderer.rs in this cumulative checkpoint;</text>
+    <text x="420" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">compare…</text>
+    
+</svg>
+</div>
 
 - **Goal:** Write color and a lossless triangle address in the same depth-tested pass.
 - **Data Flow Trace:** `Follow gpu_geometry.rs, triangle.wgsl, gpu_mesh.rs, instance_gpu.rs and renderer.rs in this cumulative checkpoint; compare the maintained engine/gpu/ and shaders/triangle.wgsl ownership.`
@@ -3884,6 +4007,24 @@ After that block, append this supplied code:
 
 ### Step 7 of 21 · Bind visible triangle addresses for ink (`96zn-bind-visible-triangle-addresses-for-ink`)
 
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 7/21 Visual Trace (96zn-bind-visible-triangle-addresses-for-ink): Bind visible triangle addresses for ink</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/finite_ink.rs, src/renderer.rs, src/pick_encode.rs, src/finite_visibility.wgsl</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="804" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">Follow gpu_geometry.rs, triangle.wgsl, gpu_mesh.rs, instance_gpu.rs and renderer.rs in this cumulative checkpoint;</text>
+    <text x="420" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">compare…</text>
+    
+</svg>
+</div>
+
 - **Goal:** Make the exact triangle image available to the existing shared ink shader.
 - **Data Flow Trace:** `Follow gpu_geometry.rs, triangle.wgsl, gpu_mesh.rs, instance_gpu.rs and renderer.rs in this cumulative checkpoint; compare the maintained engine/gpu/ and shaders/triangle.wgsl ownership.`
 - **Files You Touch:** `src/finite_ink.rs` (*Retain the integer primitive view in the cached bindings.*) · `src/renderer.rs` (*Pass the current primitive view through the existing color or integer-pick tables.*) · `src/pick_encode.rs` (*Keep the primitive resource when the cropped picking pass replaces its section image.*) · `src/finite_visibility.wgsl` (*Declare the lossless texture before activating primitive-aware plane fitting.*)
@@ -4711,6 +4852,24 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 ### Step 8 of 21 · Describe ink depth and surface slack (`96zo-describe-ink-depth-and-surface-slack`)
 
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 8/21 Visual Trace (96zo-describe-ink-depth-and-surface-slack): Describe ink depth and surface slack</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/ink_plane.wgsl, src/finite_visibility.wgsl, src/finite_sources.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="804" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">Follow gpu_geometry.rs, triangle.wgsl, gpu_mesh.rs, instance_gpu.rs and renderer.rs in this cumulative checkpoint;</text>
+    <text x="420" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">compare…</text>
+    
+</svg>
+</div>
+
 - **Goal:** Type the current axis record and depth-carrying error budget.
 - **Data Flow Trace:** `Follow gpu_geometry.rs, triangle.wgsl, gpu_mesh.rs, instance_gpu.rs and renderer.rs in this cumulative checkpoint; compare the maintained engine/gpu/ and shaders/triangle.wgsl ownership.`
 - **Files You Touch:** `src/ink_plane.wgsl` (*Type the current axis and tolerance math once, with the declared forward-depth reader adapter.*) · `src/finite_visibility.wgsl` (*Keep surface fitting as a shared shader helper file.*) · `src/finite_sources.rs` (*Expand the helper before compiling either color or integer ink shaders.*)
@@ -4807,6 +4966,24 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 <a id="checkpoint-96zp-fit-a-neighboring-surface-along-the-stroke"></a>
 
 ### Step 9 of 21 · Fit a neighboring surface along the stroke (`96zp-fit-a-neighboring-surface-along-the-stroke`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 9/21 Visual Trace (96zp-fit-a-neighboring-surface-along-the-stroke): Fit a neighboring surface along the stroke</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/ink_plane.wgsl</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="804" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">Follow gpu_geometry.rs, triangle.wgsl, gpu_mesh.rs, instance_gpu.rs and renderer.rs in this cumulative checkpoint;</text>
+    <text x="420" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">compare…</text>
+    
+</svg>
+</div>
 
 - **Goal:** Type the current fallback that carries a neighboring plane to the stroke axis.
 - **Data Flow Trace:** `Follow gpu_geometry.rs, triangle.wgsl, gpu_mesh.rs, instance_gpu.rs and renderer.rs in this cumulative checkpoint; compare the maintained engine/gpu/ and shaders/triangle.wgsl ownership.`
@@ -4917,6 +5094,24 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 <a id="checkpoint-96zq-own-a-cropped-primitive-image-for-picks"></a>
 
 ### Step 10 of 21 · Own a cropped primitive image for picks (`96zq-own-a-cropped-primitive-image-for-picks`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 10/21 Visual Trace (96zq-own-a-cropped-primitive-image-for-picks): Own a cropped primitive image for picks</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/pick_image.rs, src/pick_gpu.rs, src/pick_gpu_tests.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="804" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">Follow gpu_geometry.rs, triangle.wgsl, gpu_mesh.rs, instance_gpu.rs and renderer.rs in this cumulative checkpoint;</text>
+    <text x="420" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">compare…</text>
+    
+</svg>
+</div>
 
 - **Goal:** Retain a bounded triangle image beside integer owners and depth.
 - **Data Flow Trace:** `Follow gpu_geometry.rs, triangle.wgsl, gpu_mesh.rs, instance_gpu.rs and renderer.rs in this cumulative checkpoint; compare the maintained engine/gpu/ and shaders/triangle.wgsl ownership.`
@@ -5092,6 +5287,24 @@ Update the existing block with this supplied code; keep unchanged lines:
 
 ### Step 11 of 21 · Share crop and clipping bindings for pulled picks (`96zr-share-crop-and-clipping-bindings-for-pulled-picks`)
 
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 11/21 Visual Trace (96zr-share-crop-and-clipping-bindings-for-pulled-picks): Share crop and clipping bindings for pulled picks</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/pick_pipeline.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="804" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">Follow gpu_geometry.rs, triangle.wgsl, gpu_mesh.rs, instance_gpu.rs and renderer.rs in this cumulative checkpoint;</text>
+    <text x="420" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">compare…</text>
+    
+</svg>
+</div>
+
 - **Goal:** Prepare a combined uniform group without copying either uniform.
 - **Data Flow Trace:** `Follow gpu_geometry.rs, triangle.wgsl, gpu_mesh.rs, instance_gpu.rs and renderer.rs in this cumulative checkpoint; compare the maintained engine/gpu/ and shaders/triangle.wgsl ownership.`
 - **Files You Touch:** `src/pick_pipeline.rs` (*Prepare an explicit shared layout and bind the existing two uniform buffers.*)
@@ -5162,6 +5375,24 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 <a id="checkpoint-96zs-write-first-pick-primitives-from-shared-geometry"></a>
 
 ### Step 12 of 21 · Write first-pick primitives from shared geometry (`96zs-write-first-pick-primitives-from-shared-geometry`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 12/21 Visual Trace (96zs-write-first-pick-primitives-from-shared-geometry): Write first-pick primitives from shared geometry</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/pick_pipeline.rs, src/triangle_pick.wgsl, src/pick_gpu.rs, src/renderer.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="804" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">Follow gpu_geometry.rs, triangle.wgsl, gpu_mesh.rs, instance_gpu.rs and renderer.rs in this cumulative checkpoint;</text>
+    <text x="420" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">compare…</text>
+    
+</svg>
+</div>
 
 - **Goal:** Rasterize bounded integer owners and primitive addresses together.
 - **Data Flow Trace:** `Follow gpu_geometry.rs, triangle.wgsl, gpu_mesh.rs, instance_gpu.rs and renderer.rs in this cumulative checkpoint; compare the maintained engine/gpu/ and shaders/triangle.wgsl ownership.`
@@ -5886,6 +6117,24 @@ After that block, append this supplied code:
 
 ### Step 13 of 21 · Fit surface depth beneath a point disc (`96zt-fit-surface-depth-beneath-a-point-disc`)
 
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 13/21 Visual Trace (96zt-fit-surface-depth-beneath-a-point-disc): Fit surface depth beneath a point disc</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/ink_plane.wgsl</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="804" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">Follow gpu_geometry.rs, triangle.wgsl, gpu_mesh.rs, instance_gpu.rs and renderer.rs in this cumulative checkpoint;</text>
+    <text x="420" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">compare…</text>
+    
+</svg>
+</div>
+
 - **Goal:** Type the current two-axis surface carry for a disc fragment.
 - **Data Flow Trace:** `Follow gpu_geometry.rs, triangle.wgsl, gpu_mesh.rs, instance_gpu.rs and renderer.rs in this cumulative checkpoint; compare the maintained engine/gpu/ and shaders/triangle.wgsl ownership.`
 - **Files You Touch:** `src/ink_plane.wgsl` (*Type the current two-axis disc-plane carry while reusing the existing neighbor and tolerance helpers.*)
@@ -5974,6 +6223,24 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 <a id="checkpoint-96zu-test-the-disc-center-against-a-surface"></a>
 
 ### Step 14 of 21 · Test the disc center against a surface (`96zu-test-the-disc-center-against-a-surface`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 14/21 Visual Trace (96zu-test-the-disc-center-against-a-surface): Test the disc center against a surface</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/ink_plane.wgsl</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="804" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">Follow gpu_geometry.rs, triangle.wgsl, gpu_mesh.rs, instance_gpu.rs and renderer.rs in this cumulative checkpoint;</text>
+    <text x="420" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">compare…</text>
+    
+</svg>
+</div>
 
 - **Goal:** Type the current center check that prevents a hidden point leaking at a fringe.
 - **Data Flow Trace:** `Follow gpu_geometry.rs, triangle.wgsl, gpu_mesh.rs, instance_gpu.rs and renderer.rs in this cumulative checkpoint; compare the maintained engine/gpu/ and shaders/triangle.wgsl ownership.`
@@ -6078,6 +6345,24 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 ### Step 15 of 21 · Carry the rasterized triangle gradient to ink (`96zv-carry-the-rasterized-triangle-gradient-to-ink`)
 
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 15/21 Visual Trace (96zv-carry-the-rasterized-triangle-gradient-to-ink): Carry the rasterized triangle gradient to ink</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/ink_plane.wgsl</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="804" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">Follow gpu_geometry.rs, triangle.wgsl, gpu_mesh.rs, instance_gpu.rs and renderer.rs in this cumulative checkpoint;</text>
+    <text x="420" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">compare…</text>
+    
+</svg>
+</div>
+
 - **Goal:** Read the lossless primitive address and use its projected surface gradient.
 - **Data Flow Trace:** `Follow gpu_geometry.rs, triangle.wgsl, gpu_mesh.rs, instance_gpu.rs and renderer.rs in this cumulative checkpoint; compare the maintained engine/gpu/ and shaders/triangle.wgsl ownership.`
 - **Files You Touch:** `src/ink_plane.wgsl` (*Type the current gradient carry with the matching canvas-or-crop primitive reader.*)
@@ -6174,6 +6459,37 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 <a id="checkpoint-96zw-connect-surface-fitted-point-visibility"></a>
 
 ### Step 16 of 21 · Connect surface-fitted point visibility (`96zw-connect-surface-fitted-point-visibility`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 16/21 Visual Trace (96zw-connect-surface-fitted-point-visibility): Connect surface-fitted point visibility</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/finite_visibility.wgsl, src/finite_marker.wgsl, src/finite_marker_pick.wgsl, src/finite_visibility_tests.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Original point</text>
+    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">projected disc</text>
+    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">surface fit and center</text>
+    <text x="521" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">check</text>
+    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">color and cropped owner</text>
+    <text x="726" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">pick.</text>
+    
+</svg>
+</div>
 
 - **Goal:** Use the disc fragment and center tests for original point color and integer picks.
 - **Data Flow Trace:** `Original point → projected disc → surface fit and center check → color and cropped owner pick.`
@@ -6330,6 +6646,32 @@ After that block, append this supplied code:
 
 ### Step 17 of 21 · Test rasterized neighbors at the stroke source (`96zx-test-the-rasterized-neighbors-at-the-stroke-source`)
 
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 17/21 Visual Trace (96zx-test-the-rasterized-neighbors-at-the-stroke-source): Test rasterized neighbors at the stroke source</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/ink_plane.wgsl</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Projected stroke axis</text>
+    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">primitive image</text>
+    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">exact source hit and neighboring</text>
+    <text x="694" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">triangle…</text>
+    
+</svg>
+</div>
+
 - **Goal:** Prepare exact source tests using the matching primitive image.
 - **Data Flow Trace:** `Projected stroke axis → primitive image → exact source hit and neighboring triangle hits`
 - **Files You Touch:** `src/ink_plane.wgsl` (*Build a weighted source axis and reuse one exact clipped-triangle predicate for fringe and source neighbors.*)
@@ -6420,6 +6762,36 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 <a id="checkpoint-96zy-connect-fitted-surfaces-and-exact-stroke-occlusion"></a>
 
 ### Step 18 of 21 · Connect fitted surfaces and exact stroke occlusion (`96zy-connect-fitted-surfaces-and-exact-stroke-occlusion`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 18/21 Visual Trace (96zy-connect-fitted-surfaces-and-exact-stroke-occlusion): Connect fitted surfaces and exact stroke occlusion</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/finite_visibility.wgsl, src/ink_plane.wgsl</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Stroke axis</text>
+    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">surface fit and section</text>
+    <text x="316" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">check</text>
+    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">exact source hits</text>
+    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">bounded tile fallback</text>
+    
+</svg>
+</div>
 
 - **Goal:** Activate surface fitting, source-neighbor tests and bounded tile fallback for original strokes.
 - **Data Flow Trace:** `Stroke axis → surface fit and section check → exact source hits → bounded tile fallback`
@@ -6627,6 +6999,31 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 <a id="checkpoint-96zz-separate-hidden-ink-color-from-pick-ownership"></a>
 
 ### Step 19 of 21 · Separate hidden ink color from pick ownership (`96zz-separate-hidden-ink-color-from-pick-ownership`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 19/21 Visual Trace (96zz-separate-hidden-ink-color-from-pick-ownership): Separate hidden ink color from pick ownership</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/finite_visibility.wgsl, src/finite_stroke.wgsl, src/finite_stroke_pick.wgsl, src/finite_chain.wgsl</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="146" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Physical visibility</text>
+    <line x1="274" y1="68" x2="290" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="292" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">color attenuation or integer discard</text>
+    <line x1="548" y1="68" x2="564" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="566" y="42" width="256" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="694" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">original owner pick</text>
+    
+</svg>
+</div>
 
 - **Goal:** Reveal hidden ink through glass without selecting an occluded original.
 - **Data Flow Trace:** `Physical visibility → color attenuation or integer discard → original owner pick`
@@ -7075,6 +7472,36 @@ Update the existing block with this supplied code; keep unchanged lines:
 <a id="checkpoint-96zza-connect-section-primitive-images"></a>
 
 ### Step 20 of 21 · Connect section primitives to color and first picking (`96zza-connect-section-primitive-images`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 20/21 Visual Trace (96zza-connect-section-primitive-images): Connect section primitives to color and first picking</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/physical.wgsl, src/clipping_gpu.rs, src/triangle.wgsl, src/triangle_pick.wgsl</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">Reserved plane address</text>
+    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">shared integer output</text>
+    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">matching color or cropped</text>
+    <text x="521" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">pick…</text>
+    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">fitted ink</text>
+    
+</svg>
+</div>
 
 - **Goal:** Share lossless cap addresses with mesh surfaces in color and first-pick images.
 - **Data Flow Trace:** `Reserved plane address → shared integer output → matching color or cropped pick image → fitted ink`
@@ -7826,6 +8253,23 @@ After that block, append this supplied code:
 <a id="checkpoint-96zzb-read-section-visibility-from-one-image"></a>
 
 ### Step 21 of 21 · Read section visibility from one image (`96zzb-read-section-visibility-from-one-image`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 21/21 Visual Trace (96zzb-read-section-visibility-from-one-image): Read section visibility from one image</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/finite_visibility.wgsl, src/finite_ink.rs, src/renderer.rs, src/pick_encode.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="804" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="420" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">Follow the cap address from color or cropped picking to the fitted source test.</text>
+    
+</svg>
+</div>
 
 - **Goal:** Use one physical primitive address for mesh and section ink visibility.
 - **Data Flow Trace:** `Follow the cap address from color or cropped picking to the fitted source test.`

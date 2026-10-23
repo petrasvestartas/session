@@ -4,103 +4,142 @@
 
 > **What You Will Learn & Build:** Validate a complete label replacement before changing it. By the final checkpoint (`60g-text-shaping`), you will prove the current fonts shaping and reuse rules.
 
-## 1. Visual Pipeline & WebGPU Architecture (Black & White Schematics)
+## 1. Visual WebGPU Explanation & Architecture (Black & White Schematics)
 
 <div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg viewBox="0 0 840 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg width="840" height="256" viewBox="0 0 840 256" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
       <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
   </defs>
-  <rect x="4" y="4" width="832" height="212" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Lesson 10.2 Execution Flow: Validated shaping and revision-based reuse</text>
-  <text x="20" y="46" font-size="11.5" fill="#111111">Concrete data pipeline you build in this lesson (7 Checkpoints: 60ba-validation → 60g-text-shaping)</text>
-  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
+  <rect x="4" y="4" width="832" height="248" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Chapter 10 Visual Explanation: Shelf-Packed R8Unorm Font Atlas, 3D World Text vs. Billboard & Matrix Shader</text>
+  <text x="20" y="45" font-size="11" fill="#111111">Left: Shelf-packed glyph atlas with 1px gutter. Center: Foreshortened 3D plane text vs billboard. Right: Procedural matrix.wgsl.</text>
+  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
   
+    <!-- Panel A: Shelf-Packed Glyph Atlas Texture -->
+    <rect x="18" y="64" width="245" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="140" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">A. R8Unorm Shelf Glyph Atlas</text>
+    <rect x="52" y="94" width="176" height="100" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <!-- Shelf 1 -->
+    <line x1="52" y1="138" x2="228" y2="138" stroke="#111111" stroke-width="1"/>
+    <rect x="58" y="100" width="32" height="32" fill="#ffffff" stroke="#111111" stroke-width="1" stroke-dasharray="2,2"/>
+    <text x="74" y="123" text-anchor="middle" font-size="18" font-weight="700" fill="#111111">A</text>
+    <rect x="96" y="100" width="32" height="32" fill="#ffffff" stroke="#111111" stroke-width="1" stroke-dasharray="2,2"/>
+    <text x="112" y="123" text-anchor="middle" font-size="18" font-weight="700" fill="#111111">B</text>
+    <rect x="134" y="100" width="28" height="32" fill="#ffffff" stroke="#111111" stroke-width="1" stroke-dasharray="2,2"/>
+    <text x="148" y="123" text-anchor="middle" font-size="18" font-weight="700" fill="#111111">g</text>
+    <!-- Shelf 2 -->
+    <rect x="58" y="144" width="28" height="32" fill="#ffffff" stroke="#111111" stroke-width="1" stroke-dasharray="2,2"/>
+    <text x="72" y="167" text-anchor="middle" font-size="17" font-weight="700" fill="#111111">0</text>
+    <rect x="92" y="144" width="28" height="32" fill="#ffffff" stroke="#111111" stroke-width="1" stroke-dasharray="2,2"/>
+    <text x="106" y="167" text-anchor="middle" font-size="17" font-weight="700" fill="#111111">1</text>
+    <text x="140" y="210" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">1px transparent gutter prevents bleed</text>
+    <text x="140" y="225" text-anchor="middle" font-size="9" fill="#111111">queue.write_texture uploads dirty rects</text>
+
+    <line x1="263" y1="154" x2="285" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <!-- Panel B: 3D World-Plane Text vs Screen Billboard -->
+    <rect x="287" y="64" width="265" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="419" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">B. World-Plane vs. Billboard Text</text>
+    <!-- Tilted 3D World Text Quad -->
+    <polygon points="304,168 388,142 406,174 322,200" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="342" y="175" font-size="11" font-weight="700" fill="#111111" transform="rotate(-16 342 175)">WORLD</text>
+    <text x="355" y="216" text-anchor="middle" font-size="9" fill="#111111">text_plane.wgsl (3D)</text>
+    <!-- Screen-aligned Billboard with Leader Line -->
+    <rect x="432" y="102" width="104" height="34" rx="5" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="484" y="123" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Label #42</text>
+    <line x1="464" y1="136" x2="438" y2="178" stroke="#111111" stroke-width="1.5"/>
+    <circle cx="438" cy="178" r="3.5" fill="#111111"/>
+    <text x="484" y="216" text-anchor="middle" font-size="9" fill="#111111">text.wgsl (Billboard)</text>
+
+    <line x1="552" y1="154" x2="574" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <!-- Panel C: Procedural Matrix Shader (matrix.wgsl) -->
+    <rect x="576" y="64" width="246" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="699" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">C. Procedural Matrix (matrix.wgsl)</text>
+    <text x="699" y="100" text-anchor="middle" font-size="10" font-weight="700" fill="#111111">Stiffness K (3×3) — Plate-less Title</text>
+    <!-- 3x2 Matrix Grid -->
+    <rect x="604" y="108" width="190" height="84" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+    <line x1="667" y1="108" x2="667" y2="192" stroke="#111111" stroke-width="1"/>
+    <line x1="730" y1="108" x2="730" y2="192" stroke="#111111" stroke-width="1"/>
+    <line x1="604" y1="150" x2="794" y2="150" stroke="#111111" stroke-width="1"/>
+    <text x="635" y="133" text-anchor="middle" font-size="10" font-weight="700" fill="#111111">0.425</text>
+    <!-- Zero cell left blank intentionally! -->
+    <text x="698" y="133" text-anchor="middle" font-size="9" fill="#111111">(0 blank)</text>
+    <text x="762" y="133" text-anchor="middle" font-size="10" font-weight="700" fill="#111111">-1.200</text>
+    <rect x="604" y="150" width="63" height="42" fill="url(#hatch)" stroke="#111111" stroke-width="1"/>
+    <text x="635" y="175" text-anchor="middle" font-size="10" font-weight="700" fill="#111111">3.142</text>
+    <text x="698" y="175" text-anchor="middle" font-size="10" font-weight="700" fill="#111111">0.008</text>
+    <text x="762" y="175" text-anchor="middle" font-size="9" fill="#111111">(0 blank)</text>
+    <text x="699" y="212" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">16-word header + 3 words/cell</text>
+    <text x="699" y="226" text-anchor="middle" font-size="9" fill="#111111">Whole-matrix Rg32Uint pick + border</text>
     
-    <rect x="18" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="89" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
-    <line x1="28" y1="92" x2="151" y2="92" stroke="#111111" stroke-width="0.75"/>
-    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">incoming labels</text>
-    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="183" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="254" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
-    <line x1="193" y1="92" x2="316" y2="92" stroke="#111111" stroke-width="0.75"/>
-    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">bounded words and</text>
-    <text x="254" y="124" text-anchor="middle" font-size="11" fill="#111111">IDs</text>
-    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="348" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
-    <line x1="358" y1="92" x2="481" y2="92" stroke="#111111" stroke-width="0.75"/>
-    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">finite placement</text>
-    <text x="419" y="124" text-anchor="middle" font-size="11" fill="#111111">and metrics</text>
-    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="513" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="584" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
-    <line x1="523" y1="92" x2="646" y2="92" stroke="#111111" stroke-width="0.75"/>
-    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">atomic replacement</text>
-    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="678" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="749" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
-    <line x1="688" y1="92" x2="811" y2="92" stroke="#111111" stroke-width="0.75"/>
-    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">real bundled fonts</text>
-    
-    <rect x="18" y="162" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="32" y="181" font-size="11" font-weight="700" fill="#111111">Files You Edit in Lesson 10.2:</text>
-    <text x="215" y="181" font-size="11" fill="#111111">src/text.rs</text>
-    <text x="32" y="198" font-size="10.5" fill="#111111">7 Checkpoints: 60ba-validation → 60g-text-shaping — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
-  
 </svg>
 </div>
 
 <div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg viewBox="0 0 840 240" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg width="840" height="214" viewBox="0 0 840 214" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
       <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
   </defs>
-  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Chapter 10 WebGPU Text & Shared Arena Pipeline: Glyph Atlas Packing, World/Billboard Text & Matrix Shader</text>
-  <text x="20" y="46" font-size="11.5" fill="#111111">How crisp typography (text_plane.wgsl / text.wgsl) and procedural cell digits (matrix.wgsl) render in 3D world space.</text>
-  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
+  <rect x="4" y="4" width="832" height="206" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Lesson 10.2 Pipeline Schematic: Validated shaping and revision-based reuse</text>
+  <text x="20" y="45" font-size="11" fill="#111111">Step-by-step data flow you implement in this lesson (7 Checkpoints: 60ba-validation → 60g-text-shaping)</text>
+  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
   
-    <rect x="18" y="68" width="235" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="135" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">1. Shelf-Packed Glyph Atlas</text>
-    <text x="28" y="108" font-size="10.5" fill="#111111">• Rasterize needed Unicode codepoints</text>
-    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#111111">• Pack into R8Unorm GPU Atlas Texture</text>
-    <text x="28" y="142" font-size="10" fill="#111111">  with 1px padding (no bilinear bleed!)</text>
-    <text x="28" y="160" font-size="10.5" fill="#111111">• queue.write_texture dirty rects only</text>
-    <text x="28" y="178" font-size="10.5" fill="#111111">• Layout baseline, kerning &amp; line</text>
-    <text x="28" y="193" font-size="10.5" fill="#111111">  wraps into instanced glyph quads</text>
-
-    <line x1="253" y1="138" x2="283" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
-
-    <rect x="285" y="68" width="265" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="417" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">2. World-Plane vs Screen Billboard</text>
-    <text x="297" y="108" font-size="10.5" font-weight="600" fill="#111111">• text_plane.wgsl (3D World Text):</text>
-    <text x="297" y="123" font-size="10" fill="#111111">  q_world = origin + u*plane_x + v*plane_y</text>
-    <text x="297" y="138" font-size="10" fill="#111111">  Foreshortens naturally with 3D perspective</text>
-    <text x="297" y="158" font-size="10.5" font-weight="600" fill="#111111">• text.wgsl (Screen-Aligned Label):</text>
-    <text x="297" y="173" font-size="10" fill="#111111">  Expands along camera Right/Up vectors;</text>
-    <text x="297" y="188" font-size="10" fill="#111111">  optional background plate + 3D leader line</text>
-
-    <line x1="550" y1="138" x2="580" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
-
-    <rect x="582" y="68" width="238" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="701" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">3. Whole-Text Pick &amp; Matrix (Sec 10)</text>
-    <text x="594" y="108" font-size="10.5" fill="#111111">• Clicking any glyph or plate writes</text>
-    <text x="594" y="124" font-size="10.5" font-weight="600" fill="#111111">  the parent Text owner_id to Rg32Uint</text>
-    <text x="594" y="144" font-size="10.5" fill="#111111">• Later in Sec 10 (matrix.wgsl):</text>
-    <text x="594" y="160" font-size="10" fill="#111111">  16-word header + 3 words/cell renders</text>
-    <text x="594" y="175" font-size="10" fill="#111111">  procedural 3-decimal digits (0 blank)</text>
-    <text x="594" y="190" font-size="10" fill="#111111">  + plate-less world title &amp; yellow select</text>
     
+    <rect x="18" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="89" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
+    <line x1="28" y1="90" x2="151" y2="90" stroke="#111111" stroke-width="0.75"/>
+    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">incoming labels</text>
+    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="183" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="254" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
+    <line x1="193" y1="90" x2="316" y2="90" stroke="#111111" stroke-width="0.75"/>
+    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">bounded words and</text>
+    <text x="254" y="124" text-anchor="middle" font-size="11" fill="#111111">IDs</text>
+    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="348" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="419" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
+    <line x1="358" y1="90" x2="481" y2="90" stroke="#111111" stroke-width="0.75"/>
+    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">finite placement</text>
+    <text x="419" y="124" text-anchor="middle" font-size="11" fill="#111111">and metrics</text>
+    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="513" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="584" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
+    <line x1="523" y1="90" x2="646" y2="90" stroke="#111111" stroke-width="0.75"/>
+    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">atomic replacement</text>
+    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="678" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="749" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
+    <line x1="688" y1="90" x2="811" y2="90" stroke="#111111" stroke-width="0.75"/>
+    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">real bundled fonts</text>
+    
+    <rect x="18" y="158" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="32" y="177" font-size="11" font-weight="700" fill="#111111">Files Modified in Lesson 10.2:</text>
+    <text x="235" y="177" font-size="11" fill="#111111">src/text.rs</text>
+    <text x="32" y="194" font-size="10.5" fill="#111111">7 Checkpoints: 60ba-validation → 60g-text-shaping — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
+  
 </svg>
 </div>
 
@@ -132,11 +171,41 @@ Before writing code, review how the three layers in this chapter talk to each ot
 
 ## 4. Step-by-Step Coding Notebook (Concept + Implementation)
 
-Work through each notebook cell below in order inside `workspace/journey`. Read the **Concept Walkthrough** and **Self-Check Q&A** first, then expand the **Implementation** block to type and verify the code.
+Work through each notebook cell below in order inside `workspace/journey`. Study the **Visual Step Trace**, read the **Concept Walkthrough** and **Self-Check Q&A**, then expand the **Implementation** block to type and verify the code.
 
 <a id="checkpoint-60ba-validation"></a>
 
 ### Step 1 of 7 · Validate a complete label replacement before changing it (`60ba-validation`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 1/7 Visual Trace (60ba-validation): Validate a complete label replacement before changing it</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/text.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">incoming labels</text>
+    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">bounded words and IDs</text>
+    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">finite placement and</text>
+    <text x="521" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">metrics</text>
+    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">atomic replacement</text>
+    
+</svg>
+</div>
 
 - **Goal:** Validate a complete label replacement before changing it.
 - **Data Flow Trace:** `incoming labels → bounded words and IDs → finite placement and metrics → atomic replacement`
@@ -182,6 +251,35 @@ After that block, type:
 
 ### Step 2 of 7 · Shape words into glyph clusters and baselines (`60bb-shaping`)
 
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 2/7 Visual Trace (60bb-shaping): Shape words into glyph clusters and baselines</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/text.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">UTF-8 words</text>
+    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">advanced shaping</text>
+    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">glyph clusters</text>
+    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">positioned baselines</text>
+    
+</svg>
+</div>
+
 - **Goal:** Shape words into glyph clusters and baselines.
 - **Data Flow Trace:** `UTF-8 words → advanced shaping → glyph clusters → positioned baselines`
 - **Files You Touch:** `src/text.rs` (*Create advanced shaped buffers and distinguish layout-changing source fields.*)
@@ -225,6 +323,35 @@ After that block, type:
 <a id="checkpoint-60c-document"></a>
 
 ### Step 3 of 7 · Own the shaped runs with their font revisions (`60c-document`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 3/7 Visual Trace (60c-document): Own the shaped runs with their font revisions</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/text.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">explicit font set</text>
+    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">shaped-run owner</text>
+    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">document revision</text>
+    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">font revision</text>
+    
+</svg>
+</div>
 
 - **Goal:** Own the shaped runs with their font revisions.
 - **Data Flow Trace:** `explicit font set → shaped-run owner → document revision → font revision`
@@ -272,6 +399,35 @@ After that block, type:
 
 ### Step 4 of 7 · Reshape only when the source layout changes (`60d-reuse`)
 
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 4/7 Visual Trace (60d-reuse): Reshape only when the source layout changes</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/text.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">valid label replacement</text>
+    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">stable identity lookup</text>
+    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">same layout reuse</text>
+    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">changed words reshape</text>
+    
+</svg>
+</div>
+
 - **Goal:** Reshape only when the source layout changes.
 - **Data Flow Trace:** `valid label replacement → stable identity lookup → same layout reuse → changed words reshape`
 - **Files You Touch:** `src/text.rs` (*Reuse stable shaped buffers and measure only genuine shaping work.*)
@@ -317,6 +473,35 @@ After that block, type:
 
 ### Step 5 of 7 · Replace usable fonts without corrupting current text (`60e-font-reload`)
 
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 5/7 Visual Trace (60e-font-reload): Replace usable fonts without corrupting current text</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/text.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">new font bytes</text>
+    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">usable database</text>
+    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">atomic font adoption</text>
+    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">run reshaping</text>
+    
+</svg>
+</div>
+
 - **Goal:** Replace usable fonts without corrupting current text.
 - **Data Flow Trace:** `new font bytes → usable database → atomic font adoption → run reshaping`
 - **Files You Touch:** `src/text.rs` (*Adopt fonts only after every supplied source contains a usable face.*)
@@ -361,6 +546,35 @@ Edit the existing block to match this code; keep unchanged lines:
 <a id="checkpoint-60f-diagnostics"></a>
 
 ### Step 6 of 7 · Inspect glyph origins clusters and multiline metrics (`60f-diagnostics`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 6/7 Visual Trace (60f-diagnostics): Inspect glyph origins clusters and multiline metrics</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/text.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">shaped buffer</text>
+    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">glyph and font ID</text>
+    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">UTF-8 cluster</text>
+    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">baseline and advance</text>
+    
+</svg>
+</div>
 
 - **Goal:** Inspect glyph origins clusters and multiline metrics.
 - **Data Flow Trace:** `shaped buffer → glyph and font ID → UTF-8 cluster → baseline and advance`
@@ -885,6 +1099,35 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 ### Step 7 of 7 · Prove the current fonts shaping and reuse rules (`60g-text-shaping`)
 
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 7/7 Visual Trace (60g-text-shaping): Prove the current fonts shaping and reuse rules</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/text.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">real bundled fonts</text>
+    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">glyph shaping</text>
+    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">presentation reuse</text>
+    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">native coverage proofs</text>
+    
+</svg>
+</div>
+
 - **Goal:** Prove the current fonts shaping and reuse rules.
 - **Data Flow Trace:** `real bundled fonts → glyph shaping → presentation reuse → native coverage proofs`
 - **Files You Touch:** `src/text.rs` (*Copy current production ligature, accent, kerning, fallback, failed replacement, reuse and full-font coverage regressions.*)
@@ -950,6 +1193,8 @@ REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../recovery.md) to save or restore any checkpoint ID.
 
 ## 6. Lesson Summary & Expected Visual Result
+
+![Recorded visual output for Lesson 10.2 (60g-text-shaping)](../../screenshots/journey/60g-text-shaping.png)
 
 - **Final Lesson Experiment:** Inspect the shaped office ffi and accented multiline examples from the previous lesson in the browser. Compare glyph clusters with the original words and baselines. Read the optional ligature, fallback and invalid-font cases to explain why a rejected replacement leaves the displayed label intact.
 

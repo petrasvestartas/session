@@ -4,103 +4,139 @@
 
 > **What You Will Learn & Build:** Validate and place a nested source tree. By the final checkpoint (`52f-save`), you will save nested rows and their local placements.
 
-## 1. Visual Pipeline & WebGPU Architecture (Black & White Schematics)
+## 1. Visual WebGPU Explanation & Architecture (Black & White Schematics)
 
 <div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg viewBox="0 0 840 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg width="840" height="256" viewBox="0 0 840 256" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
       <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
   </defs>
-  <rect x="4" y="4" width="832" height="212" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Lesson 8.1 Execution Flow: Nested original sources and exact parent edits</text>
-  <text x="20" y="46" font-size="11.5" fill="#111111">Concrete data pipeline you build in this lesson (7 Checkpoints: 52-tree → 52f-save)</text>
-  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
+  <rect x="4" y="4" width="832" height="248" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Chapter 8 Visual Explanation: Scene Tree Transform Hierarchy, Layer Lamp Restoration & Inspector UI</text>
+  <text x="20" y="45" font-size="11" fill="#111111">Left: Parent-to-child matrix composition M_world = M_parent * M_local. Center: Lamp visibility inheritance. Right: Focus lock.</text>
+  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
   
+    <!-- Panel A: Visual Scene Tree Graph -->
+    <rect x="18" y="64" width="270" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="153" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">A. Scene Tree Matrix Hierarchy</text>
+    <!-- Root node -->
+    <rect x="103" y="94" width="100" height="28" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="153" y="112" text-anchor="middle" font-size="9.5" font-weight="700" fill="#111111">Root Assembly</text>
+    <!-- Branches to Child A and Child B -->
+    <line x1="133" y1="122" x2="83" y2="146" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+    <line x1="173" y1="122" x2="223" y2="146" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+    <rect x="33" y="148" width="100" height="32" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="83" y="162" text-anchor="middle" font-size="9.5" font-weight="700" fill="#111111">Child Frame A</text>
+    <text x="83" y="174" text-anchor="middle" font-size="8.5" fill="#111111">M_root * M_A</text>
+    <rect x="173" y="148" width="100" height="32" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
+    <text x="223" y="162" text-anchor="middle" font-size="9.5" font-weight="700" fill="#111111">Leaf Mesh B</text>
+    <text x="223" y="174" text-anchor="middle" font-size="8.5" fill="#111111">M_root * M_B</text>
+    <text x="153" y="206" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">M_world = M_parent * M_local</text>
+    <text x="153" y="222" text-anchor="middle" font-size="9" fill="#111111">Full path IDs disambiguate same names</text>
+
+    <line x1="288" y1="154" x2="310" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <!-- Panel B: Lamp Visibility Inheritance & Restoration -->
+    <rect x="312" y="64" width="265" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="444" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">B. Lamp Visibility Gate (Non-Destructive)</text>
+    <!-- 3 input switches feeding effective visibility -->
+    <rect x="328" y="98" width="96" height="24" rx="5" fill="#ffffff" stroke="#111111" stroke-width="1.2"/>
+    <text x="376" y="114" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">Layer Lamp</text>
+    <rect x="328" y="130" width="96" height="24" rx="5" fill="#ffffff" stroke="#111111" stroke-width="1.2"/>
+    <text x="376" y="146" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">Parent Lamp</text>
+    <rect x="328" y="162" width="96" height="24" rx="5" fill="#ffffff" stroke="#111111" stroke-width="1.2"/>
+    <text x="376" y="178" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">Own Lamp</text>
+    <!-- AND gate box -->
+    <line x1="424" y1="110" x2="462" y2="134" stroke="#111111" stroke-width="1.2"/>
+    <line x1="424" y1="142" x2="462" y2="142" stroke="#111111" stroke-width="1.2"/>
+    <line x1="424" y1="174" x2="462" y2="150" stroke="#111111" stroke-width="1.2"/>
+    <rect x="462" y="122" width="98" height="40" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+    <text x="511" y="140" text-anchor="middle" font-size="10" font-weight="700" fill="#111111">AND Gate</text>
+    <text x="511" y="154" text-anchor="middle" font-size="9" fill="#111111">Drawn &amp; Pickable</text>
+    <text x="444" y="208" text-anchor="middle" font-size="9.5" font-weight="600" fill="#111111">Toggling Parent OFF hides child without</text>
+    <text x="444" y="223" text-anchor="middle" font-size="9" fill="#111111">overwriting stored Own Lamp state!</text>
+
+    <line x1="577" y1="154" x2="599" y2="154" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <!-- Panel C: Inspector Focus Adapter -->
+    <rect x="601" y="64" width="221" height="180" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="711" y="82" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">C. Inspector &amp; Focus Adapter</text>
+    <rect x="617" y="98" width="189" height="42" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="627" y="115" font-size="9.5" font-weight="700" fill="#111111">[o] [L] Layer_01 (Renaming...)</text>
+    <text x="627" y="131" font-size="9" fill="#111111">Active egui text input has focus</text>
+    <line x1="711" y1="140" x2="711" y2="162" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+    <rect x="617" y="164" width="189" height="62" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.2"/>
+    <text x="711" y="182" text-anchor="middle" font-size="9.5" font-weight="700" fill="#111111">src/command_dock/mod.rs</text>
+    <text x="627" y="198" font-size="9" fill="#111111">Focus adapter pauses Command:</text>
+    <text x="627" y="212" font-size="9" fill="#111111">auto-capture until Enter/Escape</text>
     
-    <rect x="18" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="89" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
-    <line x1="28" y1="92" x2="151" y2="92" stroke="#111111" stroke-width="0.75"/>
-    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">bounded source walk</text>
-    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="183" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="254" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
-    <line x1="193" y1="92" x2="316" y2="92" stroke="#111111" stroke-width="0.75"/>
-    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">distinct mesh</text>
-    <text x="254" y="124" text-anchor="middle" font-size="11" fill="#111111">identities</text>
-    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="348" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="419" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
-    <line x1="358" y1="92" x2="481" y2="92" stroke="#111111" stroke-width="0.75"/>
-    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">parent × local</text>
-    <text x="419" y="124" text-anchor="middle" font-size="11" fill="#111111">placement</text>
-    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="513" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="584" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
-    <line x1="523" y1="92" x2="646" y2="92" stroke="#111111" stroke-width="0.75"/>
-    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">world display</text>
-    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
-
-    <rect x="678" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="749" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
-    <line x1="688" y1="92" x2="811" y2="92" stroke="#111111" stroke-width="0.75"/>
-    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">current saved</text>
-    <text x="749" y="124" text-anchor="middle" font-size="11" fill="#111111">sources</text>
-    
-    <rect x="18" y="162" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="32" y="181" font-size="11" font-weight="700" fill="#111111">Files You Edit in Lesson 8.1:</text>
-    <text x="215" y="181" font-size="11" fill="#111111">src/hierarchy.rs  ·  src/lib.rs  ·  src/scene.rs  ·  src/document.rs  ·  src/edit_preview.rs  ·  src/editor.rs</text>
-    <text x="32" y="198" font-size="10.5" fill="#111111">7 Checkpoints: 52-tree → 52f-save — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
-  
 </svg>
 </div>
 
 <div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
-<svg viewBox="0 0 840 240" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+<svg width="840" height="214" viewBox="0 0 840 214" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
       <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
     </marker>
+    <marker id="arrow-hollow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    </marker>
+    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
+    </pattern>
   </defs>
-  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Chapter 8 Scene Graph & Layer Architecture: Hierarchical Transforms, Lamp Inheritance & Inspector Focus</text>
-  <text x="20" y="46" font-size="11.5" fill="#111111">How parent-child Element trees and Layer visibility lamps compose without losing individual child visibility states.</text>
-  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
+  <rect x="4" y="4" width="832" height="206" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="27" font-size="13.5" font-weight="700" fill="#111111">Lesson 8.1 Pipeline Schematic: Nested original sources and exact parent edits</text>
+  <text x="20" y="45" font-size="11" fill="#111111">Step-by-step data flow you implement in this lesson (7 Checkpoints: 52-tree → 52f-save)</text>
+  <line x1="16" y1="53" x2="824" y2="53" stroke="#111111" stroke-width="1"/>
   
-    <rect x="18" y="68" width="250" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="143" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">1. Scene Tree &amp; Matrix Composition</text>
-    <text x="28" y="108" font-size="10.5" fill="#111111">• Root Element -&gt; Child Assembly -&gt; Leaf</text>
-    <text x="28" y="126" font-size="10.5" font-weight="700" fill="#111111">• M_world(child) = M_world(parent) * M_local</text>
-    <text x="28" y="146" font-size="10.5" fill="#111111">• Tree path identity keeps duplicate</text>
-    <text x="28" y="162" font-size="10.5" fill="#111111">  group names distinct</text>
-    <text x="28" y="180" font-size="10.5" fill="#111111">• Cycle-safe parent reassignment</text>
-
-    <line x1="268" y1="138" x2="298" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
-
-    <rect x="300" y="68" width="265" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="432" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">2. Layer &amp; Parent Lamp Restoration</text>
-    <text x="312" y="108" font-size="10.5" fill="#111111">• Effective Visible =</text>
-    <text x="312" y="124" font-size="10.5" font-weight="600" fill="#111111">  layer_lamp &amp;&amp; parent_lamps &amp;&amp; own_lamp</text>
-    <text x="312" y="144" font-size="10" fill="#111111">• Toggling a parent/layer lamp OFF hides</text>
-    <text x="312" y="159" font-size="10" fill="#111111">  descendants without overwriting own_lamp;</text>
-    <text x="312" y="174" font-size="10" fill="#111111">  toggling back ON restores prior state!</text>
-    <text x="312" y="192" font-size="10.5" fill="#111111">• Hidden/Locked rows skipped in Rg32Uint pick</text>
-
-    <line x1="565" y1="138" x2="595" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
-
-    <rect x="597" y="68" width="223" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-    <text x="708" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">3. Inspector &amp; Focus Adapter</text>
-    <text x="609" y="108" font-size="10.5" fill="#111111">• egui Tree / Layer / Property UI</text>
-    <text x="609" y="126" font-size="10.5" font-weight="600" fill="#111111">• Layer-rename focus adapter:</text>
-    <text x="609" y="142" font-size="10" fill="#111111">  Suppresses Command Dock auto-focus</text>
-    <text x="609" y="157" font-size="10" fill="#111111">  while editing layer/object names</text>
-    <text x="609" y="176" font-size="10.5" fill="#111111">• Selection filter &amp; Next/Prev</text>
-    <text x="609" y="192" font-size="10.5" fill="#111111">  member navigation</text>
     
+    <rect x="18" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="89" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
+    <line x1="28" y1="90" x2="151" y2="90" stroke="#111111" stroke-width="0.75"/>
+    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">bounded source walk</text>
+    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="183" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="254" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
+    <line x1="193" y1="90" x2="316" y2="90" stroke="#111111" stroke-width="0.75"/>
+    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">distinct mesh</text>
+    <text x="254" y="124" text-anchor="middle" font-size="11" fill="#111111">identities</text>
+    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="348" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="419" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
+    <line x1="358" y1="90" x2="481" y2="90" stroke="#111111" stroke-width="0.75"/>
+    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">parent × local</text>
+    <text x="419" y="124" text-anchor="middle" font-size="11" fill="#111111">placement</text>
+    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="513" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="584" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
+    <line x1="523" y1="90" x2="646" y2="90" stroke="#111111" stroke-width="0.75"/>
+    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">world display</text>
+    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="678" y="66" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="749" y="84" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
+    <line x1="688" y1="90" x2="811" y2="90" stroke="#111111" stroke-width="0.75"/>
+    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">current saved</text>
+    <text x="749" y="124" text-anchor="middle" font-size="11" fill="#111111">sources</text>
+    
+    <rect x="18" y="158" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="32" y="177" font-size="11" font-weight="700" fill="#111111">Files Modified in Lesson 8.1:</text>
+    <text x="235" y="177" font-size="11" fill="#111111">src/hierarchy.rs  ·  src/lib.rs  ·  src/scene.rs  ·  src/document.rs  ·  src/edit_preview.rs  ·  src/editor.rs</text>
+    <text x="32" y="194" font-size="10.5" fill="#111111">7 Checkpoints: 52-tree → 52f-save — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
+  
 </svg>
 </div>
 
@@ -132,11 +168,40 @@ Before writing code, review how the three layers in this chapter talk to each ot
 
 ## 4. Step-by-Step Coding Notebook (Concept + Implementation)
 
-Work through each notebook cell below in order inside `workspace/journey`. Read the **Concept Walkthrough** and **Self-Check Q&A** first, then expand the **Implementation** block to type and verify the code.
+Work through each notebook cell below in order inside `workspace/journey`. Study the **Visual Step Trace**, read the **Concept Walkthrough** and **Self-Check Q&A**, then expand the **Implementation** block to type and verify the code.
 
 <a id="checkpoint-52-tree"></a>
 
 ### Step 1 of 7 · Validate and place a nested source tree (`52-tree`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 1/7 Visual Trace (52-tree): Validate and place a nested source tree</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/hierarchy.rs, src/lib.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">bounded source walk</text>
+    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">distinct mesh identities</text>
+    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">parent × local placement</text>
+    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">world display</text>
+    
+</svg>
+</div>
 
 - **Goal:** Validate and place a nested source tree.
 - **Data Flow Trace:** `bounded source walk → distinct mesh identities → parent × local placement → world display`
@@ -193,6 +258,37 @@ After that block, type:
 <a id="checkpoint-52a-records"></a>
 
 ### Step 2 of 7 · Keep lightweight tree records outside kernel ownership (`52a-records`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 2/7 Visual Trace (52a-records): Keep lightweight tree records outside kernel ownership</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/hierarchy.rs, src/scene.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">source identity</text>
+    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">flat node metadata</text>
+    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">parent and subtree</text>
+    <text x="521" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">endpoint</text>
+    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">independent lightweight</text>
+    <text x="726" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">ownership</text>
+    
+</svg>
+</div>
 
 - **Goal:** Keep lightweight tree records outside kernel ownership.
 - **Data Flow Trace:** `source identity → flat node metadata → parent and subtree endpoint → independent lightweight ownership`
@@ -263,6 +359,36 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### Step 3 of 7 · Index descendants and read-only attribute groups (`52b-index`)
 
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 3/7 Visual Trace (52b-index): Index descendants and read-only attribute groups</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/hierarchy.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">document-local source</text>
+    <text x="111" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">nodes</text>
+    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">stable viewer IDs</text>
+    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">attribute ownership</text>
+    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">unique descendant slice</text>
+    
+</svg>
+</div>
+
 - **Goal:** Index descendants and read-only attribute groups.
 - **Data Flow Trace:** `document-local source nodes → stable viewer IDs → attribute ownership → unique descendant slice`
 - **Files You Touch:** `src/hierarchy.rs` (*Create stable document-scoped nodes and deduplicate parent-owned descendants.*)
@@ -308,6 +434,36 @@ Edit the existing block to match this code; keep unchanged lines:
 <a id="checkpoint-52c-load"></a>
 
 ### Step 4 of 7 · Import nested source identities and precise placements (`52c-load`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 4/7 Visual Trace (52c-load): Import nested source identities and precise placements</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/document.rs, src/scene.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">validated protobuf</text>
+    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">prepared original meshes</text>
+    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">fresh viewer IDs</text>
+    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">document-scoped nested</text>
+    <text x="726" y="81" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">records</text>
+    
+</svg>
+</div>
 
 - **Goal:** Import nested source identities and precise placements.
 - **Data Flow Trace:** `validated protobuf → prepared original meshes → fresh viewer IDs → document-scoped nested records`
@@ -1375,6 +1531,35 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 ### Step 5 of 7 · Carry parent-owned descendants in one preview (`52d-preview`)
 
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 5/7 Visual Trace (52d-preview): Carry parent-owned descendants in one preview</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/scene.rs, src/edit_preview.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">eligible selected roots</text>
+    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">unique descendants</text>
+    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">fixed baseline world delta</text>
+    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">shared-source preview</text>
+    
+</svg>
+</div>
+
 - **Goal:** Carry parent-owned descendants in one preview.
 - **Data Flow Trace:** `eligible selected roots → unique descendants → fixed baseline world delta → shared-source preview`
 - **Files You Touch:** `src/scene.rs` (*Protect independent attribute edits while exposing the checked descendant path for parent-owned transformations.*) · `src/edit_preview.rs` (*Capture selected roots separately from their unique following descendants.*)
@@ -2217,6 +2402,35 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 <a id="checkpoint-52e-edits"></a>
 
 ### Step 6 of 7 · Commit parent moves and deletions as one transaction (`52e-edits`)
+
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 6/7 Visual Trace (52e-edits): Commit parent moves and deletions as one transaction</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/editor.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">validated parent action</text>
+    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">descendant set</text>
+    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">one history transaction</text>
+    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">exact shared-source undo</text>
+    
+</svg>
+</div>
 
 - **Goal:** Commit parent moves and deletions as one transaction.
 - **Data Flow Trace:** `validated parent action → descendant set → one history transaction → exact shared-source undo`
@@ -3119,6 +3333,36 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 ### Step 7 of 7 · Save nested rows and their local placements (`52f-save`)
 
+<div class="webgpu-schematic" style="margin:0.75rem 0;padding:0.5rem 0.65rem;border:1px solid #111111;border-radius:8px;background:#ffffff;">
+<svg width="840" height="104" viewBox="0 0 840 104" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:840px;height:auto;display:block;margin:0 auto;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <text x="18" y="24" font-size="11.5" font-weight="700" fill="#111111">Step 7/7 Visual Trace (52f-save): Save nested rows and their local placements</text>
+  <text x="822" y="24" text-anchor="end" font-size="10.5" fill="#111111">Files: src/hierarchy.rs, src/document.rs</text>
+  <line x1="18" y1="31" x2="822" y2="31" stroke="#111111" stroke-width="0.75"/>
+  
+    <rect x="18" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="111" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">current saved sources</text>
+    <line x1="205" y1="68" x2="221" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="223" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="316" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">retained nested nodes</text>
+    <line x1="410" y1="68" x2="426" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="428" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="521" y="66" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">inverse parent × world</text>
+    <text x="521" y="81" text-anchor="middle" font-size="10.5" font-weight="500" fill="#111111">placement</text>
+    <line x1="615" y1="68" x2="631" y2="68" stroke="#111111" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="633" y="42" width="187" height="52" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="726" y="66" text-anchor="middle" font-size="10.5" font-weight="700" fill="#111111">portable local records</text>
+    
+</svg>
+</div>
+
 - **Goal:** Save nested rows and their local placements.
 - **Data Flow Trace:** `current saved sources → retained nested nodes → inverse parent × world placement → portable local records`
 - **Files You Touch:** `src/hierarchy.rs` (*Rebuild nested portable nodes and recover local placements from the edited world scene.*) · `src/document.rs` (*Preserve nested imported trees while keeping generated objects beside them in the saved document.*)
@@ -3212,6 +3456,8 @@ REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../recovery.md) to save or restore any checkpoint ID.
 
 ## 6. Lesson Summary & Expected Visual Result
+
+![Recorded visual output for Lesson 8.1 (52f-save)](../../screenshots/journey/52f-save.png)
 
 - **Final Lesson Experiment:** Move a nested parent, Save, and reopen. Compare every world placement and original mesh record before and after the round trip.
 
