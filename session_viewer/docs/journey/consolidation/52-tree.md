@@ -1,22 +1,88 @@
 # 8.1 · Nested original sources and exact parent edits
 
-Load nested source trees with precise composed placements and retain them through parent edits and Save.
+**Section 5: Interactive Drawing, Snapping, Gumball Handles, and Scene Hierarchy** · **Lesson 8.1** (Redraft `5.7`) · **7 checkpoints (`52-tree` → `52f-save`)**
 
-## Ownership and data flow
+> **Learning Goal:** Validate and place a nested source tree.
 
-Validate a bounded source-tree walk and build lightweight flat metadata with parent/subtree ranges and stable viewer IDs. Imported source identities stay document-local; world placement composes parent × local. A parent preview captures unique descendants once and applies a fixed world delta without copying immutable sources. Move/Delete commit the whole subtree in one transaction; Save reconstructs local placement by inverse parent × world placement.
+## Visual WebGPU & Architecture Schematic
 
-## The maintained implementation
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1px solid #cbd5e1;border-radius:10px;background:#f8fafc;">
+<svg viewBox="0 0 840 240" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#475569"/>
+    </marker>
+    <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+    <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#059669"/>
+    </marker>
+  </defs>
+  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#0f172a">Chapter 8 Scene Graph & Layer Architecture: Hierarchical Transforms, Lamp Inheritance & Inspector Focus</text>
+  <text x="20" y="46" font-size="11.5" fill="#475569">How parent-child Element trees and Layer visibility lamps compose without losing individual child visibility states.</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#e2e8f0" stroke-width="1"/>
+  
+    <rect x="18" y="68" width="250" height="145" rx="6" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
+    <text x="143" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1e40af">1. Scene Tree &amp; Matrix Composition</text>
+    <text x="28" y="108" font-size="10.5" fill="#1e3a8a">• Root Element -&gt; Child Assembly -&gt; Leaf</text>
+    <text x="28" y="126" font-size="10.5" font-weight="700" fill="#1d4ed8">• M_world(child) = M_world(parent) * M_local</text>
+    <text x="28" y="146" font-size="10.5" fill="#1e3a8a">• Tree path identity keeps duplicate</text>
+    <text x="28" y="162" font-size="10.5" fill="#1e3a8a">  group names distinct</text>
+    <text x="28" y="180" font-size="10.5" fill="#1e3a8a">• Cycle-safe parent reassignment</text>
 
-app/hierarchy.rs walks maintained tree ownership; app/scene.rs retains FileDoc.session and row/node mappings; app/walk/mod.rs composes geometry placement. app/session_io.rs persists actual Session trees and document placements. The teaching flattened tree is staged metadata, not a replacement kernel hierarchy.
+    <line x1="268" y1="138" x2="298" y2="138" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
 
-All production paths above are relative to `session_viewer/src`. The implementation below preserves the runnable teaching sequence. Early `src/renderer.rs`, `src/browser.rs` and local WGSL are staged prerequisites; production drawing remains in `engine/gpu`, `engine/pipelines` and `src/shaders`. Later rendering lessons must converge to those maintained paths.
+    <rect x="300" y="68" width="265" height="145" rx="6" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5"/>
+    <text x="432" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#9a3412">2. Layer &amp; Parent Lamp Restoration</text>
+    <text x="312" y="108" font-size="10.5" fill="#7c2d12">• Effective Visible =</text>
+    <text x="312" y="124" font-size="10.5" font-weight="600" fill="#c2410c">  layer_lamp &amp;&amp; parent_lamps &amp;&amp; own_lamp</text>
+    <text x="312" y="144" font-size="10" fill="#7c2d12">• Toggling a parent/layer lamp OFF hides</text>
+    <text x="312" y="159" font-size="10" fill="#7c2d12">  descendants without overwriting own_lamp;</text>
+    <text x="312" y="174" font-size="10" fill="#7c2d12">  toggling back ON restores prior state!</text>
+    <text x="312" y="192" font-size="10.5" fill="#7c2d12">• Hidden/Locked rows skipped in Rg32Uint pick</text>
 
-Production source reference: [app/hierarchy.rs](../../../src/app/hierarchy.rs), [app/layers.rs](../../../src/app/layers.rs), [app/ui/layers.rs](../../../src/app/ui/layers.rs), [app/gesture/mod.rs](../../../src/app/gesture/mod.rs), [state/drag.rs](../../../src/state/drag.rs), [state/box_select.rs](../../../src/state/box_select.rs).
+    <line x1="565" y1="138" x2="595" y2="138" stroke="#059669" stroke-width="2" marker-end="url(#arrow-green)"/>
 
-## Build the capability
+    <rect x="597" y="68" width="223" height="145" rx="6" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1.5"/>
+    <text x="708" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#065f46">3. Inspector &amp; Focus Adapter</text>
+    <text x="609" y="108" font-size="10.5" fill="#064e3b">• egui Tree / Layer / Property UI</text>
+    <text x="609" y="126" font-size="10.5" font-weight="600" fill="#047857">• Layer-rename focus adapter:</text>
+    <text x="609" y="142" font-size="10" fill="#064e3b">  Suppresses Command Dock auto-focus</text>
+    <text x="609" y="157" font-size="10" fill="#064e3b">  while editing layer/object names</text>
+    <text x="609" y="176" font-size="10.5" fill="#064e3b">• Selection filter &amp; Next/Prev</text>
+    <text x="609" y="192" font-size="10.5" fill="#064e3b">  member navigation</text>
+    
+</svg>
+</div>
 
-Apply these implementation checkpoints in order in the same `workspace/journey` project. Expand a block while typing; each retains its original complete Type section, including its snippet includes and locate/replace context. Intermediate IDs remain recoverable checkpoints within this lesson.
+### Lesson Data Flow (`Rust` → `WebGPU` → `WGSL`)
+
+```
+bounded source walk → distinct mesh identities → parent × local placement → world display.
+validated protobuf → prepared original meshes → fresh viewer IDs → document-scoped nested records.
+current saved sources → retained nested nodes → inverse parent × world placement → portable local records.
+```
+
+- Validate and place a nested source tree.
+- Import nested source identities and precise placements.
+- Save nested rows and their local placements.
+- **Why it works (Does nesting bake a parent’s placement into the child’s original mesh?):** No. Its original coordinates remain unchanged. The derived row carries the product of the parent and child placement matrices.
+
+### Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `Browser`)
+
+| Layer | Construct | First-Year Student Explanation |
+| :--- | :--- | :--- |
+| **Rust (`session_rust`)** | Hierarchical `Element` Transform `M_world = M_parent * M_local` | Composes parent assembly transforms down the scene tree while keeping duplicate group names distinct via full tree-path identity. |
+| **Rust (Scene Tree)** | Effective Visibility `layer_lamp && parent_lamps && own_lamp` | Hiding a parent group or layer masks descendants without overwriting their stored child lamp states, restoring them faithfully when re-enabled. |
+| **Rust (`command_dock`)** | Layer-Rename Focus Adapter (`src/command_dock/mod.rs`) | Temporarily yields keyboard focus while renaming a layer or object in the inspector so typing does not get hijacked by the Command Dock prompt. |
+
+**Production source (`session_viewer/src`):** [app/hierarchy.rs](../../../src/app/hierarchy.rs), [app/layers.rs](../../../src/app/layers.rs), [app/ui/layers.rs](../../../src/app/ui/layers.rs), [app/gesture/mod.rs](../../../src/app/gesture/mod.rs), [state/drag.rs](../../../src/state/drag.rs), [state/box_select.rs](../../../src/state/box_select.rs).
+
+## Implementation Checkpoints
+
+Apply these checkpoints in order inside `workspace/journey`. Expand each block to view the Rust/WGSL/HTML edits:
 
 <a id="checkpoint-52-tree"></a>
 
@@ -2986,9 +3052,9 @@ Edit the existing block to match this code; keep unchanged lines:
 
 </details>
 
-## Run, check and save
+## Run, Check, and Save
 
-From `session_viewer`, after restoring any experimental edits:
+From `session_viewer`:
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 52f-save
@@ -2999,12 +3065,10 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running so saving rebuilds it. `check` compares your typed source with the selected endpoint without replacing your project; `save` records that source for recovery. The commands are learner instructions, not a claim that this consolidation batch has rerun GPU or browser acceptance. [Checkpoint recovery](../recovery.md) explains restoring a saved state.
+Open `http://127.0.0.1:8780/`. Use [checkpoint recovery](../recovery.md) to restore any saved checkpoint.
 
-## Result and experiment
+## Expected Visual Result & Experiment
 
-Nested import, parent-edit and Save owners now compile before the tree panel is connected in the next lesson. Existing geometry remains visible; this endpoint does not yet add a new tree-control panel. Follow a nested parent through world placement, preview, commit, Save and reopen, comparing exact source/local placements rather than only rendered bounds.
-
-Recorded screenshot paths are identified in the chapter coverage map as historical, pending fresh acceptance. No uninspected screenshot is embedded here. Source comparison, a successful build and visual behavior are separate checks.
+- **Try this:** Move a nested parent, Save, and reopen. Compare every world placement and original mesh record before and after the round trip.
 
 Continue with [Tree presentation with explicit input ownership](52g-rows.md).

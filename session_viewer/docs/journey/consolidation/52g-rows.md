@@ -1,22 +1,88 @@
 # 8.2 · Tree presentation with explicit input ownership
 
-Browse nested source rows without confusing expansion, panel paging or selection with document edits.
+**Section 5: Interactive Drawing, Snapping, Gumball Handles, and Scene Hierarchy** · **Lesson 8.2** (Redraft `5.8`) · **5 checkpoints (`52g-rows` → `52k-tree`)**
 
-## Ownership and data flow
+> **Learning Goal:** Expose stable tree rows across geometry lanes.
 
-Expose stable source-tree keys across geometry families, including independent generated rows. Expansion and bounded paging belong to presentation state. Indentation communicates hierarchy while attribute groups retain protected behavior. A panel hit is handled before canvas picking; input outside its measured bounds returns to the canvas. Parent edits, Save/reopen and Undo exercise the source tree rather than merely changing a displayed list.
+## Visual WebGPU & Architecture Schematic
 
-## The maintained implementation
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1px solid #cbd5e1;border-radius:10px;background:#f8fafc;">
+<svg viewBox="0 0 840 240" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#475569"/>
+    </marker>
+    <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+    <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#059669"/>
+    </marker>
+  </defs>
+  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#0f172a">Chapter 8 Scene Graph & Layer Architecture: Hierarchical Transforms, Lamp Inheritance & Inspector Focus</text>
+  <text x="20" y="46" font-size="11.5" fill="#475569">How parent-child Element trees and Layer visibility lamps compose without losing individual child visibility states.</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#e2e8f0" stroke-width="1"/>
+  
+    <rect x="18" y="68" width="250" height="145" rx="6" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
+    <text x="143" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1e40af">1. Scene Tree &amp; Matrix Composition</text>
+    <text x="28" y="108" font-size="10.5" fill="#1e3a8a">• Root Element -&gt; Child Assembly -&gt; Leaf</text>
+    <text x="28" y="126" font-size="10.5" font-weight="700" fill="#1d4ed8">• M_world(child) = M_world(parent) * M_local</text>
+    <text x="28" y="146" font-size="10.5" fill="#1e3a8a">• Tree path identity keeps duplicate</text>
+    <text x="28" y="162" font-size="10.5" fill="#1e3a8a">  group names distinct</text>
+    <text x="28" y="180" font-size="10.5" fill="#1e3a8a">• Cycle-safe parent reassignment</text>
 
-app/ui/layers.rs draws the maintained tree/layer panel; app/hierarchy.rs and app/layers.rs resolve rows and actions. app/ui/pointer.rs and app/input.rs establish UI ownership before canvas gestures. These checkpoint tree controls are staged against the existing maintained panel.
+    <line x1="268" y1="138" x2="298" y2="138" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
 
-All production paths above are relative to `session_viewer/src`. The implementation below preserves the runnable teaching sequence. Early `src/renderer.rs`, `src/browser.rs` and local WGSL are staged prerequisites; production drawing remains in `engine/gpu`, `engine/pipelines` and `src/shaders`. Later rendering lessons must converge to those maintained paths.
+    <rect x="300" y="68" width="265" height="145" rx="6" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5"/>
+    <text x="432" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#9a3412">2. Layer &amp; Parent Lamp Restoration</text>
+    <text x="312" y="108" font-size="10.5" fill="#7c2d12">• Effective Visible =</text>
+    <text x="312" y="124" font-size="10.5" font-weight="600" fill="#c2410c">  layer_lamp &amp;&amp; parent_lamps &amp;&amp; own_lamp</text>
+    <text x="312" y="144" font-size="10" fill="#7c2d12">• Toggling a parent/layer lamp OFF hides</text>
+    <text x="312" y="159" font-size="10" fill="#7c2d12">  descendants without overwriting own_lamp;</text>
+    <text x="312" y="174" font-size="10" fill="#7c2d12">  toggling back ON restores prior state!</text>
+    <text x="312" y="192" font-size="10.5" fill="#7c2d12">• Hidden/Locked rows skipped in Rg32Uint pick</text>
 
-Production source reference: [app/hierarchy.rs](../../../src/app/hierarchy.rs), [app/layers.rs](../../../src/app/layers.rs), [app/ui/layers.rs](../../../src/app/ui/layers.rs), [app/gesture/mod.rs](../../../src/app/gesture/mod.rs), [state/drag.rs](../../../src/state/drag.rs), [state/box_select.rs](../../../src/state/box_select.rs).
+    <line x1="565" y1="138" x2="595" y2="138" stroke="#059669" stroke-width="2" marker-end="url(#arrow-green)"/>
 
-## Build the capability
+    <rect x="597" y="68" width="223" height="145" rx="6" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1.5"/>
+    <text x="708" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#065f46">3. Inspector &amp; Focus Adapter</text>
+    <text x="609" y="108" font-size="10.5" fill="#064e3b">• egui Tree / Layer / Property UI</text>
+    <text x="609" y="126" font-size="10.5" font-weight="600" fill="#047857">• Layer-rename focus adapter:</text>
+    <text x="609" y="142" font-size="10" fill="#064e3b">  Suppresses Command Dock auto-focus</text>
+    <text x="609" y="157" font-size="10" fill="#064e3b">  while editing layer/object names</text>
+    <text x="609" y="176" font-size="10.5" fill="#064e3b">• Selection filter &amp; Next/Prev</text>
+    <text x="609" y="192" font-size="10.5" fill="#064e3b">  member navigation</text>
+    
+</svg>
+</div>
 
-Apply these implementation checkpoints in order in the same `workspace/journey` project. Expand a block while typing; each retains its original complete Type section, including its snippet includes and locate/replace context. Intermediate IDs remain recoverable checkpoints within this lesson.
+### Lesson Data Flow (`Rust` → `WebGPU` → `WGSL`)
+
+```
+immutable node metadata → current source ownership → visible flat tree rows → independent generated rows.
+flat visible rows → indented controls → protected attribute buttons → pending selection action.
+nested example → real tree controls → parent transform → save and reopen → complete deletion undo.
+```
+
+- Expose stable tree rows across geometry lanes.
+- Draw indented original-source tree controls.
+- Exercise nested source ownership and exact undo.
+- **Why it works (Can an old array position be a tree identity after Undo?):** No. Rows may be removed or restored. The panel uses stable document/node keys and source-owned object IDs rather than current vector positions.
+
+### Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `Browser`)
+
+| Layer | Construct | First-Year Student Explanation |
+| :--- | :--- | :--- |
+| **Rust (`session_rust`)** | Hierarchical `Element` Transform `M_world = M_parent * M_local` | Composes parent assembly transforms down the scene tree while keeping duplicate group names distinct via full tree-path identity. |
+| **Rust (Scene Tree)** | Effective Visibility `layer_lamp && parent_lamps && own_lamp` | Hiding a parent group or layer masks descendants without overwriting their stored child lamp states, restoring them faithfully when re-enabled. |
+| **Rust (`command_dock`)** | Layer-Rename Focus Adapter (`src/command_dock/mod.rs`) | Temporarily yields keyboard focus while renaming a layer or object in the inspector so typing does not get hijacked by the Command Dock prompt. |
+
+**Production source (`session_viewer/src`):** [app/hierarchy.rs](../../../src/app/hierarchy.rs), [app/layers.rs](../../../src/app/layers.rs), [app/ui/layers.rs](../../../src/app/ui/layers.rs), [app/gesture/mod.rs](../../../src/app/gesture/mod.rs), [state/drag.rs](../../../src/state/drag.rs), [state/box_select.rs](../../../src/state/box_select.rs).
+
+## Implementation Checkpoints
+
+Apply these checkpoints in order inside `workspace/journey`. Expand each block to view the Rust/WGSL/HTML edits:
 
 <a id="checkpoint-52g-rows"></a>
 
@@ -2563,9 +2629,9 @@ After that block, type:
 
 </details>
 
-## Run, check and save
+## Run, Check, and Save
 
-From `session_viewer`, after restoring any experimental edits:
+From `session_viewer`:
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 52k-tree
@@ -2576,14 +2642,12 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running so saving rebuilds it. `check` compares your typed source with the selected endpoint without replacing your project; `save` records that source for recovery. The commands are learner instructions, not a claim that this consolidation batch has rerun GPU or browser acceptance. [Checkpoint recovery](../recovery.md) explains restoring a saved state.
+Open `http://127.0.0.1:8780/`. Use [checkpoint recovery](../recovery.md) to restore any saved checkpoint.
 
-## Result and experiment
+## Expected Visual Result & Experiment
 
 Type Close, Example Nested, Fit, View Isometric, then Layers All. Select Posts in the tree and type Move 0.5,0,0. The parent and its read-only attribute follow once; unrelated geometry stays still. Undo restores both. Save and Open Replace preserve their nested source paths. Delete and Undo operate on the whole parent-owned subtree.
 
-Use Layers All, select Posts, Move 0.5,0,0, Save, Open Replace, Delete, and Undo. Inspect both the restored source identities and their exact placed coordinates.
-
-Recorded screenshot paths are identified in the chapter coverage map as historical, pending fresh acceptance. No uninspected screenshot is embedded here. Source comparison, a successful build and visual behavior are separate checks.
+- **Try this:** Use Layers All, select Posts, Move 0.5,0,0, Save, Open Replace, Delete, and Undo. Inspect both the restored source identities and their exact placed coordinates.
 
 Continue with [Layers, visibility and source-preserving properties](53-flags.md).
