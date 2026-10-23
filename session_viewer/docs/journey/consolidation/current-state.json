@@ -41,7 +41,7 @@
     "frameSchedule": "PASS: three native CPU semantics plus unchanged browser coalescing/disposal contract at63acaf79. Ordered input, one pending frame, geometry reuse, idle0 and no late disposal submissions; cached-page browser resume remains separate.",
     "performance": "PASS: performance-disposal resources/manifest and public runtime-performance-review.json. Five categories measured on same small demo; resize burst56->1frames,uploads283136->5056bytes,idle0. Raw warm timings retained, no steady-frame or hardware speedup claim. Unchanged lifecycle callback passes.",
     "disposalFix": "PASS: optimized disposal-web182.878s and unchanged browser lifecycle callback; final teardown has no late submissions. Original failed run retained.",
-    "docsCurrent": "PASS scoped restored chapters11–22:59 source/built/served introductions,111 contents links,555 restored relative links,21 source-matching decoded images(20 teaching figures plus retained checkpoint screenshot),20 individually inspected original-resolution views including inline Matrix desktop/phone. Docs build53.394s,peak1595437056B. Root progress wording is reviewed separately after publication. Gemini1–10/current combined-book handoff remains deferred.",
+    "docsCurrent": "PENDING current source: concurrent Argo edits removed59 late-chapter introductions and20 introductory figures. Earlier scoped build/visible review remains accepted only at its recorded source hashes; integrate teaching and review publication after external handoff.",
     "historicalLock": "Cached94c lock was stale (missing getrandom dependency edge only). Current canonical94-Cargo.lock already correct; exact canonical bytes restored to ignored cache, no canonical lock or test assertion changes. Initial --locked abort retained.",
     "historicalVulkanProbe": "PASS: unchanged94c glyph-atlas GPU test, canonical lock SHA1df9f908 restored, explicit pinned Vulkan SwiftShader ICD environment; historical-vulkan-probe-current-lock.json. Full checkpoint/callback acceptance remains separate.",
     "structuralCurrent": "PASS: recovery-structure.json;1361 course reconstructions,307 current viewer source files,43 reference checkpoints and351 archived final files.",
@@ -56,7 +56,7 @@
     "historical94cVerification": "PASS current94c native800/800:guard188.26s,actual tests87.26s;fresh WARP frame inspected,SHA256 D57B09B12F4239A6203C0E8AD14E850C71B59DE102A302CA1DC9639912C179F8. Original WASM57.334s and optimized web152.536s reused only under unchanged native-only dependency-graph proof. Complete canonical94c browser callback remains pending.",
     "publicProgress": "PASS at v9 built source: changed contents/roadmap v2, 111 links and three individually inspected original-resolution views. Actual CSS viewports 853/260 at 1280/390 captured pixels; later progress edits retain a separate publication obligation.",
     "cadSelectionDiagnostic": "PASS: one exact canonical wire archivec5ae22c6/embedded PB816e9f38 selected native pair,0 RGBA differences,0 black/372 yellow pixels; source/archive/course Object-pick checks pass. The production-aligned outlines-off yellow/zero-black browser assertion is user-approved and applied. Full CAD browser acceptance remains pending.",
-    "docsAfterGemini": "Gemini is still editing chapters1–10. Preserve its ownership and original built-source proofs. Current59 restored late lessons have scoped publication acceptance; no current combined-book or Gemini handoff acceptance.",
+    "docsAfterGemini": "External editing is active across consolidation and redraft pages. Preserve external schematics; restore teaching additively after handoff. Final combined-book acceptance remains pending.",
     "historical94cBrowser": "Full 94c remains unaccepted: last run reached sheets.cjs:33 and failed after 2171.988 s. Focused Sheets v3 then passed all original assertions in 113.034 s; first metadata selection took 58.3313 s on WARP, exceeding the default 30 s. Current focused comparison tail is diagnostic only.",
     "maintainedWindowsHook": "PASS: portableNode Windows docs prehook and maintained optimized bundle; maintained-grid-web-tools.resources.json exit0. Cargo lock unchanged; matching wasm-bindgen0.2.128 fetched. Linux/macOS dispatch retains Bash but not executed here.",
     "escapeAuthoring": "PASS22/22 and structure/replay. Four user-approved shortcut corrections pass focused actual layers/labels/delete helper checks; complete enclosing94c/final callbacks remain pending.",
@@ -86,7 +86,7 @@
     "nativeInkControls": "PASS: Current 97d native ink controls pass 14/14 exact production/course RGBA pairs: two mixed-CAD no-lines/no-edges states and open arrowed, closed headless, placed selected joined strokes. Five invocations, 201.558 s, peak 963235840 B; 28 PNGs decoded and all 14 unique frames individually inspected. Fixed styles/cameras only; no arbitrary width/AA/clipping/material sweep, production owner-picking or browser acceptance claim. Public release/ink-family-controls-native-review.json.",
     "sheetsFocused": "PASS focused Sheets v3: all original assertions and fixtures, including source-axis metadata and held Close response, pass in 113.034 s. First metadata pick took 58.3313 s on WARP; this explains the 30 s context-default failure. Presheet nested-placement prerequisites were deliberately omitted, so this is not full 94c acceptance. Frozen files unchanged.",
     "warpContextBudget": "Opt-in external WARP context default 120 s and outer guard 7200 s are being recorded for bounded retries; all explicit operation timeouts and frozen assertions remain unchanged. No canonical pass is inferred from a larger budget.",
-    "lateChapterTeaching": "PASS scoped restored chapters11–22:59 source/built/served introductions,111 contents links,555 restored relative links,21 source-matching decoded images(20 teaching figures plus retained checkpoint screenshot),20 individually inspected original-resolution views including inline Matrix desktop/phone. Docs build53.394s,peak1595437056B. Root progress wording is reviewed separately after publication. Gemini1–10/current combined-book handoff remains deferred.",
+    "lateChapterTeaching": "PENDING current source: concurrent Argo edits removed59 late-chapter introductions and20 introductory figures. Earlier scoped build/visible review remains accepted only at its recorded source hashes; integrate teaching and review publication after external handoff.",
     "browserInputCorrections": "APPROVED/APPLIED:three input sites, all assertions retained; focused DPR1/2 candidate proof is separate from pending full canonical94c acceptance.",
     "cameraPlaneFinite": "COMPLETE:three original finite Camera/Plane/reload criteria accepted through reload4/4,80 native exact pairs and actual native Plane/camera assertions. Required76d freeform remains pending global/chapter proof. release/camera-plane-finite-review.json.",
     "nativeControlSemantics": "PASS source/evidence review of18 actual native test bodies and individual1060-suite PASS entries:open Plane owner/size/visibility/selection,camera reference,width/analytic AA,family independence,clipping/occlusion,source/archive preservation within bounded fixtures. release/native-control-semantics-review.json. No arbitrary production-parity/material or browser closure.",
@@ -240,7 +240,7 @@
   },
   "publication": {
     "branch": "codex/viewer-course-checkpoints-20261023",
-    "status": "Native1060,59 restored lessons,20 scoped visible views and three approved input corrections pushed. Current canonical94c browser replay is running; subsequent progress edits await next checkpoint.",
+    "status": "Native1060 and scoped teaching proofs pushed through68af002a; current94c replay is running. New external prose/schematic edits require additive teaching integration before final docs acceptance.",
     "scope": "Course, runtime and Windows tooling; remaining release gates are explicitly open.",
     "sessionCommit": "df4b50a4ff2558cdc29dd3c8985098f74a78ef3d",
     "parentCommit": "5511e8b",
@@ -592,7 +592,12 @@
       "inspectedPassedBodies": 18,
       "scope": "Named native semantics only; actual production-parity/material/isoline/browser requirements outside those assertions remain."
     },
-    "materialLightingTransparencyNativeSemantics": {"record": "release/material-lighting-transparency-native-review.json", "inspectedPassedBodies": 7, "sourceFingerprint": "97d4a9ff577fe4e932ee9561260e4bd0adbc2a82943883d111949038af33fd23", "scope": "Bounded course-native lighting, glass/Xray, original-pick, refresh and presentation semantics; no independent production-parity or browser closure."},
+    "materialLightingTransparencyNativeSemantics": {
+      "record": "release/material-lighting-transparency-native-review.json",
+      "inspectedPassedBodies": 7,
+      "sourceFingerprint": "97d4a9ff577fe4e932ee9561260e4bd0adbc2a82943883d111949038af33fd23",
+      "scope": "Bounded course-native lighting, glass/Xray, original-pick, refresh and presentation semantics; no independent production-parity or browser closure."
+    },
     "sheetTextNativeCriterion": {
       "status": "one native criterion complete; Sheet/text feature remains partial",
       "record": "release/sheet-text-native-controls-review.json",
@@ -600,5 +605,10 @@
       "accepted": "Separate shaping, glyph scale, placements, clipping, original queries and retained-resource-lifetime assertions in the recorded1060-suite.",
       "remaining": "Required chapter13/14 source-specific callbacks and actual Sheet-state image inspection; all other unproved control/material/browser and global obligations remain."
     }
+  },
+  "concurrentTeachingIntegration": {
+    "status": "required-pending-external-edit-handoff",
+    "record": "release/concurrent-teaching-integration-review.json",
+    "previousScopedPublication": "PASS scoped restored chapters11–22:59 source/built/served introductions,111 contents links,555 restored relative links,21 source-matching decoded images(20 teaching figures plus retained checkpoint screenshot),20 individually inspected original-resolution views including inline Matrix desktop/phone. Docs build53.394s,peak1595437056B. Root progress wording is reviewed separately after publication. Gemini1–10/current combined-book handoff remains deferred."
   }
 }

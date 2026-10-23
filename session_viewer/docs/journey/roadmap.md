@@ -1,4 +1,6 @@
-# The complete draft lesson checklist
+#- [ ] Current publication requires merging59 late-chapter introductions and20 teaching figures removed by active external schematic edits. Prior source-bound reviews remain historical; preserve Argo's new diagrams and restore Matrix teaching additively after handoff. [Integration record](release/concurrent-teaching-integration-review.json).
+
+ The complete draft lesson checklist
 
 **Course status: 22 authored chapters, 111 reader lessons and 1,361 preserved checkpoints. Source-bound checkpoint acceptance is being refreshed.**
 

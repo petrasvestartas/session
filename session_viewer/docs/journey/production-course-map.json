@@ -22081,7 +22081,12 @@
         "inspectedPassedBodies": 18,
         "scope": "Named native semantics only; actual production-parity/material/isoline/browser requirements outside those assertions remain."
       },
-      "materialLightingTransparencyNativeSemantics": {"record": "release/material-lighting-transparency-native-review.json", "inspectedPassedBodies": 7, "sourceFingerprint": "97d4a9ff577fe4e932ee9561260e4bd0adbc2a82943883d111949038af33fd23", "scope": "Bounded course-native lighting, glass/Xray, original-pick, refresh and presentation semantics; no independent production-parity or browser closure."},
+      "materialLightingTransparencyNativeSemantics": {
+        "record": "release/material-lighting-transparency-native-review.json",
+        "inspectedPassedBodies": 7,
+        "sourceFingerprint": "97d4a9ff577fe4e932ee9561260e4bd0adbc2a82943883d111949038af33fd23",
+        "scope": "Bounded course-native lighting, glass/Xray, original-pick, refresh and presentation semantics; no independent production-parity or browser closure."
+      },
       "sheetTextNativeCriterion": {
         "status": "one native criterion complete; Sheet/text feature remains partial",
         "record": "release/sheet-text-native-controls-review.json",
@@ -22090,7 +22095,7 @@
         "remaining": "Required chapter13/14 source-specific callbacks and actual Sheet-state image inspection; all other unproved control/material/browser and global obligations remain."
       }
     },
-    "docsCurrent": "PASS scoped restored chapters11–22:59 source/built/served introductions,111 contents links,555 restored relative links,21 source-matching decoded images(20 teaching figures plus retained checkpoint screenshot),20 individually inspected original-resolution views including inline Matrix desktop/phone. Docs build53.394s,peak1595437056B. Root progress wording is reviewed separately after publication. Gemini1–10/current combined-book handoff remains deferred.",
+    "docsCurrent": "PENDING current source: concurrent Argo edits removed59 late-chapter introductions and20 introductory figures. Earlier scoped build/visible review remains accepted only at its recorded source hashes; integrate teaching and review publication after external handoff.",
     "readerCompilerProof": {
       "status": "Compiler-only lane:9/101 endpoints,18/202 phases passed",
       "readerEndpoints": 111,
@@ -22106,9 +22111,11 @@
       "record": "docs/journey/release/reader-compilation-review.json"
     },
     "lateChapterTeaching": {
-      "status": "PASS scoped restored chapters11–22:59 source/built/served introductions,111 contents links,555 restored relative links,21 source-matching decoded images(20 teaching figures plus retained checkpoint screenshot),20 individually inspected original-resolution views including inline Matrix desktop/phone. Docs build53.394s,peak1595437056B. Root progress wording is reviewed separately after publication. Gemini1–10/current combined-book handoff remains deferred.",
+      "status": "PENDING current source: concurrent Argo edits removed59 late-chapter introductions and20 introductory figures. Earlier scoped build/visible review remains accepted only at its recorded source hashes; integrate teaching and review publication after external handoff.",
       "restoration": "release/late-chapter-teaching-restoration.json",
-      "visualReview": "release/late-chapter-visible-review.json"
+      "visualReview": "release/late-chapter-visible-review.json",
+      "previousScopedStatus": "PASS scoped restored chapters11–22:59 source/built/served introductions,111 contents links,555 restored relative links,21 source-matching decoded images(20 teaching figures plus retained checkpoint screenshot),20 individually inspected original-resolution views including inline Matrix desktop/phone. Docs build53.394s,peak1595437056B. Root progress wording is reviewed separately after publication. Gemini1–10/current combined-book handoff remains deferred.",
+      "concurrentIntegrationRecord": "release/concurrent-teaching-integration-review.json"
     },
     "browserInputCorrections": {
       "approved": true,

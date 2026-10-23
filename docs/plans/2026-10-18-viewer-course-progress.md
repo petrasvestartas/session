@@ -1,4 +1,6 @@
-# Session Viewer course: progress and remaining work
+#- [ ] Current publication requires merging59 late-chapter introductions and20 teaching figures removed by active external schematic edits. Prior source-bound reviews remain historical; preserve Argo's new diagrams and restore Matrix teaching additively after handoff. [Integration record](../../session_viewer/docs/journey/release/concurrent-teaching-integration-review.json).
+
+ Session Viewer course: progress and remaining work
 
 Updated 2026-10-23 on Windows. This is the current execution plan, not a declaration that the viewer course is finished.
 
