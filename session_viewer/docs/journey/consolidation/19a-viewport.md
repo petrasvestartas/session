@@ -1,20 +1,90 @@
 # 3.2 · One drawing size and one captured gesture
 
-Keep canvas, depth, camera and pointer coordinates coherent across resize, drag and wheel input.
+**Section 3: Scene Documents, Transactions, and Browser GPU Lifetime** · **Lesson 3.2** (Redraft `3.2`) · **8 checkpoints (`19a-viewport` → `22-shortcuts`)**
 
-## Ownership and data flow
+> **Learning Goal:** Convert CSS dimensions and display density to finite, bounded GPU pixel dimensions.
 
-Viewport converts CSS dimensions and display density into bounded GPU pixel dimensions. Resizing changes the surface, depth target and camera aspect together. Gesture owns exactly one active pointer, computes movement from its previous position and clears that ownership on release or cancellation. Wheel deltas are normalized from pixels, lines or pages before zoom. View actions redraw without adding document history.
+## Visual WebGPU & Architecture Schematic
 
-## The maintained implementation
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1px solid #cbd5e1;border-radius:10px;background:#f8fafc;">
+<svg viewBox="0 0 840 240" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#475569"/>
+    </marker>
+    <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+    <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#059669"/>
+    </marker>
+  </defs>
+  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#0f172a">Chapter 3 Architecture: Transactional Protobuf (.pb) Decode, World Placements & Incremental GPU Sync</text>
+  <text x="20" y="46" font-size="11.5" fill="#475569">Separating exact session_rust kernel geometry from GPU display buffers so view changes never re-upload unchanged meshes.</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#e2e8f0" stroke-width="1"/>
+  
+    <rect x="18" y="68" width="185" height="145" rx="6" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
+    <text x="110" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1e40af">1. Async .pb File / URL I/O</text>
+    <text x="28" y="108" font-size="10.5" fill="#1e3a8a">• Ticket #N (cancels #N-1)</text>
+    <text x="28" y="126" font-size="10.5" fill="#1e3a8a">• Bounded Protobuf decode</text>
+    <text x="28" y="144" font-size="10.5" font-weight="600" fill="#1d4ed8">• Topological validation</text>
+    <text x="28" y="162" font-size="10.5" fill="#1e3a8a">• Corrupt file? Reject with</text>
+    <text x="28" y="177" font-size="10.5" fill="#1e3a8a">  ZERO partial scene mutation</text>
 
-app/input.rs, app/gesture and lib.rs route maintained winit input; engine/gpu/view.rs owns density and resize policy. These DOM gesture checkpoints teach ownership explicitly before the maintained event-loop integration.
+    <line x1="203" y1="138" x2="233" y2="138" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
 
-All production paths above are relative to `session_viewer/src`. The implementation below preserves the runnable teaching sequence. Early `src/renderer.rs`, `src/browser.rs` and local WGSL are staged prerequisites; production drawing remains in `engine/gpu`, `engine/pipelines` and `src/shaders`. Later rendering lessons must converge to those maintained paths.
+    <rect x="235" y="68" width="275" height="145" rx="6" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5"/>
+    <text x="372" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#9a3412">2. Editor Owner (Browser-Independent)</text>
+    <text x="247" y="108" font-size="10.5" fill="#7c2d12">• Kernel Mesh (local-space f64 coordinates)</text>
+    <text x="247" y="126" font-size="10.5" fill="#7c2d12">• Placement 4x4 Matrix (world transform)</text>
+    <text x="247" y="144" font-size="10.5" font-weight="600" fill="#c2410c">• Releasable Source Ownership:</text>
+    <text x="247" y="160" font-size="10" fill="#7c2d12">  Drop cold CPU source after GPU upload;</text>
+    <text x="247" y="175" font-size="10" fill="#7c2d12">  re-fetch exact SHA/revision on edit!</text>
+    <text x="247" y="195" font-size="10.5" fill="#7c2d12">• Emits Change { sync_scene, redraw }</text>
 
-## Build the capability
+    <line x1="510" y1="115" x2="542" y2="115" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>
+    <line x1="510" y1="175" x2="542" y2="175" stroke="#059669" stroke-width="2" marker-end="url(#arrow-green)"/>
 
-Apply these implementation checkpoints in order in the same `workspace/journey` project. Expand a block while typing; each retains its original complete Type section, including its snippet includes and locate/replace context. Intermediate IDs remain recoverable checkpoints within this lesson.
+    <rect x="544" y="68" width="276" height="68" rx="6" fill="#fdf2f8" stroke="#f472b6" stroke-width="1.5"/>
+    <text x="556" y="86" font-size="11" font-weight="700" fill="#9d174d">3A. Geometry Changed (sync_scene = true)</text>
+    <text x="556" y="104" font-size="10.5" fill="#831843">• Upload changed mesh vertex/index buffers</text>
+    <text x="556" y="120" font-size="10.5" fill="#831843">• Retain unchanged object GPU allocations</text>
+
+    <rect x="544" y="145" width="276" height="68" rx="6" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1.5"/>
+    <text x="556" y="163" font-size="11" font-weight="700" fill="#065f46">3B. View / Camera Only (sync_scene = false)</text>
+    <text x="556" y="181" font-size="10.5" fill="#064e3b">• queue.write_buffer(camera_uniform) ONLY</text>
+    <text x="556" y="197" font-size="10.5" fill="#064e3b">• Zero geometry re-uploads during Orbit/Fit!</text>
+    
+</svg>
+</div>
+
+### Lesson Data Flow (`Rust` → `WebGPU` → `WGSL`)
+
+```
+CSS width and height × display density → proportional GPU-limit cap → Viewport.
+Motion + CSS rectangle → Action → Editor → selection or view change.
+Wheel → navigation_action → Editor; printable key → command dock → typed Action.
+```
+
+- Convert CSS dimensions and display density to finite, bounded GPU pixel dimensions.
+- Convert CSS pointer coordinates and movement into existing Pick and Orbit actions.
+- Normalize wheel input and keep every keyboard feature command in the command dock.
+- **Why it works (Why cap width and height by the same scale?):** Independent caps would change their ratio and stretch the scene. A shared scale keeps proportions apart from integer rounding.
+
+### Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `Browser`)
+
+| Layer | Construct | First-Year Student Explanation |
+| :--- | :--- | :--- |
+| **Protobuf (`.pb`)** | `session_proto` Binary Wire Format | Compact binary serialization for `Session` models; decoded with strict byte/count limits and topological validation before touching the live scene. |
+| **Rust (`session_rust`)** | Kernel `Mesh` + World Placement `4x4` Matrix | Separates exact `f64` kernel geometry from placed world instances; cold CPU source bytes can be released after GPU upload and re-fetched on edit. |
+| **Rust (`wgpu`)** | `Change { sync_scene, redraw }` | Incremental dirty-flag contract: camera orbit/fit sets `sync_scene = false` (updating only the 64-byte camera uniform), while geometry edits upload only changed buffers. |
+
+**Production source (`session_viewer/src`):** `session_viewer/src`
+
+## Implementation Checkpoints
+
+Apply these checkpoints in order inside `workspace/journey`. Expand each block to view the Rust/WGSL/HTML edits:
 
 <a id="checkpoint-19a-viewport"></a>
 
@@ -2526,9 +2596,9 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 </details>
 
-## Run, check and save
+## Run, Check, and Save
 
-From `session_viewer`, after restoring any experimental edits:
+From `session_viewer`:
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 22-shortcuts
@@ -2539,14 +2609,12 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running so saving rebuilds it. `check` compares your typed source with the selected endpoint without replacing your project; `save` records that source for recovery. The commands are learner instructions, not a claim that this consolidation batch has rerun GPU or browser acceptance. [Checkpoint recovery](../recovery.md) explains restoring a saved state.
+Open `http://127.0.0.1:8780/`. Use [checkpoint recovery](../recovery.md) to restore any saved checkpoint.
 
-## Result and experiment
+## Expected Visual Result & Experiment
 
 Wheel over the scene to zoom. Click the canvas and type Pan Right; the first character reaches the dock and Enter pans the view.
 
-Change wheel sensitivity from 0.002 to 0.001, predict the difference, and try it before restoring the value. Run `Undo` after several wheel movements: it removes the box while preserving the camera. Run `Redo` to restore it. Explain why navigation does not enter document history. Finally Tab away during a drag; the canvas blur listener should cancel it.
-
-Recorded screenshot paths are identified in the chapter coverage map as historical, pending fresh acceptance. No uninspected screenshot is embedded here. Source comparison, a successful build and visual behavior are separate checks.
+- **Try this:** Change wheel sensitivity from 0.002 to 0.001, predict the difference, and try it before restoring the value. Run `Undo` after several wheel movements: it removes the box while preserving the camera. Run `Redo` to restore it. Explain why navigation does not enter document history. Finally Tab away during a drag; the canvas blur listener should cancel it.
 
 Continue with [Validated files, bounds and useful projections](22a-records.md).

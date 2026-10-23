@@ -1,20 +1,90 @@
 # 3.3 · Validated files, bounds and useful projections
 
-Open one validated document as a single transaction and frame it in perspective or orthographic projection.
+**Section 3: Scene Documents, Transactions, and Browser GPU Lifetime** · **Lesson 3.3** (Redraft `3.3`) · **14 checkpoints (`22a-records` → `26a-keys`)**
 
-## Ownership and data flow
+> **Learning Goal:** Run the state checks. A valid box passes; non-finite coordinates and missing vertex references are rejected.
 
-Decode bytes into a private prepared document before touching the live scene. Validation checks geometry and source identities, while a request token prevents an obsolete file read from delivering. Bounds come from displayed geometry; Camera uses their centre and radius to fit while preserving orientation. Projection changes keep target-plane scale coherent and update drawing and pick rays together. Selected framing queries the chosen stable identity, not the last vector row.
+## Visual WebGPU & Architecture Schematic
 
-## The maintained implementation
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1px solid #cbd5e1;border-radius:10px;background:#f8fafc;">
+<svg viewBox="0 0 840 240" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#475569"/>
+    </marker>
+    <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+    <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#059669"/>
+    </marker>
+  </defs>
+  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#0f172a">Chapter 3 Architecture: Transactional Protobuf (.pb) Decode, World Placements & Incremental GPU Sync</text>
+  <text x="20" y="46" font-size="11.5" fill="#475569">Separating exact session_rust kernel geometry from GPU display buffers so view changes never re-upload unchanged meshes.</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#e2e8f0" stroke-width="1"/>
+  
+    <rect x="18" y="68" width="185" height="145" rx="6" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
+    <text x="110" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1e40af">1. Async .pb File / URL I/O</text>
+    <text x="28" y="108" font-size="10.5" fill="#1e3a8a">• Ticket #N (cancels #N-1)</text>
+    <text x="28" y="126" font-size="10.5" fill="#1e3a8a">• Bounded Protobuf decode</text>
+    <text x="28" y="144" font-size="10.5" font-weight="600" fill="#1d4ed8">• Topological validation</text>
+    <text x="28" y="162" font-size="10.5" fill="#1e3a8a">• Corrupt file? Reject with</text>
+    <text x="28" y="177" font-size="10.5" fill="#1e3a8a">  ZERO partial scene mutation</text>
 
-app/decode.rs, app/validate.rs and app/loader.rs form the maintained input boundary. camera.rs owns fitting/projection and app/scene.rs owns FileDoc. Loader generations reject superseded work; the small browser FileReader token is staging for that production boundary.
+    <line x1="203" y1="138" x2="233" y2="138" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
 
-All production paths above are relative to `session_viewer/src`. The implementation below preserves the runnable teaching sequence. Early `src/renderer.rs`, `src/browser.rs` and local WGSL are staged prerequisites; production drawing remains in `engine/gpu`, `engine/pipelines` and `src/shaders`. Later rendering lessons must converge to those maintained paths.
+    <rect x="235" y="68" width="275" height="145" rx="6" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5"/>
+    <text x="372" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#9a3412">2. Editor Owner (Browser-Independent)</text>
+    <text x="247" y="108" font-size="10.5" fill="#7c2d12">• Kernel Mesh (local-space f64 coordinates)</text>
+    <text x="247" y="126" font-size="10.5" fill="#7c2d12">• Placement 4x4 Matrix (world transform)</text>
+    <text x="247" y="144" font-size="10.5" font-weight="600" fill="#c2410c">• Releasable Source Ownership:</text>
+    <text x="247" y="160" font-size="10" fill="#7c2d12">  Drop cold CPU source after GPU upload;</text>
+    <text x="247" y="175" font-size="10" fill="#7c2d12">  re-fetch exact SHA/revision on edit!</text>
+    <text x="247" y="195" font-size="10.5" fill="#7c2d12">• Emits Change { sync_scene, redraw }</text>
 
-## Build the capability
+    <line x1="510" y1="115" x2="542" y2="115" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>
+    <line x1="510" y1="175" x2="542" y2="175" stroke="#059669" stroke-width="2" marker-end="url(#arrow-green)"/>
 
-Apply these implementation checkpoints in order in the same `workspace/journey` project. Expand a block while typing; each retains its original complete Type section, including its snippet includes and locate/replace context. Intermediate IDs remain recoverable checkpoints within this lesson.
+    <rect x="544" y="68" width="276" height="68" rx="6" fill="#fdf2f8" stroke="#f472b6" stroke-width="1.5"/>
+    <text x="556" y="86" font-size="11" font-weight="700" fill="#9d174d">3A. Geometry Changed (sync_scene = true)</text>
+    <text x="556" y="104" font-size="10.5" fill="#831843">• Upload changed mesh vertex/index buffers</text>
+    <text x="556" y="120" font-size="10.5" fill="#831843">• Retain unchanged object GPU allocations</text>
+
+    <rect x="544" y="145" width="276" height="68" rx="6" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1.5"/>
+    <text x="556" y="163" font-size="11" font-weight="700" fill="#065f46">3B. View / Camera Only (sync_scene = false)</text>
+    <text x="556" y="181" font-size="10.5" fill="#064e3b">• queue.write_buffer(camera_uniform) ONLY</text>
+    <text x="556" y="197" font-size="10.5" fill="#064e3b">• Zero geometry re-uploads during Orbit/Fit!</text>
+    
+</svg>
+</div>
+
+### Lesson Data Flow (`Rust` → `WebGPU` → `WGSL`)
+
+```
+Raw proto::Mesh → validation → accepted record or error.
+Bounds centre/radius and aspect → camera target, distance and clipping.
+keyboard press → text ownership → existing command → editor action → redraw.
+```
+
+- Run the state checks. A valid box passes; non-finite coordinates and missing vertex references are rejected.
+- Run the state checks. Every corner remains inside the view across scales and aspect ratios, and fitting preserves orientation.
+- Let canvas F fit the selection and platform shortcuts run Undo or Redo through existing actions.
+- **Why it works (Why validate raw records before constructing a Session?):** Invalid indices and unsupported forms should return a controlled error before kernel construction begins.
+
+### Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `Browser`)
+
+| Layer | Construct | First-Year Student Explanation |
+| :--- | :--- | :--- |
+| **Protobuf (`.pb`)** | `session_proto` Binary Wire Format | Compact binary serialization for `Session` models; decoded with strict byte/count limits and topological validation before touching the live scene. |
+| **Rust (`session_rust`)** | Kernel `Mesh` + World Placement `4x4` Matrix | Separates exact `f64` kernel geometry from placed world instances; cold CPU source bytes can be released after GPU upload and re-fetched on edit. |
+| **Rust (`wgpu`)** | `Change { sync_scene, redraw }` | Incremental dirty-flag contract: camera orbit/fit sets `sync_scene = false` (updating only the 64-byte camera uniform), while geometry edits upload only changed buffers. |
+
+**Production source (`session_viewer/src`):** `session_viewer/src`
+
+## Implementation Checkpoints
+
+Apply these checkpoints in order inside `workspace/journey`. Expand each block to view the Rust/WGSL/HTML edits:
 
 <a id="checkpoint-22a-records"></a>
 
@@ -5884,9 +5954,9 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 </details>
 
-## Run, check and save
+## Run, Check, and Save
 
-From `session_viewer`, after restoring any experimental edits:
+From `session_viewer`:
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 26a-keys
@@ -5897,14 +5967,12 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running so saving rebuilds it. `check` compares your typed source with the selected endpoint without replacing your project; `save` records that source for recovery. The commands are learner instructions, not a claim that this consolidation batch has rerun GPU or browser acceptance. [Checkpoint recovery](../recovery.md) explains restoring a saved state.
+Open `http://127.0.0.1:8780/`. Use [checkpoint recovery](../recovery.md) to restore any saved checkpoint.
 
-## Result and experiment
+## Expected Visual Result & Experiment
 
 Select an object, click the canvas, then press F. Ctrl+Z undoes a document edit; Ctrl+Y or Ctrl+Shift+Z redoes it. Use Cmd on macOS.
 
-Focus the command field and type F. It remains text. Type a word, then press Ctrl+Z: document history must stay unchanged.
-
-Recorded screenshot paths are identified in the chapter coverage map as historical, pending fresh acceptance. No uninspected screenshot is embedded here. Source comparison, a successful build and visual behavior are separate checks.
+- **Try this:** Focus the command field and type F. It remains text. Type a word, then press Ctrl+Z: document history must stay unchanged.
 
 Continue with [Local sources, world placement and display caches](27-placement.md).
