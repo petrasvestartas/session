@@ -10,7 +10,7 @@ module.exports = async (original, helpers) => {
             const canvas = page.locator('canvas'); const value = async name => JSON.parse(await canvas.getAttribute(name));
             const selected = () => value('data-selected-ids');
             const click = async (p, additive = false) => {
-                await page.keyboard.press('Escape'); const m = await value('data-camera-matrix'), box = await canvas.boundingBox();
+                if (!additive) await page.keyboard.press('Escape'); const m = await value('data-camera-matrix'), box = await canvas.boundingBox();
                 const c = [0, 1, 2, 3].map(row => p.reduce((sum, n, axis) => sum + m[axis * 4 + row] * n, m[12 + row]));
                 assert(Math.abs(c[0] / c[3]) < 1 && Math.abs(c[1] / c[3]) < 1, `Selection target must stay on canvas: ${JSON.stringify(p)}`);
                 const before = (await value('data-pick-gpu'))[3]; if (additive) await page.keyboard.down('Shift');

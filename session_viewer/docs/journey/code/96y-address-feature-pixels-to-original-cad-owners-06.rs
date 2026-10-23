@@ -1,0 +1,1 @@
+pub struct Row {pub key:String,pub label:String,pub depth:usize,pub end:usize,pub ids:Vec<ObjectId>,pub members:Vec<ObjectId>,pub readonly:bool}

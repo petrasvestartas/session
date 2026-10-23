@@ -1,6 +1,6 @@
 {
-  "status": "PASS: source audit only; fresh execution pending",
-  "scope": "1059 tests remain bound to a45. This audit supports bounded native retesting; it is not a fresh full-suite run or browser/feature acceptance.",
+  "status": "Historical source audit PASS at 64e13; current native acceptance pending",
+  "scope": "The 1059-test result remains bound to a45. The bounded reuse comparison applies only to 64e13. Current 34d5e443 changes native runtime code, so the earlier compile-plus-inventory-only retest boundary does not establish current native acceptance.",
   "recordedAt": "2026-10-23T14:46:08.639153+00:00",
   "links": {
     "state": "../consolidation/current-state.json",
@@ -10,7 +10,7 @@
   "observedSource": {
     "sessionHead": "253ec420f35db5e6de28b0b0a820342b1637997f",
     "rootHead": "a89c5ba7222b4d843aa9d12101e336bb884a1a6f",
-    "note": "Heads are context, not a clean-tree claim; application fingerprints identify compared source."
+    "note": "Historical heads at the 64e13 audit, not current-source or clean-tree claims; fingerprints identify the compared application source."
   },
   "originalFullNativeRun": {
     "applicationFingerprint": "a45eada2fbdbd940d5e85b50e7e5fe12ccef69e794abd71111264cce0368fe2c",
@@ -35,14 +35,13 @@
     "freshStage": "target/course-endpoint-escape-handoff",
     "freshApplicationFingerprint": "64e13d5f3f0fdfbbf7a75b7da0c0d47d93dbbd5ae33dc1a81f80f3b59ea86bd9",
     "canonicalFiles": 713,
-    "matchesExpectedModel": true,
     "unchangedCanonicalFiles": 710,
     "changedFiles": [
       "src/browser.rs",
       "src/panel.rs",
       "src/current_inventory.json"
     ],
-    "compiledCodeScope": "a45 to63acaf79 changes browser pagehide disposal ordering;63acaf79 to64e13d5f adds panel/canvas Escape handoff. Both modules are WASM-only. No additional native runtime/shader/dependency delta found.",
+    "compiledCodeScope": "a45 to63acaf79 changes browser pagehide disposal ordering;63acaf79 to 64e13d5f adds panel/canvas Escape handoff. Both modules are WASM-only. No additional native runtime/shader/dependency delta found.",
     "moduleGates": [
       {
         "path": "src/lib.rs",
@@ -58,7 +57,9 @@
         "moduleLine": 301,
         "module": "mod panel;"
       }
-    ]
+    ],
+    "status": "Historical bounded comparison; not applicable to current 34d5e443 native runtime",
+    "matchesExpectedModelAtAudit": true
   },
   "nativeMetadata": {
     "file": "src/current_inventory.json",
@@ -71,7 +72,8 @@
     "consumer": "src/source_audit.rs:6 includes current_inventory.json",
     "externalEntriesVerified": 433,
     "externalMismatches": 0,
-    "hashPolicy": "All433 viewer/kernel/wood entries match disk: valid UTF-8 uses CRLF-to-LF normalization; invalid UTF-8 stays raw."
+    "hashPolicy": "All433 viewer/kernel/wood entries match disk: valid UTF-8 uses CRLF-to-LF normalization; invalid UTF-8 stays raw.",
+    "scope": "Historical 64e13 audit: 433 external entries were verified then. This retained result is not a new verification of current 34d5e443."
   },
   "physicalStageExceptions": {
     "cargo": "Frozen Cargo.toml has eight extra diagnostic examples. Removing only that suffix reproduces a45; dependency/non-example tables match.",
@@ -93,23 +95,40 @@
       "assets/pb/course-boxes.pb",
       "assets/pb/view_mixed_teapot.pb",
       "assets/text/README.md"
-    ]
+    ],
+    "scope": "Exceptions between the recorded a45 and 64e13 materialized stages only."
   },
   "reproduction": {
     "audit": "target/course-windows-20261018/native-final-reuse-boundary.json",
     "auditSha256": "af1898e9e3c5c8820f0497017675a6bfd23b3bf97676dc5be3b19f97a38057c9",
-    "contents": "Contains713 hashes, exact diffs, cfg gates, inventory delta and asset exceptions. Compare fresh files to expected(final ID); use canonical Cargo.toml with frozen files to reproduce a45.",
+    "contents": "Contains 713 recorded hashes, exact diffs, cfg gates, inventory delta and asset exceptions for a45 versus 64e13. Use those frozen identities, not the current final model; canonical Cargo.toml with frozen files reproduces a45.",
     "checkpoint": "96zzzzzzzq-draw-original-cad-wire-curves"
   },
   "freshExecution": {
-    "nativeCompile": "pending",
+    "nativeCompile": "pending for current 34d5e443",
     "inventoryTest": {
-      "status": "pending",
+      "status": "pending for current 34d5e443",
       "filter": "inventory_tests::all_declared_current_rust_sources_and_external_dependencies_match"
     },
-    "optimizedWasm": "pending",
-    "browser": "pending; includes affected lifecycle/Escape and final canonical callbacks",
-    "fullNativeRun": "Not rerun or rebound. Retain original1059/1059 evidence at a45."
+    "optimizedWasm": "pending for current 34d5e443",
+    "browser": "pending for current 34d5e443; includes hierarchy/feature ownership and affected final canonical callbacks",
+    "fullNativeRun": "Original 1059/1059 remains at a45. It is not rebound to 34d5e443; current native acceptance is pending.",
+    "applicationFingerprint": "34d5e443db93c963ba895466249a0e56c7c170352304973997650552b21ae299",
+    "nativeRuntimeTests": "pending; validate the hierarchy, tree/layer display-membership and feature-owner changes before current native acceptance"
   },
-  "limits": "Toolchain/driver/environment identity and unrecorded inputs are outside this audit. Subsequent source changes require a new comparison."
+  "limits": "The 64e13 reuse proof is historical. Native runtime changes at 34d5e443 require fresh execution evidence. Toolchain/driver/environment identity and unrecorded inputs remain outside the retained source audit.",
+  "updatedAt": "2026-10-23T15:21:19.022983+00:00",
+  "currentSource": {
+    "applicationFingerprint": "34d5e443db93c963ba895466249a0e56c7c170352304973997650552b21ae299",
+    "checkpoint": "96zzzzzzzq-draw-original-cad-wire-curves",
+    "changeIntroducedAt": "96y-address-feature-pixels-to-original-cad-owners",
+    "nativeRuntimeChanges": [
+      "src/hierarchy.rs",
+      "src/tree_panel.rs",
+      "src/layer_properties.rs"
+    ],
+    "nativeTestChange": "src/feature_pick_tests.rs",
+    "scope": "Separate Row.ids original editing targets from Row.members complete display membership. Tree presentation and layer visibility/locking/colours use display members without widening editing selection. These are native runtime and test changes, beyond the historical WASM-only comparison.",
+    "acceptance": "pending; no native or browser pass is claimed for this fingerprint"
+  }
 }

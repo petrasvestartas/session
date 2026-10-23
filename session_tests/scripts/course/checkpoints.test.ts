@@ -356,14 +356,29 @@ test('field renames replace whole references without changing longer names', () 
     assert.throws(() => edited(source, edit, 'self.targets.depth\n'), /two field references/);
 });
 
-test('the compact target-owner lesson preserves its accepted source apart from scoped Escape and inventory edits', () => {
+test('the compact target-owner lesson preserves its accepted source apart from scoped Escape, inventory and hierarchy edits', () => {
     const id = '96zzzzzzv-reuse-coherent-frame-targets';
     const record = JSON.parse(read(path.join(viewer, 'docs/journey/visual-review.json'))).steps[id];
     const step = course().steps.find(step => step.id === id)!;
     const fields = step.edits.filter(edit => edit.rename_field);
     assert.equal(fields.length, 2);
     const files = expected(id);
-    assert.equal(fingerprint(files), '342f6fe2efc602f6af619374424d0bbf704ee25742d96ac86d5466f3648a2041');
+    assert.equal(fingerprint(files), '4508c4f44ff9f8f213a041f7425c0e36e09605ca55dc126f8f1c9b7a2b0a0f74');
+    const ownership = course().steps.find(step => step.id === '96y-address-feature-pixels-to-original-cad-owners')!;
+    const hierarchy = ownership.edits.filter(edit => ['src/hierarchy.rs', 'src/tree_panel.rs', 'src/layer_properties.rs'].includes(edit.path));
+    assert.equal(hierarchy.length, 9);
+    for (const edit of [...hierarchy].reverse()) {
+        const after = read(path.join(viewer, 'docs', edit.snippet));
+        files[edit.path] = edited(files[edit.path], {...edit, before: after}, edit.before!);
+    }
+    const validation = ownership.edits.find(edit => edit.path === 'src/feature_pick_tests.rs')!;
+    const fixture = read(path.join(viewer, 'docs', validation.snippet));
+    const marker = '\n#[test]\nfn tree_original_targets_preserve_complete_feature_presentation_membership()';
+    assert.equal(fixture.split(marker).length, 2);
+    const regression = fixture.slice(fixture.indexOf(marker));
+    assert.equal(hash(regression), '25e956afea88634de990cd8777b41bab2e1b062fc165ff67cda774d1f64eda47');
+    assert(files[validation.path].endsWith(regression));
+    files[validation.path] = files[validation.path].slice(0, -regression.length);
     const escape = course().steps.find(step => step.id === '85as-register-current-names-views-and-command-aliases')!
         .edits.filter(edit => ['src/panel.rs', 'src/browser.rs'].includes(edit.path));
     assert.equal(escape.length, 2);

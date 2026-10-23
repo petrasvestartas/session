@@ -86,7 +86,7 @@ The original Plane keeps its authored frame separate from its display half-size.
 
 ![Selected original Plane retains the same placed frame at a larger display size](../../screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-plane-placed-selected-native-4x.png)
 
-**Supporting covered Plane evidence.** The [generated covered Plane record](../release/plane-generated-covered-native-review.json) adds 16 exact native production/course pairs with an opaque blue lid. The axes remain visible over the lid in both renderers. This records their matching display behavior; it does not establish covered-owner picking. Printed-fill controls and the full original-fixture matrix remain pending.
+**Supporting covered Plane evidence.** The [generated covered Plane record](../release/plane-generated-covered-native-review.json) adds 16 exact native production/course pairs with an opaque blue lid. The axes remain visible over the lid in both renderers. This records their matching display behavior; it does not establish covered-owner picking. The [generated printed-fill record](../release/plane-generated-print-native-review.json) and [retained original covered-source record](../release/plane-original-covered-matrix-native-review.json) each add another 16 exact native pairs. All five declared Plane matrices now pass 80/80 full-frame comparisons. Generated and historical source bytes remain distinct; covered/printed cases make no owner-pick or browser acceptance claim.
 
 ![Unselected covered Plane axes remain visible over the blue lid in the course renderer](../../screenshots/journey/review/96zzzzzzzq-plane-covered-unselected-course.png)
 

@@ -68247,8 +68247,8 @@
       "result": "",
       "experiment": "Click a visible interaction outline in object mode and Delete, then Undo. The original Element and its features disappear and return together. Try edge mode: it must not expose a generated outline segment as an original editable edge. Lock the owner and repeat.",
       "production": "Current app/walk/mod.rs draws features with cx.row, the original Element or instance row. This stage gives the cumulative integer pick pass the same original ownership. Current packed draw formats remain a separate rendering bridge.",
-      "story": "The integer picking pass must write original editing identities.\n\nA derived feature path is visible geometry, but it is not an editable Session object. Resolve its nearest original Element or InstanceRef with the ownership traversal already taught for tree rows. Original paths keep their existing IDs.\n\nUse this resolver when building the GPU ink-ID arrays. A generated feature gets its owner ID and a zero subpart tag: its tessellated segments are display data, not original PathEdge indices. Object mode therefore selects the original CAD owner; edge and control modes cannot invent a source subpart. Hidden and locked original owners still fail the existing eligibility guard.\n\nThis change reuses the integer target, readback and stale-result handling already developed. It adds no second picking pass. The supplied GPU witness clicks a feature line away from its Element mesh and verifies the returned owner ID, then locks the original and repeats the click.\n\nThe dependency command also supplies assets/pb/course-feature-pick.pb: two original Elements with feature lines away from their meshes, with the second Element locked. Open it in the browser and use object selection to check the original-owner address directly.",
-      "checks": "An original interaction fixture checks six generated path addresses, nearest child ownership, zero subparts and locked/hidden guards. A real integer GPU readback clicks an isolated feature line and verifies original-owner selection and locked rejection.",
+      "story": "The integer picking pass must write original editing identities.\n\nA derived feature path is visible geometry, but it is not an editable Session object. Resolve its nearest original Element or InstanceRef with the ownership traversal already taught for tree rows. Original paths keep their existing IDs.\n\nUse this resolver when building the GPU ink-ID arrays. A generated feature gets its owner ID and a zero subpart tag: its tessellated segments are display data, not original PathEdge indices. Object mode therefore selects the original CAD owner; edge and control modes cannot invent a source subpart. Hidden and locked original owners still fail the existing eligibility guard.\n\nThis change reuses the integer target, readback and stale-result handling already developed. It adds no second picking pass. The supplied GPU witness clicks a feature line away from its Element mesh and verifies the returned owner ID, then locks the original and repeats the click.\n\nThe dependency command also supplies assets/pb/course-feature-pick.pb: two original Elements with feature lines away from their meshes, with the second Element locked. Open it in the browser and use object selection to check the original-owner address directly.\n\nKeep an editable tree row's original targets separate from its full display membership. Generated paths still appear as read-only feature children and follow their original owner. Parent selection and the object count use originals; visibility, locking and colour continue to reach every display member.",
+      "checks": "An original interaction fixture checks six generated path addresses, nearest child ownership, zero subparts and locked/hidden guards. A real integer GPU readback clicks an isolated feature line and verifies original-owner selection and locked rejection. The hierarchy regression separately checks original-only parent targets, retained read-only feature rows, original selection and full-member visibility, locking and colour changes.",
       "tests": true,
       "edits": [
         {
@@ -68282,6 +68282,60 @@
           "snippet": "journey/code/96y-address-feature-pixels-to-original-cad-owners-05.rs",
           "why": "Supply a real integer GPU feature-pixel readback witness.",
           "copy": true
+        },
+        {
+          "path": "src/hierarchy.rs",
+          "before": "pub struct Row {pub key:String,pub label:String,pub depth:usize,pub end:usize,pub ids:Vec<ObjectId>,pub readonly:bool}",
+          "snippet": "journey/code/96y-address-feature-pixels-to-original-cad-owners-06.rs",
+          "why": "Keep original editing targets separate from all display members of a tree row."
+        },
+        {
+          "path": "src/hierarchy.rs",
+          "before": "            let node=&doc.nodes[index];let ids=doc.nodes[index..node.end].iter().filter_map(|n|n.object).filter(|id|scene.contains(*id)).collect::<Vec<_>>();",
+          "snippet": "journey/code/96y-address-feature-pixels-to-original-cad-owners-07.rs",
+          "why": "Count and select original descendants in editable rows; retain read-only feature identities and complete display membership."
+        },
+        {
+          "path": "src/hierarchy.rs",
+          "before": "depth:node.depth,end,ids,readonly:node.readonly",
+          "snippet": "journey/code/96y-address-feature-pixels-to-original-cad-owners-08.rs",
+          "why": "Give ordinary and created rows the same explicit display-membership contract."
+        },
+        {
+          "path": "src/hierarchy.rs",
+          "before": "depth:0,end:index+1,ids:vec![row.id],readonly:false",
+          "snippet": "journey/code/96y-address-feature-pixels-to-original-cad-owners-09.rs",
+          "why": "Give ordinary and created rows the same explicit display-membership contract."
+        },
+        {
+          "path": "src/hierarchy.rs",
+          "before": "depth:0,end:index+1,ids:vec![id],readonly:false",
+          "snippet": "journey/code/96y-address-feature-pixels-to-original-cad-owners-10.rs",
+          "why": "Give ordinary and created rows the same explicit display-membership contract."
+        },
+        {
+          "path": "src/tree_panel.rs",
+          "before": "        self.rows=crate::hierarchy::rows(scene);self.selected=selected;self.states=self.rows.iter().map(|row|(row.key.clone(),RowState {hidden:scene.view.lamps.contains(&row.key)||!row.ids.is_empty()&&row.ids.iter().all(|id|scene.view.hidden.contains(id)),locked:!row.ids.is_empty()&&row.ids.iter().all(|id|scene.view.locked.contains(id)),selectable:crate::feature_owner::row_owner(scene,&row.key).is_some() || row.ids.iter().any(|id|scene.pick_id(id.value()).is_some()),owner:crate::feature_owner::row_owner(scene,&row.key),current:crate::layer_edit::current_key(scene).as_ref()==Some(&row.key),has_faces:row.ids.iter().any(|id|scene.objects().iter().any(|mesh|mesh.id==*id)),colours:[row.ids.iter().find_map(|id|scene.view.faces.get(id).copied()),row.ids.iter().find_map(|id|scene.view.edges.get(id).copied())],group:crate::layer_edit::locate(scene,&row.key).is_ok(),root:row.depth==0,holds_current:crate::layer_edit::holds_current(scene,&row.key)})).collect();",
+          "snippet": "journey/code/96y-address-feature-pixels-to-original-cad-owners-11.rs",
+          "why": "Read presentation state from every display member while selection eligibility and actions keep original targets."
+        },
+        {
+          "path": "src/layer_properties.rs",
+          "before": "view.hide(&row.ids,on)",
+          "snippet": "journey/code/96y-address-feature-pixels-to-original-cad-owners-12.rs",
+          "why": "Apply visibility, locking and colours to all display members without widening editing selection."
+        },
+        {
+          "path": "src/layer_properties.rs",
+          "before": "view.lock(&row.ids,on)",
+          "snippet": "journey/code/96y-address-feature-pixels-to-original-cad-owners-13.rs",
+          "why": "Apply visibility, locking and colours to all display members without widening editing selection."
+        },
+        {
+          "path": "src/layer_properties.rs",
+          "before": "for id in &row.ids",
+          "snippet": "journey/code/96y-address-feature-pixels-to-original-cad-owners-14.rs",
+          "why": "Apply visibility, locking and colours to all display members without widening editing selection."
         }
       ],
       "frame": "journey/checks/94-comparison.rs",

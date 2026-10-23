@@ -4,19 +4,26 @@
 
 ## Current completion stages - 2026-10-23
 
-- [x] Authored route: 22/22 chapters and 111 reader lessons; latest Matrix included; no new checkpoint IDs.
-- [x] Current native source: 1,059/1,059 tests pass. The later browser-only correction leaves native code unchanged.
-- [x] Current learner WASM and optimized browser builds pass.
-- [x] Five performance categories measured on the same small demo; ordered input, idle behavior and final disposal browser checks pass. [Measurements and limits](release/runtime-performance-review.json).
-- [x] Earlier docs/SVG/desktop/phone evidence retained at its recorded source; latest combined docs build passes after Gemini and Escape edits.
-- [x] Portable Windows maintained build and optimized bundle pass; existing Bash dispatch retained for Linux/macOS.
-- [x] Escape-selection handoff repaired and focused actual-browser repeated Point picking after zoom passes; all 22 authoring tests and 1,361 reconstructions pass.
-- [ ] Inspect the latest combined book in visible Chrome before final docs acceptance.
-- [ ] Historical fixture callbacks: 0/4 accepted in this pass; the first checkpoint passes all four build/native phases. Its full callback reaches a conflicting Escape/Shift-click helper; the prepared correction awaits the user choice.
+- [x] Authored route: 22/22 chapters, 111 reader lessons and 1,361 preserved checkpoints; all 22 authoring tests and structure checks pass.
+- [x] Historical native proof: 1,059/1,059 tests pass at a45. [Source and reuse boundary](release/native-final-source-review.json).
+- [x] Current hierarchy ownership fix: original editing targets and complete display membership are separate; focused native feature tests pass 2/2.
+- [ ] Current 34d5e443 native acceptance: three runtime modules and one test file changed; fresh full native/inventory verification remains pending.
+- [x] Earlier learner WASM and optimized browser builds retain their recorded source scope. Current optimized WASM/browser acceptance remains pending.
+- [x] Five performance categories measured on the same small demo; ordered input, idle and disposal checks pass at 63acaf79. [Measurements and limits](release/runtime-performance-review.json).
+- [x] All 80 Plane native RGBA pairs pass across plain, placed, generated covered, generated print and retained-original covered matrices. These results make no owner-pick or browser claim.
+- [x] Combined docs build and complete v6 visible review pass at the built source: ten inspected screenshots, 111 links, Gemini SVG, Plane records and Matrix provenance; no page errors or desktop/phone overflow.
+- [x] Portable Windows maintained build and optimized bundle pass; Linux/macOS Bash dispatch is retained.
+- [x] Both production-aligned harness corrections are approved and applied: additive selection retains existing owners, and selected CAD with outlines off matches production yellow without a black core.
+- [x] Focused approved multi-selection WARP check passes at DPR1/2 and both projections; 94.869 s, peak 758,722,560 B.
+- [ ] Complete the affected full browser callbacks; focused helper success does not close fixture acceptance.
+- [x] Current 96y native phase passes 831/831 with zero failures or ignored tests (74.61 s test execution). The prior 830-test pass remains historical.
+- [ ] Finish current 96y optimized web/frame phases and canonical ownership callback; final-endpoint native acceptance remains separate.
+- [ ] Historical fixture callbacks: 0/4 accepted in this pass. Preserve earlier failures and verify the current source and approved checkers.
 - [ ] Reload/grid browser combinations: 0/4 accepted.
-- [ ] Current integration chapter visual queue: chapters 11 and 13-20, nine sets through twelve canonical entry callbacks.
-- [ ] Remaining original Plane controls/browser, CAD, joined/vector and display-control acceptance. Native Point/Mesh, plain/placed Plane and resident Sheet pairs retain their declared partial scopes.
-- [ ] Final release gates: 0/5 closed; complete runnable-lesson, feature and browser acceptance remains required.
+- [ ] Current integration chapter visual queue: chapters 11 and 13-20, nine feature sets through twelve canonical entry callbacks.
+- [ ] Complete remaining CAD, joined/vector, owner-pick and display-control/browser acceptance. Coverage remains 18 partial feature rows and 0 complete.
+- [ ] Rebuild docs for the latest hierarchy/progress metadata edits; the v6 review belongs to the prior built source.
+- [ ] Final release gates: 0/5 closed.
 
 The checkpoint boxes below retain earlier inventory state. Current acceptance additionally requires matching source, fixtures and checker; aggregate test totals do not mark those boxes done. [Current manifest](consolidation/current-state.json) records exact evidence and remaining batches.
 

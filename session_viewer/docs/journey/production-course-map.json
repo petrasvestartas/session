@@ -3,8 +3,8 @@
   "scope": "Initial production-to-course source/coverage audit; proposals are not completed consolidation or rendering acceptance.",
   "sourceAuthority": "session_viewer/src",
   "endpoint": "96zzzzzzzq-draw-original-cad-wire-curves",
-  "endpointStatus": "CAD visual/browser acceptance pending; Native/WASM prior evidence preserved, not rerun",
-  "courseSha256": "13408659fb0576c6bc81812a2c21d13d3eb9fc4dcbd9cfae927a9ec5d8998876",
+  "endpointStatus": "Current hierarchy original-target/display-members fix authored; source-matching native and browser acceptance pending. Prior evidence retains its original fingerprints.",
+  "courseSha256": "79e92591d4e6c616c785981de8ffc668a43be684c219604860fb7dc542c60988",
   "chapters": 22,
   "existingSteps": 1361,
   "proposedReaderLessons": 111,
@@ -1576,6 +1576,18 @@
             "callback": "journey/checks/browser/freeform.cjs"
           }
         ]
+      },
+      "planeNativeMatrices": {
+        "passed": 80,
+        "total": 80,
+        "records": [
+          "release/plane-plain-native-review.json",
+          "release/plane-placed-native-review.json",
+          "release/plane-generated-covered-native-review.json",
+          "release/plane-generated-print-native-review.json",
+          "release/plane-original-covered-matrix-native-review.json"
+        ],
+        "scope": "Exact declared native source/placement/DPR/sample/size/selection comparisons; browser/reload and full display-control acceptance remain separate. Covered/printed matrices do not assert owner picking."
       }
     },
     {
@@ -21593,12 +21605,12 @@
   },
   "currentIntegration": {
     "id": "96zzzzzzzq-draw-original-cad-wire-curves",
-    "fingerprint": "64e13d5f3f0fdfbbf7a75b7da0c0d47d93dbbd5ae33dc1a81f80f3b59ea86bd9",
+    "fingerprint": "34d5e443db93c963ba895466249a0e56c7c170352304973997650552b21ae299",
     "files": 713,
-    "recordedAt": "2026-10-23T14:20:39.193464+00:00",
-    "courseSha256": "13408659fb0576c6bc81812a2c21d13d3eb9fc4dcbd9cfae927a9ec5d8998876",
+    "recordedAt": "2026-10-23T15:18:06.081401+00:00",
+    "courseSha256": "79e92591d4e6c616c785981de8ffc668a43be684c219604860fb7dc542c60988",
     "historicalCourseSha256": "8453513dc6d5ae34d081becc435ee893bbb82cc89d31386ed6fa7141e7576b1b",
-    "scope": "Source and authoring metadata reconciled; bounded native and historical browser evidence retained with their original fingerprints. No feature row has complete final acceptance.",
+    "scope": "Current source replay and authoring checks pass. Native runtime hierarchy, tree-panel presentation and layer-property code changed after prior native acceptance; new source-matching native and browser verification remains pending. No feature row has complete final acceptance.",
     "state": "consolidation/current-state.json",
     "evidencePaths": "Paths in currentIntegration/currentVerification are relative to docs/journey; target evidence is local and is not a public hosted artifact.",
     "authoring": {
@@ -21623,7 +21635,8 @@
       "log": "../../target/course-windows-20261018/integrated-full-native-source-freeze.log",
       "elapsedSeconds": 1468.642,
       "peakJobCommitBytes": 1480597504,
-      "currentDelta": "Later compiled-code changes are WASM-only src/browser.rs and src/panel.rs. src/current_inventory.json additionally refreshes the maintained Trunk hook hash. Retain full native run at a45; focused native inventory verification remains pending."
+      "currentDelta": "Current source changes include native src/hierarchy.rs, src/tree_panel.rs and src/layer_properties.rs plus one src/feature_pick_tests.rs regression separating original editing targets from complete display membership. Prior browser/panel WASM and inventory metadata deltas also remain. The1059-test a45 run and any64-candidate reuse review are historical evidence; they do not validate this current native source.",
+      "currentFinalAcceptance": "pending focused hierarchy/property native regression, source-matching full native suite and original-owner browser acceptance"
     },
     "browser": {
       "lastMeasuredFingerprint": "63acaf79da6dfdde9c35f32d917806560cca2d2b4e9bf73cb1129566076e4856",
@@ -21663,7 +21676,7 @@
       "requirements": "Each entry needs its own checkpoint build signature, optimized bundle, original sample, unchanged recursive callback pass and individual feature-image review. Do not substitute the final runtime for historical layouts."
     },
     "remainingFinalGates": [
-      "Focused native inventory check after the Trunk metadata refresh.",
+      "Focused hierarchy/property and inventory native checks, then the full native suite at the current final source; prior1059-test acceptance cannot be reused across these native code changes.",
       "Current final optimized WASM/browser and full declared canonical callbacks, retaining all failures and contract conflicts.",
       "Four maintained/course by route/live reload-grid browser combinations.",
       "Twelve entry callbacks for nine queued chapters, plus remaining final feature-specific controls/pairs and individual visual reviews listed per row.",
