@@ -1,90 +1,164 @@
 # 18.2 · Original contact metadata and ambient light
 
-**Section 9: Compute Tile Visibility, Clipping Half-Spaces, Section Caps, and Ambient Occlusion** · **Lesson 18.2** (Redraft `9.6`) · **33 checkpoints (`90-copy-maintained-original-contact-radius` → `90v-exercise-actual-contacts-cache-and-source-ownership`)**
+**Section 9: Compute Tile Visibility, Clipping Half-Spaces, Section Caps, and Ambient Occlusion** · **Lesson 18.2** (Redraft `9.6`) · **33 checkpoints (`90-copy-maintained-original-contact-radius` → `90v-exercise-actual-contacts-cache-and-source-ownership`)** · **Study time: 16.5–33 h**
 
-> **Learning Goal:** Derive the existing contact radius from the original scene bounds.
+> **What You Will Learn & Build:** Derive the existing contact radius from the original scene bounds. By the final checkpoint (`90v-exercise-actual-contacts-cache-and-source-ownership`), you will exercise actual contacts cache and source ownership.
 
-## Visual WebGPU & Architecture Schematic
+## 1. Visual Pipeline & WebGPU Architecture (Black & White Schematics)
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1px solid #cbd5e1;border-radius:10px;background:#f8fafc;">
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
+<svg viewBox="0 0 840 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <rect x="4" y="4" width="832" height="212" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Lesson 18.2 Execution Flow: Original contact metadata and ambient light</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">Concrete data pipeline you build in this lesson (33 Checkpoints: 90-copy-maintained-original-contact-radius → 90v-exercise-actual-contacts-cache-and-source-ownership)</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
+  
+    
+    <rect x="18" y="68" width="253" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="144" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
+    <line x1="28" y1="92" x2="261" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="144" y="108" text-anchor="middle" font-size="11" fill="#111111">original properties</text>
+    <line x1="271" y1="108" x2="291" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="293" y="68" width="253" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="419" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
+    <line x1="303" y1="92" x2="536" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">cached ambient recipes</text>
+    <line x1="546" y1="108" x2="566" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="568" y="68" width="253" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="694" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
+    <line x1="578" y1="92" x2="811" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="694" y="108" text-anchor="middle" font-size="11" fill="#111111">shaded contact</text>
+    
+    <rect x="18" y="162" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="32" y="181" font-size="11" font-weight="700" fill="#111111">Files You Edit in Lesson 18.2:</text>
+    <text x="215" y="181" font-size="11" fill="#111111">src/ambient_radius.rs  ·  src/lib.rs  ·  src/ambient_camera.rs  ·  src/ambient_rows.rs  ·  src/ambient.wgsl  ·  src/ambient_composite.wgsl</text>
+    <text x="32" y="198" font-size="10.5" fill="#111111">33 Checkpoints: 90-copy-maintained-original-contact-radius → 90v-exercise-actual-contacts-cache-and-source-ownership — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
+  
+</svg>
+</div>
+
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
 <svg viewBox="0 0 840 240" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#475569"/>
-    </marker>
-    <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#2563eb"/>
-    </marker>
-    <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#059669"/>
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
     </marker>
   </defs>
-  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
-  <text x="20" y="28" font-size="14" font-weight="700" fill="#0f172a">Section 9 Compute Tile Visibility, Clipping Half-Spaces, Winding Section Caps & Horizon GTAO (Ch 17–18)</text>
-  <text x="20" y="46" font-size="11.5" fill="#475569">How @compute shaders bin triangles into screen tiles for hidden-line removal, clip solids with winding caps, and shade crevices.</text>
-  <line x1="16" y1="54" x2="824" y2="54" stroke="#e2e8f0" stroke-width="1"/>
+  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Section 9 Compute Tile Visibility, Clipping Half-Spaces, Winding Section Caps & Horizon GTAO (Ch 17–18)</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">How @compute shaders bin triangles into screen tiles for hidden-line removal, clip solids with winding caps, and shade crevices.</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
   
-    <rect x="18" y="68" width="250" height="145" rx="6" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
-    <text x="143" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1e40af">1. @compute Tile Visibility (Ch 17)</text>
-    <text x="28" y="108" font-size="10.5" fill="#1e3a8a">• projected_triangle.wgsl projects tris</text>
-    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#1d4ed8">• atomicAdd tile counts + prefix-sum CSR</text>
-    <text x="28" y="144" font-size="10.5" fill="#1e3a8a">• ink_visibility.wgsl tests center-line</text>
-    <text x="28" y="160" font-size="10.5" fill="#1e3a8a">  against covering triangles in tile</text>
-    <text x="28" y="178" font-size="10.5" fill="#1e3a8a">• Hidden lines dashed/faded cleanly!</text>
+    <rect x="18" y="68" width="250" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="143" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">1. @compute Tile Visibility (Ch 17)</text>
+    <text x="28" y="108" font-size="10.5" fill="#111111">• projected_triangle.wgsl projects tris</text>
+    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#111111">• atomicAdd tile counts + prefix-sum CSR</text>
+    <text x="28" y="144" font-size="10.5" fill="#111111">• ink_visibility.wgsl tests center-line</text>
+    <text x="28" y="160" font-size="10.5" fill="#111111">  against covering triangles in tile</text>
+    <text x="28" y="178" font-size="10.5" fill="#111111">• Hidden lines dashed/faded cleanly!</text>
 
-    <line x1="268" y1="138" x2="298" y2="138" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
+    <line x1="268" y1="138" x2="298" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="300" y="68" width="265" height="145" rx="6" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5"/>
-    <text x="432" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#9a3412">2. Clipping &amp; Winding Caps (Ch 17)</text>
-    <text x="312" y="108" font-size="10.5" fill="#7c2d12">• Half-space: dot(pos_world, plane) &lt; 0</text>
-    <text x="312" y="126" font-size="10.5" font-weight="600" fill="#c2410c">• Signed front/back crossing count</text>
-    <text x="312" y="142" font-size="10" fill="#7c2d12">  at clip plane depth (cap.wgsl):</text>
-    <text x="312" y="158" font-size="10" fill="#7c2d12">  Fills closed solid interiors while</text>
-    <text x="312" y="173" font-size="10" fill="#7c2d12">  leaving internal bores hollow!</text>
-    <text x="312" y="191" font-size="10.5" fill="#7c2d12">• Cap picks resolve to solid owner_id</text>
+    <rect x="300" y="68" width="265" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="432" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">2. Clipping &amp; Winding Caps (Ch 17)</text>
+    <text x="312" y="108" font-size="10.5" fill="#111111">• Half-space: dot(pos_world, plane) &lt; 0</text>
+    <text x="312" y="126" font-size="10.5" font-weight="600" fill="#111111">• Signed front/back crossing count</text>
+    <text x="312" y="142" font-size="10" fill="#111111">  at clip plane depth (cap.wgsl):</text>
+    <text x="312" y="158" font-size="10" fill="#111111">  Fills closed solid interiors while</text>
+    <text x="312" y="173" font-size="10" fill="#111111">  leaving internal bores hollow!</text>
+    <text x="312" y="191" font-size="10.5" fill="#111111">• Cap picks resolve to solid owner_id</text>
 
-    <line x1="565" y1="138" x2="595" y2="138" stroke="#059669" stroke-width="2" marker-end="url(#arrow-green)"/>
+    <line x1="565" y1="138" x2="595" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="597" y="68" width="223" height="145" rx="6" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1.5"/>
-    <text x="708" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#065f46">3. Horizon GTAO &amp; X-Ray (Ch 18)</text>
-    <text x="609" y="108" font-size="10.5" fill="#064e3b">• ambient_depth.wgsl -&gt; 6-mip pyramid</text>
-    <text x="609" y="126" font-size="10.5" font-weight="600" fill="#047857">• ssao.wgsl + bilateral blur +</text>
-    <text x="609" y="142" font-size="10.5" font-weight="600" fill="#047857">  ambient_composite.wgsl (Arctic)</text>
-    <text x="609" y="160" font-size="10" fill="#064e3b">• Glass / X-Ray translucent shells</text>
-    <text x="609" y="175" font-size="10" fill="#064e3b">  allow picking interior Wood joints</text>
+    <rect x="597" y="68" width="223" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="708" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">3. Horizon GTAO &amp; X-Ray (Ch 18)</text>
+    <text x="609" y="108" font-size="10.5" fill="#111111">• ambient_depth.wgsl -&gt; 6-mip pyramid</text>
+    <text x="609" y="126" font-size="10.5" font-weight="600" fill="#111111">• ssao.wgsl + bilateral blur +</text>
+    <text x="609" y="142" font-size="10.5" font-weight="600" fill="#111111">  ambient_composite.wgsl (Arctic)</text>
+    <text x="609" y="160" font-size="10" fill="#111111">• Glass / X-Ray translucent shells</text>
+    <text x="609" y="175" font-size="10" fill="#111111">  allow picking interior Wood joints</text>
     
 </svg>
 </div>
 
-### Lesson Data Flow (`Rust` → `WebGPU` → `WGSL`)
+## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
 
-```
-original properties → cached ambient recipes → shaded contact.
-integrate cosine weighted surface visibility.
-assembled WGSL → Naga parse → type/entry validation → later pipeline creation.
-```
+Before writing code, review how the three layers in this chapter talk to each other:
 
-- Derive the existing contact radius from the original scene bounds.
-- Write original surface contact properties.
-- Exercise actual contacts cache and source ownership.
-- **Why it works (Is contact radius a screen-space constant?):** No. It derives from the placed original bounds, with the maintained minimum. Zoom changes its pixel footprint rather than its world size.
-
-### Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `Browser`)
-
-| Layer | Construct | First-Year Student Explanation |
+| Layer | Construct | Plain-English Explanation for Students |
 | :--- | :--- | :--- |
 | **WGSL (`@compute`)** | `@compute @workgroup_size(64) fn main(@builtin(global_invocation_id) id: vec3<u32>)` | Runs general-purpose parallel GPU threads (outside vertex/fragment rasterization) to project triangles and prefix-sum tile counts. |
 | **WGSL (Atomics)** | `atomicAdd(&tile_counts[tile_id], 1u)` | Safely increments shared GPU buffer counters when multiple triangles overlap the same screen tile concurrently. |
 | **Math (Winding Cap)** | `signed_crossings != 0` at clip plane depth | Fills only the solid interior of a clipped B-Rep/mesh while leaving interior bores and open shells hollow. |
 | **WGSL (`ssao.wgsl`)** | Multi-level depth pyramid horizon integration | Samples 6 mip levels of linear depth and per-object contact radius to shade crevices and ground contact. |
 
-**Production source (`session_viewer/src`):** [engine/gpu/ssao.rs](../../../../src/engine/gpu/ssao.rs), [engine/gpu/ssao/pipelines.rs](../../../../src/engine/gpu/ssao/pipelines.rs), [shaders/ssao.wgsl](../../../../src/shaders/ssao.wgsl), [shaders/triangle.wgsl](../../../../src/shaders/triangle.wgsl), [shaders/ink_visibility.wgsl](../../../../src/shaders/ink_visibility.wgsl), [engine/gpu/surface_outline.rs](../../../../src/engine/gpu/surface_outline.rs), [engine/gpu/render.rs](../../../../src/engine/gpu/render.rs), [engine/performance.rs](../../../../src/engine/performance.rs), [engine/gpu/timing.rs](../../../../src/engine/gpu/timing.rs), [app/command/tool/elements.rs](../../../../src/app/command/tool/elements.rs), [build.rs](../../../../build.rs).
+**Authoritative production source (`session_viewer/src`):** [engine/gpu/ssao.rs](../../../../src/engine/gpu/ssao.rs), [engine/gpu/ssao/pipelines.rs](../../../../src/engine/gpu/ssao/pipelines.rs), [shaders/ssao.wgsl](../../../../src/shaders/ssao.wgsl), [shaders/triangle.wgsl](../../../../src/shaders/triangle.wgsl), [shaders/ink_visibility.wgsl](../../../../src/shaders/ink_visibility.wgsl), [engine/gpu/surface_outline.rs](../../../../src/engine/gpu/surface_outline.rs), [engine/gpu/render.rs](../../../../src/engine/gpu/render.rs), [engine/performance.rs](../../../../src/engine/performance.rs), [engine/gpu/timing.rs](../../../../src/engine/gpu/timing.rs), [app/command/tool/elements.rs](../../../../src/app/command/tool/elements.rs), [build.rs](../../../../build.rs).
 
-## Implementation Checkpoints
+## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
 
-Apply these checkpoints in order inside `workspace/journey`. Expand each block to view the Rust/WGSL/HTML edits:
+| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
+| ---: | :--- | :--- | :--- | :--- |
+| **1** | [`90-copy-maintained-original-contact-radius`](#checkpoint-90-copy-maintained-original-contact-radius) | Derive the existing contact radius from the original scene bounds. | `src/ambient_radius.rs`, `src/lib.rs` | `original properties → cached ambient recipes → shaded contact` |
+| **2** | [`90a-copy-current-viewing-rays`](#checkpoint-90a-copy-current-viewing-rays) | Unproject pixel neighbors into aligned world-space ray rows. | `src/ambient_camera.rs`, `src/lib.rs` | `original properties → cached ambient recipes → shaded contact` |
+| **3** | [`90b-adapt-the-earlier-forward-camera`](#checkpoint-90b-adapt-the-earlier-forward-camera) | Adapt the earlier forward camera. | `src/ambient_camera.rs` | `original properties → cached ambient recipes → shaded contact` |
+| **4** | [`90c-gather-weak-original-ambient-properties`](#checkpoint-90c-gather-weak-original-ambient-properties) | Gather weak original ambient properties. | `src/ambient_rows.rs`, `src/lib.rs` | `original properties → cached ambient recipes → shaded contact` |
+| **5** | [`90d-copy-current-horizon-and-bilateral-recipes`](#checkpoint-90d-copy-current-horizon-and-bilateral-recipes) | Keep ray, depth, normal, radius and history inputs in explicit bind groups. | `src/ambient.wgsl` | `declare the ambient pass resource contracts` |
+| **6** | [`90da-reconstruct-original-surfaces-from-depth`](#checkpoint-90da-reconstruct-original-surfaces-from-depth) | Unproject framebuffer depth and recover ray positions without changing original CAD geometry. | `src/ambient.wgsl` | `reconstruct original surfaces from depth` |
+| **7** | [`90db-encode-normals-and-read-original-contact-metadata`](#checkpoint-90db-encode-normals-and-read-original-contact-metadata) | Read original radii, section normals and geometric fallback normals through the existing property textures. | `src/ambient.wgsl` | `encode normals and read original contact metadata` |
+| **8** | [`90dc-prepare-a-compact-depth-radius-and-normal-target`](#checkpoint-90dc-prepare-a-compact-depth-radius-and-normal-target) | Write ray distance, contact radius and octahedral normal into separate attachments. | `src/ambient.wgsl` | `prepare a compact depth radius and normal target` |
+| **9** | [`90dd-measure-ground-contact-along-bounded-horizons`](#checkpoint-90dd-measure-ground-contact-along-bounded-horizons) | Sample bounded directions and steps using the retained mip levels and physical contact radius. | `src/ambient.wgsl` | `measure ground contact along bounded horizons` |
+| **10** | [`90de-integrate-cosine-weighted-surface-visibility`](#checkpoint-90de-integrate-cosine-weighted-surface-visibility) | Accumulate the occluded part of each projected normal slice, with bounded horizon sampling. | `src/ambient.wgsl` | `integrate cosine weighted surface visibility` |
+| **11** | [`90df-filter-contact-without-crossing-unrelated-surfaces`](#checkpoint-90df-filter-contact-without-crossing-unrelated-surfaces) | Weight neighboring occlusion by surface separation, normal and contact radius. | `src/ambient.wgsl` | `filter contact without crossing unrelated surfaces` |
+| **12** | [`90dg-reject-invalid-ambient-history-before-blending`](#checkpoint-90dg-reject-invalid-ambient-history-before-blending) | Reproject into the prior frame, validate signed depth and clamp reused visibility to the current neighborhood. | `src/ambient.wgsl` | `reject invalid ambient history before blending` |
+| **13** | [`90dh-reconstruct-full-resolution-contact-from-low-resolution-samples`](#checkpoint-90dh-reconstruct-full-resolution-contact-from-low-resolution-samples) | Use surface-aware weights to combine the four nearby low-resolution values. | `src/ambient.wgsl` | `reconstruct full resolution contact from low resolution samples` |
+| **14** | [`90di-collect-bounded-sample-corrections-with-gpu-atomics`](#checkpoint-90di-collect-bounded-sample-corrections-with-gpu-atomics) | Pack per-sample corrections and claim each affected tile once for indirect edge draws. | `src/ambient.wgsl` | `collect bounded sample corrections with gpu atomics` |
+| **15** | [`90dj-composite-contact-as-black-alpha-over-the-original-scene`](#checkpoint-90dj-composite-contact-as-black-alpha-over-the-original-scene) | Load the current contact amount and use per-sample masks for corrected edge draws. | `src/ambient_composite.wgsl` | `composite contact as black alpha over the original scene` |
+| **16** | [`90e-bind-real-original-normals-and-radii`](#checkpoint-90e-bind-real-original-normals-and-radii) | Read optional shader-interface validation before runtime pipeline creation. | `src/ambient_shader_contract.rs`, `src/lib.rs` | `assembled WGSL → Naga parse → type/entry validation → later pipeline creation` |
+| **17** | [`90f-write-original-surface-contact-properties`](#checkpoint-90f-write-original-surface-contact-properties) | Write original surface contact properties. | `src/ambient_sources.wgsl` | `original properties → cached ambient recipes → shaded contact` |
+| **18** | [`90g-build-the-depth-equal-original-property-pass`](#checkpoint-90g-build-the-depth-equal-original-property-pass) | Build the depth-equal original property pass. | `src/depth.rs`, `src/ambient_source_pipeline.rs`, `src/lib.rs` | `original properties → cached ambient recipes → shaded contact` |
+| **19** | [`90h-cache-original-radius-buffers-and-draw-properties`](#checkpoint-90h-cache-original-radius-buffers-and-draw-properties) | Cache original radius buffers and draw properties. | `src/ambient_source_gpu.rs`, `src/lib.rs` | `original properties → cached ambient recipes → shaded contact` |
+| **20** | [`90i-own-actual-ambient-image-allocation`](#checkpoint-90i-own-actual-ambient-image-allocation) | Own actual ambient image allocation. | `src/ambient_image.rs`, `src/lib.rs` | `original properties → cached ambient recipes → shaded contact` |
+| **21** | [`90j-prepare-reduced-and-full-ambient-targets`](#checkpoint-90j-prepare-reduced-and-full-ambient-targets) | Prepare reduced and full ambient targets. | `src/ambient_images.rs`, `src/lib.rs` | `original properties → cached ambient recipes → shaded contact` |
+| **22** | [`90k-build-explicit-ambient-fullscreen-pipelines`](#checkpoint-90k-build-explicit-ambient-fullscreen-pipelines) | Build explicit ambient fullscreen pipelines. | `src/ambient_pipeline.rs`, `src/lib.rs` | `original properties → cached ambient recipes → shaded contact` |
+| **23** | [`90l-match-current-ambient-sampling-layouts`](#checkpoint-90l-match-current-ambient-sampling-layouts) | Match current ambient sampling layouts. | `src/ambient_pipeline.rs` | `original properties → cached ambient recipes → shaded contact` |
+| **24** | [`90m-cache-reduced-levels-and-filtered-samples`](#checkpoint-90m-cache-reduced-levels-and-filtered-samples) | Cache reduced levels and filtered samples. | `src/ambient_groups.rs`, `src/lib.rs` | `original properties → cached ambient recipes → shaded contact` |
+| **25** | [`90n-bind-exact-current-ambient-source-images`](#checkpoint-90n-bind-exact-current-ambient-source-images) | Bind exact current ambient source images. | `src/ambient_groups.rs` | `original properties → cached ambient recipes → shaded contact` |
+| **26** | [`90o-record-explicit-ambient-passes`](#checkpoint-90o-record-explicit-ambient-passes) | Record explicit ambient passes. | `src/ambient_pass.rs`, `src/lib.rs` | `original properties → cached ambient recipes → shaded contact` |
+| **27** | [`90p-own-cached-ambient-pipelines-and-release-images`](#checkpoint-90p-own-cached-ambient-pipelines-and-release-images) | Own cached ambient pipelines and release images. | `src/ambient_gpu.rs`, `src/lib.rs` | `original properties → cached ambient recipes → shaded contact` |
+| **28** | [`90q-prepare-changed-ambient-framebuffer-inputs`](#checkpoint-90q-prepare-changed-ambient-framebuffer-inputs) | Prepare changed ambient framebuffer inputs. | `src/ambient_gpu.rs` | `original properties → cached ambient recipes → shaded contact` |
+| **29** | [`90r-render-a-complete-ambient-result-in-one-frame`](#checkpoint-90r-render-a-complete-ambient-result-in-one-frame) | Render a complete ambient result in one frame. | `src/ambient_gpu.rs` | `original properties → cached ambient recipes → shaded contact` |
+| **30** | [`90s-count-actual-ambient-resources-and-work`](#checkpoint-90s-count-actual-ambient-resources-and-work) | Count actual ambient resources and work. | `src/ambient_gpu.rs` | `original properties → cached ambient recipes → shaded contact` |
+| **31** | [`90t-route-original-scene-properties-into-ambient-shading`](#checkpoint-90t-route-original-scene-properties-into-ambient-shading) | Route original scene properties into ambient shading. | `src/renderer.rs` | `original properties → cached ambient recipes → shaded contact` |
+| **32** | [`90u-enable-arctic-as-a-presentation-change`](#checkpoint-90u-enable-arctic-as-a-presentation-change) | Enable Arctic as a presentation change. | `src/editor.rs`, `src/commands.rs`, `src/browser.rs` | `original properties → cached ambient recipes → shaded contact` |
+| **33** | [`90v-exercise-actual-contacts-cache-and-source-ownership`](#checkpoint-90v-exercise-actual-contacts-cache-and-source-ownership) | Exercise actual contacts cache and source ownership. | `src/ambient_gpu_tests.rs`, `src/renderer.rs`, `src/arctic_tests.rs`, `src/lib.rs` | `original properties → cached ambient recipes → shaded contact` |
+
+---
+
+## 4. Step-by-Step Coding Notebook (Concept + Implementation)
+
+Work through each notebook cell below in order inside `workspace/journey`. Read the **Concept Walkthrough** and **Self-Check Q&A** first, then expand the **Implementation** block to type and verify the code.
 
 <a id="checkpoint-90-copy-maintained-original-contact-radius"></a>
+
+### Step 1 of 33 · Derive original contact radius (`90-copy-maintained-original-contact-radius`)
+
+- **Goal:** Derive the existing contact radius from the original scene bounds.
+- **Data Flow Trace:** `original properties → cached ambient recipes → shaded contact`
+- **Files You Touch:** `src/ambient_radius.rs` (*Type the complete original geometry query and reuse its current consumer.*) · `src/lib.rs` (*Register the completed section component.*)
+
+Derive the existing contact radius from the original scene bounds. Return zero for invalid bounds, scale the half-diagonal and retain the minimum radius. Reuse this scalar in the following ambient resources.
+
+> **Self-Check Question:** *Is contact radius a screen-space constant?*  
+> **Answer:** No. It derives from the placed original bounds, with the maintained minimum. Zoom changes its pixel footprint rather than its world size.
+
+- **Hands-On Lab Experiment:** Inspect half-extents, five-percent radius and the invalid-bounds guard.
 
 <details>
 <summary>Implementation 90-copy-maintained-original-contact-radius: Derive original contact radius</summary>
@@ -127,6 +201,19 @@ After that block, type:
 
 <a id="checkpoint-90a-copy-current-viewing-rays"></a>
 
+### Step 2 of 33 · Write current viewing rays (`90a-copy-current-viewing-rays`)
+
+- **Goal:** Unproject pixel neighbors into aligned world-space ray rows.
+- **Data Flow Trace:** `original properties → cached ambient recipes → shaded contact`
+- **Files You Touch:** `src/ambient_camera.rs` (*Type the complete existing WebGPU helper and reuse its current consumer.*) · `src/lib.rs` (*Register the completed section component.*)
+
+Unproject neighboring pixel positions with the inverse camera matrix. Divide by the homogeneous coordinate, derive world-space pixel steps at two depths, and pack the ray origins and directions into six aligned vec4 rows for the existing ambient shader.
+
+> **Self-Check Question:** *Does a ray need source geometry?*  
+> **Answer:** No. Reconstruct its near point and direction from the inverse camera, then derive their changes across one pixel.
+
+- **Hands-On Lab Experiment:** Trace the maintained24-float ray recipe and affine pixel increments.
+
 <details>
 <summary>Implementation 90a-copy-current-viewing-rays: Write current viewing rays</summary>
 
@@ -167,6 +254,19 @@ After that block, type:
 </details>
 
 <a id="checkpoint-90b-adapt-the-earlier-forward-camera"></a>
+
+### Step 3 of 33 · Adapt the earlier forward camera (`90b-adapt-the-earlier-forward-camera`)
+
+- **Goal:** Adapt the earlier forward camera.
+- **Data Flow Trace:** `original properties → cached ambient recipes → shaded contact`
+- **Files You Touch:** `src/ambient_camera.rs` (*Adapt the earlier camera to the maintained ambient convention.*)
+
+Adapt the earlier forward camera.
+
+> **Self-Check Question:** *Can reversed ambient recipes read forward hardware depth directly?*  
+> **Answer:** No. Flip the camera depth consistently, retain its inverse and derive the same reversed rays used by the shader.
+
+- **Hands-On Lab Experiment:** Compare original camera coordinates with the320-byte ambient uniform and finite inverse guard.
 
 <details>
 <summary>Implementation 90b-adapt-the-earlier-forward-camera: Adapt the earlier forward camera</summary>
@@ -235,6 +335,19 @@ After that block, type:
 
 <a id="checkpoint-90c-gather-weak-original-ambient-properties"></a>
 
+### Step 4 of 33 · Gather weak original ambient properties (`90c-gather-weak-original-ambient-properties`)
+
+- **Goal:** Gather weak original ambient properties.
+- **Data Flow Trace:** `original properties → cached ambient recipes → shaded contact`
+- **Files You Touch:** `src/ambient_rows.rs` (*Gather current original contact properties without retaining source documents.*) · `src/lib.rs` (*Register the completed section component.*)
+
+Gather weak original ambient properties.
+
+> **Self-Check Question:** *Must navigation rescan original vertices?*  
+> **Answer:** No. Reuse weak local bounds and derive placed radii and the virtual-ground height when scene inputs change.
+
+- **Hands-On Lab Experiment:** Compare shared source displays, world placements, visible originals and empty-cache release.
+
 <details>
 <summary>Implementation 90c-gather-weak-original-ambient-properties: Gather weak original ambient properties</summary>
 
@@ -276,6 +389,22 @@ After that block, type:
 
 <a id="checkpoint-90d-copy-current-horizon-and-bilateral-recipes"></a>
 
+### Step 5 of 33 · Declare the ambient pass resource contracts (`90d-copy-current-horizon-and-bilateral-recipes`)
+
+- **Goal:** Keep ray, depth, normal, radius and history inputs in explicit bind groups.
+- **Data Flow Trace:** `declare the ambient pass resource contracts`
+- **Files You Touch:** `src/ambient.wgsl` (*Keep ray, depth, normal, radius and history inputs in explicit bind groups.*)
+
+The uniform carries both projection matrices and affine ray coefficients.
+
+Keep geometry depth, reconstructed distance, normal encoding and physical radius in separate texture contracts. Storage corrections and atomic tile flags belong to the optional sample-correction path; history textures belong to temporal reuse. This prepares the shader; the existing pipeline lessons connect it later.
+
+> **Self-Check Question:** *Which resource stores geometry depth and which stores reconstructed ray distance?*  
+> **Answer:** The depth texture stores projected geometry depth. The linear target stores signed distance along a viewing ray; a negative value marks a ground hit.
+
+- **What You Should See:** The declare the ambient pass resource contracts shader section is written; the ambient pass is not connected yet.
+- **Hands-On Lab Experiment:** Trace one original CAD surface through this section. Which resource stores geometry depth and which stores reconstructed ray distance? Predict the resource values before the ambient pipeline connection.
+
 <details>
 <summary>Implementation 90d-copy-current-horizon-and-bilateral-recipes: Declare the ambient pass resource contracts</summary>
 
@@ -296,6 +425,22 @@ Create the file and type:
 </details>
 
 <a id="checkpoint-90da-reconstruct-original-surfaces-from-depth"></a>
+
+### Step 6 of 33 · Reconstruct original surfaces from depth (`90da-reconstruct-original-surfaces-from-depth`)
+
+- **Goal:** Unproject framebuffer depth and recover ray positions without changing original CAD geometry.
+- **Data Flow Trace:** `reconstruct original surfaces from depth`
+- **Files You Touch:** `src/ambient.wgsl` (*Unproject framebuffer depth and recover ray positions without changing original CAD geometry.*)
+
+Convert a pixel center into normalized device coordinates, multiply by inverse_mvp, and divide by homogeneous w.
+
+The affine ray helpers instead recover positions at a known ray distance. A missing geometry depth may still produce a ground intersection; keep that distinction when reconstructing contact. These helpers use the existing forward-depth adapter at this checkpoint.
+
+> **Self-Check Question:** *Why is a cleared depth pixel different from a ground-plane intersection?*  
+> **Answer:** A cleared pixel has no geometry surface. A valid downward ray can still intersect the ground plane, which is recorded separately from geometry.
+
+- **What You Should See:** The reconstruct original surfaces from depth shader section is written; the ambient pass is not connected yet.
+- **Hands-On Lab Experiment:** Trace one original CAD surface through this section. Why is a cleared depth pixel different from a ground-plane intersection? Predict the resource values before the ambient pipeline connection.
 
 <details>
 <summary>Implementation 90da-reconstruct-original-surfaces-from-depth: Reconstruct original surfaces from depth</summary>
@@ -389,6 +534,22 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-90db-encode-normals-and-read-original-contact-metadata"></a>
 
+### Step 7 of 33 · Encode normals and read original contact metadata (`90db-encode-normals-and-read-original-contact-metadata`)
+
+- **Goal:** Read original radii, section normals and geometric fallback normals through the existing property textures.
+- **Data Flow Trace:** `encode normals and read original contact metadata`
+- **Files You Touch:** `src/ambient.wgsl` (*Read original radii, section normals and geometric fallback normals through the existing property textures.*)
+
+An octahedral encoding folds a unit normal into two coordinates, reducing the normal attachment size.
+
+Read the original physical radius and normal from the property pass. For a section cap, use its clipping-plane normal. Only the remaining surfaces use depth-neighbor reconstruction; choose the nearer valid neighbors to avoid crossing a depth discontinuity.
+
+> **Self-Check Question:** *Why must a section cap supply its own surface normal?*  
+> **Answer:** A cap is a new displayed surface. Its normal comes from the clipping plane rather than an original triangle or a neighboring depth pixel.
+
+- **What You Should See:** The encode normals and read original contact metadata shader section is written; the ambient pass is not connected yet.
+- **Hands-On Lab Experiment:** Trace one original CAD surface through this section. Why must a section cap supply its own surface normal? Predict the resource values before the ambient pipeline connection.
+
 <details>
 <summary>Implementation 90db-encode-normals-and-read-original-contact-metadata: Encode normals and read original contact metadata</summary>
 
@@ -468,6 +629,22 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-90dc-prepare-a-compact-depth-radius-and-normal-target"></a>
+
+### Step 8 of 33 · Prepare a compact depth radius and normal target (`90dc-prepare-a-compact-depth-radius-and-normal-target`)
+
+- **Goal:** Write ray distance, contact radius and octahedral normal into separate attachments.
+- **Data Flow Trace:** `prepare a compact depth radius and normal target`
+- **Files You Touch:** `src/ambient.wgsl` (*Write ray distance, contact radius and octahedral normal into separate attachments.*)
+
+The preparation fragment emits three outputs: signed ray distance, a packed radius/source coordinate, and encoded normal.
+
+Pack the radius as a half-float witness while reserving coordinate bits for mip reduction. sample_hit decodes the selected coordinate and reconstructs its world position, so a reduced sample keeps its original surface relationship.
+
+> **Self-Check Question:** *Why carry the selected source coordinate through radius mip reduction?*  
+> **Answer:** Mip reduction must retain the coordinate of the chosen sample, so its reconstructed position and contact radius still refer to the same original surface.
+
+- **What You Should See:** The prepare a compact depth radius and normal target shader section is written; the ambient pass is not connected yet.
+- **Hands-On Lab Experiment:** Trace one original CAD surface through this section. Why carry the selected source coordinate through radius mip reduction? Predict the resource values before the ambient pipeline connection.
 
 <details>
 <summary>Implementation 90dc-prepare-a-compact-depth-radius-and-normal-target: Prepare a compact depth radius and normal target</summary>
@@ -550,6 +727,22 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-90dd-measure-ground-contact-along-bounded-horizons"></a>
+
+### Step 9 of 33 · Measure ground contact along bounded horizons (`90dd-measure-ground-contact-along-bounded-horizons`)
+
+- **Goal:** Sample bounded directions and steps using the retained mip levels and physical contact radius.
+- **Data Flow Trace:** `measure ground contact along bounded horizons`
+- **Files You Touch:** `src/ambient.wgsl` (*Sample bounded directions and steps using the retained mip levels and physical contact radius.*)
+
+Ground contact samples fixed angular directions and quadratically spaced steps.
+
+Choose a coarser mip when the sample span grows, then reject invalid hits and hits beyond their physical radius. A stable pixel pattern offsets directions when history is reusable. The algorithm modifies the displayed contact amount, not the source geometry.
+
+> **Self-Check Question:** *What bounds the number of samples and their world reach?*  
+> **Answer:** The direction and step loops have fixed limits, and each hit is checked against its physical contact radius. Mip choice changes work without changing the source radius.
+
+- **What You Should See:** The measure ground contact along bounded horizons shader section is written; the ambient pass is not connected yet.
+- **Hands-On Lab Experiment:** Trace one original CAD surface through this section. What bounds the number of samples and their world reach? Predict the resource values before the ambient pipeline connection.
 
 <details>
 <summary>Implementation 90dd-measure-ground-contact-along-bounded-horizons: Measure ground contact along bounded horizons</summary>
@@ -648,6 +841,22 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-90de-integrate-cosine-weighted-surface-visibility"></a>
+
+### Step 10 of 33 · Integrate cosine weighted surface visibility (`90de-integrate-cosine-weighted-surface-visibility`)
+
+- **Goal:** Accumulate the occluded part of each projected normal slice, with bounded horizon sampling.
+- **Data Flow Trace:** `integrate cosine weighted surface visibility`
+- **Files You Touch:** `src/ambient.wgsl` (*Accumulate the occluded part of each projected normal slice, with bounded horizon sampling.*)
+
+For each angular slice, project the surface normal into the plane spanned by the view and sample direction.
+
+Search both sides for the highest occluding horizon. arc integrates cosine-weighted visibility between horizon angles; the projected normal length weights the slice. Bias rejects near self-contact, and physical-radius falloff bounds distant contribution.
+
+> **Self-Check Question:** *How does the projected normal affect a horizon slice contribution?*  
+> **Answer:** Project the normal into the slice plane, integrate its visible horizon arc, and weight that slice by the projected normal length.
+
+- **What You Should See:** The integrate cosine weighted surface visibility shader section is written; the ambient pass is not connected yet.
+- **Hands-On Lab Experiment:** Trace one original CAD surface through this section. How does the projected normal affect a horizon slice contribution? Predict the resource values before the ambient pipeline connection.
 
 <details>
 <summary>Implementation 90de-integrate-cosine-weighted-surface-visibility: Integrate cosine weighted surface visibility</summary>
@@ -757,6 +966,22 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-90df-filter-contact-without-crossing-unrelated-surfaces"></a>
 
+### Step 11 of 33 · Filter contact without crossing unrelated surfaces (`90df-filter-contact-without-crossing-unrelated-surfaces`)
+
+- **Goal:** Weight neighboring occlusion by surface separation, normal and contact radius.
+- **Data Flow Trace:** `filter contact without crossing unrelated surfaces`
+- **Files You Touch:** `src/ambient.wgsl` (*Weight neighboring occlusion by surface separation, normal and contact radius.*)
+
+A separable seven-tap filter reduces sampling noise.
+
+Its spatial Gaussian is multiplied by a surface weight based on normal separation and physical radius. Keep geometry and ground samples separate. Return the current neighborhood range as well as the filtered value; the temporal pass uses that range to limit stale history.
+
+> **Self-Check Question:** *Why can a plain screen-space blur leak contact through a thin part?*  
+> **Answer:** Nearby pixels can belong to distant or differently oriented surfaces. Bilateral weights reject those neighbors before their contact values are averaged.
+
+- **What You Should See:** The filter contact without crossing unrelated surfaces shader section is written; the ambient pass is not connected yet.
+- **Hands-On Lab Experiment:** Trace one original CAD surface through this section. Why can a plain screen-space blur leak contact through a thin part? Predict the resource values before the ambient pipeline connection.
+
 <details>
 <summary>Implementation 90df-filter-contact-without-crossing-unrelated-surfaces: Filter contact without crossing unrelated surfaces</summary>
 
@@ -847,6 +1072,22 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-90dg-reject-invalid-ambient-history-before-blending"></a>
 
+### Step 12 of 33 · Reject invalid ambient history before blending (`90dg-reject-invalid-ambient-history-before-blending`)
+
+- **Goal:** Reproject into the prior frame, validate signed depth and clamp reused visibility to the current neighborhood.
+- **Data Flow Trace:** `reject invalid ambient history before blending`
+- **Files You Touch:** `src/ambient.wgsl` (*Reproject into the prior frame, validate signed depth and clamp reused visibility to the current neighborhood.*)
+
+Reproject the current reconstructed point with previous_mvp.
+
+Validate the prior viewport, clip w, signed surface category and depth before reading history. Clamp accepted history to the current filter range before blending. Store signed projected depth for the next frame, so reuse cannot silently mix ground and original geometry.
+
+> **Self-Check Question:** *When must a previous pixel be rejected even if its screen coordinate is in range?*  
+> **Answer:** Reject history outside the prior viewport, behind the camera, across ground/geometry classification, or with inconsistent depth. Then clamp accepted history to current neighboring values.
+
+- **What You Should See:** The reject invalid ambient history before blending shader section is written; the ambient pass is not connected yet.
+- **Hands-On Lab Experiment:** Trace one original CAD surface through this section. When must a previous pixel be rejected even if its screen coordinate is in range? Predict the resource values before the ambient pipeline connection.
+
 <details>
 <summary>Implementation 90dg-reject-invalid-ambient-history-before-blending: Reject invalid ambient history before blending</summary>
 
@@ -935,6 +1176,20 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-90dh-reconstruct-full-resolution-contact-from-low-resolution-samples"></a>
 
+### Step 13 of 33 · Reconstruct full resolution contact from low resolution samples (`90dh-reconstruct-full-resolution-contact-from-low-resolution-samples`)
+
+- **Goal:** Use surface-aware weights to combine the four nearby low-resolution values.
+- **Data Flow Trace:** `reconstruct full resolution contact from low resolution samples`
+- **Files You Touch:** `src/ambient.wgsl` (*Use surface-aware weights to combine the four nearby low-resolution values.*)
+
+Locate the four surrounding reduced-resolution samples. Bilinear pixel weights provide spatial interpolation, while the same surface-aware predicate limits unrelated contributions. Normalize by the accepted weight sum. The full-resolution depth and original normal/radius determine the target surface being reconstructed.
+
+> **Self-Check Question:** *Why do upsample weights include surface geometry as well as pixel distance?*  
+> **Answer:** Pixel distance alone cannot tell whether two samples belong to the same surface. Geometry-aware weights preserve contact at object and ground boundaries.
+
+- **What You Should See:** The reconstruct full resolution contact from low resolution samples shader section is written; the ambient pass is not connected yet.
+- **Hands-On Lab Experiment:** Trace one original CAD surface through this section. Why do upsample weights include surface geometry as well as pixel distance? Predict the resource values before the ambient pipeline connection.
+
 <details>
 <summary>Implementation 90dh-reconstruct-full-resolution-contact-from-low-resolution-samples: Reconstruct full resolution contact from low resolution samples</summary>
 
@@ -1014,6 +1269,22 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-90di-collect-bounded-sample-corrections-with-gpu-atomics"></a>
+
+### Step 14 of 33 · Collect bounded sample corrections with GPU atomics (`90di-collect-bounded-sample-corrections-with-gpu-atomics`)
+
+- **Goal:** Pack per-sample corrections and claim each affected tile once for indirect edge draws.
+- **Data Flow Trace:** `collect bounded sample corrections with gpu atomics`
+- **Files You Touch:** `src/ambient.wgsl` (*Pack per-sample corrections and claim each affected tile once for indirect edge draws.*)
+
+The single-sample path returns its first reconstructed value directly.
+
+With sample corrections enabled, reconstruct only differing samples and pack their excess over a shared base. atomicOr claims each affected tile once; atomicAdd reserves four indirect instances for that tile. Buffers are owned and bounded by the later image-allocation lessons.
+
+> **Self-Check Question:** *Which atomic operation prevents the same tile from being appended twice?*  
+> **Answer:** atomicOr returns the old tile flag. Only the invocation seeing its previously unset bit claims an indirect draw slot with atomicAdd.
+
+- **What You Should See:** The collect bounded sample corrections with gpu atomics shader section is written; the ambient pass is not connected yet.
+- **Hands-On Lab Experiment:** Trace one original CAD surface through this section. Which atomic operation prevents the same tile from being appended twice? Predict the resource values before the ambient pipeline connection.
 
 <details>
 <summary>Implementation 90di-collect-bounded-sample-corrections-with-gpu-atomics: Collect bounded sample corrections with GPU atomics</summary>
@@ -1105,6 +1376,22 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-90dj-composite-contact-as-black-alpha-over-the-original-scene"></a>
 
+### Step 15 of 33 · Composite contact as black alpha over the original scene (`90dj-composite-contact-as-black-alpha-over-the-original-scene`)
+
+- **Goal:** Load the current contact amount and use per-sample masks for corrected edge draws.
+- **Data Flow Trace:** `composite contact as black alpha over the original scene`
+- **Files You Touch:** `src/ambient_composite.wgsl` (*Load the current contact amount and use per-sample masks for corrected edge draws.*)
+
+The ordinary fullscreen composite loads occlusion and returns black with that alpha.
+
+With standard alpha blending, the original color is multiplied by one minus contact. The optional edge pass reads packed corrections and emits a sample mask, so each correction affects only its own raster sample. Original color and geometry remain source inputs.
+
+> **Self-Check Question:** *Which color and alpha preserve the original scene hue while darkening contact?*  
+> **Answer:** Output black RGB with the contact amount as alpha. Alpha blending scales the existing scene color; sample masks restrict edge corrections to their own samples.
+
+- **What You Should See:** Both ambient shader modules are assembled for validation and the following pipeline connection.
+- **Hands-On Lab Experiment:** Trace one original CAD surface through this section. Which color and alpha preserve the original scene hue while darkening contact? Predict the resource values before the ambient pipeline connection.
+
 <details>
 <summary>Implementation 90dj-composite-contact-as-black-alpha-over-the-original-scene: Composite contact as black alpha over the original scene</summary>
 
@@ -1125,6 +1412,20 @@ Create the file and type:
 </details>
 
 <a id="checkpoint-90e-bind-real-original-normals-and-radii"></a>
+
+### Step 16 of 33 · Validate the assembled original ambient shader contracts (`90e-bind-real-original-normals-and-radii`)
+
+- **Goal:** Read optional shader-interface validation before runtime pipeline creation.
+- **Data Flow Trace:** `assembled WGSL → Naga parse → type/entry validation → later pipeline creation`
+- **Files You Touch:** `src/ambient_shader_contract.rs` (*Validate the actual shader types and public entry points.*) · `src/lib.rs` (*Compile the shader contract at the completed owner boundary.*)
+
+The original-property adapter is already assembled in the [preceding shader lessons](../../90dj-composite-contact-as-black-alpha-over-the-original-scene.md). This checkpoint supplies an optional native validation case using the Naga version reexported by wgpu; it adds no viewer implementation.
+
+> **Self-Check Question:** *Does compiling Rust prove that a shader has a valid GPU interface?*  
+> **Answer:** No. Parse the assembled WGSL, validate its types and entry points, then create its real pipelines at the connection boundary.
+
+- **What You Should See:** The supplied fixture checks both assembled shader interfaces. The browser drawing remains unchanged at this boundary.
+- **Hands-On Lab Experiment:** Read the optional fixture and locate vs_main and fs_main in both assembled modules. Identify a type mismatch that validation would reject, while keeping the declared shader intact for the following pipeline lessons. Native execution is optional.
 
 <details>
 <summary>Implementation 90e-bind-real-original-normals-and-radii: Validate the assembled original ambient shader contracts</summary>
@@ -1180,6 +1481,19 @@ After that block, append this supplied code:
 
 <a id="checkpoint-90f-write-original-surface-contact-properties"></a>
 
+### Step 17 of 33 · Write original surface contact properties (`90f-write-original-surface-contact-properties`)
+
+- **Goal:** Write original surface contact properties.
+- **Data Flow Trace:** `original properties → cached ambient recipes → shaded contact`
+- **Files You Touch:** `src/ambient_sources.wgsl` (*Derive original ambient properties without changing color or source geometry.*)
+
+Write original surface contact properties.
+
+> **Self-Check Question:** *Can selected color change a contact radius?*  
+> **Answer:** No. A separate depth-equal pass writes original normals and world radius while preserving opaque color, depth and source coordinates.
+
+- **Hands-On Lab Experiment:** Compare authored/smooth normals, derivative face normals, clipping and octahedral encoding.
+
 <details>
 <summary>Implementation 90f-write-original-surface-contact-properties: Write original surface contact properties</summary>
 
@@ -1200,6 +1514,19 @@ Create the file and type:
 </details>
 
 <a id="checkpoint-90g-build-the-depth-equal-original-property-pass"></a>
+
+### Step 18 of 33 · Build the depth-equal original property pass (`90g-build-the-depth-equal-original-property-pass`)
+
+- **Goal:** Build the depth-equal original property pass.
+- **Data Flow Trace:** `original properties → cached ambient recipes → shaded contact`
+- **Files You Touch:** `src/depth.rs` (*Add an explicit depth-equal read-only property state.*) · `src/ambient_source_pipeline.rs` (*Build the compatible original property pass.*) · `src/lib.rs` (*Register the completed section component.*)
+
+Build the depth-equal original property pass.
+
+> **Self-Check Question:** *Should the property pass move the visible surface?*  
+> **Answer:** No. Require the existing opaque depth and disable writes. Its compatible source/model/clip/radius layouts fit four groups.
+
+- **Hands-On Lab Experiment:** Inspect matching source vertex/normal streams and R32Float/RG8Unorm outputs.
 
 <details>
 <summary>Implementation 90g-build-the-depth-equal-original-property-pass: Build the depth-equal original property pass</summary>
@@ -1262,6 +1589,19 @@ After that block, type:
 
 <a id="checkpoint-90h-cache-original-radius-buffers-and-draw-properties"></a>
 
+### Step 19 of 33 · Cache original radius buffers and draw properties (`90h-cache-original-radius-buffers-and-draw-properties`)
+
+- **Goal:** Cache original radius buffers and draw properties.
+- **Data Flow Trace:** `original properties → cached ambient recipes → shaded contact`
+- **Files You Touch:** `src/ambient_source_gpu.rs` (*Own original property uniforms and compatible metadata draws.*) · `src/lib.rs` (*Register the completed section component.*)
+
+Cache original radius buffers and draw properties.
+
+> **Self-Check Question:** *Does changing selection reupload original vertices?*  
+> **Answer:** No. Retain source geometry; update only changed radius data and draw eligible original rows through the property pass.
+
+- **Hands-On Lab Experiment:** Compare ID-keyed16-byte radius uniforms, checked live-owner pruning and actual metadata draw counts.
+
 <details>
 <summary>Implementation 90h-cache-original-radius-buffers-and-draw-properties: Cache original radius buffers and draw properties</summary>
 
@@ -1302,6 +1642,19 @@ After that block, type:
 </details>
 
 <a id="checkpoint-90i-own-actual-ambient-image-allocation"></a>
+
+### Step 20 of 33 · Own actual ambient image allocation (`90i-own-actual-ambient-image-allocation`)
+
+- **Goal:** Own actual ambient image allocation.
+- **Data Flow Trace:** `original properties → cached ambient recipes → shaded contact`
+- **Files You Touch:** `src/ambient_image.rs` (*Own actual single-level ambient images.*) · `src/lib.rs` (*Register the completed section component.*)
+
+Own actual ambient image allocation.
+
+> **Self-Check Question:** *What does an image counter measure?*  
+> **Answer:** Its real dimensions and format bytes. It excludes unobservable driver storage for compiled pipelines.
+
+- **Hands-On Lab Experiment:** Calculate float radius, encoded normals, R8 ambient images and copy/readback usage.
 
 <details>
 <summary>Implementation 90i-own-actual-ambient-image-allocation: Own actual ambient image allocation</summary>
@@ -1344,6 +1697,19 @@ After that block, type:
 
 <a id="checkpoint-90j-prepare-reduced-and-full-ambient-targets"></a>
 
+### Step 21 of 33 · Prepare reduced and full ambient targets (`90j-prepare-reduced-and-full-ambient-targets`)
+
+- **Goal:** Prepare reduced and full ambient targets.
+- **Data Flow Trace:** `original properties → cached ambient recipes → shaded contact`
+- **Files You Touch:** `src/ambient_images.rs` (*Own compatible current ambient targets and exact allocation.*) · `src/lib.rs` (*Register the completed section component.*)
+
+Prepare reduced and full ambient targets.
+
+> **Self-Check Question:** *Can a filter write the texture it currently samples?*  
+> **Answer:** Use separate targets and alternate completed passes. Original properties stay full-sized while ambient estimation uses the maintained reduced resolution.
+
+- **Hands-On Lab Experiment:** Compare six depth/radius mips, reduced normals, ground/occupancy, alternating filters and full-size output.
+
 <details>
 <summary>Implementation 90j-prepare-reduced-and-full-ambient-targets: Prepare reduced and full ambient targets</summary>
 
@@ -1384,6 +1750,19 @@ After that block, type:
 </details>
 
 <a id="checkpoint-90k-build-explicit-ambient-fullscreen-pipelines"></a>
+
+### Step 22 of 33 · Build explicit ambient fullscreen pipelines (`90k-build-explicit-ambient-fullscreen-pipelines`)
+
+- **Goal:** Build explicit ambient fullscreen pipelines.
+- **Data Flow Trace:** `original properties → cached ambient recipes → shaded contact`
+- **Files You Touch:** `src/ambient_pipeline.rs` (*Build compatible fullscreen ambient pipelines.*) · `src/lib.rs` (*Register the completed section component.*)
+
+Build explicit ambient fullscreen pipelines.
+
+> **Self-Check Question:** *Are all ambient stages interchangeable?*  
+> **Answer:** They have distinct entry points and targets. A small builder keeps layout, formats and alpha composition explicit.
+
+- **Hands-On Lab Experiment:** Inspect two/three-target preparation and R8 estimation versus RGBA black-alpha composition.
 
 <details>
 <summary>Implementation 90k-build-explicit-ambient-fullscreen-pipelines: Build explicit ambient fullscreen pipelines</summary>
@@ -1426,6 +1805,19 @@ After that block, type:
 
 <a id="checkpoint-90l-match-current-ambient-sampling-layouts"></a>
 
+### Step 23 of 33 · Match current ambient sampling layouts (`90l-match-current-ambient-sampling-layouts`)
+
+- **Goal:** Match current ambient sampling layouts.
+- **Data Flow Trace:** `original properties → cached ambient recipes → shaded contact`
+- **Files You Touch:** `src/ambient_pipeline.rs` (*Build each compatible current ambient stage.*)
+
+Match current ambient sampling layouts.
+
+> **Self-Check Question:** *Can an R8 history image use a nonfilterable layout with a filtering sampler?*  
+> **Answer:** No. Match filter capability explicitly. Preparation borrows only group0; estimation and filtering use compatible four-group layouts.
+
+- **Hands-On Lab Experiment:** Trace original depth/camera/property bindings, reduced integer radius, filterable samples and inactive history bindings.
+
 <details>
 <summary>Implementation 90l-match-current-ambient-sampling-layouts: Match current ambient sampling layouts</summary>
 
@@ -1458,6 +1850,19 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-90m-cache-reduced-levels-and-filtered-samples"></a>
+
+### Step 24 of 33 · Cache reduced levels and filtered samples (`90m-cache-reduced-levels-and-filtered-samples`)
+
+- **Goal:** Cache reduced levels and filtered samples.
+- **Data Flow Trace:** `original properties → cached ambient recipes → shaded contact`
+- **Files You Touch:** `src/ambient_groups.rs` (*Cache actual reduced-level and sample bindings.*) · `src/lib.rs` (*Register the completed section component.*)
+
+Cache reduced levels and filtered samples.
+
+> **Self-Check Question:** *Does a content update replace every bind group?*  
+> **Answer:** No. Groups retain actual image views. Rebuild them only when image allocation changes.
+
+- **Hands-On Lab Experiment:** Inspect six level views, current ground/occupancy samples, alternating ambient images and separate inactive history resources.
 
 <details>
 <summary>Implementation 90m-cache-reduced-levels-and-filtered-samples: Cache reduced levels and filtered samples</summary>
@@ -1500,6 +1905,19 @@ After that block, type:
 
 <a id="checkpoint-90n-bind-exact-current-ambient-source-images"></a>
 
+### Step 25 of 33 · Bind exact current ambient source images (`90n-bind-exact-current-ambient-source-images`)
+
+- **Goal:** Bind exact current ambient source images.
+- **Data Flow Trace:** `original properties → cached ambient recipes → shaded contact`
+- **Files You Touch:** `src/ambient_groups.rs` (*Bind exact current original inputs and camera resources.*)
+
+Bind exact current ambient source images.
+
+> **Self-Check Question:** *Can resizing keep the previous depth view?*  
+> **Answer:** No. Bind current original depth, property images, section data and the shared clipping uniform together.
+
+- **Hands-On Lab Experiment:** Compare changed depth/section view identity and the stable320-byte camera buffer.
+
 <details>
 <summary>Implementation 90n-bind-exact-current-ambient-source-images: Bind exact current ambient source images</summary>
 
@@ -1532,6 +1950,19 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-90o-record-explicit-ambient-passes"></a>
+
+### Step 26 of 33 · Record explicit ambient passes (`90o-record-explicit-ambient-passes`)
+
+- **Goal:** Record explicit ambient passes.
+- **Data Flow Trace:** `original properties → cached ambient recipes → shaded contact`
+- **Files You Touch:** `src/ambient_pass.rs` (*Record one compatible ambient stage.*) · `src/lib.rs` (*Register the completed section component.*)
+
+Record explicit ambient passes.
+
+> **Self-Check Question:** *Why complete each pass before sampling its output?*  
+> **Answer:** The GPU then transitions that image from render attachment to sampled input without a read/write conflict.
+
+- **Hands-On Lab Experiment:** Trace clear/load choices, explicit group indices and the fullscreen triangle.
 
 <details>
 <summary>Implementation 90o-record-explicit-ambient-passes: Record explicit ambient passes</summary>
@@ -1574,6 +2005,19 @@ After that block, type:
 
 <a id="checkpoint-90p-own-cached-ambient-pipelines-and-release-images"></a>
 
+### Step 27 of 33 · Own cached ambient pipelines and release images (`90p-own-cached-ambient-pipelines-and-release-images`)
+
+- **Goal:** Own cached ambient pipelines and release images.
+- **Data Flow Trace:** `original properties → cached ambient recipes → shaded contact`
+- **Files You Touch:** `src/ambient_gpu.rs` (*Own lazy ambient state and cached pipelines.*) · `src/lib.rs` (*Register the completed section component.*)
+
+Own cached ambient pipelines and release images.
+
+> **Self-Check Question:** *Should Arctic Off discard compiled pipelines?*  
+> **Answer:** No. Release derived images and radius rows while retaining compiled pipelines and their320-byte camera buffer.
+
+- **Hands-On Lab Experiment:** Compare disabled allocation with retained pipeline ownership and explicit cache reset.
+
 <details>
 <summary>Implementation 90p-own-cached-ambient-pipelines-and-release-images: Own cached ambient pipelines and release images</summary>
 
@@ -1615,6 +2059,19 @@ After that block, type:
 
 <a id="checkpoint-90q-prepare-changed-ambient-framebuffer-inputs"></a>
 
+### Step 28 of 33 · Prepare changed ambient framebuffer inputs (`90q-prepare-changed-ambient-framebuffer-inputs`)
+
+- **Goal:** Prepare changed ambient framebuffer inputs.
+- **Data Flow Trace:** `original properties → cached ambient recipes → shaded contact`
+- **Files You Touch:** `src/ambient_gpu.rs` (*Prepare exact current ambient images and source bindings.*)
+
+Prepare changed ambient framebuffer inputs.
+
+> **Self-Check Question:** *Does a density change always need new images?*  
+> **Answer:** Reallocate only when the maintained reduced size or full framebuffer changes. A new depth/section view invalidates cached input bindings.
+
+- **Hands-On Lab Experiment:** Compare physical and reduced extents, input-view witnesses and actual preparation counts.
+
 <details>
 <summary>Implementation 90q-prepare-changed-ambient-framebuffer-inputs: Prepare changed ambient framebuffer inputs</summary>
 
@@ -1645,6 +2102,19 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-90r-render-a-complete-ambient-result-in-one-frame"></a>
+
+### Step 29 of 33 · Render a complete ambient result in one frame (`90r-render-a-complete-ambient-result-in-one-frame`)
+
+- **Goal:** Render a complete ambient result in one frame.
+- **Data Flow Trace:** `original properties → cached ambient recipes → shaded contact`
+- **Files You Touch:** `src/ambient_gpu.rs` (*Render complete current single-sample ambient recipes with cached inputs.*)
+
+Render a complete ambient result in one frame.
+
+> **Self-Check Question:** *Must a static view settle over multiple frames?*  
+> **Answer:** This stage computes all current single-sample horizons and filters in one changed frame. Resting views reuse the final image and only composite it.
+
+- **Hands-On Lab Experiment:** Trace original properties, six depth levels, ground, GTAO, two filters, upsampling and final black-alpha composition.
 
 <details>
 <summary>Implementation 90r-render-a-complete-ambient-result-in-one-frame: Render a complete ambient result in one frame</summary>
@@ -1680,6 +2150,19 @@ Edit the existing block to match this code; keep unchanged lines:
 
 <a id="checkpoint-90s-count-actual-ambient-resources-and-work"></a>
 
+### Step 30 of 33 · Count actual ambient resources and work (`90s-count-actual-ambient-resources-and-work`)
+
+- **Goal:** Count actual ambient resources and work.
+- **Data Flow Trace:** `original properties → cached ambient recipes → shaded contact`
+- **Files You Touch:** `src/ambient_gpu.rs` (*Expose exact allocation and explicit ambient work counters.*)
+
+Count actual ambient resources and work.
+
+> **Self-Check Question:** *Does a pipeline-set counter measure its driver memory?*  
+> **Answer:** No. Count visible image/buffer allocation separately from construction, preparation, uniform writes and render passes.
+
+- **Hands-On Lab Experiment:** Compare a resting view, disabled320-byte owner and image recreation with retained pipelines.
+
 <details>
 <summary>Implementation 90s-count-actual-ambient-resources-and-work: Count actual ambient resources and work</summary>
 
@@ -1712,6 +2195,19 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-90t-route-original-scene-properties-into-ambient-shading"></a>
+
+### Step 31 of 33 · Route original scene properties into ambient shading (`90t-route-original-scene-properties-into-ambient-shading`)
+
+- **Goal:** Route original scene properties into ambient shading.
+- **Data Flow Trace:** `original properties → cached ambient recipes → shaded contact`
+- **Files You Touch:** `src/renderer.rs` (*Connect current original properties and cached ambient rendering.*)
+
+Route original scene properties into ambient shading.
+
+> **Self-Check Question:** *Can ambient data outlive its original scene?*  
+> **Answer:** It keeps derived radius rows and weak display bounds. Empty originals release full images; source and clipping revisions invalidate shading independently of camera motion.
+
+- **Hands-On Lab Experiment:** Compare scene replacement, original placements, lazy activation, current section normals and unchanged geometry uploads.
 
 <details>
 <summary>Implementation 90t-route-original-scene-properties-into-ambient-shading: Route original scene properties into ambient shading</summary>
@@ -2414,6 +2910,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-90u-enable-arctic-as-a-presentation-change"></a>
+
+### Step 32 of 33 · Enable Arctic as a presentation change (`90u-enable-arctic-as-a-presentation-change`)
+
+- **Goal:** Enable Arctic as a presentation change.
+- **Data Flow Trace:** `original properties → cached ambient recipes → shaded contact`
+- **Files You Touch:** `src/editor.rs` (*Connect current Arctic activation and truthful browser diagnostics.*) · `src/commands.rs` (*Connect current Arctic activation and truthful browser diagnostics.*) · `src/browser.rs` (*Connect current Arctic activation and truthful browser diagnostics.*)
+
+Enable Arctic as a presentation change.
+
+> **Self-Check Question:** *Should Arctic discard a pending point or Redo?*  
+> **Answer:** No. Strict On/Off or toggle changes presentation before tool, annotation and captured-source cleanup. Document history stays unchanged.
+
+- **Hands-On Lab Experiment:** Try On/Off, mixed case and invalid arguments while a line awaits its second point.
 
 <details>
 <summary>Implementation 90u-enable-arctic-as-a-presentation-change: Enable Arctic as a presentation change</summary>
@@ -4992,6 +5501,20 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-90v-exercise-actual-contacts-cache-and-source-ownership"></a>
 
+### Step 33 of 33 · Exercise actual contacts cache and source ownership (`90v-exercise-actual-contacts-cache-and-source-ownership`)
+
+- **Goal:** Exercise actual contacts cache and source ownership.
+- **Data Flow Trace:** `original properties → cached ambient recipes → shaded contact`
+- **Files You Touch:** `src/ambient_gpu_tests.rs` (*Copy supplied actual contact/frame/cache/release fixtures.*) · `src/renderer.rs` (*Register actual renderer-local ambient fixtures.*) · `src/arctic_tests.rs` (*Copy supplied current presentation and original-history fixtures.*) · `src/lib.rs` (*Register the completed section component.*)
+
+Exercise actual contacts cache and source ownership.
+
+> **Self-Check Question:** *What proves the contact chapter works?*  
+> **Answer:** Compare rendered isometric contact pixels and virtual-ground shadows, then check complete first/resting frames, pipeline reuse, release and unchanged originals.
+
+- **What You Should See:** The original solid casts soft contact shading on the virtual ground while its source and black ink remain unchanged.
+- **Hands-On Lab Experiment:** Show Example CAD, use View Isometric and Fit, then compare Arctic On and Off. Orbit to inspect the virtual ground shadow. Start a Line with one point, toggle Arctic and confirm the draft survives before cancelling it. Exact contact pixels and cache counters are separate supplied validation.
+
 <details>
 <summary>Implementation 90v-exercise-actual-contacts-cache-and-source-ownership: Exercise actual contacts cache and source ownership</summary>
 
@@ -5089,9 +5612,11 @@ After that block, append this supplied code:
 
 </details>
 
-## Run, Check, and Save
+---
 
-From `session_viewer`:
+## 5. Build, Verify, and Save Your Checkpoint
+
+Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 90v-exercise-actual-contacts-cache-and-source-ownership
@@ -5102,12 +5627,12 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. Use [checkpoint recovery](../../recovery.md) to restore any saved checkpoint.
+Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
 
-## Expected Visual Result & Experiment
+## 6. Lesson Summary & Expected Visual Result
 
 The original solid casts soft contact shading on the virtual ground while its source and black ink remain unchanged.
 
-- **Try this:** Show Example CAD, use View Isometric and Fit, then compare Arctic On and Off. Orbit to inspect the virtual ground shadow. Start a Line with one point, toggle Arctic and confirm the draft survives before cancelling it. Exact contact pixels and cache counters are separate supplied validation.
+- **Final Lesson Experiment:** Show Example CAD, use View Isometric and Fit, then compare Arctic On and Off. Orbit to inspect the virtual ground shadow. Start a Line with one point, toggle Arctic and confirm the draft survives before cancelling it. Exact contact pixels and cache counters are separate supplied validation.
 
-Continue with [Section-aware outlines and one presentation composite](91-include-visible-section-coverage.md).
+Continue with [Section-aware outlines and one presentation composite](../../consolidation/91-include-visible-section-coverage.md).

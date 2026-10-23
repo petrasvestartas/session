@@ -1,93 +1,157 @@
 # 5.6 · Original mesh colours and large index buffers
 
-**Section 4: Screen-Space Ink, Point Markers, NURBS Curves, and GPU Integer Picking** · **Lesson 5.6** (Redraft `4.6`) · **3 checkpoints (`40-colour` → `40b-indices`)**
+**Section 4: Screen-Space Ink, Point Markers, NURBS Curves, and GPU Integer Picking** · **Lesson 5.6** (Redraft `4.6`) · **3 checkpoints (`40-colour` → `40b-indices`)** · **Study time: 2.25–3.75 h**
 
-> **Learning Goal:** Preserve original object, point and face colour modes through the kernel render adapter, including shared face boundaries.
+> **What You Will Learn & Build:** Preserve original object, point and face colour modes through the kernel render adapter, including shared face boundaries. By the final checkpoint (`40b-indices`), you will preserve kernel u32 indices through display and GPU drawing, with truthful payload and allocation accounting.
 
-## Visual WebGPU & Architecture Schematic
+## 1. Visual Pipeline & WebGPU Architecture (Black & White Schematics)
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1px solid #cbd5e1;border-radius:10px;background:#f8fafc;">
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
+<svg viewBox="0 0 840 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <rect x="4" y="4" width="832" height="212" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Lesson 5.6 Execution Flow: Original mesh colours and large index buffers</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">Concrete data pipeline you build in this lesson (3 Checkpoints: 40-colour → 40b-indices)</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
+  
+    
+    <rect x="18" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="89" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
+    <line x1="28" y1="92" x2="151" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">original mesh</text>
+    <text x="89" y="124" text-anchor="middle" font-size="11" fill="#111111">colour mode and</text>
+    <text x="89" y="140" text-anchor="middle" font-size="11" fill="#111111">arrays</text>
+    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="183" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="254" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
+    <line x1="193" y1="92" x2="316" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">authoritative</text>
+    <text x="254" y="124" text-anchor="middle" font-size="11" fill="#111111">kernel extraction</text>
+    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="348" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="419" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
+    <line x1="358" y1="92" x2="481" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">checked display</text>
+    <text x="419" y="124" text-anchor="middle" font-size="11" fill="#111111">vertices</text>
+    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="513" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="584" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
+    <line x1="523" y1="92" x2="646" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">actual colour</text>
+    <text x="584" y="124" text-anchor="middle" font-size="11" fill="#111111">pixels</text>
+    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="678" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="749" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
+    <line x1="688" y1="92" x2="811" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">original large mesh</text>
+    
+    <rect x="18" y="162" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="32" y="181" font-size="11" font-weight="700" fill="#111111">Files You Edit in Lesson 5.6:</text>
+    <text x="215" y="181" font-size="11" fill="#111111">src/colour.rs  ·  src/lib.rs  ·  src/colour_tests.rs  ·  src/editor.rs  ·  src/browser.rs  ·  src/colour_input_tests.rs</text>
+    <text x="32" y="198" font-size="10.5" fill="#111111">3 Checkpoints: 40-colour → 40b-indices — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
+  
+</svg>
+</div>
+
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
 <svg viewBox="0 0 840 240" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#475569"/>
-    </marker>
-    <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#2563eb"/>
-    </marker>
-    <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#059669"/>
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
     </marker>
   </defs>
-  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
-  <text x="20" y="28" font-size="14" font-weight="700" fill="#0f172a">Chapter 5 WebGPU Shader Geometry: Screen-Space Ribbon Extrusion (ribbon.wgsl), Joins & Point Discs</text>
-  <text x="20" y="46" font-size="11.5" fill="#475569">Why 1-pixel hardware GL_LINES fail in CAD—and how vertex shaders extrude 3D segments into crisp, constant-CSS-pixel screen quads.</text>
-  <line x1="16" y1="54" x2="824" y2="54" stroke="#e2e8f0" stroke-width="1"/>
+  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Chapter 5 WebGPU Shader Geometry: Screen-Space Ribbon Extrusion (ribbon.wgsl), Joins & Point Discs</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">Why 1-pixel hardware GL_LINES fail in CAD—and how vertex shaders extrude 3D segments into crisp, constant-CSS-pixel screen quads.</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
   
-    <rect x="18" y="68" width="215" height="145" rx="6" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
-    <text x="125" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1e40af">1. Homogeneous Near-Clip</text>
-    <text x="28" y="108" font-size="10.5" fill="#1e3a8a">• Input: 3D segment (A, B) + width</text>
-    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#1d4ed8">• Clip to w &gt; near BEFORE divide!</text>
-    <text x="28" y="143" font-size="10" fill="#1e3a8a">  (If B is behind camera, dividing</text>
-    <text x="28" y="158" font-size="10" fill="#1e3a8a">   xyz/w flips the line across screen!)</text>
-    <text x="28" y="178" font-size="10.5" fill="#1e3a8a">• Project clipped A', B' to physical</text>
-    <text x="28" y="193" font-size="10.5" fill="#1e3a8a">  viewport pixels: pA, pB</text>
+    <rect x="18" y="68" width="215" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="125" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">1. Homogeneous Near-Clip</text>
+    <text x="28" y="108" font-size="10.5" fill="#111111">• Input: 3D segment (A, B) + width</text>
+    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#111111">• Clip to w &gt; near BEFORE divide!</text>
+    <text x="28" y="143" font-size="10" fill="#111111">  (If B is behind camera, dividing</text>
+    <text x="28" y="158" font-size="10" fill="#111111">   xyz/w flips the line across screen!)</text>
+    <text x="28" y="178" font-size="10.5" fill="#111111">• Project clipped A', B' to physical</text>
+    <text x="28" y="193" font-size="10.5" fill="#111111">  viewport pixels: pA, pB</text>
 
-    <line x1="233" y1="138" x2="263" y2="138" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
+    <line x1="233" y1="138" x2="263" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="265" y="68" width="285" height="145" rx="6" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5"/>
-    <text x="407" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#9a3412">2. Screen-Space Quad Extrusion (6 Verts)</text>
+    <rect x="265" y="68" width="285" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="407" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">2. Screen-Space Quad Extrusion (6 Verts)</text>
     <!-- Mini Visual of Extruded Line Quad -->
-    <line x1="295" y1="135" x2="435" y2="115" stroke="#c2410c" stroke-width="2.5" stroke-dasharray="4,3"/>
-    <polygon points="292,120 432,100 438,130 298,150" fill="rgba(251,146,60,0.22)" stroke="#ea580c" stroke-width="1.5"/>
-    <circle cx="295" cy="135" r="3.5" fill="#9a3412"/>
-    <circle cx="435" cy="115" r="3.5" fill="#9a3412"/>
-    <text x="282" y="168" font-size="10" fill="#7c2d12">dir = normalize(pB - pA)</text>
-    <text x="282" y="183" font-size="10" font-weight="600" fill="#c2410c">perp = vec2(-dir.y, dir.x) * (half_w + AA)</text>
-    <text x="282" y="198" font-size="10" fill="#7c2d12">vector.wgsl adds miter/bevel joins &amp; arrows</text>
+    <polygon points="292,120 432,100 438,130 298,150" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <line x1="295" y1="135" x2="435" y2="115" stroke="#111111" stroke-width="2" stroke-dasharray="4,3"/>
+    <circle cx="295" cy="135" r="3.5" fill="#111111"/>
+    <circle cx="435" cy="115" r="3.5" fill="#111111"/>
+    <text x="282" y="168" font-size="10" fill="#111111">dir = normalize(pB - pA)</text>
+    <text x="282" y="183" font-size="10" font-weight="600" fill="#111111">perp = vec2(-dir.y, dir.x) * (half_w + AA)</text>
+    <text x="282" y="198" font-size="10" fill="#111111">vector.wgsl adds miter/bevel joins &amp; arrows</text>
 
-    <line x1="550" y1="138" x2="580" y2="138" stroke="#059669" stroke-width="2" marker-end="url(#arrow-green)"/>
+    <line x1="550" y1="138" x2="580" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="582" y="68" width="238" height="145" rx="6" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1.5"/>
-    <text x="701" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#065f46">3. Analytical AA &amp; Point Discs</text>
-    <text x="594" y="108" font-size="10.5" fill="#064e3b">• ribbon.wgsl: smoothstep coverage</text>
-    <text x="594" y="123" font-size="10.5" fill="#064e3b">  from signed edge distance</text>
-    <text x="594" y="143" font-size="10.5" font-weight="600" fill="#047857">• glyph.wgsl (Point Markers):</text>
-    <text x="594" y="158" font-size="10" fill="#064e3b">  Screen quad around 3D point; discard</text>
-    <text x="594" y="173" font-size="10" fill="#064e3b">  outside radius r, feather 1px rim</text>
-    <text x="594" y="193" font-size="10.5" fill="#064e3b">• NURBS: evaluate spans -&gt; polyline</text>
+    <rect x="582" y="68" width="238" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="701" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">3. Analytical AA &amp; Point Discs</text>
+    <text x="594" y="108" font-size="10.5" fill="#111111">• ribbon.wgsl: smoothstep coverage</text>
+    <text x="594" y="123" font-size="10.5" fill="#111111">  from signed edge distance</text>
+    <text x="594" y="143" font-size="10.5" font-weight="600" fill="#111111">• glyph.wgsl (Point Markers):</text>
+    <text x="594" y="158" font-size="10" fill="#111111">  Screen quad around 3D point; discard</text>
+    <text x="594" y="173" font-size="10" fill="#111111">  outside radius r, feather 1px rim</text>
+    <text x="594" y="193" font-size="10.5" fill="#111111">• NURBS: evaluate spans -&gt; polyline</text>
     
 </svg>
 </div>
 
-### Lesson Data Flow (`Rust` → `WebGPU` → `WGSL`)
+## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
 
-```
-original mesh colour mode and arrays → authoritative kernel extraction → checked display vertices → actual colour pixels.
-actual colour example command → original source mode → one mesh history insertion → real pixels → editable download/reopen.
-original large mesh → checked u32 display indices → Uint32 GPU draw → exact byte counters → real high-index pixels.
-```
+Before writing code, review how the three layers in this chapter talk to each other:
 
-- Preserve original object, point and face colour modes through the kernel render adapter, including shared face boundaries.
-- Insert original object/point/face colour specimens through real input and preserve their modes through Save/reopen.
-- Preserve kernel u32 indices through display and GPU drawing, with truthful payload and allocation accounting.
-- **Why it works (Why does a face-coloured mesh duplicate a shared corner?):** A single GPU vertex has one colour. Two adjacent faces with different colours need separate display vertices at their shared corner while the original mesh topology stays unchanged.
-
-### Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `Browser`)
-
-| Layer | Construct | First-Year Student Explanation |
+| Layer | Construct | Plain-English Explanation for Students |
 | :--- | :--- | :--- |
 | **WGSL (`ribbon.wgsl`)** | Homogeneous Near-Plane Clip (`w > near`) | Clips 3D line segments in 4D clip space BEFORE dividing by `w`, preventing lines with one endpoint behind the camera from flipping across the screen. |
 | **WGSL (`ribbon.wgsl` / `vector.wgsl`)** | Screen-Space Perpendicular Quad Extrusion | Expands each 3D segment into a 6-vertex screen-space quad along `perp = vec2(-dir.y, dir.x) * (half_width + aa)` for crisp, constant-CSS-pixel CAD strokes and miter/bevel joins. |
 | **WGSL (`glyph.wgsl`)** | Analytical Signed-Distance Coverage (`smoothstep`) | Computes pixel center distance to the stroke edge or point-marker radius in the fragment shader for smooth anti-aliased edges. |
 
-**Production source (`session_viewer/src`):** [app/walk/curves.rs](../../../../src/app/walk/curves.rs), [engine/gpu/segments.rs](../../../../src/engine/gpu/segments.rs), [shaders/ribbon.wgsl](../../../../src/shaders/ribbon.wgsl), [shaders/vector.wgsl](../../../../src/shaders/vector.wgsl), [app/walk/points.rs](../../../../src/app/walk/points.rs), [shaders/glyph.wgsl](../../../../src/shaders/glyph.wgsl), [shaders/ink_visibility.wgsl](../../../../src/shaders/ink_visibility.wgsl), [shaders/triangle.wgsl](../../../../src/shaders/triangle.wgsl), [shaders/grid.wgsl](../../../../src/shaders/grid.wgsl).
+**Authoritative production source (`session_viewer/src`):** [app/walk/curves.rs](../../../../src/app/walk/curves.rs), [engine/gpu/segments.rs](../../../../src/engine/gpu/segments.rs), [shaders/ribbon.wgsl](../../../../src/shaders/ribbon.wgsl), [shaders/vector.wgsl](../../../../src/shaders/vector.wgsl), [app/walk/points.rs](../../../../src/app/walk/points.rs), [shaders/glyph.wgsl](../../../../src/shaders/glyph.wgsl), [shaders/ink_visibility.wgsl](../../../../src/shaders/ink_visibility.wgsl), [shaders/triangle.wgsl](../../../../src/shaders/triangle.wgsl), [shaders/grid.wgsl](../../../../src/shaders/grid.wgsl)
 
-## Implementation Checkpoints
+## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
 
-Apply these checkpoints in order inside `workspace/journey`. Expand each block to view the Rust/WGSL/HTML edits:
+| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
+| ---: | :--- | :--- | :--- | :--- |
+| **1** | [`40-colour`](#checkpoint-40-colour) | Preserve original object, point and face colour modes through the kernel render adapter, including shared face boundaries. | `src/colour.rs`, `src/lib.rs`, `src/colour_tests.rs` | `original mesh colour mode and arrays → authoritative kernel extraction → checked display vertices → actual colour pixels` |
+| **2** | [`40a-input`](#checkpoint-40a-input) | Insert original object/point/face colour specimens through real input and preserve their modes through Save/reopen. | `src/editor.rs`, `src/browser.rs`, `src/lib.rs`, `src/colour_input_tests.rs` | `actual colour example command → original source mode → one mesh history insertion → real pixels → editable download/reopen` |
+| **3** | [`40b-indices`](#checkpoint-40b-indices) | Preserve kernel u32 indices through display and GPU drawing, with truthful payload and allocation accounting. | `src/mesh.rs`, `src/gpu_geometry.rs`, `src/geometry_cache.rs`, `src/memory.rs` | `original large mesh → checked u32 display indices → Uint32 GPU draw → exact byte counters → real high-index pixels` |
+
+---
+
+## 4. Step-by-Step Coding Notebook (Concept + Implementation)
+
+Work through each notebook cell below in order inside `workspace/journey`. Read the **Concept Walkthrough** and **Self-Check Q&A** first, then expand the **Implementation** block to type and verify the code.
 
 <a id="checkpoint-40-colour"></a>
+
+### Step 1 of 3 · Carry the original mesh colour mode into display data (`40-colour`)
+
+- **Goal:** Preserve original object, point and face colour modes through the kernel render adapter, including shared face boundaries.
+- **Data Flow Trace:** `original mesh colour mode and arrays → authoritative kernel extraction → checked display vertices → actual colour pixels`
+- **Files You Touch:** `src/colour.rs` (*Build original colour-mode specimens while retaining shared kernel topology.*) · `src/lib.rs` (*Register original colour specimens and extraction checks.*) · `src/colour_tests.rs` (*Copy active mode, exact topology/arrays, shared interpolation, face duplication and fallback checks.*)
+
+Use the kernel’s current colour policy rather than duplicate its interpretation in the viewer. A complete active point-colour array shares interpolated display vertices; active face colours duplicate triangle corners.
+
+Keep the original mesh and colour arrays intact. Object mode and incomplete arrays fall back to object colour. This is the existing opaque RGB presentation; alpha handling remains a later subject.
+
+> **Self-Check Question:** *Why does a face-coloured mesh duplicate a shared corner?*  
+> **Answer:** A single GPU vertex has one colour. Two adjacent faces with different colours need separate display vertices at their shared corner while the original mesh topology stays unchanged.
+
+- **What You Should See:** Run source colour checks for object, point and face modes. Display duplication follows the kernel rules while original topology and colour arrays remain intact.
+- **Hands-On Lab Experiment:** Supply incomplete point or face colour arrays. The active mode falls back to object colour, following the kernel adapter rather than inventing partial display rules.
 
 <details>
 <summary>Implementation 40-colour: Carry the original mesh colour mode into display data</summary>
@@ -158,6 +222,24 @@ Copy this supplied file:
 </details>
 
 <a id="checkpoint-40a-input"></a>
+
+### Step 2 of 3 · Compare original colour modes through actual input (`40a-input`)
+
+- **Goal:** Insert original object/point/face colour specimens through real input and preserve their modes through Save/reopen.
+- **Data Flow Trace:** `actual colour example command → original source mode → one mesh history insertion → real pixels → editable download/reopen`
+- **Files You Touch:** `src/editor.rs` (*Expose original mesh colour specimens as editor actions.*) · `src/browser.rs` (*Expose original colour comparisons in dock completion and Help.*) · `src/lib.rs` (*Register original colour history and editable roundtrip checks.*) · `src/colour_input_tests.rs` (*Copy original mode/array roundtrip, stable row identity, one-step Undo/Redo and Close checks.*) · `src/document.rs` (*Accept known source colour modes and preserve only complete finite packed colour records.*) · `src/document_tests.rs` (*Copy unknown-mode refusal while accepting the newly implemented colour modes.*) · `src/document_phase_tests.rs` (*Copy the invalid-mode phase fixture with an actually unsupported mode.*)
+
+Add three real dock commands that insert original colour-mode specimens. Each commits one prepared mesh in the existing history.
+
+Extend the original file validator to accept known colour modes and bounded, complete finite packed RGBA records. Incomplete colour counts keep the kernel object-colour fallback; incomplete RGBA records are refused.
+
+Chrome compares object uniformity, interpolated point colours and sharp red/blue face boundaries. Save/reopen must reconstruct those pixels from retained original modes and arrays.
+
+> **Self-Check Question:** *What should survive when a coloured mesh is saved and reopened?*  
+> **Answer:** Its original topology, active colour mode and stored arrays must survive. Display vertices can be recreated from that source without baking an interpolated pixel colour into the geometry.
+
+- **What You Should See:** Close, type Example Face Colors. Compare Example Point Colors and Example Object Color in separate empty documents.
+- **Hands-On Lab Experiment:** Save each colour specimen and reopen the downloaded file. The same view must show the same source colour pixels; Undo/Redo still follows the original insertion.
 
 <details>
 <summary>Implementation 40a-input: Compare original colour modes through actual input</summary>
@@ -1514,6 +1596,22 @@ Update the existing block with this supplied code; keep unchanged lines:
 
 <a id="checkpoint-40b-indices"></a>
 
+### Step 3 of 3 · Draw meshes beyond the sixteen-bit index limit (`40b-indices`)
+
+- **Goal:** Preserve kernel u32 indices through display and GPU drawing, with truthful payload and allocation accounting.
+- **Data Flow Trace:** `original large mesh → checked u32 display indices → Uint32 GPU draw → exact byte counters → real high-index pixels`
+- **Files You Touch:** `src/mesh.rs` (*Keep kernel index precision in retained display topology.*) · `src/gpu_geometry.rs` (*Interpret uploaded index bytes with their exact GPU format.*) · `src/geometry_cache.rs` (*Count initialized index payload bytes independently of driver allocation.*) · `src/memory.rs` (*Copy the updated spare-capacity oracle for the real index layout.*) · `src/lib.rs` (*Register actual original high-index checks.*) · `src/index_width_tests.rs` (*Copy original high-index topology, correct displayed corners and missing-vertex refusal checks.*)
+
+Keep the kernel’s u32 indices through the display adapter and GPU draw call. Do not truncate high vertex references to fit an earlier demonstration layout.
+
+Update both CPU capacity and initialized GPU-byte accounting. Actual readback draws a source triangle referencing vertex65,536; complete Close still releases its source and display allocation.
+
+> **Self-Check Question:** *Why can a small triangle need a thirty-two-bit index buffer?*  
+> **Answer:** Its corners may refer to vertices beyond 65,535 in a larger shared vertex table. Truncating those indices draws the wrong corners or produces a degenerate triangle.
+
+- **What You Should See:** Run a real source mesh with 65,537 vertices and a triangle referencing the highest vertex. The rendered triangle must appear correctly.
+- **Hands-On Lab Experiment:** Check both initialized index bytes and actual buffer sizes. Thirty-two-bit indices use four bytes each; source geometry and vertex sharing remain unchanged.
+
 <details>
 <summary>Implementation 40b-indices: Draw meshes beyond the sixteen-bit index limit</summary>
 
@@ -1846,9 +1944,11 @@ Copy this supplied file:
 
 </details>
 
-## Run, Check, and Save
+---
 
-From `session_viewer`:
+## 5. Build, Verify, and Save Your Checkpoint
+
+Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 40b-indices
@@ -1859,12 +1959,12 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. Use [checkpoint recovery](../../recovery.md) to restore any saved checkpoint.
+Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
 
-## Expected Visual Result & Experiment
+## 6. Lesson Summary & Expected Visual Result
 
 Run a real source mesh with 65,537 vertices and a triangle referencing the highest vertex. The rendered triangle must appear correctly.
 
-- **Try this:** Check both initialized index bytes and actual buffer sizes. Thirty-two-bit indices use four bytes each; source geometry and vertex sharing remain unchanged.
+- **Final Lesson Experiment:** Check both initialized index bytes and actual buffer sizes. Thirty-two-bit indices use four bytes each; source geometry and vertex sharing remain unchanged.
 
-Continue with [Normals, placement and a depth-correct construction grid](41-normals.md).
+Continue with [Normals, placement and a depth-correct construction grid](../../consolidation/41-normals.md).

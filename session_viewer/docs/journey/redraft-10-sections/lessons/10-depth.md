@@ -1,105 +1,172 @@
 # 2.3 · Depth, validated geometry and stable objects
 
-**Section 2: 3D Meshes, Camera Matrices, Depth, and Ray Picking** · **Lesson 2.3** (Redraft `2.3`) · **4 checkpoints (`10-depth` → `11a-identity`)**
+**Section 2: 3D Meshes, Camera Matrices, Depth, and Ray Picking** · **Lesson 2.3** (Redraft `2.3`) · **4 checkpoints (`10-depth` → `11a-identity`)** · **Study time: 4.25–8 h**
 
-> **Learning Goal:** Draw two overlapping triangles in depth, keeping the nearer one visible even when it is drawn first.
+> **What You Will Learn & Build:** Draw two overlapping triangles in depth, keeping the nearer one visible even when it is drawn first. By the final checkpoint (`11a-identity`), you will keep object identity stable when removal changes vector order.
 
-## Visual WebGPU & Architecture Schematic
+## 1. Visual Pipeline & WebGPU Architecture (Black & White Schematics)
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1px solid #cbd5e1;border-radius:10px;background:#f8fafc;">
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
+<svg viewBox="0 0 840 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <rect x="4" y="4" width="832" height="212" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Lesson 2.3 Execution Flow: Depth, validated geometry and stable objects</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">Concrete data pipeline you build in this lesson (4 Checkpoints: 10-depth → 11a-identity)</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
+  
+    
+    <rect x="18" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="89" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
+    <line x1="28" y1="92" x2="151" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">Vertex z</text>
+    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="183" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="254" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
+    <line x1="193" y1="92" x2="316" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">transformed depth</text>
+    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="348" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="419" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
+    <line x1="358" y1="92" x2="481" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">depth comparison</text>
+    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="513" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="584" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
+    <line x1="523" y1="92" x2="646" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">colour written only</text>
+    <text x="584" y="124" text-anchor="middle" font-size="11" fill="#111111">for the nearer</text>
+    <text x="584" y="140" text-anchor="middle" font-size="11" fill="#111111">fragment</text>
+    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="678" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="749" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
+    <line x1="688" y1="92" x2="811" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">Scene allocates</text>
+    <text x="749" y="124" text-anchor="middle" font-size="11" fill="#111111">ObjectId</text>
+    
+    <rect x="18" y="162" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="32" y="181" font-size="11" font-weight="700" fill="#111111">Files You Edit in Lesson 2.3:</text>
+    <text x="215" y="181" font-size="11" fill="#111111">src/triangle.wgsl  ·  src/renderer.rs  ·  src/browser.rs  ·  src/mesh.rs  ·  src/scene.rs  ·  src/lib.rs</text>
+    <text x="32" y="198" font-size="10.5" fill="#111111">4 Checkpoints: 10-depth → 11a-identity — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
+  
+</svg>
+</div>
+
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
 <svg viewBox="0 0 840 240" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#475569"/>
-    </marker>
-    <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#2563eb"/>
-    </marker>
-    <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#059669"/>
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
     </marker>
   </defs>
-  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
-  <text x="20" y="28" font-size="14" font-weight="700" fill="#0f172a">Chapter 2 WebGPU Pipeline: 3D Vertex/Index Buffers, Camera Uniform (mat4x4), Depth32Float & Ray Picking</text>
-  <text x="20" y="46" font-size="11.5" fill="#475569">How 3D world coordinates project onto the 2D canvas with hardware Z-buffering—and how a 2D mouse click unprojects back into a 3D ray.</text>
-  <line x1="16" y1="54" x2="824" y2="54" stroke="#e2e8f0" stroke-width="1"/>
+  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Chapter 2 WebGPU Pipeline: 3D Vertex/Index Buffers, Camera Uniform (mat4x4), Depth32Float & Ray Picking</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">How 3D world coordinates project onto the 2D canvas with hardware Z-buffering—and how a 2D mouse click unprojects back into a 3D ray.</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
   
     <!-- CPU Buffers -->
-    <rect x="18" y="68" width="185" height="145" rx="6" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5"/>
-    <text x="110" y="88" text-anchor="middle" font-size="12" font-weight="700" fill="#9a3412">1. Rust CPU Data (#[repr(C)])</text>
-    <text x="28" y="108" font-size="11" fill="#7c2d12">• vertices: Vec&lt;[f32; 3]&gt;</text>
-    <text x="28" y="125" font-size="11" fill="#7c2d12">• indices:  Vec&lt;u32&gt; (shared!)</text>
-    <text x="28" y="142" font-size="11" fill="#7c2d12">• camera.view_proj: [[f32;4];4]</text>
-    <text x="28" y="162" font-size="10.5" font-weight="600" fill="#c2410c">bytemuck::cast_slice(&amp;data)</text>
-    <text x="28" y="180" font-size="10.5" fill="#7c2d12">• Undo / Redo Snapshot Stack</text>
-    <text x="28" y="197" font-size="10.5" fill="#7c2d12">• Orbit / Pan / Zoom Camera</text>
+    <rect x="18" y="68" width="185" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="110" y="88" text-anchor="middle" font-size="12" font-weight="700" fill="#111111">1. Rust CPU Data (#[repr(C)])</text>
+    <text x="28" y="108" font-size="11" fill="#111111">• vertices: Vec&lt;[f32; 3]&gt;</text>
+    <text x="28" y="125" font-size="11" fill="#111111">• indices:  Vec&lt;u32&gt; (shared!)</text>
+    <text x="28" y="142" font-size="11" fill="#111111">• camera.view_proj: [[f32;4];4]</text>
+    <text x="28" y="162" font-size="10.5" font-weight="600" fill="#111111">bytemuck::cast_slice(&amp;data)</text>
+    <text x="28" y="180" font-size="10.5" fill="#111111">• Undo / Redo Snapshot Stack</text>
+    <text x="28" y="197" font-size="10.5" fill="#111111">• Orbit / Pan / Zoom Camera</text>
 
-    <line x1="203" y1="115" x2="233" y2="115" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>
+    <line x1="203" y1="115" x2="233" y2="115" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
     <!-- Vertex Shader -->
-    <rect x="235" y="68" width="205" height="90" rx="6" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
-    <text x="337" y="87" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1e40af">2. @vertex Shader Stage</text>
-    <text x="245" y="105" font-size="10.5" fill="#1e3a8a">@location(0) pos: vec3&lt;f32&gt;</text>
-    <text x="245" y="122" font-size="10.5" fill="#1e3a8a">@group(0) @binding(0) view_proj</text>
-    <text x="245" y="142" font-size="11" font-weight="700" fill="#1d4ed8">clip = view_proj * vec4(pos, 1.0)</text>
+    <rect x="235" y="68" width="205" height="90" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="337" y="87" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">2. @vertex Shader Stage</text>
+    <text x="245" y="105" font-size="10.5" fill="#111111">@location(0) pos: vec3&lt;f32&gt;</text>
+    <text x="245" y="122" font-size="10.5" fill="#111111">@group(0) @binding(0) view_proj</text>
+    <text x="245" y="142" font-size="11" font-weight="700" fill="#111111">clip = view_proj * vec4(pos, 1.0)</text>
 
-    <line x1="440" y1="115" x2="470" y2="115" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
+    <line x1="440" y1="115" x2="470" y2="115" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
     <!-- Raster + Depth32Float -->
-    <rect x="472" y="68" width="185" height="90" rx="6" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1.5"/>
-    <text x="564" y="87" text-anchor="middle" font-size="11.5" font-weight="700" fill="#065f46">3. Depth32Float Z-Test</text>
-    <text x="482" y="105" font-size="10.5" fill="#064e3b">NDC = clip.xyz / clip.w</text>
-    <text x="482" y="122" font-size="10.5" font-weight="600" fill="#047857">if z_fragment &lt;= z_buffer[x,y]:</text>
-    <text x="482" y="139" font-size="10.5" fill="#064e3b">  write pixel &amp; update z_buffer</text>
+    <rect x="472" y="68" width="185" height="90" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="564" y="87" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">3. Depth32Float Z-Test</text>
+    <text x="482" y="105" font-size="10.5" fill="#111111">NDC = clip.xyz / clip.w</text>
+    <text x="482" y="122" font-size="10.5" font-weight="600" fill="#111111">if z_fragment &lt;= z_buffer[x,y]:</text>
+    <text x="482" y="139" font-size="10.5" fill="#111111">  write pixel &amp; update z_buffer</text>
 
-    <line x1="657" y1="115" x2="685" y2="115" stroke="#059669" stroke-width="2" marker-end="url(#arrow-green)"/>
+    <line x1="657" y1="115" x2="685" y2="115" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
     <!-- Screen & Reverse Ray Pick -->
-    <rect x="687" y="68" width="133" height="145" rx="6" fill="#fdf2f8" stroke="#f472b6" stroke-width="1.5"/>
-    <text x="753" y="87" text-anchor="middle" font-size="11.5" font-weight="700" fill="#9d174d">4. Canvas &amp; Pick</text>
-    <text x="696" y="106" font-size="10.5" fill="#831843">• Nearer mesh</text>
-    <text x="696" y="120" font-size="10.5" fill="#831843">  occludes rear</text>
-    <text x="696" y="142" font-size="10.5" font-weight="600" fill="#9d174d">• Click (px, py):</text>
-    <text x="696" y="157" font-size="10" fill="#831843">  inv_view_proj</text>
-    <text x="696" y="172" font-size="10" fill="#831843">  -&gt; 3D Ray(O, D)</text>
-    <text x="696" y="187" font-size="10" fill="#831843">  -&gt; min t hit ID!</text>
+    <rect x="687" y="68" width="133" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="753" y="87" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">4. Canvas &amp; Pick</text>
+    <text x="696" y="106" font-size="10.5" fill="#111111">• Nearer mesh</text>
+    <text x="696" y="120" font-size="10.5" fill="#111111">  occludes rear</text>
+    <text x="696" y="142" font-size="10.5" font-weight="600" fill="#111111">• Click (px, py):</text>
+    <text x="696" y="157" font-size="10" fill="#111111">  inv_view_proj</text>
+    <text x="696" y="172" font-size="10" fill="#111111">  -&gt; 3D Ray(O, D)</text>
+    <text x="696" y="187" font-size="10" fill="#111111">  -&gt; min t hit ID!</text>
 
     <!-- Bottom Reverse Arrow for Ray Picking -->
-    <rect x="235" y="168" width="422" height="45" rx="6" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1"/>
-    <text x="446" y="187" text-anchor="middle" font-size="11" font-weight="600" fill="#334155">CPU Ray Picking (Inverse Path): Screen (px, py) → NDC (-1..+1) → inv(view_proj) → World Ray (O + t·D)</text>
-    <text x="446" y="203" text-anchor="middle" font-size="10.5" fill="#475569">Tests every triangle via Möller–Trumbore; smallest positive t wins (matching hardware Depth32Float occlusion!)</text>
+    <rect x="235" y="168" width="422" height="45" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="446" y="187" text-anchor="middle" font-size="11" font-weight="600" fill="#111111">CPU Ray Picking (Inverse Path): Screen (px, py) → NDC (-1..+1) → inv(view_proj) → World Ray (O + t·D)</text>
+    <text x="446" y="203" text-anchor="middle" font-size="10.5" fill="#111111">Tests every triangle via Möller–Trumbore; smallest positive t wins (matching hardware Depth32Float occlusion!)</text>
     
 </svg>
 </div>
 
-### Lesson Data Flow (`Rust` → `WebGPU` → `WGSL`)
+## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
 
-```
-Vertex z → transformed depth → depth comparison → colour written only for the nearer fragment.
-Example Triangle → Scene changes → set_scene uploads → GpuMesh draws.
-Scene allocates ObjectId → Object retains Mesh → GPU upload borrows that mesh.
-```
+Before writing code, review how the three layers in this chapter talk to each other:
 
-- Draw two overlapping triangles in depth, keeping the nearer one visible even when it is drawn first.
-- Add and remove a mesh through scene data while reusing the renderer and camera.
-- Keep object identity stable when removal changes vector order.
-- **Why it works (Why is it not enough to draw the far triangle first?):** A particular draw order might work for these two flat triangles, but a real scene can overlap differently from each viewpoint. A depth attachment remembers the nearest depth at each pixel. The comparison chooses visibility there, so drawing an opaque farther surface later does not cover a nearer one.
-
-### Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `Browser`)
-
-| Layer | Construct | First-Year Student Explanation |
+| Layer | Construct | Plain-English Explanation for Students |
 | :--- | :--- | :--- |
 | **Rust (`bytemuck`)** | `#[repr(C)]` + `Pod` / `Zeroable` | Guarantees Rust structs (`Vertex`, `CameraUniform`) have exact C/GPU byte layout so `bytemuck::cast_slice` uploads raw bytes to `wgpu::Buffer` with zero copying. |
 | **WGSL Shader** | `@group(0) @binding(0) var<uniform> view_proj: mat4x4<f32>` | Transforms 3D world vertices into 4D homogeneous clip coordinates (`view_proj * vec4<f32>(pos, 1.0)`). |
 | **WebGPU / Math** | `Depth32Float` + Inverse Ray `inv(view_proj)` | Forward pass uses a 32-bit float Z-buffer (`LessEqual`) so nearer triangles occlude farther ones; clicking unprojects `(px, py)` back into a 3D ray to pick the closest hit `t`. |
 
-**Production source (`session_viewer/src`):** `session_viewer/src`
+**Authoritative production source (`session_viewer/src`):** `session_viewer/src`
 
-## Implementation Checkpoints
+## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
 
-Apply these checkpoints in order inside `workspace/journey`. Expand each block to view the Rust/WGSL/HTML edits:
+| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
+| ---: | :--- | :--- | :--- | :--- |
+| **1** | [`10-depth`](#checkpoint-10-depth) | Draw two overlapping triangles in depth, keeping the nearer one visible even when it is drawn first. | `src/triangle.wgsl`, `src/renderer.rs`, `src/browser.rs` | `Vertex z → transformed depth → depth comparison → colour written only for the nearer fragment` |
+| **2** | [`10a-mesh`](#checkpoint-10a-mesh) | Own validated mesh values and a scene collection before uploading them. | `src/mesh.rs`, `src/scene.rs`, `src/lib.rs` | `Mesh::new validates owned vectors → Scene retains Mesh values` |
+| **3** | [`11-scene`](#checkpoint-11-scene) | Add and remove a mesh through scene data while reusing the renderer and camera. | `src/gpu_mesh.rs`, `src/lib.rs`, `src/renderer.rs`, `src/browser.rs` | `Example Triangle → Scene changes → set_scene uploads → GpuMesh draws` |
+| **4** | [`11a-identity`](#checkpoint-11a-identity) | Keep object identity stable when removal changes vector order. | `src/scene.rs`, `src/renderer.rs` | `Scene allocates ObjectId → Object retains Mesh → GPU upload borrows that mesh` |
+
+---
+
+## 4. Step-by-Step Coding Notebook (Concept + Implementation)
+
+Work through each notebook cell below in order inside `workspace/journey`. Read the **Concept Walkthrough** and **Self-Check Q&A** first, then expand the **Implementation** block to type and verify the code.
 
 <a id="checkpoint-10-depth"></a>
+
+### Step 1 of 4 · Keep the nearest surface (`10-depth`)
+
+- **Goal:** Draw two overlapping triangles in depth, keeping the nearer one visible even when it is drawn first.
+- **Data Flow Trace:** `Vertex z → transformed depth → depth comparison → colour written only for the nearer fragment`
+- **Files You Touch:** `src/triangle.wgsl` (*Pass transformed 3D positions and vertex colours to the rasterizer. The fragment function uses the interpolated colour.*) · `src/renderer.rs` (*Define two coloured triangles with different Z coordinates.*) · `src/browser.rs` (*Allocate depth storage at the canvas size.*)
+
+Keep the nearer triangle even when the farther triangle is drawn last. Give pink depth 0.25 and turquoise depth 0.75; draw pink first.
+
+Attach a depth texture alongside colour. Clear depth to 1 and use `Less` with depth writes: a fragment passes only when it is nearer than the stored depth. Its dimensions and sample count must match the colour image.
+
+A vertex now contains position and colour: six `f32` values, 24 bytes. Shader locations 0 and 1 read those two groups. The vertex shader passes colour to the fragment shader.
+
+The browser supplies the startup dimensions to `renderer.resize`. Later resize handling updates both attachments. This depth rule handles opaque visibility; transparency comes later.
+
+> **Self-Check Question:** *Why is it not enough to draw the far triangle first?*  
+> **Answer:** A particular draw order might work for these two flat triangles, but a real scene can overlap differently from each viewpoint. A depth attachment remembers the nearest depth at each pixel. The comparison chooses visibility there, so drawing an opaque farther surface later does not cover a nearer one.
+
+- **What You Should See:** Look at the overlapping triangles. The nearer triangle must cover the farther one even though it is drawn first. Reverse their draw order: the overlap should stay the same. Restore the order.
+- **Hands-On Lab Experiment:** Temporarily change the near triangle’s three z values from 0.25 to 0.9. Predict which colour will appear at the shared centre. Turquoise should now win. Restore the values, then reverse the two groups of indices: the picture should stay the same. Restore the original order before comparing.
 
 <details>
 <summary>Implementation 10-depth: Keep the nearest surface</summary>
@@ -804,6 +871,22 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-10a-mesh"></a>
 
+### Step 2 of 4 · Give geometry a validated CPU owner (`10a-mesh`)
+
+- **Goal:** Own validated mesh values and a scene collection before uploading them.
+- **Data Flow Trace:** `Mesh::new validates owned vectors → Scene retains Mesh values`
+- **Files You Touch:** `src/mesh.rs` (*Create validated CPU mesh data. The vertex record layout is the same six floats used in the depth lesson.*) · `src/scene.rs` (*Move the demonstration geometry into a scene and add its third-mesh toggle.*) · `src/lib.rs` (*Register the CPU mesh and scene modules.*)
+
+Mesh owns vertex and index vectors. Its constructor rejects missing vertices, incomplete triangles and nonfinite values. Scene owns a collection of those validated meshes.
+
+Vec owns its allocation; a slice borrows existing elements. Result returns either the constructed Mesh or the reason it was refused. GPU upload consumes these slices in the next step.
+
+> **Self-Check Question:** *Why return slices rather than mutable vectors?*  
+> **Answer:** A borrowed slice lets upload read the values without transferring ownership or allowing invalid indices to be inserted.
+
+- **What You Should See:** Inspect the supplied state fixtures. Valid triangles are accepted; missing vertices, incomplete triangles and NaN values are rejected.
+- **Hands-On Lab Experiment:** In the constructor test, replace the invalid index 3 with 2. That case becomes valid, so its is_err assertion should fail. Restore 3.
+
 <details>
 <summary>Implementation 10a-mesh: Give geometry a validated CPU owner</summary>
 
@@ -857,6 +940,24 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-11-scene"></a>
+
+### Step 3 of 4 · Draw the scene through GPU mesh owners (`11-scene`)
+
+- **Goal:** Add and remove a mesh through scene data while reusing the renderer and camera.
+- **Data Flow Trace:** `Example Triangle → Scene changes → set_scene uploads → GpuMesh draws`
+- **Files You Touch:** `src/gpu_mesh.rs` (*Move mesh upload and indexed drawing into the owner of those GPU buffers.*) · `src/lib.rs` (*Register the GPU mesh owner.*) · `src/renderer.rs` (*Own uploaded GpuMesh values and build them from Scene.*) · `src/browser.rs` (*Import the scene owner.*)
+
+GpuMesh owns the vertex and index buffers uploaded from a borrowed Mesh. Renderer owns the uploaded list; the browser retains Scene.
+
+Example Triangle changes the CPU collection, uploads it, then redraws. Camera commands update only the view uniform.
+
+The upload borrows validated slices and copies their bytes into buffers. Replacing those buffers leaves the CPU scene and camera owned by the caller.
+
+> **Self-Check Question:** *Does uploading transfer the CPU Mesh to the renderer?*  
+> **Answer:** No. upload borrows &Mesh; Scene keeps the original vectors while GpuMesh owns the copied GPU buffers.
+
+- **What You Should See:** Type Example Triangle. A third, green triangle appears.
+- **Hands-On Lab Experiment:** Pan Right, then submit Example Triangle twice. The scene should return to the same image without resetting the camera.
 
 <details>
 <summary>Implementation 11-scene: Draw the scene through GPU mesh owners</summary>
@@ -1547,6 +1648,22 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-11a-identity"></a>
 
+### Step 4 of 4 · Name objects independently of their rows (`11a-identity`)
+
+- **Goal:** Keep object identity stable when removal changes vector order.
+- **Data Flow Trace:** `Scene allocates ObjectId → Object retains Mesh → GPU upload borrows that mesh`
+- **Files You Touch:** `src/scene.rs` (*Replace the scene with stable object IDs and named insertion, removal and lookup operations. Keep the two existing demonstration meshes unchanged.*) · `src/renderer.rs` (*Upload the mesh borrowed from each named object.*)
+
+ObjectId names an object independently of its vector row. Scene allocates IDs, looks up objects by those names, and remembers the extra triangle by ID.
+
+The wrapper type prevents confusing an ID with an index. checked_add returns an error before the counter can wrap and reuse a name.
+
+> **Self-Check Question:** *Does moving to row zero create a new object?*  
+> **Answer:** No. The vector position changes; the ObjectId assigned at insertion stays the same.
+
+- **What You Should See:** Inspect the supplied state fixtures. Removing the first object moves the next row without changing its ID; toggling the extra object still removes that object.
+- **Hands-On Lab Experiment:** In the removal test, compare the second object’s ID before and after deleting the first. The ID should match even though its row changes.
+
 <details>
 <summary>Implementation 11a-identity: Name objects independently of their rows</summary>
 
@@ -1830,9 +1947,11 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 </details>
 
-## Run, Check, and Save
+---
 
-From `session_viewer`:
+## 5. Build, Verify, and Save Your Checkpoint
+
+Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 11a-identity
@@ -1843,12 +1962,12 @@ cargo build --lib --locked --target wasm32-unknown-unknown -j1
 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. Use [checkpoint recovery](../../recovery.md) to restore any saved checkpoint.
+Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
 
-## Expected Visual Result & Experiment
+## 6. Lesson Summary & Expected Visual Result
 
 Inspect the supplied state fixtures. Removing the first object moves the next row without changing its ID; toggling the extra object still removes that object.
 
-- **Try this:** In the removal test, compare the second object’s ID before and after deleting the first. The ID should match even though its row changes.
+- **Final Lesson Experiment:** In the removal test, compare the second object’s ID before and after deleting the first. The ID should match even though its row changes.
 
-Continue with [Selection that agrees with the displayed view](12-identity.md).
+Continue with [Selection that agrees with the displayed view](../../consolidation/12-identity.md).

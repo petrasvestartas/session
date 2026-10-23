@@ -1,90 +1,170 @@
 # 17.2 · Finite ink visibility and original colour/pick ownership
 
-**Section 9: Compute Tile Visibility, Clipping Half-Spaces, Section Caps, and Ambient Occlusion** · **Lesson 17.2** (Redraft `9.2`) · **25 checkpoints (`86s-test-visibility-at-the-original-center-line` → `86aq-exercise-finite-color-and-original-picking`)**
+**Section 9: Compute Tile Visibility, Clipping Half-Spaces, Section Caps, and Ambient Occlusion** · **Lesson 17.2** (Redraft `9.2`) · **25 checkpoints (`86s-test-visibility-at-the-original-center-line` → `86aq-exercise-finite-color-and-original-picking`)** · **Study time: 12.5–25 h**
 
-> **Learning Goal:** Test visibility at the original center line.
+> **What You Will Learn & Build:** Test visibility at the original center line. By the final checkpoint (`86aq-exercise-finite-color-and-original-picking`), you will exercise finite color and original picking.
 
-## Visual WebGPU & Architecture Schematic
+## 1. Visual Pipeline & WebGPU Architecture (Black & White Schematics)
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1px solid #cbd5e1;border-radius:10px;background:#f8fafc;">
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
+<svg viewBox="0 0 840 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <rect x="4" y="4" width="832" height="212" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Lesson 17.2 Execution Flow: Finite ink visibility and original colour/pick ownership</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">Concrete data pipeline you build in this lesson (25 Checkpoints: 86s-test-visibility-at-the-original-center-line → 86aq-exercise-finite-color-and-original-picking)</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
+  
+    
+    <rect x="18" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="89" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
+    <line x1="28" y1="92" x2="151" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">fragment pixel</text>
+    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="183" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="254" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
+    <line x1="193" y1="92" x2="316" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">nearest axis point</text>
+    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="348" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="419" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
+    <line x1="358" y1="92" x2="481" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">finite original</text>
+    <text x="419" y="124" text-anchor="middle" font-size="11" fill="#111111">triangles</text>
+    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="513" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="584" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
+    <line x1="523" y1="92" x2="646" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">original solids and</text>
+    <text x="584" y="124" text-anchor="middle" font-size="11" fill="#111111">ink</text>
+    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="678" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="749" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
+    <line x1="688" y1="92" x2="811" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">finite coverage</text>
+    
+    <rect x="18" y="162" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="32" y="181" font-size="11" font-weight="700" fill="#111111">Files You Edit in Lesson 17.2:</text>
+    <text x="215" y="181" font-size="11" fill="#111111">src/finite_visibility.wgsl  ·  src/stroke_coverage.wgsl  ·  src/stroke.wgsl  ·  src/stroke.rs  ·  src/finite_project_source.rs  ·  src/stroke_gpu.rs</text>
+    <text x="32" y="198" font-size="10.5" fill="#111111">25 Checkpoints: 86s-test-visibility-at-the-original-center-line → 86aq-exercise-finite-color-and-original-picking — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
+  
+</svg>
+</div>
+
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
 <svg viewBox="0 0 840 240" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#475569"/>
-    </marker>
-    <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#2563eb"/>
-    </marker>
-    <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#059669"/>
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
     </marker>
   </defs>
-  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
-  <text x="20" y="28" font-size="14" font-weight="700" fill="#0f172a">Section 9 Compute Tile Visibility, Clipping Half-Spaces, Winding Section Caps & Horizon GTAO (Ch 17–18)</text>
-  <text x="20" y="46" font-size="11.5" fill="#475569">How @compute shaders bin triangles into screen tiles for hidden-line removal, clip solids with winding caps, and shade crevices.</text>
-  <line x1="16" y1="54" x2="824" y2="54" stroke="#e2e8f0" stroke-width="1"/>
+  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Section 9 Compute Tile Visibility, Clipping Half-Spaces, Winding Section Caps & Horizon GTAO (Ch 17–18)</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">How @compute shaders bin triangles into screen tiles for hidden-line removal, clip solids with winding caps, and shade crevices.</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
   
-    <rect x="18" y="68" width="250" height="145" rx="6" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
-    <text x="143" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1e40af">1. @compute Tile Visibility (Ch 17)</text>
-    <text x="28" y="108" font-size="10.5" fill="#1e3a8a">• projected_triangle.wgsl projects tris</text>
-    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#1d4ed8">• atomicAdd tile counts + prefix-sum CSR</text>
-    <text x="28" y="144" font-size="10.5" fill="#1e3a8a">• ink_visibility.wgsl tests center-line</text>
-    <text x="28" y="160" font-size="10.5" fill="#1e3a8a">  against covering triangles in tile</text>
-    <text x="28" y="178" font-size="10.5" fill="#1e3a8a">• Hidden lines dashed/faded cleanly!</text>
+    <rect x="18" y="68" width="250" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="143" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">1. @compute Tile Visibility (Ch 17)</text>
+    <text x="28" y="108" font-size="10.5" fill="#111111">• projected_triangle.wgsl projects tris</text>
+    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#111111">• atomicAdd tile counts + prefix-sum CSR</text>
+    <text x="28" y="144" font-size="10.5" fill="#111111">• ink_visibility.wgsl tests center-line</text>
+    <text x="28" y="160" font-size="10.5" fill="#111111">  against covering triangles in tile</text>
+    <text x="28" y="178" font-size="10.5" fill="#111111">• Hidden lines dashed/faded cleanly!</text>
 
-    <line x1="268" y1="138" x2="298" y2="138" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
+    <line x1="268" y1="138" x2="298" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="300" y="68" width="265" height="145" rx="6" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5"/>
-    <text x="432" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#9a3412">2. Clipping &amp; Winding Caps (Ch 17)</text>
-    <text x="312" y="108" font-size="10.5" fill="#7c2d12">• Half-space: dot(pos_world, plane) &lt; 0</text>
-    <text x="312" y="126" font-size="10.5" font-weight="600" fill="#c2410c">• Signed front/back crossing count</text>
-    <text x="312" y="142" font-size="10" fill="#7c2d12">  at clip plane depth (cap.wgsl):</text>
-    <text x="312" y="158" font-size="10" fill="#7c2d12">  Fills closed solid interiors while</text>
-    <text x="312" y="173" font-size="10" fill="#7c2d12">  leaving internal bores hollow!</text>
-    <text x="312" y="191" font-size="10.5" fill="#7c2d12">• Cap picks resolve to solid owner_id</text>
+    <rect x="300" y="68" width="265" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="432" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">2. Clipping &amp; Winding Caps (Ch 17)</text>
+    <text x="312" y="108" font-size="10.5" fill="#111111">• Half-space: dot(pos_world, plane) &lt; 0</text>
+    <text x="312" y="126" font-size="10.5" font-weight="600" fill="#111111">• Signed front/back crossing count</text>
+    <text x="312" y="142" font-size="10" fill="#111111">  at clip plane depth (cap.wgsl):</text>
+    <text x="312" y="158" font-size="10" fill="#111111">  Fills closed solid interiors while</text>
+    <text x="312" y="173" font-size="10" fill="#111111">  leaving internal bores hollow!</text>
+    <text x="312" y="191" font-size="10.5" fill="#111111">• Cap picks resolve to solid owner_id</text>
 
-    <line x1="565" y1="138" x2="595" y2="138" stroke="#059669" stroke-width="2" marker-end="url(#arrow-green)"/>
+    <line x1="565" y1="138" x2="595" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="597" y="68" width="223" height="145" rx="6" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1.5"/>
-    <text x="708" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#065f46">3. Horizon GTAO &amp; X-Ray (Ch 18)</text>
-    <text x="609" y="108" font-size="10.5" fill="#064e3b">• ambient_depth.wgsl -&gt; 6-mip pyramid</text>
-    <text x="609" y="126" font-size="10.5" font-weight="600" fill="#047857">• ssao.wgsl + bilateral blur +</text>
-    <text x="609" y="142" font-size="10.5" font-weight="600" fill="#047857">  ambient_composite.wgsl (Arctic)</text>
-    <text x="609" y="160" font-size="10" fill="#064e3b">• Glass / X-Ray translucent shells</text>
-    <text x="609" y="175" font-size="10" fill="#064e3b">  allow picking interior Wood joints</text>
+    <rect x="597" y="68" width="223" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="708" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">3. Horizon GTAO &amp; X-Ray (Ch 18)</text>
+    <text x="609" y="108" font-size="10.5" fill="#111111">• ambient_depth.wgsl -&gt; 6-mip pyramid</text>
+    <text x="609" y="126" font-size="10.5" font-weight="600" fill="#111111">• ssao.wgsl + bilateral blur +</text>
+    <text x="609" y="142" font-size="10.5" font-weight="600" fill="#111111">  ambient_composite.wgsl (Arctic)</text>
+    <text x="609" y="160" font-size="10" fill="#111111">• Glass / X-Ray translucent shells</text>
+    <text x="609" y="175" font-size="10" fill="#111111">  allow picking interior Wood joints</text>
     
 </svg>
 </div>
 
-### Lesson Data Flow (`Rust` → `WebGPU` → `WGSL`)
+## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
 
-```
-fragment pixel → nearest axis point → finite original triangles.
-projected records and lists → sampled depth → family pipeline.
-original solids and ink → finite coverage → stable view.
-```
+Before writing code, review how the three layers in this chapter talk to each other:
 
-- Test visibility at the original center line.
-- Keep marker crop ownership aligned.
-- Exercise finite color and original picking.
-- **Why it works (Why compare at the center line?):** A wide ribbon on a sloping face must remain visible on both sides. Fragment depth alone can erase half its width.
-
-### Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `Browser`)
-
-| Layer | Construct | First-Year Student Explanation |
+| Layer | Construct | Plain-English Explanation for Students |
 | :--- | :--- | :--- |
 | **WGSL (`@compute`)** | `@compute @workgroup_size(64) fn main(@builtin(global_invocation_id) id: vec3<u32>)` | Runs general-purpose parallel GPU threads (outside vertex/fragment rasterization) to project triangles and prefix-sum tile counts. |
 | **WGSL (Atomics)** | `atomicAdd(&tile_counts[tile_id], 1u)` | Safely increments shared GPU buffer counters when multiple triangles overlap the same screen tile concurrently. |
 | **Math (Winding Cap)** | `signed_crossings != 0` at clip plane depth | Fills only the solid interior of a clipped B-Rep/mesh while leaving interior bores and open shells hollow. |
 | **WGSL (`ssao.wgsl`)** | Multi-level depth pyramid horizon integration | Samples 6 mip levels of linear depth and per-object contact radius to shade crevices and ground contact. |
 
-**Production source (`session_viewer/src`):** [engine/gpu/triangle_tiles.rs](../../../../src/engine/gpu/triangle_tiles.rs), [shaders/project_triangles.wgsl](../../../../src/shaders/project_triangles.wgsl), [shaders/ink_visibility.wgsl](../../../../src/shaders/ink_visibility.wgsl), [shaders/ribbon.wgsl](../../../../src/shaders/ribbon.wgsl), [shaders/vector.wgsl](../../../../src/shaders/vector.wgsl), [engine/gpu/clip.rs](../../../../src/engine/gpu/clip.rs), [shaders/cap.wgsl](../../../../src/shaders/cap.wgsl), [engine/gpu/render.rs](../../../../src/engine/gpu/render.rs), [engine/gpu/pass.rs](../../../../src/engine/gpu/pass.rs), [build.rs](../../../../build.rs).
+**Authoritative production source (`session_viewer/src`):** [engine/gpu/triangle_tiles.rs](../../../../src/engine/gpu/triangle_tiles.rs), [shaders/project_triangles.wgsl](../../../../src/shaders/project_triangles.wgsl), [shaders/ink_visibility.wgsl](../../../../src/shaders/ink_visibility.wgsl), [shaders/ribbon.wgsl](../../../../src/shaders/ribbon.wgsl), [shaders/vector.wgsl](../../../../src/shaders/vector.wgsl), [engine/gpu/clip.rs](../../../../src/engine/gpu/clip.rs), [shaders/cap.wgsl](../../../../src/shaders/cap.wgsl), [engine/gpu/render.rs](../../../../src/engine/gpu/render.rs), [engine/gpu/pass.rs](../../../../src/engine/gpu/pass.rs), [build.rs](../../../../build.rs).
 
-## Implementation Checkpoints
+## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
 
-Apply these checkpoints in order inside `workspace/journey`. Expand each block to view the Rust/WGSL/HTML edits:
+| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
+| ---: | :--- | :--- | :--- | :--- |
+| **1** | [`86s-test-visibility-at-the-original-center-line`](#checkpoint-86s-test-visibility-at-the-original-center-line) | Test visibility at the original center line. | `src/finite_visibility.wgsl` | `fragment pixel → nearest axis point → finite original triangles` |
+| **2** | [`86t-reuse-original-stroke-coverage`](#checkpoint-86t-reuse-original-stroke-coverage) | Reuse original stroke coverage. | `src/stroke_coverage.wgsl`, `src/stroke.wgsl`, `src/stroke.rs`, `src/finite_project_source.rs` | `original geometry recipe → unchanged coverage` |
+| **3** | [`86u-carry-stroke-axis-and-depth`](#checkpoint-86u-carry-stroke-axis-and-depth) | Carry stroke axis and depth. | `src/finite_stroke.wgsl` | `original projected axis → full-canvas pixel → finite visibility` |
+| **4** | [`86v-reuse-original-stroke-integer-coverage`](#checkpoint-86v-reuse-original-stroke-integer-coverage) | Reuse original stroke integer coverage. | `src/finite_stroke_pick.wgsl` | `original coverage → original owner ID` |
+| **5** | [`86w-keep-stroke-crop-ownership-aligned`](#checkpoint-86w-keep-stroke-crop-ownership-aligned) | Keep stroke crop ownership aligned. | `src/finite_stroke_pick.wgsl` | `same finite axis → cropped integer draw → original ID` |
+| **6** | [`86x-reuse-original-chain-coverage`](#checkpoint-86x-reuse-original-chain-coverage) | Reuse original chain coverage. | `src/chain_coverage.wgsl`, `src/chain.wgsl`, `src/chain.rs`, `src/finite_project_source.rs` | `original geometry recipe → unchanged coverage` |
+| **7** | [`86y-carry-chain-axis-and-depth`](#checkpoint-86y-carry-chain-axis-and-depth) | Carry chain axis and depth. | `src/finite_chain.wgsl` | `original projected axis → full-canvas pixel → finite visibility` |
+| **8** | [`86z-reuse-original-chain-integer-coverage`](#checkpoint-86z-reuse-original-chain-integer-coverage) | Reuse original chain integer coverage. | `src/finite_chain_pick.wgsl` | `original coverage → original owner ID` |
+| **9** | [`86aa-keep-chain-crop-ownership-aligned`](#checkpoint-86aa-keep-chain-crop-ownership-aligned) | Keep chain crop ownership aligned. | `src/finite_chain_pick.wgsl` | `same finite axis → cropped integer draw → original ID` |
+| **10** | [`86ab-reuse-original-marker-coverage`](#checkpoint-86ab-reuse-original-marker-coverage) | Reuse original marker coverage. | `src/marker_coverage.wgsl`, `src/marker.wgsl`, `src/marker.rs`, `src/finite_project_source.rs` | `original geometry recipe → unchanged coverage` |
+| **11** | [`86ac-carry-marker-axis-and-depth`](#checkpoint-86ac-carry-marker-axis-and-depth) | Carry marker axis and depth. | `src/finite_marker.wgsl` | `original projected axis → full-canvas pixel → finite visibility` |
+| **12** | [`86ad-reuse-original-marker-integer-coverage`](#checkpoint-86ad-reuse-original-marker-integer-coverage) | Reuse original marker integer coverage. | `src/finite_marker_pick.wgsl` | `original coverage → original owner ID` |
+| **13** | [`86ae-keep-marker-crop-ownership-aligned`](#checkpoint-86ae-keep-marker-crop-ownership-aligned) | Keep marker crop ownership aligned. | `src/finite_marker_pick.wgsl` | `same finite axis → cropped integer draw → original ID` |
+| **14** | [`86af-assemble-one-shared-finite-shader-predicate`](#checkpoint-86af-assemble-one-shared-finite-shader-predicate) | Assemble one shared finite shader predicate. | `src/finite_sources.rs`, `src/lib.rs` | `original family → expanded helper → color or pick source` |
+| **15** | [`86ag-own-finite-color-and-integer-pipelines`](#checkpoint-86ag-own-finite-color-and-integer-pipelines) | Compile the finite pipeline and cached-binding types before construction. | `src/finite_ink.rs`, `src/lib.rs` | `explicit GPU owner → color and pick targets` |
+| **16** | [`86ah-build-finite-shader-pipelines-with-original-layouts`](#checkpoint-86ah-build-finite-shader-pipelines-with-original-layouts) | Build finite shader pipelines with original layouts. | `src/finite_ink.rs` | `original attributes → explicit groups → target pipeline` |
+| **17** | [`86ai-bind-finite-coverage-for-original-families`](#checkpoint-86ai-bind-finite-coverage-for-original-families) | Bind finite coverage for original families. | `src/finite_ink.rs` | `projected records and lists → sampled depth → family pipeline` |
+| **18** | [`86aj-reuse-bindings-and-draw-original-owners`](#checkpoint-86aj-reuse-bindings-and-draw-original-owners) | Reuse bindings and draw original owners. | `src/finite_ink.rs` | `unchanged resources → cached binding → color or integer draw` |
+| **19** | [`86ak-expose-original-gpu-models-to-projection`](#checkpoint-86ak-expose-original-gpu-models-to-projection) | Expose original GPU models to projection. | `src/gpu_layout.rs` | `existing mesh and uniform → compute-readable original inputs` |
+| **20** | [`86al-connect-finite-visibility-to-all-original-ink-lanes`](#checkpoint-86al-connect-finite-visibility-to-all-original-ink-lanes) | Connect finite visibility to all original ink lanes. | `src/stroke_gpu.rs`, `src/highlight.rs` | `original stroke lane → optional finite pipeline → preserved legacy API` |
+| **21** | [`86am-separate-integer-depth-writers-and-sampled-ink`](#checkpoint-86am-separate-integer-depth-writers-and-sampled-ink) | Separate integer depth writers and sampled ink. | `src/pick_image.rs`, `src/pick_gpu.rs`, `src/pick_encode.rs` | `opaque original IDs → read-only ink → other original owners` |
+| **22** | [`86an-own-tile-state-before-color-and-first-picks`](#checkpoint-86an-own-tile-state-before-color-and-first-picks) | Own tile state before color and first picks. | `src/renderer.rs` | `current source and view → prepared projection → cached owner` |
+| **23** | [`86ao-split-opaque-finite-ink-and-cloud-composition`](#checkpoint-86ao-split-opaque-finite-ink-and-cloud-composition) | Split opaque finite ink and cloud composition. | `src/renderer.rs` | `opaque surfaces → cloud depth composite → read-only finite ink` |
+| **24** | [`86ap-observe-actual-derived-tile-resources`](#checkpoint-86ap-observe-actual-derived-tile-resources) | Observe actual derived tile resources. | `src/browser.rs` | `completed report → one browser wake → truthful counters` |
+| **25** | [`86aq-exercise-finite-color-and-original-picking`](#checkpoint-86aq-exercise-finite-color-and-original-picking) | Exercise finite color and original picking. | `src/tile_shader_tests.rs`, `src/lib.rs`, `src/tile_gpu_tests.rs`, `src/finite_visibility_tests.rs` | `original solids and ink → finite coverage → stable view` |
+
+---
+
+## 4. Step-by-Step Coding Notebook (Concept + Implementation)
+
+Work through each notebook cell below in order inside `workspace/journey`. Read the **Concept Walkthrough** and **Self-Check Q&A** first, then expand the **Implementation** block to type and verify the code.
 
 <a id="checkpoint-86s-test-visibility-at-the-original-center-line"></a>
+
+### Step 1 of 25 · Test visibility at the original center line (`86s-test-visibility-at-the-original-center-line`)
+
+- **Goal:** Test visibility at the original center line.
+- **Data Flow Trace:** `fragment pixel → nearest axis point → finite original triangles`
+- **Files You Touch:** `src/finite_visibility.wgsl` (*Test visibility at the original center line.*)
+
+Test visibility at the original center line.
+
+> **Self-Check Question:** *Why compare at the center line?*  
+> **Answer:** A wide ribbon on a sloping face must remain visible on both sides. Fragment depth alone can erase half its width.
+
+- **Hands-On Lab Experiment:** Trace finite coverage, coplanar grid comparison, overflow fallback and forward-to-reversed float rounding.
 
 <details>
 <summary>Implementation 86s-test-visibility-at-the-original-center-line: Test visibility at the original center line</summary>
@@ -104,6 +184,21 @@ Create the file and type:
 </details>
 
 <a id="checkpoint-86t-reuse-original-stroke-coverage"></a>
+
+### Step 2 of 25 · Reuse original stroke coverage (`86t-reuse-original-stroke-coverage`)
+
+- **Goal:** Reuse original stroke coverage.
+- **Data Flow Trace:** `original geometry recipe → unchanged coverage`
+- **Files You Touch:** `src/stroke_coverage.wgsl` (*Move this already-written coverage function into one shared shader file; no new coverage algorithm is introduced.*) · `src/stroke.wgsl` (*Use the same coverage predicate in the ordinary and finite shader.*) · `src/stroke.rs` (*Assemble the ordinary shader with the shared source expander already written.*) · `src/finite_project_source.rs` (*Expand one shared coverage source for ordinary, finite and integer variants.*) · `src/stroke_gpu.rs` (*Route the existing GPU lane through shared coverage assembly.*) · `src/finite_stroke.wgsl` (*Reuse the existing shader after extracting shared coverage; later edits add the finite projection.*)
+
+Reuse original stroke coverage.
+
+The ordinary stroke already has its signed-distance coverage function. Move that function into one shared source and assemble it with the expander written at86c. Both ordinary and finite strokes use the same width and antialiasing predicate; the following stage adds centreline depth data.
+
+> **Self-Check Question:** *Does finite visibility replace line or arrow coverage?*  
+> **Answer:** No. Preserve the original shape and add a separate visibility predicate.
+
+- **Hands-On Lab Experiment:** Inspect width, near clipping and coverage before the adapter.
 
 <details>
 <summary>Implementation 86t-reuse-original-stroke-coverage: Reuse original stroke coverage</summary>
@@ -561,6 +656,19 @@ cp src/stroke.wgsl src/finite_stroke.wgsl
 
 <a id="checkpoint-86u-carry-stroke-axis-and-depth"></a>
 
+### Step 3 of 25 · Carry stroke axis and depth (`86u-carry-stroke-axis-and-depth`)
+
+- **Goal:** Carry stroke axis and depth.
+- **Data Flow Trace:** `original projected axis → full-canvas pixel → finite visibility`
+- **Files You Touch:** `src/finite_stroke.wgsl` (*Carry stroke axis and depth.*)
+
+Carry stroke axis and depth.
+
+> **Self-Check Question:** *Does crop-local position describe the original canvas?*  
+> **Answer:** No. Retain the original full-canvas pixel as a linear varying; picking later applies its physical origin.
+
+- **Hands-On Lab Experiment:** Compare axis endpoints, reversed depth and the shared fragment predicate.
+
 <details>
 <summary>Implementation 86u-carry-stroke-axis-and-depth: Carry stroke axis and depth</summary>
 
@@ -700,6 +808,20 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-86v-reuse-original-stroke-integer-coverage"></a>
 
+### Step 4 of 25 · Reuse original stroke integer coverage (`86v-reuse-original-stroke-integer-coverage`)
+
+- **Goal:** Reuse original stroke integer coverage.
+- **Data Flow Trace:** `original coverage → original owner ID`
+- **Files You Touch:** `src/finite_stroke_pick.wgsl` (*Reuse the existing shader after extracting shared coverage; later edits add the finite projection.*)
+
+Reuse original stroke integer coverage.
+
+> **Self-Check Question:** *Can color and pick use different visible shapes?*  
+> **Answer:** They must preserve the same coverage and finite visibility rules.
+
+- **What You Should See:** The finite stroke has a reference to the already-taught integer coverage source. Its new fragment consumer is connected in the following lessons.
+- **Hands-On Lab Experiment:** Compare the reused stroke integer entry point with its original owner. Identify the two integer output words and the existing coverage call. In the browser, selecting the existing line should behave exactly as before this preparatory file reuse.
+
 <details>
 <summary>Implementation 86v-reuse-original-stroke-integer-coverage: Reuse original stroke integer coverage</summary>
 
@@ -729,6 +851,19 @@ cp src/stroke_pick.wgsl src/finite_stroke_pick.wgsl
 </details>
 
 <a id="checkpoint-86w-keep-stroke-crop-ownership-aligned"></a>
+
+### Step 5 of 25 · Keep stroke crop ownership aligned (`86w-keep-stroke-crop-ownership-aligned`)
+
+- **Goal:** Keep stroke crop ownership aligned.
+- **Data Flow Trace:** `same finite axis → cropped integer draw → original ID`
+- **Files You Touch:** `src/finite_stroke_pick.wgsl` (*Keep stroke crop ownership aligned.*)
+
+Keep stroke crop ownership aligned.
+
+> **Self-Check Question:** *Do temporary screen records acquire scene IDs?*  
+> **Answer:** No. The integer result remains the original row and part address.
+
+- **Hands-On Lab Experiment:** Compare original coverage and the unchanged ID attribute7.
 
 <details>
 <summary>Implementation 86w-keep-stroke-crop-ownership-aligned: Keep stroke crop ownership aligned</summary>
@@ -829,6 +964,21 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-86x-reuse-original-chain-coverage"></a>
+
+### Step 6 of 25 · Reuse original chain coverage (`86x-reuse-original-chain-coverage`)
+
+- **Goal:** Reuse original chain coverage.
+- **Data Flow Trace:** `original geometry recipe → unchanged coverage`
+- **Files You Touch:** `src/chain_coverage.wgsl` (*Move this already-written coverage function into one shared shader file; no new coverage algorithm is introduced.*) · `src/chain.wgsl` (*Use the same coverage predicate in the ordinary and finite shader.*) · `src/chain.rs` (*Assemble the ordinary shader with the shared source expander already written.*) · `src/finite_project_source.rs` (*Expand one shared coverage source for ordinary, finite and integer variants.*) · `src/stroke_gpu.rs` (*Route the existing GPU lane through shared coverage assembly.*) · `src/finite_chain.wgsl` (*Reuse the existing shader after extracting shared coverage; later edits add the finite projection.*)
+
+Reuse original chain coverage.
+
+Reuse the source assembly from86t. Keep chain and arrowhead coverage in a single function: the body uses perpendicular distance, while the head combines side, tip and base distances. Both chain variants call it, so finite occlusion does not introduce different visible or pickable arrow shapes.
+
+> **Self-Check Question:** *Which chain coverage must survive the visibility adapter?*  
+> **Answer:** The existing joined ribbon and arrowhead coverage. Reuse the [shared coverage approach](../../86t-reuse-original-stroke-coverage.md); finite visibility only decides whether that covered source is hidden.
+
+- **Hands-On Lab Experiment:** Trace an arrowhead tip and a joined path corner through the existing coverage function. Neither should change shape when the visibility adapter is added.
 
 <details>
 <summary>Implementation 86x-reuse-original-chain-coverage: Reuse original chain coverage</summary>
@@ -1010,6 +1160,19 @@ cp src/chain.wgsl src/finite_chain.wgsl
 </details>
 
 <a id="checkpoint-86y-carry-chain-axis-and-depth"></a>
+
+### Step 7 of 25 · Carry chain axis and depth (`86y-carry-chain-axis-and-depth`)
+
+- **Goal:** Carry chain axis and depth.
+- **Data Flow Trace:** `original projected axis → full-canvas pixel → finite visibility`
+- **Files You Touch:** `src/finite_chain.wgsl` (*Carry chain axis and depth.*)
+
+Carry chain axis and depth.
+
+> **Self-Check Question:** *Which pixels identify the source of an expanded arrowhead?*  
+> **Answer:** The full-canvas source axis and endpoint depths, carried separately from the expanded triangle. Reuse the [stroke frame contract](../../86u-carry-stroke-axis-and-depth.md).
+
+- **Hands-On Lab Experiment:** Compare a wide arrowhead pixel with its original center line. The expanded triangle moves the pixel without inventing a different original source depth.
 
 <details>
 <summary>Implementation 86y-carry-chain-axis-and-depth: Carry chain axis and depth</summary>
@@ -1246,6 +1409,20 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-86z-reuse-original-chain-integer-coverage"></a>
 
+### Step 8 of 25 · Reuse original chain integer coverage (`86z-reuse-original-chain-integer-coverage`)
+
+- **Goal:** Reuse original chain integer coverage.
+- **Data Flow Trace:** `original coverage → original owner ID`
+- **Files You Touch:** `src/finite_chain_pick.wgsl` (*Reuse the existing shader after extracting shared coverage; later edits add the finite projection.*)
+
+Reuse original chain integer coverage.
+
+> **Self-Check Question:** *May picking include a chain corner rejected by color coverage?*  
+> **Answer:** The integer pass reuses the same joined-body and arrowhead coverage. See the [shared color/ID rule](../../86v-reuse-original-stroke-integer-coverage.md).
+
+- **What You Should See:** The connected-chain integer entry point is reused without a second coverage algorithm. Finite chain visibility still needs its following connection.
+- **Hands-On Lab Experiment:** Trace the chain pick entry point into the shared chain coverage function. Check how its body and arrowhead receive one original owner. This file reuse adds no browser behavior; the existing connected curve remains selectable.
+
 <details>
 <summary>Implementation 86z-reuse-original-chain-integer-coverage: Reuse original chain integer coverage</summary>
 
@@ -1275,6 +1452,19 @@ cp src/chain_pick.wgsl src/finite_chain_pick.wgsl
 </details>
 
 <a id="checkpoint-86aa-keep-chain-crop-ownership-aligned"></a>
+
+### Step 9 of 25 · Keep chain crop ownership aligned (`86aa-keep-chain-crop-ownership-aligned`)
+
+- **Goal:** Keep chain crop ownership aligned.
+- **Data Flow Trace:** `same finite axis → cropped integer draw → original ID`
+- **Files You Touch:** `src/finite_chain_pick.wgsl` (*Keep chain crop ownership aligned.*)
+
+Keep chain crop ownership aligned.
+
+> **Self-Check Question:** *Does cropping change a chain span address?*  
+> **Answer:** It changes the readback window, while the chain retains its original row and part address. Reuse the [stroke crop ownership rule](../../86w-keep-stroke-crop-ownership-aligned.md).
+
+- **Hands-On Lab Experiment:** Compare original coverage and the unchanged ID attribute7.
 
 <details>
 <summary>Implementation 86aa-keep-chain-crop-ownership-aligned: Keep chain crop ownership aligned</summary>
@@ -1393,6 +1583,21 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-86ab-reuse-original-marker-coverage"></a>
+
+### Step 10 of 25 · Reuse original marker coverage (`86ab-reuse-original-marker-coverage`)
+
+- **Goal:** Reuse original marker coverage.
+- **Data Flow Trace:** `original geometry recipe → unchanged coverage`
+- **Files You Touch:** `src/marker_coverage.wgsl` (*Move this already-written coverage function into one shared shader file; no new coverage algorithm is introduced.*) · `src/marker.wgsl` (*Use the same coverage predicate in the ordinary and finite shader.*) · `src/marker.rs` (*Assemble the ordinary shader with the shared source expander already written.*) · `src/finite_project_source.rs` (*Expand one shared coverage source for ordinary, finite and integer variants.*) · `src/stroke_gpu.rs` (*Route the existing GPU lane through shared coverage assembly.*) · `src/finite_marker.wgsl` (*Reuse the existing shader after extracting shared coverage; later edits add the finite projection.*)
+
+Reuse original marker coverage.
+
+A marker uses distance from its centre and a screen-space radius. Move that circular predicate into one shared file used by both marker variants. The next stage carries finite centreline information; it keeps the existing disc coverage and CSS-pixel diameter.
+
+> **Self-Check Question:** *Does an original marker become a square after adding visibility?*  
+> **Answer:** Its existing disc coverage still rejects the quad corners. Reuse the [separate coverage and visibility contract](../../86t-reuse-original-stroke-coverage.md).
+
+- **Hands-On Lab Experiment:** Trace the center, rim and corner of a marker quad. The disc rejects the corner independently of any surface-visibility result.
 
 <details>
 <summary>Implementation 86ab-reuse-original-marker-coverage: Reuse original marker coverage</summary>
@@ -1566,6 +1771,19 @@ cp src/marker.wgsl src/finite_marker.wgsl
 
 <a id="checkpoint-86ac-carry-marker-axis-and-depth"></a>
 
+### Step 11 of 25 · Carry marker axis and depth (`86ac-carry-marker-axis-and-depth`)
+
+- **Goal:** Carry marker axis and depth.
+- **Data Flow Trace:** `original projected axis → full-canvas pixel → finite visibility`
+- **Files You Touch:** `src/finite_marker.wgsl` (*Carry marker axis and depth.*)
+
+Carry marker axis and depth.
+
+> **Self-Check Question:** *How does a point marker describe its finite source axis?*  
+> **Answer:** Both axis endpoints identify its projected center, and its depth is constant. The [full-canvas coordinate contract](../../86u-carry-stroke-axis-and-depth.md) still applies.
+
+- **Hands-On Lab Experiment:** Trace two pixels on opposite sides of a marker disc. Both refer to the same original center and depth.
+
 <details>
 <summary>Implementation 86ac-carry-marker-axis-and-depth: Carry marker axis and depth</summary>
 
@@ -1674,6 +1892,20 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-86ad-reuse-original-marker-integer-coverage"></a>
 
+### Step 12 of 25 · Reuse original marker integer coverage (`86ad-reuse-original-marker-integer-coverage`)
+
+- **Goal:** Reuse original marker integer coverage.
+- **Data Flow Trace:** `original coverage → original owner ID`
+- **Files You Touch:** `src/finite_marker_pick.wgsl` (*Reuse the existing shader after extracting shared coverage; later edits add the finite projection.*)
+
+Reuse original marker integer coverage.
+
+> **Self-Check Question:** *Can the transparent corner of a marker quad win a pick?*  
+> **Answer:** The marker ID fragment uses the same disc rejection as color, following the [shared coverage rule](../../86v-reuse-original-stroke-integer-coverage.md).
+
+- **What You Should See:** The point's integer entry point now has its reused source reference. The following edits add its finite visibility consumer.
+- **Hands-On Lab Experiment:** Locate the shared disc-coverage call in the reused point pick source and identify its original-owner output. Compare the existing point's selection in the browser; finite point visibility has not been connected by this reuse alone.
+
 <details>
 <summary>Implementation 86ad-reuse-original-marker-integer-coverage: Reuse original marker integer coverage</summary>
 
@@ -1703,6 +1935,19 @@ cp src/marker_pick.wgsl src/finite_marker_pick.wgsl
 </details>
 
 <a id="checkpoint-86ae-keep-marker-crop-ownership-aligned"></a>
+
+### Step 13 of 25 · Keep marker crop ownership aligned (`86ae-keep-marker-crop-ownership-aligned`)
+
+- **Goal:** Keep marker crop ownership aligned.
+- **Data Flow Trace:** `same finite axis → cropped integer draw → original ID`
+- **Files You Touch:** `src/finite_marker_pick.wgsl` (*Keep marker crop ownership aligned.*)
+
+Keep marker crop ownership aligned.
+
+> **Self-Check Question:** *What owner does a cropped marker result retain?*  
+> **Answer:** The original point or control address, independent of the crop origin. The [existing crop mapping](../../86w-keep-stroke-crop-ownership-aligned.md) only locates its pixels.
+
+- **Hands-On Lab Experiment:** Compare original coverage and the unchanged ID attribute7.
 
 <details>
 <summary>Implementation 86ae-keep-marker-crop-ownership-aligned: Keep marker crop ownership aligned</summary>
@@ -1802,6 +2047,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-86af-assemble-one-shared-finite-shader-predicate"></a>
 
+### Step 14 of 25 · Assemble one shared finite shader predicate (`86af-assemble-one-shared-finite-shader-predicate`)
+
+- **Goal:** Assemble one shared finite shader predicate.
+- **Data Flow Trace:** `original family → expanded helper → color or pick source`
+- **Files You Touch:** `src/finite_sources.rs` (*Assemble one shared finite shader predicate.*) · `src/lib.rs` (*Register the completed source owner.*)
+
+Assemble one shared finite shader predicate.
+
+> **Self-Check Question:** *Why share this source builder?*  
+> **Answer:** It prevents six color/pick adapters from drifting apart while preserving their existing vertex layouts.
+
+- **Hands-On Lab Experiment:** Inspect stride44/72/32, pick binding remapping and the physical crop origin.
+
 <details>
 <summary>Implementation 86af-assemble-one-shared-finite-shader-predicate: Assemble one shared finite shader predicate</summary>
 
@@ -1840,6 +2098,20 @@ After that block, type:
 </details>
 
 <a id="checkpoint-86ag-own-finite-color-and-integer-pipelines"></a>
+
+### Step 15 of 25 · Own finite color and integer pipelines (`86ag-own-finite-color-and-integer-pipelines`)
+
+- **Goal:** Compile the finite pipeline and cached-binding types before construction.
+- **Data Flow Trace:** `explicit GPU owner → color and pick targets`
+- **Files You Touch:** `src/finite_ink.rs` (*Own finite color and integer pipelines.*) · `src/lib.rs` (*Register the resource types immediately so every following method is checked by the browser compiler.*)
+
+Declare the finite color/integer pipeline owner and its cached table bindings. Register it alongside the existing finite-source assembler. The next helpers create pipelines and bind these resources; the existing ribbon pass remains active until renderer adoption.
+
+> **Self-Check Question:** *Does finite ink write scene depth?*  
+> **Answer:** No. It samples existing depth and accepts fragments through the shared predicate.
+
+- **What You Should See:** Ink and Tables are compiled resource types. This declaration does not create or draw the finite pipelines yet.
+- **Hands-On Lab Experiment:** Build the browser, then locate the new module and compare its color, integer and cached-binding fields. Identify which resources will be supplied per frame and which belong to the lane lifetime.
 
 <details>
 <summary>Implementation 86ag-own-finite-color-and-integer-pipelines: Own finite color and integer pipelines</summary>
@@ -1882,6 +2154,19 @@ After that block, type:
 
 <a id="checkpoint-86ah-build-finite-shader-pipelines-with-original-layouts"></a>
 
+### Step 16 of 25 · Build finite shader pipelines with original layouts (`86ah-build-finite-shader-pipelines-with-original-layouts`)
+
+- **Goal:** Build finite shader pipelines with original layouts.
+- **Data Flow Trace:** `original attributes → explicit groups → target pipeline`
+- **Files You Touch:** `src/finite_ink.rs` (*Build finite shader pipelines with original layouts.*)
+
+Build finite shader pipelines with original layouts.
+
+> **Self-Check Question:** *Why keep original instance strides?*  
+> **Answer:** They preserve existing geometry buffers and integer owner addresses. Only the shaders and coverage bindings change.
+
+- **Hands-On Lab Experiment:** Compare color blending with unblended Rg32Uint picking.
+
 <details>
 <summary>Implementation 86ah-build-finite-shader-pipelines-with-original-layouts: Build finite shader pipelines with original layouts</summary>
 
@@ -1912,6 +2197,19 @@ Edit the existing block to match this code; keep unchanged lines:
 
 <a id="checkpoint-86ai-bind-finite-coverage-for-original-families"></a>
 
+### Step 17 of 25 · Bind finite coverage for original families (`86ai-bind-finite-coverage-for-original-families`)
+
+- **Goal:** Bind finite coverage for original families.
+- **Data Flow Trace:** `projected records and lists → sampled depth → family pipeline`
+- **Files You Touch:** `src/finite_ink.rs` (*Bind finite coverage for original families.*)
+
+Bind finite coverage for original families.
+
+> **Self-Check Question:** *Can grid depth use the ordinary coplanar rule?*  
+> **Answer:** No. Construction grid keeps strict depth so coplanar faces cover it.
+
+- **Hands-On Lab Experiment:** Inspect uniform80, storage visibility and sampled depth bindings.
+
 <details>
 <summary>Implementation 86ai-bind-finite-coverage-for-original-families: Bind finite coverage for original families</summary>
 
@@ -1940,6 +2238,19 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-86aj-reuse-bindings-and-draw-original-owners"></a>
+
+### Step 18 of 25 · Reuse bindings and draw original owners (`86aj-reuse-bindings-and-draw-original-owners`)
+
+- **Goal:** Reuse bindings and draw original owners.
+- **Data Flow Trace:** `unchanged resources → cached binding → color or integer draw`
+- **Files You Touch:** `src/finite_ink.rs` (*Reuse bindings and draw original owners.*)
+
+Reuse bindings and draw original owners.
+
+> **Self-Check Question:** *Does a cropped pick use the full color depth texture?*  
+> **Answer:** No. Its physical depth texture and draw origin belong to its own bounded image.
+
+- **Hands-On Lab Experiment:** Compare cached color bindings and per-request cropped pick bindings.
 
 <details>
 <summary>Implementation 86aj-reuse-bindings-and-draw-original-owners: Reuse bindings and draw original owners</summary>
@@ -1974,6 +2285,19 @@ Edit the existing block to match this code; keep unchanged lines:
 
 <a id="checkpoint-86ak-expose-original-gpu-models-to-projection"></a>
 
+### Step 19 of 25 · Expose original GPU models to projection (`86ak-expose-original-gpu-models-to-projection`)
+
+- **Goal:** Expose original GPU models to projection.
+- **Data Flow Trace:** `existing mesh and uniform → compute-readable original inputs`
+- **Files You Touch:** `src/gpu_layout.rs` (*Expose existing buffers without changing original data.*)
+
+Expose original GPU models to projection.
+
+> **Self-Check Question:** *Do originals need another upload?*  
+> **Answer:** No. Reuse their actual GPU vertex/index/model handles.
+
+- **Hands-On Lab Experiment:** Inspect uniform stage visibility and the original model buffer accessor.
+
 <details>
 <summary>Implementation 86ak-expose-original-gpu-models-to-projection: Expose original GPU models to projection</summary>
 
@@ -2007,6 +2331,19 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-86al-connect-finite-visibility-to-all-original-ink-lanes"></a>
+
+### Step 20 of 25 · Connect finite visibility to all original ink lanes (`86al-connect-finite-visibility-to-all-original-ink-lanes`)
+
+- **Goal:** Connect finite visibility to all original ink lanes.
+- **Data Flow Trace:** `original stroke lane → optional finite pipeline → preserved legacy API`
+- **Files You Touch:** `src/stroke_gpu.rs` (*Connect optional finite state and cached coverage.*) · `src/highlight.rs` (*Connect optional finite state and cached coverage.*)
+
+Connect finite visibility to all original ink lanes.
+
+> **Self-Check Question:** *Can direct inherited lane tests still run?*  
+> **Answer:** Yes. A lane without finite bindings retains its existing color and pick routes.
+
+- **Hands-On Lab Experiment:** Inspect original lines, headed chains, points, grid and selected original boundaries.
 
 <details>
 <summary>Implementation 86al-connect-finite-visibility-to-all-original-ink-lanes: Connect finite visibility to all original ink lanes</summary>
@@ -2405,6 +2742,19 @@ Edit the existing block to match this code; keep unchanged lines:
 
 <a id="checkpoint-86am-separate-integer-depth-writers-and-sampled-ink"></a>
 
+### Step 21 of 25 · Separate integer depth writers and sampled ink (`86am-separate-integer-depth-writers-and-sampled-ink`)
+
+- **Goal:** Separate integer depth writers and sampled ink.
+- **Data Flow Trace:** `opaque original IDs → read-only ink → other original owners`
+- **Files You Touch:** `src/pick_image.rs` (*Preserve original integer coverage while splitting incompatible depth access.*) · `src/pick_gpu.rs` (*Preserve original integer coverage while splitting incompatible depth access.*) · `src/pick_encode.rs` (*Preserve original integer coverage while splitting incompatible depth access.*)
+
+Separate integer depth writers and sampled ink.
+
+> **Self-Check Question:** *Can a sampled depth texture also be writable in that pass?*  
+> **Answer:** No. Finish opaque depth first, sample it read-only for finite ink, then composite the other depth-writing owners.
+
+- **Hands-On Lab Experiment:** Compare crops, original face IDs, cloud/sheet/text ownership and physical depth.
+
 <details>
 <summary>Implementation 86am-separate-integer-depth-writers-and-sampled-ink: Separate integer depth writers and sampled ink</summary>
 
@@ -2729,6 +3079,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-86an-own-tile-state-before-color-and-first-picks"></a>
+
+### Step 22 of 25 · Own tile state before color and first picks (`86an-own-tile-state-before-color-and-first-picks`)
+
+- **Goal:** Own tile state before color and first picks.
+- **Data Flow Trace:** `current source and view → prepared projection → cached owner`
+- **Files You Touch:** `src/renderer.rs` (*Prepare current derived tile state and first-pick routing.*)
+
+Own tile state before color and first picks.
+
+> **Self-Check Question:** *Must picking wait for a color frame?*  
+> **Answer:** No. Prepare current triangle lists before the first integer request as well.
+
+- **Hands-On Lab Experiment:** Inspect scene witnesses, tile counters, sampled depth allocation and current pick matrices.
 
 <details>
 <summary>Implementation 86an-own-tile-state-before-color-and-first-picks: Own tile state before color and first picks</summary>
@@ -3461,6 +3824,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-86ao-split-opaque-finite-ink-and-cloud-composition"></a>
 
+### Step 23 of 25 · Split opaque finite ink and cloud composition (`86ao-split-opaque-finite-ink-and-cloud-composition`)
+
+- **Goal:** Split opaque finite ink and cloud composition.
+- **Data Flow Trace:** `opaque surfaces → cloud depth composite → read-only finite ink`
+- **Files You Touch:** `src/renderer.rs` (*Draw current original geometry through compatible depth passes.*)
+
+Compose cached cloud depth after opaque surfaces, then draw finite ink against that depth. A separate cloud pass can write depth without binding the same image as sampled ink.
+
+> **Self-Check Question:** *Why give clouds a separate pass?*  
+> **Answer:** Their cached composite writes depth; putting it in sampled ink causes a GPU validation error.
+
+- **Hands-On Lab Experiment:** Compare sloping face width, actual clouds, unchanged highlights and original overlay ownership.
+
 <details>
 <summary>Implementation 86ao-split-opaque-finite-ink-and-cloud-composition: Split opaque finite ink and cloud composition</summary>
 
@@ -4072,6 +4448,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-86ap-observe-actual-derived-tile-resources"></a>
+
+### Step 24 of 25 · Observe actual derived tile resources (`86ap-observe-actual-derived-tile-resources`)
+
+- **Goal:** Observe actual derived tile resources.
+- **Data Flow Trace:** `completed report → one browser wake → truthful counters`
+- **Files You Touch:** `src/browser.rs` (*Expose actual tile usage and listen for completed reports.*)
+
+Observe actual derived tile resources.
+
+> **Self-Check Question:** *Do these counters measure Lenovo speed?*  
+> **Answer:** No. They expose allocated buffers, triangle count and rebuild counts; hardware timing is a separate measurement.
+
+- **Hands-On Lab Experiment:** Compare resting and rotated views and Close cleanup.
 
 <details>
 <summary>Implementation 86ap-observe-actual-derived-tile-resources: Observe actual derived tile resources</summary>
@@ -5025,6 +5414,20 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-86aq-exercise-finite-color-and-original-picking"></a>
 
+### Step 25 of 25 · Exercise finite color and original picking (`86aq-exercise-finite-color-and-original-picking`)
+
+- **Goal:** Exercise finite color and original picking.
+- **Data Flow Trace:** `original solids and ink → finite coverage → stable view`
+- **Files You Touch:** `src/tile_shader_tests.rs` (*Copy the shader validation and actual GPU fixtures.*) · `src/lib.rs` (*Register the completed source owner.*) · `src/tile_gpu_tests.rs` (*Copy the shader validation and actual GPU fixtures.*) · `src/finite_visibility_tests.rs` (*Copy the shader validation and actual GPU fixtures.*) · `src/pick_gpu_tests.rs` (*Copy the original CAD boundary fixture with a precise failure diagnostic.*)
+
+Exercise finite color and original picking.
+
+> **Self-Check Question:** *What proves hidden originals stay hidden?*  
+> **Answer:** The supplied native fixtures read actual color pixels and integer results, including picks before the first frame.
+
+- **What You Should See:** A red original stroke and point appear in front of a blue solid; the original line behind it remains hidden.
+- **Hands-On Lab Experiment:** Create a Box at w0,0,0 with sides 1 1 1. Add Line w-1,0,1 w1,0,1, Line w-1,0,-1 w1,0,-1 and Point w0.5,0.5,1. Use View Top, View Orthographic, Select None and Fit. Compare the front and hidden ink, then select the visible line. Exact sloping-width, crop and device-fallback cases remain separate supplied GPU evidence.
+
 <details>
 <summary>Implementation 86aq-exercise-finite-color-and-original-picking: Exercise finite color and original picking</summary>
 
@@ -5196,9 +5599,11 @@ Update the existing block with this supplied code; keep unchanged lines:
 
 </details>
 
-## Run, Check, and Save
+---
 
-From `session_viewer`:
+## 5. Build, Verify, and Save Your Checkpoint
+
+Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 86aq-exercise-finite-color-and-original-picking
@@ -5209,12 +5614,12 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. Use [checkpoint recovery](../../recovery.md) to restore any saved checkpoint.
+Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
 
-## Expected Visual Result & Experiment
+## 6. Lesson Summary & Expected Visual Result
 
 A red original stroke and point appear in front of a blue solid; the original line behind it remains hidden.
 
-- **Try this:** Create a Box at w0,0,0 with sides 1 1 1. Add Line w-1,0,1 w1,0,1, Line w-1,0,-1 w1,0,-1 and Point w0.5,0.5,1. Use View Top, View Orthographic, Select None and Fit. Compare the front and hidden ink, then select the visible line. Exact sloping-width, crop and device-fallback cases remain separate supplied GPU evidence.
+- **Final Lesson Experiment:** Create a Box at w0,0,0 with sides 1 1 1. Add Line w-1,0,1 w1,0,1, Line w-1,0,-1 w1,0,-1 and Point w0.5,0.5,1. Use View Top, View Orthographic, Select None and Fit. Compare the front and hidden ink, then select the visible line. Exact sloping-width, crop and device-fallback cases remain separate supplied GPU evidence.
 
-Continue with [Original clipping half-spaces across drawing families](87-copy-current-original-plane-modes.md).
+Continue with [Original clipping half-spaces across drawing families](../../consolidation/87-copy-current-original-plane-modes.md).

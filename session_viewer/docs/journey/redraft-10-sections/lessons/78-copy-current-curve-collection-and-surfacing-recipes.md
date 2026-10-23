@@ -1,88 +1,158 @@
 # 15.2 · Profile collection and one surfacing transaction
 
-**Section 8: Precision Coordinate Frames, Solid Primitives, Surfacing, and CAD Editing** · **Lesson 15.2** (Redraft `8.8`) · **14 checkpoints (`78-copy-current-curve-collection-and-surfacing-recipes` → `78m-exercise-profiles-exact-surfaces-and-one-undo-transaction`)**
+**Section 8: Precision Coordinate Frames, Solid Primitives, Surfacing, and CAD Editing** · **Lesson 15.2** (Redraft `8.8`) · **14 checkpoints (`78-copy-current-curve-collection-and-surfacing-recipes` → `78m-exercise-profiles-exact-surfaces-and-one-undo-transaction`)** · **Study time: 7–14 h**
 
-> **Learning Goal:** Copy current curve collection and surfacing recipes.
+> **What You Will Learn & Build:** Copy current curve collection and surfacing recipes. By the final checkpoint (`78m-exercise-profiles-exact-surfaces-and-one-undo-transaction`), you will exercise profiles exact surfaces and one undo transaction.
 
-## Visual WebGPU & Architecture Schematic
+## 1. Visual Pipeline & WebGPU Architecture (Black & White Schematics)
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1px solid #cbd5e1;border-radius:10px;background:#f8fafc;">
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
+<svg viewBox="0 0 840 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <rect x="4" y="4" width="832" height="212" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Lesson 15.2 Execution Flow: Profile collection and one surfacing transaction</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">Concrete data pipeline you build in this lesson (14 Checkpoints: 78-copy-current-curve-collection-and-surfacing-recipes → 78m-exercise-profiles-exact-surfaces-and-one-undo-transaction)</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
+  
+    
+    <rect x="18" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="89" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
+    <line x1="28" y1="92" x2="151" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">original curves</text>
+    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="183" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="254" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
+    <line x1="193" y1="92" x2="316" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">current gather</text>
+    <text x="254" y="124" text-anchor="middle" font-size="11" fill="#111111">recipes</text>
+    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="348" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="419" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
+    <line x1="358" y1="92" x2="481" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">original surface or</text>
+    <text x="419" y="124" text-anchor="middle" font-size="11" fill="#111111">solid</text>
+    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="513" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="584" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
+    <line x1="523" y1="92" x2="646" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">original profiles</text>
+    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="678" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="749" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
+    <line x1="688" y1="92" x2="811" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">Extrude and Revolve</text>
+    
+    <rect x="18" y="162" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="32" y="181" font-size="11" font-weight="700" fill="#111111">Files You Edit in Lesson 15.2:</text>
+    <text x="215" y="181" font-size="11" fill="#111111">src/lib.rs  ·  src/gather_draft.rs  ·  src/tool.rs  ·  src/primitive_geometry.rs  ·  src/editor.rs  ·  src/gather_registry.rs</text>
+    <text x="32" y="198" font-size="10.5" fill="#111111">14 Checkpoints: 78-copy-current-curve-collection-and-surfacing-recipes → 78m-exercise-profiles-exact-surfaces-and-one-undo-transaction — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
+  
+</svg>
+</div>
+
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
 <svg viewBox="0 0 840 240" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#475569"/>
-    </marker>
-    <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#2563eb"/>
-    </marker>
-    <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#059669"/>
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
     </marker>
   </defs>
-  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
-  <text x="20" y="28" font-size="14" font-weight="700" fill="#0f172a">Section 8 Precision CAD Frames, Solid Primitives, Surfacing & Sub-Object Deformation (Chapters 14–16)</text>
-  <text x="20" y="46" font-size="11.5" fill="#475569">How double-precision coordinate frames (Plane), parametric solids, Loft/Sweep/Extrude surfaces, and Gumball control edits work.</text>
-  <line x1="16" y1="54" x2="824" y2="54" stroke="#e2e8f0" stroke-width="1"/>
+  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Section 8 Precision CAD Frames, Solid Primitives, Surfacing & Sub-Object Deformation (Chapters 14–16)</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">How double-precision coordinate frames (Plane), parametric solids, Loft/Sweep/Extrude surfaces, and Gumball control edits work.</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
   
-    <rect x="18" y="68" width="245" height="145" rx="6" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
-    <text x="140" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1e40af">1. Orthonormal Frames (Ch 14)</text>
-    <text x="28" y="108" font-size="10.5" fill="#1e3a8a">• Plane { origin: Vec3d, x, y, z }</text>
-    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#1d4ed8">• Rejects non-finite / collinear axes</text>
-    <text x="28" y="144" font-size="10.5" fill="#1e3a8a">• Basis change: World &lt;-&gt; Local Plane</text>
-    <text x="28" y="162" font-size="10.5" fill="#1e3a8a">• Exact Mirror, Rotate3D, Orient,</text>
-    <text x="28" y="178" font-size="10.5" fill="#1e3a8a">  and Align frame transformations</text>
+    <rect x="18" y="68" width="245" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="140" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">1. Orthonormal Frames (Ch 14)</text>
+    <text x="28" y="108" font-size="10.5" fill="#111111">• Plane { origin: Vec3d, x, y, z }</text>
+    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#111111">• Rejects non-finite / collinear axes</text>
+    <text x="28" y="144" font-size="10.5" fill="#111111">• Basis change: World &lt;-&gt; Local Plane</text>
+    <text x="28" y="162" font-size="10.5" fill="#111111">• Exact Mirror, Rotate3D, Orient,</text>
+    <text x="28" y="178" font-size="10.5" fill="#111111">  and Align frame transformations</text>
 
-    <line x1="263" y1="138" x2="293" y2="138" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
+    <line x1="263" y1="138" x2="293" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="295" y="68" width="265" height="145" rx="6" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5"/>
-    <text x="427" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#9a3412">2. Solids &amp; Surfacing (Ch 15–16)</text>
-    <text x="307" y="108" font-size="10.5" fill="#7c2d12">• Parametric Box, Cylinder, Sphere, Cone</text>
-    <text x="307" y="126" font-size="10.5" font-weight="600" fill="#c2410c">• Extrude, Revolve, Loft, Sweep, Planar</text>
-    <text x="307" y="144" font-size="10.5" fill="#7c2d12">• Curve Split, Trim, Extend, Join, Fillet</text>
-    <text x="307" y="162" font-size="10.5" fill="#7c2d12">• Every operation commits an atomic</text>
-    <text x="307" y="178" font-size="10.5" fill="#7c2d12">  session_rust kernel transaction</text>
+    <rect x="295" y="68" width="265" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="427" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">2. Solids &amp; Surfacing (Ch 15–16)</text>
+    <text x="307" y="108" font-size="10.5" fill="#111111">• Parametric Box, Cylinder, Sphere, Cone</text>
+    <text x="307" y="126" font-size="10.5" font-weight="600" fill="#111111">• Extrude, Revolve, Loft, Sweep, Planar</text>
+    <text x="307" y="144" font-size="10.5" fill="#111111">• Curve Split, Trim, Extend, Join, Fillet</text>
+    <text x="307" y="162" font-size="10.5" fill="#111111">• Every operation commits an atomic</text>
+    <text x="307" y="178" font-size="10.5" fill="#111112">  session_rust kernel transaction</text>
 
-    <line x1="560" y1="138" x2="590" y2="138" stroke="#059669" stroke-width="2" marker-end="url(#arrow-green)"/>
+    <line x1="560" y1="138" x2="590" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="592" y="68" width="228" height="145" rx="6" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1.5"/>
-    <text x="706" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#065f46">3. Rational Control-Point Deform</text>
-    <text x="604" y="108" font-size="10.5" fill="#064e3b">• Pick NURBS control point or vertex</text>
-    <text x="604" y="126" font-size="10.5" font-weight="600" fill="#047857">• Preserve homogeneous weight w</text>
-    <text x="604" y="142" font-size="10.5" font-weight="600" fill="#047857">  on rational curve control drags!</text>
-    <text x="604" y="162" font-size="10.5" fill="#064e3b">• Rebuild derived GPU tessellation</text>
-    <text x="604" y="178" font-size="10.5" fill="#064e3b">  in-place while keeping Object ID</text>
+    <rect x="592" y="68" width="228" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="706" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">3. Rational Control-Point Deform</text>
+    <text x="604" y="108" font-size="10.5" fill="#111111">• Pick NURBS control point or vertex</text>
+    <text x="604" y="126" font-size="10.5" font-weight="600" fill="#111111">• Preserve homogeneous weight w</text>
+    <text x="604" y="142" font-size="10.5" font-weight="600" fill="#111111">  on rational curve control drags!</text>
+    <text x="604" y="162" font-size="10.5" fill="#111111">• Rebuild derived GPU tessellation</text>
+    <text x="604" y="178" font-size="10.5" fill="#111111">  in-place while keeping Object ID</text>
     
 </svg>
 </div>
 
-### Lesson Data Flow (`Rust` → `WebGPU` → `WGSL`)
+## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
 
-```
-original curves → current gather recipes → original surface or solid.
-checked recipe result → one history transaction → newly selected originals.
-original profiles → Extrude and Revolve → history → original Save/Open.
-```
+Before writing code, review how the three layers in this chapter talk to each other:
 
-- Copy current curve collection and surfacing recipes.
-- Adopt every generated original in one history transaction.
-- Exercise profiles exact surfaces and one undo transaction.
-- **Why it works (Does the generated display mesh replace the profile?):** No. Profiles remain original scene rows. Builders return original surfaces or BReps, and their display meshes are derived separately.
-
-### Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `Browser`)
-
-| Layer | Construct | First-Year Student Explanation |
+| Layer | Construct | Plain-English Explanation for Students |
 | :--- | :--- | :--- |
 | **CAD Coords** | `w10,20,0` vs `@5,0,0` vs `10<30` | `w` forces absolute World coordinates; `@` measures relative to the last accepted point; `<` uses polar distance and angle in the active Construction Plane. |
 | **Rational NURBS** | Homogeneous control point `(w*x, w*y, w*z, w)` | Represents circles, ellipses, and conic arcs with zero approximation error using non-uniform weights `w`. |
 | **B-Rep Split/Trim** | Plane/Cutter intersection -> Face loop classification | Splits or trims B-Rep and mesh faces along cutting planes/curves while keeping retained topology tables valid. |
 
-**Production source (`session_viewer/src`):** [app/deform.rs](../../../../src/app/deform.rs), [state/edit.rs](../../../../src/state/edit.rs), [app/command/tool/gather.rs](../../../../src/app/command/tool/gather.rs), [app/command/tool/surfacing.rs](../../../../src/app/command/tool/surfacing.rs), [app/walk/mesh.rs](../../../../src/app/walk/mesh.rs), [app/walk/brep.rs](../../../../src/app/walk/brep.rs), [build.rs](../../../../build.rs).
+**Authoritative production source (`session_viewer/src`):** [app/deform.rs](../../../../src/app/deform.rs), [state/edit.rs](../../../../src/state/edit.rs), [app/command/tool/gather.rs](../../../../src/app/command/tool/gather.rs), [app/command/tool/surfacing.rs](../../../../src/app/command/tool/surfacing.rs), [app/walk/mesh.rs](../../../../src/app/walk/mesh.rs), [app/walk/brep.rs](../../../../src/app/walk/brep.rs), [build.rs](../../../../build.rs).
 
-## Implementation Checkpoints
+## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
 
-Apply these checkpoints in order inside `workspace/journey`. Expand each block to view the Rust/WGSL/HTML edits:
+| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
+| ---: | :--- | :--- | :--- | :--- |
+| **1** | [`78-copy-current-curve-collection-and-surfacing-recipes`](#checkpoint-78-copy-current-curve-collection-and-surfacing-recipes) | Copy current curve collection and surfacing recipes. | `src/lib.rs` | `original curves → current gather recipes → original surface or solid` |
+| **2** | [`78a-own-picked-originals-and-world-profile-copies`](#checkpoint-78a-own-picked-originals-and-world-profile-copies) | Own picked originals and world profile copies. | `src/gather_draft.rs`, `src/lib.rs` | `original selection and placement → world profile copies → pending recipe owner` |
+| **3** | [`78b-resolve-a-recipe-input-and-guard-picked-source-freshness`](#checkpoint-78b-resolve-a-recipe-input-and-guard-picked-source-freshness) | Resolve a recipe input and guard picked source freshness. | `src/gather_draft.rs` | `ordered curve groups and answers → checked original owners → recipe input` |
+| **4** | [`78c-accept-curve-picks-and-geometric-answers-atomically`](#checkpoint-78c-accept-curve-picks-and-geometric-answers-atomically) | Accept curve picks and geometric answers atomically. | `src/gather_draft.rs` | `curve pick or point → candidate progress → checked build → adopted answers` |
+| **5** | [`78d-read-options-and-typed-batches-without-partial-results`](#checkpoint-78d-read-options-and-typed-batches-without-partial-results) | Read options and typed batches without partial results. | `src/gather_draft.rs` | `typed words or Enter → candidate options and answers → complete checked result` |
+| **6** | [`78e-constrain-distance-input-and-draw-lifted-profile-wires`](#checkpoint-78e-constrain-distance-input-and-draw-lifted-profile-wires) | Constrain distance input and draw lifted profile wires. | `src/gather_draft.rs` | `recipe axis and cursor ray → checked distance point → temporary profile wires` |
+| **7** | [`78f-carry-gather-state-through-the-current-tool-owner`](#checkpoint-78f-carry-gather-state-through-the-current-tool-owner) | Carry gather state through the current tool owner. | `src/tool.rs`, `src/primitive_geometry.rs`, `src/editor.rs` | `recipe tool kind → current Draft prompts → original geometry adoption` |
+| **8** | [`78g-adopt-every-generated-original-in-one-history-transaction`](#checkpoint-78g-adopt-every-generated-original-in-one-history-transaction) | Adopt every generated original in one history transaction. | `src/editor.rs` | `checked recipe result → one history transaction → newly selected originals` |
+| **9** | [`78h-start-and-advance-the-recipe-through-the-existing-editor`](#checkpoint-78h-start-and-advance-the-recipe-through-the-existing-editor) | Start and advance the recipe through the existing Editor. | `src/editor.rs` | `checked initial words and selection → active gather → candidate answers` |
+| **10** | [`78i-route-typed-answers-and-axis-cursor-input`](#checkpoint-78i-route-typed-answers-and-axis-cursor-input) | Route typed answers and axis cursor input. | `src/editor.rs` | `current question → typed answer or axis cursor → checked recipe progress` |
+| **11** | [`78j-restore-selection-and-preserve-the-gather-lifecycle`](#checkpoint-78j-restore-selection-and-preserve-the-gather-lifecycle) | Restore selection and preserve the gather lifecycle. | `src/editor.rs` | `gather action and plane changes → pending recipe → completion or restored selection` |
+| **12** | [`78k-register-extrusion-revolution-and-browser-curve-picking`](#checkpoint-78k-register-extrusion-revolution-and-browser-curve-picking) | Register extrusion revolution and browser curve picking. | `src/gather_registry.rs`, `src/lib.rs`, `src/commands.rs` | `registered recipe command → whole-owner integer pick → gather highlight and diagnostic progress` |
+| **13** | [`78l-pick-original-profiles-through-the-browser-integer-pass`](#checkpoint-78l-pick-original-profiles-through-the-browser-integer-pass) | Pick original profiles through the browser integer pass. | `src/browser.rs` | `bounded integer pick → original curve owner → ordered gather highlight` |
+| **14** | [`78m-exercise-profiles-exact-surfaces-and-one-undo-transaction`](#checkpoint-78m-exercise-profiles-exact-surfaces-and-one-undo-transaction) | Exercise profiles exact surfaces and one undo transaction. | `src/gather_tests.rs`, `src/lib.rs` | `original profiles → Extrude and Revolve → history → original Save/Open` |
+
+---
+
+## 4. Step-by-Step Coding Notebook (Concept + Implementation)
+
+Work through each notebook cell below in order inside `workspace/journey`. Read the **Concept Walkthrough** and **Self-Check Q&A** first, then expand the **Implementation** block to type and verify the code.
 
 <a id="checkpoint-78-copy-current-curve-collection-and-surfacing-recipes"></a>
+
+### Step 1 of 14 · Copy current curve collection and surfacing recipes (`78-copy-current-curve-collection-and-surfacing-recipes`)
+
+- **Goal:** Copy current curve collection and surfacing recipes.
+- **Data Flow Trace:** `original curves → current gather recipes → original surface or solid`
+- **Files You Touch:** `src/lib.rs` (*Place this shared module beside its connected recipes using the existing registration.*)
+
+Copy the maintained questions, ordered pick progress, world inputs, exact extrusion and revolution builders with their fixtures.
+
+> **Self-Check Question:** *Does the generated display mesh replace the profile?*  
+> **Answer:** No. Profiles remain original scene rows. Builders return original surfaces or BReps, and their display meshes are derived separately.
+
+- **What You Should See:** Three copied and independently transformed original boxes remain visible while the shared gather owner connects. The final exercise creates a capped rectangular extrusion and an exact revolved surface from original profiles.
+- **Hands-On Lab Experiment:** Inspect current cap eligibility, rational circular cap trims, signed offsets and full versus partial revolution fixtures.
 
 <details>
 <summary>Implementation 78-copy-current-curve-collection-and-surfacing-recipes: Copy current curve collection and surfacing recipes</summary>
@@ -923,6 +993,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-78a-own-picked-originals-and-world-profile-copies"></a>
 
+### Step 2 of 14 · Own picked originals and world profile copies (`78a-own-picked-originals-and-world-profile-copies`)
+
+- **Goal:** Own picked originals and world profile copies.
+- **Data Flow Trace:** `original selection and placement → world profile copies → pending recipe owner`
+- **Files You Touch:** `src/gather_draft.rs` (*Own pending recipe answers, original allocations, placements and derived world profiles.*) · `src/lib.rs` (*Register the gather component.*)
+
+Retain the recipe, accepted answers, original selection, source allocations and placements beside derived world curve inputs.
+
+> **Self-Check Question:** *Can world curve conversion mutate a shared source?*  
+> **Answer:** No. Clone and place the builder input; retain the original source allocation and exact row placement for freshness checks.
+
+- **Hands-On Lab Experiment:** Compare the clamped world input with its original periodic curve. A profile placed at x10 is transformed once before building.
+
 <details>
 <summary>Implementation 78a-own-picked-originals-and-world-profile-copies: Own picked originals and world profile copies</summary>
 
@@ -964,6 +1047,19 @@ After that block, type:
 
 <a id="checkpoint-78b-resolve-a-recipe-input-and-guard-picked-source-freshness"></a>
 
+### Step 3 of 14 · Resolve a recipe input and guard picked source freshness (`78b-resolve-a-recipe-input-and-guard-picked-source-freshness`)
+
+- **Goal:** Resolve a recipe input and guard picked source freshness.
+- **Data Flow Trace:** `ordered curve groups and answers → checked original owners → recipe input`
+- **Files You Touch:** `src/gather_draft.rs` (*Extend the pending gather owner with checked current recipe behavior.*)
+
+Read ordered groups and answered steps, derive the current plane normal, and refuse a changed source before building.
+
+> **Self-Check Question:** *May an old world profile survive a placement edit?*  
+> **Answer:** Refuse it: its original allocation, world placement and visible unlocked eligibility must still match the captured source.
+
+- **Hands-On Lab Experiment:** Move a picked original through another owner, then submit a distance. Start again instead of building from stale world coordinates.
+
 <details>
 <summary>Implementation 78b-resolve-a-recipe-input-and-guard-picked-source-freshness: Resolve a recipe input and guard picked source freshness</summary>
 
@@ -995,6 +1091,19 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-78c-accept-curve-picks-and-geometric-answers-atomically"></a>
+
+### Step 4 of 14 · Accept curve picks and geometric answers atomically (`78c-accept-curve-picks-and-geometric-answers-atomically`)
+
+- **Goal:** Accept curve picks and geometric answers atomically.
+- **Data Flow Trace:** `curve pick or point → candidate progress → checked build → adopted answers`
+- **Files You Touch:** `src/gather_draft.rs` (*Extend the pending gather owner with checked current recipe behavior.*)
+
+Toggle a curve in the current ordered group. Stage point or distance answers and build before replacing the owner.
+
+> **Self-Check Question:** *Does a failed distance consume its question?*  
+> **Answer:** No. Keep previous progress, accepted answers and cursor. Zero extrusion remains retryable and creates no history.
+
+- **Hands-On Lab Experiment:** Pick two curves, pick the first again to remove it, and Enter. Compare a zero distance with a valid signed distance.
 
 <details>
 <summary>Implementation 78c-accept-curve-picks-and-geometric-answers-atomically: Accept curve picks and geometric answers atomically</summary>
@@ -1028,6 +1137,19 @@ Edit the existing block to match this code; keep unchanged lines:
 
 <a id="checkpoint-78d-read-options-and-typed-batches-without-partial-results"></a>
 
+### Step 5 of 14 · Read options and typed batches without partial results (`78d-read-options-and-typed-batches-without-partial-results`)
+
+- **Goal:** Read options and typed batches without partial results.
+- **Data Flow Trace:** `typed words or Enter → candidate options and answers → complete checked result`
+- **Files You Touch:** `src/gather_draft.rs` (*Extend the pending gather owner with checked current recipe behavior.*)
+
+Resolve current options, typed points, finite numbers and distance vectors on a candidate owner before adopting any answer.
+
+> **Self-Check Question:** *How can Cap Off span two submissions?*  
+> **Answer:** Retain the compact Cap prefix, then resolve Off to its current option. Enter accepts a sufficiently populated curve group or a numeric default.
+
+- **Hands-On Lab Experiment:** Submit Cap, then Off, then -2. Try a bad axis-end/angle batch and verify the earlier axis start remains accepted.
+
 <details>
 <summary>Implementation 78d-read-options-and-typed-batches-without-partial-results: Read options and typed batches without partial results</summary>
 
@@ -1059,6 +1181,19 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-78e-constrain-distance-input-and-draw-lifted-profile-wires"></a>
+
+### Step 6 of 14 · Constrain distance input and draw lifted profile wires (`78e-constrain-distance-input-and-draw-lifted-profile-wires`)
+
+- **Goal:** Constrain distance input and draw lifted profile wires.
+- **Data Flow Trace:** `recipe axis and cursor ray → checked distance point → temporary profile wires`
+- **Files You Touch:** `src/gather_draft.rs` (*Constrain current distance questions and derive temporary lifted profile wires.*)
+
+Find the cursor along the recipe axis and derive lifted profile outlines without inserting geometry or history.
+
+> **Self-Check Question:** *What if the camera ray follows the distance axis?*  
+> **Answer:** Its closest-axis calculation is unstable. Reject the point and keep the pending owner until a usable view or typed value arrives.
+
+- **Hands-On Lab Experiment:** Hover a valid extrusion distance, then cancel. The profiles stay unchanged and Undo still refers to the previous real edit.
 
 <details>
 <summary>Implementation 78e-constrain-distance-input-and-draw-lifted-profile-wires: Constrain distance input and draw lifted profile wires</summary>
@@ -1211,6 +1346,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-78f-carry-gather-state-through-the-current-tool-owner"></a>
+
+### Step 7 of 14 · Carry gather state through the current tool owner (`78f-carry-gather-state-through-the-current-tool-owner`)
+
+- **Goal:** Carry gather state through the current tool owner.
+- **Data Flow Trace:** `recipe tool kind → current Draft prompts → original geometry adoption`
+- **Files You Touch:** `src/tool.rs` (*Carry current gather state and current prompts/options beside the existing drawing owner.*) · `src/primitive_geometry.rs` (*Adopt original NURBS surfaces without replacing them by display meshes.*) · `src/editor.rs` (*Carry recipe starts and original curve pick answers to Editor.*)
+
+Add the recipe kind and gather state to Draft, use current prompts/options, and insert original NURBS surfaces through the existing scene lane.
+
+> **Self-Check Question:** *Does an unfinished gathering command behave like a polyline?*  
+> **Answer:** No. Its curve groups and questions are owned separately. Close stays limited to drawing a polyline or curve.
+
+- **Hands-On Lab Experiment:** Compare the Extrude chips with the revolution axis prompts. Inspect original surface adoption beside existing BRep and curve adoption.
 
 <details>
 <summary>Implementation 78f-carry-gather-state-through-the-current-tool-owner: Carry gather state through the current tool owner</summary>
@@ -1547,6 +1695,19 @@ Edit the existing block to match this code; keep unchanged lines:
 
 <a id="checkpoint-78g-adopt-every-generated-original-in-one-history-transaction"></a>
 
+### Step 8 of 14 · Adopt every generated original in one history transaction (`78g-adopt-every-generated-original-in-one-history-transaction`)
+
+- **Goal:** Adopt every generated original in one history transaction.
+- **Data Flow Trace:** `checked recipe result → one history transaction → newly selected originals`
+- **Files You Touch:** `src/editor.rs` (*Connect original curve collection and one checked geometry transaction.*)
+
+Check source freshness, insert all generated originals as one transaction, and select the new rows after successful adoption.
+
+> **Self-Check Question:** *Does Undo remove only the last profile result?*  
+> **Answer:** No. One completed recipe inserts every result in one history transaction. Undo restores all earlier profile rows together.
+
+- **Hands-On Lab Experiment:** Extrude a placed rectangle and a line together. Verify the solid and ruled surface disappear with one Undo while both profiles remain.
+
 <details>
 <summary>Implementation 78g-adopt-every-generated-original-in-one-history-transaction: Adopt every generated original in one history transaction</summary>
 
@@ -1580,6 +1741,19 @@ Edit the existing block to match this code; keep unchanged lines:
 
 <a id="checkpoint-78h-start-and-advance-the-recipe-through-the-existing-editor"></a>
 
+### Step 9 of 14 · Start and advance the recipe through the existing Editor (`78h-start-and-advance-the-recipe-through-the-existing-editor`)
+
+- **Goal:** Start and advance the recipe through the existing Editor.
+- **Data Flow Trace:** `checked initial words and selection → active gather → candidate answers`
+- **Files You Touch:** `src/editor.rs` (*Connect original curve collection and one checked geometry transaction.*)
+
+Validate initial input before replacing the active owner. Reuse candidate point, text and pick paths for subsequent answers.
+
+> **Self-Check Question:** *Can an invalid Extrude start discard a pending Curve?*  
+> **Answer:** No. Read and build the candidate first. Invalid dimensions keep the earlier drawing owner and its accepted points.
+
+- **Hands-On Lab Experiment:** Begin Curve with one point, then try Extrude 0. Confirm the Curve owner survives. Cancel and select an original profile before Extrude.
+
 <details>
 <summary>Implementation 78h-start-and-advance-the-recipe-through-the-existing-editor: Start and advance the recipe through the existing Editor</summary>
 
@@ -1612,6 +1786,19 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-78i-route-typed-answers-and-axis-cursor-input"></a>
+
+### Step 10 of 14 · Route typed answers and axis cursor input (`78i-route-typed-answers-and-axis-cursor-input`)
+
+- **Goal:** Route typed answers and axis cursor input.
+- **Data Flow Trace:** `current question → typed answer or axis cursor → checked recipe progress`
+- **Files You Touch:** `src/editor.rs` (*Connect the current gather owner to existing input and history.*)
+
+Route current recipe options and numeric input to its owner; preserve normal drawing and construction-plane point routes.
+
+> **Self-Check Question:** *Must a curve-picking step accept free canvas points?*  
+> **Answer:** No. It takes integer original-owner picks. Distance takes its axis cursor; axis points retain the existing snap and world-coordinate rules.
+
+- **Hands-On Lab Experiment:** Compare picking a profile, typing a signed distance and typing a world-prefixed axis point under CPlane XZ.
 
 <details>
 <summary>Implementation 78i-route-typed-answers-and-axis-cursor-input: Route typed answers and axis cursor input</summary>
@@ -2780,6 +2967,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-78j-restore-selection-and-preserve-the-gather-lifecycle"></a>
+
+### Step 11 of 14 · Restore selection and preserve the gather lifecycle (`78j-restore-selection-and-preserve-the-gather-lifecycle`)
+
+- **Goal:** Restore selection and preserve the gather lifecycle.
+- **Data Flow Trace:** `gather action and plane changes → pending recipe → completion or restored selection`
+- **Files You Touch:** `src/editor.rs` (*Connect the current gather owner to existing input and history.*)
+
+Connect recipe actions, current plane updates and cancellation while keeping group input separate from ordinary polyline completion.
+
+> **Self-Check Question:** *Does Escape undo already created geometry?*  
+> **Answer:** A pending recipe creates nothing. Escape restores its earlier selection. Once built, use Undo to remove the single completed transaction.
+
+- **Hands-On Lab Experiment:** Begin Extrude from a selected profile, change CPlane, cancel, and compare selection, original placement and Redo.
 
 <details>
 <summary>Implementation 78j-restore-selection-and-preserve-the-gather-lifecycle: Restore selection and preserve the gather lifecycle</summary>
@@ -4012,6 +4212,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-78k-register-extrusion-revolution-and-browser-curve-picking"></a>
 
+### Step 12 of 14 · Register extrusion revolution and browser curve picking (`78k-register-extrusion-revolution-and-browser-curve-picking`)
+
+- **Goal:** Register extrusion revolution and browser curve picking.
+- **Data Flow Trace:** `registered recipe command → whole-owner integer pick → gather highlight and diagnostic progress`
+- **Files You Touch:** `src/gather_registry.rs` (*Register maintained extrusion/revolution names and recipes.*) · `src/lib.rs` (*Register the gather component.*) · `src/commands.rs` (*Register maintained gather names and typed revolution alias.*)
+
+Add maintained recipe names and the revolution alias; use bounded integer picks for original curves and show picked groups without changing ordinary selection.
+
+> **Self-Check Question:** *Does Select Face change which profile is gathered?*  
+> **Answer:** The recipe needs original curve owners. During its curve groups, use whole-owner picks independently of the previous part selection mode.
+
+- **Hands-On Lab Experiment:** Run the browser contract: current registered names, capped and uncapped extrusion, invalid input, full-turn revolution and one Undo/Redo.
+
 <details>
 <summary>Implementation 78k-register-extrusion-revolution-and-browser-curve-picking: Register extrusion revolution and browser curve picking</summary>
 
@@ -4336,6 +4549,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-78l-pick-original-profiles-through-the-browser-integer-pass"></a>
+
+### Step 13 of 14 · Pick original profiles through the browser integer pass (`78l-pick-original-profiles-through-the-browser-integer-pass`)
+
+- **Goal:** Pick original profiles through the browser integer pass.
+- **Data Flow Trace:** `bounded integer pick → original curve owner → ordered gather highlight`
+- **Files You Touch:** `src/browser.rs` (*Route bounded whole-owner curve picks, temporary highlights, current prompts and gather diagnostics.*)
+
+Route the recipe’s curve groups through whole-owner integer picks, and highlight their ordered originals separately from ordinary selection.
+
+> **Self-Check Question:** *Does a profile pick create an ordinary selection edit?*  
+> **Answer:** No. The gather owner keeps its own ordered groups. Completed results become ordinary selection, and Escape restores the selection captured before starting.
+
+- **Hands-On Lab Experiment:** Pick profiles with the previous mode set to Select Face. Check gather diagnostics, ordered highlights, cancellation and the same behavior with touch.
 
 <details>
 <summary>Implementation 78l-pick-original-profiles-through-the-browser-integer-pass: Pick original profiles through the browser integer pass</summary>
@@ -5422,6 +5648,20 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-78m-exercise-profiles-exact-surfaces-and-one-undo-transaction"></a>
 
+### Step 14 of 14 · Exercise profiles exact surfaces and one undo transaction (`78m-exercise-profiles-exact-surfaces-and-one-undo-transaction`)
+
+- **Goal:** Exercise profiles exact surfaces and one undo transaction.
+- **Data Flow Trace:** `original profiles → Extrude and Revolve → history → original Save/Open`
+- **Files You Touch:** `src/gather_tests.rs` (*Copy integrated current gather/profile/history/options/freshness/SaveOpen fixtures.*) · `src/lib.rs` (*Register the gather component.*)
+
+Copy integrated original-profile fixtures, then create the rendered solid and exact revolved surface through registered commands.
+
+> **Self-Check Question:** *What must Save keep after revolution?*  
+> **Answer:** Retain the original rational surface controls and knots, source and row identity, original profiles and placed document data.
+
+- **What You Should See:** A capped extrusion and an exact revolved surface retain original profiles. One completed recipe inserts all its results together. Current options, cancellation, invalid inputs, original source freshness and exact archives remain checked.
+- **Hands-On Lab Experiment:** Type Close, CPlane XY, Polyline Rectangle w-2,0,0 w-1,1,0, Select All, Extrude 1.5, Line w1.9,0,0 w1.9,0,1.5, Select Next, Nurbs Surface Revolve w1.5,0,0 w1.5,0,1, View Isometric, Select None and Fit, with spaces after Extrude. Try Cap Off, an invalid distance, Escape, Undo/Redo and Save/Open.
+
 <details>
 <summary>Implementation 78m-exercise-profiles-exact-surfaces-and-one-undo-transaction: Exercise profiles exact surfaces and one undo transaction</summary>
 
@@ -5475,9 +5715,11 @@ After that block, append this supplied code:
 
 </details>
 
-## Run, Check, and Save
+---
 
-From `session_viewer`:
+## 5. Build, Verify, and Save Your Checkpoint
+
+Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 78m-exercise-profiles-exact-surfaces-and-one-undo-transaction
@@ -5488,12 +5730,12 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. Use [checkpoint recovery](../../recovery.md) to restore any saved checkpoint.
+Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
 
-## Expected Visual Result & Experiment
+## 6. Lesson Summary & Expected Visual Result
 
 A capped extrusion and an exact revolved surface retain original profiles. One completed recipe inserts all its results together. Current options, cancellation, invalid inputs, original source freshness and exact archives remain checked.
 
-- **Try this:** Type Close, CPlane XY, Polyline Rectangle w-2,0,0 w-1,1,0, Select All, Extrude 1.5, Line w1.9,0,0 w1.9,0,1.5, Select Next, Nurbs Surface Revolve w1.5,0,0 w1.5,0,1, View Isometric, Select None and Fit, with spaces after Extrude. Try Cap Off, an invalid distance, Escape, Undo/Redo and Save/Open.
+- **Final Lesson Experiment:** Type Close, CPlane XY, Polyline Rectangle w-2,0,0 w-1,1,0, Select All, Extrude 1.5, Line w1.9,0,0 w1.9,0,1.5, Select Next, Nurbs Surface Revolve w1.5,0,0 w1.5,0,1, View Isometric, Select None and Fit, with spaces after Extrude. Try Cap Off, an invalid distance, Escape, Undo/Redo and Save/Open.
 
-Continue with [Lofts, rail sweeps and network foundations](79-retain-current-loft-section-order-and-degree-options.md).
+Continue with [Lofts, rail sweeps and network foundations](../../consolidation/79-retain-current-loft-section-order-and-degree-options.md).

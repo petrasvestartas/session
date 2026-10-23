@@ -1,92 +1,151 @@
 # 21.4 · Reversed depth and homogeneous near clipping
 
-**Section 10: Shared GPU Arenas, Floating-Origin Precision, Multisampling, and Production Parity** · **Lesson 21.4** (Redraft `10.14`) · **3 checkpoints (`96zzzzzt-share-depth-endpoints-and-comparisons` → `96zzzzzz-use-reversed-depth-across-the-frame`)**
+**Section 10: Shared GPU Arenas, Floating-Origin Precision, Multisampling, and Production Parity** · **Lesson 21.4** (Redraft `10.14`) · **3 checkpoints (`96zzzzzt-share-depth-endpoints-and-comparisons` → `96zzzzzz-use-reversed-depth-across-the-frame`)** · **Study time: 1.9000000000000001–3 h**
 
-> **Learning Goal:** Give frame depth state one explicit owner before changing its convention.
+> **What You Will Learn & Build:** Give frame depth state one explicit owner before changing its convention. By the final checkpoint (`96zzzzzz-use-reversed-depth-across-the-frame`), you will give every depth reader and writer the same near-one convention.
 
-## Visual WebGPU & Architecture Schematic
+## 1. Visual Pipeline & WebGPU Architecture (Black & White Schematics)
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1px solid #cbd5e1;border-radius:10px;background:#f8fafc;">
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
+<svg viewBox="0 0 840 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <rect x="4" y="4" width="832" height="212" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Lesson 21.4 Execution Flow: Reversed depth and homogeneous near clipping</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">Concrete data pipeline you build in this lesson (3 Checkpoints: 96zzzzzt-share-depth-endpoints-and-comparisons → 96zzzzzz-use-reversed-depth-across-the-frame)</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
+  
+    
+    <rect x="18" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="89" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
+    <line x1="28" y1="92" x2="151" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">Depth owner</text>
+    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="183" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="254" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
+    <line x1="193" y1="92" x2="316" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">clear and</text>
+    <text x="254" y="124" text-anchor="middle" font-size="11" fill="#111111">comparison</text>
+    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="348" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="419" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
+    <line x1="358" y1="92" x2="481" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">original pipelines</text>
+    <text x="419" y="124" text-anchor="middle" font-size="11" fill="#111111">and CPU rays</text>
+    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="513" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="584" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
+    <line x1="523" y1="92" x2="646" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">Projection</text>
+    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="678" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="749" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
+    <line x1="688" y1="92" x2="811" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">shared depth writer</text>
+    
+    <rect x="18" y="162" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="32" y="181" font-size="11" font-weight="700" fill="#111111">Files You Edit in Lesson 21.4:</text>
+    <text x="215" y="181" font-size="11" fill="#111111">src/depth.rs  ·  src/text_plate.rs  ·  src/widget_pipelines.rs  ·  src/cloud_gpu.rs  ·  src/outline_gpu.rs  ·  src/scene_text_gpu.rs</text>
+    <text x="32" y="198" font-size="10.5" fill="#111111">3 Checkpoints: 96zzzzzt-share-depth-endpoints-and-comparisons → 96zzzzzz-use-reversed-depth-across-the-frame — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
+  
+</svg>
+</div>
+
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
 <svg viewBox="0 0 840 240" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#475569"/>
-    </marker>
-    <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#2563eb"/>
-    </marker>
-    <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#059669"/>
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
     </marker>
   </defs>
-  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
-  <text x="20" y="28" font-size="14" font-weight="700" fill="#0f172a">Section 10 Production Architecture: Shared GPU Storage Arena, f64 Floating Origin, Reversed-Z, 4x MSAA & Matrix Shader</text>
-  <text x="20" y="46" font-size="11.5" fill="#475569">How the maintained viewer pulls vertices from one growable GPU arena, eliminates jitter at 10^12 units, and renders procedural Matrices.</text>
-  <line x1="16" y1="54" x2="824" y2="54" stroke="#e2e8f0" stroke-width="1"/>
+  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Section 10 Production Architecture: Shared GPU Storage Arena, f64 Floating Origin, Reversed-Z, 4x MSAA & Matrix Shader</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">How the maintained viewer pulls vertices from one growable GPU arena, eliminates jitter at 10^12 units, and renders procedural Matrices.</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
   
-    <rect x="18" y="68" width="250" height="145" rx="6" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
-    <text x="143" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1e40af">1. Shared GPU Arena (Ch 19–20)</text>
-    <text x="28" y="108" font-size="10.5" fill="#1e3a8a">• 1 Growable Storage Buffer Arena</text>
-    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#1d4ed8">• Vertex Pulling (@builtin(vertex_index))</text>
-    <text x="28" y="144" font-size="10.5" fill="#1e3a8a">• 8-byte Draw Slots -&gt; ObjectRecord</text>
-    <text x="28" y="162" font-size="10.5" fill="#1e3a8a">• slot_table.wgsl maps Rg32Uint</text>
-    <text x="28" y="178" font-size="10.5" fill="#1e3a8a">  primitive IDs to Element/Face owners</text>
-    <text x="28" y="194" font-size="10" fill="#1e3a8a">• Free-list span reuse after GPU lease</text>
+    <rect x="18" y="68" width="250" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="143" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">1. Shared GPU Arena (Ch 19–20)</text>
+    <text x="28" y="108" font-size="10.5" fill="#111111">• 1 Growable Storage Buffer Arena</text>
+    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#111111">• Vertex Pulling (@builtin(vertex_index))</text>
+    <text x="28" y="144" font-size="10.5" fill="#111111">• 8-byte Draw Slots -&gt; ObjectRecord</text>
+    <text x="28" y="162" font-size="10.5" fill="#111111">• slot_table.wgsl maps Rg32Uint</text>
+    <text x="28" y="178" font-size="10.5" fill="#111111">  primitive IDs to Element/Face owners</text>
+    <text x="28" y="194" font-size="10" fill="#111111">• Free-list span reuse after GPU lease</text>
 
-    <line x1="268" y1="138" x2="298" y2="138" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
+    <line x1="268" y1="138" x2="298" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="300" y="68" width="265" height="145" rx="6" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5"/>
-    <text x="432" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#9a3412">2. f64 Floating Origin &amp; Reversed-Z (Ch 21)</text>
-    <text x="312" y="108" font-size="10.5" font-weight="600" fill="#c2410c">• rel_f32 = (world_f64 - anchor_f64) as f32</text>
-    <text x="312" y="125" font-size="10" fill="#7c2d12">  Zero vertex/grid jitter even at 10^12 m!</text>
-    <text x="312" y="144" font-size="10.5" font-weight="600" fill="#c2410c">• Reversed-Z Depth (GreaterEqual):</text>
-    <text x="312" y="160" font-size="10" fill="#7c2d12">  Near plane = 1.0, Far plane = 0.0</text>
-    <text x="312" y="178" font-size="10.5" fill="#7c2d12">• Held world base grid &amp; preserved</text>
-    <text x="312" y="193" font-size="10.5" fill="#7c2d12">  live camera during Session reload</text>
+    <rect x="300" y="68" width="265" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="432" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">2. f64 Floating Origin &amp; Reversed-Z (Ch 21)</text>
+    <text x="312" y="108" font-size="10.5" font-weight="600" fill="#111111">• rel_f32 = (world_f64 - anchor_f64) as f32</text>
+    <text x="312" y="125" font-size="10" fill="#111111">  Zero vertex/grid jitter even at 10^12 m!</text>
+    <text x="312" y="144" font-size="10.5" font-weight="600" fill="#111111">• Reversed-Z Depth (GreaterEqual):</text>
+    <text x="312" y="160" font-size="10" fill="#111111">  Near plane = 1.0, Far plane = 0.0</text>
+    <text x="312" y="178" font-size="10.5" fill="#111111">• Held world base grid &amp; preserved</text>
+    <text x="312" y="193" font-size="10.5" fill="#111111">  live camera during Session reload</text>
 
-    <line x1="565" y1="138" x2="595" y2="138" stroke="#059669" stroke-width="2" marker-end="url(#arrow-green)"/>
+    <line x1="565" y1="138" x2="595" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="597" y="68" width="223" height="145" rx="6" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1.5"/>
-    <text x="708" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#065f46">3. 4x MSAA &amp; Matrix Shader (Ch 22)</text>
-    <text x="609" y="108" font-size="10.5" fill="#064e3b">• Coherent 1x/4x MSAA sample targets</text>
-    <text x="609" y="126" font-size="10.5" font-weight="600" fill="#047857">• matrix.wgsl (16w header + 3w/cell):</text>
-    <text x="609" y="142" font-size="10" fill="#064e3b">  Heatmap + procedural 3-decimal digits</text>
-    <text x="609" y="157" font-size="10" fill="#064e3b">  (0 cell blank; plate-less title; yellow</text>
-    <text x="609" y="172" font-size="10" fill="#064e3b">  selected border; Rg32Uint whole pick)</text>
-    <text x="609" y="190" font-size="10" fill="#064e3b">• Coalesced single-flight frame scheduler</text>
+    <rect x="597" y="68" width="223" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="708" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">3. 4x MSAA &amp; Matrix Shader (Ch 22)</text>
+    <text x="609" y="108" font-size="10.5" fill="#111111">• Coherent 1x/4x MSAA sample targets</text>
+    <text x="609" y="126" font-size="10.5" font-weight="600" fill="#111111">• matrix.wgsl (16w header + 3w/cell):</text>
+    <text x="609" y="142" font-size="10" fill="#111111">  Heatmap + procedural 3-decimal digits</text>
+    <text x="609" y="157" font-size="10" fill="#111111">  (0 cell blank; plate-less title; yellow</text>
+    <text x="609" y="172" font-size="10" fill="#111111">  selected border; Rg32Uint whole pick)</text>
+    <text x="609" y="190" font-size="10" fill="#111111">• Coalesced single-flight frame scheduler</text>
     
 </svg>
 </div>
 
-### Lesson Data Flow (`Rust` → `WebGPU` → `WGSL`)
+## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
 
-```
-Depth owner → clear and comparison → original pipelines and CPU rays.
-Precise source endpoint → clip distance → clipped endpoint → screen ribbon.
-Projection → shared depth writer → original visibility → readback and unprojection.
-```
+Before writing code, review how the three layers in this chapter talk to each other:
 
-- Give frame depth state one explicit owner before changing its convention.
-- Clip expanded original ink through one homogeneous recipe.
-- Give every depth reader and writer the same near-one convention.
-- **Why it works (Why keep strict and equal comparisons?):** A grid needs strict separation from its supporting surface, while ink and text may intentionally share surface depth. One direction does not make these predicates interchangeable.
-
-### Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `Browser`)
-
-| Layer | Construct | First-Year Student Explanation |
+| Layer | Construct | Plain-English Explanation for Students |
 | :--- | :--- | :--- |
 | **WGSL (Vertex Pull)** | `@group(0) @binding(b) var<storage, read> arena_verts: array<u32>;` | Fetches packed vertex positions, normals, and colors directly from a single growable storage buffer using `@builtin(vertex_index)`. |
 | **Rust/WGSL (`f64`->`f32`)** | `let rel: Vec3 = (world_f64 - anchor_f64).as_vec3();` | Subtracts the camera-area `f64` anchor on the CPU before converting to `f32`, preventing 32-bit float mantissa exhaustion far from `(0,0,0)`. |
 | **WGSL (`matrix.wgsl`)** | 16-word header + 3 words/cell procedural digits | Renders matrix heatmaps and 3-decimal numeric digits procedurally inside the fragment shader with zero texture uploads per cell. |
 | **Rust (`ink_ranges.rs`)** | Merged contiguous `Range<u32>` instance draws | Toggles point/line/edge/CAD-wire family visibility without rebuilding GPU buffers or invalidating original owner indices. |
 
-**Production source (`session_viewer/src`):** [camera.rs](../../../../src/camera.rs), [state.rs](../../../../src/state.rs), [engine/gpu/objects.rs](../../../../src/engine/gpu/objects.rs), [engine/gpu/frame.rs](../../../../src/engine/gpu/frame.rs), [engine/gpu/targets.rs](../../../../src/engine/gpu/targets.rs), [shaders/grid.wgsl](../../../../src/shaders/grid.wgsl), [shaders/ribbon.wgsl](../../../../src/shaders/ribbon.wgsl), [app/cplane.rs](../../../../src/app/cplane.rs), [build.rs](../../../../build.rs).
+**Authoritative production source (`session_viewer/src`):** [camera.rs](../../../../src/camera.rs), [state.rs](../../../../src/state.rs), [engine/gpu/objects.rs](../../../../src/engine/gpu/objects.rs), [engine/gpu/frame.rs](../../../../src/engine/gpu/frame.rs), [engine/gpu/targets.rs](../../../../src/engine/gpu/targets.rs), [shaders/grid.wgsl](../../../../src/shaders/grid.wgsl), [shaders/ribbon.wgsl](../../../../src/shaders/ribbon.wgsl), [app/cplane.rs](../../../../src/app/cplane.rs), [build.rs](../../../../build.rs).
 
-## Implementation Checkpoints
+## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
 
-Apply these checkpoints in order inside `workspace/journey`. Expand each block to view the Rust/WGSL/HTML edits:
+| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
+| ---: | :--- | :--- | :--- | :--- |
+| **1** | [`96zzzzzt-share-depth-endpoints-and-comparisons`](#checkpoint-96zzzzzt-share-depth-endpoints-and-comparisons) | Give frame depth state one explicit owner before changing its convention. | `src/depth.rs`, `src/text_plate.rs`, `src/widget_pipelines.rs`, `src/cloud_gpu.rs` | `Depth owner → clear and comparison → original pipelines and CPU rays` |
+| **2** | [`96zzzzzu-share-homogeneous-near-plane-ink-clipping`](#checkpoint-96zzzzzu-share-homogeneous-near-plane-ink-clipping) | Clip expanded original ink through one homogeneous recipe. | `src/near_clip.wgsl`, `src/stroke.wgsl`, `src/finite_stroke.wgsl`, `src/guide.wgsl` | `Precise source endpoint → clip distance → clipped endpoint → screen ribbon` |
+| **3** | [`96zzzzzz-use-reversed-depth-across-the-frame`](#checkpoint-96zzzzzz-use-reversed-depth-across-the-frame) | Give every depth reader and writer the same near-one convention. | `src/depth.rs`, `src/camera.rs`, `src/near_clip.wgsl`, `src/clipping_gpu.rs` | `Projection → shared depth writer → original visibility → readback and unprojection` |
+
+---
+
+## 4. Step-by-Step Coding Notebook (Concept + Implementation)
+
+Work through each notebook cell below in order inside `workspace/journey`. Read the **Concept Walkthrough** and **Self-Check Q&A** first, then expand the **Implementation** block to type and verify the code.
 
 <a id="checkpoint-96zzzzzt-share-depth-endpoints-and-comparisons"></a>
+
+### Step 1 of 3 · Share depth endpoints and comparisons (`96zzzzzt-share-depth-endpoints-and-comparisons`)
+
+- **Goal:** Give frame depth state one explicit owner before changing its convention.
+- **Data Flow Trace:** `Depth owner → clear and comparison → original pipelines and CPU rays`
+- **Files You Touch:** `src/depth.rs` (*Own the endpoints and the two comparison predicates.*) · `src/text_plate.rs` (*Reuse the shared strict or equal comparison in this pipeline.*) · `src/widget_pipelines.rs` (*Reuse the shared strict or equal comparison in this pipeline.*) · `src/cloud_gpu.rs` (*Reuse the shared strict or equal comparison in this pipeline.*) · `src/outline_gpu.rs` (*Reuse the shared strict or equal comparison in this pipeline.*) · `src/scene_text_gpu.rs` (*Reuse the shared strict or equal comparison in this pipeline.*) · `src/outline_caps.rs` (*Reuse the shared strict or equal comparison in this pipeline.*) · `src/stroke_gpu.rs` (*Reuse the shared strict or equal comparison in this pipeline.*) · `src/text_plane.rs` (*Reuse the shared strict or equal comparison in this pipeline.*) · `src/pick_encode.rs` (*Clear to the shared far endpoint.*) · `src/widget.rs` (*Clear to the shared far endpoint.*) · `src/renderer.rs` (*Clear to the shared far endpoint.*) · `src/camera.rs` (*Construct CPU rays from the same near and far endpoints.*)
+
+Color, original picks, clouds, text and widget tiles must agree about an empty depth buffer and the closest fragment. Keep their strict or equal comparisons distinct, but take both from the existing depth module. CPU rays use the same near/far endpoints. This step preserves the current picture; the projection and shader readers still use forward depth until the coordinated switch.
+
+> **Self-Check Question:** *Why keep strict and equal comparisons?*  
+> **Answer:** A grid needs strict separation from its supporting surface, while ink and text may intentionally share surface depth. One direction does not make these predicates interchangeable.
+
+- **What You Should See:** Depth clears, comparisons and CPU ray endpoints have one owner.
+- **Hands-On Lab Experiment:** Overlap boxes, select the front original, toggle the grid and text, and orbit. Check exact clearing of selection, distant placement and Save/reopen. The depth convention has not changed yet.
 
 <details>
 <summary>Implementation 96zzzzzt-share-depth-endpoints-and-comparisons: Share depth endpoints and comparisons</summary>
@@ -817,6 +876,20 @@ After that block, append this supplied code:
 
 <a id="checkpoint-96zzzzzu-share-homogeneous-near-plane-ink-clipping"></a>
 
+### Step 2 of 3 · Share homogeneous near-plane ink clipping (`96zzzzzu-share-homogeneous-near-plane-ink-clipping`)
+
+- **Goal:** Clip expanded original ink through one homogeneous recipe.
+- **Data Flow Trace:** `Precise source endpoint → clip distance → clipped endpoint → screen ribbon`
+- **Files You Touch:** `src/near_clip.wgsl` (*Own the homogeneous distance and intersection once.*) · `src/stroke.wgsl` (*Reuse the shared near-plane recipe while keeping family-specific eligibility and width.*) · `src/finite_stroke.wgsl` (*Reuse the shared near-plane recipe while keeping family-specific eligibility and width.*) · `src/guide.wgsl` (*Reuse the shared near-plane recipe while keeping family-specific eligibility and width.*) · `src/sheet.wgsl` (*Reuse the shared near-plane recipe while keeping family-specific eligibility and width.*) · `src/chain.wgsl` (*Reuse the shared near-plane recipe while keeping family-specific eligibility and width.*) · `src/finite_chain.wgsl` (*Reuse the shared near-plane recipe while keeping family-specific eligibility and width.*) · `src/finite_project_source.rs` (*Expand the shared shader alongside the existing coverage and triangle helpers.*) · `src/stroke_gpu.rs` (*Expand the guide helper before both color and pick compilation.*) · `src/sheet_pipeline.rs` (*Use the same expanded sheet source for color and original picks.*)
+
+Clip a segment before dividing by w or widening it into a ribbon. Strokes, chains, construction guides and sheet pens use the same intersection; chains still remember which original endpoint was cut so a near-plane intersection cannot acquire an arrowhead or a joint. Share the recipe before changing the depth direction.
+
+> **Self-Check Question:** *Why retain the original cut flags for a chain?*  
+> **Answer:** A new intersection is a rendering boundary, not an original vertex. It must not inherit the original arrowhead or neighbouring joint.
+
+- **What You Should See:** Original ink families share a near-plane distance and endpoint intersection.
+- **Hands-On Lab Experiment:** Orbit close to an original line or headed chain, then inspect a sheet and a guide preview. Crossing the near plane must crop the ink without a spike or a new arrowhead. Distant placements retain the same original identities.
+
 <details>
 <summary>Implementation 96zzzzzu-share-homogeneous-near-plane-ink-clipping: Share homogeneous near-plane ink clipping</summary>
 
@@ -1445,6 +1518,20 @@ After that block, append this supplied code:
 </details>
 
 <a id="checkpoint-96zzzzzz-use-reversed-depth-across-the-frame"></a>
+
+### Step 3 of 3 · Use reversed depth across the frame (`96zzzzzz-use-reversed-depth-across-the-frame`)
+
+- **Goal:** Give every depth reader and writer the same near-one convention.
+- **Data Flow Trace:** `Projection → shared depth writer → original visibility → readback and unprojection`
+- **Files You Touch:** `src/depth.rs` (*Use the same reversed depth in projection, original visibility and reconstruction.*) · `src/camera.rs` (*Map perspective near to one and far to zero.*) · `src/near_clip.wgsl` (*Use the same reversed depth in projection, original visibility and reconstruction.*) · `src/clipping_gpu.rs` (*Prepare section depths and bias in the reversed frame.*) · `src/ambient_camera.rs` (*Use the same reversed depth in projection, original visibility and reconstruction.*) · `src/ambient.wgsl` (*Use the same reversed depth in projection, original visibility and reconstruction.*) · `src/pyramid_prepare.wgsl` (*Use the same reversed depth in projection, original visibility and reconstruction.*) · `src/finite_project.wgsl` (*Use the same reversed depth in projection, original visibility and reconstruction.*) · `src/finite_stroke.wgsl` (*Use the same reversed depth in projection, original visibility and reconstruction.*) · `src/finite_chain.wgsl` (*Use the same reversed depth in projection, original visibility and reconstruction.*) · `src/finite_marker.wgsl` (*Use the same reversed depth in projection, original visibility and reconstruction.*) · `src/ink_plane.wgsl` (*Use the same reversed depth in projection, original visibility and reconstruction.*) · `src/finite_visibility.wgsl` (*Use the same reversed depth in projection, original visibility and reconstruction.*) · `src/cap_count.wgsl` (*Use the same reversed depth in projection, original visibility and reconstruction.*) · `src/cloud_resolve.wgsl` (*Use the same reversed depth in projection, original visibility and reconstruction.*) · `src/camera_reverse_tests.rs` (*Supply exact unit/projection/depth/ray and distant-origin coverage.*) · `src/lib.rs` (*Register the optional native camera fixture.*) · `src/cap_gpu_tests.rs` (*Preserve the original cap fixture world pose with reversed depth; supply a shared fixture-only conversion for arbitrary forward matrices.*) · `src/finite_visibility_tests.rs` (*Keep every original finite-visibility world fixture, pixel assertion and pick assertion while reversing its arbitrary projection.*) · `src/text_plate.rs` (*Place overlay nameplates at the shared near endpoint in both color and original-ID passes.*) · `src/pick_gpu_tests.rs` (*Keep all original picking, cloud, text, sheet, outline, density, cancellation and upload assertions with the same physical fixture poses under reversed projection.*) · `src/grid_source_tests.rs` (*Preserve the grid far-plane reach assertion with the same physical range and the reversed far endpoint.*)
+
+Map the near plane to one and the far plane to zero, where floating-point spacing is finer. Swap projection endpoints with the shared clear value and comparison direction. The common ink clipper now measures w minus z. Finite visibility and ambient shading already reason in reversed depth, so remove their forward adapters. CPU rays follow the shared endpoints; screen clipping still accepts zero through w.
+
+> **Self-Check Question:** *Why must the camera and depth consumers switch together?*  
+> **Answer:** A reversed camera with a forward comparison retains the farthest surface. A leftover one-minus adapter also inverts visibility or reconstructs the wrong point.
+
+- **What You Should See:** Original draw lanes, asynchronous picks and CPU rays use one reversed depth convention.
+- **Hands-On Lab Experiment:** Overlap two boxes and pick the front original. Toggle clipping, control ink, points, sheets, text and Arctic; orbit close enough to cross the near plane. Repeat at a distant placement, then Undo and Save/reopen.
 
 <details>
 <summary>Implementation 96zzzzzz-use-reversed-depth-across-the-frame: Use reversed depth across the frame</summary>
@@ -5115,9 +5202,11 @@ Update the existing block with this supplied code; keep unchanged lines:
 
 </details>
 
-## Run, Check, and Save
+---
 
-From `session_viewer`:
+## 5. Build, Verify, and Save Your Checkpoint
+
+Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 96zzzzzz-use-reversed-depth-across-the-frame
@@ -5128,12 +5217,12 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. Use [checkpoint recovery](../../recovery.md) to restore any saved checkpoint.
+Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
 
-## Expected Visual Result & Experiment
+## 6. Lesson Summary & Expected Visual Result
 
 Original draw lanes, asynchronous picks and CPU rays use one reversed depth convention.
 
-- **Try this:** Overlap two boxes and pick the front original. Toggle clipping, control ink, points, sheets, text and Arctic; orbit close enough to cross the near plane. Repeat at a distant placement, then Undo and Save/reopen.
+- **Final Lesson Experiment:** Overlap two boxes and pick the front original. Toggle clipping, control ink, points, sheets, text and Arctic; orbit close enough to cross the near plane. Repeat at a distant placement, then Undo and Save/reopen.
 
-Continue with [Physical camera, world grid and framed navigation](96zzzzzza-match-physical-camera-defaults-and-limits.md).
+Continue with [Physical camera, world grid and framed navigation](../../consolidation/96zzzzzza-match-physical-camera-defaults-and-limits.md).

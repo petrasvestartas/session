@@ -1,89 +1,155 @@
 # 18.4 · Original Wood Elements and portable source records
 
-**Section 9: Compute Tile Visibility, Clipping Half-Spaces, Section Caps, and Ambient Occlusion** · **Lesson 18.4** (Redraft `9.8`) · **17 checkpoints (`92-link-current-wood-element-builders` → `92o-prove-element-recipes-source-history-and-archives`)**
+**Section 9: Compute Tile Visibility, Clipping Half-Spaces, Section Caps, and Ambient Occlusion** · **Lesson 18.4** (Redraft `9.8`) · **17 checkpoints (`92-link-current-wood-element-builders` → `92o-prove-element-recipes-source-history-and-archives`)** · **Study time: 8.5–17 h**
 
-> **Learning Goal:** Link current Wood element builders.
+> **What You Will Learn & Build:** Link current Wood element builders. By the final checkpoint (`92o-prove-element-recipes-source-history-and-archives`), you will prove Element recipes source history and archives.
 
-## Visual WebGPU & Architecture Schematic
+## 1. Visual Pipeline & WebGPU Architecture (Black & White Schematics)
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1px solid #cbd5e1;border-radius:10px;background:#f8fafc;">
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
+<svg viewBox="0 0 840 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <rect x="4" y="4" width="832" height="212" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Lesson 18.4 Execution Flow: Original Wood Elements and portable source records</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">Concrete data pipeline you build in this lesson (17 Checkpoints: 92-link-current-wood-element-builders → 92o-prove-element-recipes-source-history-and-archives)</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
+  
+    
+    <rect x="18" y="68" width="184" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="110" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
+    <line x1="28" y1="92" x2="192" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="110" y="108" text-anchor="middle" font-size="11" fill="#111111">original ordered picks</text>
+    <line x1="202" y1="108" x2="222" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="224" y="68" width="184" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="316" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
+    <line x1="234" y1="92" x2="398" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="316" y="108" text-anchor="middle" font-size="11" fill="#111111">current Wood builders</text>
+    <line x1="408" y1="108" x2="428" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="430" y="68" width="184" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="522" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
+    <line x1="440" y1="92" x2="604" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="522" y="108" text-anchor="middle" font-size="11" fill="#111111">typed Element and</text>
+    <text x="522" y="124" text-anchor="middle" font-size="11" fill="#111111">attributes</text>
+    <line x1="614" y1="108" x2="634" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="636" y="68" width="184" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="728" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
+    <line x1="646" y1="92" x2="810" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="728" y="108" text-anchor="middle" font-size="11" fill="#111111">one history edit</text>
+    
+    <rect x="18" y="162" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="32" y="181" font-size="11" font-weight="700" fill="#111111">Files You Edit in Lesson 18.4:</text>
+    <text x="215" y="181" font-size="11" fill="#111111">Cargo.toml  ·  src/element_values.rs  ·  src/lib.rs  ·  src/element_beam.rs  ·  src/element_column.rs  ·  src/element_plate.rs</text>
+    <text x="32" y="198" font-size="10.5" fill="#111111">17 Checkpoints: 92-link-current-wood-element-builders → 92o-prove-element-recipes-source-history-and-archives — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
+  
+</svg>
+</div>
+
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
 <svg viewBox="0 0 840 240" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#475569"/>
-    </marker>
-    <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#2563eb"/>
-    </marker>
-    <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#059669"/>
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
     </marker>
   </defs>
-  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
-  <text x="20" y="28" font-size="14" font-weight="700" fill="#0f172a">Section 9 Compute Tile Visibility, Clipping Half-Spaces, Winding Section Caps & Horizon GTAO (Ch 17–18)</text>
-  <text x="20" y="46" font-size="11.5" fill="#475569">How @compute shaders bin triangles into screen tiles for hidden-line removal, clip solids with winding caps, and shade crevices.</text>
-  <line x1="16" y1="54" x2="824" y2="54" stroke="#e2e8f0" stroke-width="1"/>
+  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Section 9 Compute Tile Visibility, Clipping Half-Spaces, Winding Section Caps & Horizon GTAO (Ch 17–18)</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">How @compute shaders bin triangles into screen tiles for hidden-line removal, clip solids with winding caps, and shade crevices.</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
   
-    <rect x="18" y="68" width="250" height="145" rx="6" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
-    <text x="143" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1e40af">1. @compute Tile Visibility (Ch 17)</text>
-    <text x="28" y="108" font-size="10.5" fill="#1e3a8a">• projected_triangle.wgsl projects tris</text>
-    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#1d4ed8">• atomicAdd tile counts + prefix-sum CSR</text>
-    <text x="28" y="144" font-size="10.5" fill="#1e3a8a">• ink_visibility.wgsl tests center-line</text>
-    <text x="28" y="160" font-size="10.5" fill="#1e3a8a">  against covering triangles in tile</text>
-    <text x="28" y="178" font-size="10.5" fill="#1e3a8a">• Hidden lines dashed/faded cleanly!</text>
+    <rect x="18" y="68" width="250" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="143" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">1. @compute Tile Visibility (Ch 17)</text>
+    <text x="28" y="108" font-size="10.5" fill="#111111">• projected_triangle.wgsl projects tris</text>
+    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#111111">• atomicAdd tile counts + prefix-sum CSR</text>
+    <text x="28" y="144" font-size="10.5" fill="#111111">• ink_visibility.wgsl tests center-line</text>
+    <text x="28" y="160" font-size="10.5" fill="#111111">  against covering triangles in tile</text>
+    <text x="28" y="178" font-size="10.5" fill="#111111">• Hidden lines dashed/faded cleanly!</text>
 
-    <line x1="268" y1="138" x2="298" y2="138" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
+    <line x1="268" y1="138" x2="298" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="300" y="68" width="265" height="145" rx="6" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5"/>
-    <text x="432" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#9a3412">2. Clipping &amp; Winding Caps (Ch 17)</text>
-    <text x="312" y="108" font-size="10.5" fill="#7c2d12">• Half-space: dot(pos_world, plane) &lt; 0</text>
-    <text x="312" y="126" font-size="10.5" font-weight="600" fill="#c2410c">• Signed front/back crossing count</text>
-    <text x="312" y="142" font-size="10" fill="#7c2d12">  at clip plane depth (cap.wgsl):</text>
-    <text x="312" y="158" font-size="10" fill="#7c2d12">  Fills closed solid interiors while</text>
-    <text x="312" y="173" font-size="10" fill="#7c2d12">  leaving internal bores hollow!</text>
-    <text x="312" y="191" font-size="10.5" fill="#7c2d12">• Cap picks resolve to solid owner_id</text>
+    <rect x="300" y="68" width="265" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="432" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">2. Clipping &amp; Winding Caps (Ch 17)</text>
+    <text x="312" y="108" font-size="10.5" fill="#111111">• Half-space: dot(pos_world, plane) &lt; 0</text>
+    <text x="312" y="126" font-size="10.5" font-weight="600" fill="#111111">• Signed front/back crossing count</text>
+    <text x="312" y="142" font-size="10" fill="#111111">  at clip plane depth (cap.wgsl):</text>
+    <text x="312" y="158" font-size="10" fill="#111111">  Fills closed solid interiors while</text>
+    <text x="312" y="173" font-size="10" fill="#111111">  leaving internal bores hollow!</text>
+    <text x="312" y="191" font-size="10.5" fill="#111111">• Cap picks resolve to solid owner_id</text>
 
-    <line x1="565" y1="138" x2="595" y2="138" stroke="#059669" stroke-width="2" marker-end="url(#arrow-green)"/>
+    <line x1="565" y1="138" x2="595" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="597" y="68" width="223" height="145" rx="6" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1.5"/>
-    <text x="708" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#065f46">3. Horizon GTAO &amp; X-Ray (Ch 18)</text>
-    <text x="609" y="108" font-size="10.5" fill="#064e3b">• ambient_depth.wgsl -&gt; 6-mip pyramid</text>
-    <text x="609" y="126" font-size="10.5" font-weight="600" fill="#047857">• ssao.wgsl + bilateral blur +</text>
-    <text x="609" y="142" font-size="10.5" font-weight="600" fill="#047857">  ambient_composite.wgsl (Arctic)</text>
-    <text x="609" y="160" font-size="10" fill="#064e3b">• Glass / X-Ray translucent shells</text>
-    <text x="609" y="175" font-size="10" fill="#064e3b">  allow picking interior Wood joints</text>
+    <rect x="597" y="68" width="223" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="708" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">3. Horizon GTAO &amp; X-Ray (Ch 18)</text>
+    <text x="609" y="108" font-size="10.5" fill="#111111">• ambient_depth.wgsl -&gt; 6-mip pyramid</text>
+    <text x="609" y="126" font-size="10.5" font-weight="600" fill="#111111">• ssao.wgsl + bilateral blur +</text>
+    <text x="609" y="142" font-size="10.5" font-weight="600" fill="#111111">  ambient_composite.wgsl (Arctic)</text>
+    <text x="609" y="160" font-size="10" fill="#111111">• Glass / X-Ray translucent shells</text>
+    <text x="609" y="175" font-size="10" fill="#111111">  allow picking interior Wood joints</text>
     
 </svg>
 </div>
 
-### Lesson Data Flow (`Rust` → `WebGPU` → `WGSL`)
+## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
 
-```
-original ordered picks → current Wood builders → typed Element and attributes → one history edit.
-original picks → positive dimensions → existing Wood kernel → typed element.
-```
+Before writing code, review how the three layers in this chapter talk to each other:
 
-- Link current Wood element builders.
-- Make Element input batches atomic.
-- Prove Element recipes source history and archives.
-- **Why it works (Should the viewer invent a second beam solid builder?):** No. Link the maintained Wood crate beside Session. Keep its shared kernel and the supplied dependency lock.
-
-### Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `Browser`)
-
-| Layer | Construct | First-Year Student Explanation |
+| Layer | Construct | Plain-English Explanation for Students |
 | :--- | :--- | :--- |
 | **WGSL (`@compute`)** | `@compute @workgroup_size(64) fn main(@builtin(global_invocation_id) id: vec3<u32>)` | Runs general-purpose parallel GPU threads (outside vertex/fragment rasterization) to project triangles and prefix-sum tile counts. |
 | **WGSL (Atomics)** | `atomicAdd(&tile_counts[tile_id], 1u)` | Safely increments shared GPU buffer counters when multiple triangles overlap the same screen tile concurrently. |
 | **Math (Winding Cap)** | `signed_crossings != 0` at clip plane depth | Fills only the solid interior of a clipped B-Rep/mesh while leaving interior bores and open shells hollow. |
 | **WGSL (`ssao.wgsl`)** | Multi-level depth pyramid horizon integration | Samples 6 mip levels of linear depth and per-object contact radius to shade crevices and ground contact. |
 
-**Production source (`session_viewer/src`):** [engine/gpu/ssao.rs](../../../../src/engine/gpu/ssao.rs), [engine/gpu/ssao/pipelines.rs](../../../../src/engine/gpu/ssao/pipelines.rs), [shaders/ssao.wgsl](../../../../src/shaders/ssao.wgsl), [shaders/triangle.wgsl](../../../../src/shaders/triangle.wgsl), [shaders/ink_visibility.wgsl](../../../../src/shaders/ink_visibility.wgsl), [engine/gpu/surface_outline.rs](../../../../src/engine/gpu/surface_outline.rs), [engine/gpu/render.rs](../../../../src/engine/gpu/render.rs), [engine/performance.rs](../../../../src/engine/performance.rs), [engine/gpu/timing.rs](../../../../src/engine/gpu/timing.rs), [app/command/tool/elements.rs](../../../../src/app/command/tool/elements.rs), [build.rs](../../../../build.rs).
+**Authoritative production source (`session_viewer/src`):** [engine/gpu/ssao.rs](../../../../src/engine/gpu/ssao.rs), [engine/gpu/ssao/pipelines.rs](../../../../src/engine/gpu/ssao/pipelines.rs), [shaders/ssao.wgsl](../../../../src/shaders/ssao.wgsl), [shaders/triangle.wgsl](../../../../src/shaders/triangle.wgsl), [shaders/ink_visibility.wgsl](../../../../src/shaders/ink_visibility.wgsl), [engine/gpu/surface_outline.rs](../../../../src/engine/gpu/surface_outline.rs), [engine/gpu/render.rs](../../../../src/engine/gpu/render.rs), [engine/performance.rs](../../../../src/engine/performance.rs), [engine/gpu/timing.rs](../../../../src/engine/gpu/timing.rs), [app/command/tool/elements.rs](../../../../src/app/command/tool/elements.rs), [build.rs](../../../../build.rs).
 
-## Implementation Checkpoints
+## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
 
-Apply these checkpoints in order inside `workspace/journey`. Expand each block to view the Rust/WGSL/HTML edits:
+| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
+| ---: | :--- | :--- | :--- | :--- |
+| **1** | [`92-link-current-wood-element-builders`](#checkpoint-92-link-current-wood-element-builders) | Link current Wood element builders. | `Cargo.toml` | `original ordered picks → current Wood builders → typed Element and attributes → one history edit` |
+| **2** | [`91zza-write-original-beam-column-and-plate-builders`](#checkpoint-91zza-write-original-beam-column-and-plate-builders) | Parse positive finite lengths while retaining omitted defaults. | `src/element_values.rs`, `src/lib.rs`, `src/element_beam.rs`, `src/element_column.rs` | `original picks → positive dimensions → existing Wood kernel → typed element` |
+| **3** | [`92a-retain-current-positive-lengths-and-six-builders`](#checkpoint-92a-retain-current-positive-lengths-and-six-builders) | Add the remaining original Support, Beam Variable and Block wrappers. | `src/element_support.rs`, `src/lib.rs`, `src/element_beam_variable.rs`, `src/element_block.rs` | `original picks → positive dimensions → existing Wood kernel → typed element` |
+| **4** | [`92b-own-original-element-geometry`](#checkpoint-92b-own-original-element-geometry) | Own original Element geometry. | `src/element_original.rs`, `src/lib.rs` | `original ordered picks → current Wood builders → typed Element and attributes → one history edit` |
+| **5** | [`92c-read-current-element-command-defaults`](#checkpoint-92c-read-current-element-command-defaults) | Read current Element command defaults. | `src/element_input.rs`, `src/lib.rs` | `original ordered picks → current Wood builders → typed Element and attributes → one history edit` |
+| **6** | [`92d-build-typed-elements-from-ordered-world-picks`](#checkpoint-92d-build-typed-elements-from-ordered-world-picks) | Build typed Elements from ordered world picks. | `src/element_input.rs` | `original ordered picks → current Wood builders → typed Element and attributes → one history edit` |
+| **7** | [`92e-capture-original-picks-while-the-tool-runs`](#checkpoint-92e-capture-original-picks-while-the-tool-runs) | Capture original picks while the tool runs. | `src/element_draft.rs`, `src/lib.rs` | `original ordered picks → current Wood builders → typed Element and attributes → one history edit` |
+| **8** | [`92f-teach-named-and-bare-element-values`](#checkpoint-92f-teach-named-and-bare-element-values) | Teach named and bare Element values. | `src/element_draft.rs` | `original ordered picks → current Wood builders → typed Element and attributes → one history edit` |
+| **9** | [`92g-make-element-input-batches-atomic`](#checkpoint-92g-make-element-input-batches-atomic) | Make Element input batches atomic. | `src/element_draft.rs` | `original ordered picks → current Wood builders → typed Element and attributes → one history edit` |
+| **10** | [`92h-attach-readonly-element-attributes`](#checkpoint-92h-attach-readonly-element-attributes) | Attach readonly Element attributes. | `src/layer_edit.rs` | `original ordered picks → current Wood builders → typed Element and attributes → one history edit` |
+| **11** | [`92i-adopt-elements-and-consume-sources-once`](#checkpoint-92i-adopt-elements-and-consume-sources-once) | Adopt Elements and consume sources once. | `src/element_adopt.rs`, `src/lib.rs`, `src/source_edit.rs` | `original ordered picks → current Wood builders → typed Element and attributes → one history edit` |
+| **12** | [`92j-save-and-open-original-element-records`](#checkpoint-92j-save-and-open-original-element-records) | Save and open original Element records. | `src/geometry_snapshot.rs`, `src/archive_identity.rs`, `src/document_source.rs`, `src/document_geometry.rs` | `original ordered picks → current Wood builders → typed Element and attributes → one history edit` |
+| **13** | [`92k-own-independent-element-tool-state`](#checkpoint-92k-own-independent-element-tool-state) | Own independent Element tool state. | `src/editor.rs` | `original ordered picks → current Wood builders → typed Element and attributes → one history edit` |
+| **14** | [`92l-commit-one-element-creation-and-retry-errors`](#checkpoint-92l-commit-one-element-creation-and-retry-errors) | Commit one Element creation and retry errors. | `src/editor.rs` | `original ordered picks → current Wood builders → typed Element and attributes → one history edit` |
+| **15** | [`92m-route-current-element-commands-and-feature-visibility`](#checkpoint-92m-route-current-element-commands-and-feature-visibility) | Toggle Element Attributes and Element Interactions independently. | `src/editor.rs`, `src/commands.rs` | `original ordered picks → current Wood builders → typed Element and attributes → one history edit` |
+| **16** | [`92n-pick-elements-through-the-real-command-dock`](#checkpoint-92n-pick-elements-through-the-real-command-dock) | Pick Elements through the real command dock. | `src/browser.rs` | `original ordered picks → current Wood builders → typed Element and attributes → one history edit` |
+| **17** | [`92o-prove-element-recipes-source-history-and-archives`](#checkpoint-92o-prove-element-recipes-source-history-and-archives) | Prove Element recipes source history and archives. | `src/element_tests.rs`, `src/lib.rs`, `src/element_beam.rs`, `src/element_column.rs` | `original ordered picks → current Wood builders → typed Element and attributes → one history edit` |
+
+---
+
+## 4. Step-by-Step Coding Notebook (Concept + Implementation)
+
+Work through each notebook cell below in order inside `workspace/journey`. Read the **Concept Walkthrough** and **Self-Check Q&A** first, then expand the **Implementation** block to type and verify the code.
 
 <a id="checkpoint-92-link-current-wood-element-builders"></a>
+
+### Step 1 of 17 · Link current Wood element builders (`92-link-current-wood-element-builders`)
+
+- **Goal:** Link current Wood element builders.
+- **Data Flow Trace:** `original ordered picks → current Wood builders → typed Element and attributes → one history edit`
+- **Files You Touch:** `Cargo.toml` (*Link current Wood element builders beside the original kernel.*)
+
+Link current Wood element builders.
+
+> **Self-Check Question:** *Should the viewer invent a second beam solid builder?*  
+> **Answer:** No. Link the maintained Wood crate beside Session. Keep its shared kernel and the supplied dependency lock.
+
+- **Hands-On Lab Experiment:** Inspect the relative path from the reconstructed lesson and the unchanged dependency versions.
 
 <details>
 <summary>Implementation 92-link-current-wood-element-builders: Link current Wood element builders</summary>
@@ -117,6 +183,20 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-91zza-write-original-beam-column-and-plate-builders"></a>
+
+### Step 2 of 17 · Write original beam column and plate builders (`91zza-write-original-beam-column-and-plate-builders`)
+
+- **Goal:** Parse positive finite lengths while retaining omitted defaults.
+- **Data Flow Trace:** `original picks → positive dimensions → existing Wood kernel → typed element`
+- **Files You Touch:** `src/element_values.rs` (*Adapt the maintained positive-length recipe to the earlier number parser.*) · `src/lib.rs` (*Register the completed Element component.*) · `src/element_beam.rs` (*Type the whole original helpers introduced today.*) · `src/element_column.rs` (*Type the whole original helpers introduced today.*) · `src/element_plate.rs` (*Type the whole original helpers introduced today.*)
+
+Parse positive finite lengths while retaining omitted defaults. Build original beams from selected axes, columns from points and plates from profiles using the existing Wood kernel.
+
+> **Self-Check Question:** *Why keep the untyped defaults?*  
+> **Answer:** A short dimension list overrides only its supplied values. Excess, nonfinite and nonpositive values are refused.
+
+- **What You Should See:** Beam, column and plate source builders are prepared before their values and command routing are connected.
+- **Hands-On Lab Experiment:** Trace a partial dimension override and compare empty or invalid axis, point and profile selections.
 
 <details>
 <summary>Implementation 91zza-write-original-beam-column-and-plate-builders: Write original beam column and plate builders</summary>
@@ -249,6 +329,20 @@ After that block, type:
 
 <a id="checkpoint-92a-retain-current-positive-lengths-and-six-builders"></a>
 
+### Step 3 of 17 · Write original support variable beam and block builders (`92a-retain-current-positive-lengths-and-six-builders`)
+
+- **Goal:** Add the remaining original Support, Beam Variable and Block wrappers.
+- **Data Flow Trace:** `original picks → positive dimensions → existing Wood kernel → typed element`
+- **Files You Touch:** `src/element_support.rs` (*Type the whole original helpers introduced today.*) · `src/lib.rs` (*Register this original element builder.*) · `src/element_beam_variable.rs` (*Type the whole original helpers introduced today.*) · `src/element_block.rs` (*Type the whole original helpers introduced today.*)
+
+Add the remaining original Support, Beam Variable and Block wrappers. Reuse the kernel constructors and the length parser already written.
+
+> **Self-Check Question:** *Where does the element geometry come from?*  
+> **Answer:** The existing Wood kernel constructs it. These short wrappers preserve the supported original inputs and return the typed element or a clear refusal.
+
+- **What You Should See:** Positive length validation and the six Element builders compile before dispatch and history editing are connected.
+- **Hands-On Lab Experiment:** Compare the selected original families and refused empty selections for the three wrappers.
+
 <details>
 <summary>Implementation 92a-retain-current-positive-lengths-and-six-builders: Write original support variable beam and block builders</summary>
 
@@ -350,6 +444,19 @@ After that block, type:
 
 <a id="checkpoint-92b-own-original-element-geometry"></a>
 
+### Step 4 of 17 · Own original Element geometry (`92b-own-original-element-geometry`)
+
+- **Goal:** Own original Element geometry.
+- **Data Flow Trace:** `original ordered picks → current Wood builders → typed Element and attributes → one history edit`
+- **Files You Touch:** `src/element_original.rs` (*Retain the original Element beside its derived display.*) · `src/lib.rs` (*Register the completed Element component.*)
+
+Own original Element geometry.
+
+> **Self-Check Question:** *Does a display BRep replace the typed Element?*  
+> **Answer:** No. Keep the original Element and derive its BRep or mesh display under the same owner. Reject an Element without drawable geometry.
+
+- **Hands-On Lab Experiment:** Compare typed payload, original flags, GUID and derived topology.
+
 <details>
 <summary>Implementation 92b-own-original-element-geometry: Own original Element geometry</summary>
 
@@ -390,6 +497,19 @@ After that block, type:
 </details>
 
 <a id="checkpoint-92c-read-current-element-command-defaults"></a>
+
+### Step 5 of 17 · Read current Element command defaults (`92c-read-current-element-command-defaults`)
+
+- **Goal:** Read current Element command defaults.
+- **Data Flow Trace:** `original ordered picks → current Wood builders → typed Element and attributes → one history edit`
+- **Files You Touch:** `src/element_input.rs` (*Own the six current command kinds and exact defaults.*) · `src/lib.rs` (*Register the completed Element component.*)
+
+Read current Element command defaults.
+
+> **Self-Check Question:** *Does Element Beam Variable mean Beam with a Variable argument?*  
+> **Answer:** No. It is a separate longest-matching command. Argument-free recipes reject extra values; dimensioned recipes allow partial positive lengths.
+
+- **Hands-On Lab Experiment:** Try Element Beam120 and Element Beam Variable, then reject an extra number for Support.
 
 <details>
 <summary>Implementation 92c-read-current-element-command-defaults: Read current Element command defaults</summary>
@@ -432,6 +552,19 @@ After that block, type:
 
 <a id="checkpoint-92d-build-typed-elements-from-ordered-world-picks"></a>
 
+### Step 6 of 17 · Build typed Elements from ordered world picks (`92d-build-typed-elements-from-ordered-world-picks`)
+
+- **Goal:** Build typed Elements from ordered world picks.
+- **Data Flow Trace:** `original ordered picks → current Wood builders → typed Element and attributes → one history edit`
+- **Files You Touch:** `src/element_input.rs` (*Route ordered original sources into current Wood builders and base planes.*)
+
+Build typed Elements from ordered world picks.
+
+> **Self-Check Question:** *Can original curve placement be ignored?*  
+> **Answer:** No. Transform each original into world space in pick order before calling the current builder. Retain closed-loop filtering and the typed Element payload.
+
+- **Hands-On Lab Experiment:** Compare a translated beam axis, variable-beam stations, paired block holes and a point support.
+
 <details>
 <summary>Implementation 92d-build-typed-elements-from-ordered-world-picks: Build typed Elements from ordered world picks</summary>
 
@@ -462,6 +595,19 @@ After that block, type:
 </details>
 
 <a id="checkpoint-92e-capture-original-picks-while-the-tool-runs"></a>
+
+### Step 7 of 17 · Capture original picks while the tool runs (`92e-capture-original-picks-while-the-tool-runs`)
+
+- **Goal:** Capture original picks while the tool runs.
+- **Data Flow Trace:** `original ordered picks → current Wood builders → typed Element and attributes → one history edit`
+- **Files You Touch:** `src/element_draft.rs` (*Capture fitting original sources and ordered tool state.*) · `src/lib.rs` (*Register the completed Element component.*)
+
+Capture original picks while the tool runs.
+
+> **Self-Check Question:** *Can a pending Element tool use a moved or replaced source?*  
+> **Answer:** No. Capture its shared original and exact placement, then validate both before creation. Picking again toggles its ordered membership.
+
+- **Hands-On Lab Experiment:** Move a captured axis before Enter and verify the original remains present after rejection.
 
 <details>
 <summary>Implementation 92e-capture-original-picks-while-the-tool-runs: Capture original picks while the tool runs</summary>
@@ -504,6 +650,19 @@ After that block, type:
 
 <a id="checkpoint-92f-teach-named-and-bare-element-values"></a>
 
+### Step 8 of 17 · Teach named and bare Element values (`92f-teach-named-and-bare-element-values`)
+
+- **Goal:** Teach named and bare Element values.
+- **Data Flow Trace:** `original ordered picks → current Wood builders → typed Element and attributes → one history edit`
+- **Files You Touch:** `src/element_draft.rs` (*Adapt the maintained Element parameter word recipe without changing its semantics.*)
+
+Teach named and bare Element values.
+
+> **Self-Check Question:** *What does Height without a number do?*  
+> **Answer:** It asks for that value; Enter keeps the current number. Name=value sets it directly, and bare numbers fill parameters cyclically.
+
+- **Hands-On Lab Experiment:** Try Width=100 Height150, then ask for Height and keep it with Enter.
+
 <details>
 <summary>Implementation 92f-teach-named-and-bare-element-values: Teach named and bare Element values</summary>
 
@@ -536,6 +695,19 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-92g-make-element-input-batches-atomic"></a>
+
+### Step 9 of 17 · Make Element input batches atomic (`92g-make-element-input-batches-atomic`)
+
+- **Goal:** Make Element input batches atomic.
+- **Data Flow Trace:** `original ordered picks → current Wood builders → typed Element and attributes → one history edit`
+- **Files You Touch:** `src/element_draft.rs` (*Adopt only validated current parameter batches.*)
+
+Make Element input batches atomic.
+
+> **Self-Check Question:** *Should Width=99 Height=-1 keep the first edit?*  
+> **Answer:** No. Read into a cloned draft and adopt only a completely valid batch. Enter creates only when no parameter is being asked.
+
+- **Hands-On Lab Experiment:** Compare draft parameters before and after an invalid two-word batch.
 
 <details>
 <summary>Implementation 92g-make-element-input-batches-atomic: Make Element input batches atomic</summary>
@@ -571,6 +743,19 @@ Edit the existing block to match this code; keep unchanged lines:
 
 <a id="checkpoint-92h-attach-readonly-element-attributes"></a>
 
+### Step 10 of 17 · Attach readonly Element attributes (`92h-attach-readonly-element-attributes`)
+
+- **Goal:** Attach readonly Element attributes.
+- **Data Flow Trace:** `original ordered picks → current Wood builders → typed Element and attributes → one history edit`
+- **Files You Touch:** `src/layer_edit.rs` (*Attach generated original attributes under their Element owner.*)
+
+Attach readonly Element attributes.
+
+> **Self-Check Question:** *Can the base plane be edited as another layer object?*  
+> **Answer:** No. Move it under its Element attributes branch and mark it readonly. Enforce the existing hierarchy bounds before adoption.
+
+- **Hands-On Lab Experiment:** Inspect parent/child ranges and why a feature follows parent movement.
+
 <details>
 <summary>Implementation 92h-attach-readonly-element-attributes: Attach readonly Element attributes</summary>
 
@@ -601,6 +786,19 @@ After that block, type:
 </details>
 
 <a id="checkpoint-92i-adopt-elements-and-consume-sources-once"></a>
+
+### Step 11 of 17 · Adopt Elements and consume sources once (`92i-adopt-elements-and-consume-sources-once`)
+
+- **Goal:** Adopt Elements and consume sources once.
+- **Data Flow Trace:** `original ordered picks → current Wood builders → typed Element and attributes → one history edit`
+- **Files You Touch:** `src/element_adopt.rs` (*Adopt original Element payloads and readonly attributes as one edit.*) · `src/lib.rs` (*Register the completed Element component.*) · `src/source_edit.rs` (*Validate captured original Element identity by shared source ownership.*)
+
+Adopt Elements and consume sources once.
+
+> **Self-Check Question:** *Does Enter create a partial selection on failure?*  
+> **Answer:** No. Stage all Elements, base planes and serialized feature outlines, then replace the consumed sources in one history transaction.
+
+- **Hands-On Lab Experiment:** Inspect original feature payloads, readonly generated children, default hidden attributes and restored axes after Undo.
 
 <details>
 <summary>Implementation 92i-adopt-elements-and-consume-sources-once: Adopt Elements and consume sources once</summary>
@@ -664,6 +862,19 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-92j-save-and-open-original-element-records"></a>
+
+### Step 12 of 17 · Save and open original Element records (`92j-save-and-open-original-element-records`)
+
+- **Goal:** Save and open original Element records.
+- **Data Flow Trace:** `original ordered picks → current Wood builders → typed Element and attributes → one history edit`
+- **Files You Touch:** `src/geometry_snapshot.rs` (*Route original Element records through mixed-document archives.*) · `src/archive_identity.rs` (*Route original Element records through mixed-document archives.*) · `src/document_source.rs` (*Route original Element records through mixed-document archives.*) · `src/document_geometry.rs` (*Route original Element records through mixed-document archives.*)
+
+Save and open original Element records.
+
+> **Self-Check Question:** *Should Save serialize the display mesh?*  
+> **Answer:** No. Save the original Element record and its payload, retain attribute ancestry and remap original GUIDs consistently.
+
+- **Hands-On Lab Experiment:** Save, open and compare the typed payload and readonly base-plane/feature branches.
 
 <details>
 <summary>Implementation 92j-save-and-open-original-element-records: Save and open original Element records</summary>
@@ -837,6 +1048,19 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-92k-own-independent-element-tool-state"></a>
+
+### Step 13 of 17 · Own independent Element tool state (`92k-own-independent-element-tool-state`)
+
+- **Goal:** Own independent Element tool state.
+- **Data Flow Trace:** `original ordered picks → current Wood builders → typed Element and attributes → one history edit`
+- **Files You Touch:** `src/editor.rs` (*Own Element draft state and cleanup before routing its commands.*)
+
+Own independent Element tool state.
+
+> **Self-Check Question:** *Does an Element picker ask for drawing points?*  
+> **Answer:** No. It owns ordered original picks and parameter prompts separately from freehand drawing tools.
+
+- **Hands-On Lab Experiment:** Compare the Element draft with an original Line drawing draft and feature visibility state.
 
 <details>
 <summary>Implementation 92k-own-independent-element-tool-state: Own independent Element tool state</summary>
@@ -2192,6 +2416,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-92l-commit-one-element-creation-and-retry-errors"></a>
 
+### Step 14 of 17 · Commit one Element creation and retry errors (`92l-commit-one-element-creation-and-retry-errors`)
+
+- **Goal:** Commit one Element creation and retry errors.
+- **Data Flow Trace:** `original ordered picks → current Wood builders → typed Element and attributes → one history edit`
+- **Files You Touch:** `src/editor.rs` (*Connect staged Element creation, named input and ordered picks.*)
+
+Commit one Element creation and retry errors.
+
+> **Self-Check Question:** *Can a failed build clear the pending picks?*  
+> **Answer:** No. Keep the draft until all derived originals are ready. A successful commit selects new Element owners and clears the tool.
+
+- **Hands-On Lab Experiment:** Inspect typed immediate creation, argument-free pending creation, stale original checks and one history transaction.
+
 <details>
 <summary>Implementation 92l-commit-one-element-creation-and-retry-errors: Commit one Element creation and retry errors</summary>
 
@@ -2224,6 +2461,19 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-92m-route-current-element-commands-and-feature-visibility"></a>
+
+### Step 15 of 17 · Route Element commands and independent visibility (`92m-route-current-element-commands-and-feature-visibility`)
+
+- **Goal:** Toggle Element Attributes and Element Interactions independently.
+- **Data Flow Trace:** `original ordered picks → current Wood builders → typed Element and attributes → one history edit`
+- **Files You Touch:** `src/editor.rs` (*Route Element actions and current feature presentation.*) · `src/commands.rs` (*Register current Element commands and strict argument parsing.*)
+
+Route current Element commands and feature visibility.
+
+> **Self-Check Question:** *Do feature toggles modify the typed Element payload?*  
+> **Answer:** No. Change derived child visibility. Commands retain current defaults, strict arguments and longest matching names.
+
+- **Hands-On Lab Experiment:** Create a selected-axis beam immediately, show its features, then Undo the original edit.
 
 <details>
 <summary>Implementation 92m-route-current-element-commands-and-feature-visibility: Route Element commands and independent visibility</summary>
@@ -3867,6 +4117,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-92n-pick-elements-through-the-real-command-dock"></a>
 
+### Step 16 of 17 · Pick Elements through the real command dock (`92n-pick-elements-through-the-real-command-dock`)
+
+- **Goal:** Pick Elements through the real command dock.
+- **Data Flow Trace:** `original ordered picks → current Wood builders → typed Element and attributes → one history edit`
+- **Files You Touch:** `src/browser.rs` (*Route actual browser original picks, command results and Element parameter controls.*)
+
+Pick Elements through the real command dock.
+
+> **Self-Check Question:** *Can a browser point gesture create an Element axis implicitly?*  
+> **Answer:** No. Read actual original integer picks in object mode; typed parameters and Enter still pass through the drawn command dock.
+
+- **Hands-On Lab Experiment:** Compare Element tool buttons, repeated source picks, named values and tool cancellation.
+
 <details>
 <summary>Implementation 92n-pick-elements-through-the-real-command-dock: Pick Elements through the real command dock</summary>
 
@@ -4950,6 +5213,20 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-92o-prove-element-recipes-source-history-and-archives"></a>
 
+### Step 17 of 17 · Prove Element recipes source history and archives (`92o-prove-element-recipes-source-history-and-archives`)
+
+- **Goal:** Prove Element recipes source history and archives.
+- **Data Flow Trace:** `original ordered picks → current Wood builders → typed Element and attributes → one history edit`
+- **Files You Touch:** `src/element_tests.rs` (*Copy supplied original Element adapter and archive fixtures.*) · `src/lib.rs` (*Register the completed Element component.*) · `src/element_beam.rs` (*Copy maintained beam solid and command fixtures.*) · `src/element_column.rs` (*Copy maintained column solid and command fixtures.*) · `src/element_plate.rs` (*Copy maintained plate solid and command fixtures.*) · `src/element_support.rs` (*Copy maintained support solid and command fixtures.*) · `src/element_beam_variable.rs` (*Copy maintained beam variable solid and command fixtures.*) · `src/element_block.rs` (*Copy maintained block solid and command fixtures.*)
+
+Prove Element recipes source history and archives.
+
+> **Self-Check Question:** *What verifies the Element chapter?*  
+> **Answer:** Current builder solids plus exact source, history, archive and attribute behavior. Verify world placements, all six builders, strict input, feature movement, bounds and cascading Delete.
+
+- **What You Should See:** Original typed beams, columns and a plate retain their current Wood solids, features and editable parent ownership. Element Attributes starts Off; Element Interactions starts On. The native feature fixture checks each category independently without changing the original Element payload.
+- **Hands-On Lab Experiment:** Inspect the original Element frame in the browser. Toggle Element Attributes and Element Interactions independently, then compare the supplied original-payload fixture.
+
 <details>
 <summary>Implementation 92o-prove-element-recipes-source-history-and-archives: Prove Element recipes source history and archives</summary>
 
@@ -5161,9 +5438,11 @@ After that block, append this supplied code:
 
 </details>
 
-## Run, Check, and Save
+---
 
-From `session_viewer`:
+## 5. Build, Verify, and Save Your Checkpoint
+
+Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 92o-prove-element-recipes-source-history-and-archives
@@ -5174,12 +5453,12 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. Use [checkpoint recovery](../../recovery.md) to restore any saved checkpoint.
+Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
 
-## Expected Visual Result & Experiment
+## 6. Lesson Summary & Expected Visual Result
 
 Original typed beams, columns and a plate retain their current Wood solids, features and editable parent ownership. Element Attributes starts Off; Element Interactions starts On. The native feature fixture checks each category independently without changing the original Element payload.
 
-- **Try this:** Inspect the original Element frame in the browser. Toggle Element Attributes and Element Interactions independently, then compare the supplied original-payload fixture.
+- **Final Lesson Experiment:** Inspect the original Element frame in the browser. Toggle Element Attributes and Element Interactions independently, then compare the supplied original-payload fixture.
 
-Continue with [Glass, X-ray and shared visibility rules](93-classify-original-solids-independently-of-clipping.md).
+Continue with [Glass, X-ray and shared visibility rules](../../consolidation/93-classify-original-solids-independently-of-clipping.md).

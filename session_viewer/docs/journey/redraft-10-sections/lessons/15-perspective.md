@@ -1,103 +1,164 @@
 # 2.6 · Perspective picking and orbit navigation
 
-**Section 2: 3D Meshes, Camera Matrices, Depth, and Ray Picking** · **Lesson 2.6** (Redraft `2.6`) · **2 checkpoints (`15-perspective` → `16-orbit`)**
+**Section 2: 3D Meshes, Camera Matrices, Depth, and Ray Picking** · **Lesson 2.6** (Redraft `2.6`) · **2 checkpoints (`15-perspective` → `16-orbit`)** · **Study time: 3–5.5 h**
 
-> **Learning Goal:** View the scene in perspective and select surfaces with a ray that agrees with the camera.
+> **What You Will Learn & Build:** View the scene in perspective and select surfaces with a ray that agrees with the camera. By the final checkpoint (`16-orbit`), you will orbit and tilt a perspective camera while keeping its target in place.
 
-## Visual WebGPU & Architecture Schematic
+## 1. Visual Pipeline & WebGPU Architecture (Black & White Schematics)
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1px solid #cbd5e1;border-radius:10px;background:#f8fafc;">
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
+<svg viewBox="0 0 840 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <rect x="4" y="4" width="832" height="212" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Lesson 2.6 Execution Flow: Perspective picking and orbit navigation</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">Concrete data pipeline you build in this lesson (2 Checkpoints: 15-perspective → 16-orbit)</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
+  
+    
+    <rect x="18" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="89" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
+    <line x1="28" y1="92" x2="151" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">Canvas click</text>
+    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="183" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="254" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
+    <line x1="193" y1="92" x2="316" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">Camera::ray</text>
+    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="348" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="419" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
+    <line x1="358" y1="92" x2="481" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">nearest valid</text>
+    <text x="419" y="124" text-anchor="middle" font-size="11" fill="#111111">triangle</text>
+    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="513" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="584" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
+    <line x1="523" y1="92" x2="646" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">ObjectId</text>
+    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="678" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="749" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
+    <line x1="688" y1="92" x2="811" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">yellow display</text>
+    
+    <rect x="18" y="162" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="32" y="181" font-size="11" font-weight="700" fill="#111111">Files You Edit in Lesson 2.6:</text>
+    <text x="215" y="181" font-size="11" fill="#111111">src/picking.rs  ·  src/lib.rs  ·  src/browser.rs  ·  src/camera.rs</text>
+    <text x="32" y="198" font-size="10.5" fill="#111111">2 Checkpoints: 15-perspective → 16-orbit — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
+  
+</svg>
+</div>
+
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
 <svg viewBox="0 0 840 240" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#475569"/>
-    </marker>
-    <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#2563eb"/>
-    </marker>
-    <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#059669"/>
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
     </marker>
   </defs>
-  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
-  <text x="20" y="28" font-size="14" font-weight="700" fill="#0f172a">Chapter 2 WebGPU Pipeline: 3D Vertex/Index Buffers, Camera Uniform (mat4x4), Depth32Float & Ray Picking</text>
-  <text x="20" y="46" font-size="11.5" fill="#475569">How 3D world coordinates project onto the 2D canvas with hardware Z-buffering—and how a 2D mouse click unprojects back into a 3D ray.</text>
-  <line x1="16" y1="54" x2="824" y2="54" stroke="#e2e8f0" stroke-width="1"/>
+  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Chapter 2 WebGPU Pipeline: 3D Vertex/Index Buffers, Camera Uniform (mat4x4), Depth32Float & Ray Picking</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">How 3D world coordinates project onto the 2D canvas with hardware Z-buffering—and how a 2D mouse click unprojects back into a 3D ray.</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
   
     <!-- CPU Buffers -->
-    <rect x="18" y="68" width="185" height="145" rx="6" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5"/>
-    <text x="110" y="88" text-anchor="middle" font-size="12" font-weight="700" fill="#9a3412">1. Rust CPU Data (#[repr(C)])</text>
-    <text x="28" y="108" font-size="11" fill="#7c2d12">• vertices: Vec&lt;[f32; 3]&gt;</text>
-    <text x="28" y="125" font-size="11" fill="#7c2d12">• indices:  Vec&lt;u32&gt; (shared!)</text>
-    <text x="28" y="142" font-size="11" fill="#7c2d12">• camera.view_proj: [[f32;4];4]</text>
-    <text x="28" y="162" font-size="10.5" font-weight="600" fill="#c2410c">bytemuck::cast_slice(&amp;data)</text>
-    <text x="28" y="180" font-size="10.5" fill="#7c2d12">• Undo / Redo Snapshot Stack</text>
-    <text x="28" y="197" font-size="10.5" fill="#7c2d12">• Orbit / Pan / Zoom Camera</text>
+    <rect x="18" y="68" width="185" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="110" y="88" text-anchor="middle" font-size="12" font-weight="700" fill="#111111">1. Rust CPU Data (#[repr(C)])</text>
+    <text x="28" y="108" font-size="11" fill="#111111">• vertices: Vec&lt;[f32; 3]&gt;</text>
+    <text x="28" y="125" font-size="11" fill="#111111">• indices:  Vec&lt;u32&gt; (shared!)</text>
+    <text x="28" y="142" font-size="11" fill="#111111">• camera.view_proj: [[f32;4];4]</text>
+    <text x="28" y="162" font-size="10.5" font-weight="600" fill="#111111">bytemuck::cast_slice(&amp;data)</text>
+    <text x="28" y="180" font-size="10.5" fill="#111111">• Undo / Redo Snapshot Stack</text>
+    <text x="28" y="197" font-size="10.5" fill="#111111">• Orbit / Pan / Zoom Camera</text>
 
-    <line x1="203" y1="115" x2="233" y2="115" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>
+    <line x1="203" y1="115" x2="233" y2="115" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
     <!-- Vertex Shader -->
-    <rect x="235" y="68" width="205" height="90" rx="6" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
-    <text x="337" y="87" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1e40af">2. @vertex Shader Stage</text>
-    <text x="245" y="105" font-size="10.5" fill="#1e3a8a">@location(0) pos: vec3&lt;f32&gt;</text>
-    <text x="245" y="122" font-size="10.5" fill="#1e3a8a">@group(0) @binding(0) view_proj</text>
-    <text x="245" y="142" font-size="11" font-weight="700" fill="#1d4ed8">clip = view_proj * vec4(pos, 1.0)</text>
+    <rect x="235" y="68" width="205" height="90" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="337" y="87" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">2. @vertex Shader Stage</text>
+    <text x="245" y="105" font-size="10.5" fill="#111111">@location(0) pos: vec3&lt;f32&gt;</text>
+    <text x="245" y="122" font-size="10.5" fill="#111111">@group(0) @binding(0) view_proj</text>
+    <text x="245" y="142" font-size="11" font-weight="700" fill="#111111">clip = view_proj * vec4(pos, 1.0)</text>
 
-    <line x1="440" y1="115" x2="470" y2="115" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
+    <line x1="440" y1="115" x2="470" y2="115" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
     <!-- Raster + Depth32Float -->
-    <rect x="472" y="68" width="185" height="90" rx="6" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1.5"/>
-    <text x="564" y="87" text-anchor="middle" font-size="11.5" font-weight="700" fill="#065f46">3. Depth32Float Z-Test</text>
-    <text x="482" y="105" font-size="10.5" fill="#064e3b">NDC = clip.xyz / clip.w</text>
-    <text x="482" y="122" font-size="10.5" font-weight="600" fill="#047857">if z_fragment &lt;= z_buffer[x,y]:</text>
-    <text x="482" y="139" font-size="10.5" fill="#064e3b">  write pixel &amp; update z_buffer</text>
+    <rect x="472" y="68" width="185" height="90" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="564" y="87" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">3. Depth32Float Z-Test</text>
+    <text x="482" y="105" font-size="10.5" fill="#111111">NDC = clip.xyz / clip.w</text>
+    <text x="482" y="122" font-size="10.5" font-weight="600" fill="#111111">if z_fragment &lt;= z_buffer[x,y]:</text>
+    <text x="482" y="139" font-size="10.5" fill="#111111">  write pixel &amp; update z_buffer</text>
 
-    <line x1="657" y1="115" x2="685" y2="115" stroke="#059669" stroke-width="2" marker-end="url(#arrow-green)"/>
+    <line x1="657" y1="115" x2="685" y2="115" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
     <!-- Screen & Reverse Ray Pick -->
-    <rect x="687" y="68" width="133" height="145" rx="6" fill="#fdf2f8" stroke="#f472b6" stroke-width="1.5"/>
-    <text x="753" y="87" text-anchor="middle" font-size="11.5" font-weight="700" fill="#9d174d">4. Canvas &amp; Pick</text>
-    <text x="696" y="106" font-size="10.5" fill="#831843">• Nearer mesh</text>
-    <text x="696" y="120" font-size="10.5" fill="#831843">  occludes rear</text>
-    <text x="696" y="142" font-size="10.5" font-weight="600" fill="#9d174d">• Click (px, py):</text>
-    <text x="696" y="157" font-size="10" fill="#831843">  inv_view_proj</text>
-    <text x="696" y="172" font-size="10" fill="#831843">  -&gt; 3D Ray(O, D)</text>
-    <text x="696" y="187" font-size="10" fill="#831843">  -&gt; min t hit ID!</text>
+    <rect x="687" y="68" width="133" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="753" y="87" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">4. Canvas &amp; Pick</text>
+    <text x="696" y="106" font-size="10.5" fill="#111111">• Nearer mesh</text>
+    <text x="696" y="120" font-size="10.5" fill="#111111">  occludes rear</text>
+    <text x="696" y="142" font-size="10.5" font-weight="600" fill="#111111">• Click (px, py):</text>
+    <text x="696" y="157" font-size="10" fill="#111111">  inv_view_proj</text>
+    <text x="696" y="172" font-size="10" fill="#111111">  -&gt; 3D Ray(O, D)</text>
+    <text x="696" y="187" font-size="10" fill="#111111">  -&gt; min t hit ID!</text>
 
     <!-- Bottom Reverse Arrow for Ray Picking -->
-    <rect x="235" y="168" width="422" height="45" rx="6" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1"/>
-    <text x="446" y="187" text-anchor="middle" font-size="11" font-weight="600" fill="#334155">CPU Ray Picking (Inverse Path): Screen (px, py) → NDC (-1..+1) → inv(view_proj) → World Ray (O + t·D)</text>
-    <text x="446" y="203" text-anchor="middle" font-size="10.5" fill="#475569">Tests every triangle via Möller–Trumbore; smallest positive t wins (matching hardware Depth32Float occlusion!)</text>
+    <rect x="235" y="168" width="422" height="45" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="446" y="187" text-anchor="middle" font-size="11" font-weight="600" fill="#111111">CPU Ray Picking (Inverse Path): Screen (px, py) → NDC (-1..+1) → inv(view_proj) → World Ray (O + t·D)</text>
+    <text x="446" y="203" text-anchor="middle" font-size="10.5" fill="#111111">Tests every triangle via Möller–Trumbore; smallest positive t wins (matching hardware Depth32Float occlusion!)</text>
     
 </svg>
 </div>
 
-### Lesson Data Flow (`Rust` → `WebGPU` → `WGSL`)
+## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
 
-```
-Canvas click → Camera::ray → nearest valid triangle → ObjectId → yellow display.
-View action → orientation quaternion → eye and up vectors → view-projection matrix → drawing and pick ray.
-```
+Before writing code, review how the three layers in this chapter talk to each other:
 
-- View the scene in perspective and select surfaces with a ray that agrees with the camera.
-- Orbit and tilt a perspective camera while keeping its target in place.
-- **Why it works (Why compare ray distances rather than world z?):** The camera can pan, rotate and zoom. Distance along its ray describes which valid surface the viewer sees first. World z alone does not.
-
-### Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `Browser`)
-
-| Layer | Construct | First-Year Student Explanation |
+| Layer | Construct | Plain-English Explanation for Students |
 | :--- | :--- | :--- |
 | **Rust (`bytemuck`)** | `#[repr(C)]` + `Pod` / `Zeroable` | Guarantees Rust structs (`Vertex`, `CameraUniform`) have exact C/GPU byte layout so `bytemuck::cast_slice` uploads raw bytes to `wgpu::Buffer` with zero copying. |
 | **WGSL Shader** | `@group(0) @binding(0) var<uniform> view_proj: mat4x4<f32>` | Transforms 3D world vertices into 4D homogeneous clip coordinates (`view_proj * vec4<f32>(pos, 1.0)`). |
 | **WebGPU / Math** | `Depth32Float` + Inverse Ray `inv(view_proj)` | Forward pass uses a 32-bit float Z-buffer (`LessEqual`) so nearer triangles occlude farther ones; clicking unprojects `(px, py)` back into a 3D ray to pick the closest hit `t`. |
 
-**Production source (`session_viewer/src`):** `session_viewer/src`
+**Authoritative production source (`session_viewer/src`):** `session_viewer/src`
 
-## Implementation Checkpoints
+## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
 
-Apply these checkpoints in order inside `workspace/journey`. Expand each block to view the Rust/WGSL/HTML edits:
+| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
+| ---: | :--- | :--- | :--- | :--- |
+| **1** | [`15-perspective`](#checkpoint-15-perspective) | View the scene in perspective and select surfaces with a ray that agrees with the camera. | `src/picking.rs`, `src/lib.rs`, `src/browser.rs` | `Canvas click → Camera::ray → nearest valid triangle → ObjectId → yellow display` |
+| **2** | [`16-orbit`](#checkpoint-16-orbit) | Orbit and tilt a perspective camera while keeping its target in place. | `src/camera.rs`, `src/browser.rs` | `View action → orientation quaternion → eye and up vectors → view-projection matrix → drawing and pick ray` |
+
+---
+
+## 4. Step-by-Step Coding Notebook (Concept + Implementation)
+
+Work through each notebook cell below in order inside `workspace/journey`. Read the **Concept Walkthrough** and **Self-Check Q&A** first, then expand the **Implementation** block to type and verify the code.
 
 <a id="checkpoint-15-perspective"></a>
+
+### Step 1 of 2 · Pick the nearest surface through the view (`15-perspective`)
+
+- **Goal:** View the scene in perspective and select surfaces with a ray that agrees with the camera.
+- **Data Flow Trace:** `Canvas click → Camera::ray → nearest valid triangle → ObjectId → yellow display`
+- **Files You Touch:** `src/picking.rs` (*Replace the flat coverage query with ray–triangle intersections and update the visibility tests for the new camera.*) · `src/lib.rs` (*Register the camera-ray query now that its input is available.*) · `src/browser.rs` (*Convert a canvas click to a camera ray and highlight its nearest valid object.*)
+
+Intersect the camera ray with each triangle. Keep the nearest hit inside the near-to-far segment and return its ObjectId.
+
+The barycentric values u and v test triangle coverage. The browser converts a canvas click to a ray, stores the selected ID, then uploads its yellow display colour.
+
+> **Self-Check Question:** *Why compare ray distances rather than world z?*  
+> **Answer:** The camera can pan, rotate and zoom. Distance along its ray describes which valid surface the viewer sees first. World z alone does not.
+
+- **What You Should See:** Click the overlap. The turquoise triangle becomes yellow.
+- **Hands-On Lab Experiment:** Type Zoom In, select the overlap, then Delete and Undo. Picking should follow the camera and history should restore the same object.
 
 <details>
 <summary>Implementation 15-perspective: Pick the nearest surface through the view</summary>
@@ -553,6 +614,26 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-16-orbit"></a>
+
+### Step 2 of 2 · Walk around the model (`16-orbit`)
+
+- **Goal:** Orbit and tilt a perspective camera while keeping its target in place.
+- **Data Flow Trace:** `View action → orientation quaternion → eye and up vectors → view-projection matrix → drawing and pick ray`
+- **Files You Touch:** `src/camera.rs` (*Use the kernel’s rotation representation alongside its points, vectors and matrices.*) · `src/browser.rs` (*Add vertical orbit and isometric commands.*)
+
+Orbit around a fixed target. Camera orientation determines its right, up and forward directions; viewing distance places the eye behind the target.
+
+Use the kernel's quaternion to represent orientation. Rotate sideways around world z and tilt around the camera's current right axis. In `yaw × (pitch × orientation)`, the existing orientation is followed by tilt, then yaw. Order matters.
+
+Normalise after updates to keep a pure rotation. The repeated-turn test checks that the resulting axes remain unit length and perpendicular.
+
+Isometric changes orientation while retaining target and distance. Drawing and picking consume the same updated camera matrix. The scene, history and selection keep their existing owners.
+
+> **Self-Check Question:** *Which camera value should stay fixed while you orbit around the model?*  
+> **Answer:** The target stays fixed. Orientation changes the direction from the eye toward that target, and distance controls how far the eye is from it. Recomputing eye = target − forward × distance moves the eye around the target without editing any mesh positions.
+
+- **What You Should See:** Type `View Isometric`, then `Orbit Right`. The eye moves around the same target. Click a visible face to confirm picking still agrees with the new view.
+- **Hands-On Lab Experiment:** Type `View Isometric` and press Enter, pan, then tilt. Predict whether the point at the screen centre will stay centred during the tilt. It should: pan chose a new target, and orbit keeps that target fixed. Delete a selected surface and undo; the camera should keep its current orientation.
 
 <details>
 <summary>Implementation 16-orbit: Walk around the model</summary>
@@ -1202,9 +1283,11 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 </details>
 
-## Run, Check, and Save
+---
 
-From `session_viewer`:
+## 5. Build, Verify, and Save Your Checkpoint
+
+Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 16-orbit
@@ -1215,10 +1298,10 @@ cargo build --lib --locked --target wasm32-unknown-unknown -j1
 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. Use [checkpoint recovery](../../recovery.md) to restore any saved checkpoint.
+Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
 
-## Expected Visual Result & Experiment
+## 6. Lesson Summary & Expected Visual Result
 
 Type `View Isometric`, then `Orbit Right`. The eye moves around the same target. Click a visible face to confirm picking still agrees with the new view.
 
-- **Try this:** Type `View Isometric` and press Enter, pan, then tilt. Predict whether the point at the screen centre will stay centred during the tilt. It should: pan chose a new target, and orbit keeps that target fixed. Delete a selected surface and undo; the camera should keep its current orientation.
+- **Final Lesson Experiment:** Type `View Isometric` and press Enter, pan, then tilt. Predict whether the point at the screen centre will stay centred during the tilt. It should: pan chose a new target, and orbit keeps that target fixed. Delete a selected surface and undo; the camera should keep its current orientation.

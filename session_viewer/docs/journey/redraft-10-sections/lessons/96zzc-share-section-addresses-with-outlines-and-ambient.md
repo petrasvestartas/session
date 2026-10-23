@@ -1,92 +1,146 @@
 # 20.2 · Physical formats, shared section inputs and display defaults
 
-**Section 10: Shared GPU Arenas, Floating-Origin Precision, Multisampling, and Production Parity** · **Lesson 20.2** (Redraft `10.6`) · **4 checkpoints (`96zzc-share-section-addresses-with-outlines-and-ambient` → `96zzf-start-with-current-browser-display-defaults`)**
+**Section 10: Shared GPU Arenas, Floating-Origin Precision, Multisampling, and Production Parity** · **Lesson 20.2** (Redraft `10.6`) · **4 checkpoints (`96zzc-share-section-addresses-with-outlines-and-ambient` → `96zzf-start-with-current-browser-display-defaults`)** · **Study time: 2–4 h**
 
-> **Learning Goal:** Read section identity once across ink, outline and ambient passes.
+> **What You Will Learn & Build:** Read section identity once across ink, outline and ambient passes. By the final checkpoint (`96zzf-start-with-current-browser-display-defaults`), you will apply current device and URL display defaults to browser startup and viewport sizing.
 
-## Visual WebGPU & Architecture Schematic
+## 1. Visual Pipeline & WebGPU Architecture (Black & White Schematics)
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1px solid #cbd5e1;border-radius:10px;background:#f8fafc;">
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
+<svg viewBox="0 0 840 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <rect x="4" y="4" width="832" height="212" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Lesson 20.2 Execution Flow: Physical formats, shared section inputs and display defaults</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">Concrete data pipeline you build in this lesson (4 Checkpoints: 96zzc-share-section-addresses-with-outlines-and-ambient → 96zzf-start-with-current-browser-display-defaults)</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
+  
+    
+    <rect x="18" y="68" width="253" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="144" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
+    <line x1="28" y1="92" x2="261" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="144" y="108" text-anchor="middle" font-size="11" fill="#111111">Follow the same reserved address</text>
+    <text x="144" y="124" text-anchor="middle" font-size="11" fill="#111111">into the outline mask and ambient</text>
+    <text x="144" y="140" text-anchor="middle" font-size="11" fill="#111111">preparation.</text>
+    <line x1="271" y1="108" x2="291" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="293" y="68" width="253" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="419" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
+    <line x1="303" y1="92" x2="536" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">Follow pointer capability and URL</text>
+    <text x="419" y="124" text-anchor="middle" font-size="11" fill="#111111">overrides into opacity, the grid</text>
+    <text x="419" y="140" text-anchor="middle" font-size="11" fill="#111111">owner…</text>
+    <line x1="546" y1="108" x2="566" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="568" y="68" width="253" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="694" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
+    <line x1="578" y1="92" x2="811" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="694" y="108" text-anchor="middle" font-size="11" fill="#111111">GPU Frame Output</text>
+    
+    <rect x="18" y="162" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="32" y="181" font-size="11" font-weight="700" fill="#111111">Files You Edit in Lesson 20.2:</text>
+    <text x="215" y="181" font-size="11" fill="#111111">src/physical.wgsl  ·  src/ink_plane.wgsl  ·  src/outline_caps.wgsl  ·  src/outline_caps.rs  ·  src/outline_gpu.rs  ·  src/renderer.rs</text>
+    <text x="32" y="198" font-size="10.5" fill="#111111">4 Checkpoints: 96zzc-share-section-addresses-with-outlines-and-ambient → 96zzf-start-with-current-browser-display-defaults — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
+  
+</svg>
+</div>
+
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
 <svg viewBox="0 0 840 240" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#475569"/>
-    </marker>
-    <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#2563eb"/>
-    </marker>
-    <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#059669"/>
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
     </marker>
   </defs>
-  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
-  <text x="20" y="28" font-size="14" font-weight="700" fill="#0f172a">Section 10 Production Architecture: Shared GPU Storage Arena, f64 Floating Origin, Reversed-Z, 4x MSAA & Matrix Shader</text>
-  <text x="20" y="46" font-size="11.5" fill="#475569">How the maintained viewer pulls vertices from one growable GPU arena, eliminates jitter at 10^12 units, and renders procedural Matrices.</text>
-  <line x1="16" y1="54" x2="824" y2="54" stroke="#e2e8f0" stroke-width="1"/>
+  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Section 10 Production Architecture: Shared GPU Storage Arena, f64 Floating Origin, Reversed-Z, 4x MSAA & Matrix Shader</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">How the maintained viewer pulls vertices from one growable GPU arena, eliminates jitter at 10^12 units, and renders procedural Matrices.</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
   
-    <rect x="18" y="68" width="250" height="145" rx="6" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
-    <text x="143" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1e40af">1. Shared GPU Arena (Ch 19–20)</text>
-    <text x="28" y="108" font-size="10.5" fill="#1e3a8a">• 1 Growable Storage Buffer Arena</text>
-    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#1d4ed8">• Vertex Pulling (@builtin(vertex_index))</text>
-    <text x="28" y="144" font-size="10.5" fill="#1e3a8a">• 8-byte Draw Slots -&gt; ObjectRecord</text>
-    <text x="28" y="162" font-size="10.5" fill="#1e3a8a">• slot_table.wgsl maps Rg32Uint</text>
-    <text x="28" y="178" font-size="10.5" fill="#1e3a8a">  primitive IDs to Element/Face owners</text>
-    <text x="28" y="194" font-size="10" fill="#1e3a8a">• Free-list span reuse after GPU lease</text>
+    <rect x="18" y="68" width="250" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="143" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">1. Shared GPU Arena (Ch 19–20)</text>
+    <text x="28" y="108" font-size="10.5" fill="#111111">• 1 Growable Storage Buffer Arena</text>
+    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#111111">• Vertex Pulling (@builtin(vertex_index))</text>
+    <text x="28" y="144" font-size="10.5" fill="#111111">• 8-byte Draw Slots -&gt; ObjectRecord</text>
+    <text x="28" y="162" font-size="10.5" fill="#111111">• slot_table.wgsl maps Rg32Uint</text>
+    <text x="28" y="178" font-size="10.5" fill="#111111">  primitive IDs to Element/Face owners</text>
+    <text x="28" y="194" font-size="10" fill="#111111">• Free-list span reuse after GPU lease</text>
 
-    <line x1="268" y1="138" x2="298" y2="138" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
+    <line x1="268" y1="138" x2="298" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="300" y="68" width="265" height="145" rx="6" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5"/>
-    <text x="432" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#9a3412">2. f64 Floating Origin &amp; Reversed-Z (Ch 21)</text>
-    <text x="312" y="108" font-size="10.5" font-weight="600" fill="#c2410c">• rel_f32 = (world_f64 - anchor_f64) as f32</text>
-    <text x="312" y="125" font-size="10" fill="#7c2d12">  Zero vertex/grid jitter even at 10^12 m!</text>
-    <text x="312" y="144" font-size="10.5" font-weight="600" fill="#c2410c">• Reversed-Z Depth (GreaterEqual):</text>
-    <text x="312" y="160" font-size="10" fill="#7c2d12">  Near plane = 1.0, Far plane = 0.0</text>
-    <text x="312" y="178" font-size="10.5" fill="#7c2d12">• Held world base grid &amp; preserved</text>
-    <text x="312" y="193" font-size="10.5" fill="#7c2d12">  live camera during Session reload</text>
+    <rect x="300" y="68" width="265" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="432" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">2. f64 Floating Origin &amp; Reversed-Z (Ch 21)</text>
+    <text x="312" y="108" font-size="10.5" font-weight="600" fill="#111111">• rel_f32 = (world_f64 - anchor_f64) as f32</text>
+    <text x="312" y="125" font-size="10" fill="#111111">  Zero vertex/grid jitter even at 10^12 m!</text>
+    <text x="312" y="144" font-size="10.5" font-weight="600" fill="#111111">• Reversed-Z Depth (GreaterEqual):</text>
+    <text x="312" y="160" font-size="10" fill="#111111">  Near plane = 1.0, Far plane = 0.0</text>
+    <text x="312" y="178" font-size="10.5" fill="#111111">• Held world base grid &amp; preserved</text>
+    <text x="312" y="193" font-size="10.5" fill="#111111">  live camera during Session reload</text>
 
-    <line x1="565" y1="138" x2="595" y2="138" stroke="#059669" stroke-width="2" marker-end="url(#arrow-green)"/>
+    <line x1="565" y1="138" x2="595" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="597" y="68" width="223" height="145" rx="6" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1.5"/>
-    <text x="708" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#065f46">3. 4x MSAA &amp; Matrix Shader (Ch 22)</text>
-    <text x="609" y="108" font-size="10.5" fill="#064e3b">• Coherent 1x/4x MSAA sample targets</text>
-    <text x="609" y="126" font-size="10.5" font-weight="600" fill="#047857">• matrix.wgsl (16w header + 3w/cell):</text>
-    <text x="609" y="142" font-size="10" fill="#064e3b">  Heatmap + procedural 3-decimal digits</text>
-    <text x="609" y="157" font-size="10" fill="#064e3b">  (0 cell blank; plate-less title; yellow</text>
-    <text x="609" y="172" font-size="10" fill="#064e3b">  selected border; Rg32Uint whole pick)</text>
-    <text x="609" y="190" font-size="10" fill="#064e3b">• Coalesced single-flight frame scheduler</text>
+    <rect x="597" y="68" width="223" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="708" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">3. 4x MSAA &amp; Matrix Shader (Ch 22)</text>
+    <text x="609" y="108" font-size="10.5" fill="#111111">• Coherent 1x/4x MSAA sample targets</text>
+    <text x="609" y="126" font-size="10.5" font-weight="600" fill="#111111">• matrix.wgsl (16w header + 3w/cell):</text>
+    <text x="609" y="142" font-size="10" fill="#111111">  Heatmap + procedural 3-decimal digits</text>
+    <text x="609" y="157" font-size="10" fill="#111111">  (0 cell blank; plate-less title; yellow</text>
+    <text x="609" y="172" font-size="10" fill="#111111">  selected border; Rg32Uint whole pick)</text>
+    <text x="609" y="190" font-size="10" fill="#111111">• Coalesced single-flight frame scheduler</text>
     
 </svg>
 </div>
 
-### Lesson Data Flow (`Rust` → `WebGPU` → `WGSL`)
+## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
 
-```
-Follow the same reserved address into the outline mask and ambient preparation..
-Follow ordinary or derived RenderVertex alpha through one Mesh conversion to the packed RGBA byte..
-Follow pointer capability and URL overrides into opacity, the grid owner and capped viewport pixels..
-```
+Before writing code, review how the three layers in this chapter talk to each other:
 
-- Read section identity once across ink, outline and ambient passes.
-- Preserve display RGBA through preparation and the compact upload.
-- Apply current device and URL display defaults to browser startup and viewport sizing.
-- **Why it works (Why does the outline still write fragment depth?):** A cap address identifies the plane, but later geometry may be nearer. Reconstructed plane depth keeps the mask subject to the existing depth test.
-
-### Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `Browser`)
-
-| Layer | Construct | First-Year Student Explanation |
+| Layer | Construct | Plain-English Explanation for Students |
 | :--- | :--- | :--- |
 | **WGSL (Vertex Pull)** | `@group(0) @binding(b) var<storage, read> arena_verts: array<u32>;` | Fetches packed vertex positions, normals, and colors directly from a single growable storage buffer using `@builtin(vertex_index)`. |
 | **Rust/WGSL (`f64`->`f32`)** | `let rel: Vec3 = (world_f64 - anchor_f64).as_vec3();` | Subtracts the camera-area `f64` anchor on the CPU before converting to `f32`, preventing 32-bit float mantissa exhaustion far from `(0,0,0)`. |
 | **WGSL (`matrix.wgsl`)** | 16-word header + 3 words/cell procedural digits | Renders matrix heatmaps and 3-decimal numeric digits procedurally inside the fragment shader with zero texture uploads per cell. |
 | **Rust (`ink_ranges.rs`)** | Merged contiguous `Range<u32>` instance draws | Toggles point/line/edge/CAD-wire family visibility without rebuilding GPU buffers or invalidating original owner indices. |
 
-**Production source (`session_viewer/src`):** [engine/gpu/arena.rs](../../../../src/engine/gpu/arena.rs), [engine/gpu/buffers.rs](../../../../src/engine/gpu/buffers.rs), [engine/gpu/objects.rs](../../../../src/engine/gpu/objects.rs), [engine/gpu/slots.rs](../../../../src/engine/gpu/slots.rs), [engine/gpu/instanced.rs](../../../../src/engine/gpu/instanced.rs), [engine/gpu/faces.rs](../../../../src/engine/gpu/faces.rs), [engine/gpu/clip.rs](../../../../src/engine/gpu/clip.rs), [engine/gpu/triangle_tiles.rs](../../../../src/engine/gpu/triangle_tiles.rs), [app/scene_sync/tombs.rs](../../../../src/app/scene_sync/tombs.rs), [build.rs](../../../../build.rs).
+**Authoritative production source (`session_viewer/src`):** [engine/gpu/arena.rs](../../../../src/engine/gpu/arena.rs), [engine/gpu/buffers.rs](../../../../src/engine/gpu/buffers.rs), [engine/gpu/objects.rs](../../../../src/engine/gpu/objects.rs), [engine/gpu/slots.rs](../../../../src/engine/gpu/slots.rs), [engine/gpu/instanced.rs](../../../../src/engine/gpu/instanced.rs), [engine/gpu/faces.rs](../../../../src/engine/gpu/faces.rs), [engine/gpu/clip.rs](../../../../src/engine/gpu/clip.rs), [engine/gpu/triangle_tiles.rs](../../../../src/engine/gpu/triangle_tiles.rs), [app/scene_sync/tombs.rs](../../../../src/app/scene_sync/tombs.rs), [build.rs](../../../../build.rs).
 
-## Implementation Checkpoints
+## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
 
-Apply these checkpoints in order inside `workspace/journey`. Expand each block to view the Rust/WGSL/HTML edits:
+| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
+| ---: | :--- | :--- | :--- | :--- |
+| **1** | [`96zzc-share-section-addresses-with-outlines-and-ambient`](#checkpoint-96zzc-share-section-addresses-with-outlines-and-ambient) | Read section identity once across ink, outline and ambient passes. | `src/physical.wgsl`, `src/ink_plane.wgsl`, `src/outline_caps.wgsl`, `src/outline_caps.rs` | `Follow the same reserved address into the outline mask and ambient preparation.` |
+| **2** | [`96zzd-pack-surface-position-normal-and-color`](#checkpoint-96zzd-pack-surface-position-normal-and-color) | Use one compact surface vertex buffer throughout rendering and picking. | `src/packed_vertex.rs`, `src/lib.rs`, `src/packed_vertex.wgsl`, `src/cloud_points.wgsl` | `Follow the same five words through upload, pulled color/picking, physical projection, section counts, outline masks and ambient normals.` |
+| **3** | [`96zze-retain-rgba-in-prepared-displays`](#checkpoint-96zze-retain-rgba-in-prepared-displays) | Preserve display RGBA through preparation and the compact upload. | `src/mesh.rs`, `src/packed_vertex.rs`, `src/packed_vertex_tests.rs`, `src/display_rgba_tests.rs` | `Follow ordinary or derived RenderVertex alpha through one Mesh conversion to the packed RGBA byte.` |
+| **4** | [`96zzf-start-with-current-browser-display-defaults`](#checkpoint-96zzf-start-with-current-browser-display-defaults) | Apply current device and URL display defaults to browser startup and viewport sizing. | `src/browser_defaults.rs`, `src/lib.rs`, `Cargo.toml`, `src/browser.rs` | `Follow pointer capability and URL overrides into opacity, the grid owner and capped viewport pixels.` |
+
+---
+
+## 4. Step-by-Step Coding Notebook (Concept + Implementation)
+
+Work through each notebook cell below in order inside `workspace/journey`. Read the **Concept Walkthrough** and **Self-Check Q&A** first, then expand the **Implementation** block to type and verify the code.
 
 <a id="checkpoint-96zzc-share-section-addresses-with-outlines-and-ambient"></a>
+
+### Step 1 of 4 · Share section addresses with outlines and ambient shading (`96zzc-share-section-addresses-with-outlines-and-ambient`)
+
+- **Goal:** Read section identity once across ink, outline and ambient passes.
+- **Data Flow Trace:** `Follow the same reserved address into the outline mask and ambient preparation.`
+- **Files You Touch:** `src/physical.wgsl` (*Keep one lossless decoder alongside the shared encoder.*) · `src/ink_plane.wgsl` (*Reuse the shared physical address decoder.*) · `src/outline_caps.wgsl` (*Bind the existing integer surface address.*) · `src/outline_caps.rs` (*Match the integer texture binding.*) · `src/outline_gpu.rs` (*Supply current plane depth to the cap mask.*) · `src/renderer.rs` (*Use the full physical primitive image for this outline mask.*) · `src/ambient.wgsl` (*Read integer section identity during ambient preparation.*) · `src/ambient_pipeline.rs` (*Match the shared integer source binding.*) · `src/caps_gpu.rs` (*Remove the unused float section image owner.*) · `src/cap_color.wgsl` (*Move the physical address beside color after removing the float output.*) · `src/cap_pipeline.rs` (*Match the reduced fragment outputs.*) · `src/cap_pick_pipeline.rs` (*Match the reduced fragment outputs.*) · `src/cap_pick.wgsl` (*Keep exact original owner and physical address as the two integer outputs.*) · `src/cap_pick_gpu.rs` (*Retain the existing crop’s primitive attachment.*) · `src/pick_image.rs` (*Remove the unused pick-image member.*) · `src/pick_encode.rs` (*Remove the pass that only cleared the unused attachment.*) · `src/pick_gpu.rs` (*Account for eight owner bytes, four depth bytes and four primitive bytes.*) · `src/pick_gpu_tests.rs` (*Tighten the existing bounded-memory assertion to the actual resources.*) · `src/cap_gpu_tests.rs` (*Require exactly the remaining uniform and crossing-count allocation.*) · `src/global_outline_tests.rs` (*Require the reduced inactive cap allocation in the existing mask regression.*)
+
+Outlines and ambient shading can identify a section from the same physical primitive address.
+
+Decode its plane and selection bit instead of sampling the old float record. The outline reconstructs fragment depth and keeps its depth comparison, so nearer clouds still hide the section. Ambient shading uses the plane normal and its existing section radius.
+
+With all consumers converted, remove the float section outputs and allocations. Keep one shared lossless decoder. The cap resource counter now returns to its sixteen-byte frame uniform when inactive; each pick pixel retains only owner, depth and primitive data.
+
+> **Self-Check Question:** *Why does the outline still write fragment depth?*  
+> **Answer:** A cap address identifies the plane, but later geometry may be nearer. Reconstructed plane depth keeps the mask subject to the existing depth test.
+
+- **What You Should See:** Ink, outline and ambient share one section address; duplicate float section attachments are gone.
+- **Hands-On Lab Experiment:** Select a cut solid, compare global and selected outlines, and enable ambient shading at its contacts.
 
 <details>
 <summary>Implementation 96zzc-share-section-addresses-with-outlines-and-ambient: Share section addresses with outlines and ambient shading</summary>
@@ -2300,6 +2354,22 @@ Update the existing block with this supplied code; keep unchanged lines:
 
 <a id="checkpoint-96zzd-pack-surface-position-normal-and-color"></a>
 
+### Step 2 of 4 · Use compact vertices in every surface pass (`96zzd-pack-surface-position-normal-and-color`)
+
+- **Goal:** Use one compact surface vertex buffer throughout rendering and picking.
+- **Data Flow Trace:** `Follow the same five words through upload, pulled color/picking, physical projection, section counts, outline masks and ambient normals.`
+- **Files You Touch:** `src/packed_vertex.rs` (*Write the compact derived GPU representation while retaining source ownership.*) · `src/lib.rs` (*Expose the pure encoder before connecting its upload.*) · `src/packed_vertex.wgsl` (*Move the oct32 decoder already taught for clouds into the shared shader source.*) · `src/cloud_points.wgsl` (*Use the shared decoder without a second implementation.*) · `src/clipping_gpu.rs` (*Make the same decoder available to current cloud and upcoming mesh shaders.*) · `src/packed_vertex_tests.rs` (*Supply independent position-bit, memory-size, quantization, sentinel and directional-error checks.*) · `src/gpu_geometry.rs` (*Remove the separate normal buffer owner.*) · `src/triangle.wgsl` (*Read packed words without numeric conversion.*) · `src/finite_project.wgsl` (*Project positions from the actual compact upload.*) · `src/finite_project_source.rs` (*Assemble physical projection with the same packed layout and position reader.*) · `src/face_pick.wgsl` (*Remove the obsolete source-face layout; use the shared twenty-byte declaration.*) · `src/cap_pipeline.rs` (*Count closed-solid crossings from the compact vertex positions.*) · `src/outline_gpu.rs` (*Use the same position stride for outline masks.*) · `src/ambient_source_pipeline.rs` (*Read position and the normal word from one twenty-byte vertex binding.*) · `src/ambient_sources.wgsl` (*Receive the integer normal word in the ambient property pass.*) · `src/global_outline_tests.rs` (*Supply actual GPU allocation, source retention, reuse and release checks alongside the existing color/primitive/pick fixtures.*) · `src/geometry_cache.rs` (*Count the compact vertex and index bytes actually uploaded; no separate float normal upload remains.*)
+
+A surface vertex needs twenty GPU bytes: position, one normal word and one color word.
+
+Pack the existing display once, preserving position bits and original ownership. Reuse the cloud normal decoder for mesh color, integer picking and ambient properties. Physical triangle projection, section crossings and outline masks read positions from the same compact buffer. Remove the separate normal upload and tighten the memory contract. The teaching display currently supplies RGB, so its packed alpha is opaque; original kernel payloads remain unchanged.
+
+> **Self-Check Question:** *Why store x, y and z as separate scalar fields in the shader record?*  
+> **Answer:** The five scalar fields have four-byte alignment and a twenty-byte array stride. A vec3<f32> position would give this record sixteen-byte alignment and a thirty-two-byte array stride. See [WGSL alignment and size](https://www.w3.org/TR/WGSL/#alignment-and-size).
+
+- **What You Should See:** All surface passes consume one compact twenty-byte vertex buffer.
+- **Hands-On Lab Experiment:** Compare normal view, selected CAD sections and first picks at both pixel densities. Copy an original, restore its display and confirm that shared uploads remain unchanged.
+
 <details>
 <summary>Implementation 96zzd-pack-surface-position-normal-and-color: Use compact vertices in every surface pass</summary>
 
@@ -3386,6 +3456,22 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-96zze-retain-rgba-in-prepared-displays"></a>
 
+### Step 3 of 4 · Retain RGBA in prepared displays (`96zze-retain-rgba-in-prepared-displays`)
+
+- **Goal:** Preserve display RGBA through preparation and the compact upload.
+- **Data Flow Trace:** `Follow ordinary or derived RenderVertex alpha through one Mesh conversion to the packed RGBA byte.`
+- **Files You Touch:** `src/mesh.rs` (*Retain alpha beside the existing derived vertex columns.*) · `src/packed_vertex.rs` (*Encode the actual display alpha instead of an opaque constant.*) · `src/packed_vertex_tests.rs` (*Keep the existing opaque quantization contract explicit.*) · `src/display_rgba_tests.rs` (*Supply ordinary kernel and derived contact conversion, exact RGBA, unchanged source and column-validation fixtures.*) · `src/lib.rs` (*Connect the supplied alpha-retention fixtures to the authoring harness.*) · `src/memory.rs` (*Include the three retained alpha values in the exact shared-snapshot memory fixture.*)
+
+Derived display vertices can carry a contact-fill marker in their alpha byte.
+
+The kernel emits ordinary mesh vertices with opaque alpha; the viewer display walk assigns the contact marker afterward. Add one shared RenderMesh conversion so both ordinary and derived displays retain RGBA. Keep validation, original ownership and CPU memory accounting together. Ordinary shading and picks remain unchanged here; this data bridge prepares contact-fill rendering.
+
+> **Self-Check Question:** *Why retain an alpha value that ordinary surface shading does not use?*  
+> **Answer:** The current contact-fill shader recognizes a special alpha byte as a marker. Dropping it during display conversion would erase that distinction before rendering.
+
+- **What You Should See:** One shared display conversion retains ordinary and derived RGBA, including contact markers.
+- **Hands-On Lab Experiment:** Inspect an original CAD surface, toggle normal view and pick its faces. Confirm that the display remains unchanged; the supplied authoring fixture separately verifies contact-marker bytes and original payload retention.
+
 <details>
 <summary>Implementation 96zze-retain-rgba-in-prepared-displays: Retain RGBA in prepared displays</summary>
 
@@ -3782,6 +3868,22 @@ After that block, append this supplied code:
 
 <a id="checkpoint-96zzf-start-with-current-browser-display-defaults"></a>
 
+### Step 4 of 4 · Start with current browser display defaults (`96zzf-start-with-current-browser-display-defaults`)
+
+- **Goal:** Apply current device and URL display defaults to browser startup and viewport sizing.
+- **Data Flow Trace:** `Follow pointer capability and URL overrides into opacity, the grid owner and capped viewport pixels.`
+- **Files You Touch:** `src/browser_defaults.rs` (*Reuse existing opacity and grid state; detect pointer capability and read URL defaults once.*) · `src/lib.rs` (*Register the startup settings without a second renderer settings owner.*) · `Cargo.toml` (*Enable the browser media-query return type in the existing pinned web-sys dependency.*) · `src/browser.rs` (*Initialize a new browser document once before creating its renderer.*) · `src/browser_defaults_tests.rs` (*Supply pointer-policy, finite override, clamping and existing-owner fixtures.*)
+
+Start the browser with the current viewer’s nearly solid desktop faces and visible construction grid.
+
+Use a coarse-pointer media query to keep touch-first devices solid. Read opacity and grid overrides once before renderer creation. Cap ordinary pixel density at two and honor a valid dpr override through the existing recovery policy. Later commands change the editor; a page reload reads startup defaults again.
+
+> **Self-Check Question:** *How much more image work does density three require than density two?*  
+> **Answer:** For the same CSS viewport, the pixel count grows by 3²/2² = 2.25. The cap reduces every full-screen image pass together.
+
+- **What You Should See:** Desktop faces start at opacity 0.95, touch faces at 1, and the grid is visible. Ordinary pixel density caps at two; finite URL overrides and the reduced-recovery cap remain effective.
+- **Hands-On Lab Experiment:** Reload with ?opacity=0.5&nogrid=1, then without either override. Compare a closed CAD surface and the grid. Emulate a coarse primary pointer and reload: faces start solid. At browser density three, compare canvas dimensions without a dpr override, with ?dpr=1 and with ?dpr=3. Change Opacity and Grid, then orbit and resize: both choices persist until a page reload.
+
 <details>
 <summary>Implementation 96zzf-start-with-current-browser-display-defaults: Start with current browser display defaults</summary>
 
@@ -4114,9 +4216,11 @@ After that block, append this supplied code:
 
 </details>
 
-## Run, Check, and Save
+---
 
-From `session_viewer`:
+## 5. Build, Verify, and Save Your Checkpoint
+
+Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 96zzf-start-with-current-browser-display-defaults
@@ -4127,12 +4231,12 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. Use [checkpoint recovery](../../recovery.md) to restore any saved checkpoint.
+Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
 
-## Expected Visual Result & Experiment
+## 6. Lesson Summary & Expected Visual Result
 
 Desktop faces start at opacity 0.95, touch faces at 1, and the grid is visible. Ordinary pixel density caps at two; finite URL overrides and the reduced-recovery cap remain effective.
 
-- **Try this:** Reload with ?opacity=0.5&nogrid=1, then without either override. Compare a closed CAD surface and the grid. Emulate a coarse primary pointer and reload: faces start solid. At browser density three, compare canvas dimensions without a dpr override, with ?dpr=1 and with ?dpr=3. Change Opacity and Grid, then orbit and resize: both choices persist until a page reload.
+- **Final Lesson Experiment:** Reload with ?opacity=0.5&nogrid=1, then without either override. Compare a closed CAD surface and the grid. Emulate a coarse primary pointer and reload: faces start solid. At browser density three, compare canvas dimensions without a dpr override, with ?dpr=1 and with ?dpr=3. Change Opacity and Grid, then orbit and resize: both choices persist until a page reload.
 
-Continue with [Shared arenas, object records and source preparation](96zzg-grow-buffers-without-losing-rows.md).
+Continue with [Shared arenas, object records and source preparation](../../consolidation/96zzg-grow-buffers-without-losing-rows.md).

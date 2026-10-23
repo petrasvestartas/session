@@ -1,93 +1,157 @@
 # 5.4 · NURBS source ownership and derived samples
 
-**Section 4: Screen-Space Ink, Point Markers, NURBS Curves, and GPU Integer Picking** · **Lesson 5.4** (Redraft `4.4`) · **5 checkpoints (`38-layout` → `38d-input`)**
+**Section 4: Screen-Space Ink, Point Markers, NURBS Curves, and GPU Integer Picking** · **Lesson 5.4** (Redraft `4.4`) · **5 checkpoints (`38-layout` → `38d-input`)** · **Study time: 3.75–6.25 h**
 
-> **Learning Goal:** Validate public kernel curve layout and domain before evaluating an original source.
+> **What You Will Learn & Build:** Validate public kernel curve layout and domain before evaluating an original source. By the final checkpoint (`38d-input`), you will insert an original NURBS curve through real input and distinguish its actual curve pixels from its indexed control markers.
 
-## Visual WebGPU & Architecture Schematic
+## 1. Visual Pipeline & WebGPU Architecture (Black & White Schematics)
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1px solid #cbd5e1;border-radius:10px;background:#f8fafc;">
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
+<svg viewBox="0 0 840 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <rect x="4" y="4" width="832" height="212" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Lesson 5.4 Execution Flow: NURBS source ownership and derived samples</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">Concrete data pipeline you build in this lesson (5 Checkpoints: 38-layout → 38d-input)</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
+  
+    
+    <rect x="18" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="89" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
+    <line x1="28" y1="92" x2="151" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">original NURBS</text>
+    <text x="89" y="124" text-anchor="middle" font-size="11" fill="#111111">curve</text>
+    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="183" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="254" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
+    <line x1="193" y1="92" x2="316" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">bounded checked</text>
+    <text x="254" y="124" text-anchor="middle" font-size="11" fill="#111111">layout</text>
+    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="348" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="419" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
+    <line x1="358" y1="92" x2="481" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">finite positive</text>
+    <text x="419" y="124" text-anchor="middle" font-size="11" fill="#111111">weights</text>
+    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="513" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="584" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
+    <line x1="523" y1="92" x2="646" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">ordered knots</text>
+    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="678" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="749" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
+    <line x1="688" y1="92" x2="811" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">nonempty domain</text>
+    
+    <rect x="18" y="162" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="32" y="181" font-size="11" font-weight="700" fill="#111111">Files You Edit in Lesson 5.4:</text>
+    <text x="215" y="181" font-size="11" fill="#111111">src/curve.rs  ·  src/lib.rs  ·  src/curve_layout_tests.rs  ·  src/curve_sample_tests.rs  ·  src/chain.rs  ·  src/scene.rs</text>
+    <text x="32" y="198" font-size="10.5" fill="#111111">5 Checkpoints: 38-layout → 38d-input — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
+  
+</svg>
+</div>
+
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
 <svg viewBox="0 0 840 240" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#475569"/>
-    </marker>
-    <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#2563eb"/>
-    </marker>
-    <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#059669"/>
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
     </marker>
   </defs>
-  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
-  <text x="20" y="28" font-size="14" font-weight="700" fill="#0f172a">Chapter 5 WebGPU Shader Geometry: Screen-Space Ribbon Extrusion (ribbon.wgsl), Joins & Point Discs</text>
-  <text x="20" y="46" font-size="11.5" fill="#475569">Why 1-pixel hardware GL_LINES fail in CAD—and how vertex shaders extrude 3D segments into crisp, constant-CSS-pixel screen quads.</text>
-  <line x1="16" y1="54" x2="824" y2="54" stroke="#e2e8f0" stroke-width="1"/>
+  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Chapter 5 WebGPU Shader Geometry: Screen-Space Ribbon Extrusion (ribbon.wgsl), Joins & Point Discs</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">Why 1-pixel hardware GL_LINES fail in CAD—and how vertex shaders extrude 3D segments into crisp, constant-CSS-pixel screen quads.</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
   
-    <rect x="18" y="68" width="215" height="145" rx="6" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
-    <text x="125" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1e40af">1. Homogeneous Near-Clip</text>
-    <text x="28" y="108" font-size="10.5" fill="#1e3a8a">• Input: 3D segment (A, B) + width</text>
-    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#1d4ed8">• Clip to w &gt; near BEFORE divide!</text>
-    <text x="28" y="143" font-size="10" fill="#1e3a8a">  (If B is behind camera, dividing</text>
-    <text x="28" y="158" font-size="10" fill="#1e3a8a">   xyz/w flips the line across screen!)</text>
-    <text x="28" y="178" font-size="10.5" fill="#1e3a8a">• Project clipped A', B' to physical</text>
-    <text x="28" y="193" font-size="10.5" fill="#1e3a8a">  viewport pixels: pA, pB</text>
+    <rect x="18" y="68" width="215" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="125" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">1. Homogeneous Near-Clip</text>
+    <text x="28" y="108" font-size="10.5" fill="#111111">• Input: 3D segment (A, B) + width</text>
+    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#111111">• Clip to w &gt; near BEFORE divide!</text>
+    <text x="28" y="143" font-size="10" fill="#111111">  (If B is behind camera, dividing</text>
+    <text x="28" y="158" font-size="10" fill="#111111">   xyz/w flips the line across screen!)</text>
+    <text x="28" y="178" font-size="10.5" fill="#111111">• Project clipped A', B' to physical</text>
+    <text x="28" y="193" font-size="10.5" fill="#111111">  viewport pixels: pA, pB</text>
 
-    <line x1="233" y1="138" x2="263" y2="138" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
+    <line x1="233" y1="138" x2="263" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="265" y="68" width="285" height="145" rx="6" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5"/>
-    <text x="407" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#9a3412">2. Screen-Space Quad Extrusion (6 Verts)</text>
+    <rect x="265" y="68" width="285" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="407" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">2. Screen-Space Quad Extrusion (6 Verts)</text>
     <!-- Mini Visual of Extruded Line Quad -->
-    <line x1="295" y1="135" x2="435" y2="115" stroke="#c2410c" stroke-width="2.5" stroke-dasharray="4,3"/>
-    <polygon points="292,120 432,100 438,130 298,150" fill="rgba(251,146,60,0.22)" stroke="#ea580c" stroke-width="1.5"/>
-    <circle cx="295" cy="135" r="3.5" fill="#9a3412"/>
-    <circle cx="435" cy="115" r="3.5" fill="#9a3412"/>
-    <text x="282" y="168" font-size="10" fill="#7c2d12">dir = normalize(pB - pA)</text>
-    <text x="282" y="183" font-size="10" font-weight="600" fill="#c2410c">perp = vec2(-dir.y, dir.x) * (half_w + AA)</text>
-    <text x="282" y="198" font-size="10" fill="#7c2d12">vector.wgsl adds miter/bevel joins &amp; arrows</text>
+    <polygon points="292,120 432,100 438,130 298,150" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <line x1="295" y1="135" x2="435" y2="115" stroke="#111111" stroke-width="2" stroke-dasharray="4,3"/>
+    <circle cx="295" cy="135" r="3.5" fill="#111111"/>
+    <circle cx="435" cy="115" r="3.5" fill="#111111"/>
+    <text x="282" y="168" font-size="10" fill="#111111">dir = normalize(pB - pA)</text>
+    <text x="282" y="183" font-size="10" font-weight="600" fill="#111111">perp = vec2(-dir.y, dir.x) * (half_w + AA)</text>
+    <text x="282" y="198" font-size="10" fill="#111111">vector.wgsl adds miter/bevel joins &amp; arrows</text>
 
-    <line x1="550" y1="138" x2="580" y2="138" stroke="#059669" stroke-width="2" marker-end="url(#arrow-green)"/>
+    <line x1="550" y1="138" x2="580" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="582" y="68" width="238" height="145" rx="6" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1.5"/>
-    <text x="701" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#065f46">3. Analytical AA &amp; Point Discs</text>
-    <text x="594" y="108" font-size="10.5" fill="#064e3b">• ribbon.wgsl: smoothstep coverage</text>
-    <text x="594" y="123" font-size="10.5" fill="#064e3b">  from signed edge distance</text>
-    <text x="594" y="143" font-size="10.5" font-weight="600" fill="#047857">• glyph.wgsl (Point Markers):</text>
-    <text x="594" y="158" font-size="10" fill="#064e3b">  Screen quad around 3D point; discard</text>
-    <text x="594" y="173" font-size="10" fill="#064e3b">  outside radius r, feather 1px rim</text>
-    <text x="594" y="193" font-size="10.5" fill="#064e3b">• NURBS: evaluate spans -&gt; polyline</text>
+    <rect x="582" y="68" width="238" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="701" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">3. Analytical AA &amp; Point Discs</text>
+    <text x="594" y="108" font-size="10.5" fill="#111111">• ribbon.wgsl: smoothstep coverage</text>
+    <text x="594" y="123" font-size="10.5" fill="#111111">  from signed edge distance</text>
+    <text x="594" y="143" font-size="10.5" font-weight="600" fill="#111111">• glyph.wgsl (Point Markers):</text>
+    <text x="594" y="158" font-size="10" fill="#111111">  Screen quad around 3D point; discard</text>
+    <text x="594" y="173" font-size="10" fill="#111111">  outside radius r, feather 1px rim</text>
+    <text x="594" y="193" font-size="10.5" fill="#111111">• NURBS: evaluate spans -&gt; polyline</text>
     
 </svg>
 </div>
 
-### Lesson Data Flow (`Rust` → `WebGPU` → `WGSL`)
+## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
 
-```
-original NURBS curve → bounded checked layout → finite positive weights → ordered knots → nonempty domain.
-original NURBS Rc → validated shared double samples → path row and checked ID → placed display chords and conservative bounds.
-Example Curve input → original curve path row → real sampled arch → Controls On/Off → parent/index markers → history and Close.
-```
+Before writing code, review how the three layers in this chapter talk to each other:
 
-- Validate public kernel curve layout and domain before evaluating an original source.
-- Retain original NURBS ownership, cached double samples and placed curve bounds in the existing path document.
-- Insert an original NURBS curve through real input and distinguish its actual curve pixels from its indexed control markers.
-- **Why it works (Why check public curve arrays before calling the kernel evaluator?):** Public fields may contain incomplete or overflowing layouts. The viewer must refuse malformed input before a kernel slice access or display allocation.
-
-### Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `Browser`)
-
-| Layer | Construct | First-Year Student Explanation |
+| Layer | Construct | Plain-English Explanation for Students |
 | :--- | :--- | :--- |
 | **WGSL (`ribbon.wgsl`)** | Homogeneous Near-Plane Clip (`w > near`) | Clips 3D line segments in 4D clip space BEFORE dividing by `w`, preventing lines with one endpoint behind the camera from flipping across the screen. |
 | **WGSL (`ribbon.wgsl` / `vector.wgsl`)** | Screen-Space Perpendicular Quad Extrusion | Expands each 3D segment into a 6-vertex screen-space quad along `perp = vec2(-dir.y, dir.x) * (half_width + aa)` for crisp, constant-CSS-pixel CAD strokes and miter/bevel joins. |
 | **WGSL (`glyph.wgsl`)** | Analytical Signed-Distance Coverage (`smoothstep`) | Computes pixel center distance to the stroke edge or point-marker radius in the fragment shader for smooth anti-aliased edges. |
 
-**Production source (`session_viewer/src`):** [app/walk/curves.rs](../../../../src/app/walk/curves.rs), [engine/gpu/segments.rs](../../../../src/engine/gpu/segments.rs), [shaders/ribbon.wgsl](../../../../src/shaders/ribbon.wgsl), [shaders/vector.wgsl](../../../../src/shaders/vector.wgsl), [app/walk/points.rs](../../../../src/app/walk/points.rs), [shaders/glyph.wgsl](../../../../src/shaders/glyph.wgsl), [shaders/ink_visibility.wgsl](../../../../src/shaders/ink_visibility.wgsl), [shaders/triangle.wgsl](../../../../src/shaders/triangle.wgsl), [shaders/grid.wgsl](../../../../src/shaders/grid.wgsl).
+**Authoritative production source (`session_viewer/src`):** [app/walk/curves.rs](../../../../src/app/walk/curves.rs), [engine/gpu/segments.rs](../../../../src/engine/gpu/segments.rs), [shaders/ribbon.wgsl](../../../../src/shaders/ribbon.wgsl), [shaders/vector.wgsl](../../../../src/shaders/vector.wgsl), [app/walk/points.rs](../../../../src/app/walk/points.rs), [shaders/glyph.wgsl](../../../../src/shaders/glyph.wgsl), [shaders/ink_visibility.wgsl](../../../../src/shaders/ink_visibility.wgsl), [shaders/triangle.wgsl](../../../../src/shaders/triangle.wgsl), [shaders/grid.wgsl](../../../../src/shaders/grid.wgsl)
 
-## Implementation Checkpoints
+## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
 
-Apply these checkpoints in order inside `workspace/journey`. Expand each block to view the Rust/WGSL/HTML edits:
+| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
+| ---: | :--- | :--- | :--- | :--- |
+| **1** | [`38-layout`](#checkpoint-38-layout) | Validate public kernel curve layout and domain before evaluating an original source. | `src/curve.rs`, `src/lib.rs`, `src/curve_layout_tests.rs` | `original NURBS curve → bounded checked layout → finite positive weights → ordered knots → nonempty domain` |
+| **2** | [`38a-samples`](#checkpoint-38a-samples) | Build a bounded display approximation from an original curve and retain exact source controls separately. | `src/curve.rs`, `src/lib.rs`, `src/curve_sample_tests.rs` | `validated original curve → control-polygon turning → bounded parameter samples and knot breaks → finite double-precision chords` |
+| **3** | [`38b-source`](#checkpoint-38b-source) | Retain original NURBS ownership, cached double samples and placed curve bounds in the existing path document. | `src/chain.rs`, `src/scene.rs`, `src/memory.rs`, `src/lib.rs` | `original NURBS Rc → validated shared double samples → path row and checked ID → placed display chords and conservative bounds` |
+| **4** | [`38c-controls`](#checkpoint-38c-controls) | Draw enabled curve controls through the real marker lane while retaining original parent IDs and control indices. | `src/scene.rs`, `src/renderer.rs`, `src/browser.rs`, `src/lib.rs` | `retained curve path row → enabled original controls → parent/index marker records → placed marker lane → Close release` |
+| **5** | [`38d-input`](#checkpoint-38d-input) | Insert an original NURBS curve through real input and distinguish its actual curve pixels from its indexed control markers. | `src/editor.rs`, `src/browser.rs`, `src/lib.rs`, `src/curve_input_tests.rs` | `Example Curve input → original curve path row → real sampled arch → Controls On/Off → parent/index markers → history and Close` |
+
+---
+
+## 4. Step-by-Step Coding Notebook (Concept + Implementation)
+
+Work through each notebook cell below in order inside `workspace/journey`. Read the **Concept Walkthrough** and **Self-Check Q&A** first, then expand the **Implementation** block to type and verify the code.
 
 <a id="checkpoint-38-layout"></a>
+
+### Step 1 of 5 · Validate an original NURBS curve before sampling (`38-layout`)
+
+- **Goal:** Validate public kernel curve layout and domain before evaluating an original source.
+- **Data Flow Trace:** `original NURBS curve → bounded checked layout → finite positive weights → ordered knots → nonempty domain`
+- **Files You Touch:** `src/curve.rs` (*Guard layout arithmetic and public arrays before original kernel evaluation.*) · `src/lib.rs` (*Register source validation and malformed-input checks.*) · `src/curve_layout_tests.rs` (*Copy valid original domains, unchanged sources and malformed-layout refusal checks.*)
+
+Validate the original curve before evaluating it. Check dimensions, count, order, stride, checked ranges, finite controls, positive rational weights and monotone knots.
+
+Use the kernel domain only after those checks. Display approximation never replaces the original curve, knot vector or homogeneous control values.
+
+> **Self-Check Question:** *Why check public curve arrays before calling the kernel evaluator?*  
+> **Answer:** Public fields may contain incomplete or overflowing layouts. The viewer must refuse malformed input before a kernel slice access or display allocation.
+
+- **What You Should See:** Run curve layout checks against valid, periodic, rational and maliciously incomplete inputs.
+- **Hands-On Lab Experiment:** Set the stride to usize::MAX. Validation must return an error without slicing or overflowing.
 
 <details>
 <summary>Implementation 38-layout: Validate an original NURBS curve before sampling</summary>
@@ -158,6 +222,22 @@ Copy this supplied file:
 </details>
 
 <a id="checkpoint-38a-samples"></a>
+
+### Step 2 of 5 · Sample a validated curve without replacing its source (`38a-samples`)
+
+- **Goal:** Build a bounded display approximation from an original curve and retain exact source controls separately.
+- **Data Flow Trace:** `validated original curve → control-polygon turning → bounded parameter samples and knot breaks → finite double-precision chords`
+- **Files You Touch:** `src/curve.rs` (*Sample the original evaluator with bounded uniform chords and exact interior knot breaks.*) · `src/lib.rs` (*Register actual sampled geometry checks.*) · `src/curve_sample_tests.rs` (*Copy original preservation, dense measured error, periodic closure and knot-break checks.*)
+
+Use the control polygon’s turning to choose display chords, matching the current viewer’s three-degree policy and 512 uniform-chord cap.
+
+Include original interior knot breaks as well. Bound the control count before allocating, keep sample positions in double precision, and refuse nonfinite or unrepresentable display coordinates. A sampled polyline remains an approximation rather than a replacement kernel curve.
+
+> **Self-Check Question:** *What does the sampled polyline know that the original curve does not lose?*  
+> **Answer:** It provides drawing chords at chosen parameters. The original knots, degree, rational weights and exact controls remain the editing source; the chords are explicitly an approximation.
+
+- **What You Should See:** Run straight, curved, periodic and malformed curve sampling checks. Original control arrays remain unchanged.
+- **Hands-On Lab Experiment:** Compare dense kernel evaluations with the sampled quadratic arch. Check measured chord error, rather than mistaking its control polygon for the curve.
 
 <details>
 <summary>Implementation 38a-samples: Sample a validated curve without replacing its source</summary>
@@ -281,6 +361,22 @@ Copy this supplied file:
 </details>
 
 <a id="checkpoint-38b-source"></a>
+
+### Step 3 of 5 · Retain original curves beside their display samples (`38b-source`)
+
+- **Goal:** Retain original NURBS ownership, cached double samples and placed curve bounds in the existing path document.
+- **Data Flow Trace:** `original NURBS Rc → validated shared double samples → path row and checked ID → placed display chords and conservative bounds`
+- **Files You Touch:** `src/chain.rs` (*Retain the original curve separately from shared approximation samples.*) · `src/scene.rs` (*Place conservative curve bounds from original double controls.*) · `src/memory.rs` (*Count sampled doubles separately from source owners and packed GPU data.*) · `src/lib.rs` (*Register retained source and placed bounds checks.*) · `src/curve_source_tests.rs` (*Copy retained source identity, distinct IDs, precise placement, conservative bounds and release checks.*)
+
+Extend path ownership with the original curve and a shared double-precision sample cache. GPU spans keep their existing connected format.
+
+Retain original GUIDs and checked document IDs. Use transformed original controls for conservative curve bounds, and report sampled doubles separately from kernel ownership and packed display vertices.
+
+> **Self-Check Question:** *Why does a curve row retain its original control hull beside sampled chords?*  
+> **Answer:** The display approximation can miss an extremum. Positive-weight control bounds conservatively contain the curve, while the original curve remains available for editing and exact measurement.
+
+- **What You Should See:** The original curve owner is prepared. The supplied document fixture shows duplicate rows sharing source and samples while keeping distinct document IDs; browser connection follows.
+- **Hands-On Lab Experiment:** Translate a curve row with high-precision coordinates. Original controls remain unchanged, display endpoints move, and bounds include its placed control hull.
 
 <details>
 <summary>Implementation 38b-source: Retain original curves beside their display samples</summary>
@@ -1125,6 +1221,22 @@ Copy this supplied file:
 
 <a id="checkpoint-38c-controls"></a>
 
+### Step 4 of 5 · Draw controls with their original curve parent and index (`38c-controls`)
+
+- **Goal:** Draw enabled curve controls through the real marker lane while retaining original parent IDs and control indices.
+- **Data Flow Trace:** `retained curve path row → enabled original controls → parent/index marker records → placed marker lane → Close release`
+- **Files You Touch:** `src/scene.rs` (*Retain explicit control display state on each document path row.*) · `src/renderer.rs` (*Send only placed display bytes to the marker lane, retaining source ownership in the document.*) · `src/browser.rs` (*Inspect sampled curve resources and actual enabled control count separately.*) · `src/lib.rs` (*Register document parent and placement checks.*) · `src/control_parent_tests.rs` (*Copy shared curve identity, distinct parent IDs, original indices, correct placement and release checks.*)
+
+Resolve visible control markers from retained curve rows. Carry the document parent and original index beside each display marker, then send only marker bytes to the GPU.
+
+Validate both sampled chords and original controls during placement. Keep markers disabled by default, reuse the existing marker lane, and count enabled controls separately from standalone point sources.
+
+> **Self-Check Question:** *How do two rows sharing one curve distinguish their control markers?*  
+> **Answer:** Each marker carries its document parent ID and original control index. Both still refer to the same original curve owner, while each row applies its own placement.
+
+- **What You Should See:** Control-marker preparation retains the original curve source. The supplied fixture records marker counts and buffer bytes; browser control display connects in the following lessons.
+- **Hands-On Lab Experiment:** Place two rows sharing one curve at different offsets. Their controls share original ownership but retain distinct parent IDs and correct world positions.
+
 <details>
 <summary>Implementation 38c-controls: Draw controls with their original curve parent and index</summary>
 
@@ -1857,6 +1969,22 @@ Copy this supplied file:
 </details>
 
 <a id="checkpoint-38d-input"></a>
+
+### Step 5 of 5 · Insert an original curve and inspect its controls (`38d-input`)
+
+- **Goal:** Insert an original NURBS curve through real input and distinguish its actual curve pixels from its indexed control markers.
+- **Data Flow Trace:** `Example Curve input → original curve path row → real sampled arch → Controls On/Off → parent/index markers → history and Close`
+- **Files You Touch:** `src/editor.rs` (*Expose original curve insertion and explicit control display actions.*) · `src/browser.rs` (*Expose curve and control inputs in dock completion and Help.*) · `src/lib.rs` (*Register actual curve insertion history and ownership checks.*) · `src/curve_input_tests.rs` (*Copy original curve identity, control display history independence and complete release checks.*)
+
+Register Example Curve and explicit Controls On/Off input. Insert an original quadratic curve in one history transaction; control display changes do not consume that transaction.
+
+Chrome verifies real arch pixels at the kernel midpoint, absence of a drawn control polygon, original control markers at their projected positions, camera-only buffer reuse and complete Close.
+
+> **Self-Check Question:** *Why does the curve arch stop below its middle control point?*  
+> **Answer:** A quadratic curve follows the kernel’s weighted interpolation of controls. Its control polygon shapes the curve but is not the displayed curve itself.
+
+- **What You Should See:** Close, type Example Curve, then Controls On. Inspect the sampled arch and its three original control markers.
+- **Hands-On Lab Experiment:** Toggle Controls Off, switch projection and zoom. The curve vertex payload remains unchanged; markers keep their screen diameter when enabled.
 
 <details>
 <summary>Implementation 38d-input: Insert an original curve and inspect its controls</summary>
@@ -3115,9 +3243,11 @@ Copy this supplied file:
 
 </details>
 
-## Run, Check, and Save
+---
 
-From `session_viewer`:
+## 5. Build, Verify, and Save Your Checkpoint
+
+Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 38d-input
@@ -3128,12 +3258,12 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. Use [checkpoint recovery](../../recovery.md) to restore any saved checkpoint.
+Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
 
-## Expected Visual Result & Experiment
+## 6. Lesson Summary & Expected Visual Result
 
 Close, type Example Curve, then Controls On. Inspect the sampled arch and its three original control markers.
 
-- **Try this:** Toggle Controls Off, switch projection and zoom. The curve vertex payload remains unchanged; markers keep their screen diameter when enabled.
+- **Final Lesson Experiment:** Toggle Controls Off, switch projection and zoom. The curve vertex payload remains unchanged; markers keep their screen diameter when enabled.
 
-Continue with [One visibility policy and shared surface depth](39-visible.md).
+Continue with [One visibility policy and shared surface depth](../../consolidation/39-visible.md).

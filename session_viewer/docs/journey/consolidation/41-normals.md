@@ -1,93 +1,161 @@
 # 5.7 · Normals, placement and a depth-correct construction grid
 
-**Section 4: Screen-Space Ink, Point Markers, NURBS Curves, and GPU Integer Picking** · **Lesson 5.7** (Redraft `4.7`) · **8 checkpoints (`41-normals` → `41f-input`)**
+**Section 4: Screen-Space Ink, Point Markers, NURBS Curves, and GPU Integer Picking** · **Lesson 5.7** (Redraft `4.7`) · **8 checkpoints (`41-normals` → `41f-input`)** · **Study time: 6–10 h**
 
-> **Learning Goal:** Retain a checked normal stream from the original kernel adapter while preserving source attributes and the existing position/colour layout.
+> **What You Will Learn & Build:** Retain a checked normal stream from the original kernel adapter while preserving source attributes and the existing position/colour layout. By the final checkpoint (`41f-input`), you will enable the finite depth-correct grid through actual dock input, preserving grid view state, source history and unchanged geometry during camera navigation.
 
-## Visual WebGPU & Architecture Schematic
+## 1. Visual Pipeline & WebGPU Architecture (Black & White Schematics)
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1px solid #cbd5e1;border-radius:10px;background:#f8fafc;">
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
+<svg viewBox="0 0 840 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <rect x="4" y="4" width="832" height="212" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Lesson 5.7 Execution Flow: Normals, placement and a depth-correct construction grid</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">Concrete data pipeline you build in this lesson (8 Checkpoints: 41-normals → 41f-input)</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
+  
+    
+    <rect x="18" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="89" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
+    <line x1="28" y1="92" x2="151" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">original vertex</text>
+    <text x="89" y="124" text-anchor="middle" font-size="11" fill="#111111">normal attributes</text>
+    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="183" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="254" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
+    <line x1="193" y1="92" x2="316" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">kernel normal</text>
+    <text x="254" y="124" text-anchor="middle" font-size="11" fill="#111111">extraction</text>
+    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="348" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="419" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
+    <line x1="358" y1="92" x2="481" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">finite normalized</text>
+    <text x="419" y="124" text-anchor="middle" font-size="11" fill="#111111">display stream</text>
+    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="513" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="584" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
+    <line x1="523" y1="92" x2="646" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">retained payload</text>
+    <text x="584" y="124" text-anchor="middle" font-size="11" fill="#111111">accounting</text>
+    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="678" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="749" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
+    <line x1="688" y1="92" x2="811" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">View Grid On / Off</text>
+    
+    <rect x="18" y="162" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="32" y="181" font-size="11" font-weight="700" fill="#111111">Files You Edit in Lesson 5.7:</text>
+    <text x="215" y="181" font-size="11" fill="#111111">src/normals.rs  ·  src/lib.rs  ·  src/mesh.rs  ·  src/memory.rs  ·  src/normal_source_tests.rs  ·  src/normal_matrix_tests.rs</text>
+    <text x="32" y="198" font-size="10.5" fill="#111111">8 Checkpoints: 41-normals → 41f-input — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
+  
+</svg>
+</div>
+
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
 <svg viewBox="0 0 840 240" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#475569"/>
-    </marker>
-    <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#2563eb"/>
-    </marker>
-    <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#059669"/>
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
     </marker>
   </defs>
-  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
-  <text x="20" y="28" font-size="14" font-weight="700" fill="#0f172a">Chapter 5 WebGPU Shader Geometry: Screen-Space Ribbon Extrusion (ribbon.wgsl), Joins & Point Discs</text>
-  <text x="20" y="46" font-size="11.5" fill="#475569">Why 1-pixel hardware GL_LINES fail in CAD—and how vertex shaders extrude 3D segments into crisp, constant-CSS-pixel screen quads.</text>
-  <line x1="16" y1="54" x2="824" y2="54" stroke="#e2e8f0" stroke-width="1"/>
+  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Chapter 5 WebGPU Shader Geometry: Screen-Space Ribbon Extrusion (ribbon.wgsl), Joins & Point Discs</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">Why 1-pixel hardware GL_LINES fail in CAD—and how vertex shaders extrude 3D segments into crisp, constant-CSS-pixel screen quads.</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
   
-    <rect x="18" y="68" width="215" height="145" rx="6" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
-    <text x="125" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1e40af">1. Homogeneous Near-Clip</text>
-    <text x="28" y="108" font-size="10.5" fill="#1e3a8a">• Input: 3D segment (A, B) + width</text>
-    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#1d4ed8">• Clip to w &gt; near BEFORE divide!</text>
-    <text x="28" y="143" font-size="10" fill="#1e3a8a">  (If B is behind camera, dividing</text>
-    <text x="28" y="158" font-size="10" fill="#1e3a8a">   xyz/w flips the line across screen!)</text>
-    <text x="28" y="178" font-size="10.5" fill="#1e3a8a">• Project clipped A', B' to physical</text>
-    <text x="28" y="193" font-size="10.5" fill="#1e3a8a">  viewport pixels: pA, pB</text>
+    <rect x="18" y="68" width="215" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="125" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">1. Homogeneous Near-Clip</text>
+    <text x="28" y="108" font-size="10.5" fill="#111111">• Input: 3D segment (A, B) + width</text>
+    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#111111">• Clip to w &gt; near BEFORE divide!</text>
+    <text x="28" y="143" font-size="10" fill="#111111">  (If B is behind camera, dividing</text>
+    <text x="28" y="158" font-size="10" fill="#111111">   xyz/w flips the line across screen!)</text>
+    <text x="28" y="178" font-size="10.5" fill="#111111">• Project clipped A', B' to physical</text>
+    <text x="28" y="193" font-size="10.5" fill="#111111">  viewport pixels: pA, pB</text>
 
-    <line x1="233" y1="138" x2="263" y2="138" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
+    <line x1="233" y1="138" x2="263" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="265" y="68" width="285" height="145" rx="6" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5"/>
-    <text x="407" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#9a3412">2. Screen-Space Quad Extrusion (6 Verts)</text>
+    <rect x="265" y="68" width="285" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="407" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">2. Screen-Space Quad Extrusion (6 Verts)</text>
     <!-- Mini Visual of Extruded Line Quad -->
-    <line x1="295" y1="135" x2="435" y2="115" stroke="#c2410c" stroke-width="2.5" stroke-dasharray="4,3"/>
-    <polygon points="292,120 432,100 438,130 298,150" fill="rgba(251,146,60,0.22)" stroke="#ea580c" stroke-width="1.5"/>
-    <circle cx="295" cy="135" r="3.5" fill="#9a3412"/>
-    <circle cx="435" cy="115" r="3.5" fill="#9a3412"/>
-    <text x="282" y="168" font-size="10" fill="#7c2d12">dir = normalize(pB - pA)</text>
-    <text x="282" y="183" font-size="10" font-weight="600" fill="#c2410c">perp = vec2(-dir.y, dir.x) * (half_w + AA)</text>
-    <text x="282" y="198" font-size="10" fill="#7c2d12">vector.wgsl adds miter/bevel joins &amp; arrows</text>
+    <polygon points="292,120 432,100 438,130 298,150" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <line x1="295" y1="135" x2="435" y2="115" stroke="#111111" stroke-width="2" stroke-dasharray="4,3"/>
+    <circle cx="295" cy="135" r="3.5" fill="#111111"/>
+    <circle cx="435" cy="115" r="3.5" fill="#111111"/>
+    <text x="282" y="168" font-size="10" fill="#111111">dir = normalize(pB - pA)</text>
+    <text x="282" y="183" font-size="10" font-weight="600" fill="#111111">perp = vec2(-dir.y, dir.x) * (half_w + AA)</text>
+    <text x="282" y="198" font-size="10" fill="#111111">vector.wgsl adds miter/bevel joins &amp; arrows</text>
 
-    <line x1="550" y1="138" x2="580" y2="138" stroke="#059669" stroke-width="2" marker-end="url(#arrow-green)"/>
+    <line x1="550" y1="138" x2="580" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="582" y="68" width="238" height="145" rx="6" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1.5"/>
-    <text x="701" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#065f46">3. Analytical AA &amp; Point Discs</text>
-    <text x="594" y="108" font-size="10.5" fill="#064e3b">• ribbon.wgsl: smoothstep coverage</text>
-    <text x="594" y="123" font-size="10.5" fill="#064e3b">  from signed edge distance</text>
-    <text x="594" y="143" font-size="10.5" font-weight="600" fill="#047857">• glyph.wgsl (Point Markers):</text>
-    <text x="594" y="158" font-size="10" fill="#064e3b">  Screen quad around 3D point; discard</text>
-    <text x="594" y="173" font-size="10" fill="#064e3b">  outside radius r, feather 1px rim</text>
-    <text x="594" y="193" font-size="10.5" fill="#064e3b">• NURBS: evaluate spans -&gt; polyline</text>
+    <rect x="582" y="68" width="238" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="701" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">3. Analytical AA &amp; Point Discs</text>
+    <text x="594" y="108" font-size="10.5" fill="#111111">• ribbon.wgsl: smoothstep coverage</text>
+    <text x="594" y="123" font-size="10.5" fill="#111111">  from signed edge distance</text>
+    <text x="594" y="143" font-size="10.5" font-weight="600" fill="#111111">• glyph.wgsl (Point Markers):</text>
+    <text x="594" y="158" font-size="10" fill="#111111">  Screen quad around 3D point; discard</text>
+    <text x="594" y="173" font-size="10" fill="#111111">  outside radius r, feather 1px rim</text>
+    <text x="594" y="193" font-size="10.5" fill="#111111">• NURBS: evaluate spans -&gt; polyline</text>
     
 </svg>
 </div>
 
-### Lesson Data Flow (`Rust` → `WebGPU` → `WGSL`)
+## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
 
-```
-original vertex normal attributes → kernel normal extraction → finite normalized display stream → retained payload accounting.
-sharp / smooth / winding specimen command → one original mesh insertion → View Normals diagnostic → actual direction pixels → source Save / reopen.
-View Grid On / Off → validated camera grid setting → cached renderer grid lane → actual BRG pixels and source occlusion → view-only history.
-```
+Before writing code, review how the three layers in this chapter talk to each other:
 
-- Retain a checked normal stream from the original kernel adapter while preserving source attributes and the existing position/colour layout.
-- Compare sharp/smooth source surfaces and actual face winding through real commands, retaining source history and editable normal attributes.
-- Enable the finite depth-correct grid through actual dock input, preserving grid view state, source history and unchanged geometry during camera navigation.
-- **Why it works (Why does an absent normal remain a zero vector rather than inventing a smooth normal?):** Zero explicitly requests the existing flat derivative normal. A present kernel normal is the source’s smoothing choice; preserving that distinction keeps sharp surfaces sharp.
-
-### Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `Browser`)
-
-| Layer | Construct | First-Year Student Explanation |
+| Layer | Construct | Plain-English Explanation for Students |
 | :--- | :--- | :--- |
 | **WGSL (`ribbon.wgsl`)** | Homogeneous Near-Plane Clip (`w > near`) | Clips 3D line segments in 4D clip space BEFORE dividing by `w`, preventing lines with one endpoint behind the camera from flipping across the screen. |
 | **WGSL (`ribbon.wgsl` / `vector.wgsl`)** | Screen-Space Perpendicular Quad Extrusion | Expands each 3D segment into a 6-vertex screen-space quad along `perp = vec2(-dir.y, dir.x) * (half_width + aa)` for crisp, constant-CSS-pixel CAD strokes and miter/bevel joins. |
 | **WGSL (`glyph.wgsl`)** | Analytical Signed-Distance Coverage (`smoothstep`) | Computes pixel center distance to the stroke edge or point-marker radius in the fragment shader for smooth anti-aliased edges. |
 
-**Production source (`session_viewer/src`):** [app/walk/curves.rs](../../../src/app/walk/curves.rs), [engine/gpu/segments.rs](../../../src/engine/gpu/segments.rs), [shaders/ribbon.wgsl](../../../src/shaders/ribbon.wgsl), [shaders/vector.wgsl](../../../src/shaders/vector.wgsl), [app/walk/points.rs](../../../src/app/walk/points.rs), [shaders/glyph.wgsl](../../../src/shaders/glyph.wgsl), [shaders/ink_visibility.wgsl](../../../src/shaders/ink_visibility.wgsl), [shaders/triangle.wgsl](../../../src/shaders/triangle.wgsl), [shaders/grid.wgsl](../../../src/shaders/grid.wgsl).
+**Authoritative production source (`session_viewer/src`):** [app/walk/curves.rs](../../../src/app/walk/curves.rs), [engine/gpu/segments.rs](../../../src/engine/gpu/segments.rs), [shaders/ribbon.wgsl](../../../src/shaders/ribbon.wgsl), [shaders/vector.wgsl](../../../src/shaders/vector.wgsl), [app/walk/points.rs](../../../src/app/walk/points.rs), [shaders/glyph.wgsl](../../../src/shaders/glyph.wgsl), [shaders/ink_visibility.wgsl](../../../src/shaders/ink_visibility.wgsl), [shaders/triangle.wgsl](../../../src/shaders/triangle.wgsl), [shaders/grid.wgsl](../../../src/shaders/grid.wgsl)
 
-## Implementation Checkpoints
+## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
 
-Apply these checkpoints in order inside `workspace/journey`. Expand each block to view the Rust/WGSL/HTML edits:
+| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
+| ---: | :--- | :--- | :--- | :--- |
+| **1** | [`41-normals`](#checkpoint-41-normals) | Retain a checked normal stream from the original kernel adapter while preserving source attributes and the existing position/colour layout. | `src/normals.rs`, `src/lib.rs`, `src/mesh.rs`, `src/memory.rs` | `original vertex normal attributes → kernel normal extraction → finite normalized display stream → retained payload accounting` |
+| **2** | [`41a-placement`](#checkpoint-41a-placement) | Prepare a finite oriented normal matrix that stays perpendicular under nonuniform scale, shear, reflection and flattening. | `src/normals.rs`, `src/lib.rs`, `src/normal_matrix_tests.rs` | `accepted affine placement → cofactor columns → bounded common scale → oriented world-normal matrix` |
+| **3** | [`41b-drawing`](#checkpoint-41b-drawing) | Upload the retained source normal stream and its oriented placement matrix, with real smooth interpolation and explicit flat-face fallback. | `src/gpu_geometry.rs`, `src/renderer.rs`, `src/gpu_mesh.rs`, `src/scene.rs` | `checked source normals → shared GPU normal buffer → per-row cofactor uniform → interpolated world direction or derivative face normal` |
+| **4** | [`41c-view`](#checkpoint-41c-view) | Draw an oriented world-normal diagnostic with sharp-face winding and finite source smoothing, independently of source history. | `src/editor.rs`, `src/triangle.wgsl`, `src/renderer.rs`, `src/browser.rs` | `source normals or sharp derivatives → actual front-facing orientation → world-normal RGB → view-only camera settings` |
+| **5** | [`41ca-input`](#checkpoint-41ca-input) | Compare sharp/smooth source surfaces and actual face winding through real commands, retaining source history and editable normal attributes. | `src/normal_example.rs`, `src/editor.rs`, `src/browser.rs`, `src/lib.rs` | `sharp / smooth / winding specimen command → one original mesh insertion → View Normals diagnostic → actual direction pixels → source Save / reopen` |
+| **6** | [`41d-grid`](#checkpoint-41d-grid) | Prepare a finite bounded ground grid with current BRG axis colours and include its distant corners in the camera depth range. | `src/grid.rs`, `src/lib.rs`, `src/camera.rs`, `src/grid_source_tests.rs` | `checked spacing and bounded cell count → finite floor lines and BRG axes → corner/axis depth reach → camera far range` |
+| **7** | [`41e-drawing`](#checkpoint-41e-drawing) | Draw the bounded grid and BRG axes using the shared CSS stroke layout, with actual surface depth and exact independent grid-resource accounting. | `src/depth.rs`, `src/stroke_gpu.rs`, `src/renderer.rs` | `checked grid strokes → shared 44-byte lane → read-only strict depth → actual floor/axis pixels → change-only buffer ownership` |
+| **8** | [`41f-input`](#checkpoint-41f-input) | Enable the finite depth-correct grid through actual dock input, preserving grid view state, source history and unchanged geometry during camera navigation. | `src/editor.rs`, `src/browser.rs`, `src/lib.rs`, `src/grid_input_tests.rs` | `View Grid On / Off → validated camera grid setting → cached renderer grid lane → actual BRG pixels and source occlusion → view-only history` |
+
+---
+
+## 4. Step-by-Step Coding Notebook (Concept + Implementation)
+
+Work through each notebook cell below in order inside `workspace/journey`. Read the **Concept Walkthrough** and **Self-Check Q&A** first, then expand the **Implementation** block to type and verify the code.
 
 <a id="checkpoint-41-normals"></a>
+
+### Step 1 of 8 · Retain checked source normals beside display positions (`41-normals`)
+
+- **Goal:** Retain a checked normal stream from the original kernel adapter while preserving source attributes and the existing position/colour layout.
+- **Data Flow Trace:** `original vertex normal attributes → kernel normal extraction → finite normalized display stream → retained payload accounting`
+- **Files You Touch:** `src/normals.rs` (*Normalize bounded display directions safely while preserving an explicit flat fallback.*) · `src/lib.rs` (*Register normal preparation and its source checks.*) · `src/mesh.rs` (*Retain normal data independently of the established position/colour stream.*) · `src/memory.rs` (*Copy the normal-capacity oracle for a display mesh retaining three normals.*) · `src/normal_source_tests.rs` (*Copy exact original attributes, normalized directions, flat zeros, malformed data and overflow-safe checks.*)
+
+Keep normals in a separate checked stream beside existing display positions and colours. Use the kernel adapter’s source normals; normalize finite nonzero vectors without overflow.
+
+Zero normals keep the existing flat fallback. Retain original attributes untouched and include normal capacity in CPU display accounting before adding its GPU stream.
+
+> **Self-Check Question:** *Why does an absent normal remain a zero vector rather than inventing a smooth normal?*  
+> **Answer:** Zero explicitly requests the existing flat derivative normal. A present kernel normal is the source’s smoothing choice; preserving that distinction keeps sharp surfaces sharp.
+
+- **What You Should See:** Run normal-stream checks. Original attributes remain exact, valid nonzero normals become bounded unit vectors, and missing normals retain the flat fallback.
+- **Hands-On Lab Experiment:** Prepare a source normal of length five. Its display direction is unit length while its original nx/ny/nz attributes remain unchanged.
 
 <details>
 <summary>Implementation 41-normals: Retain checked source normals beside display positions</summary>
@@ -396,6 +464,22 @@ Copy this supplied file:
 
 <a id="checkpoint-41a-placement"></a>
 
+### Step 2 of 8 · Transform normals with nonuniform surface placement (`41a-placement`)
+
+- **Goal:** Prepare a finite oriented normal matrix that stays perpendicular under nonuniform scale, shear, reflection and flattening.
+- **Data Flow Trace:** `accepted affine placement → cofactor columns → bounded common scale → oriented world-normal matrix`
+- **Files You Touch:** `src/normals.rs` (*Prepare bounded cofactor columns for oriented affine normal transformation.*) · `src/lib.rs` (*Register nonuniform, reflected and singular placement checks.*) · `src/normal_matrix_tests.rs` (*Copy perpendicularity, translation independence, winding, collapse and finite-range checks.*)
+
+Build the normal matrix from cofactors of the placement’s three linear columns. Translation is excluded. A shared positive rescale keeps GPU entries finite without changing direction.
+
+This follows oriented face winding under reflection and still works for a flattened plane. Rank-one collapse produces zero normals, preserving the flat fallback rather than pretending an inverse exists.
+
+> **Self-Check Question:** *Why does multiplying a normal by the position matrix fail under nonuniform scale?*  
+> **Answer:** A normal must remain perpendicular to transformed tangent vectors. Cofactor columns preserve that relationship and face orientation, including reflections and rank-two flattening.
+
+- **What You Should See:** Inspect perpendicularity, reflection, flattening and extreme-scale tests. Translation does not change the normal matrix.
+- **Hands-On Lab Experiment:** Shear and scale two source tangents differently. Their transformed cross product must align with the transformed source normal.
+
 <details>
 <summary>Implementation 41a-placement: Transform normals with nonuniform surface placement</summary>
 
@@ -498,6 +582,22 @@ Copy this supplied file:
 </details>
 
 <a id="checkpoint-41b-drawing"></a>
+
+### Step 3 of 8 · Draw smooth normals and sharp surface faces (`41b-drawing`)
+
+- **Goal:** Upload the retained source normal stream and its oriented placement matrix, with real smooth interpolation and explicit flat-face fallback.
+- **Data Flow Trace:** `checked source normals → shared GPU normal buffer → per-row cofactor uniform → interpolated world direction or derivative face normal`
+- **Files You Touch:** `src/gpu_geometry.rs` (*Share the checked normal stream with the geometry’s existing GPU lifetime.*) · `src/renderer.rs` (*Describe three normal floats in shader attribute two.*) · `src/gpu_mesh.rs` (*Retain previous model, selection and normal-matrix settings for change-only writes.*) · `src/scene.rs` (*Refuse invalid initial placement before consuming an ID or creating a row.*) · `src/geometry_cache.rs` (*Count initialized normal payload separately from retained GPU capacity.*) · `src/triangle.wgsl` (*Keep the shader uniform layout identical to the 144-byte host settings.*) · `src/lib.rs` (*Register atomic placement and normal-stream GPU boundary checks.*) · `src/normal_gpu_tests.rs` (*Copy invalid-placement refusal and unchanged identity-allocation checks.*)
+
+Add one shared normal buffer beside positions and colours. Give each object a bounded cofactor matrix in its placement uniform; translation cannot change its normal direction.
+
+Interpolate present normals across the face, normalize safely in the fragment shader, and use the derivative face normal for explicit zero normals. Count actual normal allocations and initialized bytes separately from later uniform changes.
+
+> **Self-Check Question:** *Why calculate the flat derivative normal even when a smooth normal is present?*  
+> **Answer:** Fragment derivatives need neighbouring invocations. Calculate them before choosing the normal, then safely normalize the selected finite direction without a zero-vector division.
+
+- **What You Should See:** Inspect the supplied state fixtures, then compare Example Face Colors and Example Point Colors. Their source colours still draw correctly with the new normal stream. The next lesson connects a visible normal diagnostic.
+- **Hands-On Lab Experiment:** Rotate and zoom the coloured specimens. Missing source normals retain sharp-face lighting; camera movement must not rebuild the geometry buffers.
 
 <details>
 <summary>Implementation 41b-drawing: Draw smooth normals and sharp surface faces</summary>
@@ -1105,6 +1205,22 @@ Copy this supplied file:
 </details>
 
 <a id="checkpoint-41c-view"></a>
+
+### Step 4 of 8 · Reveal oriented world normals in the renderer (`41c-view`)
+
+- **Goal:** Draw an oriented world-normal diagnostic with sharp-face winding and finite source smoothing, independently of source history.
+- **Data Flow Trace:** `source normals or sharp derivatives → actual front-facing orientation → world-normal RGB → view-only camera settings`
+- **Files You Touch:** `src/editor.rs` (*Expose source insertion and normal diagnostics as separate editor actions.*) · `src/triangle.wgsl` (*Describe camera transform and diagnostic mode in the view uniform.*) · `src/renderer.rs` (*Allocate the complete camera and diagnostic uniform.*) · `src/browser.rs` (*Pass the editor’s diagnostic setting to actual initial or subsequent browser drawing.*) · `src/lib.rs` (*Register the source-history independence check.*) · `src/normal_view_tests.rs` (*Copy the check that viewing normals preserves geometry, identity and Undo.*)
+
+View Normals On turns oriented world-normal components into RGB. Compare it with View Normals Off on the existing coloured faces.
+
+The front-facing flag recovers the source orientation of sharp faces from screen derivatives. Source smooth normals take precedence when present. Camera settings select diagnostics without changing original colours or document history.
+
+> **Self-Check Question:** *Why do derivatives alone fail to distinguish opposite source face winding?*  
+> **Answer:** They follow neighbouring rasterized points, so reversed vertex order produces the same screen derivatives. The actual front-facing flag restores oriented sharp-face normals.
+
+- **What You Should See:** Close, type Example Face Colors, then View Normals On. Both flat faces become lavender: their world normals point along positive Z. View Normals Off restores their red and blue source colours.
+- **Hands-On Lab Experiment:** With normals on, rotate the camera and zoom. The face colours stay lavender because the displayed direction is in world coordinates. Toggle normals off and Undo: one Undo still removes the source specimen.
 
 <details>
 <summary>Implementation 41c-view: Reveal oriented world normals in the renderer</summary>
@@ -3036,6 +3152,24 @@ Copy this supplied file:
 
 <a id="checkpoint-41ca-input"></a>
 
+### Step 5 of 8 · Inspect smooth normals and face winding through commands (`41ca-input`)
+
+- **Goal:** Compare sharp/smooth source surfaces and actual face winding through real commands, retaining source history and editable normal attributes.
+- **Data Flow Trace:** `sharp / smooth / winding specimen command → one original mesh insertion → View Normals diagnostic → actual direction pixels → source Save / reopen`
+- **Files You Touch:** `src/normal_example.rs` (*Create original source specimens with missing, smooth or oppositely wound normals.*) · `src/editor.rs` (*Expose source insertion and normal diagnostics as separate editor actions.*) · `src/browser.rs` (*Expose normal specimens and diagnostics in actual dock completion and Help.*) · `src/lib.rs` (*Register source normal attributes, view independence, history and editable roundtrip checks.*) · `src/normal_input_tests.rs` (*Copy source normal attributes, exact protobuf roundtrip, independent view mode, one-step history and Close checks.*)
+
+Insert original sharp, smooth and oppositely wound surfaces through dock commands. View Normals On maps world-normal components from minus one through plus one into visible RGB.
+
+Recover oriented sharp-face normals using the actual front-facing flag. Keep this view setting outside document history; Save/reopen preserves original normal attributes rather than diagnostic pixel colours.
+
+Keep the oppositely wound panels topologically independent: the kernel’s load policy repairs inconsistent winding across a shared edge.
+
+> **Self-Check Question:** *Why does a normals view need the front-facing flag for a sharp face?*  
+> **Answer:** Screen-space derivatives describe the same rasterized surface even when its vertex order reverses. The front-facing flag recovers the oriented face direction, so reversed winding becomes visible.
+
+- **What You Should See:** Close, type Example Winding, then View Normals On. The neighbouring source faces show opposite blue components; View Normals Off restores surface lighting.
+- **Hands-On Lab Experiment:** Compare Example Sharp and Example Smooth using View Normals On. The sharp face stays one direction; the smooth face interpolates its original vertex directions.
+
 <details>
 <summary>Implementation 41ca-input: Inspect smooth normals and face winding through commands</summary>
 
@@ -4345,6 +4479,22 @@ Copy this supplied file:
 
 <a id="checkpoint-41d-grid"></a>
 
+### Step 6 of 8 · Bound the ground grid and its camera depth range (`41d-grid`)
+
+- **Goal:** Prepare a finite bounded ground grid with current BRG axis colours and include its distant corners in the camera depth range.
+- **Data Flow Trace:** `checked spacing and bounded cell count → finite floor lines and BRG axes → corner/axis depth reach → camera far range`
+- **Files You Touch:** `src/grid.rs` (*Validate and prepare finite grid lines, current axis colours and depth-reach reference points.*) · `src/lib.rs` (*Register bounded ground-grid preparation and camera-range checks.*) · `src/camera.rs` (*Retain the enabled grid extent independently of source scene bounds.*) · `src/grid_source_tests.rs` (*Copy checked grid capacity, source colour values, invalid input and actual camera corner-depth checks.*)
+
+Build finite floor lines and the current pink, yellow-green and blue axes. Validate spacing and cap the number of cells before allocating display data.
+
+Include grid corners and axis ends in camera depth reach when enabled. Keep Fit tied to source geometry; extending the depth range does not enlarge the source object.
+
+> **Self-Check Question:** *Why can fitting a small object accidentally clip a large ground grid?*  
+> **Answer:** The scene radius only covers the object. The far depth range must also reach the grid corners relative to the camera target, without changing the object’s Fit bounds.
+
+- **What You Should See:** Run bounded-grid and depth-range checks. Grid data has a fixed checked maximum, current axis colours and camera reach that includes its distant corners.
+- **Hands-On Lab Experiment:** Fit a small scene and orbit into an isometric view. Compare a distant grid corner’s depth with the grid disabled and enabled.
+
 <details>
 <summary>Implementation 41d-grid: Bound the ground grid and its camera depth range</summary>
 
@@ -4763,6 +4913,24 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-41e-drawing"></a>
+
+### Step 7 of 8 · Draw a depth-correct grid with shared stroke buffers (`41e-drawing`)
+
+- **Goal:** Draw the bounded grid and BRG axes using the shared CSS stroke layout, with actual surface depth and exact independent grid-resource accounting.
+- **Data Flow Trace:** `checked grid strokes → shared 44-byte lane → read-only strict depth → actual floor/axis pixels → change-only buffer ownership`
+- **Files You Touch:** `src/depth.rs` (*Hide coplanar grid ink without changing source strokes’ equal-depth drawing policy.*) · `src/stroke_gpu.rs` (*Share stroke preparation while choosing a separate grid depth policy.*) · `src/renderer.rs` (*Own grid display data independently from document geometry.*)
+
+Reuse the existing CSS stroke lane for the finite grid and axes. Give its pipeline strict read-only surface depth; draw it after surfaces and before source ink.
+
+Keep grid buffers independent from document ownership. Upload changed grid data only, count initialized payload separately from current capacity, and release the active allocation when disabled.
+
+Cache accepted grid settings as well as packed bytes, so camera events do not rebuild identical grid data on the CPU.
+
+> **Self-Check Question:** *Why does ground-grid ink use a strict depth comparison?*  
+> **Answer:** A source face on or above the ground hides the grid. Read-only Less keeps a coplanar grid from overlaying the face, while grid lines in front of below-ground geometry remain visible.
+
+- **What You Should See:** Inspect the supplied state fixtures and open the viewer. Its existing normal and colour commands still work. The grid renderer is ready; the next lesson connects View Grid On and Off.
+- **Hands-On Lab Experiment:** Use View Normals On and Off, then rotate and zoom. The independent grid lane must leave the existing surface view usable.
 
 <details>
 <summary>Implementation 41e-drawing: Draw a depth-correct grid with shared stroke buffers</summary>
@@ -5466,6 +5634,22 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-41f-input"></a>
+
+### Step 8 of 8 · Inspect the ground grid through actual commands (`41f-input`)
+
+- **Goal:** Enable the finite depth-correct grid through actual dock input, preserving grid view state, source history and unchanged geometry during camera navigation.
+- **Data Flow Trace:** `View Grid On / Off → validated camera grid setting → cached renderer grid lane → actual BRG pixels and source occlusion → view-only history`
+- **Files You Touch:** `src/editor.rs` (*Expose checked viewport grid state through editor input.*) · `src/browser.rs` (*Expose actual grid input in dock completion and Help.*) · `src/lib.rs` (*Register atomic grid state, camera reset and source-history checks.*) · `src/grid_input_tests.rs` (*Copy validation atomicity, reset preservation, view-only history and independent source/grid release checks.*)
+
+Add View Grid On and View Grid Off as view actions. Validate settings before changing the camera; synchronize only changed grid settings before actual browser inspection and drawing.
+
+Keep the grid through pose reset and document Close. Its allocation belongs to the viewport, so turning the grid off releases it independently from original scene geometry and history.
+
+> **Self-Check Question:** *What should View Reset and Close do to the ground grid?*  
+> **Answer:** View Reset changes the pose and preserves the grid setting. Close releases document geometry and history while the viewport grid remains; View Grid Off releases its active buffer.
+
+- **What You Should See:** Close, type View Grid On and View Isometric. Inspect pink X, yellow-green Y and blue Z axes; View Grid Off releases the grid allocation.
+- **Hands-On Lab Experiment:** Insert Example Sharp, toggle the grid and reset the view. One Undo still removes that source insertion; grid settings never enter document history.
 
 <details>
 <summary>Implementation 41f-input: Inspect the ground grid through actual commands</summary>
@@ -6863,9 +7047,11 @@ Copy this supplied file:
 
 </details>
 
-## Run, Check, and Save
+---
 
-From `session_viewer`:
+## 5. Build, Verify, and Save Your Checkpoint
+
+Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 41f-input
@@ -6876,10 +7062,10 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. Use [checkpoint recovery](../recovery.md) to restore any saved checkpoint.
+Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../recovery.md) to save or restore any checkpoint ID.
 
-## Expected Visual Result & Experiment
+## 6. Lesson Summary & Expected Visual Result
 
 Close, type View Grid On and View Isometric. Inspect pink X, yellow-green Y and blue Z axes; View Grid Off releases the grid allocation.
 
-- **Try this:** Insert Example Sharp, toggle the grid and reset the view. One Undo still removes that source insertion; grid settings never enter document history.
+- **Final Lesson Experiment:** Insert Example Sharp, toggle the grid and reset the view. One Undo still removes that source insertion; grid settings never enter document history.

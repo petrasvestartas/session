@@ -1,91 +1,161 @@
 # 6.3 · Pick original faces, edges and controls
 
-**Section 4: Screen-Space Ink, Point Markers, NURBS Curves, and GPU Integer Picking** · **Lesson 6.3** (Redraft `4.10`) · **14 checkpoints (`44-topology` → `44l-input`)**
+**Section 4: Screen-Space Ink, Point Markers, NURBS Curves, and GPU Integer Picking** · **Lesson 6.3** (Redraft `4.10`) · **14 checkpoints (`44-topology` → `44l-input`)** · **Study time: 7–14 h**
 
-> **Learning Goal:** Preserve source faces and edges.
+> **What You Will Learn & Build:** Preserve source faces and edges. By the final checkpoint (`44l-input`), you will select and inspect original faces, edges and controls.
 
-## Visual WebGPU & Architecture Schematic
+## 1. Visual Pipeline & WebGPU Architecture (Black & White Schematics)
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1px solid #cbd5e1;border-radius:10px;background:#f8fafc;">
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
+<svg viewBox="0 0 840 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <rect x="4" y="4" width="832" height="212" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Lesson 6.3 Execution Flow: Pick original faces, edges and controls</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">Concrete data pipeline you build in this lesson (14 Checkpoints: 44-topology → 44l-input)</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
+  
+    
+    <rect x="18" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="89" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
+    <line x1="28" y1="92" x2="151" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">source polygon</text>
+    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="183" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="254" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
+    <line x1="193" y1="92" x2="316" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">cached or fan</text>
+    <text x="254" y="124" text-anchor="middle" font-size="11" fill="#111111">triangles</text>
+    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="348" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="419" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
+    <line x1="358" y1="92" x2="481" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">original face table</text>
+    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="513" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="584" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
+    <line x1="523" y1="92" x2="646" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">original edge</text>
+    <text x="584" y="124" text-anchor="middle" font-size="11" fill="#111111">endpoints</text>
+    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="678" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="749" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
+    <line x1="688" y1="92" x2="811" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">mode command</text>
+    
+    <rect x="18" y="162" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="32" y="181" font-size="11" font-weight="700" fill="#111111">Files You Edit in Lesson 6.3:</text>
+    <text x="215" y="181" font-size="11" fill="#111111">src/mesh_parts.rs  ·  src/lib.rs  ·  src/mesh.rs  ·  src/mesh_parts_tests.rs  ·  src/sub_id.rs  ·  src/pick_sources.rs</text>
+    <text x="32" y="198" font-size="10.5" fill="#111111">14 Checkpoints: 44-topology → 44l-input — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
+  
+</svg>
+</div>
+
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
 <svg viewBox="0 0 840 240" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#475569"/>
-    </marker>
-    <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#2563eb"/>
-    </marker>
-    <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#059669"/>
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
     </marker>
   </defs>
-  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
-  <text x="20" y="28" font-size="14" font-weight="700" fill="#0f172a">Chapter 6 WebGPU Integer Picking: Cropped Rg32Uint Offscreen Pass & Async Staging Buffer Readback</text>
-  <text x="20" y="46" font-size="11.5" fill="#475569">How the GPU identifies exact sub-elements (Face, Edge, Control Point) under the cursor without color-picking precision loss.</text>
-  <line x1="16" y1="54" x2="824" y2="54" stroke="#e2e8f0" stroke-width="1"/>
+  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Chapter 6 WebGPU Integer Picking: Cropped Rg32Uint Offscreen Pass & Async Staging Buffer Readback</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">How the GPU identifies exact sub-elements (Face, Edge, Control Point) under the cursor without color-picking precision loss.</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
   
-    <rect x="18" y="68" width="205" height="145" rx="6" fill="#fdf2f8" stroke="#f472b6" stroke-width="1.5"/>
-    <text x="120" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#9d174d">1. Cursor Crop Window</text>
-    <text x="28" y="108" font-size="10.5" fill="#831843">• Cursor at (px, py), radius R</text>
-    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#9d174d">• Target: TextureFormat::Rg32Uint</text>
-    <text x="28" y="142" font-size="10" fill="#831843">  Channel R = owner_id (u32)</text>
-    <text x="28" y="157" font-size="10" fill="#831843">  Channel G = sub_id (Face/Edge/CP)</text>
-    <text x="28" y="176" font-size="10.5" fill="#831843">• Priority: Point Glyph &gt; Wire Edge</text>
-    <text x="28" y="192" font-size="10.5" fill="#831843">  &gt; Surface Face (Depth32Float)</text>
+    <rect x="18" y="68" width="205" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="120" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">1. Cursor Crop Window</text>
+    <text x="28" y="108" font-size="10.5" fill="#111111">• Cursor at (px, py), radius R</text>
+    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#111111">• Target: TextureFormat::Rg32Uint</text>
+    <text x="28" y="142" font-size="10" fill="#111111">  Channel R = owner_id (u32)</text>
+    <text x="28" y="157" font-size="10" fill="#111111">  Channel G = sub_id (Face/Edge/CP)</text>
+    <text x="28" y="176" font-size="10.5" fill="#111111">• Priority: Point Glyph &gt; Wire Edge</text>
+    <text x="28" y="192" font-size="10.5" fill="#111111">  &gt; Surface Face (Depth32Float)</text>
 
-    <line x1="223" y1="138" x2="253" y2="138" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
+    <line x1="223" y1="138" x2="253" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="255" y="68" width="280" height="145" rx="6" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
-    <text x="395" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1e40af">2. 256-Byte Aligned Staging Copy</text>
-    <text x="267" y="108" font-size="10.5" fill="#1e3a8a">• WebGPU rule: bytes_per_row MUST be</text>
-    <text x="267" y="124" font-size="10.5" font-weight="600" fill="#1d4ed8">  a multiple of 256 (COPY_BYTES_PER_ROW)</text>
-    <text x="267" y="144" font-size="10.5" fill="#1e3a8a">• encoder.copy_texture_to_buffer(...)</text>
-    <text x="267" y="162" font-size="10.5" fill="#1e3a8a">• Stamp request with Ticket:</text>
-    <text x="267" y="178" font-size="10" font-weight="600" fill="#1e40af">  { pick_id, view_revision, shift_mode }</text>
-    <text x="267" y="195" font-size="10" fill="#1e3a8a">• Coalesce bursts into 1 in-flight map_async</text>
+    <rect x="255" y="68" width="280" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="395" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">2. 256-Byte Aligned Staging Copy</text>
+    <text x="267" y="108" font-size="10.5" fill="#111111">• WebGPU rule: bytes_per_row MUST be</text>
+    <text x="267" y="124" font-size="10.5" font-weight="600" fill="#111111">  a multiple of 256 (COPY_BYTES_PER_ROW)</text>
+    <text x="267" y="144" font-size="10.5" fill="#111111">• encoder.copy_texture_to_buffer(...)</text>
+    <text x="267" y="162" font-size="10.5" fill="#111111">• Stamp request with Ticket:</text>
+    <text x="267" y="178" font-size="10" font-weight="600" fill="#111111">  { pick_id, view_revision, shift_mode }</text>
+    <text x="267" y="195" font-size="10" fill="#111111">• Coalesce bursts into 1 in-flight map_async</text>
 
-    <line x1="535" y1="138" x2="565" y2="138" stroke="#059669" stroke-width="2" marker-end="url(#arrow-green)"/>
+    <line x1="535" y1="138" x2="565" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="567" y="68" width="253" height="145" rx="6" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1.5"/>
-    <text x="693" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#065f46">3. Spiral Search &amp; Sub-Selection</text>
-    <text x="579" y="108" font-size="10.5" fill="#064e3b">• buffer.map_async(MapMode::Read).await</text>
-    <text x="579" y="126" font-size="10.5" font-weight="600" fill="#047857">• Stale view_revision? Discard/Retry!</text>
-    <text x="579" y="144" font-size="10.5" fill="#064e3b">• Search center pixel -&gt; spiral halo</text>
-    <text x="579" y="162" font-size="10.5" fill="#064e3b">• Decode (owner_id, sub_id) -&gt; Object,</text>
-    <text x="579" y="178" font-size="10.5" fill="#064e3b">  Face, Edge, or NURBS Control Point</text>
-    <text x="579" y="195" font-size="10.5" fill="#064e3b">• Shift+Click: ordered selection list</text>
+    <rect x="567" y="68" width="253" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="693" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">3. Spiral Search &amp; Sub-Selection</text>
+    <text x="579" y="108" font-size="10.5" fill="#111111">• buffer.map_async(MapMode::Read).await</text>
+    <text x="579" y="126" font-size="10.5" font-weight="600" fill="#111111">• Stale view_revision? Discard/Retry!</text>
+    <text x="579" y="144" font-size="10.5" fill="#111111">• Search center pixel -&gt; spiral halo</text>
+    <text x="579" y="162" font-size="10.5" fill="#111111">• Decode (owner_id, sub_id) -&gt; Object,</text>
+    <text x="579" y="178" font-size="10.5" fill="#111111">  Face, Edge, or NURBS Control Point</text>
+    <text x="579" y="195" font-size="10.5" fill="#111111">• Shift+Click: ordered selection list</text>
     
 </svg>
 </div>
 
-### Lesson Data Flow (`Rust` → `WebGPU` → `WGSL`)
+## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
 
-```
-source polygon → cached or fan triangles → original face table → original edge endpoints.
-source edge endpoints → placed CSS-width ink → shared coverage → original source addresses.
-mode command → actual cursor readback → current original source target → visible highlight and Selection result.
-```
+Before writing code, review how the three layers in this chapter talk to each other:
 
-- Preserve source faces and edges.
-- Draw original boundary edges consistently.
-- Select and inspect original faces, edges and controls.
-- **Why it works (Is a triangulation diagonal a source edge?):** No. Only the kernel’s original topology supplies editable boundary edges.
-
-### Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `Browser`)
-
-| Layer | Construct | First-Year Student Explanation |
+| Layer | Construct | Plain-English Explanation for Students |
 | :--- | :--- | :--- |
 | **WebGPU (`wgpu`)** | `TextureFormat::Rg32Uint` (`[owner_id, sub_id]`) | Unblended 2-channel 32-bit unsigned integer render target: channel `R` stores object ID and channel `G` stores face/edge/control-point index with zero color quantization. |
 | **WebGPU (`wgpu`)** | `copy_texture_to_buffer` (`COPY_BYTES_PER_ROW_ALIGNMENT = 256`) | Copies only a small cursor crop window into a 256-byte-row-aligned staging buffer for non-blocking `map_async(MapMode::Read)` CPU readback. |
 | **Rust (Picker)** | Ticket `{ pick_id, view_revision }` + Spiral Halo Search | Discards stale readbacks if the camera moved while the GPU was busy, and searches outward from the cursor pixel with priority `Point > Wire > Face`. |
 
-**Production source (`session_viewer/src`):** [engine/gpu/pick.rs](../../../../src/engine/gpu/pick.rs), [app/selection.rs](../../../../src/app/selection.rs), [engine/gpu/faces.rs](../../../../src/engine/gpu/faces.rs), [app/walk/mesh_topology.rs](../../../../src/app/walk/mesh_topology.rs).
+**Authoritative production source (`session_viewer/src`):** [engine/gpu/pick.rs](../../../../src/engine/gpu/pick.rs), [app/selection.rs](../../../../src/app/selection.rs), [engine/gpu/faces.rs](../../../../src/engine/gpu/faces.rs), [app/walk/mesh_topology.rs](../../../../src/app/walk/mesh_topology.rs)
 
-## Implementation Checkpoints
+## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
 
-Apply these checkpoints in order inside `workspace/journey`. Expand each block to view the Rust/WGSL/HTML edits:
+| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
+| ---: | :--- | :--- | :--- | :--- |
+| **1** | [`44-topology`](#checkpoint-44-topology) | Preserve source faces and edges. | `src/mesh_parts.rs`, `src/lib.rs`, `src/mesh.rs`, `src/mesh_parts_tests.rs` | `source polygon → cached or fan triangles → original face table → original edge endpoints` |
+| **2** | [`44a-tags`](#checkpoint-44a-tags) | Tag the kind of a picked part. | `src/sub_id.rs`, `src/pick_sources.rs`, `src/lib.rs`, `src/mesh_parts_tests.rs` | `zero reservation → kind tag → bounded address → checked decoder` |
+| **3** | [`44b-sources`](#checkpoint-44b-sources) | Map visible ink back to original sources. | `src/pick_sources.rs` | `visible rows → original source keys → ordered instance addresses → locked-owner zero` |
+| **4** | [`44c-resolve`](#checkpoint-44c-resolve) | Validate a part against the current source. | `src/selection.rs`, `src/lib.rs`, `src/pick_sources.rs`, `src/pick_sources_tests.rs` | `typed pixel → current owner → bounded table lookup → original part validation` |
+| **5** | [`44d-pulling`](#checkpoint-44d-pulling) | Reuse visible geometry for face identities. | `src/pick_crop.wgsl`, `src/face_pick.wgsl`, `src/gpu_geometry.rs`, `src/gpu_mesh.rs` | `shared position and index buffers → vertex pulling → source polygon address → integer face pixel` |
+| **6** | [`44e-pipeline`](#checkpoint-44e-pipeline) | Create the integer source-face pipeline. | `src/face_pick.rs`, `src/lib.rs` | `view and model settings → source storage bindings → cropped integer face pipeline` |
+| **7** | [`44f-metadata`](#checkpoint-44f-metadata) | Upload only original-face metadata. | `src/face_pick.rs` | `existing geometry → per-triangle face stream → original face base → source-face draw` |
+| **8** | [`44g-edge-ink`](#checkpoint-44g-edge-ink) | Draw original boundary edges consistently. | `src/renderer.rs`, `src/pick_window.rs` | `source edge endpoints → placed CSS-width ink → shared coverage → original source addresses` |
+| **9** | [`44h-mode-gpu`](#checkpoint-44h-mode-gpu) | Pick source parts with visible coverage. | `src/pick_gpu.rs`, `src/pick_encode.rs`, `src/pick_pipeline.rs`, `src/stroke_gpu.rs` | `mode admission → shared crop settings → depth occluders → typed face or ink IDs → original target` |
+| **10** | [`44i-ink-highlight`](#checkpoint-44i-ink-highlight) | Highlight original edges and controls. | `src/highlight.rs`, `src/lib.rs` | `original target → derived display overlay → yellow fringe → unchanged source and history` |
+| **11** | [`44ia-original-ink`](#checkpoint-44ia-original-ink) | Build highlights from original ink targets. | `src/highlight.rs` | `original edge or control → placed source positions → wider yellow overlay → unchanged original ink` |
+| **12** | [`44j-face-highlight`](#checkpoint-44j-face-highlight) | Highlight one original face without recolouring its parent. | `src/highlight.rs`, `src/renderer.rs`, `src/pick_gpu_tests.rs` | `source face key → matching display triangles → read-only selected overlay → black boundary ink` |
+| **13** | [`44k-selection`](#checkpoint-44k-selection) | Keep part selection outside document history. | `src/selection.rs`, `src/editor.rs`, `src/selection_tests.rs`, `src/lib.rs` | `current original target → part selection → whole-object command guard → history-independent presentation` |
+| **14** | [`44l-input`](#checkpoint-44l-input) | Select and inspect original faces, edges and controls. | `src/browser.rs` | `mode command → actual cursor readback → current original source target → visible highlight and Selection result` |
+
+---
+
+## 4. Step-by-Step Coding Notebook (Concept + Implementation)
+
+Work through each notebook cell below in order inside `workspace/journey`. Read the **Concept Walkthrough** and **Self-Check Q&A** first, then expand the **Implementation** block to type and verify the code.
 
 <a id="checkpoint-44-topology"></a>
+
+### Step 1 of 14 · Preserve source faces and edges (`44-topology`)
+
+- **Goal:** Preserve source faces and edges.
+- **Data Flow Trace:** `source polygon → cached or fan triangles → original face table → original edge endpoints`
+- **Files You Touch:** `src/mesh_parts.rs` (*Retain source keys, triangle ownership and original edge endpoints.*) · `src/lib.rs` (*Register the component and copied checks.*) · `src/mesh.rs` (*Attach original topology to prepared display meshes and count its capacity.*) · `src/mesh_parts_tests.rs` (*Copy original face and diagonal checks.*)
+
+A rendered polygon may become several triangles. Retain the original face keys and boundary edges alongside display data.
+
+> **Self-Check Question:** *Is a triangulation diagonal a source edge?*  
+> **Answer:** No. Only the kernel’s original topology supplies editable boundary edges.
+
+- **What You Should See:** Run the source polygon checks; the drawing remains unchanged.
+- **Hands-On Lab Experiment:** Compare cached triangulation with the fan fallback and verify the same original face key.
 
 <details>
 <summary>Implementation 44-topology: Preserve source faces and edges</summary>
@@ -390,6 +460,20 @@ After that block, type:
 
 <a id="checkpoint-44a-tags"></a>
 
+### Step 2 of 14 · Tag the kind of a picked part (`44a-tags`)
+
+- **Goal:** Tag the kind of a picked part.
+- **Data Flow Trace:** `zero reservation → kind tag → bounded address → checked decoder`
+- **Files You Touch:** `src/sub_id.rs` (*Encode source part kinds without zero or tag collisions.*) · `src/pick_sources.rs` (*Define typed targets, modes and bounded source tables.*) · `src/lib.rs` (*Register the component and copied checks.*) · `src/mesh_parts_tests.rs` (*Copy tag boundaries and collision checks.*)
+
+Keep zero reserved and encode a bounded address with its face, edge or control kind. The address is local to one source table.
+
+> **Self-Check Question:** *Can this address replace a saved source key?*  
+> **Answer:** No. It addresses this display snapshot; the source table translates it back to the original key.
+
+- **What You Should See:** Run the boundary and collision checks; object picking stays available.
+- **Hands-On Lab Experiment:** Roundtrip address zero and the largest supported address for every kind.
+
 <details>
 <summary>Implementation 44a-tags: Tag the kind of a picked part</summary>
 
@@ -469,6 +553,20 @@ After that block, append this supplied code:
 
 <a id="checkpoint-44b-sources"></a>
 
+### Step 3 of 14 · Map visible ink back to original sources (`44b-sources`)
+
+- **Goal:** Map visible ink back to original sources.
+- **Data Flow Trace:** `visible rows → original source keys → ordered instance addresses → locked-owner zero`
+- **Files You Touch:** `src/pick_sources.rs` (*Build ordered face, edge, control and GPU owner streams.*)
+
+Build source tables in the same order as the GPU instance lanes. A sampled curve segment still belongs to its original curve.
+
+> **Self-Check Question:** *Why keep the original polyline segment index?*  
+> **Answer:** Removing a zero-length display segment must not renumber the original source segments.
+
+- **What You Should See:** Inspect the table-building code; the inherited drawing and input still work.
+- **Hands-On Lab Experiment:** Trace a polyline with a repeated point and identify which original segment produces ink.
+
 <details>
 <summary>Implementation 44b-sources: Map visible ink back to original sources</summary>
 
@@ -499,6 +597,20 @@ After that block, type:
 </details>
 
 <a id="checkpoint-44c-resolve"></a>
+
+### Step 4 of 14 · Validate a part against the current source (`44c-resolve`)
+
+- **Goal:** Validate a part against the current source.
+- **Data Flow Trace:** `typed pixel → current owner → bounded table lookup → original part validation`
+- **Files You Touch:** `src/selection.rs` (*Check original part ownership and visibility.*) · `src/lib.rs` (*Register the component and copied checks.*) · `src/pick_sources.rs` (*Resolve typed addresses and count source table capacities.*) · `src/pick_sources_tests.rs` (*Copy current-owner, wrong-kind and original segment checks.*)
+
+Decode the kind, check the owner and confirm that the original part still exists in the current visible, unlocked scene.
+
+> **Self-Check Question:** *Does a matching owner make any address valid?*  
+> **Answer:** No. The kind, table bounds and original face, edge or control must match too.
+
+- **What You Should See:** Run current-owner and degenerate-segment checks. Close must invalidate every old target.
+- **Hands-On Lab Experiment:** Try a maximal invalid segment index and a hidden control; both must be refused safely.
 
 <details>
 <summary>Implementation 44c-resolve: Validate a part against the current source</summary>
@@ -601,6 +713,20 @@ After that block, type:
 </details>
 
 <a id="checkpoint-44d-pulling"></a>
+
+### Step 5 of 14 · Reuse visible geometry for face identities (`44d-pulling`)
+
+- **Goal:** Reuse visible geometry for face identities.
+- **Data Flow Trace:** `shared position and index buffers → vertex pulling → source polygon address → integer face pixel`
+- **Files You Touch:** `src/pick_crop.wgsl` (*Define the shared mode crop and original-face shader.*) · `src/face_pick.wgsl` (*Define the shared mode crop and original-face shader.*) · `src/gpu_geometry.rs` (*Expose existing geometry to source-face drawing without another position buffer.*) · `src/gpu_mesh.rs` (*Expose existing geometry to source-face drawing without another position buffer.*) · `src/triangle.wgsl` (*Expose existing geometry to source-face drawing without another position buffer.*)
+
+Read the existing vertex and index buffers in the face shader. One per-triangle metadata value identifies the original polygon.
+
+> **Self-Check Question:** *Why is the face shader non-indexed?*  
+> **Answer:** Each invocation can use its triangle position to read both the original vertex index and that triangle’s source face address.
+
+- **What You Should See:** The inherited mesh keeps the same shape and primary geometry allocation.
+- **Hands-On Lab Experiment:** Check that the shader uses the shared placement helper before applying the cursor crop.
 
 <details>
 <summary>Implementation 44d-pulling: Reuse visible geometry for face identities</summary>
@@ -899,6 +1025,20 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-44e-pipeline"></a>
 
+### Step 6 of 14 · Create the integer source-face pipeline (`44e-pipeline`)
+
+- **Goal:** Create the integer source-face pipeline.
+- **Data Flow Trace:** `view and model settings → source storage bindings → cropped integer face pipeline`
+- **Files You Touch:** `src/face_pick.rs` (*Create the compatible source-face layout and pipeline.*) · `src/lib.rs` (*Register the component and copied checks.*)
+
+Bind existing geometry, per-triangle source addresses and a small face-base uniform. Read-only depth keeps the visible surface authoritative.
+
+> **Self-Check Question:** *Why use read-only depth for face IDs?*  
+> **Answer:** The surface pass establishes occlusion first; source-face IDs must match that depth without moving the visible surface.
+
+- **What You Should See:** The face pipeline validates on the drawing device; object input remains unchanged.
+- **Hands-On Lab Experiment:** Find the four storage-group bindings and identify which buffers contain new data.
+
 <details>
 <summary>Implementation 44e-pipeline: Create the integer source-face pipeline</summary>
 
@@ -941,6 +1081,20 @@ After that block, type:
 
 <a id="checkpoint-44f-metadata"></a>
 
+### Step 7 of 14 · Upload only original-face metadata (`44f-metadata`)
+
+- **Goal:** Upload only original-face metadata.
+- **Data Flow Trace:** `existing geometry → per-triangle face stream → original face base → source-face draw`
+- **Files You Touch:** `src/face_pick.rs` (*Upload bounded face metadata and draw from existing geometry.*)
+
+Keep one small address stream per mesh. Draw source-face IDs from shared positions and indices, then release metadata on a changed scene.
+
+> **Self-Check Question:** *Does each face need another mesh upload?*  
+> **Answer:** No. The face-ID pass shares existing geometry and adds only triangle addresses plus the base uniform.
+
+- **What You Should See:** The copied source-key checks remain green; GPU face integration follows next.
+- **Hands-On Lab Experiment:** Count metadata bytes for a quad made from two triangles: eight address bytes plus sixteen uniform bytes.
+
 <details>
 <summary>Implementation 44f-metadata: Upload only original-face metadata</summary>
 
@@ -973,6 +1127,20 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-44g-edge-ink"></a>
+
+### Step 8 of 14 · Draw original boundary edges consistently (`44g-edge-ink`)
+
+- **Goal:** Draw original boundary edges consistently.
+- **Data Flow Trace:** `source edge endpoints → placed CSS-width ink → shared coverage → original source addresses`
+- **Files You Touch:** `src/renderer.rs` (*Own source tables, visible original-edge ink and mode state.*) · `src/pick_window.rs` (*Rank source-face pixels as surfaces and original edge pixels as ink.*)
+
+Add original mesh boundary edges to the same CSS-width lane as other source ink. Give every visible instance its typed source address.
+
+> **Self-Check Question:** *Should a triangulation diagonal receive outline ink?*  
+> **Answer:** No. The original edge table defines outlines independently of how faces are triangulated.
+
+- **What You Should See:** The drawing now includes black original mesh boundaries. Rendering diagonals stay absent.
+- **Hands-On Lab Experiment:** Compare an original quad boundary with its unoutlined internal rendering diagonal.
 
 <details>
 <summary>Implementation 44g-edge-ink: Draw original boundary edges consistently</summary>
@@ -1605,6 +1773,20 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-44h-mode-gpu"></a>
+
+### Step 9 of 14 · Pick source parts with visible coverage (`44h-mode-gpu`)
+
+- **Goal:** Pick source parts with visible coverage.
+- **Data Flow Trace:** `mode admission → shared crop settings → depth occluders → typed face or ink IDs → original target`
+- **Files You Touch:** `src/pick_gpu.rs` (*Use mode-aware coverage and compatible eighty-byte crop settings.*) · `src/pick_encode.rs` (*Use mode-aware coverage and compatible eighty-byte crop settings.*) · `src/pick_pipeline.rs` (*Use mode-aware coverage and compatible eighty-byte crop settings.*) · `src/stroke_gpu.rs` (*Use mode-aware coverage and compatible eighty-byte crop settings.*) · `src/triangle_pick.wgsl` (*Use mode-aware coverage and compatible eighty-byte crop settings.*) · `src/stroke_pick.wgsl` (*Use mode-aware coverage and compatible eighty-byte crop settings.*) · `src/marker_pick.wgsl` (*Use mode-aware coverage and compatible eighty-byte crop settings.*) · `src/chain_pick.wgsl` (*Use mode-aware coverage and compatible eighty-byte crop settings.*) · `src/renderer.rs` (*Submit source faces and original edge ink in the current mode.*) · `src/pick_gpu_tests.rs` (*Copy actual sparse-key, diagonal and original-control GPU checks.*)
+
+Carry the selected mode through crop settings and filter ink by kind. Draw original face IDs lazily and retain surface occlusion in every mode.
+
+> **Self-Check Question:** *Can a hidden surface expose parts behind it?*  
+> **Answer:** No. All visible surfaces still write depth, even when their object IDs are excluded by the current mode.
+
+- **What You Should See:** Run actual GPU source-face, source-edge and original-control checks. Browser mode commands follow at44l.
+- **Hands-On Lab Experiment:** Pick an original polygon, its boundary and its internal diagonal; only the first two resolve.
 
 <details>
 <summary>Implementation 44h-mode-gpu: Pick source parts with visible coverage</summary>
@@ -2792,6 +2974,20 @@ After that block, append this supplied code:
 
 <a id="checkpoint-44i-ink-highlight"></a>
 
+### Step 10 of 14 · Highlight original edges and controls (`44i-ink-highlight`)
+
+- **Goal:** Highlight original edges and controls.
+- **Data Flow Trace:** `original target → derived display overlay → yellow fringe → unchanged source and history`
+- **Files You Touch:** `src/highlight.rs` (*Own derived overlay lanes, drawing and GPU byte accounting.*) · `src/lib.rs` (*Register the component and copied checks.*)
+
+Keep presentation overlays separate from source geometry. Wider yellow ink surrounds an original black edge or control marker.
+
+> **Self-Check Question:** *Does selecting a part modify its source?*  
+> **Answer:** No. Highlights own derived display data and belong to presentation, outside document history.
+
+- **What You Should See:** Overlay lanes are ready; mode commands and interactive highlights are connected at44l.
+- **Hands-On Lab Experiment:** Identify the original polyline endpoints or curve control used to build each overlay.
+
 <details>
 <summary>Implementation 44i-ink-highlight: Highlight original edges and controls</summary>
 
@@ -2834,6 +3030,20 @@ After that block, type:
 
 <a id="checkpoint-44ia-original-ink"></a>
 
+### Step 11 of 14 · Build highlights from original ink targets (`44ia-original-ink`)
+
+- **Goal:** Build highlights from original ink targets.
+- **Data Flow Trace:** `original edge or control → placed source positions → wider yellow overlay → unchanged original ink`
+- **Files You Touch:** `src/highlight.rs` (*Build original edge, curve and control overlays.*)
+
+Derive a selected edge, whole curve or original control overlay from its source target. Keep the original black ink in its own lane.
+
+> **Self-Check Question:** *Which positions define a polyline edge highlight?*  
+> **Answer:** The endpoints of the original segment, after placement; its source index is not a display-sample index.
+
+- **What You Should See:** The original-target overlay builders are ready; interactive drawing is connected at44l.
+- **Hands-On Lab Experiment:** Trace the selected control index back to its original marker and compare its halo diameter.
+
 <details>
 <summary>Implementation 44ia-original-ink: Build highlights from original ink targets</summary>
 
@@ -2868,6 +3078,20 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-44j-face-highlight"></a>
+
+### Step 12 of 14 · Highlight one original face without recolouring its parent (`44j-face-highlight`)
+
+- **Goal:** Highlight one original face without recolouring its parent.
+- **Data Flow Trace:** `source face key → matching display triangles → read-only selected overlay → black boundary ink`
+- **Files You Touch:** `src/highlight.rs` (*Build a local original-face overlay.*) · `src/renderer.rs` (*Draw read-only highlights before original black ink.*) · `src/pick_gpu_tests.rs` (*Copy actual face, edge and control highlight pixels and release checks.*)
+
+Build a derived overlay from only the triangles belonging to the selected original polygon. Keep source topology and primary geometry shared.
+
+> **Self-Check Question:** *Why is the highlight drawn before original ink?*  
+> **Answer:** The original edge or marker stays visible at the centre while the wider yellow overlay forms a fringe.
+
+- **What You Should See:** The original-face overlay is prepared. The supplied pixel fixture records its local highlight, black edge centres and control halos; browser pick-mode delivery connects in the following lessons.
+- **Hands-On Lab Experiment:** Clear selection and compare the exact pixels with the unselected drawing; Close must release overlays.
 
 <details>
 <summary>Implementation 44j-face-highlight: Highlight one original face without recolouring its parent</summary>
@@ -3561,6 +3785,20 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-44k-selection"></a>
+
+### Step 13 of 14 · Keep part selection outside document history (`44k-selection`)
+
+- **Goal:** Keep part selection outside document history.
+- **Data Flow Trace:** `current original target → part selection → whole-object command guard → history-independent presentation`
+- **Files You Touch:** `src/selection.rs` (*Describe the original selected source part.*) · `src/editor.rs` (*Validate part selection and guard commands that require a whole object.*) · `src/selection_tests.rs` (*Copy selection, command refusal, history and invalid-target checks.*) · `src/lib.rs` (*Register the component and copied checks.*)
+
+Store the original target separately from whole-object selection. A selected part must not silently become a whole-parent Move or Delete.
+
+> **Self-Check Question:** *What should Delete do when only one face is selected?*  
+> **Answer:** At this checkpoint it refuses with a clear instruction to choose Select Object first. Part-edit tools are introduced with their own subjects.
+
+- **What You Should See:** Run the copied selection checks. Undo removes the source insertion rather than undoing a selection click.
+- **Hands-On Lab Experiment:** Select a control, hide controls, then Close; no hidden or closed original target may remain selected.
 
 <details>
 <summary>Implementation 44k-selection: Keep part selection outside document history</summary>
@@ -4314,6 +4552,20 @@ After that block, type:
 </details>
 
 <a id="checkpoint-44l-input"></a>
+
+### Step 14 of 14 · Select and inspect original faces, edges and controls (`44l-input`)
+
+- **Goal:** Select and inspect original faces, edges and controls.
+- **Data Flow Trace:** `mode command → actual cursor readback → current original source target → visible highlight and Selection result`
+- **Files You Touch:** `src/browser.rs` (*Connect typed mode commands, current hits, local overlays and source inspection.*)
+
+Connect Select Object, Select Face, Select Edge, Select Control and Selection to actual GPU hits and local highlights.
+
+> **Self-Check Question:** *How do you know the selected part belongs to the source?*  
+> **Answer:** Selection reports the original face key, endpoint keys, segment index or control index. Display triangles and curve samples never become replacement source identities.
+
+- **What You Should See:** Close; Example Box; Fit; Select Face, then click a face and type Selection. Repeat Select Edge on its boundary. Try Example Curve, Controls On and Select Control.
+- **Hands-On Lab Experiment:** Select a face and try Delete. Then choose Select Object, select the box and Delete; one Undo restores the whole box.
 
 <details>
 <summary>Implementation 44l-input: Select and inspect original faces, edges and controls</summary>
@@ -5373,9 +5625,11 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 </details>
 
-## Run, Check, and Save
+---
 
-From `session_viewer`:
+## 5. Build, Verify, and Save Your Checkpoint
+
+Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 44l-input
@@ -5386,12 +5640,12 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. Use [checkpoint recovery](../../recovery.md) to restore any saved checkpoint.
+Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
 
-## Expected Visual Result & Experiment
+## 6. Lesson Summary & Expected Visual Result
 
 Close; Example Box; Fit; Select Face, then click a face and type Selection. Repeat Select Edge on its boundary. Try Example Curve, Controls On and Select Control.
 
-- **Try this:** Select a face and try Delete. Then choose Select Object, select the box and Delete; one Undo restores the whole box.
+- **Final Lesson Experiment:** Select a face and try Delete. Then choose Select Object, select the box and Delete; one Undo restores the whole box.
 
-Continue with [Ordered multi-selection and atomic edits](45-order.md).
+Continue with [Ordered multi-selection and atomic edits](../../consolidation/45-order.md).

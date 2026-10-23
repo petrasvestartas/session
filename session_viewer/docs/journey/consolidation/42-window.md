@@ -1,91 +1,160 @@
 # 6.1 · A bounded integer picking pass
 
-**Section 4: Screen-Space Ink, Point Markers, NURBS Curves, and GPU Integer Picking** · **Lesson 6.1** (Redraft `4.8`) · **12 checkpoints (`42-window` → `42k-input`)**
+**Section 4: Screen-Space Ink, Point Markers, NURBS Curves, and GPU Integer Picking** · **Lesson 6.1** (Redraft `4.8`) · **12 checkpoints (`42-window` → `42k-input`)** · **Study time: 6–12 h**
 
-> **Learning Goal:** Bound picking work around the cursor independently of the canvas size.
+> **What You Will Learn & Build:** Bound picking work around the cursor independently of the canvas size. By the final checkpoint (`42k-input`), you will connect real canvas input to bounded integer GPU picking for meshes and ink.
 
-## Visual WebGPU & Architecture Schematic
+## 1. Visual Pipeline & WebGPU Architecture (Black & White Schematics)
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1px solid #cbd5e1;border-radius:10px;background:#f8fafc;">
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
+<svg viewBox="0 0 840 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <rect x="4" y="4" width="832" height="212" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Lesson 6.1 Execution Flow: A bounded integer picking pass</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">Concrete data pipeline you build in this lesson (12 Checkpoints: 42-window → 42k-input)</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
+  
+    
+    <rect x="18" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="89" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
+    <line x1="28" y1="92" x2="151" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">cursor and density</text>
+    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="183" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="254" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
+    <line x1="193" y1="92" x2="316" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">clipped window and</text>
+    <text x="254" y="124" text-anchor="middle" font-size="11" fill="#111111">halo</text>
+    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="348" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="419" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
+    <line x1="358" y1="92" x2="481" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">crop matrix</text>
+    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="513" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="584" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
+    <line x1="523" y1="92" x2="646" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">padded integer</text>
+    <text x="584" y="124" text-anchor="middle" font-size="11" fill="#111111">image</text>
+    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="678" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="749" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
+    <line x1="688" y1="92" x2="811" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">nearest visible</text>
+    <text x="749" y="124" text-anchor="middle" font-size="11" fill="#111111">owner</text>
+    
+    <rect x="18" y="162" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="32" y="181" font-size="11" font-weight="700" fill="#111111">Files You Edit in Lesson 6.1:</text>
+    <text x="215" y="181" font-size="11" fill="#111111">src/pick_window.rs  ·  src/lib.rs  ·  src/pick_window_tests.rs  ·  src/gpu_layout.rs  ·  src/gpu_mesh.rs  ·  src/triangle.wgsl</text>
+    <text x="32" y="198" font-size="10.5" fill="#111111">12 Checkpoints: 42-window → 42k-input — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
+  
+</svg>
+</div>
+
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
 <svg viewBox="0 0 840 240" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#475569"/>
-    </marker>
-    <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#2563eb"/>
-    </marker>
-    <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#059669"/>
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
     </marker>
   </defs>
-  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
-  <text x="20" y="28" font-size="14" font-weight="700" fill="#0f172a">Chapter 6 WebGPU Integer Picking: Cropped Rg32Uint Offscreen Pass & Async Staging Buffer Readback</text>
-  <text x="20" y="46" font-size="11.5" fill="#475569">How the GPU identifies exact sub-elements (Face, Edge, Control Point) under the cursor without color-picking precision loss.</text>
-  <line x1="16" y1="54" x2="824" y2="54" stroke="#e2e8f0" stroke-width="1"/>
+  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Chapter 6 WebGPU Integer Picking: Cropped Rg32Uint Offscreen Pass & Async Staging Buffer Readback</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">How the GPU identifies exact sub-elements (Face, Edge, Control Point) under the cursor without color-picking precision loss.</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
   
-    <rect x="18" y="68" width="205" height="145" rx="6" fill="#fdf2f8" stroke="#f472b6" stroke-width="1.5"/>
-    <text x="120" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#9d174d">1. Cursor Crop Window</text>
-    <text x="28" y="108" font-size="10.5" fill="#831843">• Cursor at (px, py), radius R</text>
-    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#9d174d">• Target: TextureFormat::Rg32Uint</text>
-    <text x="28" y="142" font-size="10" fill="#831843">  Channel R = owner_id (u32)</text>
-    <text x="28" y="157" font-size="10" fill="#831843">  Channel G = sub_id (Face/Edge/CP)</text>
-    <text x="28" y="176" font-size="10.5" fill="#831843">• Priority: Point Glyph &gt; Wire Edge</text>
-    <text x="28" y="192" font-size="10.5" fill="#831843">  &gt; Surface Face (Depth32Float)</text>
+    <rect x="18" y="68" width="205" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="120" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">1. Cursor Crop Window</text>
+    <text x="28" y="108" font-size="10.5" fill="#111111">• Cursor at (px, py), radius R</text>
+    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#111111">• Target: TextureFormat::Rg32Uint</text>
+    <text x="28" y="142" font-size="10" fill="#111111">  Channel R = owner_id (u32)</text>
+    <text x="28" y="157" font-size="10" fill="#111111">  Channel G = sub_id (Face/Edge/CP)</text>
+    <text x="28" y="176" font-size="10.5" fill="#111111">• Priority: Point Glyph &gt; Wire Edge</text>
+    <text x="28" y="192" font-size="10.5" fill="#111111">  &gt; Surface Face (Depth32Float)</text>
 
-    <line x1="223" y1="138" x2="253" y2="138" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
+    <line x1="223" y1="138" x2="253" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="255" y="68" width="280" height="145" rx="6" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
-    <text x="395" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1e40af">2. 256-Byte Aligned Staging Copy</text>
-    <text x="267" y="108" font-size="10.5" fill="#1e3a8a">• WebGPU rule: bytes_per_row MUST be</text>
-    <text x="267" y="124" font-size="10.5" font-weight="600" fill="#1d4ed8">  a multiple of 256 (COPY_BYTES_PER_ROW)</text>
-    <text x="267" y="144" font-size="10.5" fill="#1e3a8a">• encoder.copy_texture_to_buffer(...)</text>
-    <text x="267" y="162" font-size="10.5" fill="#1e3a8a">• Stamp request with Ticket:</text>
-    <text x="267" y="178" font-size="10" font-weight="600" fill="#1e40af">  { pick_id, view_revision, shift_mode }</text>
-    <text x="267" y="195" font-size="10" fill="#1e3a8a">• Coalesce bursts into 1 in-flight map_async</text>
+    <rect x="255" y="68" width="280" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="395" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">2. 256-Byte Aligned Staging Copy</text>
+    <text x="267" y="108" font-size="10.5" fill="#111111">• WebGPU rule: bytes_per_row MUST be</text>
+    <text x="267" y="124" font-size="10.5" font-weight="600" fill="#111111">  a multiple of 256 (COPY_BYTES_PER_ROW)</text>
+    <text x="267" y="144" font-size="10.5" fill="#111111">• encoder.copy_texture_to_buffer(...)</text>
+    <text x="267" y="162" font-size="10.5" fill="#111111">• Stamp request with Ticket:</text>
+    <text x="267" y="178" font-size="10" font-weight="600" fill="#111111">  { pick_id, view_revision, shift_mode }</text>
+    <text x="267" y="195" font-size="10" fill="#111111">• Coalesce bursts into 1 in-flight map_async</text>
 
-    <line x1="535" y1="138" x2="565" y2="138" stroke="#059669" stroke-width="2" marker-end="url(#arrow-green)"/>
+    <line x1="535" y1="138" x2="565" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="567" y="68" width="253" height="145" rx="6" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1.5"/>
-    <text x="693" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#065f46">3. Spiral Search &amp; Sub-Selection</text>
-    <text x="579" y="108" font-size="10.5" fill="#064e3b">• buffer.map_async(MapMode::Read).await</text>
-    <text x="579" y="126" font-size="10.5" font-weight="600" fill="#047857">• Stale view_revision? Discard/Retry!</text>
-    <text x="579" y="144" font-size="10.5" fill="#064e3b">• Search center pixel -&gt; spiral halo</text>
-    <text x="579" y="162" font-size="10.5" fill="#064e3b">• Decode (owner_id, sub_id) -&gt; Object,</text>
-    <text x="579" y="178" font-size="10.5" fill="#064e3b">  Face, Edge, or NURBS Control Point</text>
-    <text x="579" y="195" font-size="10.5" fill="#064e3b">• Shift+Click: ordered selection list</text>
+    <rect x="567" y="68" width="253" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="693" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">3. Spiral Search &amp; Sub-Selection</text>
+    <text x="579" y="108" font-size="10.5" fill="#111111">• buffer.map_async(MapMode::Read).await</text>
+    <text x="579" y="126" font-size="10.5" font-weight="600" fill="#111111">• Stale view_revision? Discard/Retry!</text>
+    <text x="579" y="144" font-size="10.5" fill="#111111">• Search center pixel -&gt; spiral halo</text>
+    <text x="579" y="162" font-size="10.5" fill="#111111">• Decode (owner_id, sub_id) -&gt; Object,</text>
+    <text x="579" y="178" font-size="10.5" fill="#111111">  Face, Edge, or NURBS Control Point</text>
+    <text x="579" y="195" font-size="10.5" fill="#111111">• Shift+Click: ordered selection list</text>
     
 </svg>
 </div>
 
-### Lesson Data Flow (`Rust` → `WebGPU` → `WGSL`)
+## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
 
-```
-cursor and density → clipped window and halo → crop matrix → padded integer image → nearest visible owner.
-original vertices and indices → model placement → cropped camera → surface depth → RG32Uint owner.
-canvas click → bounded request → current integer owner → checked scene identity → selection outside history.
-```
+Before writing code, review how the three layers in this chapter talk to each other:
 
-- Bound picking work around the cursor independently of the canvas size.
-- Use original mesh buffers and placements for exact visible owner IDs.
-- Connect real canvas input to bounded integer GPU picking for meshes and ink.
-- **Why it works (Why read a small window instead of the whole canvas?):** A six-CSS-pixel tolerance needs only nearby pixels. A bounded physical radius limits allocation and readback even for a large drawing.
-
-### Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `Browser`)
-
-| Layer | Construct | First-Year Student Explanation |
+| Layer | Construct | Plain-English Explanation for Students |
 | :--- | :--- | :--- |
 | **WebGPU (`wgpu`)** | `TextureFormat::Rg32Uint` (`[owner_id, sub_id]`) | Unblended 2-channel 32-bit unsigned integer render target: channel `R` stores object ID and channel `G` stores face/edge/control-point index with zero color quantization. |
 | **WebGPU (`wgpu`)** | `copy_texture_to_buffer` (`COPY_BYTES_PER_ROW_ALIGNMENT = 256`) | Copies only a small cursor crop window into a 256-byte-row-aligned staging buffer for non-blocking `map_async(MapMode::Read)` CPU readback. |
 | **Rust (Picker)** | Ticket `{ pick_id, view_revision }` + Spiral Halo Search | Discards stale readbacks if the camera moved while the GPU was busy, and searches outward from the cursor pixel with priority `Point > Wire > Face`. |
 
-**Production source (`session_viewer/src`):** [engine/gpu/pick.rs](../../../src/engine/gpu/pick.rs), [app/selection.rs](../../../src/app/selection.rs), [engine/gpu/faces.rs](../../../src/engine/gpu/faces.rs), [app/walk/mesh_topology.rs](../../../src/app/walk/mesh_topology.rs).
+**Authoritative production source (`session_viewer/src`):** [engine/gpu/pick.rs](../../../src/engine/gpu/pick.rs), [app/selection.rs](../../../src/app/selection.rs), [engine/gpu/faces.rs](../../../src/engine/gpu/faces.rs), [app/walk/mesh_topology.rs](../../../src/app/walk/mesh_topology.rs)
 
-## Implementation Checkpoints
+## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
 
-Apply these checkpoints in order inside `workspace/journey`. Expand each block to view the Rust/WGSL/HTML edits:
+| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
+| ---: | :--- | :--- | :--- | :--- |
+| **1** | [`42-window`](#checkpoint-42-window) | Bound picking work around the cursor independently of the canvas size. | `src/pick_window.rs`, `src/lib.rs`, `src/pick_window_tests.rs` | `cursor and density → clipped window and halo → crop matrix → padded integer image → nearest visible owner` |
+| **2** | [`42a-id`](#checkpoint-42a-id) | Share explicit uniform layouts between visible drawing and integer picking. | `src/gpu_layout.rs`, `src/lib.rs`, `src/gpu_mesh.rs`, `src/triangle.wgsl` | `checked scene identity → uint settings → shared layouts → unchanged visible drawing` |
+| **3** | [`42b-ink`](#checkpoint-42b-ink) | Use the same marker and stroke geometry in visible and ID shaders. | `src/stroke.wgsl`, `src/marker.wgsl`, `src/stroke_pick.wgsl`, `src/marker_pick.wgsl` | `shared geometry helper → shared coverage helper → cropped ID output → exact owner stream` |
+| **4** | [`42c-path`](#checkpoint-42c-path) | Keep joined strokes and shaped arrowheads consistent in both passes. | `src/chain.wgsl`, `src/chain_pick.wgsl` | `source neighbours and heads → shared connected geometry → shared shaped coverage → integer hit` |
+| **5** | [`42d-owners`](#checkpoint-42d-owners) | Keep picking identities separate from display coordinates and GPU geometry. | `src/stroke_gpu.rs`, `src/renderer.rs`, `src/scene.rs`, `src/editor.rs` | `visible source rows → ordered owner records → checked instance counts → changed-ID buffer` |
+| **6** | [`42e-pass`](#checkpoint-42e-pass) | Add integer pipelines without another geometry upload. | `src/stroke_gpu.rs` | `shared view layout → uint instance stream → same vertex buffer → cropped ID pass` |
+| **7** | [`42f-mesh`](#checkpoint-42f-mesh) | Use original mesh buffers and placements for exact visible owner IDs. | `src/triangle_pick.wgsl`, `src/pick_pipeline.rs`, `src/lib.rs` | `original vertices and indices → model placement → cropped camera → surface depth → RG32Uint owner` |
+| **8** | [`42g-image`](#checkpoint-42g-image) | Allocate bounded picking resources with checked padded rows. | `src/pick_image.rs`, `src/lib.rs` | `bounded draw extent → integer texture and depth → aligned readback capacity` |
+| **9** | [`42h-owner`](#checkpoint-42h-owner) | Own one active request and one latest pending cursor. | `src/pick_gpu.rs`, `src/lib.rs` | `request snapshot → one active map → one latest pending request → owner cancellation` |
+| **10** | [`42i-copy`](#checkpoint-42i-copy) | Submit surfaces and ink to a bounded image before copying its cursor region. | `src/pick_encode.rs`, `src/lib.rs` | `mesh depth → visible ink → halo render → cursor-only aligned copy` |
+| **11** | [`42j-read`](#checkpoint-42j-read) | Read completed GPU bytes asynchronously and reuse bounded resources. | `src/pick_gpu.rs`, `src/browser_pick.rs`, `src/lib.rs` | `submitted draw/copy → map callback → readiness flag → decode and unmap → owner wake` |
+| **12** | [`42k-input`](#checkpoint-42k-input) | Connect real canvas input to bounded integer GPU picking for meshes and ink. | `src/renderer.rs`, `src/editor.rs`, `src/browser.rs`, `src/pick_input_tests.rs` | `canvas click → bounded request → current integer owner → checked scene identity → selection outside history` |
+
+---
+
+## 4. Step-by-Step Coding Notebook (Concept + Implementation)
+
+Work through each notebook cell below in order inside `workspace/journey`. Read the **Concept Walkthrough** and **Self-Check Q&A** first, then expand the **Implementation** block to type and verify the code.
 
 <a id="checkpoint-42-window"></a>
+
+### Step 1 of 12 · Bound the cursor image and decode a hit (`42-window`)
+
+- **Goal:** Bound picking work around the cursor independently of the canvas size.
+- **Data Flow Trace:** `cursor and density → clipped window and halo → crop matrix → padded integer image → nearest visible owner`
+- **Files You Touch:** `src/pick_window.rs` (*Bound the cursor window and decode exact integer owners.*) · `src/lib.rs` (*Register the new picking component.*) · `src/pick_window_tests.rs` (*Copy the focused checks.*)
+
+Prepare the cursor window, preserving the main view’s homogeneous depth. Decode integer owners inside a circular tolerance and skip row padding.
+
+> **Self-Check Question:** *Why read a small window instead of the whole canvas?*  
+> **Answer:** A six-CSS-pixel tolerance needs only nearby pixels. A bounded physical radius limits allocation and readback even for a large drawing.
+
+- **What You Should See:** Run the window checks. No new picking behavior appears in the viewer yet.
+- **Hands-On Lab Experiment:** Compare the window at DPR1 and2, a canvas corner and a one-pixel canvas.
 
 <details>
 <summary>Implementation 42-window: Bound the cursor image and decode a hit</summary>
@@ -166,6 +235,20 @@ After that block, type:
 </details>
 
 <a id="checkpoint-42a-id"></a>
+
+### Step 2 of 12 · Keep exact object IDs in shared GPU settings (`42a-id`)
+
+- **Goal:** Share explicit uniform layouts between visible drawing and integer picking.
+- **Data Flow Trace:** `checked scene identity → uint settings → shared layouts → unchanged visible drawing`
+- **Files You Touch:** `src/gpu_layout.rs` (*Share explicit uniform bindings between draw passes.*) · `src/lib.rs` (*Register the new picking component.*) · `src/gpu_mesh.rs` (*Preserve exact IDs and the current visible drawing policy.*) · `src/triangle.wgsl` (*Preserve exact IDs and the current visible drawing policy.*) · `src/chain.rs` (*Preserve exact IDs and the current visible drawing policy.*) · `src/scene.rs` (*Resolve only current visible, unlocked object rows.*) · `src/renderer.rs` (*Use the same explicit mesh settings layout for both drawing passes.*)
+
+Store object IDs as integers and keep zero for a miss or a locked occluder. Resolve IDs against currently visible, unlocked source rows.
+
+> **Self-Check Question:** *Why can an object ID not be stored as a float?*  
+> **Answer:** Single-precision floats cannot represent every u32. For example16,777,217 rounds to a different number, which could select another row.
+
+- **What You Should See:** Run the checks and use View Normals On and Off. Existing mesh selection still highlights correctly.
+- **Hands-On Lab Experiment:** Use Select Next and Delete, then Undo; the source row must return with the same identity.
 
 <details>
 <summary>Implementation 42a-id: Keep exact object IDs in shared GPU settings</summary>
@@ -956,6 +1039,20 @@ Edit the existing block to match this code; keep unchanged lines:
 
 <a id="checkpoint-42b-ink"></a>
 
+### Step 3 of 12 · Share point and stroke coverage with picking (`42b-ink`)
+
+- **Goal:** Use the same marker and stroke geometry in visible and ID shaders.
+- **Data Flow Trace:** `shared geometry helper → shared coverage helper → cropped ID output → exact owner stream`
+- **Files You Touch:** `src/stroke.wgsl` (*Share the existing geometry and coverage calculations.*) · `src/marker.wgsl` (*Share the existing geometry and coverage calculations.*) · `src/stroke_pick.wgsl` (*Output an integer owner only where ink is visible.*) · `src/marker_pick.wgsl` (*Output an integer owner only where ink is visible.*)
+
+Extract the existing point and stroke calculations into helpers. Add integer outputs that crop positions after CSS-sized geometry is formed.
+
+> **Self-Check Question:** *Why must picking share the visible ink shape?*  
+> **Answer:** A bounding rectangle would select invisible point corners and stroke fringes. The ID fragment discards pixels with zero visible coverage.
+
+- **What You Should See:** Run the viewer and check existing points and strokes. The ID entry points are ready for the next draw-pass wiring.
+- **Hands-On Lab Experiment:** Create Example Point and Example Line, then zoom and change projection; the visible widths must stay stable.
+
 <details>
 <summary>Implementation 42b-ink: Share point and stroke coverage with picking</summary>
 
@@ -1197,6 +1294,20 @@ Create the file and type:
 
 <a id="checkpoint-42c-path"></a>
 
+### Step 4 of 12 · Pick connected paths and arrowheads with their drawn shape (`42c-path`)
+
+- **Goal:** Keep joined strokes and shaped arrowheads consistent in both passes.
+- **Data Flow Trace:** `source neighbours and heads → shared connected geometry → shared shaped coverage → integer hit`
+- **Files You Touch:** `src/chain.wgsl` (*Share connected geometry and shaped coverage.*) · `src/chain_pick.wgsl` (*Return owners from the visible connected ink.*)
+
+Reuse the connected shader’s join, clipping and arrowhead calculations. Add exact owner output while preserving all interpolation rules.
+
+> **Self-Check Question:** *Why is an arrowhead more than its enclosing quad?*  
+> **Answer:** The quad includes empty corners. Shared coverage clips those corners and the base while retaining the actual visible tip.
+
+- **What You Should See:** Run the viewer and use Example Polyline and Example Arrow. Their existing appearance is unchanged.
+- **Hands-On Lab Experiment:** Zoom in on an arrow tip and a polyline bend in both projections.
+
 <details>
 <summary>Implementation 42c-path: Pick connected paths and arrowheads with their drawn shape</summary>
 
@@ -1423,6 +1534,22 @@ Create the file and type:
 </details>
 
 <a id="checkpoint-42d-owners"></a>
+
+### Step 5 of 12 · Attach original owners to visible ink instances (`42d-owners`)
+
+- **Goal:** Keep picking identities separate from display coordinates and GPU geometry.
+- **Data Flow Trace:** `visible source rows → ordered owner records → checked instance counts → changed-ID buffer`
+- **Files You Touch:** `src/stroke_gpu.rs` (*Validate and cache original owners separately from display data.*) · `src/renderer.rs` (*Match every visible instance to its source owner in the same order.*) · `src/scene.rs` (*Remove a selected original row of any current geometry kind.*) · `src/editor.rs` (*Delete ink rows while preserving the existing cold-mesh source guard.*) · `src/edit_intent.rs` (*Let original ink deletion proceed without requesting mesh rehydration.*)
+
+Build one owner record per visible instance, repeating path owners per segment and resolving control markers to their original parent.
+
+Move and Delete share the no-fetch gate for an already loaded non-mesh row. Reload keys belong to released source owners; they are not a requirement that every movable row be a mesh.
+
+> **Self-Check Question:** *Why cache IDs separately from display bytes?*  
+> **Answer:** Two rows may share identical coordinates while owning different identities. Unchanged display bytes cannot prove unchanged ownership.
+
+- **What You Should See:** Run the checks and inspect points, paths and controls. Owner buffers now match their displayed instance order.
+- **Hands-On Lab Experiment:** Create a curve and enable its controls; each marker must retain its original curve parent.
 
 <details>
 <summary>Implementation 42d-owners: Attach original owners to visible ink instances</summary>
@@ -2335,6 +2462,20 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-42e-pass"></a>
 
+### Step 6 of 12 · Draw integer ink with the shared geometry buffers (`42e-pass`)
+
+- **Goal:** Add integer pipelines without another geometry upload.
+- **Data Flow Trace:** `shared view layout → uint instance stream → same vertex buffer → cropped ID pass`
+- **Files You Touch:** `src/stroke_gpu.rs` (*Reuse visible geometry in the integer ink pass.*)
+
+Create explicit ink layouts and integer pipelines. Bind the existing geometry and the owner stream together in the ID pass.
+
+> **Self-Check Question:** *What is uploaded twice when the ID pass is added?*  
+> **Answer:** Only small owner records are separate. Positions and prepared geometry remain in the existing buffers used by visible drawing.
+
+- **What You Should See:** Run the checks and navigate the drawing. The ID pipelines are ready; canvas input still follows the existing path.
+- **Hands-On Lab Experiment:** Compare geometry uploads before and after zooming; view changes must reuse the existing buffers.
+
 <details>
 <summary>Implementation 42e-pass: Draw integer ink with the shared geometry buffers</summary>
 
@@ -2706,6 +2847,20 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-42f-mesh"></a>
 
+### Step 7 of 12 · Draw depth-tested mesh owners into an integer attachment (`42f-mesh`)
+
+- **Goal:** Use original mesh buffers and placements for exact visible owner IDs.
+- **Data Flow Trace:** `original vertices and indices → model placement → cropped camera → surface depth → RG32Uint owner`
+- **Files You Touch:** `src/triangle_pick.wgsl` (*Draw exact mesh owners at the original placed depth.*) · `src/pick_pipeline.rs` (*Create the integer mesh attachment and shared bindings.*) · `src/lib.rs` (*Register the new picking component.*)
+
+Add a mesh ID pipeline with the same vertex layouts, placements and opaque depth policy as visible surface drawing.
+
+> **Self-Check Question:** *Why keep normal surface depth in the ID pass?*  
+> **Answer:** Without depth, a hidden face drawn later could replace the front owner. The ID image must represent visible geometry.
+
+- **What You Should See:** Run the viewer and check existing mesh colors and normals. The mesh ID pipeline is ready.
+- **Hands-On Lab Experiment:** Select a mesh and toggle normal view; the original placement and geometry must remain intact.
+
 <details>
 <summary>Implementation 42f-mesh: Draw depth-tested mesh owners into an integer attachment</summary>
 
@@ -2758,6 +2913,20 @@ After that block, type:
 
 <a id="checkpoint-42g-image"></a>
 
+### Step 8 of 12 · Own a small ID image, depth target and readback buffer (`42g-image`)
+
+- **Goal:** Allocate bounded picking resources with checked padded rows.
+- **Data Flow Trace:** `bounded draw extent → integer texture and depth → aligned readback capacity`
+- **Files You Touch:** `src/pick_image.rs` (*Allocate only the bounded target and padded readback.*) · `src/lib.rs` (*Register the new picking component.*)
+
+Own the integer image, depth attachment and staging buffer together. Their sizes follow the cursor window rather than the whole canvas.
+
+> **Self-Check Question:** *Why does the readback buffer exceed width times height times eight?*  
+> **Answer:** Each copied row must align to256bytes. Padding belongs to the transfer layout and must never be interpreted as additional pixels.
+
+- **What You Should See:** Run the checks. The bounded image allocator is ready and does not change visible drawing.
+- **Hands-On Lab Experiment:** Calculate the readback bytes for DPR1 and2 using the window checks.
+
 <details>
 <summary>Implementation 42g-image: Own a small ID image, depth target and readback buffer</summary>
 
@@ -2799,6 +2968,20 @@ After that block, type:
 </details>
 
 <a id="checkpoint-42h-owner"></a>
+
+### Step 9 of 12 · Bound asynchronous picking ownership (`42h-owner`)
+
+- **Goal:** Own one active request and one latest pending cursor.
+- **Data Flow Trace:** `request snapshot → one active map → one latest pending request → owner cancellation`
+- **Files You Touch:** `src/pick_gpu.rs` (*Own bounded requests and release them on cancellation.*) · `src/lib.rs` (*Register the new picking component.*)
+
+Own picking uniforms and bounded requests independently of the source geometry. Cancellation releases the image and prevents its result from being adopted.
+
+> **Self-Check Question:** *Why keep only the latest pending cursor?*  
+> **Answer:** Old intermediate cursors do not help the learner. Coalescing bounds the queue while input continues to update.
+
+- **What You Should See:** Run the checks. Request ownership is prepared; no asynchronous pick is submitted yet.
+- **Hands-On Lab Experiment:** Compare repeated requests with the one-active, one-pending bound.
 
 <details>
 <summary>Implementation 42h-owner: Bound asynchronous picking ownership</summary>
@@ -2842,6 +3025,20 @@ After that block, type:
 
 <a id="checkpoint-42i-copy"></a>
 
+### Step 10 of 12 · Record the ID draw and aligned image copy (`42i-copy`)
+
+- **Goal:** Submit surfaces and ink to a bounded image before copying its cursor region.
+- **Data Flow Trace:** `mesh depth → visible ink → halo render → cursor-only aligned copy`
+- **Files You Touch:** `src/pick_encode.rs` (*Record depth-correct IDs and copy the bounded cursor region.*) · `src/lib.rs` (*Register the new picking component.*)
+
+Record the same placed geometry into the integer image. End the render pass, then copy only the cursor window into aligned rows.
+
+> **Self-Check Question:** *Why draw a halo but copy a smaller region?*  
+> **Answer:** The halo preserves nearby rasterization support. Only pixels inside the cursor window are needed to choose the hit.
+
+- **What You Should See:** Run the checks. ID recording and copy are prepared; the next step connects asynchronous mapping.
+- **Hands-On Lab Experiment:** Follow the encoder scope: its render-pass borrow must end before the texture copy and encoder finish.
+
 <details>
 <summary>Implementation 42i-copy: Record the ID draw and aligned image copy</summary>
 
@@ -2883,6 +3080,20 @@ After that block, type:
 </details>
 
 <a id="checkpoint-42j-read"></a>
+
+### Step 11 of 12 · Map the integer hit without blocking browser input (`42j-read`)
+
+- **Goal:** Read completed GPU bytes asynchronously and reuse bounded resources.
+- **Data Flow Trace:** `submitted draw/copy → map callback → readiness flag → decode and unmap → owner wake`
+- **Files You Touch:** `src/pick_gpu.rs` (*Map asynchronously and decode only completed bytes.*) · `src/browser_pick.rs` (*Wake the browser owner when GPU mapping completes.*) · `src/lib.rs` (*Register the browser-only completion wakeup.*)
+
+Submit bounded draw work and request asynchronous mapping. Read, decode and unmap completed bytes; wake only the owning live runtime.
+
+> **Self-Check Question:** *Why must the browser not wait synchronously for mapping?*  
+> **Answer:** A synchronous wait stalls input and rendering. The callback signals completion, and the owning event handler reads only when mapping is ready.
+
+- **What You Should See:** Run the checks. GPU mapping and completion wakeup are prepared; real canvas input follows next.
+- **Hands-On Lab Experiment:** Trace successful mapping, failed mapping and cancellation; every path must leave the next request usable.
 
 <details>
 <summary>Implementation 42j-read: Map the integer hit without blocking browser input</summary>
@@ -3103,6 +3314,20 @@ After that block, type:
 </details>
 
 <a id="checkpoint-42k-input"></a>
+
+### Step 12 of 12 · Select original rows through actual GPU canvas clicks (`42k-input`)
+
+- **Goal:** Connect real canvas input to bounded integer GPU picking for meshes and ink.
+- **Data Flow Trace:** `canvas click → bounded request → current integer owner → checked scene identity → selection outside history`
+- **Files You Touch:** `src/renderer.rs` (*Queue bounded GPU requests and reuse the visible geometry.*) · `src/editor.rs` (*Resolve accepted picks without changing document history.*) · `src/browser.rs` (*Route actual clicks and completion events through the owning renderer.*) · `src/pick_input_tests.rs` (*Copy current-row resolution and history checks.*) · `src/lib.rs` (*Register the copied input checks.*) · `src/pick_gpu_tests.rs` (*Copy actual GPU depth, ink, density, bounded work and cancellation checks.*) · `src/scene.rs` (*Register actual GPU checks with private checked scene IDs.*)
+
+Route actual canvas clicks through asynchronous GPU picking. Resolve the returned integer to the current original row and update selection without adding a history transaction.
+
+> **Self-Check Question:** *What should happen to a result when a newer cursor is queued?*  
+> **Answer:** The older result is discarded. The next request uses the latest cursor, and selection is applied only after its own readback completes.
+
+- **What You Should See:** Close, create Example Point, click it and Delete. Undo restores it; click a blank area to clear selection.
+- **Hands-On Lab Experiment:** Try points, lines, polylines, arrows and curve controls in both projections. Zooming must not upload their geometry again.
 
 <details>
 <summary>Implementation 42k-input: Select original rows through actual GPU canvas clicks</summary>
@@ -4985,9 +5210,11 @@ After that block, type:
 
 </details>
 
-## Run, Check, and Save
+---
 
-From `session_viewer`:
+## 5. Build, Verify, and Save Your Checkpoint
+
+Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 42k-input
@@ -4998,12 +5225,12 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. Use [checkpoint recovery](../recovery.md) to restore any saved checkpoint.
+Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../recovery.md) to save or restore any checkpoint ID.
 
-## Expected Visual Result & Experiment
+## 6. Lesson Summary & Expected Visual Result
 
 Close, create Example Point, click it and Delete. Undo restores it; click a blank area to clear selection.
 
-- **Try this:** Try points, lines, polylines, arrows and curve controls in both projections. Zooming must not upload their geometry again.
+- **Final Lesson Experiment:** Try points, lines, polylines, arrows and curve controls in both projections. Zooming must not upload their geometry again.
 
 Continue with [Accept a hit only for its current view](43-ticket.md).

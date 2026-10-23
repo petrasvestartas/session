@@ -1,91 +1,182 @@
 # 7.6 · Handles, numeric edits and source-part deformation
 
-**Section 5: Interactive Drawing, Snapping, Gumball Handles, and Scene Hierarchy** · **Lesson 7.6** (Redraft `5.6`) · **34 checkpoints (`51-handles` → `51zf-handles`)**
+**Section 5: Interactive Drawing, Snapping, Gumball Handles, and Scene Hierarchy** · **Lesson 7.6** (Redraft `5.6`) · **34 checkpoints (`51-handles` → `51zf-handles`)** · **Study time: 17–34 h**
 
-> **Learning Goal:** Name move, rotation and scale handles.
+> **What You Will Learn & Build:** Name move, rotation and scale handles. By the final checkpoint (`51zf-handles`), you will verify complete handle editing and input.
 
-## Visual WebGPU & Architecture Schematic
+## 1. Visual Pipeline & WebGPU Architecture (Black & White Schematics)
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1px solid #cbd5e1;border-radius:10px;background:#f8fafc;">
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
+<svg viewBox="0 0 840 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <rect x="4" y="4" width="832" height="212" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Lesson 7.6 Execution Flow: Handles, numeric edits and source-part deformation</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">Concrete data pipeline you build in this lesson (34 Checkpoints: 51-handles → 51zf-handles)</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
+  
+    
+    <rect x="18" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="89" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
+    <line x1="28" y1="92" x2="151" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">handle and axis</text>
+    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="183" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="254" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
+    <line x1="193" y1="92" x2="316" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">title and units</text>
+    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="348" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="419" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
+    <line x1="358" y1="92" x2="481" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">validated numeric</text>
+    <text x="419" y="124" text-anchor="middle" font-size="11" fill="#111111">answer</text>
+    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="513" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="584" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
+    <line x1="523" y1="92" x2="646" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">selection and</text>
+    <text x="584" y="124" text-anchor="middle" font-size="11" fill="#111111">current camera</text>
+    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="678" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="749" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
+    <line x1="688" y1="92" x2="811" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">handle or numeric</text>
+    <text x="749" y="124" text-anchor="middle" font-size="11" fill="#111111">input</text>
+    
+    <rect x="18" y="162" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="32" y="181" font-size="11" font-weight="700" fill="#111111">Files You Edit in Lesson 7.6:</text>
+    <text x="215" y="181" font-size="11" fill="#111111">src/gizmo.rs  ·  src/lib.rs  ·  src/gizmo_tests.rs  ·  src/widget_mesh.rs  ·  src/widget_layout.rs  ·  src/widget.wgsl</text>
+    <text x="32" y="198" font-size="10.5" fill="#111111">34 Checkpoints: 51-handles → 51zf-handles — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
+  
+</svg>
+</div>
+
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
 <svg viewBox="0 0 840 240" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#475569"/>
-    </marker>
-    <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#2563eb"/>
-    </marker>
-    <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#059669"/>
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
     </marker>
   </defs>
-  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
-  <text x="20" y="28" font-size="14" font-weight="700" fill="#0f172a">Chapter 7 Interactive CAD Manipulation: Construction-Plane Ray Hit, Snap Priority & 3D Gumball (widget.wgsl)</text>
-  <text x="20" y="46" font-size="11.5" fill="#475569">How 2D mouse drags become exact 3D CAD coordinates via construction planes, geometric snapping, and constant-screen-size Gumball handles.</text>
-  <line x1="16" y1="54" x2="824" y2="54" stroke="#e2e8f0" stroke-width="1"/>
+  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Chapter 7 Interactive CAD Manipulation: Construction-Plane Ray Hit, Snap Priority & 3D Gumball (widget.wgsl)</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">How 2D mouse drags become exact 3D CAD coordinates via construction planes, geometric snapping, and constant-screen-size Gumball handles.</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
   
-    <rect x="18" y="68" width="240" height="145" rx="6" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
-    <text x="138" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1e40af">1. Construction Plane &amp; Snapping</text>
-    <text x="28" y="108" font-size="10.5" fill="#1e3a8a">• Ray R(t) = O + t·D intersects Plane(P0, N):</text>
-    <text x="28" y="124" font-size="10.5" font-weight="700" fill="#1d4ed8">  t = dot(P0 - O, N) / dot(D, N)</text>
-    <text x="28" y="144" font-size="10.5" font-weight="600" fill="#1e40af">• Snap Priority within pixel radius:</text>
-    <text x="28" y="160" font-size="10" fill="#1e3a8a">  1. Endpoint / Vertex   2. Midpoint</text>
-    <text x="28" y="175" font-size="10" fill="#1e3a8a">  3. Curve Nearest       4. Grid Step</text>
-    <text x="28" y="193" font-size="10" fill="#1e3a8a">• Typed "x,y,z" overrides cursor ray</text>
+    <rect x="18" y="68" width="240" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="138" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">1. Construction Plane &amp; Snapping</text>
+    <text x="28" y="108" font-size="10.5" fill="#111111">• Ray R(t) = O + t·D intersects Plane(P0, N):</text>
+    <text x="28" y="124" font-size="10.5" font-weight="700" fill="#111111">  t = dot(P0 - O, N) / dot(D, N)</text>
+    <text x="28" y="144" font-size="10.5" font-weight="600" fill="#111111">• Snap Priority within pixel radius:</text>
+    <text x="28" y="160" font-size="10" fill="#111111">  1. Endpoint / Vertex   2. Midpoint</text>
+    <text x="28" y="175" font-size="10" fill="#111111">  3. Curve Nearest       4. Grid Step</text>
+    <text x="28" y="193" font-size="10" fill="#111111">• Typed "x,y,z" overrides cursor ray</text>
 
-    <line x1="258" y1="138" x2="288" y2="138" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
+    <line x1="258" y1="138" x2="288" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="290" y="68" width="250" height="145" rx="6" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5"/>
-    <text x="415" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#9a3412">2. Tool State &amp; Preview Overlay</text>
-    <text x="302" y="108" font-size="10.5" fill="#7c2d12">• Active Tool (Line / Polyline / Point)</text>
-    <text x="302" y="126" font-size="10.5" font-weight="600" fill="#c2410c">• Rubber-band preview buffer:</text>
-    <text x="302" y="142" font-size="10" fill="#7c2d12">  Updates every pointermove without</text>
-    <text x="302" y="157" font-size="10" fill="#7c2d12">  polluting Undo history stack</text>
-    <text x="302" y="176" font-size="10.5" fill="#7c2d12">• Enter / Final Click -&gt; 1 atomic Undo</text>
-    <text x="302" y="192" font-size="10.5" fill="#7c2d12">• Escape -&gt; cancel &amp; clear preview</text>
+    <rect x="290" y="68" width="250" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="415" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">2. Tool State &amp; Preview Overlay</text>
+    <text x="302" y="108" font-size="10.5" fill="#111111">• Active Tool (Line / Polyline / Point)</text>
+    <text x="302" y="126" font-size="10.5" font-weight="600" fill="#111111">• Rubber-band preview buffer:</text>
+    <text x="302" y="142" font-size="10" fill="#111111">  Updates every pointermove without</text>
+    <text x="302" y="157" font-size="10" fill="#111111">  polluting Undo history stack</text>
+    <text x="302" y="176" font-size="10.5" fill="#111111">• Enter / Final Click -&gt; 1 atomic Undo</text>
+    <text x="302" y="192" font-size="10.5" fill="#111111">• Escape -&gt; cancel &amp; clear preview</text>
 
-    <line x1="540" y1="138" x2="570" y2="138" stroke="#059669" stroke-width="2" marker-end="url(#arrow-green)"/>
+    <line x1="540" y1="138" x2="570" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="572" y="68" width="248" height="145" rx="6" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1.5"/>
-    <text x="696" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#065f46">3. 3D Gumball Widget (widget.wgsl)</text>
-    <text x="584" y="108" font-size="10.5" fill="#064e3b">• Placed at selection bounding center</text>
-    <text x="584" y="126" font-size="10.5" font-weight="600" fill="#047857">• Scaled by camera distance w so</text>
-    <text x="584" y="142" font-size="10.5" font-weight="600" fill="#047857">  handles stay constant pixel size!</text>
-    <text x="584" y="160" font-size="10" fill="#064e3b">• Axis arrows (Translate X/Y/Z)</text>
-    <text x="584" y="175" font-size="10" fill="#064e3b">• Arc rings (Rotate) + Boxes (Scale)</text>
-    <text x="584" y="192" font-size="10" fill="#064e3b">• Picked via Rg32Uint widget sub_id</text>
+    <rect x="572" y="68" width="248" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="696" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">3. 3D Gumball Widget (widget.wgsl)</text>
+    <text x="584" y="108" font-size="10.5" fill="#111111">• Placed at selection bounding center</text>
+    <text x="584" y="126" font-size="10.5" font-weight="600" fill="#111111">• Scaled by camera distance w so</text>
+    <text x="584" y="142" font-size="10.5" font-weight="600" fill="#111111">  handles stay constant pixel size!</text>
+    <text x="584" y="160" font-size="10" fill="#111111">• Axis arrows (Translate X/Y/Z)</text>
+    <text x="584" y="175" font-size="10" fill="#111111">• Arc rings (Rotate) + Boxes (Scale)</text>
+    <text x="584" y="192" font-size="10" fill="#111111">• Picked via Rg32Uint widget sub_id</text>
     
 </svg>
 </div>
 
-### Lesson Data Flow (`Rust` → `WebGPU` → `WGSL`)
+## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
 
-```
-handle and axis → title and units → validated numeric answer.
-selected source part → deduplicated original keys → precise placed points → average world pivot.
-selection and current camera → handle or numeric input → original-source preview → one commit or cancellation.
-```
+Before writing code, review how the three layers in this chapter talk to each other:
 
-- Name move, rotation and scale handles.
-- Locate original mesh parts and curve controls.
-- Verify complete handle editing and input.
-- **Why it works (Can a scale factor of zero be accepted?):** No. It collapses geometry. Empty input or factor1 makes no change; negative and nonfinite factors fail.
-
-### Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `Browser`)
-
-| Layer | Construct | First-Year Student Explanation |
+| Layer | Construct | Plain-English Explanation for Students |
 | :--- | :--- | :--- |
 | **Rust (CAD Math)** | Ray–Plane Intersection `t = dot(P0 - O, N) / dot(D, N)` | Projects a 2D mouse ray onto the active 3D construction plane (`Plane`), with priority snapping (`Endpoint > Midpoint > Curve > Grid`). |
 | **Rust (Editor)** | Preview Overlay vs. Atomic Undo Commit | Rubber-band preview geometry updates on every `pointermove` without touching the Undo stack; `Enter` or final click commits one atomic kernel transaction. |
 | **WGSL (`widget.wgsl`)** | Perspective-Compensated 3D Gumball Handles | Scales axis arrows, rotation arcs, and scale boxes by camera depth `w` so the 3D Gumball gizmo stays a constant clickable pixel size at any zoom. |
 
-**Production source (`session_viewer/src`):** [app/command/mod.rs](../../../src/app/command/mod.rs), [app/command/tool.rs](../../../src/app/command/tool.rs), [app/cplane.rs](../../../src/app/cplane.rs), [app/snap.rs](../../../src/app/snap.rs), [app/gizmo.rs](../../../src/app/gizmo.rs), [engine/gpu/widget.rs](../../../src/engine/gpu/widget.rs), [app/deform.rs](../../../src/app/deform.rs).
+**Authoritative production source (`session_viewer/src`):** [app/command/mod.rs](../../../src/app/command/mod.rs), [app/command/tool.rs](../../../src/app/command/tool.rs), [app/cplane.rs](../../../src/app/cplane.rs), [app/snap.rs](../../../src/app/snap.rs), [app/gizmo.rs](../../../src/app/gizmo.rs), [engine/gpu/widget.rs](../../../src/engine/gpu/widget.rs), [app/deform.rs](../../../src/app/deform.rs)
 
-## Implementation Checkpoints
+## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
 
-Apply these checkpoints in order inside `workspace/journey`. Expand each block to view the Rust/WGSL/HTML edits:
+| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
+| ---: | :--- | :--- | :--- | :--- |
+| **1** | [`51-handles`](#checkpoint-51-handles) | Name move, rotation and scale handles. | `src/gizmo.rs`, `src/lib.rs` | `handle and axis → title and units → validated numeric answer` |
+| **2** | [`51a-rays`](#checkpoint-51a-rays) | Measure handle rays in original world coordinates. | `src/gizmo.rs` | `current world ray → axis or pivot plane → finite grab point and angle` |
+| **3** | [`51b-pivot`](#checkpoint-51b-pivot) | Keep handle state at one original-world pivot. | `src/gizmo.rs` | `selected world pivot → CSS arm length → per-handle anchor → transient grab state` |
+| **4** | [`51c-hit`](#checkpoint-51c-hit) | Pick handles in a stable priority order. | `src/gizmo.rs` | `world ray and CSS scale → hub → balls → arms → negative-quadrant arcs` |
+| **5** | [`51d-grab`](#checkpoint-51d-grab) | Capture the handle’s original grab. | `src/gizmo.rs` | `chosen handle → valid original grab → angle or reach → retained drag` |
+| **6** | [`51e-transform`](#checkpoint-51e-transform) | Derive handle transforms and quarter-turn snapping. | `src/gizmo.rs`, `src/gizmo_tests.rs`, `src/lib.rs` | `original grab and current ray → world transform about pivot → free or Shift-snapped result` |
+| **7** | [`51ez-pack-and-sample-local-handle-vertices`](#checkpoint-51ez-pack-and-sample-local-handle-vertices) | Write the twenty-byte widget vertex format, explicit byte packing and one shared rectangular surface sampler. | `src/widget_mesh.rs`, `src/lib.rs` | `parametric widget parts → twenty-byte vertices → static GPU mesh` |
+| **8** | [`51f-mesh`](#checkpoint-51f-mesh) | Reuse the surface sampler for the original lathed shafts, cones, balls, rotation arcs and central hub. | `src/widget_mesh.rs` | `parametric widget parts → twenty-byte vertices → static GPU mesh` |
+| **9** | [`51g-layout`](#checkpoint-51g-layout) | Keep handles constant in CSS pixels. | `src/widget_layout.rs`, `src/lib.rs` | `pivot clip depth and CSS height → world-per-pixel → projected screen rectangle → bounded tile` |
+| **10** | [`51h-shader`](#checkpoint-51h-shader) | Draw a local handle tile and its canvas rectangle. | `src/widget.wgsl` | `20-byte vertices and96-byte uniform → flat handle color → resolved tile → canvas alpha composite` |
+| **11** | [`51i-image`](#checkpoint-51i-image) | Bind the widget’s own sampled image. | `src/widget_pipelines.rs`, `src/lib.rs` | `resolved RGBA texture → filterable binding → linear sampler → composite group` |
+| **12** | [`51j-pipelines`](#checkpoint-51j-pipelines) | Separate handle depth from scene depth. | `src/widget_pipelines.rs` | `explicit uniform layouts →4x mesh pipeline and own depth → blended canvas pipeline` |
+| **13** | [`51k-tile`](#checkpoint-51k-tile) | Own color, depth and resolve textures together. | `src/widget.rs`, `src/lib.rs` | `bounded extent →4x color and depth →1x resolve → sampled image owner` |
+| **14** | [`51l-upload`](#checkpoint-51l-upload) | Upload handle geometry once. | `src/widget.rs` | `one packed mesh → persistent vertex buffer and uniform → current tile ledger → release` |
+| **15** | [`51m-prepare`](#checkpoint-51m-prepare) | Write only current handle placement. | `src/widget.rs` | `current valid layout → same or replacement tile →96-byte uniform write → visible widget` |
+| **16** | [`51n-draw`](#checkpoint-51n-draw) | Composite handles after source geometry. | `src/widget.rs` | `handle mesh pass and own depth → resolved coverage → loaded canvas → two overlay draws` |
+| **17** | [`51o-renderer`](#checkpoint-51o-renderer) | Register the widget outside source picking. | `src/renderer.rs`, `src/widget_tests.rs`, `src/lib.rs` | `renderer-owned widget → current camera placement → source canvas → independent overlay` |
+| **18** | [`51p-part-points`](#checkpoint-51p-part-points) | Locate original mesh parts and curve controls. | `src/part_preview.rs`, `src/lib.rs` | `selected source part → deduplicated original keys → precise placed points → average world pivot` |
+| **19** | [`51q-deform`](#checkpoint-51q-deform) | Deform selected original points through their placement. | `src/scene.rs` | `world delta → inverse owner placement → selected original points → rebuilt derived display` |
+| **20** | [`51r-part-preview`](#checkpoint-51r-part-preview) | Keep part deformation outside saved geometry. | `src/part_preview.rs`, `src/edit_preview.rs` | `captured original source → temporary cloned deformation → stale validation → one commit or release` |
+| **21** | [`51s-edit-owner`](#checkpoint-51s-edit-owner) | Share one handle interface across whole and part edits. | `src/gizmo_edit.rs`, `src/lib.rs` | `whole owners or one source part → common temporary scene → common transform → one history boundary` |
+| **22** | [`51t-capture`](#checkpoint-51t-capture) | Keep pointer ownership through click or drag. | `src/gizmo_edit.rs` | `captured pointer ID and start → drag threshold → temporary transform or numeric request` |
+| **23** | [`51u-selection`](#checkpoint-51u-selection) | Place handles on the current editable selection. | `src/editor.rs` | `editable whole selection or source part → world pivot → camera ray hit → temporary presentation` |
+| **24** | [`51v-press`](#checkpoint-51v-press) | Capture a valid handle without editing the document. | `src/editor.rs` | `unmodified press → current handle hit → eligible source capture → transient edit owner` |
+| **25** | [`51w-release`](#checkpoint-51w-release) | Preview captured motion and commit one release. | `src/editor.rs` | `owned motion → baseline-derived transform → current release modifiers → click prompt or one commit` |
+| **26** | [`51x-number-model`](#checkpoint-51x-number-model) | Own one handle’s number-field state. | `src/number_box.rs`, `src/lib.rs` | `clicked handle prompt → owned text and error → submitted value or cancellation` |
+| **27** | [`51y-number-field`](#checkpoint-51y-number-field) | Draw the number field beside its handle. | `src/number_box.rs` | `projected handle anchor → foreground field and units → owned keyboard answer` |
+| **28** | [`51z-number-submit`](#checkpoint-51z-number-submit) | Apply precise typed handle values once. | `src/editor.rs` | `handle number request → precise validated answer → pivot transform → one commit or no change` |
+| **29** | [`51za-panel`](#checkpoint-51za-panel) | Route field input through the shared canvas panel. | `src/panel.rs` | `shared canvas events → number rectangle and focus → number answer or ordinary command` |
+| **30** | [`51zb-presentation`](#checkpoint-51zb-presentation) | Update selected handles with the actual camera. | `src/browser.rs` | `current viewport and camera → selected world pivot → bounded widget placement → visible handle overlay` |
+| **31** | [`51zc-pointer`](#checkpoint-51zc-pointer) | Capture actual browser handle drags. | `src/browser.rs` | `canvas press → handle hit and pointer capture → owned move/release → one source edit` |
+| **32** | [`51zd-interruption`](#checkpoint-51zd-interruption) | Restore previews when input ownership ends. | `src/browser.rs`, `src/editor.rs` | `captured or numeric edit → cancel/blur/lost capture → saved presentation → released transient resources` |
+| **33** | [`51ze-ledger`](#checkpoint-51ze-ledger) | Count temporary source owners without saving them. | `src/editor.rs` | `saved/history scenes plus preview owners → deduplicated allocation ledger → cancel or edit → released derived sources` |
+| **34** | [`51zf-handles`](#checkpoint-51zf-handles) | Verify complete handle editing and input. | `src/gizmo_edit_tests.rs`, `src/number_box_tests.rs`, `src/lib.rs` | `selection and current camera → handle or numeric input → original-source preview → one commit or cancellation` |
+
+---
+
+## 4. Step-by-Step Coding Notebook (Concept + Implementation)
+
+Work through each notebook cell below in order inside `workspace/journey`. Read the **Concept Walkthrough** and **Self-Check Q&A** first, then expand the **Implementation** block to type and verify the code.
 
 <a id="checkpoint-51-handles"></a>
+
+### Step 1 of 34 · Name move, rotation and scale handles (`51-handles`)
+
+- **Goal:** Name move, rotation and scale handles.
+- **Data Flow Trace:** `handle and axis → title and units → validated numeric answer`
+- **Files You Touch:** `src/gizmo.rs` (*Define world-axis handles, labels and finite operation-specific numeric answers.*) · `src/lib.rs` (*Register the handle component and supplied checks.*)
+
+Each handle names an operation and world axis. Typed movement uses millimeters, rotation uses degrees and scaling uses a positive factor; neutral values create no edit.
+
+> **Self-Check Question:** *Can a scale factor of zero be accepted?*  
+> **Answer:** No. It collapses geometry. Empty input or factor1 makes no change; negative and nonfinite factors fail.
+
+- **What You Should See:** Continue the previous two-box Move exercise. Handle input connects after these drawing and editing preparations.
+- **Hands-On Lab Experiment:** Compare Translate X and Scale X. Their visible positions, units and neutral values must remain distinct.
 
 <details>
 <summary>Implementation 51-handles: Name move, rotation and scale handles</summary>
@@ -129,6 +220,19 @@ After that block, type:
 
 <a id="checkpoint-51a-rays"></a>
 
+### Step 2 of 34 · Measure handle rays in original world coordinates (`51a-rays`)
+
+- **Goal:** Measure handle rays in original world coordinates.
+- **Data Flow Trace:** `current world ray → axis or pivot plane → finite grab point and angle`
+- **Files You Touch:** `src/gizmo.rs` (*Resolve checked world-ray intersections, pivot transforms and positive drag scaling.*)
+
+A handle drag intersects its world axis or a plane through its pivot. Reject parallel or behind-eye intersections; positive scaling is softened without mirroring.
+
+> **Self-Check Question:** *Why reject a parallel axis drag?*  
+> **Answer:** It has no unique closest grab position. Inventing an intersection would make a tiny camera change produce a large movement.
+
+- **Hands-On Lab Experiment:** Compare plane and axis intersections. Only a valid point in front of the ray can start a drag.
+
 <details>
 <summary>Implementation 51a-rays: Measure handle rays in original world coordinates</summary>
 
@@ -162,6 +266,19 @@ After that block, type:
 </details>
 
 <a id="checkpoint-51b-pivot"></a>
+
+### Step 3 of 34 · Keep handle state at one original-world pivot (`51b-pivot`)
+
+- **Goal:** Keep handle state at one original-world pivot.
+- **Data Flow Trace:** `selected world pivot → CSS arm length → per-handle anchor → transient grab state`
+- **Files You Touch:** `src/gizmo.rs` (*Own transient handle state and compute each handle’s projected anchor.*)
+
+The pivot stores the selected geometry’s world position. Handle anchors use CSS size converted to world length; moving the pivot clears an older drag or number request.
+
+> **Self-Check Question:** *Why does the number field use a different anchor for every handle?*  
+> **Answer:** It belongs beside the operation that opened it. Pinning all fields to the pivot hides which axis or scale ball the value changes.
+
+- **Hands-On Lab Experiment:** Inspect the arrow, ball, arc and hub anchors. Rotation arcs occupy the quadrant opposite the positive arms.
 
 <details>
 <summary>Implementation 51b-pivot: Keep handle state at one original-world pivot</summary>
@@ -198,6 +315,19 @@ Edit the existing block to match this code; keep unchanged lines:
 
 <a id="checkpoint-51c-hit"></a>
 
+### Step 4 of 34 · Pick handles in a stable priority order (`51c-hit`)
+
+- **Goal:** Pick handles in a stable priority order.
+- **Data Flow Trace:** `world ray and CSS scale → hub → balls → arms → negative-quadrant arcs`
+- **Files You Touch:** `src/gizmo.rs` (*Resolve stable handle priority and the same CSS aperture used by drawing.*)
+
+Test the hub, scale balls, arms and rotation arcs through the current world ray. Keep a CSS grab aperture and reject axes pointing almost straight at the eye.
+
+> **Self-Check Question:** *Why test scale balls before the arms beneath them?*  
+> **Answer:** A ball lies on its arm. Without priority the arm captures the click, so the learner cannot start the scale operation.
+
+- **Hands-On Lab Experiment:** Query a ray through a ball and then one through the arrow tip. They must return different handle operations at every zoom.
+
 <details>
 <summary>Implementation 51c-hit: Pick handles in a stable priority order</summary>
 
@@ -233,6 +363,19 @@ Edit the existing block to match this code; keep unchanged lines:
 
 <a id="checkpoint-51d-grab"></a>
 
+### Step 5 of 34 · Capture the handle’s original grab (`51d-grab`)
+
+- **Goal:** Capture the handle’s original grab.
+- **Data Flow Trace:** `chosen handle → valid original grab → angle or reach → retained drag`
+- **Files You Touch:** `src/gizmo.rs` (*Capture original world grab measurements before producing a transform.*)
+
+Record the original grab point, rotation angle or scale reach. Every update will compare the current ray against that fixed start, without accumulating pointer deltas.
+
+> **Self-Check Question:** *Should a camera-facing axis invent a grab when its intersection is undefined?*  
+> **Answer:** No. A refused grab leaves the document and gesture state unchanged. Another visible handle can still be used.
+
+- **Hands-On Lab Experiment:** Compare the initial scale reach with its later value. The scale begins at1 even when the grab is distant from the pivot.
+
 <details>
 <summary>Implementation 51d-grab: Capture the handle’s original grab</summary>
 
@@ -267,6 +410,19 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-51e-transform"></a>
+
+### Step 6 of 34 · Derive handle transforms and quarter-turn snapping (`51e-transform`)
+
+- **Goal:** Derive handle transforms and quarter-turn snapping.
+- **Data Flow Trace:** `original grab and current ray → world transform about pivot → free or Shift-snapped result`
+- **Files You Touch:** `src/gizmo.rs` (*Derive world transforms from original grabs and implement current90-degree Shift rotation snapping.*) · `src/gizmo_tests.rs` (*Copy fourteen maintained handle-math regression checks.*) · `src/lib.rs` (*Register the handle component and supplied checks.*)
+
+Movement follows one world axis. Rotation and scale act about the captured pivot; Shift rounds rotation to90-degree steps. Explicit typed scale remains precise below the drag minimum.
+
+> **Self-Check Question:** *Does Shift snap a rotation relative to the last pointer event?*  
+> **Answer:** No. It rounds the total angle swept from the original grab. Repeating the same cursor position produces the same transform.
+
+- **Hands-On Lab Experiment:** Compare a60-degree free rotation with its90-degree Shift result. The pivot must remain fixed under rotation and scale.
 
 <details>
 <summary>Implementation 51e-transform: Derive handle transforms and quarter-turn snapping</summary>
@@ -341,6 +497,20 @@ After that block, type:
 
 <a id="checkpoint-51ez-pack-and-sample-local-handle-vertices"></a>
 
+### Step 7 of 34 · Pack and sample local handle vertices (`51ez-pack-and-sample-local-handle-vertices`)
+
+- **Goal:** Write the twenty-byte widget vertex format, explicit byte packing and one shared rectangular surface sampler.
+- **Data Flow Trace:** `parametric widget parts → twenty-byte vertices → static GPU mesh`
+- **Files You Touch:** `src/widget_mesh.rs` (*Type the whole original helpers introduced today.*) · `src/lib.rs` (*Register the local widget mesh helpers.*)
+
+Write the twenty-byte widget vertex format, explicit byte packing and one shared rectangular surface sampler. Orient local coordinates onto each widget axis.
+
+> **Self-Check Question:** *Why are handle numbers separate from scene object IDs?*  
+> **Answer:** They identify widget parts for highlighting. The widget stays outside document geometry, source picking and Save.
+
+- **What You Should See:** Local handle vertex packing and sampling are prepared; the earlier Move drawing remains visible.
+- **Hands-On Lab Experiment:** Inspect the twelve position bytes, four color bytes and four handle bytes. Trace the two triangles emitted for one sampled rectangle.
+
 <details>
 <summary>Implementation 51ez-pack-and-sample-local-handle-vertices: Pack and sample local handle vertices</summary>
 
@@ -383,6 +553,20 @@ After that block, type:
 
 <a id="checkpoint-51f-mesh"></a>
 
+### Step 8 of 34 · Build local arrows balls and rotation arcs (`51f-mesh`)
+
+- **Goal:** Reuse the surface sampler for the original lathed shafts, cones, balls, rotation arcs and central hub.
+- **Data Flow Trace:** `parametric widget parts → twenty-byte vertices → static GPU mesh`
+- **Files You Touch:** `src/widget_mesh.rs` (*Extend this original owner with today’s complete helper.*)
+
+Reuse the surface sampler for the original lathed shafts, cones, balls, rotation arcs and central hub. Assign the ten local handle numbers once and return the complete static mesh for its later GPU upload.
+
+> **Self-Check Question:** *Why keep one surface sampler?*  
+> **Answer:** Every parametric widget part needs the same two-triangle rectangle construction. Reuse it while each part supplies its own coordinate map.
+
+- **What You Should See:** The complete static handle mesh compiles. GPU upload and drawing follow in the next lessons.
+- **Hands-On Lab Experiment:** Trace the handle numbers for one axis. Compare its translation arrow, scale ball and rotation arc.
+
 <details>
 <summary>Implementation 51f-mesh: Build local arrows balls and rotation arcs</summary>
 
@@ -417,6 +601,19 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-51g-layout"></a>
+
+### Step 9 of 34 · Keep handles constant in CSS pixels (`51g-layout`)
+
+- **Goal:** Keep handles constant in CSS pixels.
+- **Data Flow Trace:** `pivot clip depth and CSS height → world-per-pixel → projected screen rectangle → bounded tile`
+- **Files You Touch:** `src/widget_layout.rs` (*Convert CSS handle size through the pivot’s current depth and bound its projected tile.*) · `src/lib.rs` (*Register the handle component and supplied checks.*)
+
+Measure world length per CSS pixel at the selected pivot. Project a conservative widget cube, clamp its screen rectangle and bound the independent tile to1024pixels per side.
+
+> **Self-Check Question:** *Why measure depth at the pivot rather than at the camera target?*  
+> **Answer:** A selected object can be away from the target. Using its own depth keeps the visible handle and grab aperture the same CSS size.
+
+- **Hands-On Lab Experiment:** Compare zooms, both projections and DPR1/2. The arm remains96CSS pixels while the tile follows physical pixels.
 
 <details>
 <summary>Implementation 51g-layout: Keep handles constant in CSS pixels</summary>
@@ -460,6 +657,19 @@ After that block, type:
 
 <a id="checkpoint-51h-shader"></a>
 
+### Step 10 of 34 · Draw a local handle tile and its canvas rectangle (`51h-shader`)
+
+- **Goal:** Draw a local handle tile and its canvas rectangle.
+- **Data Flow Trace:** `20-byte vertices and96-byte uniform → flat handle color → resolved tile → canvas alpha composite`
+- **Files You Touch:** `src/widget.wgsl` (*Draw packed handle colors, active orange and the resolved tile composite.*)
+
+The96-byte widget uniform carries a tile matrix, canvas rectangle and active handle. One shader draws the mesh; another samples the resolved tile and blends its alpha over the canvas.
+
+> **Self-Check Question:** *Why divide sampled color by alpha before blending?*  
+> **Answer:** The multisampled clear leaves partially covered edge pixels. Recovering their unpremultiplied color avoids dark borders when ordinary alpha blending composites them.
+
+- **Hands-On Lab Experiment:** Match the shader’s matrix, rectangle and active-handle fields to their exact Rust uniform offsets.
+
 <details>
 <summary>Implementation 51h-shader: Draw a local handle tile and its canvas rectangle</summary>
 
@@ -480,6 +690,19 @@ Create the file and type:
 </details>
 
 <a id="checkpoint-51i-image"></a>
+
+### Step 11 of 34 · Bind the widget’s own sampled image (`51i-image`)
+
+- **Goal:** Bind the widget’s own sampled image.
+- **Data Flow Trace:** `resolved RGBA texture → filterable binding → linear sampler → composite group`
+- **Files You Touch:** `src/widget_pipelines.rs` (*Declare the explicit sampled tile and filtering sampler bindings.*) · `src/lib.rs` (*Register the handle component and supplied checks.*)
+
+The composite reads a resolved RGBA tile through a filterable2D texture and linear sampler. Explicit bindings keep this image independent of scene geometry and pick buffers.
+
+> **Self-Check Question:** *Should the composite sample the4x multisampled texture directly?*  
+> **Answer:** No. Its ordinary2D texture binding reads the single-sample resolve result. The mesh pass resolves coverage before the composite samples it.
+
+- **Hands-On Lab Experiment:** Compare a uniform binding with this texture/sampler layout. Each binding describes the resource type the shader actually reads.
 
 <details>
 <summary>Implementation 51i-image: Bind the widget’s own sampled image</summary>
@@ -523,6 +746,19 @@ After that block, type:
 
 <a id="checkpoint-51j-pipelines"></a>
 
+### Step 12 of 34 · Separate handle depth from scene depth (`51j-pipelines`)
+
+- **Goal:** Separate handle depth from scene depth.
+- **Data Flow Trace:** `explicit uniform layouts →4x mesh pipeline and own depth → blended canvas pipeline`
+- **Files You Touch:** `src/widget_pipelines.rs` (*Build separate4x depth-tested mesh and depth-free alpha-composite pipelines.*)
+
+The widget mesh uses its own4xMSAA RGBA/depth tile. The canvas composite has alpha blending and no scene-depth attachment, keeping handles visible over nearer solids.
+
+> **Self-Check Question:** *Why give handles an independent depth buffer?*  
+> **Answer:** Their arrows and balls must occlude each other correctly while staying visible over the source scene. Sharing scene depth would hide them inside selected solids.
+
+- **Hands-On Lab Experiment:** Match the tile’s4x sample count to both color and depth attachments. The canvas composite stays single-sample.
+
 <details>
 <summary>Implementation 51j-pipelines: Separate handle depth from scene depth</summary>
 
@@ -553,6 +789,19 @@ After that block, type:
 </details>
 
 <a id="checkpoint-51k-tile"></a>
+
+### Step 13 of 34 · Own color, depth and resolve textures together (`51k-tile`)
+
+- **Goal:** Own color, depth and resolve textures together.
+- **Data Flow Trace:** `bounded extent →4x color and depth →1x resolve → sampled image owner`
+- **Files You Touch:** `src/widget.rs` (*Own the widget’s three matching texture attachments and sampled image group.*) · `src/lib.rs` (*Register the handle component and supplied checks.*)
+
+A tile owns matching4x color/depth views and its single-sample resolve image. The bind group retains the sampled view and sampler; replacing the tile releases the old resources together.
+
+> **Self-Check Question:** *How many bytes per physical tile pixel does the ledger count?*  
+> **Answer:** 36bytes:16for4xRGBA color,16for4x32-bit depth and4for the resolved RGBA image.
+
+- **Hands-On Lab Experiment:** Compare64-pixel tile increments with the1024-pixel cap. Allocation stays bounded independently of the drawing’s object count.
 
 <details>
 <summary>Implementation 51k-tile: Own color, depth and resolve textures together</summary>
@@ -596,6 +845,19 @@ After that block, type:
 
 <a id="checkpoint-51l-upload"></a>
 
+### Step 14 of 34 · Upload handle geometry once (`51l-upload`)
+
+- **Goal:** Upload handle geometry once.
+- **Data Flow Trace:** `one packed mesh → persistent vertex buffer and uniform → current tile ledger → release`
+- **Files You Touch:** `src/widget.rs` (*Upload one static handle mesh, construct pipelines and expose explicit allocation accounting.*)
+
+The widget owns one static vertex buffer and a96-byte placement uniform. Construct its pipelines once, count its buffer/tile allocations and drop tile resources when the selection is hidden.
+
+> **Self-Check Question:** *Should orbiting upload the procedural mesh again?*  
+> **Answer:** No. Geometry remains static. Orbiting changes the widget placement uniform; a changed extent alone may replace the tile.
+
+- **Hands-On Lab Experiment:** Compare persistent buffer bytes with temporary tile bytes. Clearing a selection drops textures while reusable buffers remain owned by the renderer.
+
 <details>
 <summary>Implementation 51l-upload: Upload handle geometry once</summary>
 
@@ -627,6 +889,19 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-51m-prepare"></a>
+
+### Step 15 of 34 · Write only current handle placement (`51m-prepare`)
+
+- **Goal:** Write only current handle placement.
+- **Data Flow Trace:** `current valid layout → same or replacement tile →96-byte uniform write → visible widget`
+- **Files You Touch:** `src/widget.rs` (*Reuse a matching tile, release absent widgets and update the small current-frame uniform.*)
+
+Preparing a frame hides an invalid or absent widget. Reuse a matching tile extent; otherwise replace the tile. Write the bounded matrix/rectangle/active-handle uniform for the current view.
+
+> **Self-Check Question:** *Does hovering require a new texture when the tile extent is unchanged?*  
+> **Answer:** No. Only the active-handle value changes. The existing tile and static vertex buffer remain reusable.
+
+- **Hands-On Lab Experiment:** Prepare the same view repeatedly, then hover an arm. Texture allocations must stay unchanged while uniform writes advance.
 
 <details>
 <summary>Implementation 51m-prepare: Write only current handle placement</summary>
@@ -663,6 +938,19 @@ Edit the existing block to match this code; keep unchanged lines:
 
 <a id="checkpoint-51n-draw"></a>
 
+### Step 16 of 34 · Composite handles after source geometry (`51n-draw`)
+
+- **Goal:** Composite handles after source geometry.
+- **Data Flow Trace:** `handle mesh pass and own depth → resolved coverage → loaded canvas → two overlay draws`
+- **Files You Touch:** `src/widget.rs` (*Render the local4x tile, resolve it and blend its rectangle over the existing canvas.*)
+
+Render the handle mesh into its own cleared tile and resolve coverage. Then load the existing canvas and draw the image rectangle, without writing source depth or pick owners.
+
+> **Self-Check Question:** *Should clearing the widget tile erase the drawing?*  
+> **Answer:** No. Only the independent tile is cleared. The composite loads the already rendered canvas and blends the tile over it.
+
+- **Hands-On Lab Experiment:** Follow the two render passes. The first has widget depth; the second has the canvas color target and no depth attachment.
+
 <details>
 <summary>Implementation 51n-draw: Composite handles after source geometry</summary>
 
@@ -697,6 +985,19 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-51o-renderer"></a>
+
+### Step 17 of 34 · Register the widget outside source picking (`51o-renderer`)
+
+- **Goal:** Register the widget outside source picking.
+- **Data Flow Trace:** `renderer-owned widget → current camera placement → source canvas → independent overlay`
+- **Files You Touch:** `src/renderer.rs` (*Own and draw the bounded widget independently of primary source geometry and integer picking.*) · `src/widget_tests.rs` (*Copy real GPU pixels, bounded layout, constant CSS size, hover reuse and texture-release checks.*) · `src/lib.rs` (*Register the handle component and supplied checks.*)
+
+The renderer owns and draws the widget after source surfaces, ink and point-tool previews. Camera updates supply current placement; selection-driven visibility connects in the following editor steps.
+
+> **Self-Check Question:** *Does a handle need a scene row or integer source-pick ID?*  
+> **Answer:** No. CPU handle math owns its small hit test. Registering it as source geometry would pollute Save, selection and scene bounds.
+
+- **Hands-On Lab Experiment:** Inspect the supplied real GPU checks. Both projections and DPR1/2 must draw all three colors over nearer geometry without changing primary geometry or pick ownership.
 
 <details>
 <summary>Implementation 51o-renderer: Register the widget outside source picking</summary>
@@ -1276,6 +1577,20 @@ After that block, type:
 
 <a id="checkpoint-51p-part-points"></a>
 
+### Step 18 of 34 · Locate original mesh parts and curve controls (`51p-part-points`)
+
+- **Goal:** Locate original mesh parts and curve controls.
+- **Data Flow Trace:** `selected source part → deduplicated original keys → precise placed points → average world pivot`
+- **Files You Touch:** `src/part_preview.rs` (*Resolve original part keys and precise placed source points.*) · `src/lib.rs` (*Register the edit component and supplied checks.*)
+
+Resolve original source vertices for a mesh face or edge, including hole rims. A curve control is its original weighted point. Apply the owner’s placement before averaging a world pivot.
+
+> **Self-Check Question:** *Is the pivot the center of a rendered triangle?*  
+> **Answer:** No. One original polygon can produce several display triangles. The pivot belongs to the selected source points, including its hole boundaries.
+
+- **What You Should See:** Continue the previous two-box Move exercise. Selection-driven handle drawing connects at51zb, and actual captured input follows at51zc–51zd.
+- **Hands-On Lab Experiment:** Compare sparse face keys, shared edge endpoints and a weighted curve control. A display-only diagonal must never become an editable source edge.
+
 <details>
 <summary>Implementation 51p-part-points: Locate original mesh parts and curve controls</summary>
 
@@ -1318,6 +1633,19 @@ After that block, type:
 
 <a id="checkpoint-51q-deform"></a>
 
+### Step 19 of 34 · Deform selected original points through their placement (`51q-deform`)
+
+- **Goal:** Deform selected original points through their placement.
+- **Data Flow Trace:** `world delta → inverse owner placement → selected original points → rebuilt derived display`
+- **Files You Touch:** `src/scene.rs` (*Transform original selected part points through local placement and preserve homogeneous curve weights.*)
+
+Convert the world delta into the owner’s local frame. Clone only its selected original mesh vertices or curve control; rebuild derived display while preserving topology, attributes and rational weights.
+
+> **Self-Check Question:** *Why preserve a rational control’s weight when moving its point?*  
+> **Answer:** The weight affects the whole curve shape. Resetting it to1 changes more than the intended point movement, even when its final coordinates are correct.
+
+- **Hands-On Lab Experiment:** Move a face on a sheared, scaled owner. Its selected world vertices must follow the delta while other original vertices stay unchanged.
+
 <details>
 <summary>Implementation 51q-deform: Deform selected original points through their placement</summary>
 
@@ -1349,6 +1677,19 @@ After that block, type:
 </details>
 
 <a id="checkpoint-51r-part-preview"></a>
+
+### Step 20 of 34 · Keep part deformation outside saved geometry (`51r-part-preview`)
+
+- **Goal:** Keep part deformation outside saved geometry.
+- **Data Flow Trace:** `captured original source → temporary cloned deformation → stale validation → one commit or release`
+- **Files You Touch:** `src/part_preview.rs` (*Own temporary source deformation and refuse stale part commits.*) · `src/edit_preview.rs` (*Expose both retained placement-preview scenes for later memory accounting.*)
+
+Capture the selected source and original placement. Derive a separate preview scene for every valid delta; commit only if the source and placement still match, using one history transaction.
+
+> **Self-Check Question:** *What happens if the source changes while its handle is grabbed?*  
+> **Answer:** Refuse the stale commit. Its captured keys and placement belong to the earlier source; applying them to the replacement could edit the wrong geometry.
+
+- **Hands-On Lab Experiment:** Compare cancellation with a commit. Cancellation releases derived geometry; Undo after commit restores the original shared source allocation.
 
 <details>
 <summary>Implementation 51r-part-preview: Keep part deformation outside saved geometry</summary>
@@ -1405,6 +1746,19 @@ Edit the existing block to match this code; keep unchanged lines:
 
 <a id="checkpoint-51s-edit-owner"></a>
 
+### Step 21 of 34 · Share one handle interface across whole and part edits (`51s-edit-owner`)
+
+- **Goal:** Share one handle interface across whole and part edits.
+- **Data Flow Trace:** `whole owners or one source part → common temporary scene → common transform → one history boundary`
+- **Files You Touch:** `src/gizmo_edit.rs` (*Unify whole-placement and original-part previews without merging their source ownership.*) · `src/lib.rs` (*Register the edit component and supplied checks.*)
+
+A whole selection changes shared-source placements; a selected part changes a cloned source. The handle owner exposes the same temporary scene, transform and commit boundary for both paths.
+
+> **Self-Check Question:** *Does rotating a whole object clone its mesh vertices?*  
+> **Answer:** No. Its placement changes while the original geometry remains shared. Only an actual part deformation needs a changed source clone.
+
+- **Hands-On Lab Experiment:** Trace both preview variants to their saved-document commit. Neither path may publish geometry while the cursor is moving.
+
 <details>
 <summary>Implementation 51s-edit-owner: Share one handle interface across whole and part edits</summary>
 
@@ -1447,6 +1801,19 @@ After that block, type:
 
 <a id="checkpoint-51t-capture"></a>
 
+### Step 22 of 34 · Keep pointer ownership through click or drag (`51t-capture`)
+
+- **Goal:** Keep pointer ownership through click or drag.
+- **Data Flow Trace:** `captured pointer ID and start → drag threshold → temporary transform or numeric request`
+- **Files You Touch:** `src/gizmo_edit.rs` (*Capture one pointer, distinguish clicks from drags and track the displayed active handle.*)
+
+A captured pointer remembers its handle and starting screen position. Crossing4CSS pixels remains a drag even after returning; a click opens number input, and unrelated pointer IDs cannot update it.
+
+> **Self-Check Question:** *Can releasing another pointer commit the active handle?*  
+> **Answer:** No. Only the pointer that grabbed it owns its updates and release. Other touches must leave its preview and history untouched.
+
+- **Hands-On Lab Experiment:** Move beyond the threshold and return to the start. The release remains a zero-distance drag rather than unexpectedly opening a number field.
+
 <details>
 <summary>Implementation 51t-capture: Keep pointer ownership through click or drag</summary>
 
@@ -1477,6 +1844,19 @@ After that block, type:
 </details>
 
 <a id="checkpoint-51u-selection"></a>
+
+### Step 23 of 34 · Place handles on the current editable selection (`51u-selection`)
+
+- **Goal:** Place handles on the current editable selection.
+- **Data Flow Trace:** `editable whole selection or source part → world pivot → camera ray hit → temporary presentation`
+- **Files You Touch:** `src/editor.rs` (*Own a handle preview, derive selection pivots and resolve hits through current camera rays.*)
+
+The editor exposes a union-bounds pivot for whole objects or an original-point average for parts. Hide handles during point tools; present temporary edit geometry while Save keeps the original scene.
+
+> **Self-Check Question:** *Why hide handles while a point tool is asking for a point?*  
+> **Answer:** The same click must belong to one interaction. A creation tool’s point request takes ownership rather than accidentally starting an edit on selected geometry.
+
+- **Hands-On Lab Experiment:** Select two differently placed objects. Their handle belongs to their combined world bounds; selecting one source face uses that face’s original world points.
 
 <details>
 <summary>Implementation 51u-selection: Place handles on the current editable selection</summary>
@@ -2223,6 +2603,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-51v-press"></a>
+
+### Step 24 of 34 · Capture a valid handle without editing the document (`51v-press`)
+
+- **Goal:** Capture a valid handle without editing the document.
+- **Data Flow Trace:** `unmodified press → current handle hit → eligible source capture → transient edit owner`
+- **Files You Touch:** `src/editor.rs` (*Capture checked handle presses and cancel older captures only after successful document commands.*)
+
+A primary unmodified press checks the visible handle, original source eligibility and current ray. Capture one preview only after validation; modified presses and active point drafts retain their own input.
+
+> **Self-Check Question:** *Should a rejected handle press cancel an accepted Move base point?*  
+> **Answer:** No. A refused press has made no valid edit. It must preserve the running tool’s accepted input and original document.
+
+- **Hands-On Lab Experiment:** Try a modified press, an invalid viewport and an unloaded mesh. No path may create history or consume an active point draft.
 
 <details>
 <summary>Implementation 51v-press: Capture a valid handle without editing the document</summary>
@@ -3001,6 +3394,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-51w-release"></a>
+
+### Step 25 of 34 · Preview captured motion and commit one release (`51w-release`)
+
+- **Goal:** Preview captured motion and commit one release.
+- **Data Flow Trace:** `owned motion → baseline-derived transform → current release modifiers → click prompt or one commit`
+- **Files You Touch:** `src/editor.rs` (*Update and release one captured handle, preserve click input and commit the current snapped transform once.*)
+
+Update only the captured pointer from its original grab. A valid drag release commits once using its current Shift state; a click asks for a number, and cancellation restores the saved presentation.
+
+> **Self-Check Question:** *When should Shift rotation snapping be applied?*  
+> **Answer:** During both preview and release, using the current modifier state. A release after pressing Shift must commit the same quarter-turn transform the learner sees.
+
+- **Hands-On Lab Experiment:** Release another pointer, then cancel the real one. Compare a free60-degree preview with a Shift release; only the owned release can create history.
 
 <details>
 <summary>Implementation 51w-release: Preview captured motion and commit one release</summary>
@@ -3810,6 +4216,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-51x-number-model"></a>
 
+### Step 26 of 34 · Own one handle’s number-field state (`51x-number-model`)
+
+- **Goal:** Own one handle’s number-field state.
+- **Data Flow Trace:** `clicked handle prompt → owned text and error → submitted value or cancellation`
+- **Files You Touch:** `src/number_box.rs` (*Own one projected handle-number prompt and its one-time submitted answer.*) · `src/lib.rs` (*Register the edit component and supplied checks.*)
+
+The number model retains its handle, projected anchor, text, error and measured rectangle. It delivers a submitted value or cancellation once, separately from ordinary command input.
+
+> **Self-Check Question:** *Should an invalid answer erase the learner’s typed number?*  
+> **Answer:** No. Keep the field and text available for correction while the original document and redo branch remain unchanged.
+
+- **Hands-On Lab Experiment:** Compare reopening another handle with redrawing the same field. A different handle starts empty; the same field retains its answer and error.
+
 <details>
 <summary>Implementation 51x-number-model: Own one handle’s number-field state</summary>
 
@@ -3852,6 +4271,19 @@ After that block, type:
 
 <a id="checkpoint-51y-number-field"></a>
 
+### Step 27 of 34 · Draw the number field beside its handle (`51y-number-field`)
+
+- **Goal:** Draw the number field beside its handle.
+- **Data Flow Trace:** `projected handle anchor → foreground field and units → owned keyboard answer`
+- **Files You Touch:** `src/number_box.rs` (*Draw the foreground handle-number field with measured bounds and exclusive Enter/Escape ownership.*)
+
+The foreground field follows its projected handle anchor. Give it keyboard focus, show the operation’s units and neutral hint, and consume Enter or Escape before the ordinary command dock.
+
+> **Self-Check Question:** *Why must Enter reach the number field before the command dock?*  
+> **Answer:** Both interfaces share the canvas event stream. Without input ownership, one Enter could apply a handle value and also submit an unrelated command.
+
+- **Hands-On Lab Experiment:** Use the supplied UI checks after51zf. Typed decimals must stay in the number field; Enter submits once and Escape closes it.
+
 <details>
 <summary>Implementation 51y-number-field: Draw the number field beside its handle</summary>
 
@@ -3882,6 +4314,21 @@ After that block, type:
 </details>
 
 <a id="checkpoint-51z-number-submit"></a>
+
+### Step 28 of 34 · Apply precise typed handle values once (`51z-number-submit`)
+
+- **Goal:** Apply precise typed handle values once.
+- **Data Flow Trace:** `handle number request → precise validated answer → pivot transform → one commit or no change`
+- **Files You Touch:** `src/editor.rs` (*Project the current number request and validate precise, neutral or invalid typed answers before committing.*)
+
+Project the requested handle into CSS coordinates. Valid finite answers produce a checked preview transform and one commit; neutral answers close without history, and errors keep the request open.
+
+Escape cancels every active gizmo operation, including a held pointer drag. Check cancellation before restricting numeric answers to the typing state; the subsequent pointer release must not commit a cancelled preview or replace the existing redo branch.
+
+> **Self-Check Question:** *Does a typed scale below the drag minimum get clamped?*  
+> **Answer:** No. Positive explicit values are intentional. The drag minimum prevents accidental collapse while moving the pointer; typed positive factors retain their precision.
+
+- **Hands-On Lab Experiment:** Type an invalid or zero scale, then a valid positive factor. The invalid answer keeps the field open and must preserve geometry and redo. Drag the Move X handle, press Escape while holding the pointer, then release: source placements must remain unchanged and Redo must still replay the earlier edit.
 
 <details>
 <summary>Implementation 51z-number-submit: Apply precise typed handle values once</summary>
@@ -4779,6 +5226,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-51za-panel"></a>
 
+### Step 29 of 34 · Route field input through the shared canvas panel (`51za-panel`)
+
+- **Goal:** Route field input through the shared canvas panel.
+- **Data Flow Trace:** `shared canvas events → number rectangle and focus → number answer or ordinary command`
+- **Files You Touch:** `src/panel.rs` (*Present and inspect the handle-number model with exclusive pointer, text and keyboard ownership.*)
+
+The panel owns the number model beside the command dock. Its measured rectangle consumes pointer/wheel input; active number input retains text focus and suppresses document keyboard shortcuts.
+
+> **Self-Check Question:** *Should Delete or Ctrl+A act on geometry while the number field has focus?*  
+> **Answer:** No. The focused field owns editing keys. Document shortcuts resume after the number request closes.
+
+- **Hands-On Lab Experiment:** Compare a click inside the number rectangle with one in empty canvas. The field must retain its text and prevent the click from selecting through its panel.
+
 <details>
 <summary>Implementation 51za-panel: Route field input through the shared canvas panel</summary>
 
@@ -5398,6 +5858,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-51zb-presentation"></a>
+
+### Step 30 of 34 · Update selected handles with the actual camera (`51zb-presentation`)
+
+- **Goal:** Update selected handles with the actual camera.
+- **Data Flow Trace:** `current viewport and camera → selected world pivot → bounded widget placement → visible handle overlay`
+- **Files You Touch:** `src/browser.rs` (*Prepare the selected widget from the latest resized camera and expose its own presentation ledger.*)
+
+After resizing, prepare the widget from the current camera, selected pivot and active operation. Record its small ledger separately; point-tool drafts hide it while their existing Move presentation remains.
+
+> **Self-Check Question:** *Should changing camera projection rebuild original geometry?*  
+> **Answer:** No. Update the widget placement and existing view uniforms. Original source geometry and the static handle mesh remain reusable.
+
+- **Hands-On Lab Experiment:** Close; Example Box; Select All; Fit. The widget appears at the selected box. Compare zooms and both projections; start Move and confirm its point draft hides handles.
 
 <details>
 <summary>Implementation 51zb-presentation: Update selected handles with the actual camera</summary>
@@ -6190,6 +6663,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-51zc-pointer"></a>
+
+### Step 31 of 34 · Capture actual browser handle drags (`51zc-pointer`)
+
+- **Goal:** Capture actual browser handle drags.
+- **Data Flow Trace:** `canvas press → handle hit and pointer capture → owned move/release → one source edit`
+- **Files You Touch:** `src/browser.rs` (*Capture one actual handle pointer and route its matching motion and release before source picking.*)
+
+Primary unmodified handle presses own pointer capture before asynchronous source picking. Route matching movement and release to the edit owner; field rectangles and modified selection presses keep their priorities.
+
+> **Self-Check Question:** *Why cancel an older asynchronous source pick when a handle is grabbed?*  
+> **Answer:** It belongs to the previous cursor request. Admitting its late answer could replace the selection underneath an active handle edit.
+
+- **Hands-On Lab Experiment:** Grab an arrow and drag, then Undo. Click an arrow instead: it requests a number. Modified presses must remain available to additive selection.
 
 <details>
 <summary>Implementation 51zc-pointer: Capture actual browser handle drags</summary>
@@ -6994,6 +7480,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-51zd-interruption"></a>
+
+### Step 32 of 34 · Restore previews when input ownership ends (`51zd-interruption`)
+
+- **Goal:** Restore previews when input ownership ends.
+- **Data Flow Trace:** `captured or numeric edit → cancel/blur/lost capture → saved presentation → released transient resources`
+- **Files You Touch:** `src/browser.rs` (*Synchronize number fields and restore temporary source presentation on real input interruption.*) · `src/editor.rs` (*Expose saved and captured preview scenes before the browser reports their source allocations.*)
+
+Escape, blur, resize and matching lost capture restore the saved presentation. A clicked handle opens its measured number field; stale off-eye fields close, and page hiding releases temporary displayed geometry.
+
+> **Self-Check Question:** *Should lost capture from an unrelated pointer cancel the active edit?*  
+> **Answer:** No. Pointer IDs identify ownership. Blur and resize end the whole gesture; another pointer’s capture loss does not own it.
+
+- **Hands-On Lab Experiment:** Drag, then press Escape or blur the page. No source movement or history may survive. Click a handle, enter an invalid value, then correct or cancel it.
 
 <details>
 <summary>Implementation 51zd-interruption: Restore previews when input ownership ends</summary>
@@ -7980,6 +8479,19 @@ Edit the existing block to match this code; keep unchanged lines:
 
 <a id="checkpoint-51ze-ledger"></a>
 
+### Step 33 of 34 · Count temporary source owners without saving them (`51ze-ledger`)
+
+- **Goal:** Count temporary source owners without saving them.
+- **Data Flow Trace:** `saved/history scenes plus preview owners → deduplicated allocation ledger → cancel or edit → released derived sources`
+- **Files You Touch:** `src/editor.rs` (*Count both retained preview scenes and revoke captures after successful direct source mutations.*)
+
+Count the saved document/history and both retained preview scenes. Shared allocations are deduplicated; a part preview adds one derived source. Successful hydration or direct edits revoke captured source ownership.
+
+> **Self-Check Question:** *Does counting a preview make it part of Save?*  
+> **Answer:** No. Reporting follows all retained owners; exporting reads only the saved scene. The original and temporary presentation have different responsibilities.
+
+- **Hands-On Lab Experiment:** Move a selected part without releasing. Its original source remains saved, its derived source appears in the memory count, and cancelling removes that extra allocation.
+
 <details>
 <summary>Implementation 51ze-ledger: Count temporary source owners without saving them</summary>
 
@@ -8798,6 +9310,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-51zf-handles"></a>
 
+### Step 34 of 34 · Verify complete handle editing and input (`51zf-handles`)
+
+- **Goal:** Verify complete handle editing and input.
+- **Data Flow Trace:** `selection and current camera → handle or numeric input → original-source preview → one commit or cancellation`
+- **Files You Touch:** `src/gizmo_edit_tests.rs` (*Copy original-source, pointer-ID, stale-edit, rational-weight, one-Undo and preview-ledger regression checks.*) · `src/number_box_tests.rs` (*Copy actual egui field-focus, text, Enter/Escape, rectangle and handle-switch regression checks.*) · `src/lib.rs` (*Register the edit component and supplied checks.*)
+
+Whole-object and source-part handles share current ray math, temporary presentation and one commit boundary. Exercise numeric fields, pointer cancellation, Shift release and original-source restoration together.
+
+> **Self-Check Question:** *What proves a handle preview is still temporary?*  
+> **Answer:** Saved source coordinates and placements remain unchanged during motion. Cancellation restores presentation; only a valid completed edit changes one history entry.
+
+- **Hands-On Lab Experiment:** Close; Example Box; Select All; Fit. Drag an arrow, then Undo. Click an arrow and type0.123456789012345. Try a rotation with Shift, a zero scale and Escape; errors or cancellation must preserve original geometry and redo.
+
 <details>
 <summary>Implementation 51zf-handles: Verify complete handle editing and input</summary>
 
@@ -8893,9 +9418,11 @@ After that block, append this supplied code:
 
 </details>
 
-## Run, Check, and Save
+---
 
-From `session_viewer`:
+## 5. Build, Verify, and Save Your Checkpoint
+
+Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 51zf-handles
@@ -8906,8 +9433,8 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. Use [checkpoint recovery](../recovery.md) to restore any saved checkpoint.
+Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../recovery.md) to save or restore any checkpoint ID.
 
-## Expected Visual Result & Experiment
+## 6. Lesson Summary & Expected Visual Result
 
-- **Try this:** Close; Example Box; Select All; Fit. Drag an arrow, then Undo. Click an arrow and type0.123456789012345. Try a rotation with Shift, a zero scale and Escape; errors or cancellation must preserve original geometry and redo.
+- **Final Lesson Experiment:** Close; Example Box; Select All; Fit. Drag an arrow, then Undo. Click an arrow and type0.123456789012345. Try a rotation with Shift, a zero scale and Escape; errors or cancellation must preserve original geometry and redo.

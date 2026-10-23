@@ -1,92 +1,174 @@
 # 22.5 · Coherent multisampling and frame-resource ownership
 
-**Section 10: Shared GPU Arenas, Floating-Origin Precision, Multisampling, and Production Parity** · **Lesson 22.5** (Redraft `10.20`) · **19 checkpoints (`96zzzzzzu-keep-depth-and-address-samples-separate` → `96zzzzzzzl-choose-bounded-frame-quality`)**
+**Section 10: Shared GPU Arenas, Floating-Origin Precision, Multisampling, and Production Parity** · **Lesson 22.5** (Redraft `10.20`) · **19 checkpoints (`96zzzzzzu-keep-depth-and-address-samples-separate` → `96zzzzzzzl-choose-bounded-frame-quality`)** · **Study time: 19–38 h**
 
-> **Learning Goal:** Define matching frame attachments without averaging depth or physical primitive addresses.
+> **What You Will Learn & Build:** Define matching frame attachments without averaging depth or physical primitive addresses. By the final checkpoint (`96zzzzzzzl-choose-bounded-frame-quality`), you will choose coherent colour samples from actual geometry, physical viewport, device budget and recovery without changing original sources or owner queries.
 
-## Visual WebGPU & Architecture Schematic
+## 1. Visual Pipeline & WebGPU Architecture (Black & White Schematics)
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1px solid #cbd5e1;border-radius:10px;background:#f8fafc;">
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
+<svg viewBox="0 0 840 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <rect x="4" y="4" width="832" height="212" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Lesson 22.5 Execution Flow: Coherent multisampling and frame-resource ownership</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">Concrete data pipeline you build in this lesson (19 Checkpoints: 96zzzzzzu-keep-depth-and-address-samples-separate → 96zzzzzzzl-choose-bounded-frame-quality)</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
+  
+    
+    <rect x="18" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="89" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
+    <line x1="28" y1="92" x2="151" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">One sample count</text>
+    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="183" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="254" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
+    <line x1="193" y1="92" x2="316" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">matching depth and</text>
+    <text x="254" y="124" text-anchor="middle" font-size="11" fill="#111111">primitive images</text>
+    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="348" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="419" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
+    <line x1="358" y1="92" x2="481" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">direct sample reads</text>
+    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="513" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="584" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
+    <line x1="523" y1="92" x2="646" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">colour-only resolve</text>
+    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="678" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="749" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
+    <line x1="688" y1="92" x2="811" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">Active original</text>
+    <text x="749" y="124" text-anchor="middle" font-size="11" fill="#111111">geometry + physical</text>
+    <text x="749" y="140" text-anchor="middle" font-size="11" fill="#111111">pixels/density…</text>
+    
+    <rect x="18" y="162" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="32" y="181" font-size="11" font-weight="700" fill="#111111">Files You Edit in Lesson 22.5:</text>
+    <text x="215" y="181" font-size="11" fill="#111111">src/frame_targets.rs  ·  src/primitive_image.rs  ·  src/lib.rs  ·  src/frame_target_tests.rs  ·  src/renderer.rs  ·  src/global_outline_tests.rs</text>
+    <text x="32" y="198" font-size="10.5" fill="#111111">19 Checkpoints: 96zzzzzzu-keep-depth-and-address-samples-separate → 96zzzzzzzl-choose-bounded-frame-quality — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
+  
+</svg>
+</div>
+
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
 <svg viewBox="0 0 840 240" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#475569"/>
-    </marker>
-    <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#2563eb"/>
-    </marker>
-    <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#059669"/>
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
     </marker>
   </defs>
-  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
-  <text x="20" y="28" font-size="14" font-weight="700" fill="#0f172a">Section 10 Production Architecture: Shared GPU Storage Arena, f64 Floating Origin, Reversed-Z, 4x MSAA & Matrix Shader</text>
-  <text x="20" y="46" font-size="11.5" fill="#475569">How the maintained viewer pulls vertices from one growable GPU arena, eliminates jitter at 10^12 units, and renders procedural Matrices.</text>
-  <line x1="16" y1="54" x2="824" y2="54" stroke="#e2e8f0" stroke-width="1"/>
+  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Section 10 Production Architecture: Shared GPU Storage Arena, f64 Floating Origin, Reversed-Z, 4x MSAA & Matrix Shader</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">How the maintained viewer pulls vertices from one growable GPU arena, eliminates jitter at 10^12 units, and renders procedural Matrices.</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
   
-    <rect x="18" y="68" width="250" height="145" rx="6" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
-    <text x="143" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1e40af">1. Shared GPU Arena (Ch 19–20)</text>
-    <text x="28" y="108" font-size="10.5" fill="#1e3a8a">• 1 Growable Storage Buffer Arena</text>
-    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#1d4ed8">• Vertex Pulling (@builtin(vertex_index))</text>
-    <text x="28" y="144" font-size="10.5" fill="#1e3a8a">• 8-byte Draw Slots -&gt; ObjectRecord</text>
-    <text x="28" y="162" font-size="10.5" fill="#1e3a8a">• slot_table.wgsl maps Rg32Uint</text>
-    <text x="28" y="178" font-size="10.5" fill="#1e3a8a">  primitive IDs to Element/Face owners</text>
-    <text x="28" y="194" font-size="10" fill="#1e3a8a">• Free-list span reuse after GPU lease</text>
+    <rect x="18" y="68" width="250" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="143" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">1. Shared GPU Arena (Ch 19–20)</text>
+    <text x="28" y="108" font-size="10.5" fill="#111111">• 1 Growable Storage Buffer Arena</text>
+    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#111111">• Vertex Pulling (@builtin(vertex_index))</text>
+    <text x="28" y="144" font-size="10.5" fill="#111111">• 8-byte Draw Slots -&gt; ObjectRecord</text>
+    <text x="28" y="162" font-size="10.5" fill="#111111">• slot_table.wgsl maps Rg32Uint</text>
+    <text x="28" y="178" font-size="10.5" fill="#111111">  primitive IDs to Element/Face owners</text>
+    <text x="28" y="194" font-size="10" fill="#111111">• Free-list span reuse after GPU lease</text>
 
-    <line x1="268" y1="138" x2="298" y2="138" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
+    <line x1="268" y1="138" x2="298" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="300" y="68" width="265" height="145" rx="6" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5"/>
-    <text x="432" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#9a3412">2. f64 Floating Origin &amp; Reversed-Z (Ch 21)</text>
-    <text x="312" y="108" font-size="10.5" font-weight="600" fill="#c2410c">• rel_f32 = (world_f64 - anchor_f64) as f32</text>
-    <text x="312" y="125" font-size="10" fill="#7c2d12">  Zero vertex/grid jitter even at 10^12 m!</text>
-    <text x="312" y="144" font-size="10.5" font-weight="600" fill="#c2410c">• Reversed-Z Depth (GreaterEqual):</text>
-    <text x="312" y="160" font-size="10" fill="#7c2d12">  Near plane = 1.0, Far plane = 0.0</text>
-    <text x="312" y="178" font-size="10.5" fill="#7c2d12">• Held world base grid &amp; preserved</text>
-    <text x="312" y="193" font-size="10.5" fill="#7c2d12">  live camera during Session reload</text>
+    <rect x="300" y="68" width="265" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="432" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">2. f64 Floating Origin &amp; Reversed-Z (Ch 21)</text>
+    <text x="312" y="108" font-size="10.5" font-weight="600" fill="#111111">• rel_f32 = (world_f64 - anchor_f64) as f32</text>
+    <text x="312" y="125" font-size="10" fill="#111111">  Zero vertex/grid jitter even at 10^12 m!</text>
+    <text x="312" y="144" font-size="10.5" font-weight="600" fill="#111111">• Reversed-Z Depth (GreaterEqual):</text>
+    <text x="312" y="160" font-size="10" fill="#111111">  Near plane = 1.0, Far plane = 0.0</text>
+    <text x="312" y="178" font-size="10.5" fill="#111111">• Held world base grid &amp; preserved</text>
+    <text x="312" y="193" font-size="10.5" fill="#111111">  live camera during Session reload</text>
 
-    <line x1="565" y1="138" x2="595" y2="138" stroke="#059669" stroke-width="2" marker-end="url(#arrow-green)"/>
+    <line x1="565" y1="138" x2="595" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="597" y="68" width="223" height="145" rx="6" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1.5"/>
-    <text x="708" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#065f46">3. 4x MSAA &amp; Matrix Shader (Ch 22)</text>
-    <text x="609" y="108" font-size="10.5" fill="#064e3b">• Coherent 1x/4x MSAA sample targets</text>
-    <text x="609" y="126" font-size="10.5" font-weight="600" fill="#047857">• matrix.wgsl (16w header + 3w/cell):</text>
-    <text x="609" y="142" font-size="10" fill="#064e3b">  Heatmap + procedural 3-decimal digits</text>
-    <text x="609" y="157" font-size="10" fill="#064e3b">  (0 cell blank; plate-less title; yellow</text>
-    <text x="609" y="172" font-size="10" fill="#064e3b">  selected border; Rg32Uint whole pick)</text>
-    <text x="609" y="190" font-size="10" fill="#064e3b">• Coalesced single-flight frame scheduler</text>
+    <rect x="597" y="68" width="223" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="708" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">3. 4x MSAA &amp; Matrix Shader (Ch 22)</text>
+    <text x="609" y="108" font-size="10.5" fill="#111111">• Coherent 1x/4x MSAA sample targets</text>
+    <text x="609" y="126" font-size="10.5" font-weight="600" fill="#111111">• matrix.wgsl (16w header + 3w/cell):</text>
+    <text x="609" y="142" font-size="10" fill="#111111">  Heatmap + procedural 3-decimal digits</text>
+    <text x="609" y="157" font-size="10" fill="#111111">  (0 cell blank; plate-less title; yellow</text>
+    <text x="609" y="172" font-size="10" fill="#111111">  selected border; Rg32Uint whole pick)</text>
+    <text x="609" y="190" font-size="10" fill="#111111">• Coalesced single-flight frame scheduler</text>
     
 </svg>
 </div>
 
-### Lesson Data Flow (`Rust` → `WebGPU` → `WGSL`)
+## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
 
-```
-One sample count → matching depth and primitive images → direct sample reads → colour-only resolve.
-Original cloud/drawing sources → retained point/pen resources → cached count-specific colour recipes → independent original owners.
-Active original geometry + physical pixels/density + budget + retained override → one quality policy → complete-frame count API.
-```
+Before writing code, review how the three layers in this chapter talk to each other:
 
-- Define matching frame attachments without averaging depth or physical primitive addresses.
-- Cache count-specific original cloud and sheet colour recipes while retaining original source geometry, point images/raster, drawing placements/IDs and independent one-sample owner queries.
-- Choose coherent colour samples from actual geometry, physical viewport, device budget and recovery without changing original sources or owner queries.
-- **Why it works (Why must a multisampled physical primitive address remain per sample?):** Different samples can belong to different physical primitives. Averaging their integer values would invent an address. Read the matching sample’s depth and primitive address directly; original-owner queries retain their separate ID image.
-
-### Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `Browser`)
-
-| Layer | Construct | First-Year Student Explanation |
+| Layer | Construct | Plain-English Explanation for Students |
 | :--- | :--- | :--- |
 | **WGSL (Vertex Pull)** | `@group(0) @binding(b) var<storage, read> arena_verts: array<u32>;` | Fetches packed vertex positions, normals, and colors directly from a single growable storage buffer using `@builtin(vertex_index)`. |
 | **Rust/WGSL (`f64`->`f32`)** | `let rel: Vec3 = (world_f64 - anchor_f64).as_vec3();` | Subtracts the camera-area `f64` anchor on the CPU before converting to `f32`, preventing 32-bit float mantissa exhaustion far from `(0,0,0)`. |
 | **WGSL (`matrix.wgsl`)** | 16-word header + 3 words/cell procedural digits | Renders matrix heatmaps and 3-decimal numeric digits procedurally inside the fragment shader with zero texture uploads per cell. |
 | **Rust (`ink_ranges.rs`)** | Merged contiguous `Range<u32>` instance draws | Toggles point/line/edge/CAD-wire family visibility without rebuilding GPU buffers or invalidating original owner indices. |
 
-**Production source (`session_viewer/src`):** [engine/gpu/render.rs](../../../../src/engine/gpu/render.rs), [engine/gpu/pass.rs](../../../../src/engine/gpu/pass.rs), [engine/gpu/targets.rs](../../../../src/engine/gpu/targets.rs), [engine/gpu/frame.rs](../../../../src/engine/gpu/frame.rs), [engine/gpu/view.rs](../../../../src/engine/gpu/view.rs), [engine/pipelines/mod.rs](../../../../src/engine/pipelines/mod.rs), [shaders/triangle.wgsl](../../../../src/shaders/triangle.wgsl), [shaders/ribbon.wgsl](../../../../src/shaders/ribbon.wgsl), [shaders/vector.wgsl](../../../../src/shaders/vector.wgsl), [shaders/ink_visibility.wgsl](../../../../src/shaders/ink_visibility.wgsl), [app/scene.rs](../../../../src/app/scene.rs), [build.rs](../../../../build.rs).
+**Authoritative production source (`session_viewer/src`):** [engine/gpu/render.rs](../../../../src/engine/gpu/render.rs), [engine/gpu/pass.rs](../../../../src/engine/gpu/pass.rs), [engine/gpu/targets.rs](../../../../src/engine/gpu/targets.rs), [engine/gpu/frame.rs](../../../../src/engine/gpu/frame.rs), [engine/gpu/view.rs](../../../../src/engine/gpu/view.rs), [engine/pipelines/mod.rs](../../../../src/engine/pipelines/mod.rs), [shaders/triangle.wgsl](../../../../src/shaders/triangle.wgsl), [shaders/ribbon.wgsl](../../../../src/shaders/ribbon.wgsl), [shaders/vector.wgsl](../../../../src/shaders/vector.wgsl), [shaders/ink_visibility.wgsl](../../../../src/shaders/ink_visibility.wgsl), [app/scene.rs](../../../../src/app/scene.rs), [build.rs](../../../../build.rs).
 
-## Implementation Checkpoints
+## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
 
-Apply these checkpoints in order inside `workspace/journey`. Expand each block to view the Rust/WGSL/HTML edits:
+| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
+| ---: | :--- | :--- | :--- | :--- |
+| **1** | [`96zzzzzzu-keep-depth-and-address-samples-separate`](#checkpoint-96zzzzzzu-keep-depth-and-address-samples-separate) | Define matching frame attachments without averaging depth or physical primitive addresses. | `src/frame_targets.rs`, `src/primitive_image.rs`, `src/lib.rs`, `src/frame_target_tests.rs` | `One sample count → matching depth and primitive images → direct sample reads → colour-only resolve` |
+| **2** | [`96zzzzzzv-reuse-coherent-frame-targets`](#checkpoint-96zzzzzzv-reuse-coherent-frame-targets) | Retain frame attachments at equal extent and replace them coherently during real resizing. | `src/renderer.rs`, `src/lib.rs`, `src/global_outline_tests.rs`, `src/contact_feature_tests.rs` | `Existing renderer → one target owner → unchanged extent retains views → real resize replaces matching attachments` |
+| **3** | [`96zzzzzzw-match-resolve-base-and-view-formats`](#checkpoint-96zzzzzzw-match-resolve-base-and-view-formats) | Preserve flat colours by matching the base texture formats and rendering view formats at both ends of a resolve. | `src/frame_targets.rs`, `src/renderer.rs`, `src/browser.rs`, `src/frame_target_tests.rs` | `Actual canvas base format → explicit colour view format → matching frame attachments → colour-only resolve` |
+| **4** | [`96zzzzzzx-reuse-count-specific-surface-pipelines`](#checkpoint-96zzzzzzx-reuse-count-specific-surface-pipelines) | Match ordinary and shared surface shaders and pipeline descriptors to the requested sample count while retaining original geometry and previously compiled variants. | `src/sample_pipelines.rs`, `src/surface_pipelines.rs`, `src/renderer.rs`, `src/instance_gpu.rs` | `Existing surface descriptor → count-specific shader inputs → lazy pipeline pair → unchanged original geometry and records` |
+| **5** | [`96zzzzzzy-generate-ink-for-physical-samples`](#checkpoint-96zzzzzzy-generate-ink-for-physical-samples) | Carry an explicit physical sample through finite-ink visibility and generate colour shaders whose coordinates, depth, primitive addresses and pipeline descriptor use the same sample count. | `src/ink_plane.wgsl`, `src/finite_visibility.wgsl`, `src/finite_stroke.wgsl`, `src/finite_chain.wgsl` | `Explicit sample argument → matching depth and original primitive reads → sample-qualified pixel coordinates → count-specific shader and pipeline descriptor` |
+| **6** | [`96zzzzzzz-cache-ink-pipelines-with-independent-queries`](#checkpoint-96zzzzzzz-cache-ink-pipelines-with-independent-queries) | Retain matching finite-ink colour pipelines and binding layouts for both sample counts while keeping integer queries independent and sharing the original vertex-layout constants. | `src/stroke_gpu.rs`, `src/finite_ink.rs`, `src/finite_sample_tests.rs`, `src/ink_pixels_tests.rs` | `Shared static vertex attributes → matching colour pipeline/layout pair → cached count switch → fresh independent query bindings` |
+| **7** | [`96zzzzzzza-retarget-existing-overlay-lanes`](#checkpoint-96zzzzzzza-retarget-existing-overlay-lanes) | Apply one requested sample count through existing overlay lanes while retaining their original vertices, IDs, query pipelines and previously compiled colour recipes. | `src/stroke_gpu.rs`, `src/highlight.rs`, `src/tool_preview.rs`, `src/measure_gpu.rs` | `Requested count → lazy nonempty lane adoption → matching colour recipe → retained vertices and IDs → existing overlay owners` |
+| **8** | [`96zzzzzzzb-read-section-crossings-at-each-sample`](#checkpoint-96zzzzzzzb-read-section-crossings-at-each-sample) | Match section crossing images and cap colour/depth to each physical sample while retaining original solid geometry, cached recipes and independent single-sample original-owner queries. | `src/cap_pipeline.rs`, `src/cap_color.wgsl`, `src/cap_pick_pipeline.rs`, `src/caps_gpu.rs` | `Original closed solid → physical-sample crossings → matching cap colour and plane depth → original cap owner query` |
+| **9** | [`96zzzzzzzc-compose-cloud-depth-with-physical-addresses`](#checkpoint-96zzzzzzzc-compose-cloud-depth-with-physical-addresses) | Make nearer original clouds agree across visible colour, physical depth/addresses and independent original-owner queries, including ink in front and behind. | `src/cloud_gpu.rs`, `src/cloud_resolve.wgsl`, `src/renderer.rs`, `src/sheet_gpu.rs` | `Original cloud points → coherent opaque colour/depth/zero surface address → actual ink occlusion → fresh original-owner query` |
+| **10** | [`96zzzzzzzca-cache-cloud-and-sheet-samples`](#checkpoint-96zzzzzzzca-cache-cloud-and-sheet-samples) | Cache count-specific original cloud and sheet colour recipes while retaining original source geometry, point images/raster, drawing placements/IDs and independent one-sample owner queries. | `src/cloud_gpu.rs`, `src/renderer.rs`, `src/sheet_gpu.rs`, `src/sheet_pipeline.rs` | `Original cloud/drawing sources → retained point/pen resources → cached count-specific colour recipes → independent original owners` |
+| **11** | [`96zzzzzzzd-retarget-cached-text`](#checkpoint-96zzzzzzzd-retarget-cached-text) | Match world text, nameplates and screen glyph colour to physical sample counts while retaining original sources, shaping, fonts, atlas contents, world-plane raster images and independent original-owner queries. | `src/text_plate.rs`, `src/text_plane.rs`, `src/scene_text_gpu.rs`, `src/renderer.rs` | `Original text/shaping → retained font/atlas/world raster → cached matching colour recipes → independent original-owner queries` |
+| **12** | [`96zzzzzzze-cache-outline-section-recipes`](#checkpoint-96zzzzzzze-cache-outline-section-recipes) | Prepare count-specific section coverage and outline colour recipes while retaining original addresses, one-sample search images and one final black blend. | `src/outline_caps.rs`, `src/outline_composite.rs`, `src/outline_gpu.rs` | `Original section address → matching physical coverage sample → retained outline search → one cached final blend` |
+| **13** | [`96zzzzzzzf-resolve-float-outline-coverage`](#checkpoint-96zzzzzzzf-resolve-float-outline-coverage) | Feed physical face and section coverage into the retained one-sample outline search and blend the selected/global result once, without resolving integer addresses or depth. | `src/outline_gpu.rs`, `src/outline_caps.rs`, `src/renderer.rs`, `src/sample_surface_tests.rs` | `Original physical face/section coverage → float-only resolve → retained search images → one matching final blend` |
+| **14** | [`96zzzzzzzg-retarget-original-ambient-properties`](#checkpoint-96zzzzzzzg-retarget-original-ambient-properties) | Prepare cached physical-sample original radius and normal sources while retaining original geometry and the one-sample ambient hierarchy, filters and history images. | `src/ambient_source_pipeline.rs`, `src/ambient_source_gpu.rs`, `src/ambient_image.rs`, `src/ambient_images.rs` | `Original face radii/normals → matching physical source recipes/images → retained one-sample ambient hierarchy` |
+| **15** | [`96zzzzzzzh-share-ambient-shader-recipes`](#checkpoint-96zzzzzzzh-share-ambient-shader-recipes) | Reuse ambient shader modules and one pipeline factory, prepare matching physical input layouts and connect retained composition bindings before activating sparse sample corrections. | `src/ambient_pipeline.rs`, `src/ambient_groups.rs`, `src/ambient_gpu.rs` | `Three distinct shader sources → shared modules → explicit vertex/fragment/count recipes → retained composition inputs` |
+| **16** | [`96zzzzzzzi-correct-ambient-at-physical-samples`](#checkpoint-96zzzzzzzi-correct-ambient-at-physical-samples) | Connect matching original depth/address/radius/normal samples to bounded sparse ambient correction while retaining coarse images, source geometry and cached recipes. | `src/ambient_gpu.rs`, `src/ambient_groups.rs`, `src/renderer.rs`, `src/ambient_sample_inspect.rs` | `Matching original physical inputs → representative coarse shading → changed-sample corrections → unique bounded tiles → indirect colour draw` |
+| **17** | [`96zzzzzzzj-cache-physical-depth-pyramid-inputs`](#checkpoint-96zzzzzzzj-cache-physical-depth-pyramid-inputs) | Cache physical depth inputs while retaining the six one-sample coarse images and their encoded radius/pixel addresses. | `src/pyramid_pipeline.rs`, `src/pyramid_gpu.rs`, `src/pyramid_gpu_tests.rs` | `Matching physical depth → cached source recipe → representative sample zero → six retained single-sample levels` |
+| **18** | [`96zzzzzzzk-retarget-the-complete-colour-frame`](#checkpoint-96zzzzzzzk-retarget-the-complete-colour-frame) | Retarget every active colour consumer and frame attachment through one production API while preserving independent original-owner queries. | `src/renderer.rs`, `src/browser.rs`, `src/cloud_address_tests.rs`, `src/sample_surface_tests.rs` | `One count owner → compatible cached colour consumers → matching attachments; independent original-owner queries retained` |
+| **19** | [`96zzzzzzzl-choose-bounded-frame-quality`](#checkpoint-96zzzzzzzl-choose-bounded-frame-quality) | Choose coherent colour samples from actual geometry, physical viewport, device budget and recovery without changing original sources or owner queries. | `src/sample_quality.rs`, `src/lib.rs`, `src/renderer.rs`, `src/browser.rs` | `Active original geometry + physical pixels/density + budget + retained override → one quality policy → complete-frame count API` |
+
+---
+
+## 4. Step-by-Step Coding Notebook (Concept + Implementation)
+
+Work through each notebook cell below in order inside `workspace/journey`. Read the **Concept Walkthrough** and **Self-Check Q&A** first, then expand the **Implementation** block to type and verify the code.
 
 <a id="checkpoint-96zzzzzzu-keep-depth-and-address-samples-separate"></a>
+
+### Step 1 of 19 · Keep depth and address samples separate (`96zzzzzzu-keep-depth-and-address-samples-separate`)
+
+- **Goal:** Define matching frame attachments without averaging depth or physical primitive addresses.
+- **Data Flow Trace:** `One sample count → matching depth and primitive images → direct sample reads → colour-only resolve`
+- **Files You Touch:** `src/frame_targets.rs` (*Own matching depth and primitive samples; keep the optional colour image as the only resolve source.*) · `src/primitive_image.rs` (*Keep request-owned queries single-sample. Four-sample integer images are sampled directly and never copied or resolved.*) · `src/lib.rs` (*Register the attachment owner. The main renderer remains single-sample.*) · `src/frame_target_tests.rs` (*Read every actual depth/ID sample, resolve only colour and retain readable old bound views across replacement.*)
+
+Create matching depth and integer-address images for one or four samples. Resolve only the colour image. Keep the current browser renderer at one sample until every consuming pass supports the same count.
+
+One multisampled pixel can contain different surfaces. Averaging physical primitive addresses would manufacture an address that never existed. Original-owner queries use their separate ID image. Keep each depth and integer address available by sample index; only colour becomes a single displayed pixel.
+
+The supplied GPU fixture writes distinct depth and both integer halves for every actual sample. It reads them with a compute pass, verifies the resolved colour separately, then replaces the owner and checks that existing bound views still read the original values. It never assumes fixed sample positions.
+
+The browser image intentionally retains the existing single-sample scene. Defining these resources does not enable four-sample rendering. The next checkpoint connects their owner to the renderer; coherent shaders, quality selection and full feature validation still follow.
+
+> **Self-Check Question:** *Why must a multisampled physical primitive address remain per sample?*  
+> **Answer:** Different samples can belong to different physical primitives. Averaging their integer values would invent an address. Read the matching sample’s depth and primitive address directly; original-owner queries retain their separate ID image.
+
+- **What You Should See:** The browser retains its existing single-sample picture. The real GPU resource fixture verifies independent depth and integer samples at one and four samples, colour-only resolve, and readable old bound views after replacing the target owner.
+- **Hands-On Lab Experiment:** Compare every actual sample’s depth and two integer halves, then read the resolved colour. Confirm that the1x integer image allows copy readback and the four-sample image is read through a shader instead.
 
 <details>
 <summary>Implementation 96zzzzzzu-keep-depth-and-address-samples-separate: Keep depth and address samples separate</summary>
@@ -217,6 +299,26 @@ After that block, append this supplied code:
 </details>
 
 <a id="checkpoint-96zzzzzzv-reuse-coherent-frame-targets"></a>
+
+### Step 2 of 19 · Reuse coherent frame targets (`96zzzzzzv-reuse-coherent-frame-targets`)
+
+- **Goal:** Retain frame attachments at equal extent and replace them coherently during real resizing.
+- **Data Flow Trace:** `Existing renderer → one target owner → unchanged extent retains views → real resize replaces matching attachments`
+- **Files You Touch:** `src/renderer.rs` (*Move every existing depth field reference under the target owner; preserve longer names.*) · `src/lib.rs` (*Retain the existing validation assertions while using the new target owner.*) · `src/global_outline_tests.rs` (*Retain the existing validation assertions while using the new target owner.*) · `src/contact_feature_tests.rs` (*Retain the existing validation assertions while using the new target owner.*) · `src/ambient_input_tests.rs` (*Retain the existing validation assertions while using the new target owner.*) · `src/ambient_contact_tests.rs` (*Retain the existing validation assertions while using the new target owner.*) · `src/frame_target_tests.rs` (*Append the actual unchanged-extent, coherent-resize, nonblank pixels, full sources, geometry identity and release witness.*)
+
+Connect the frame-target owner to the existing renderer. Keep its depth and primitive images when the viewport is unchanged; replace them together when its size changes. Geometry, original sources, and the existing single-sample picture remain intact.
+
+Rename the two whole-field references with your editor’s Replace All, then wire the constructor, resize and draw paths below. Keep the existing algorithms and every source owner. The optional Native updates preserve existing assertions and add the resource-lifetime witness.
+
+Renderer keeps its existing size and format once. The owner holds matching attachments and their sample count. Render into its colour view, resolve colour before the independent widget, and keep request-owned query images separate. The current renderer still chooses one sample.
+
+The preceding Native renderer replaced two targets even at the same extent, despite identical nonblank pixels and unchanged geometry uploads. The browser already avoids calling resize at unchanged extent, so this API improvement is not a browser frame-rate claim. Read actual GPU identities and passive texture descriptors, not only a visually unchanged screenshot.
+
+> **Self-Check Question:** *Why does an unchanged screenshot fail to prove that frame resources were reused?*  
+> **Answer:** New attachments can produce identical pixels. Check the actual retained views and GPU texture creation, together with unchanged source/geometry ownership and exact pixels. Real extent changes must replace a matching pair.
+
+- **What You Should See:** The real renderer reuses equal-extent targets and replaces actual extent changes coherently. Source and geometry owners stay intact; one-sample pixels restore exactly. Four-sample full-viewer consumers and quality selection still follow.
+- **Hands-On Lab Experiment:** Compare actual old-parent and current view identities; resize at both browser densities, pick the original face after each change, compare full source archives and restore every scene pixel. Inspect every separate depth/integer sample and colour-only resolve in the supplied Native fixture.
 
 <details>
 <summary>Implementation 96zzzzzzv-reuse-coherent-frame-targets: Reuse coherent frame targets</summary>
@@ -2034,6 +2136,28 @@ After that block, append this supplied code:
 
 <a id="checkpoint-96zzzzzzw-match-resolve-base-and-view-formats"></a>
 
+### Step 3 of 19 · Keep resolved colours in the canvas format (`96zzzzzzw-match-resolve-base-and-view-formats`)
+
+- **Goal:** Preserve flat colours by matching the base texture formats and rendering view formats at both ends of a resolve.
+- **Data Flow Trace:** `Actual canvas base format → explicit colour view format → matching frame attachments → colour-only resolve`
+- **Files You Touch:** `src/frame_targets.rs` (*Retain identical-format callers and accept an explicit compatible base/view pair.*) · `src/renderer.rs` (*Keep the output base format beside the existing colour view format.*) · `src/browser.rs` (*Pass the actual canvas base and rendering view formats separately.*) · `src/frame_target_tests.rs` (*Extend the existing actual GPU fixture across matching base/view pairs while retaining every depth/address, resize and release assertion.*)
+
+Keep flat colours stable when adding multisampling. The canvas texture’s base format and the format of its rendering view are separate values; matching both ends of the resolve prevents large colour shifts.
+
+The browser supplies its configured base format and its existing sRGB view format. Renderer keeps both values, and the frame owner allocates its optional multisampled colour texture with the output base format and the requested rendering view. Depth and primitive formats keep their existing roles.
+
+Retain the existing constructor for Native callers whose texture and view formats are identical. Resize carries the same pair into replacement attachments. This checkpoint keeps the main renderer at one sample; subsequent work connects the other consumers before enabling four samples.
+
+The supplied Native fixture renders all six combinations of three valid base/view pairs and two sample counts. It reads every original depth and integer address independently, checks that only colour resolves, and checks the linear average encoded through an sRGB view. A separate actual Chrome probe reproduced a large interior colour shift when base formats differed even though the views matched. No additional colour image, fullscreen conversion pass or approximate gamma function is needed.
+
+The [WebGPU render-pass rules](https://gpuweb.github.io/gpuweb/#dom-gpurenderpasscolorattachment-resolvetarget) require matching texture base formats as well as matching rendering view formats.
+
+> **Self-Check Question:** *Why can matching the two view formats still leave a resolve incorrect?*  
+> **Answer:** A view can reinterpret a texture’s format. The underlying multisample and output textures must also have matching base formats, so supply the actual canvas base separately from the rendering view.
+
+- **What You Should See:** Frame attachments retain the output base format and the colour view format through construction and resizing. Flat source colours keep their intended encoding; depth and integer addresses remain unaveraged. The main browser renderer remains at one sample at this checkpoint.
+- **Hands-On Lab Experiment:** Run the supplied fixture with unorm/unorm, unorm/sRGB-view and sRGB/sRGB-view at one and four samples. The linear half-intensity colour resolves near128 in unorm or188 through sRGB. Compare physical sample depth and primitive words independently of the colour result.
+
 <details>
 <summary>Implementation 96zzzzzzw-match-resolve-base-and-view-formats: Keep resolved colours in the canvas format</summary>
 
@@ -3564,6 +3688,32 @@ Update the existing block with this supplied code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-96zzzzzzx-reuse-count-specific-surface-pipelines"></a>
+
+### Step 4 of 19 · Reuse surface pipelines for each sample count (`96zzzzzzx-reuse-count-specific-surface-pipelines`)
+
+- **Goal:** Match ordinary and shared surface shaders and pipeline descriptors to the requested sample count while retaining original geometry and previously compiled variants.
+- **Data Flow Trace:** `Existing surface descriptor → count-specific shader inputs → lazy pipeline pair → unchanged original geometry and records`
+- **Files You Touch:** `src/sample_pipelines.rs` (*Retain only active and alternate pipeline/layout recipes for counts1 and4; never retain inactive frame images.*) · `src/surface_pipelines.rs` (*Declare the existing surface descriptor factory interface and pair return.*) · `src/renderer.rs` (*Remove the shader constructor after moving its exact bytes into the surface factory.*) · `src/instance_gpu.rs` (*Extract the existing shared-surface descriptor behind the same count-specific factory interface.*) · `src/global_outline_tests.rs` (*Keep existing assertions on the same active ordinary pipeline.*) · `src/lib.rs` (*Register the two small pipeline recipe modules.*) · `src/sample_surface_tests.rs` (*Render actual ordinary and shared surfaces at both counts, inspect every physical depth/address, require exact return and cached pipeline identity, preserve original records and GPU geometry, then freshly query both original shared owners.*) · `src/sample_test_proof.rs` (*Export actual Native diagnostic pixels only when the caller opts into a proof directory; run all assertions without filesystem output by default.*)
+
+Reuse the existing surface drawing code at one and four samples. Move each descriptor into a factory, make its count explicit, and retain the alternate compiled recipe so switching back does not compile it again.
+
+A small generic owner keeps the active pipeline pair, an optional alternate pair and their current count. Repeating the same count returns immediately; the first change creates the other recipe and later changes swap the two. It retains pipelines and their layouts, not inactive colour, depth or address images.
+
+Move the exact existing ordinary surface shader constructor and descriptor closure before changing their inputs. The shared-instance factory follows the same pattern. Both factories use the requested multisample count. Only the four-sample shader qualifies interpolated colour, world position and normal at the actual sample; the single-sample source remains unchanged.
+
+Ordinary and shared placements continue using the original GPU geometry, object records, slots and source owners. No tessellation or record upload is needed to change a pipeline recipe. The main renderer stays at one sample here: ink, caps, drawing sheets, text and other consumers must be connected before a complete four-sample frame is safe.
+
+> **Self-Check Question:** *Why retain alternate pipelines but release inactive frame images?*  
+> **Answer:** Pipeline recipes can be reused across many frames and extents. Full-sized colour, depth and address images scale with the viewport; only the currently active coherent image set is required.
+
+- **What You Should See:** Ordinary and shared surface pipelines have matching one- and four-sample recipes with cached return switches. Source geometry, records, uploads and independent single-sample original-owner queries keep their existing roles. The public main frame still uses one sample.
+
+These actual GPU pictures show only the surface pass: two shared blue triangles and one ordinary green triangle. The left triangle reaches the viewport boundary. Compare silhouette coverage at one and four samples; the complete browser frame remains at one sample here.
+
+**One sample — actual Native surface pass.**
+
+**Four samples — actual Native surface pass.**
+- **Hands-On Lab Experiment:** Run the supplied isolated surface witness. Compare ordinary uniform drawing with the same original shared records at four samples, inspect physical depth and integer addresses, and switch4→1→4. The returned pipeline identities and every returned colour pixel must match without rebuilding geometry.
 
 <details>
 <summary>Implementation 96zzzzzzx-reuse-count-specific-surface-pipelines: Reuse surface pipelines for each sample count</summary>
@@ -5595,6 +5745,26 @@ After that block, append this supplied code:
 
 <a id="checkpoint-96zzzzzzy-generate-ink-for-physical-samples"></a>
 
+### Step 5 of 19 · Generate ink shaders for physical samples (`96zzzzzzy-generate-ink-for-physical-samples`)
+
+- **Goal:** Carry an explicit physical sample through finite-ink visibility and generate colour shaders whose coordinates, depth, primitive addresses and pipeline descriptor use the same sample count.
+- **Data Flow Trace:** `Explicit sample argument → matching depth and original primitive reads → sample-qualified pixel coordinates → count-specific shader and pipeline descriptor`
+- **Files You Touch:** `src/ink_plane.wgsl` (*Carry the explicit physical sample through original finite-ink visibility; single-sample queries continue passing0.*) · `src/finite_visibility.wgsl` (*Carry the explicit physical sample through original finite-ink visibility; single-sample queries continue passing0.*) · `src/finite_stroke.wgsl` (*Carry the explicit physical sample through original finite-ink visibility; single-sample queries continue passing0.*) · `src/finite_chain.wgsl` (*Carry the explicit physical sample through original finite-ink visibility; single-sample queries continue passing0.*) · `src/finite_marker.wgsl` (*Carry the explicit physical sample through original finite-ink visibility; single-sample queries continue passing0.*) · `src/finite_stroke_pick.wgsl` (*Carry the explicit physical sample through original finite-ink visibility; single-sample queries continue passing0.*) · `src/finite_chain_pick.wgsl` (*Carry the explicit physical sample through original finite-ink visibility; single-sample queries continue passing0.*) · `src/finite_marker_pick.wgsl` (*Carry the explicit physical sample through original finite-ink visibility; single-sample queries continue passing0.*) · `src/finite_sources.rs` (*Generate only four-sample actual depth/address access and sample-qualified coverage; retain the original one-sample marker position.*) · `src/tile_shader_tests.rs` (*Retain every original compute/colour/query shader recipe and validate both counts across all six finite-ink styles with the same parser and full Naga assertions.*) · `src/finite_ink.rs` (*Carry the requested count from the pipeline descriptor into its shader recipe.*)
+
+Make finite-ink visibility read the same physical sample that produces its colour. Carry an explicit sample argument through the existing functions, generate the four-sample inputs when requested, and keep current colour and query owners at one sample until their layouts are connected.
+
+The visibility functions already use original primitive addresses and analytic source planes. Pass the sample through section, physical-depth, grid, line and disc visibility, including nearby original-address checks. Independent integer queries pass sample zero. No depth or primitive values are averaged.
+
+Keep one original shader source. At four samples, assemble multisampled depth and primitive declarations and read the requested sample. Sample-qualified pixel varyings provide the actual rasterization coordinates for both visibility and coverage. The marker keeps its existing builtin position at one sample and receives the extra pixel varying only in its four-sample form. No fixed sample offsets are inserted.
+
+The pipeline factory receives the same count as its assembled shader. Current owners still pass one because their binding layouts and cached resources are connected in the following work. The unchanged parser and validator assertions now cover21 assembled recipes: three compute modules and six finite-ink styles with one- and four-sample colour plus independent single-sample queries.
+
+> **Self-Check Question:** *Why does a sample index alone fail to establish correct per-sample ink?*  
+> **Answer:** The interpolated coverage coordinates, physical depth and original primitive address must refer to that same sample. A fragment-centre coordinate can disagree with a sample-qualified varying, so use the actual sample interpolation rather than fixed offsets.
+
+- **What You Should See:** Finite-ink functions carry an explicit sample, and generated four-sample shaders use matching actual coordinates, depth and primitive addresses. The pipeline descriptor receives the same count. Current colour owners and independent query owners remain single-sample until the next wiring step.
+- **Hands-On Lab Experiment:** Run the supplied assembled-shader validator across all21 recipes and the original line, chain, point, sloped-face and grid regressions. Compare generated one- and four-sample marker declarations: only the four-sample form adds the sample-qualified pixel varying. Follow the explicit sample from the fragment through every original-address and physical-depth read.
+
 <details>
 <summary>Implementation 96zzzzzzy-generate-ink-for-physical-samples: Generate ink shaders for physical samples</summary>
 
@@ -6767,6 +6937,34 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-96zzzzzzz-cache-ink-pipelines-with-independent-queries"></a>
 
+### Step 6 of 19 · Cache matching ink pipelines and bindings (`96zzzzzzz-cache-ink-pipelines-with-independent-queries`)
+
+- **Goal:** Retain matching finite-ink colour pipelines and binding layouts for both sample counts while keeping integer queries independent and sharing the original vertex-layout constants.
+- **Data Flow Trace:** `Shared static vertex attributes → matching colour pipeline/layout pair → cached count switch → fresh independent query bindings`
+- **Files You Touch:** `src/stroke_gpu.rs` (*Declare one shared static vertex-layout recipe; retain the original field offsets and strides.*) · `src/finite_ink.rs` (*Extract the binding recipe behind an explicit count parameter.*) · `src/finite_sample_tests.rs` (*Exercise actual six-family GPU colour coverage0..4, fresh independent original queries, exact return and cached pipeline/layout identities; optional proof exports remain portable.*) · `src/ink_pixels_tests.rs` (*Exercise actual six-family GPU colour coverage0..4, fresh independent original queries, exact return and cached pipeline/layout identities; optional proof exports remain portable.*)
+
+Give finite ink matching colour pipelines and image bindings at one and four samples. Cache the alternate recipe, release old image bindings on a real switch, and keep the independent query pipeline at one sample.
+
+Move the existing vertex-attribute macros into one small static recipe shared by strokes, chains, markers, guides, wide lines and grid drawing. The data layouts and field offsets stay unchanged. Finite ink borrows these slices instead of allocating another attribute vector.
+
+Move the existing finite-ink binding descriptor into a count-specific factory. Its depth and primitive bindings agree with the colour pipeline and shader. Retain a separate single-sample query layout; colour and query resource bindings use their own layouts.
+
+The shared pipeline owner creates a missing alternate pair once, then swaps retained recipes. Repeating the same count preserves current bindings. A real switch releases old depth/primitive bindings so they cannot retain inactive frame images or be used with the wrong layout. Current main-frame lanes still request one sample until the remaining consumers are connected.
+
+> **Self-Check Question:** *Why must the query layout stay separate from the current colour layout?*  
+> **Answer:** A colour pass can read multisampled depth and primitive images while the fresh integer query reads its own single-sample images. A shared current layout would bind the wrong texture kind after a colour count change.
+
+- **What You Should See:** Finite-ink colour pipeline/layout pairs have cached one- and four-sample recipes. Queries keep their independent one-sample pipeline and layout. Shared static attributes preserve original data offsets across all existing line, chain, point, guide and grid constructors. Complete browser rendering remains at one sample at this checkpoint.
+
+These actual isolated GPU pictures show two of four physical samples visible. The six style paths are tested independently; byte-identical pictures share one labelled figure. Complete browser rendering remains at one sample.
+
+**stroke, grid stroke, authored stroke metadata — two of four samples visible.**
+
+**headed chain — two of four samples visible.**
+
+**point, authored point metadata — two of four samples visible.**
+- **Hands-On Lab Experiment:** Run the supplied actual GPU witnesses across six finite-ink styles. Reveal zero through four physical samples, query independently, and switch4→1→4. Require exact return pixels and retained pipeline identity. Repeat the same count and check that current image bindings stay intact; change count and check that stale bindings release.
+
 <details>
 <summary>Implementation 96zzzzzzz-cache-ink-pipelines-with-independent-queries: Cache matching ink pipelines and bindings</summary>
 
@@ -7512,6 +7710,38 @@ Copy this supplied file:
 </details>
 
 <a id="checkpoint-96zzzzzzza-retarget-existing-overlay-lanes"></a>
+
+### Step 7 of 19 · Retarget existing overlay lanes (`96zzzzzzza-retarget-existing-overlay-lanes`)
+
+- **Goal:** Apply one requested sample count through existing overlay lanes while retaining their original vertices, IDs, query pipelines and previously compiled colour recipes.
+- **Data Flow Trace:** `Requested count → lazy nonempty lane adoption → matching colour recipe → retained vertices and IDs → existing overlay owners`
+- **Files You Touch:** `src/stroke_gpu.rs` (*Add only count-specific sample coordinates and the existing colour factory interface.*) · `src/highlight.rs` (*Delegate the same count through existing highlight, preview, measurement and guide lanes.*) · `src/tool_preview.rs` (*Delegate the same count through existing highlight, preview, measurement and guide lanes.*) · `src/measure_gpu.rs` (*Delegate the same count through existing highlight, preview, measurement and guide lanes.*) · `src/guide_gpu.rs` (*Delegate the same count through existing highlight, preview, measurement and guide lanes.*) · `src/stroke_sample_tests.rs` (*Draw six actual overlay families at both counts, preserve vertices/IDs/uploads and query pipelines, delay empty variants, and validate late finite data plus both empty-depth combinations without mismatched bindings.*)
+
+Retarget the existing overlay lanes without rebuilding their source data. Move the current colour descriptor into one factory, cache its alternate recipe, and let empty lanes remember the requested count until vertices arrive.
+
+The colour factory keeps the existing layout, shader and render descriptor. Only the requested sample count and actual sample-qualified coordinates change. Rounded markers gain the necessary pixel varying in their four-sample form; independent query descriptors remain single-sample.
+
+A lane records the requested count. With data present, finite ink delegates to its own matching pipeline/layout owner; other lanes select the cached colour recipe for their existing stride and depth mode. Source vertices, integer ID buffers, upload counts and query pipelines stay intact. A late finite owner adopts the same requested count.
+
+Empty finite lanes release old image bindings and skip frame binding entirely. Otherwise an unused one-sample layout can receive a four-sample image before it has any data, or an old four-sample layout can receive a one-sample image after clearing. The supplied actual GPU test covers both empty combinations, late data adoption and all six real overlay families. Highlight, preview, measurement and guide owners pass the same count to their existing lanes.
+
+> **Self-Check Question:** *Why record the requested count even when an empty lane has no matching pipeline yet?*  
+> **Answer:** The next real vertices must adopt the latest count. Empty lanes need no new colour recipe or image binding; retaining only the requested count avoids unnecessary compilation and invalid texture-layout bindings.
+
+- **What You Should See:** Existing stroke, chain, point, guide, wide-line and grid lanes have lazy cached count-specific colour recipes with unchanged data and independent queries. Highlight, preview, measurement and guide owners delegate the same count. Empty finite lanes release stale bindings and skip mismatched frame images. Complete browser rendering remains one-sample here.
+
+These actual isolated GPU pictures show complete four-sample overlay passes. The six overlay families are tested independently; byte-identical pictures share one labelled figure. Complete browser rendering remains at one sample.
+
+**stroke, wide overlay — actual four-sample overlay pass.**
+
+**headed chain — actual four-sample overlay pass.**
+
+**point — actual four-sample overlay pass.**
+
+**dashed guide — actual four-sample overlay pass.**
+
+**physical grid — actual four-sample overlay pass.**
+- **Hands-On Lab Experiment:** Run the actual six-family overlay witness. Request four samples while empty, add data, switch4→1→4, and require retained vertex/ID buffers, unchanged uploads, cached pipeline identities and exact returned pixels. Repeat with an empty finite lane, then late data, then clearing, using both physical depth counts.
 
 <details>
 <summary>Implementation 96zzzzzzza-retarget-existing-overlay-lanes: Retarget existing overlay lanes</summary>
@@ -8349,6 +8579,34 @@ Copy this supplied file:
 
 <a id="checkpoint-96zzzzzzzb-read-section-crossings-at-each-sample"></a>
 
+### Step 8 of 19 · Read section crossings at each sample (`96zzzzzzzb-read-section-crossings-at-each-sample`)
+
+- **Goal:** Match section crossing images and cap colour/depth to each physical sample while retaining original solid geometry, cached recipes and independent single-sample original-owner queries.
+- **Data Flow Trace:** `Original closed solid → physical-sample crossings → matching cap colour and plane depth → original cap owner query`
+- **Files You Touch:** `src/cap_pipeline.rs` (*Match active cap image, pipeline and physical sample count while retaining original geometry and independent one-sample queries.*) · `src/cap_color.wgsl` (*Use the actual physical sample in the same cap fragment calculation at both counts.*) · `src/cap_pick_pipeline.rs` (*Match active cap image, pipeline and physical sample count while retaining original geometry and independent one-sample queries.*) · `src/caps_gpu.rs` (*Match active cap image, pipeline and physical sample count while retaining original geometry and independent one-sample queries.*) · `src/cap_image.rs` (*Match active cap image, pipeline and physical sample count while retaining original geometry and independent one-sample queries.*) · `src/sample_surface_tests.rs` (*Retain the complete existing ordinary/shared surface fixture and add actual solid, hatch, selected cap, original-owner query, geometry/source preservation and exact return checks at both counts.*)
+
+Read a section cap from its matching physical sample. Give crossing images and pipeline descriptors an explicit count, keep one direct fragment calculation for both counts, and retain original cap geometry when the active image changes.
+
+The shared image allocator keeps existing one-sample callers and accepts an explicit count for crossing images. Their R16Float values count entering and leaving original closed-solid triangles; they remain separate at each physical sample. Colour resolves later, while crossing values, depth and integer primitive addresses keep their own roles.
+
+Existing pipeline factories receive the count directly. Cap colour and crossing shaders use matching physical sample coordinates; the cap fragment reads that sample once and writes only its corresponding coverage bit. The same calculation naturally uses sample zero in a one-sample pass. All integer-query callers explicitly request one sample.
+
+The cap owner caches pipeline recipes and keeps only the active crossing image. Replacing that image retains the original cap geometry and plane records; repeating a count reuses the current recipe. The supplied actual GPU witness checks solid grey caps, hatching, selected yellow caps, fresh original cap-owner queries, complete source records, retained geometry and exact return pixels.
+
+> **Self-Check Question:** *Why must crossing counts stay separate even though the final colour can resolve?*  
+> **Answer:** A physical sample can lie inside a solid while a neighbouring sample lies outside or belongs to another selected solid. Averaging crossings, plane depth or original primitive words would destroy those separate geometric decisions.
+
+- **What You Should See:** Section crossing images and cap pipeline recipes support matching one- and four-sample resources. One cap fragment calculation reads its own physical crossing, selection and plane depth; original-owner queries remain independently single-sample. Cap geometry stays retained when images change. Complete browser rendering remains one-sample at this checkpoint.
+
+These actual isolated Native GPU pictures show four-sample section caps from the original closed solid. The grey, hatch and selected states use matching physical crossing images. Complete browser rendering remains at one sample.
+
+**solid grey section — actual four-sample section pass.**
+
+**hatched section — actual four-sample section pass.**
+
+**selected yellow section — actual four-sample section pass.**
+- **Hands-On Lab Experiment:** Run the actual solid/hatch/selection witness at both counts and switch4→1→4. Require exact return pixels, unchanged original sources and GPU geometry, then freshly query the original cap owner through its one-sample lane. Compare every current Native image against the source solid and actual clipping plane.
+
 <details>
 <summary>Implementation 96zzzzzzzb-read-section-crossings-at-each-sample: Read section crossings at each sample</summary>
 
@@ -9105,6 +9363,44 @@ Update the existing block with this supplied code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-96zzzzzzzc-compose-cloud-depth-with-physical-addresses"></a>
+
+### Step 9 of 19 · Compose cloud colour, depth and queries (`96zzzzzzzc-compose-cloud-depth-with-physical-addresses`)
+
+- **Goal:** Make nearer original clouds agree across visible colour, physical depth/addresses and independent original-owner queries, including ink in front and behind.
+- **Data Flow Trace:** `Original cloud points → coherent opaque colour/depth/zero surface address → actual ink occlusion → fresh original-owner query`
+- **Files You Touch:** `src/cloud_gpu.rs` (*Keep cloud colour, physical depth/addresses and original-owner queries coherent without changing original sources or adding GPU images.*) · `src/cloud_resolve.wgsl` (*Keep cloud colour, physical depth/addresses and original-owner queries coherent without changing original sources or adding GPU images.*) · `src/renderer.rs` (*Skip absent cloud lanes before opening their composite pass.*) · `src/sheet_gpu.rs` (*Skip empty sheet lanes before binding their unused colour or query recipe.*) · `src/finite_visibility.wgsl` (*Keep cloud colour, physical depth/addresses and original-owner queries coherent without changing original sources or adding GPU images.*) · `src/pick_encode.rs` (*Reuse the existing readonly integer overlay query pass.*) · `src/cloud_address_tests.rs` (*Supplied actual one-sample physical cloud face/cap addresses and dense rear/front-line colour/query/source/placement/cache witnesses at both physical densities. Four-sample resources are connected next.*) · `src/cloud_composite_reference.rs` (*Independently render the exact maintained cloud WGSL on the same original cached point inputs; Native-only validation data.*) · `src/cloud_composite_tests.rs` (*Actual one-sample independent RGBA comparison for source alpha0/255, shading0/.25, viewport edges and whole/default output, preserving original sources, owner queries and cached raster.*)
+
+Make the visible cloud and its original-owner queries agree with actual depth. A nearer cloud hides rear source ink, while a genuinely nearer line remains visible and pickable. Preserve full original point records and cached point images.
+
+The physical address image indexes original triangles and section caps. A cloud belongs to neither table, so write zero address words with its nearer colour and depth. Later ink must respect nearer physical depth even when no analytic triangle represents that occluder; a mesh-only fallback must not resurrect a hidden line.
+
+The independent integer query has the same requirement. Establish cloud depth and zero physical words before readonly finite-ink queries, so visible front ink can return its own original owner. Reuse the existing query attachments through a stack-only pass helper; no additional image or heap array is introduced. Empty sheet lanes and absent clouds skip unused bindings.
+
+The existing48bytecloud settings buffer supplies default eye-dome0.25 shading. Four neighboring cached depths darken real steps. Scalar updates retain the point raster, and final cloud pixels remain opaque even when original stored alpha is zero. An independent supplied Native witness renders exact maintained WGSL against the same actual inputs and checks every RGBA channel, both alpha/shading modes, viewport edges and whole/default output.
+
+Actual Native dense-cloud witnesses inspect rear and front source colours and fresh owner queries at both densities. Their cloud covers the complete unchanged cursor neighborhood, and unrelated original boundaries lie outside it; no picker priority or radius is relaxed. Original sources, geometry/uploads, exact placement restoration and repeated-frame cache use remain strict. A wide-fringe control also requires the original line owner when its axis lies outside the small query halo; empty/out-of-window depth is not treated as an occluder. The current application is single-sample; count-specific cloud and sheet recipes follow together.
+
+> **Self-Check Question:** *Why does correct cloud depth alone fail to establish correct ink or picking?*  
+> **Answer:** Analytic triangle fallbacks cannot represent a cloud, and a cloud query drawn after readonly ink can overwrite a genuinely nearer line. Keep physical depth and address words coherent, honor real non-mesh occlusion, and establish cloud query depth before readonly finite ink.
+
+- **What You Should See:** Current cloud colour/depth/physical words and original-owner queries agree. Rear ink is hidden by actual nearer point coverage; genuinely front ink retains its colour and owner. Original alpha/source data and cached point images remain retained. Default opaque output and eye-dome shading match the independent maintained reference. The application remains single-sample until the following count-cache and consumer integration steps.
+
+These actual Native GPU pictures show original cloud/face and section coverage, exact maintained opaque/eye-dome appearance, rear and genuinely front source lines, and a wide visible source fringe whose axis lies outside the small query halo. Actual independent GPU depth/address reads and fresh owner assertions accompany the colour pixels. Complete original records, geometry/uploads, exact placement restoration and repeated-frame caches remain strict. Cursor radius and edge priority are unchanged. This owned application is single-sample; count-specific cloud/sheet/text recipes and complete browser multisampling follow.
+
+**nearer cloud over original face, one sample — actual cloud colour/depth/query check.**
+
+**nearer cloud over original section cap, one sample — actual cloud colour/depth/query check.**
+
+**original source alpha0 retained; opaque output and shading off — actual cloud colour/depth/query check.**
+
+**default eye-dome0.25; exact maintained compositor pixels — actual cloud colour/depth/query check.**
+
+**rear source line hidden by real dense cloud, density2 — actual cloud colour/depth/query check.**
+
+**genuinely front original line retains colour and owner, density2 — actual cloud colour/depth/query check.**
+
+**visible wide source fringe retains original query owner beyond the axis halo, density2 — actual cloud colour/depth/query check.**
+- **Hands-On Lab Experiment:** Run the actual physical face/cap, independent compositor and dense rear/front source witnesses. Inspect the separately labelled Native pictures. Require blue cloud pixels over a rear red line, red pixels and its original owner after moving the line in front, exact placement restoration and unchanged original point/line records. Preserve picker radius and priority by covering the complete test cursor neighborhood with real source points.
 
 <details>
 <summary>Implementation 96zzzzzzzc-compose-cloud-depth-with-physical-addresses: Compose cloud colour, depth and queries</summary>
@@ -11640,6 +11936,40 @@ After that block, append this supplied code:
 
 <a id="checkpoint-96zzzzzzzca-cache-cloud-and-sheet-samples"></a>
 
+### Step 10 of 19 · Cache cloud and sheet sample recipes (`96zzzzzzzca-cache-cloud-and-sheet-samples`)
+
+- **Goal:** Cache count-specific original cloud and sheet colour recipes while retaining original source geometry, point images/raster, drawing placements/IDs and independent one-sample owner queries.
+- **Data Flow Trace:** `Original cloud/drawing sources → retained point/pen resources → cached count-specific colour recipes → independent original owners`
+- **Files You Touch:** `src/cloud_gpu.rs` (*Cache matching cloud colour recipes while retaining source columns, point images/raster, original-owner queries and current appearance.*) · `src/renderer.rs` (*Late-created clouds adopt the current count before preparing source records.*) · `src/sheet_gpu.rs` (*Retain original drawing, raster/font resources and independent owner queries while caching matching colour recipes.*) · `src/sheet_pipeline.rs` (*Retain original drawing, raster/font resources and independent owner queries while caching matching colour recipes.*) · `src/cloud_address_tests.rs` (*Extend every existing physical address/rear-front source/cropped-query assertion to both counts and require real exact sample returns with full cached cloud usage retained.*) · `src/cloud_composite_tests.rs` (*Retain existing alpha/shading/viewport-edge/default/full-frame/original-owner parity assertions and extend them to all16settings at both physical counts.*) · `src/sample_surface_tests.rs` (*Retain every prior surface/section assertion and add actual sheet/cloud composition at both counts, complete sources/geometry/cache retention, exact returns and fresh original owners.*)
+
+Cache the cloud and drawing-sheet colour recipes for each physical sample count. Retain original point images, source columns, drawing geometry, placements and IDs. Keep original-owner queries independently single-sample, including the preceding rear/front and wide-fringe corrections.
+
+The cloud owner reuses its existing point and query layouts for the alternate colour recipe. Empty owners defer unused variants until actual point images exist. Late-created clouds adopt the current frame count before preparation. Count-only switches preserve original point columns, cached one-sample raster images and their preparation counts; opaque output, eye-dome shading and query depth order keep their existing meaning.
+
+Reuse the previously typed sheet view/model, clipping, source, shader, layout and descriptor references in a small alternate colour factory. Sample-qualified coverage and original world positions match the active pass. The sheet owner remembers the requested count even when empty and retains its source vertices, independent placements, full original entity IDs and query recipe.
+
+Extend the supplied original cloud witnesses to both counts without dropping any one-sample, source-alpha/shading/edge, physical-address, rear/front or wide-fringe assertion. Add actual sheet/cloud composition, fresh original owners, exact count-return pixels, retained original geometry/uploads and cached point preparation. Current main browser rendering remains one-sample until the remaining consumers and production count API are connected.
+
+> **Self-Check Question:** *Why keep original point images and owner queries single-sample while changing colour recipes?*  
+> **Answer:** They represent retained original point preparation and independent exact owner addresses. The colour recipe must match the physical frame attachment count; selecting it should not rebuild those sources or change the query lane.
+
+- **What You Should See:** Original cloud and drawing-sheet colour recipes support matching physical sample counts through the shared cache. Point images/raster, source columns, drawing geometry, placements and full IDs remain retained. Original-owner queries stay one-sample and preserve coherent front/rear/wide-fringe behavior. Current complete browser rendering remains one-sample pending the remaining consumers.
+
+These actual Native GPU frames show cloud occlusion of original faces/sections, original sheet/cloud composition and coherent rear/front source line pixels at the labelled physical count. Independent physical address/depth and original-owner checks accompany the images. Original records, source/geometry uploads, cached one-sample point raster and exact count-return pixels remain strict. The independent compositor also checks every RGBA channel across all16alpha/shading/edge/count settings. Complete browser rendering remains single-sample until all remaining consumers are connected. In this isolated reversed-depth fixture the sheet lies in front of the blue source face, and the red cloud lies in front of both. Its thin blue pen retains the original colour, which has deliberately low contrast against the blue face.
+
+**cloud occludes original face; four physical samples — actual cached cloud/sheet colour check.**
+
+**cloud occludes original section; four physical samples — actual cached cloud/sheet colour check.**
+
+**original sheet pens with cached cloud; one sample — actual cached cloud/sheet colour check.**
+
+**original sheet pens with cached cloud; four samples — actual cached cloud/sheet colour check.**
+
+**rear original line hidden by cloud; density2/four samples — actual cached cloud/sheet colour check.**
+
+**genuinely front original line keeps colour/owner; density2/four samples — actual cached cloud/sheet colour check.**
+- **Hands-On Lab Experiment:** Run actual cloud face/cap, reference RGBA, rear/front/wide-fringe and sheet/cloud witnesses at both counts. Switch4→1→4 and require exact return pixels, unchanged source uploads/geometry and cached point preparation. Inspect the separate Native physical-address, cloud ink and sheet pictures; they are distinct from the canonical single-sample browser scene.
+
 <details>
 <summary>Implementation 96zzzzzzzca-cache-cloud-and-sheet-samples: Cache cloud and sheet sample recipes</summary>
 
@@ -13971,6 +14301,32 @@ After that block, append this supplied code:
 
 <a id="checkpoint-96zzzzzzzd-retarget-cached-text"></a>
 
+### Step 11 of 19 · Retarget cached text colour (`96zzzzzzzd-retarget-cached-text`)
+
+- **Goal:** Match world text, nameplates and screen glyph colour to physical sample counts while retaining original sources, shaping, fonts, atlas contents, world-plane raster images and independent original-owner queries.
+- **Data Flow Trace:** `Original text/shaping → retained font/atlas/world raster → cached matching colour recipes → independent original-owner queries`
+- **Files You Touch:** `src/text_plate.rs` (*Retain original drawing, raster/font resources and independent owner queries while caching matching colour recipes.*) · `src/text_plane.rs` (*Retain original drawing, raster/font resources and independent owner queries while caching matching colour recipes.*) · `src/scene_text_gpu.rs` (*Retain original drawing, raster/font resources and independent owner queries while caching matching colour recipes.*) · `src/renderer.rs` (*Late-created text adopts the current renderer count.*) · `src/sample_surface_tests.rs` (*Extend the supplied actual fixture to cached text colour without introducing the complete renderer API before all remaining consumers.*)
+
+Retarget world text, nameplates and screen glyph colour to the frame sample count. Keep original text, shaping, fonts, atlas contents and world-plane raster images retained, and keep original-owner queries independently single-sample.
+
+Nameplate and world-plane colour recipes reuse the shared two-count cache. Their coverage and original world positions use matching physical sample coordinates. Repeating a target does nothing; a format change still rebuilds incompatible resources through the existing path. Late-created text adopts the current frame count.
+
+Glyphon exposes a TextRenderer through its public API. A real count change recreates that small renderer and its initial vertex buffer. Retain the atlas, fonts and cached shaping/raster data around it; this is not a zero-allocation switch.
+
+The supplied actual GPU witness combines world text, nameplates and screen glyphs with an original face. It checks font/shaping/raster/atlas usage, original geometry and sources, fresh original owners and exact return pixels through4→1→4. Current complete browser rendering remains one-sample until the remaining consumers and production API are connected.
+
+> **Self-Check Question:** *Which text resources should a colour sample-count change retain?*  
+> **Answer:** Retain original source text, shaping, fonts, atlas contents and world-plane raster images. Select a compatible cached plate/plane recipe and recreate only the small Glyphon renderer/initial vertex buffer required by its public API. Keep owner queries single-sample.
+
+- **What You Should See:** World text, nameplate and screen glyph colour can match physical frame samples while retaining source/shaping/font/atlas/world-raster resources. Actual count changes recreate the small Glyphon renderer/initial vertex buffer. Late-created text adopts the count and original-owner queries remain independently one-sample. Complete browser multisampling is connected after the remaining consumers.
+
+These actual Native GPU pictures show original world text, nameplates and screen glyphs at the labelled physical sample count. The witness checks unchanged shaping, fonts, atlas contents and cached world-plane rasters, original source/geometry retention, fresh original owners and exact count returns. A genuine count change recreates the small Glyphon TextRenderer/initial vertex buffer through its public API. Complete browser rendering remains single-sample until all remaining consumers are connected.
+
+**world/nameplate/screen text; one sample — actual cached text colour check.**
+
+**world/nameplate/screen text; four samples — actual cached text colour check.**
+- **Hands-On Lab Experiment:** Run the actual text witness at4→1→4 and inspect the labelled world/nameplate/screen frames. Require exact return pixels, fresh original owners, stable source geometry and unchanged shaping/world-raster/atlas usage. Keep Glyphon renderer allocation separate from the retained font/atlas/raster claim.
+
 <details>
 <summary>Implementation 96zzzzzzzd-retarget-cached-text: Retarget cached text colour</summary>
 
@@ -16135,6 +16491,26 @@ After that block, append this supplied code:
 
 <a id="checkpoint-96zzzzzzze-cache-outline-section-recipes"></a>
 
+### Step 12 of 19 · Cache section masks and the final outline blend (`96zzzzzzze-cache-outline-section-recipes`)
+
+- **Goal:** Prepare count-specific section coverage and outline colour recipes while retaining original addresses, one-sample search images and one final black blend.
+- **Data Flow Trace:** `Original section address → matching physical coverage sample → retained outline search → one cached final blend`
+- **Files You Touch:** `src/outline_caps.rs` (*Match physical face/section coverage and colour recipes while retaining one-sample outline search images and a single final blend.*) · `src/outline_composite.rs` (*Match physical face/section coverage and colour recipes while retaining one-sample outline search images and a single final blend.*) · `src/outline_gpu.rs` (*Keep this prerequisite independently compilable: its current coverage producer is still one-sample. The next lesson passes the active physical count.*)
+
+Cache the section coverage and final outline blend for their requested sample count. Retain original integer addresses and the existing one-sample search images. This prepares the recipes; the outline coverage owner is connected in the next step.
+
+An empty section owner now waits until first use before creating a recipe. Its bind group refers to the active original-address image, and a real count change invalidates that binding. The four-sample shader reads the matching integer sample and uses actual sample-qualified coordinates to reconstruct the section depth. Integer addresses and depth are never resolved or averaged.
+
+Move the previously typed section and final-blend descriptors into small factories. Reuse those exact descriptors and change only the count-dependent parts. Both owners use the shared two-count recipe cache. The final blend retains its source shader and immutable layout and chooses the cached colour recipe matching the output pass. Its input alpha images remain single-sample.
+
+The current outline coverage producer still uses one sample. Existing actual GPU regressions therefore verify unchanged selected/global masks, section silhouettes, CSS widths and the single black blend here. Actual four-sample outline coverage, resource bounds and original-owner checks follow when the producer is connected.
+
+> **Self-Check Question:** *Which outline inputs can be resolved, and which must remain sample-specific?*  
+> **Answer:** Float coverage may be resolved for the one-sample search. Original integer addresses and depth remain sample-specific; read the matching physical sample when constructing section coverage. Blend the resulting outline only once.
+
+- **What You Should See:** Section coverage and final outline blending have lazy or cached count-specific recipes. Original source addresses and existing one-sample search resources retain their meaning. The current coverage producer and complete browser frame remain single-sample until their next integration step.
+- **Hands-On Lab Experiment:** Run the actual selected/global outline, section-mask and two-density CSS-width regressions. Inspect that default one-sample silhouettes are unchanged. Follow the four-sample section shader from its explicit sample coordinate to its original integer address and reconstructed plane depth; do not mistake this prerequisite for a complete four-sample frame.
+
 <details>
 <summary>Implementation 96zzzzzzze-cache-outline-section-recipes: Cache section masks and the final outline blend</summary>
 
@@ -16680,6 +17056,36 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-96zzzzzzzf-resolve-float-outline-coverage"></a>
+
+### Step 13 of 19 · Resolve float outline coverage (`96zzzzzzzf-resolve-float-outline-coverage`)
+
+- **Goal:** Feed physical face and section coverage into the retained one-sample outline search and blend the selected/global result once, without resolving integer addresses or depth.
+- **Data Flow Trace:** `Original physical face/section coverage → float-only resolve → retained search images → one matching final blend`
+- **Files You Touch:** `src/outline_gpu.rs` (*Match physical face/section coverage and colour recipes while retaining one-sample outline search images and a single final blend.*) · `src/outline_caps.rs` (*An empty section recipe no longer needs a device; allocate only when first used.*) · `src/renderer.rs` (*Late-created outline and final-blend owners adopt the current physical count.*) · `src/sample_surface_tests.rs` (*Extend the supplied actual sample-count fixture to current outline owners; do not introduce the complete production renderer API before its remaining consumers.*)
+
+Render face and section coverage at the frame sample count, then resolve only its float mask for the existing outline search. Keep selected and global outlines coherent, retain the search resources and blend their result once.
+
+The coverage owner uses the shared two-count recipe cache. Only an active four-sample frame owns an extra coverage image. Its one-sample coverage, pooling, dilation and search images stay retained. Real count changes clear the mask key and section input binding; repeating the current count does nothing. The same fullscreen factory now receives an explicit count, with pooling, dilation and search always passing one.
+
+A sample-qualified world position matches face coverage and clipping. Section coverage reads the original physical integer address and reconstructs depth at the matching sample. Resolve the float coverage into the existing search input, and keep the final selected/global alpha combination as a single black blend. Integer addresses and depth remain unaveraged.
+
+Late-created outline and final-blend owners adopt the current frame count. Skip section coverage preparation when no active section contributes. The supplied actual GPU witness compares selected and global masks, checks section and full-solid silhouettes, requires exact return pixels and original-owner queries, and bounds extra memory to the active four-sample coverage image. Complete browser multisampling is connected after the remaining consumers.
+
+> **Self-Check Question:** *Why can the outline search stay single-sample?*  
+> **Answer:** It consumes a resolved float coverage mask, so its pooling and search images do not need physical samples. The face and section producer still uses matching physical coordinates, original integer addresses and depth; those inputs are never averaged.
+
+- **What You Should See:** Physical-sample face and section coverage resolves into retained one-sample search images. Cached colour recipes match the active pass; selected/global masks agree and blend once. Only the active four-sample coverage image adds memory. Complete browser rendering remains one-sample until the remaining consumers are integrated.
+
+These actual Native GPU pictures show original selected/global sections at one and four samples, the four-sample global outline without selection, and the full solid after disabling the section. The witness requires matching alpha masks, a single black blend, original-owner queries, source/geometry retention, exact return pixels and memory bounded to the active four-sample coverage image. Byte-identical pictures share one labelled figure. Complete browser rendering remains single-sample until all remaining consumers are connected. The outer thin frame and short central mark belong to the existing clipping-plane frame/direction marker in this isolated top-view fixture; they are not extra silhouette edges. Full procedural original-plane grid/axis parity remains a separate remaining coverage item.
+
+**selected/global section, one sample — actual outline coverage check.**
+
+**selected/global section, four samples — actual outline coverage check.**
+
+**global section without selection, four samples — actual outline coverage check.**
+
+**full solid without clipping, four samples — actual outline coverage check.**
+- **Hands-On Lab Experiment:** Run the actual outline witness at1→4→1→4. Inspect the original selected/global section boundary, then disable the section and compare its silhouette. Require exact return pixels, fresh original owners, unchanged geometry/uploads and the asserted active-image memory bound. Inspect the separately labelled Native pictures alongside the canonical single-sample browser scene.
 
 <details>
 <summary>Implementation 96zzzzzzzf-resolve-float-outline-coverage: Resolve float outline coverage</summary>
@@ -18727,6 +19133,28 @@ After that block, append this supplied code:
 
 <a id="checkpoint-96zzzzzzzg-retarget-original-ambient-properties"></a>
 
+### Step 14 of 19 · Retarget original ambient properties (`96zzzzzzzg-retarget-original-ambient-properties`)
+
+- **Goal:** Prepare cached physical-sample original radius and normal sources while retaining original geometry and the one-sample ambient hierarchy, filters and history images.
+- **Data Flow Trace:** `Original face radii/normals → matching physical source recipes/images → retained one-sample ambient hierarchy`
+- **Files You Touch:** `src/ambient_source_pipeline.rs` (*Prepare cached original-radius/normal sample recipes and retarget only their full-resolution source images; retain the one-sample ambient hierarchy and filters.*) · `src/ambient_source_gpu.rs` (*Prepare cached original-radius/normal sample recipes and retarget only their full-resolution source images; retain the one-sample ambient hierarchy and filters.*) · `src/ambient_image.rs` (*Prepare cached original-radius/normal sample recipes and retarget only their full-resolution source images; retain the one-sample ambient hierarchy and filters.*) · `src/ambient_images.rs` (*Prepare cached original-radius/normal sample recipes and retarget only their full-resolution source images; retain the one-sample ambient hierarchy and filters.*) · `src/ambient.wgsl` (*Prepare cached original-radius/normal sample recipes and retarget only their full-resolution source images; retain the one-sample ambient hierarchy and filters.*) · `src/ambient_pipeline.rs` (*Assemble the matching original-property/depth input declarations while keeping the coarse hierarchy single-sample.*) · `src/ambient_shader_contract.rs` (*Retain both existing full Naga contracts and additionally validate both assembled original-property sample modes before their consumer is connected.*)
+
+Match original ambient radius and normal sources to the frame sample count. Cache the ordinary and shared source recipes, and replace only their full-resolution source images when the count changes. Keep the coarse hierarchy and filters single-sample.
+
+Ambient inputs describe the original source face, not authored display-lighting normals. The source pass uses the existing equal-depth policy and sample-qualified original world positions. Both ordinary and shared object paths retain their source geometry, placement records and original properties. The shared two-count cache selects the matching recipe without another source upload.
+
+The image owner accounts for the physical sample count in actual byte usage. Four-sample source images remain renderable and bindable; their original integer/depth inputs are not resolved. One-sample images retain the existing readback capability used by the actual Native witnesses. A dedicated retarget operation replaces only full-resolution radius/normal images and leaves the hierarchy, coarse normals, occupancy, filtered ambient and history images intact.
+
+Carry the same explicit physical sample through original radius, normal, primitive and depth reads. Sample zero remains the representative coarse input; sparse per-sample reconstruction also compares original primitive identity. Assemble matching texture declarations and retain full Naga validation of the original and both assembled recipes.
+
+The active ambient owner still creates one-sample resources until its matching shader bindings and sparse corrections are connected. Existing actual GPU regressions verify source geometric normals, contact radii, shared placements, released source records, cached contact shading and image release here. The complete four-sample source/property readback is required after the remaining ambient pieces are integrated.
+
+> **Self-Check Question:** *Which ambient resources need the physical sample count?*  
+> **Answer:** The full-resolution original radius/normal inputs and their source recipes must match physical depth samples. Coarse hierarchy, occupancy, filtering and history images remain single-sample; a colour count change should retain them.
+
+- **What You Should See:** Original radius/normal source recipes, full-resolution images and assembled shader inputs support matching physical samples. Coarse ambient images retain their existing one-sample ownership. The current ambient producer remains one-sample until the matching shaders and sparse correction path are connected.
+- **Hands-On Lab Experiment:** Run the actual source-normal, shared contact-radius and cached-contact regressions. Compare the new retarget operation with full image preparation: it changes only the two full-resolution original-property images. Check that physical sample count contributes to byte accounting and no four-sample source image is averaged into an original property.
+
 <details>
 <summary>Implementation 96zzzzzzzg-retarget-original-ambient-properties: Retarget original ambient properties</summary>
 
@@ -19766,6 +20194,26 @@ After that block, append this supplied code:
 
 <a id="checkpoint-96zzzzzzzh-share-ambient-shader-recipes"></a>
 
+### Step 15 of 19 · Share ambient shader recipes (`96zzzzzzzh-share-ambient-shader-recipes`)
+
+- **Goal:** Reuse ambient shader modules and one pipeline factory, prepare matching physical input layouts and connect retained composition bindings before activating sparse sample corrections.
+- **Data Flow Trace:** `Three distinct shader sources → shared modules → explicit vertex/fragment/count recipes → retained composition inputs`
+- **Files You Touch:** `src/ambient_pipeline.rs` (*Share actual ambient shader modules, match physical inputs and prepare bounded sparse sample corrections while retaining the coarse one-sample recipes.*) · `src/ambient_groups.rs` (*Share actual ambient shader modules, match physical inputs and prepare bounded sparse sample corrections while retaining the coarse one-sample recipes.*) · `src/ambient_gpu.rs` (*Connect the retained camera and bounded one-sample work buffers to the current ambient groups.*)
+
+Create each distinct ambient shader module once per recipe set and reuse it across the passes that need it. Give the common pipeline factory explicit vertex and fragment entries, and connect retained composition inputs before activating the physical-sample owner.
+
+The ambient, depth-reduction and final-composition sources each get one module. Reuse those modules across preparation, hierarchy reduction, occupancy, ground, raw shading, filtering and upsampling. The same descriptor factory also creates sparse edge correction from its different vertex/fragment entries, avoiding a second nearly identical pipeline descriptor.
+
+The source layout distinguishes physical depth, original radius/normal and integer address inputs from the retained one-sample coarse and filtered inputs. Only the final colour composition uses the requested physical count; hierarchy and filtering recipes stay single-sample. The final layout binds the existing camera and reserved work buffers alongside filtered ambient. Its eventual indirect-draw buffer gains the required usage, while work storage still retains its small current one-sample size here.
+
+The current ambient owner and canonical browser still use one sample. Its composition now supplies both required groups without changing the intended pixels. Allocation of bounded physical corrections, clearing changed-frame work and the actual sparse draw follow together in the next lesson, with independent source/property and work-buffer readback.
+
+> **Self-Check Question:** *Why should the pipeline factory accept shader modules and entry names?*  
+> **Answer:** Many ambient passes share one source module but choose different entry points and output formats. Passing the existing module avoids recreating it for every pass, and explicit vertex/fragment entries let the same descriptor build fullscreen and sparse edge recipes.
+
+- **What You Should See:** Ambient passes reuse three distinct source modules and one descriptor factory. Physical input layouts and final composition bindings are prepared coherently; coarse recipes remain single-sample. The current ambient owner and complete browser remain one-sample until bounded corrections are connected.
+- **Hands-On Lab Experiment:** Trace every ambient pass back to one of the three source modules. Compare fullscreen and sparse edge construction: only entries, formats, bindings, blending and count differ. Run current actual GPU contact/cache and geometric-normal regressions, and inspect that canonical contact shading stays correct before activating sparse corrections.
+
 <details>
 <summary>Implementation 96zzzzzzzh-share-ambient-shader-recipes: Share ambient shader recipes</summary>
 
@@ -20224,6 +20672,34 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-96zzzzzzzi-correct-ambient-at-physical-samples"></a>
+
+### Step 16 of 19 · Correct ambient at physical samples (`96zzzzzzzi-correct-ambient-at-physical-samples`)
+
+- **Goal:** Connect matching original depth/address/radius/normal samples to bounded sparse ambient correction while retaining coarse images, source geometry and cached recipes.
+- **Data Flow Trace:** `Matching original physical inputs → representative coarse shading → changed-sample corrections → unique bounded tiles → indirect colour draw`
+- **Files You Touch:** `src/ambient_gpu.rs` (*Retain coarse ambient images while matching physical inputs and execute bounded sparse per-sample corrections without runtime readback flags.*) · `src/ambient_groups.rs` (*Retain coarse ambient images while matching physical inputs and execute bounded sparse per-sample corrections without runtime readback flags.*) · `src/renderer.rs` (*Late-enabled ambient sources and colour recipes adopt the current frame count.*) · `src/ambient_sample_inspect.rs` (*Supplied Native actual GPU resource handles expose existing inputs for independent compute; production images/buffers do not gain readback flags.*) · `src/sample_surface_tests.rs` (*Extend the supplied Native count fixture to enabled ambient resources while retaining every prior owner.*)
+
+Connect matching original ambient properties to every physical sample and draw corrections only for samples that differ. Retain the existing coarse hierarchy and images, cache colour recipes and bound correction work by the viewport and its tile count.
+
+A real count change selects the cached recipes, retargets only the two full-resolution source images and refreshes incompatible bindings. Coarse hierarchy, normal and filtered ambient images stay retained. Late-enabled ambient rendering adopts the current frame count. Repeating a count keeps the current resources.
+
+Reserve one correction word per physical pixel and bounded tile flags/list storage for four-sample frames. Keep the indirect command four words long, initialize its six-vertex count once and clear only changed-frame flags and its instance count before generating work. Single-sample frames retain the small reserved buffers. Production resources do not gain readback flags.
+
+Compose the retained filtered result across the current colour target, then use the actual indirect command to draw sparse per-sample alpha corrections. The supplied Native observer reads the existing resources through independent GPU compute: every original depth/address/radius/normal sample must agree with source geometry, correction tiles must be unique and bounded, and the real draw count must match the list. It also checks exact return pixels, retained coarse image identities, unchanged uploads and identical ordinary/shared inputs.
+
+> **Self-Check Question:** *What prevents correction work from accumulating across changed frames?*  
+> **Answer:** Clear the bounded tile flags and indirect instance count before generating changed-frame work, while retaining the fixed six-vertex count and cached images. Unique flagged tiles produce a bounded list and actual indirect instance count; unchanged frames reuse the prepared result.
+
+- **What You Should See:** Ambient rendering supports matching physical original properties with retained coarse images and bounded sparse correction draws. Real GPU readback verifies every physical property, unique tile work and indirect counts through exact sample returns. Complete browser rendering remains one-sample until all consumers are integrated.
+
+These actual Native GPU pictures show the original ambient scene at one and four samples and its plain four-sample control. Independent GPU readback checks every physical original property, unique bounded correction tiles and actual indirect counts. Coarse images, original sources and geometry remain retained, exact count returns and ordinary/shared equality pass. Complete browser rendering remains single-sample until all remaining consumers are connected.
+
+**original ambient scene, one sample — actual ambient correction check.**
+
+**original ambient scene, four samples — actual ambient correction check.**
+
+**plain control without ambient, four samples — actual ambient correction check.**
+- **Hands-On Lab Experiment:** Run the actual ambient witness at4→1→4. Inspect both shaded frames and the separate plain four-sample control. Require exact return pixels, retained coarse image identities and source geometry, and unchanged source uploads. Read the real correction JSON and require covered samples, mixed original radii/addresses, nonzero corrections, unique bounded tiles and repeatable indirect counts.
 
 <details>
 <summary>Implementation 96zzzzzzzi-correct-ambient-at-physical-samples: Correct ambient at physical samples</summary>
@@ -20697,6 +21173,26 @@ After that block, append this supplied code:
 
 <a id="checkpoint-96zzzzzzzj-cache-physical-depth-pyramid-inputs"></a>
 
+### Step 17 of 19 · Cache physical depth-pyramid inputs (`96zzzzzzzj-cache-physical-depth-pyramid-inputs`)
+
+- **Goal:** Cache physical depth inputs while retaining the six one-sample coarse images and their encoded radius/pixel addresses.
+- **Data Flow Trace:** `Matching physical depth → cached source recipe → representative sample zero → six retained single-sample levels`
+- **Files You Touch:** `src/pyramid_pipeline.rs` (*Cache the matching physical-depth input recipe; retain the exact render descriptor, one-sample reductions and six coarse image levels.*) · `src/pyramid_gpu.rs` (*Retain coarse image identities and reduction groups; invalidate only an incompatible physical-depth input binding and its prepared result.*) · `src/pyramid_gpu_tests.rs` (*Extend the existing actual six-level positive-depth/radius-address GPU assertions to both physical inputs. The isolated fixture retargets only its active consumers until the next production API step.*)
+
+Read the matching physical depth texture through a cached input recipe. Retain the six coarse pyramid levels, encoded radius/pixel addresses and one-sample reductions. A count change invalidates only the incompatible input binding and its prepared result.
+
+The pyramid deliberately reads representative sample zero into its existing one-sample hierarchy. Reduction selects each nearest-positive depth together with its encoded radius/pixel address; it does not resolve or average the pair. This coarse hierarchy is separate from the matching per-sample ambient corrections taught earlier.
+
+Reuse the existing render descriptor and reduction recipe. The shared two-count cache holds compatible source layouts/pipelines, while existing image allocation depends only on the coarse dimensions. An unchanged count retains its binding and prepared result.
+
+The supplied Native regression renders actual physical inputs at both counts and reads every pixel of all six depth/radius levels. It retains the nearest-positive-depth, empty-background and original section-depth assertions, plus resting-view cache, resize and release checks. Main browser rendering remains one-sample until the production switch is connected next.
+
+> **Self-Check Question:** *Why does a four-sample depth input not require four-sample pyramid images?*  
+> **Answer:** The coarse pyramid deliberately reads representative sample zero. Cache the compatible input layout/pipeline, then keep the existing one-sample reduction hierarchy. Reduction selects the nearest-positive depth and its encoded radius/pixel address together, without averaging.
+
+- **What You Should See:** Physical depth input recipes are cached for either count; six coarse image levels and reduction groups stay retained. Main browser integration follows in the next step.
+- **Hands-On Lab Experiment:** Run both existing actual pyramid GPU regressions. Require all six nearest-positive-depth and radius-address reductions at both physical input counts, correct empty/section depths, unchanged resting counters, bounded resize allocation and release on disable.
+
 <details>
 <summary>Implementation 96zzzzzzzj-cache-physical-depth-pyramid-inputs: Cache physical depth-pyramid inputs</summary>
 
@@ -20816,6 +21312,46 @@ Update the existing block with this supplied code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-96zzzzzzzk-retarget-the-complete-colour-frame"></a>
+
+### Step 18 of 19 · Retarget the complete colour frame (`96zzzzzzzk-retarget-the-complete-colour-frame`)
+
+- **Goal:** Retarget every active colour consumer and frame attachment through one production API while preserving independent original-owner queries.
+- **Data Flow Trace:** `One count owner → compatible cached colour consumers → matching attachments; independent original-owner queries retained`
+- **Files You Touch:** `src/renderer.rs` (*Retarget every active physical-colour consumer through one production API; preserve independent query resources and no-op repeated counts.*) · `src/browser.rs` (*Keep one optional diagnostic override; automatic default policy is connected next.*) · `src/cloud_address_tests.rs` (*Exercise the production retarget API through every existing physical-colour regression; retain all source, pixel, cache and original-owner assertions.*) · `src/sample_surface_tests.rs` (*Exercise the production retarget API through every existing physical-colour regression; retain all source, pixel, cache and original-owner assertions.*) · `src/pyramid_gpu_tests.rs` (*Exercise the production retarget API through every existing physical-colour regression; retain all source, pixel, cache and original-owner assertions.*) · `src/sample_composition_tests.rs` (*Supplied complete original mixed-source GPU scene with both physical counts/projections, white top/clipped bores, every original owner/source/archive/geometry, and exact return pixels.*)
+
+Select one physical sample count for the complete colour frame. Retarget every active consumer and its attachments together, let later owners adopt that count, and retain independent original-owner query resources. Repeating the count does no work.
+
+The renderer owns the choice. Existing surface, ink, overlay, section, sheet, cloud, text, outline, ambient and depth-pyramid caches select compatible recipes. One shared GPU context supplies existing text/cloud/outline owners. The final frame targets match every active colour consumer.
+
+Colour-only retargeting does not change source geometry, placements, uploaded records or the independently single-sample query image. The supplied actual GPU witness submits an original-owner query, changes colour count before completion and still requires that original owner. Repeated counts preserve the actual target handles, counters and exact drawing pixels.
+
+Late-enabled pyramid input starts at the active count, matching the other late-created consumers. The existing browser event path accepts a diagnostic one/four override and exposes the actual target count for Chrome validation. It changes no semantic editor command. The default remains one here; automatic device/density/geometry and recovery policy follows next.
+
+> **Self-Check Question:** *Should a colour sample-count change cancel an independent owner query?*  
+> **Answer:** Its query resources and submitted ticket stay valid because that pass remains independently single-sample. Retarget compatible colour recipes and physical attachments together, while retaining the query and original source records.
+
+- **What You Should See:** One production API matches every active colour consumer and frame target, retains independent pending queries and skips repeated counts. A browser diagnostic override selects either count; automatic default policy follows.
+
+These actual Native GPU frames combine the original CAD bore, NURBS patch, shared triangles, cube, point cloud, drawing pens, source line, point and labels at the stated count/projection. The six iso-curves are original NURBS curves extracted with the surface API at parameters 0.25, 0.5 and 0.75 in both directions, then placed with their source patch. Top and clipped-top frames show the white open bore; original queries, full sources/archives, geometry and exact return pixels retain independent assertions. Fresh actual browser count-override checks and every current mixed-scene picture must pass before accepting colour integration. Automatic quality follows next. In the clipped-top view, the large grey rectangle and short central dash belong to the current clipping-plane helper: its normal-arrow wings project onto a top-view line. They are separate from the NURBS iso-curves. Full original-plane grid/axis appearance and final whole-course review remain pending.
+
+**orthographic original scene; one sample — actual combined original-source GPU frame.**
+
+**orthographic original scene; four samples — actual combined original-source GPU frame.**
+
+**perspective original scene; one sample — actual combined original-source GPU frame.**
+
+**perspective original scene; four samples — actual combined original-source GPU frame.**
+
+**top view with a white open bore and source NURBS iso-curves; four samples — actual combined original-source GPU frame.**
+
+**clipped top view with a white open bore and section hatching; four samples — actual combined original-source GPU frame.**
+
+These actual optimized Chrome frames show the complete owned colour frame. All 28 current mixed-source pictures were individually inspected across one/four samples, both densities and orthographic/perspective/section views. Two representative four-sample frames are shown here. Original source archives, owners, bore openings, cloud depth, front ink and exact sample-count returns retain independent assertions. Full original-plane appearance and the final whole-course feature review remain pending.
+
+**Perspective mixed original scene, four samples, physical density 1 — actual complete-frame browser check.**
+
+**Top projection with an active section, four samples, physical density 2 — actual complete-frame browser check.**
+- **Hands-On Lab Experiment:** Require fresh actual count-switch GPU regressions for all previously connected families. Submit an owner query before each colour switch and require its original owner after real GPU completion. Repeated counts must preserve target identity, source/upload counters and exact pixels. Check late owners and both Chrome physical counts before accepting this integration.
 
 <details>
 <summary>Implementation 96zzzzzzzk-retarget-the-complete-colour-frame: Retarget the complete colour frame</summary>
@@ -22934,6 +23470,30 @@ After that block, append this supplied code:
 
 <a id="checkpoint-96zzzzzzzl-choose-bounded-frame-quality"></a>
 
+### Step 19 of 19 · Choose bounded frame quality (`96zzzzzzzl-choose-bounded-frame-quality`)
+
+- **Goal:** Choose coherent colour samples from actual geometry, physical viewport, device budget and recovery without changing original sources or owner queries.
+- **Data Flow Trace:** `Active original geometry + physical pixels/density + budget + retained override → one quality policy → complete-frame count API`
+- **Files You Touch:** `src/sample_quality.rs` (*Choose a bounded physical count using active world geometry, exact device budgets, physical density and reduced-mode precedence.*) · `src/lib.rs` (*Register the one shared sampling policy used by the browser.*) · `src/renderer.rs` (*Automatic quality follows actual active faces and filled world lettering rather than drawing ribbons or hidden sources.*) · `src/browser.rs` (*Read the adapter budget and optional unsigned ?msaa= override once, retaining the same override owner used by diagnostics. The shared policy gives reduced recovery precedence.*) · `src/browser_recovery.rs` (*Query the existing recovery owner rather than introducing another policy flag.*) · `src/sample_surface_tests.rs` (*Supplied actual renderer geometry/visibility/world-lettering eligibility regression. Original sheets remain source drawing ribbons. Validate actual isolated source vertices and visible/hidden original surface, CAD and plane families without adding speculative GPU classification.*) · `src/sample_positions_tests.rs` (*Supplied independent actual GPU observation of the implementation sample coordinates. Retain all coordinate/coverage/owner assertions without prescribing a fixed hardware pattern.*)
+
+Choose the colour sample count from the current geometry, physical viewport, device budget and recovery state. Read an optional `?msaa=` override once. Keep source and query ownership unchanged.
+
+Automatic quality selects four only when filled world geometry is active, physical density is below two and the framebuffer fits the actual device budget. Native CPU adapters have no automatic four-sample budget. Original drawing pens are ribbons, and screen-only labels do not become filled world geometry. Isolated mesh vertices have no visible mesh dots; validated mesh, surface and CAD boundaries accompany faces.
+
+An unsigned `?msaa=4` forces four; every other parsed unsigned value forces one. Invalid text leaves the automatic policy active. The existing diagnostic override uses that same owner. Reduced device-loss recovery wins over either override, and an ordinary reload restores normal policy.
+
+The canonical checker keeps every existing target-reuse assertion under an explicit one-sample URL. Separate real browser contexts then check automatic and forced choices at both densities, original owners/sources/archives, repeated counts, actual resize returns and real device loss. They observe actual GPU attachment descriptors and keep the frozen 60ms command timing.
+
+The supplied Native observer measures sample-qualified positions on the real implementation without prescribing a hardware sample pattern. It supports the earlier physical-sample addressing lessons; it is not a screenshot or a hardware frame-rate claim.
+
+The recovery figure shows the unchanged original contact document reopened and fitted after real device loss. First recovered-frame attachment settings are checked before those commands. A nearly empty startup specimen is retained as a diagnostic picture, rather than presented as useful geometry validation.
+
+> **Self-Check Question:** *Which choice wins when a recovered run retains a forced-four URL?*  
+> **Answer:** Reduced recovery selects one sample and reduced density. Keep the retained override for the next ordinary reload, which restores the normal policy.
+
+- **What You Should See:** The browser drives the complete-frame sample API with one bounded policy and one optional URL/diagnostic override. Native CPU, geometry, density, exact budget boundaries and reduced recovery are explicit. Actual browser figures and source/owner/query/cache assertions remain separately required.
+- **Hands-On Lab Experiment:** Compare actual automatic and explicit counts at physical densities 1 and 2. Return 4→1→4 and resize back to the original extent; require identical drawing pixels, original owners/source archives and no repeated-count attachments. Destroy the actual GPUDevice and require reduced one-sample drawing even with URL `msaa=4`, then reload normally and require four again. Reopen the unchanged original contact after recovery, fit it explicitly and inspect the readable scene while reduced density/count still override the forced-four URL.
+
 <details>
 <summary>Implementation 96zzzzzzzl-choose-bounded-frame-quality: Choose bounded frame quality</summary>
 
@@ -24270,9 +24830,11 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 </details>
 
-## Run, Check, and Save
+---
 
-From `session_viewer`:
+## 5. Build, Verify, and Save Your Checkpoint
+
+Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 96zzzzzzzl-choose-bounded-frame-quality
@@ -24283,12 +24845,12 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. Use [checkpoint recovery](../../recovery.md) to restore any saved checkpoint.
+Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
 
-## Expected Visual Result & Experiment
+## 6. Lesson Summary & Expected Visual Result
 
 The browser drives the complete-frame sample API with one bounded policy and one optional URL/diagnostic override. Native CPU, geometry, density, exact budget boundaries and reduced recovery are explicit. Actual browser figures and source/owner/query/cache assertions remain separately required.
 
-- **Try this:** Compare actual automatic and explicit counts at physical densities 1 and 2. Return 4→1→4 and resize back to the original extent; require identical drawing pixels, original owners/source archives and no repeated-count attachments. Destroy the actual GPUDevice and require reduced one-sample drawing even with URL `msaa=4`, then reload normally and require four again. Reopen the unchanged original contact after recovery, fit it explicitly and inspect the readable scene while reduced density/count still override the forced-four URL.
+- **Final Lesson Experiment:** Compare actual automatic and explicit counts at physical densities 1 and 2. Return 4→1→4 and resize back to the original extent; require identical drawing pixels, original owners/source archives and no repeated-count attachments. Destroy the actual GPUDevice and require reduced one-sample drawing even with URL `msaa=4`, then reload normally and require four again. Reopen the unchanged original contact after recovery, fit it explicitly and inspect the readable scene while reduced density/count still override the forced-four URL.
 
-Continue with [Original display controls and remaining integration boundaries](96zzzzzzzm-retain-visible-instance-ranges.md).
+Continue with [Original display controls and remaining integration boundaries](../../consolidation/96zzzzzzzm-retain-visible-instance-ranges.md).

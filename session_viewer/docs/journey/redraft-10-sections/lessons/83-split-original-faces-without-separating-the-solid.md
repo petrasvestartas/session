@@ -1,88 +1,149 @@
 # 16.3 · Joined-face topology and exact surface measures
 
-**Section 8: Precision Coordinate Frames, Solid Primitives, Surfacing, and CAD Editing** · **Lesson 16.3** (Redraft `8.13`) · **4 checkpoints (`83-split-original-faces-without-separating-the-solid` → `83ze-integrate-original-surface-area`)**
+**Section 8: Precision Coordinate Frames, Solid Primitives, Surfacing, and CAD Editing** · **Lesson 16.3** (Redraft `8.13`) · **4 checkpoints (`83-split-original-faces-without-separating-the-solid` → `83ze-integrate-original-surface-area`)** · **Study time: 2–4 h**
 
-> **Learning Goal:** Divide a selected original surface face while preserving joined topology and one-step history.
+> **What You Will Learn & Build:** Divide a selected original surface face while preserving joined topology and one-step history. By the final checkpoint (`83ze-integrate-original-surface-area`), you will reuse mesh area for meshes, meshed BReps and Elements.
 
-## Visual WebGPU & Architecture Schematic
+## 1. Visual Pipeline & WebGPU Architecture (Black & White Schematics)
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1px solid #cbd5e1;border-radius:10px;background:#f8fafc;">
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
+<svg viewBox="0 0 840 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <rect x="4" y="4" width="832" height="212" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Lesson 16.3 Execution Flow: Joined-face topology and exact surface measures</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">Concrete data pipeline you build in this lesson (4 Checkpoints: 83-split-original-faces-without-separating-the-solid → 83ze-integrate-original-surface-area)</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
+  
+    
+    <rect x="18" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="89" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
+    <line x1="28" y1="92" x2="151" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">original selected</text>
+    <text x="89" y="124" text-anchor="middle" font-size="11" fill="#111111">face</text>
+    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="183" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="254" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
+    <line x1="193" y1="92" x2="316" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">on-surface original</text>
+    <text x="254" y="124" text-anchor="middle" font-size="11" fill="#111111">cutters</text>
+    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="348" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="419" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
+    <line x1="358" y1="92" x2="481" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">joined trimmed</text>
+    <text x="419" y="124" text-anchor="middle" font-size="11" fill="#111111">regions</text>
+    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="513" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="584" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
+    <line x1="523" y1="92" x2="646" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">one transaction</text>
+    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="678" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="749" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
+    <line x1="688" y1="92" x2="811" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">original geometry</text>
+    
+    <rect x="18" y="162" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="32" y="181" font-size="11" font-weight="700" fill="#111111">Files You Edit in Lesson 16.3:</text>
+    <text x="215" y="181" font-size="11" fill="#111111">src/split_draft.rs  ·  src/split_face_tests.rs  ·  src/lib.rs  ·  src/measure_math.rs  ·  src/measure_length.rs  ·  src/cad_orient.rs</text>
+    <text x="32" y="198" font-size="10.5" fill="#111111">4 Checkpoints: 83-split-original-faces-without-separating-the-solid → 83ze-integrate-original-surface-area — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
+  
+</svg>
+</div>
+
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
 <svg viewBox="0 0 840 240" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#475569"/>
-    </marker>
-    <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#2563eb"/>
-    </marker>
-    <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#059669"/>
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
     </marker>
   </defs>
-  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
-  <text x="20" y="28" font-size="14" font-weight="700" fill="#0f172a">Section 8 Precision CAD Frames, Solid Primitives, Surfacing & Sub-Object Deformation (Chapters 14–16)</text>
-  <text x="20" y="46" font-size="11.5" fill="#475569">How double-precision coordinate frames (Plane), parametric solids, Loft/Sweep/Extrude surfaces, and Gumball control edits work.</text>
-  <line x1="16" y1="54" x2="824" y2="54" stroke="#e2e8f0" stroke-width="1"/>
+  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Section 8 Precision CAD Frames, Solid Primitives, Surfacing & Sub-Object Deformation (Chapters 14–16)</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">How double-precision coordinate frames (Plane), parametric solids, Loft/Sweep/Extrude surfaces, and Gumball control edits work.</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
   
-    <rect x="18" y="68" width="245" height="145" rx="6" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
-    <text x="140" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1e40af">1. Orthonormal Frames (Ch 14)</text>
-    <text x="28" y="108" font-size="10.5" fill="#1e3a8a">• Plane { origin: Vec3d, x, y, z }</text>
-    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#1d4ed8">• Rejects non-finite / collinear axes</text>
-    <text x="28" y="144" font-size="10.5" fill="#1e3a8a">• Basis change: World &lt;-&gt; Local Plane</text>
-    <text x="28" y="162" font-size="10.5" fill="#1e3a8a">• Exact Mirror, Rotate3D, Orient,</text>
-    <text x="28" y="178" font-size="10.5" fill="#1e3a8a">  and Align frame transformations</text>
+    <rect x="18" y="68" width="245" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="140" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">1. Orthonormal Frames (Ch 14)</text>
+    <text x="28" y="108" font-size="10.5" fill="#111111">• Plane { origin: Vec3d, x, y, z }</text>
+    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#111111">• Rejects non-finite / collinear axes</text>
+    <text x="28" y="144" font-size="10.5" fill="#111111">• Basis change: World &lt;-&gt; Local Plane</text>
+    <text x="28" y="162" font-size="10.5" fill="#111111">• Exact Mirror, Rotate3D, Orient,</text>
+    <text x="28" y="178" font-size="10.5" fill="#111111">  and Align frame transformations</text>
 
-    <line x1="263" y1="138" x2="293" y2="138" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
+    <line x1="263" y1="138" x2="293" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="295" y="68" width="265" height="145" rx="6" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5"/>
-    <text x="427" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#9a3412">2. Solids &amp; Surfacing (Ch 15–16)</text>
-    <text x="307" y="108" font-size="10.5" fill="#7c2d12">• Parametric Box, Cylinder, Sphere, Cone</text>
-    <text x="307" y="126" font-size="10.5" font-weight="600" fill="#c2410c">• Extrude, Revolve, Loft, Sweep, Planar</text>
-    <text x="307" y="144" font-size="10.5" fill="#7c2d12">• Curve Split, Trim, Extend, Join, Fillet</text>
-    <text x="307" y="162" font-size="10.5" fill="#7c2d12">• Every operation commits an atomic</text>
-    <text x="307" y="178" font-size="10.5" fill="#7c2d12">  session_rust kernel transaction</text>
+    <rect x="295" y="68" width="265" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="427" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">2. Solids &amp; Surfacing (Ch 15–16)</text>
+    <text x="307" y="108" font-size="10.5" fill="#111111">• Parametric Box, Cylinder, Sphere, Cone</text>
+    <text x="307" y="126" font-size="10.5" font-weight="600" fill="#111111">• Extrude, Revolve, Loft, Sweep, Planar</text>
+    <text x="307" y="144" font-size="10.5" fill="#111111">• Curve Split, Trim, Extend, Join, Fillet</text>
+    <text x="307" y="162" font-size="10.5" fill="#111111">• Every operation commits an atomic</text>
+    <text x="307" y="178" font-size="10.5" fill="#111112">  session_rust kernel transaction</text>
 
-    <line x1="560" y1="138" x2="590" y2="138" stroke="#059669" stroke-width="2" marker-end="url(#arrow-green)"/>
+    <line x1="560" y1="138" x2="590" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="592" y="68" width="228" height="145" rx="6" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1.5"/>
-    <text x="706" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#065f46">3. Rational Control-Point Deform</text>
-    <text x="604" y="108" font-size="10.5" fill="#064e3b">• Pick NURBS control point or vertex</text>
-    <text x="604" y="126" font-size="10.5" font-weight="600" fill="#047857">• Preserve homogeneous weight w</text>
-    <text x="604" y="142" font-size="10.5" font-weight="600" fill="#047857">  on rational curve control drags!</text>
-    <text x="604" y="162" font-size="10.5" fill="#064e3b">• Rebuild derived GPU tessellation</text>
-    <text x="604" y="178" font-size="10.5" fill="#064e3b">  in-place while keeping Object ID</text>
+    <rect x="592" y="68" width="228" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="706" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">3. Rational Control-Point Deform</text>
+    <text x="604" y="108" font-size="10.5" fill="#111111">• Pick NURBS control point or vertex</text>
+    <text x="604" y="126" font-size="10.5" font-weight="600" fill="#111111">• Preserve homogeneous weight w</text>
+    <text x="604" y="142" font-size="10.5" font-weight="600" fill="#111111">  on rational curve control drags!</text>
+    <text x="604" y="162" font-size="10.5" fill="#111111">• Rebuild derived GPU tessellation</text>
+    <text x="604" y="178" font-size="10.5" fill="#111111">  in-place while keeping Object ID</text>
     
 </svg>
 </div>
 
-### Lesson Data Flow (`Rust` → `WebGPU` → `WGSL`)
+## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
 
-```
-original selected face → on-surface original cutters → joined trimmed regions → one transaction.
-original triangles → world transform → area or signed swept volume.
-original geometry → placed source → measure or refusal.
-```
+Before writing code, review how the three layers in this chapter talk to each other:
 
-- Divide a selected original surface face while preserving joined topology and one-step history.
-- Reuse the triangle visitor for face area, mesh area and signed swept volume.
-- Reuse mesh area for meshes, meshed BReps and Elements.
-- **Why it works (Does splitting a face create separate mesh objects?):** No. A NURBS surface becomes one trimmed BRep. Splitting one face of a solid keeps that solid joined, replaces that face with regions and preserves its other faces. A multi-face BRep requires an explicit face selection.
-
-### Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `Browser`)
-
-| Layer | Construct | First-Year Student Explanation |
+| Layer | Construct | Plain-English Explanation for Students |
 | :--- | :--- | :--- |
 | **CAD Coords** | `w10,20,0` vs `@5,0,0` vs `10<30` | `w` forces absolute World coordinates; `@` measures relative to the last accepted point; `<` uses polar distance and angle in the active Construction Plane. |
 | **Rational NURBS** | Homogeneous control point `(w*x, w*y, w*z, w)` | Represents circles, ellipses, and conic arcs with zero approximation error using non-uniform weights `w`. |
 | **B-Rep Split/Trim** | Plane/Cutter intersection -> Face loop classification | Splits or trims B-Rep and mesh faces along cutting planes/curves while keeping retained topology tables valid. |
 
-**Production source (`session_viewer/src`):** [app/command/verbs/project_to_plane.rs](../../../../src/app/command/verbs/project_to_plane.rs), [app/command/verbs/extend.rs](../../../../src/app/command/verbs/extend.rs), [app/splitting.rs](../../../../src/app/splitting.rs), [app/command/verbs/measure.rs](../../../../src/app/command/verbs/measure.rs), [app/command/verbs/trim/parts.rs](../../../../src/app/command/verbs/trim/parts.rs), [app/command/verbs/explode.rs](../../../../src/app/command/verbs/explode.rs), [app/walk/frames.rs](../../../../src/app/walk/frames.rs), [build.rs](../../../../build.rs).
+**Authoritative production source (`session_viewer/src`):** [app/command/verbs/project_to_plane.rs](../../../../src/app/command/verbs/project_to_plane.rs), [app/command/verbs/extend.rs](../../../../src/app/command/verbs/extend.rs), [app/splitting.rs](../../../../src/app/splitting.rs), [app/command/verbs/measure.rs](../../../../src/app/command/verbs/measure.rs), [app/command/verbs/trim/parts.rs](../../../../src/app/command/verbs/trim/parts.rs), [app/command/verbs/explode.rs](../../../../src/app/command/verbs/explode.rs), [app/walk/frames.rs](../../../../src/app/walk/frames.rs), [build.rs](../../../../build.rs).
 
-## Implementation Checkpoints
+## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
 
-Apply these checkpoints in order inside `workspace/journey`. Expand each block to view the Rust/WGSL/HTML edits:
+| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
+| ---: | :--- | :--- | :--- | :--- |
+| **1** | [`83-split-original-faces-without-separating-the-solid`](#checkpoint-83-split-original-faces-without-separating-the-solid) | Divide a selected original surface face while preserving joined topology and one-step history. | `src/split_draft.rs`, `src/split_face_tests.rs`, `src/lib.rs` | `original selected face → on-surface original cutters → joined trimmed regions → one transaction` |
+| **2** | [`83za-visit-original-mesh-triangles-and-format-measures`](#checkpoint-83za-visit-original-mesh-triangles-and-format-measures) | Write one visitor for the original mesh triangles in world coordinates. | `src/measure_math.rs`, `src/lib.rs` | `original triangles → world transform → area or signed swept volume` |
+| **3** | [`83zb-compute-original-mesh-measures-and-curve-length`](#checkpoint-83zb-compute-original-mesh-measures-and-curve-length) | Reuse the triangle visitor for face area, mesh area and signed swept volume. | `src/measure_math.rs`, `src/measure_length.rs`, `src/lib.rs`, `src/cad_orient.rs` | `original geometry → placed source → measure or refusal` |
+| **4** | [`83ze-integrate-original-surface-area`](#checkpoint-83ze-integrate-original-surface-area) | Reuse mesh area for meshes, meshed BReps and Elements. | `src/measure_area.rs`, `src/lib.rs` | `original geometry → placed source → measure or refusal` |
+
+---
+
+## 4. Step-by-Step Coding Notebook (Concept + Implementation)
+
+Work through each notebook cell below in order inside `workspace/journey`. Read the **Concept Walkthrough** and **Self-Check Q&A** first, then expand the **Implementation** block to type and verify the code.
 
 <a id="checkpoint-83-split-original-faces-without-separating-the-solid"></a>
+
+### Step 1 of 4 · Split original faces without separating the solid (`83-split-original-faces-without-separating-the-solid`)
+
+- **Goal:** Divide a selected original surface face while preserving joined topology and one-step history.
+- **Data Flow Trace:** `original selected face → on-surface original cutters → joined trimmed regions → one transaction`
+- **Files You Touch:** `src/split_draft.rs` (*Allow original surfaces and validated BRep faces through the shared pending split owner.*) · `src/split_face_tests.rs` (*Copy integrated maintained joined-face, original placement, topology, area, archive and history fixtures.*) · `src/lib.rs` (*Register the copied original-face split fixtures.*)
+
+Allow original surfaces and explicitly selected BRep faces through the shared split owner. Retain one original BRep with trimmed regions.
+
+> **Self-Check Question:** *Does splitting a face create separate mesh objects?*  
+> **Answer:** No. A NURBS surface becomes one trimmed BRep. Splitting one face of a solid keeps that solid joined, replaces that face with regions and preserves its other faces. A multi-face BRep requires an explicit face selection.
+
+- **What You Should See:** One original surface becomes a two-region trimmed BRep beside its retained original cutter. Splitting a solid face keeps the solid joined; one Undo restores its original topology.
+- **Hands-On Lab Experiment:** Type Close, Nurbs Surface 4 Points w-2,-2,0 w2,-2,0 w2,2,0 w-2,2,0 and Line w0,-3,0 w0,3,0. Type View Isometric, Select None and Fit. Click the surface away from the cutter, type Split, click the cutter beyond the surface and press Enter. Inspect two trimmed faces on one original BRep; Undo restores the original surface and Redo restores both regions. For a solid box, Ctrl+Shift-select a face first and use a cutter lying on that face. A whole multi-face solid, out-of-range face or off-surface cutter is refused. Save/Open must retain the trimmed original.
 
 <details>
 <summary>Implementation 83-split-original-faces-without-separating-the-solid: Split original faces without separating the solid</summary>
@@ -164,6 +225,20 @@ After that block, append this supplied code:
 
 <a id="checkpoint-83za-visit-original-mesh-triangles-and-format-measures"></a>
 
+### Step 2 of 4 · Visit original mesh triangles and format measures (`83za-visit-original-mesh-triangles-and-format-measures`)
+
+- **Goal:** Write one visitor for the original mesh triangles in world coordinates.
+- **Data Flow Trace:** `original triangles → world transform → area or signed swept volume`
+- **Files You Touch:** `src/measure_math.rs` (*Type the whole original mesh measurement helpers using the shared visitor.*) · `src/lib.rs` (*Compile this shared original measurement module.*)
+
+Write one visitor for the original mesh triangles in world coordinates. Reuse the cached triangulation when present and the existing face fan otherwise. Keep short numeric and count formatting under the same measurement helper owner.
+
+> **Self-Check Question:** *Why measure the cached triangles when they exist?*  
+> **Answer:** They are the triangles the viewer draws. Reuse their geometry instead of inventing another triangulation for measurements.
+
+- **What You Should See:** The earlier drawing remains visible while mesh measurement helpers are prepared.
+- **Hands-On Lab Experiment:** Trace a cached face and a fan face through one transform. Compare a small nonzero value with rounded negative zero.
+
 <details>
 <summary>Implementation 83za-visit-original-mesh-triangles-and-format-measures: Visit original mesh triangles and format measures</summary>
 
@@ -204,6 +279,20 @@ After that block, type:
 </details>
 
 <a id="checkpoint-83zb-compute-original-mesh-measures-and-curve-length"></a>
+
+### Step 3 of 4 · Compute original mesh measures and curve length (`83zb-compute-original-mesh-measures-and-curve-length`)
+
+- **Goal:** Reuse the triangle visitor for face area, mesh area and signed swept volume.
+- **Data Flow Trace:** `original geometry → placed source → measure or refusal`
+- **Files You Touch:** `src/measure_math.rs` (*Reuse the original triangle visitor for mesh area and signed swept volume.*) · `src/measure_length.rs` (*Type the complete original helpers introduced today.*) · `src/lib.rs` (*Register this original measurement owner.*) · `src/cad_orient.rs` (*Supply only original orientation validation fixtures against the already taught shared owner.*)
+
+Reuse the triangle visitor for face area, mesh area and signed swept volume. Measure placed lines, polylines and NURBS curves through the Session kernel. Reuse the earlier face-orientation owner for solid measurements; supply only its original measurement validation fixtures.
+
+> **Self-Check Question:** *Why transform a curve before measuring it?*  
+> **Answer:** Scaling changes its length. Measure the placed source geometry in world units instead of measuring the unplaced source or its screen preview.
+
+- **What You Should See:** Original mesh measures and curve length helpers compile without changing the current drawing.
+- **Hands-On Lab Experiment:** Compare a translated curve with a scaled curve. Trace a concave face through the shared visitor.
 
 <details>
 <summary>Implementation 83zb-compute-original-mesh-measures-and-curve-length: Compute original mesh measures and curve length</summary>
@@ -695,6 +784,20 @@ After that block, append this supplied code:
 
 <a id="checkpoint-83ze-integrate-original-surface-area"></a>
 
+### Step 4 of 4 · Integrate original surface area (`83ze-integrate-original-surface-area`)
+
+- **Goal:** Reuse mesh area for meshes, meshed BReps and Elements.
+- **Data Flow Trace:** `original geometry → placed source → measure or refusal`
+- **Files You Touch:** `src/measure_area.rs` (*Type the complete original helpers introduced today.*) · `src/lib.rs` (*Register surface area after curve length; reuse the earlier orientation owner.*)
+
+Reuse mesh area for meshes, meshed BReps and Elements. Integrate the NURBS derivative cross product across knot spans with the original Gauss rule.
+
+> **Self-Check Question:** *What does the derivative cross product measure?*  
+> **Answer:** Its magnitude converts a small parameter-space rectangle into surface area. The quadrature weights sum those local contributions over each knot span.
+
+- **What You Should See:** Surface-area integration can measure original surface data before the measurement command connection.
+- **Hands-On Lab Experiment:** Compare uniform scaling with translation. Check the planar patch and exact cylinder surface against their known areas.
+
 <details>
 <summary>Implementation 83ze-integrate-original-surface-area: Integrate original surface area</summary>
 
@@ -825,9 +928,11 @@ After that block, append this supplied code:
 
 </details>
 
-## Run, Check, and Save
+---
 
-From `session_viewer`:
+## 5. Build, Verify, and Save Your Checkpoint
+
+Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 83ze-integrate-original-surface-area
@@ -838,12 +943,12 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. Use [checkpoint recovery](../../recovery.md) to restore any saved checkpoint.
+Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
 
-## Expected Visual Result & Experiment
+## 6. Lesson Summary & Expected Visual Result
 
 Surface-area integration can measure original surface data before the measurement command connection.
 
-- **Try this:** Compare uniform scaling with translation. Check the planar patch and exact cylinder surface against their known areas.
+- **Final Lesson Experiment:** Compare uniform scaling with translation. Check the planar patch and exact cylinder surface against their known areas.
 
-Continue with [Measurements, temporary marks and retained CAD pieces](84-measure-original-curves-surfaces-and-closed-solids.md).
+Continue with [Measurements, temporary marks and retained CAD pieces](../../consolidation/84-measure-original-curves-surfaces-and-closed-solids.md).

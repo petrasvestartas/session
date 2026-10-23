@@ -1,105 +1,169 @@
 # 2.5 · Document history and perspective rays
 
-**Section 2: 3D Meshes, Camera Matrices, Depth, and Ray Picking** · **Lesson 2.5** (Redraft `2.5`) · **4 checkpoints (`13a-history` → `14b-ray`)**
+**Section 2: 3D Meshes, Camera Matrices, Depth, and Ray Picking** · **Lesson 2.5** (Redraft `2.5`) · **4 checkpoints (`13a-history` → `14b-ray`)** · **Study time: 2.25–4 h**
 
-> **Learning Goal:** Restore scene contents without copying immutable mesh arrays or reusing IDs.
+> **What You Will Learn & Build:** Restore scene contents without copying immutable mesh arrays or reusing IDs. By the final checkpoint (`14b-ray`), you will recover a finite ray through the near-to-far segment from a screen position.
 
-## Visual WebGPU & Architecture Schematic
+## 1. Visual Pipeline & WebGPU Architecture (Black & White Schematics)
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1px solid #cbd5e1;border-radius:10px;background:#f8fafc;">
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
+<svg viewBox="0 0 840 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <rect x="4" y="4" width="832" height="212" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Lesson 2.5 Execution Flow: Document history and perspective rays</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">Concrete data pipeline you build in this lesson (4 Checkpoints: 13a-history → 14b-ray)</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
+  
+    
+    <rect x="18" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="89" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
+    <line x1="28" y1="92" x2="151" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">Edit saves Scene</text>
+    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="183" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="254" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
+    <line x1="193" y1="92" x2="316" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">undo/redo transfer</text>
+    <text x="254" y="124" text-anchor="middle" font-size="11" fill="#111111">snapshots</text>
+    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="348" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="419" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
+    <line x1="358" y1="92" x2="481" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">restore keeps the</text>
+    <text x="419" y="124" text-anchor="middle" font-size="11" fill="#111111">highest ID counter</text>
+    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="513" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="584" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
+    <line x1="523" y1="92" x2="646" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">Screen depth 0 and</text>
+    <text x="584" y="124" text-anchor="middle" font-size="11" fill="#111111">1</text>
+    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="678" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="749" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
+    <line x1="688" y1="92" x2="811" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">inverse</text>
+    <text x="749" y="124" text-anchor="middle" font-size="11" fill="#111111">view-projection</text>
+    
+    <rect x="18" y="162" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="32" y="181" font-size="11" font-weight="700" fill="#111111">Files You Edit in Lesson 2.5:</text>
+    <text x="215" y="181" font-size="11" fill="#111111">src/scene.rs  ·  src/history.rs  ·  src/lib.rs  ·  src/browser.rs  ·  Cargo.toml  ·  src/camera.rs</text>
+    <text x="32" y="198" font-size="10.5" fill="#111111">4 Checkpoints: 13a-history → 14b-ray — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
+  
+</svg>
+</div>
+
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
 <svg viewBox="0 0 840 240" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#475569"/>
-    </marker>
-    <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#2563eb"/>
-    </marker>
-    <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#059669"/>
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
     </marker>
   </defs>
-  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
-  <text x="20" y="28" font-size="14" font-weight="700" fill="#0f172a">Chapter 2 WebGPU Pipeline: 3D Vertex/Index Buffers, Camera Uniform (mat4x4), Depth32Float & Ray Picking</text>
-  <text x="20" y="46" font-size="11.5" fill="#475569">How 3D world coordinates project onto the 2D canvas with hardware Z-buffering—and how a 2D mouse click unprojects back into a 3D ray.</text>
-  <line x1="16" y1="54" x2="824" y2="54" stroke="#e2e8f0" stroke-width="1"/>
+  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Chapter 2 WebGPU Pipeline: 3D Vertex/Index Buffers, Camera Uniform (mat4x4), Depth32Float & Ray Picking</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">How 3D world coordinates project onto the 2D canvas with hardware Z-buffering—and how a 2D mouse click unprojects back into a 3D ray.</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
   
     <!-- CPU Buffers -->
-    <rect x="18" y="68" width="185" height="145" rx="6" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5"/>
-    <text x="110" y="88" text-anchor="middle" font-size="12" font-weight="700" fill="#9a3412">1. Rust CPU Data (#[repr(C)])</text>
-    <text x="28" y="108" font-size="11" fill="#7c2d12">• vertices: Vec&lt;[f32; 3]&gt;</text>
-    <text x="28" y="125" font-size="11" fill="#7c2d12">• indices:  Vec&lt;u32&gt; (shared!)</text>
-    <text x="28" y="142" font-size="11" fill="#7c2d12">• camera.view_proj: [[f32;4];4]</text>
-    <text x="28" y="162" font-size="10.5" font-weight="600" fill="#c2410c">bytemuck::cast_slice(&amp;data)</text>
-    <text x="28" y="180" font-size="10.5" fill="#7c2d12">• Undo / Redo Snapshot Stack</text>
-    <text x="28" y="197" font-size="10.5" fill="#7c2d12">• Orbit / Pan / Zoom Camera</text>
+    <rect x="18" y="68" width="185" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="110" y="88" text-anchor="middle" font-size="12" font-weight="700" fill="#111111">1. Rust CPU Data (#[repr(C)])</text>
+    <text x="28" y="108" font-size="11" fill="#111111">• vertices: Vec&lt;[f32; 3]&gt;</text>
+    <text x="28" y="125" font-size="11" fill="#111111">• indices:  Vec&lt;u32&gt; (shared!)</text>
+    <text x="28" y="142" font-size="11" fill="#111111">• camera.view_proj: [[f32;4];4]</text>
+    <text x="28" y="162" font-size="10.5" font-weight="600" fill="#111111">bytemuck::cast_slice(&amp;data)</text>
+    <text x="28" y="180" font-size="10.5" fill="#111111">• Undo / Redo Snapshot Stack</text>
+    <text x="28" y="197" font-size="10.5" fill="#111111">• Orbit / Pan / Zoom Camera</text>
 
-    <line x1="203" y1="115" x2="233" y2="115" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>
+    <line x1="203" y1="115" x2="233" y2="115" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
     <!-- Vertex Shader -->
-    <rect x="235" y="68" width="205" height="90" rx="6" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
-    <text x="337" y="87" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1e40af">2. @vertex Shader Stage</text>
-    <text x="245" y="105" font-size="10.5" fill="#1e3a8a">@location(0) pos: vec3&lt;f32&gt;</text>
-    <text x="245" y="122" font-size="10.5" fill="#1e3a8a">@group(0) @binding(0) view_proj</text>
-    <text x="245" y="142" font-size="11" font-weight="700" fill="#1d4ed8">clip = view_proj * vec4(pos, 1.0)</text>
+    <rect x="235" y="68" width="205" height="90" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="337" y="87" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">2. @vertex Shader Stage</text>
+    <text x="245" y="105" font-size="10.5" fill="#111111">@location(0) pos: vec3&lt;f32&gt;</text>
+    <text x="245" y="122" font-size="10.5" fill="#111111">@group(0) @binding(0) view_proj</text>
+    <text x="245" y="142" font-size="11" font-weight="700" fill="#111111">clip = view_proj * vec4(pos, 1.0)</text>
 
-    <line x1="440" y1="115" x2="470" y2="115" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
+    <line x1="440" y1="115" x2="470" y2="115" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
     <!-- Raster + Depth32Float -->
-    <rect x="472" y="68" width="185" height="90" rx="6" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1.5"/>
-    <text x="564" y="87" text-anchor="middle" font-size="11.5" font-weight="700" fill="#065f46">3. Depth32Float Z-Test</text>
-    <text x="482" y="105" font-size="10.5" fill="#064e3b">NDC = clip.xyz / clip.w</text>
-    <text x="482" y="122" font-size="10.5" font-weight="600" fill="#047857">if z_fragment &lt;= z_buffer[x,y]:</text>
-    <text x="482" y="139" font-size="10.5" fill="#064e3b">  write pixel &amp; update z_buffer</text>
+    <rect x="472" y="68" width="185" height="90" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="564" y="87" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">3. Depth32Float Z-Test</text>
+    <text x="482" y="105" font-size="10.5" fill="#111111">NDC = clip.xyz / clip.w</text>
+    <text x="482" y="122" font-size="10.5" font-weight="600" fill="#111111">if z_fragment &lt;= z_buffer[x,y]:</text>
+    <text x="482" y="139" font-size="10.5" fill="#111111">  write pixel &amp; update z_buffer</text>
 
-    <line x1="657" y1="115" x2="685" y2="115" stroke="#059669" stroke-width="2" marker-end="url(#arrow-green)"/>
+    <line x1="657" y1="115" x2="685" y2="115" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
     <!-- Screen & Reverse Ray Pick -->
-    <rect x="687" y="68" width="133" height="145" rx="6" fill="#fdf2f8" stroke="#f472b6" stroke-width="1.5"/>
-    <text x="753" y="87" text-anchor="middle" font-size="11.5" font-weight="700" fill="#9d174d">4. Canvas &amp; Pick</text>
-    <text x="696" y="106" font-size="10.5" fill="#831843">• Nearer mesh</text>
-    <text x="696" y="120" font-size="10.5" fill="#831843">  occludes rear</text>
-    <text x="696" y="142" font-size="10.5" font-weight="600" fill="#9d174d">• Click (px, py):</text>
-    <text x="696" y="157" font-size="10" fill="#831843">  inv_view_proj</text>
-    <text x="696" y="172" font-size="10" fill="#831843">  -&gt; 3D Ray(O, D)</text>
-    <text x="696" y="187" font-size="10" fill="#831843">  -&gt; min t hit ID!</text>
+    <rect x="687" y="68" width="133" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="753" y="87" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">4. Canvas &amp; Pick</text>
+    <text x="696" y="106" font-size="10.5" fill="#111111">• Nearer mesh</text>
+    <text x="696" y="120" font-size="10.5" fill="#111111">  occludes rear</text>
+    <text x="696" y="142" font-size="10.5" font-weight="600" fill="#111111">• Click (px, py):</text>
+    <text x="696" y="157" font-size="10" fill="#111111">  inv_view_proj</text>
+    <text x="696" y="172" font-size="10" fill="#111111">  -&gt; 3D Ray(O, D)</text>
+    <text x="696" y="187" font-size="10" fill="#111111">  -&gt; min t hit ID!</text>
 
     <!-- Bottom Reverse Arrow for Ray Picking -->
-    <rect x="235" y="168" width="422" height="45" rx="6" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1"/>
-    <text x="446" y="187" text-anchor="middle" font-size="11" font-weight="600" fill="#334155">CPU Ray Picking (Inverse Path): Screen (px, py) → NDC (-1..+1) → inv(view_proj) → World Ray (O + t·D)</text>
-    <text x="446" y="203" text-anchor="middle" font-size="10.5" fill="#475569">Tests every triangle via Möller–Trumbore; smallest positive t wins (matching hardware Depth32Float occlusion!)</text>
+    <rect x="235" y="168" width="422" height="45" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="446" y="187" text-anchor="middle" font-size="11" font-weight="600" fill="#111111">CPU Ray Picking (Inverse Path): Screen (px, py) → NDC (-1..+1) → inv(view_proj) → World Ray (O + t·D)</text>
+    <text x="446" y="203" text-anchor="middle" font-size="10.5" fill="#111111">Tests every triangle via Möller–Trumbore; smallest positive t wins (matching hardware Depth32Float occlusion!)</text>
     
 </svg>
 </div>
 
-### Lesson Data Flow (`Rust` → `WebGPU` → `WGSL`)
+## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
 
-```
-Edit saves Scene → undo/redo transfer snapshots → restore keeps the highest ID counter.
-Eye and target → view_projection → f32 uniform → GPU depth test.
-Screen depth 0 and 1 → inverse view-projection → origin, direction and max_distance.
-```
+Before writing code, review how the three layers in this chapter talk to each other:
 
-- Restore scene contents without copying immutable mesh arrays or reusing IDs.
-- Draw nearer geometry through a perspective view while keeping typed commands working.
-- Recover a finite ray through the near-to-far segment from a screen position.
-- **Why it works (Does cloning a scene copy every vertex array?):** No. Object records clone Rc<Mesh> handles. The snapshots share the same immutable mesh allocation.
-
-### Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `Browser`)
-
-| Layer | Construct | First-Year Student Explanation |
+| Layer | Construct | Plain-English Explanation for Students |
 | :--- | :--- | :--- |
 | **Rust (`bytemuck`)** | `#[repr(C)]` + `Pod` / `Zeroable` | Guarantees Rust structs (`Vertex`, `CameraUniform`) have exact C/GPU byte layout so `bytemuck::cast_slice` uploads raw bytes to `wgpu::Buffer` with zero copying. |
 | **WGSL Shader** | `@group(0) @binding(0) var<uniform> view_proj: mat4x4<f32>` | Transforms 3D world vertices into 4D homogeneous clip coordinates (`view_proj * vec4<f32>(pos, 1.0)`). |
 | **WebGPU / Math** | `Depth32Float` + Inverse Ray `inv(view_proj)` | Forward pass uses a 32-bit float Z-buffer (`LessEqual`) so nearer triangles occlude farther ones; clicking unprojects `(px, py)` back into a 3D ray to pick the closest hit `t`. |
 
-**Production source (`session_viewer/src`):** `session_viewer/src`
+**Authoritative production source (`session_viewer/src`):** `session_viewer/src`
 
-## Implementation Checkpoints
+## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
 
-Apply these checkpoints in order inside `workspace/journey`. Expand each block to view the Rust/WGSL/HTML edits:
+| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
+| ---: | :--- | :--- | :--- | :--- |
+| **1** | [`13a-history`](#checkpoint-13a-history) | Restore scene contents without copying immutable mesh arrays or reusing IDs. | `src/scene.rs`, `src/history.rs`, `src/lib.rs` | `Edit saves Scene → undo/redo transfer snapshots → restore keeps the highest ID counter` |
+| **2** | [`14-history`](#checkpoint-14-history) | Undo and redo adding or deleting an object without changing the camera or losing identity. | `src/browser.rs` | `Typed edit → History → restored Scene → selection repair → set_scene` |
+| **3** | [`14a-perspective`](#checkpoint-14a-perspective) | Draw nearer geometry through a perspective view while keeping typed commands working. | `Cargo.toml`, `src/camera.rs`, `src/scene.rs`, `src/browser.rs` | `Eye and target → view_projection → f32 uniform → GPU depth test` |
+| **4** | [`14b-ray`](#checkpoint-14b-ray) | Recover a finite ray through the near-to-far segment from a screen position. | `src/camera.rs` | `Screen depth 0 and 1 → inverse view-projection → origin, direction and max_distance` |
+
+---
+
+## 4. Step-by-Step Coding Notebook (Concept + Implementation)
+
+Work through each notebook cell below in order inside `workspace/journey`. Read the **Concept Walkthrough** and **Self-Check Q&A** first, then expand the **Implementation** block to type and verify the code.
 
 <a id="checkpoint-13a-history"></a>
+
+### Step 1 of 4 · Retain reversible scene snapshots (`13a-history`)
+
+- **Goal:** Restore scene contents without copying immutable mesh arrays or reusing IDs.
+- **Data Flow Trace:** `Edit saves Scene → undo/redo transfer snapshots → restore keeps the highest ID counter`
+- **Files You Touch:** `src/scene.rs` (*Use shared ownership for immutable mesh data.*) · `src/history.rs` (*Create bounded undo and redo stacks, plus tests for identity, shared data and a new editing branch.*) · `src/lib.rs` (*Register history as a document operation, independent of the browser and GPU.*)
+
+History retains scene snapshots before an edit. Undo and Redo transfer snapshots between two stacks; a new edit clears Redo. Keep the latest 64 edits.
+
+Rc shares immutable Mesh values across snapshots. FnOnce accepts an action called once with the scene. Restoring contents preserves the highest ID counter reached.
+
+> **Self-Check Question:** *Does cloning a scene copy every vertex array?*  
+> **Answer:** No. Object records clone Rc<Mesh> handles. The snapshots share the same immutable mesh allocation.
+
+- **What You Should See:** Inspect the supplied state fixtures. Undo restores the same ID and mesh allocation; a new branch clears Redo without reusing IDs; history keeps 64 edits.
+- **Hands-On Lab Experiment:** Read the pointer-equality assertion before running the history checks. Undo should restore the original Rc allocation rather than a copied mesh.
 
 <details>
 <summary>Implementation 13a-history: Retain reversible scene snapshots</summary>
@@ -406,6 +470,22 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-14-history"></a>
+
+### Step 2 of 4 · Run Undo and Redo from the command line (`14-history`)
+
+- **Goal:** Undo and redo adding or deleting an object without changing the camera or losing identity.
+- **Data Flow Trace:** `Typed edit → History → restored Scene → selection repair → set_scene`
+- **Files You Touch:** `src/browser.rs` (*Import the history owner.*)
+
+Route Example Triangle and Delete through History::edit. Undo and Redo restore the scene, retain only valid selection, then upload the restored display.
+
+The callback keeps camera and background outside history. A document restoration redraws with the current view.
+
+> **Self-Check Question:** *Why repair selection after restoration?*  
+> **Answer:** Selection stores an ID. The restored scene may not contain that ID, so retain it only when it still exists.
+
+- **What You Should See:** Type Example Triangle, then Undo and Redo. The third triangle disappears and returns.
+- **Hands-On Lab Experiment:** Add the third triangle, undo that addition, then add it again. It looks similar, but the new addition must receive a new ID. Read the branching-history test and explain why. Next pan the camera, delete an object and undo: the camera should stay where you put it.
 
 <details>
 <summary>Implementation 14-history: Run Undo and Redo from the command line</summary>
@@ -863,6 +943,22 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-14a-perspective"></a>
+
+### Step 3 of 4 · Draw through a perspective camera (`14a-perspective`)
+
+- **Goal:** Draw nearer geometry through a perspective view while keeping typed commands working.
+- **Data Flow Trace:** `Eye and target → view_projection → f32 uniform → GPU depth test`
+- **Files You Touch:** `Cargo.toml` (*Add the geometry kernel and browser-compatible random number support.*) · `src/camera.rs` (*Give the camera an eye distance, view-projection matrix and GPU uniform. Check the transformed target stays centred.*) · `src/scene.rs` (*Name the mesh by colour; which surface is nearer now depends on the camera.*) · `src/browser.rs` (*Initialize camera aspect from the canvas size.*) · `src/lib.rs` (*Pause the flat picking module until the camera-ray query is introduced.*)
+
+Look from z = 3 toward z = 0 with a 60-degree vertical field of view. The nearer turquoise triangle covers pink at their overlap.
+
+Xform calculates the view and projection in double precision. to_f32 supplies the existing GPU uniform; the shader divides clip coordinates by w. Keep aspect equal to window width divided by height.
+
+> **Self-Check Question:** *Why is turquoise nearer even though its world z is larger?*  
+> **Answer:** The eye is at positive z and looks toward zero. The turquoise triangle at z = 0.75 is closer to that eye than pink at z = 0.25.
+
+- **What You Should See:** Refresh the viewer. Turquoise covers pink at the centre of the view.
+- **Hands-On Lab Experiment:** Type Zoom In, then View Reset. The eye moves closer and resets; geometry positions stay unchanged.
 
 <details>
 <summary>Implementation 14a-perspective: Draw through a perspective camera</summary>
@@ -1870,6 +1966,22 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-14b-ray"></a>
 
+### Step 4 of 4 · Turn a screen point into a bounded ray (`14b-ray`)
+
+- **Goal:** Recover a finite ray through the near-to-far segment from a screen position.
+- **Data Flow Trace:** `Screen depth 0 and 1 → inverse view-projection → origin, direction and max_distance`
+- **Files You Touch:** `src/camera.rs` (*Keep the near origin, normalized direction and segment length together.*)
+
+Invert the view-projection matrix. A screen point at depths zero and one gives the near and far ends of a ray through the view.
+
+Option returns None for invalid coordinates or an inverse that cannot be computed. Normalize the direction and retain the segment length.
+
+> **Self-Check Question:** *Why retain max_distance beside a normalized direction?*  
+> **Answer:** Normalization removes length. max_distance keeps the far-plane boundary so picking can reject objects outside the visible segment.
+
+- **What You Should See:** Inspect the supplied state fixtures. A projected point lies on its recovered ray; invalid screen coordinates are rejected.
+- **Hands-On Lab Experiment:** Change the round-trip test screen x to NaN. ray should return None; restore the valid point.
+
 <details>
 <summary>Implementation 14b-ray: Turn a screen point into a bounded ray</summary>
 
@@ -2110,9 +2222,11 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 </details>
 
-## Run, Check, and Save
+---
 
-From `session_viewer`:
+## 5. Build, Verify, and Save Your Checkpoint
+
+Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 14b-ray
@@ -2123,12 +2237,12 @@ cargo build --lib --locked --target wasm32-unknown-unknown -j1
 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. Use [checkpoint recovery](../../recovery.md) to restore any saved checkpoint.
+Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
 
-## Expected Visual Result & Experiment
+## 6. Lesson Summary & Expected Visual Result
 
 Inspect the supplied state fixtures. A projected point lies on its recovered ray; invalid screen coordinates are rejected.
 
-- **Try this:** Change the round-trip test screen x to NaN. ray should return None; restore the valid point.
+- **Final Lesson Experiment:** Change the round-trip test screen x to NaN. ray should return None; restore the valid point.
 
-Continue with [Perspective picking and orbit navigation](15-perspective.md).
+Continue with [Perspective picking and orbit navigation](../../consolidation/15-perspective.md).

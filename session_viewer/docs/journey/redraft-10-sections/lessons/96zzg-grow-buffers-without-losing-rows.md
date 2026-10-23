@@ -1,92 +1,159 @@
 # 20.3 · Shared arenas, object records and source preparation
 
-**Section 10: Shared GPU Arenas, Floating-Origin Precision, Multisampling, and Production Parity** · **Lesson 20.3** (Redraft `10.7`) · **14 checkpoints (`96zzg-grow-buffers-without-losing-rows` → `96zzt-share-the-current-selection-yellow`)**
+**Section 10: Shared GPU Arenas, Floating-Origin Precision, Multisampling, and Production Parity** · **Lesson 20.3** (Redraft `10.7`) · **14 checkpoints (`96zzg-grow-buffers-without-losing-rows` → `96zzt-share-the-current-selection-yellow`)** · **Study time: 10–14 h**
 
-> **Learning Goal:** Preserve uploaded GPU records when a shared buffer grows.
+> **What You Will Learn & Build:** Preserve uploaded GPU records when a shared buffer grows. By the final checkpoint (`96zzt-share-the-current-selection-yellow`), you will use the current selection yellow for surfaces and temporary highlights without changing original colors.
 
-## Visual WebGPU & Architecture Schematic
+## 1. Visual Pipeline & WebGPU Architecture (Black & White Schematics)
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1px solid #cbd5e1;border-radius:10px;background:#f8fafc;">
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
+<svg viewBox="0 0 840 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <rect x="4" y="4" width="832" height="212" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Lesson 20.3 Execution Flow: Shared arenas, object records and source preparation</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">Concrete data pipeline you build in this lesson (14 Checkpoints: 96zzg-grow-buffers-without-losing-rows → 96zzt-share-the-current-selection-yellow)</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
+  
+    
+    <rect x="18" y="68" width="184" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="110" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
+    <line x1="28" y1="92" x2="192" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="110" y="108" text-anchor="middle" font-size="11" fill="#111111">Follow existing rows</text>
+    <text x="110" y="124" text-anchor="middle" font-size="11" fill="#111111">through buffer</text>
+    <text x="110" y="140" text-anchor="middle" font-size="11" fill="#111111">replacement,…</text>
+    <line x1="202" y1="108" x2="222" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="224" y="68" width="184" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="316" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
+    <line x1="234" y1="92" x2="398" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="316" y="108" text-anchor="middle" font-size="11" fill="#111111">Session palette</text>
+    <line x1="408" y1="108" x2="428" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="430" y="68" width="184" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="522" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
+    <line x1="440" y1="92" x2="604" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="522" y="108" text-anchor="middle" font-size="11" fill="#111111">CPU highlight data and</text>
+    <text x="522" y="124" text-anchor="middle" font-size="11" fill="#111111">shared WGSL</text>
+    <line x1="614" y1="108" x2="634" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="636" y="68" width="184" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="728" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
+    <line x1="646" y1="92" x2="810" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="728" y="108" text-anchor="middle" font-size="11" fill="#111111">selected display</text>
+    
+    <rect x="18" y="162" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="32" y="181" font-size="11" font-weight="700" fill="#111111">Files You Edit in Lesson 20.3:</text>
+    <text x="215" y="181" font-size="11" fill="#111111">src/text_gpu_support.rs  ·  src/growing_buffer_tests.rs  ·  src/lib.rs  ·  src/arena_rows.rs  ·  src/arena_rows_tests.rs  ·  src/mesh_arena.rs</text>
+    <text x="32" y="198" font-size="10.5" fill="#111111">14 Checkpoints: 96zzg-grow-buffers-without-losing-rows → 96zzt-share-the-current-selection-yellow — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
+  
+</svg>
+</div>
+
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
 <svg viewBox="0 0 840 240" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#475569"/>
-    </marker>
-    <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#2563eb"/>
-    </marker>
-    <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#059669"/>
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
     </marker>
   </defs>
-  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
-  <text x="20" y="28" font-size="14" font-weight="700" fill="#0f172a">Section 10 Production Architecture: Shared GPU Storage Arena, f64 Floating Origin, Reversed-Z, 4x MSAA & Matrix Shader</text>
-  <text x="20" y="46" font-size="11.5" fill="#475569">How the maintained viewer pulls vertices from one growable GPU arena, eliminates jitter at 10^12 units, and renders procedural Matrices.</text>
-  <line x1="16" y1="54" x2="824" y2="54" stroke="#e2e8f0" stroke-width="1"/>
+  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Section 10 Production Architecture: Shared GPU Storage Arena, f64 Floating Origin, Reversed-Z, 4x MSAA & Matrix Shader</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">How the maintained viewer pulls vertices from one growable GPU arena, eliminates jitter at 10^12 units, and renders procedural Matrices.</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
   
-    <rect x="18" y="68" width="250" height="145" rx="6" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
-    <text x="143" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1e40af">1. Shared GPU Arena (Ch 19–20)</text>
-    <text x="28" y="108" font-size="10.5" fill="#1e3a8a">• 1 Growable Storage Buffer Arena</text>
-    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#1d4ed8">• Vertex Pulling (@builtin(vertex_index))</text>
-    <text x="28" y="144" font-size="10.5" fill="#1e3a8a">• 8-byte Draw Slots -&gt; ObjectRecord</text>
-    <text x="28" y="162" font-size="10.5" fill="#1e3a8a">• slot_table.wgsl maps Rg32Uint</text>
-    <text x="28" y="178" font-size="10.5" fill="#1e3a8a">  primitive IDs to Element/Face owners</text>
-    <text x="28" y="194" font-size="10" fill="#1e3a8a">• Free-list span reuse after GPU lease</text>
+    <rect x="18" y="68" width="250" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="143" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">1. Shared GPU Arena (Ch 19–20)</text>
+    <text x="28" y="108" font-size="10.5" fill="#111111">• 1 Growable Storage Buffer Arena</text>
+    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#111111">• Vertex Pulling (@builtin(vertex_index))</text>
+    <text x="28" y="144" font-size="10.5" fill="#111111">• 8-byte Draw Slots -&gt; ObjectRecord</text>
+    <text x="28" y="162" font-size="10.5" fill="#111111">• slot_table.wgsl maps Rg32Uint</text>
+    <text x="28" y="178" font-size="10.5" fill="#111111">  primitive IDs to Element/Face owners</text>
+    <text x="28" y="194" font-size="10" fill="#111111">• Free-list span reuse after GPU lease</text>
 
-    <line x1="268" y1="138" x2="298" y2="138" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
+    <line x1="268" y1="138" x2="298" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="300" y="68" width="265" height="145" rx="6" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5"/>
-    <text x="432" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#9a3412">2. f64 Floating Origin &amp; Reversed-Z (Ch 21)</text>
-    <text x="312" y="108" font-size="10.5" font-weight="600" fill="#c2410c">• rel_f32 = (world_f64 - anchor_f64) as f32</text>
-    <text x="312" y="125" font-size="10" fill="#7c2d12">  Zero vertex/grid jitter even at 10^12 m!</text>
-    <text x="312" y="144" font-size="10.5" font-weight="600" fill="#c2410c">• Reversed-Z Depth (GreaterEqual):</text>
-    <text x="312" y="160" font-size="10" fill="#7c2d12">  Near plane = 1.0, Far plane = 0.0</text>
-    <text x="312" y="178" font-size="10.5" fill="#7c2d12">• Held world base grid &amp; preserved</text>
-    <text x="312" y="193" font-size="10.5" fill="#7c2d12">  live camera during Session reload</text>
+    <rect x="300" y="68" width="265" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="432" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">2. f64 Floating Origin &amp; Reversed-Z (Ch 21)</text>
+    <text x="312" y="108" font-size="10.5" font-weight="600" fill="#111111">• rel_f32 = (world_f64 - anchor_f64) as f32</text>
+    <text x="312" y="125" font-size="10" fill="#111111">  Zero vertex/grid jitter even at 10^12 m!</text>
+    <text x="312" y="144" font-size="10.5" font-weight="600" fill="#111111">• Reversed-Z Depth (GreaterEqual):</text>
+    <text x="312" y="160" font-size="10" fill="#111111">  Near plane = 1.0, Far plane = 0.0</text>
+    <text x="312" y="178" font-size="10.5" fill="#111111">• Held world base grid &amp; preserved</text>
+    <text x="312" y="193" font-size="10.5" fill="#111111">  live camera during Session reload</text>
 
-    <line x1="565" y1="138" x2="595" y2="138" stroke="#059669" stroke-width="2" marker-end="url(#arrow-green)"/>
+    <line x1="565" y1="138" x2="595" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="597" y="68" width="223" height="145" rx="6" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1.5"/>
-    <text x="708" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#065f46">3. 4x MSAA &amp; Matrix Shader (Ch 22)</text>
-    <text x="609" y="108" font-size="10.5" fill="#064e3b">• Coherent 1x/4x MSAA sample targets</text>
-    <text x="609" y="126" font-size="10.5" font-weight="600" fill="#047857">• matrix.wgsl (16w header + 3w/cell):</text>
-    <text x="609" y="142" font-size="10" fill="#064e3b">  Heatmap + procedural 3-decimal digits</text>
-    <text x="609" y="157" font-size="10" fill="#064e3b">  (0 cell blank; plate-less title; yellow</text>
-    <text x="609" y="172" font-size="10" fill="#064e3b">  selected border; Rg32Uint whole pick)</text>
-    <text x="609" y="190" font-size="10" fill="#064e3b">• Coalesced single-flight frame scheduler</text>
+    <rect x="597" y="68" width="223" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="708" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">3. 4x MSAA &amp; Matrix Shader (Ch 22)</text>
+    <text x="609" y="108" font-size="10.5" fill="#111111">• Coherent 1x/4x MSAA sample targets</text>
+    <text x="609" y="126" font-size="10.5" font-weight="600" fill="#111111">• matrix.wgsl (16w header + 3w/cell):</text>
+    <text x="609" y="142" font-size="10" fill="#111111">  Heatmap + procedural 3-decimal digits</text>
+    <text x="609" y="157" font-size="10" fill="#111111">  (0 cell blank; plate-less title; yellow</text>
+    <text x="609" y="172" font-size="10" fill="#111111">  selected border; Rg32Uint whole pick)</text>
+    <text x="609" y="190" font-size="10" fill="#111111">• Coalesced single-flight frame scheduler</text>
     
 </svg>
 </div>
 
-### Lesson Data Flow (`Rust` → `WebGPU` → `WGSL`)
+## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
 
-```
-Follow existing rows through buffer replacement, an ordered GPU copy and the next append..
-object row + primitive ID base → eight-byte slot → instance-step vertex input.
-Session palette → CPU highlight data and shared WGSL → selected display.
-```
+Before writing code, review how the three layers in this chapter talk to each other:
 
-- Preserve uploaded GPU records when a shared buffer grows.
-- Store an object row and primitive ID base in one instance-step vertex record.
-- Use the current selection yellow for surfaces and temporary highlights without changing original colors.
-- **Why it works (Why submit the old-row copy before writing the appended rows?):** Queue order preserves earlier writes before the copy and places the new append after it. No CPU readback is needed for growth.
-
-### Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `Browser`)
-
-| Layer | Construct | First-Year Student Explanation |
+| Layer | Construct | Plain-English Explanation for Students |
 | :--- | :--- | :--- |
 | **WGSL (Vertex Pull)** | `@group(0) @binding(b) var<storage, read> arena_verts: array<u32>;` | Fetches packed vertex positions, normals, and colors directly from a single growable storage buffer using `@builtin(vertex_index)`. |
 | **Rust/WGSL (`f64`->`f32`)** | `let rel: Vec3 = (world_f64 - anchor_f64).as_vec3();` | Subtracts the camera-area `f64` anchor on the CPU before converting to `f32`, preventing 32-bit float mantissa exhaustion far from `(0,0,0)`. |
 | **WGSL (`matrix.wgsl`)** | 16-word header + 3 words/cell procedural digits | Renders matrix heatmaps and 3-decimal numeric digits procedurally inside the fragment shader with zero texture uploads per cell. |
 | **Rust (`ink_ranges.rs`)** | Merged contiguous `Range<u32>` instance draws | Toggles point/line/edge/CAD-wire family visibility without rebuilding GPU buffers or invalidating original owner indices. |
 
-**Production source (`session_viewer/src`):** [engine/gpu/arena.rs](../../../../src/engine/gpu/arena.rs), [engine/gpu/buffers.rs](../../../../src/engine/gpu/buffers.rs), [engine/gpu/objects.rs](../../../../src/engine/gpu/objects.rs), [engine/gpu/slots.rs](../../../../src/engine/gpu/slots.rs), [engine/gpu/instanced.rs](../../../../src/engine/gpu/instanced.rs), [engine/gpu/faces.rs](../../../../src/engine/gpu/faces.rs), [engine/gpu/clip.rs](../../../../src/engine/gpu/clip.rs), [engine/gpu/triangle_tiles.rs](../../../../src/engine/gpu/triangle_tiles.rs), [app/scene_sync/tombs.rs](../../../../src/app/scene_sync/tombs.rs), [build.rs](../../../../build.rs).
+**Authoritative production source (`session_viewer/src`):** [engine/gpu/arena.rs](../../../../src/engine/gpu/arena.rs), [engine/gpu/buffers.rs](../../../../src/engine/gpu/buffers.rs), [engine/gpu/objects.rs](../../../../src/engine/gpu/objects.rs), [engine/gpu/slots.rs](../../../../src/engine/gpu/slots.rs), [engine/gpu/instanced.rs](../../../../src/engine/gpu/instanced.rs), [engine/gpu/faces.rs](../../../../src/engine/gpu/faces.rs), [engine/gpu/clip.rs](../../../../src/engine/gpu/clip.rs), [engine/gpu/triangle_tiles.rs](../../../../src/engine/gpu/triangle_tiles.rs), [app/scene_sync/tombs.rs](../../../../src/app/scene_sync/tombs.rs), [build.rs](../../../../build.rs).
 
-## Implementation Checkpoints
+## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
 
-Apply these checkpoints in order inside `workspace/journey`. Expand each block to view the Rust/WGSL/HTML edits:
+| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
+| ---: | :--- | :--- | :--- | :--- |
+| **1** | [`96zzg-grow-buffers-without-losing-rows`](#checkpoint-96zzg-grow-buffers-without-losing-rows) | Preserve uploaded GPU records when a shared buffer grows. | `src/text_gpu_support.rs`, `src/growing_buffer_tests.rs`, `src/lib.rs` | `Follow existing rows through buffer replacement, an ordered GPU copy and the next append.` |
+| **2** | [`96zzh-prepare-shared-compact-mesh-ranges`](#checkpoint-96zzh-prepare-shared-compact-mesh-ranges) | Prepare shared packed records and stable ranges without pinning display sources. | `src/arena_rows.rs`, `src/arena_rows_tests.rs`, `src/lib.rs` | `Follow a local mesh index into its arena vertex offset and a reused range for shared placements.` |
+| **3** | [`96zzi-upload-compact-ranges-to-shared-gpu-storage`](#checkpoint-96zzi-upload-compact-ranges-to-shared-gpu-storage) | Upload shared compact ranges and refresh immutable bindings after buffer growth. | `src/arena_rows.rs`, `src/mesh_arena.rs`, `src/lib.rs`, `src/growing_buffer_tests.rs` | `Follow an appended range into buffer growth and the replacement shared bind group.` |
+| **4** | [`96zzj-share-the-object-record-layout`](#checkpoint-96zzj-share-the-object-record-layout) | Share the host object-record size across uniform and instance consumers. | `src/object_record.rs`, `src/lib.rs`, `src/gpu_mesh.rs`, `src/instance_gpu.rs` | `packed object bytes → uniform binding or instance array stride → WGSL object fields` |
+| **5** | [`96zzk-borrow-the-current-arena-buffers`](#checkpoint-96zzk-borrow-the-current-arena-buffers) | Use one geometry interface for standalone and current shared storage. | `src/gpu_geometry.rs`, `src/face_pick.rs`, `src/tile_gpu.rs`, `src/caps_gpu.rs` | `geometry lease → arena owner → current vertex, index and binding handles` |
+| **6** | [`96zzl-read-shared-ranges-through-object-records`](#checkpoint-96zzl-read-shared-ranges-through-object-records) | Read an arena range without changing original owners or local triangle identity. | `src/object_record.rs`, `src/gpu_mesh.rs`, `src/triangle.wgsl`, `src/cap_count.wgsl` | `object range start → shared index → shared packed vertex → original draw and triangle owner` |
+| **7** | [`96zzm-connect-the-renderer-to-one-mesh-arena`](#checkpoint-96zzm-connect-the-renderer-to-one-mesh-arena) | Render prepared source meshes through one shared arena and release its owner when unused. | `src/geometry_cache.rs`, `src/renderer.rs`, `src/browser.rs`, `src/global_outline_tests.rs` | `prepared mesh → cached geometry lease → shared arena → object range → existing renderer passes` |
+| **8** | [`96zzn-describe-eight-byte-draw-slots`](#checkpoint-96zzn-describe-eight-byte-draw-slots) | Store an object row and primitive ID base in one instance-step vertex record. | `src/draw_slots.rs`, `src/lib.rs`, `src/draw_slots_tests.rs` | `object row + primitive ID base → eight-byte slot → instance-step vertex input` |
+| **9** | [`96zzo-read-instance-properties-through-draw-slots`](#checkpoint-96zzo-read-instance-properties-through-draw-slots) | Connect compact draw slots to the existing instance color pipeline. | `src/draw_slots.rs`, `src/instance_gpu.rs`, `src/object_record_tests.rs`, `src/pick_gpu_tests.rs` | `instance slot → property record + ID base → shared mesh range → color and physical triangle` |
+| **10** | [`96zzp-classify-contact-fill-shading`](#checkpoint-96zzp-classify-contact-fill-shading) | Read the contact marker from packed RGBA and keep that display fill opaque and unlit. | `src/triangle.wgsl`, `src/face_pick.wgsl`, `src/global_outline_tests.rs` | `derived RGBA → packed vertex → contact classification → opaque unlit display` |
+| **11** | [`96zzq-open-files-through-one-measured-session-reader`](#checkpoint-96zzq-open-files-through-one-measured-session-reader) | Prepare browser file imports once through the measured full original-document reader. | `src/load_measure.rs`, `src/document_source.rs`, `src/source_phase_tests.rs`, `src/lib.rs` | `file bytes → decode → full validation → kernel → display walk → atomic history adoption` |
+| **12** | [`96zzr-route-current-close-and-opacity-commands`](#checkpoint-96zzr-route-current-close-and-opacity-commands) | Finish an active curve with Close and read the current Opacity argument convention. | `src/commands.rs`, `src/editor.rs`, `src/opacity_command_tests.rs`, `src/current_command_tests.rs` | `command words → existing editor action → draft or display state` |
+| **13** | [`96zzs-reuse-full-source-preparation-for-editor-and-reload`](#checkpoint-96zzs-reuse-full-source-preparation-for-editor-and-reload) | Reuse the full Session reader for byte actions and released mesh sources. | `src/editor.rs`, `src/document.rs`, `src/full_source_action_tests.rs`, `src/lib.rs` | `source bytes → shared full reader → prepared scene or restored source` |
+| **14** | [`96zzt-share-the-current-selection-yellow`](#checkpoint-96zzt-share-the-current-selection-yellow) | Use the current selection yellow for surfaces and temporary highlights without changing original colors. | `src/colour.rs`, `src/highlight.rs`, `src/tool_preview.rs`, `src/clipping_gpu.rs` | `Session palette → CPU highlight data and shared WGSL → selected display` |
+
+---
+
+## 4. Step-by-Step Coding Notebook (Concept + Implementation)
+
+Work through each notebook cell below in order inside `workspace/journey`. Read the **Concept Walkthrough** and **Self-Check Q&A** first, then expand the **Implementation** block to type and verify the code.
 
 <a id="checkpoint-96zzg-grow-buffers-without-losing-rows"></a>
+
+### Step 1 of 14 · Grow buffers without losing rows (`96zzg-grow-buffers-without-losing-rows`)
+
+- **Goal:** Preserve uploaded GPU records when a shared buffer grows.
+- **Data Flow Trace:** `Follow existing rows through buffer replacement, an ordered GPU copy and the next append.`
+- **Files You Touch:** `src/text_gpu_support.rs` (*Grow the existing owner in rows, preserve live bytes on the GPU and share one append algorithm.*) · `src/growing_buffer_tests.rs` (*Supply real mapped GPU bytes for nonempty growth, empty appends, reuse, release and the existing float adapter.*) · `src/lib.rs` (*Register the supplied GPU-growth readback fixture.*)
+
+Growing a shared GPU arena must keep rows already uploaded.
+
+Extend the existing text buffer owner to append any aligned record bytes, preserve live rows with a GPU copy and respect device limits. Text keeps the same owner; the compact mesh arena will reuse it next. Mesh storage is still per geometry at this preparatory checkpoint.
+
+> **Self-Check Question:** *Why submit the old-row copy before writing the appended rows?*  
+> **Answer:** Queue order preserves earlier writes before the copy and places the new append after it. No CPU readback is needed for growth.
+
+- **What You Should See:** One existing GPU buffer owner preserves old records, supports aligned packed bytes and bounds growth by device limits.
+- **Hands-On Lab Experiment:** Create and move original text repeatedly, then clear it and add it again. Check the existing text counters and pixels. The supplied GPU fixture separately verifies the exact bytes through multiple nonempty growths and reset/release.
 
 <details>
 <summary>Implementation 96zzg-grow-buffers-without-losing-rows: Grow buffers without losing rows</summary>
@@ -178,6 +245,22 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-96zzh-prepare-shared-compact-mesh-ranges"></a>
 
+### Step 2 of 14 · Prepare shared compact mesh ranges (`96zzh-prepare-shared-compact-mesh-ranges`)
+
+- **Goal:** Prepare shared packed records and stable ranges without pinning display sources.
+- **Data Flow Trace:** `Follow a local mesh index into its arena vertex offset and a reused range for shared placements.`
+- **Files You Touch:** `src/arena_rows.rs` (*Use the existing twenty-byte encoder, rebase validated local indices and cache weak display identities.*) · `src/arena_rows_tests.rs` (*Supply exact packed bytes, shared owner ranges, global indices, weak retention and reset/release fixtures.*) · `src/lib.rs` (*Register the preparatory arena records and supplied fixtures.*)
+
+Shared geometry needs one range of vertices and indices, regardless of how many placed rows draw it.
+
+Prepare compact mesh records with the existing encoder. Rebase local indices into their shared vertex range and reuse ranges for the same display owner. Keep weak source references so derived arena records do not keep removed sources alive. This is preparation; the renderer still uploads per geometry.
+
+> **Self-Check Question:** *Why add the vertex offset to indices rather than changing source positions?*  
+> **Answer:** The range changes where storage lives. Positions remain in the original object frame; placements remain separate draw state.
+
+- **What You Should See:** Prepared arena records preserve source positions and share ranges by display identity.
+- **Hands-On Lab Experiment:** Inspect placed copies of an original CAD surface and compare their shared geometry counts. Rendering is unchanged at this preparatory checkpoint; the supplied fixture verifies exact compact bytes, index offsets and weak source retention.
+
 <details>
 <summary>Implementation 96zzh-prepare-shared-compact-mesh-ranges: Prepare shared compact mesh ranges</summary>
 
@@ -247,6 +330,22 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-96zzi-upload-compact-ranges-to-shared-gpu-storage"></a>
+
+### Step 3 of 14 · Upload compact ranges to shared GPU storage (`96zzi-upload-compact-ranges-to-shared-gpu-storage`)
+
+- **Goal:** Upload shared compact ranges and refresh immutable bindings after buffer growth.
+- **Data Flow Trace:** `Follow an appended range into buffer growth and the replacement shared bind group.`
+- **Files You Touch:** `src/arena_rows.rs` (*Share one index serializer for full and appended ranges.*) · `src/mesh_arena.rs` (*Upload appended records through the existing owners and rebuild bindings only when growth replaces resources.*) · `src/lib.rs` (*Register the preparatory shared GPU storage owner.*) · `src/growing_buffer_tests.rs` (*Reuse the existing supplied mapped-buffer reader in the arena fixtures.*) · `src/mesh_arena_tests.rs` (*Supply real packed-byte reads and two rendered arena triangles through fresh and stale bindings.*)
+
+A shared arena binds one vertex buffer and one index buffer.
+
+Upload only the new ranges through the existing growth owner. Rebuild the shared bind group when growth replaces either buffer: bind groups retain the resources they were created with. Reuse the CPU range cache and index encoder. The application renderer still uses per-geometry uploads at this preparatory checkpoint.
+
+> **Self-Check Question:** *Why does growing a buffer require a new bind group?*  
+> **Answer:** The old bind group refers to the old GPU buffer. Updating a Rust field does not retarget that resource binding.
+
+- **What You Should See:** One shared GPU owner uploads appended records, preserves earlier ranges and rebuilds bindings when resources change.
+- **Hands-On Lab Experiment:** Inspect existing placed CAD copies and their upload counters; the application remains unchanged here. In the supplied GPU exercise, omit rebuilding the group and predict which of the two arena triangles disappears. Restore the rebuild before continuing.
 
 <details>
 <summary>Implementation 96zzi-upload-compact-ranges-to-shared-gpu-storage: Upload compact ranges to shared GPU storage</summary>
@@ -403,6 +502,21 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-96zzj-share-the-object-record-layout"></a>
+
+### Step 4 of 14 · Share the object record layout (`96zzj-share-the-object-record-layout`)
+
+- **Goal:** Share the host object-record size across uniform and instance consumers.
+- **Data Flow Trace:** `packed object bytes → uniform binding or instance array stride → WGSL object fields`
+- **Files You Touch:** `src/object_record.rs` (*Name the shared record as two matrices and two four-component blocks.*) · `src/lib.rs` (*Register the shared host layout.*) · `src/gpu_mesh.rs` (*Use the same record type for packing and retained previous bytes.*) · `src/instance_gpu.rs` (*Share the packed type and stride with the instance lane.*) · `src/renderer.rs` (*Declare the object binding from the shared host size.*) · `src/face_pick.rs` (*Declare the object binding from the shared host size.*) · `src/cap_pipeline.rs` (*Declare the object binding from the shared host size.*) · `src/cap_pick_pipeline.rs` (*Declare the object binding from the shared host size.*) · `src/ambient_source_pipeline.rs` (*Declare the object binding from the shared host size.*) · `src/outline_gpu.rs` (*Declare the object binding from the shared host size.*) · `src/object_record_tests.rs` (*Supply a check against the actual assembled WGSL layouts, not a repeated Rust size assertion.*)
+
+One object record contains a model matrix, four integer settings, a normal matrix and a color override. Uniforms and instance arrays must agree on its byte size.
+
+Name the host record and its size once. Reuse them in packing, instance capacity, pipeline bindings and upload accounting. Existing shader fields and browser behavior remain unchanged; this prepares the record for shared arena offsets.
+
+> **Self-Check Question:** *Why does a correct uniform binding size not prove that an instance array has the correct stride?*  
+> **Answer:** A uniform reads one object. A storage array locates subsequent objects by its element stride; both must match the WGSL struct layout.
+
+- **Hands-On Lab Experiment:** Add the byte sizes of the two matrices and two four-component settings blocks. Compare uniform and storage-array shader declarations. Predict the effect of an undersized instance stride, then rebuild the unchanged browser scene.
 
 <details>
 <summary>Implementation 96zzj-share-the-object-record-layout: Share the object record layout</summary>
@@ -1105,6 +1219,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-96zzk-borrow-the-current-arena-buffers"></a>
 
+### Step 5 of 14 · Borrow the current arena buffers (`96zzk-borrow-the-current-arena-buffers`)
+
+- **Goal:** Use one geometry interface for standalone and current shared storage.
+- **Data Flow Trace:** `geometry lease → arena owner → current vertex, index and binding handles`
+- **Files You Touch:** `src/gpu_geometry.rs` (*Borrow one shared arena owner instead of retaining an old buffer generation.*) · `src/face_pick.rs` (*Build source-face bindings from the current shared handles.*) · `src/tile_gpu.rs` (*Invalidate projected rows when the shared buffer handles change.*) · `src/caps_gpu.rs` (*Reuse the indexed range draw while preserving the plane instance.*) · `src/cap_pick_gpu.rs` (*Reuse the indexed range draw while preserving the plane instance.*) · `src/global_outline_tests.rs` (*Keep the supplied actual compact-buffer allocation assertion through the common accessor.*) · `src/geometry_storage_tests.rs` (*Supply a real GPU growth, current-handle and weak-source ownership exercise.*) · `src/lib.rs` (*Register the supplied shared-storage ownership fixture.*)
+
+A geometry can own standalone preview buffers or borrow the shared arena. Keep one interface for both. Borrow its current buffers and bind group when drawing, so growth does not pin an obsolete generation. Shared range addressing connects in the following lesson.
+
+> **Self-Check Question:** *Why can a geometry retain its source without pinning an old GPU buffer generation?*  
+> **Answer:** It retains the original mesh and a shared arena owner. Buffer and binding handles are read from that owner when needed.
+
+- **Hands-On Lab Experiment:** Inspect the unchanged browser scene. In the supplied storage exercise, compare an earlier geometry’s current buffer handles before and after appending a second source. Offset pulled draws connect next.
+
 <details>
 <summary>Implementation 96zzk-borrow-the-current-arena-buffers: Borrow the current arena buffers</summary>
 
@@ -1621,6 +1748,21 @@ After that block, append this supplied code:
 </details>
 
 <a id="checkpoint-96zzl-read-shared-ranges-through-object-records"></a>
+
+### Step 6 of 14 · Read shared ranges through object records (`96zzl-read-shared-ranges-through-object-records`)
+
+- **Goal:** Read an arena range without changing original owners or local triangle identity.
+- **Data Flow Trace:** `object range start → shared index → shared packed vertex → original draw and triangle owner`
+- **Files You Touch:** `src/object_record.rs` (*Append an aligned four-word range block after the existing object fields.*) · `src/gpu_mesh.rs` (*Pack the range after the existing model, flags, normal matrix and override.*) · `src/triangle.wgsl` (*Match the appended aligned host range block.*) · `src/cap_count.wgsl` (*Match the appended aligned host range block.*) · `src/outline_mask.wgsl` (*Keep the object layout consistent in indexed surface consumers.*) · `src/ambient_sources.wgsl` (*Keep the object layout consistent in indexed surface consumers.*) · `src/finite_project.wgsl` (*Read the same object range in physical triangle projection.*) · `src/triangle_pick.wgsl` (*Read the same shared range for first surface picks.*) · `src/face_pick.wgsl` (*Keep original face metadata local while pulling shared positions.*) · `src/object_record_tests.rs` (*Match the new range field in both supplied surface shader layout assertions.*) · `src/global_outline_tests.rs` (*Supply an actual nonzero-range renderer comparison for surface color, original face picks, projection, outlines and clipped caps.*) · `src/pick_gpu_tests.rs` (*Keep the exact supplied GPU allocation check: two 176-byte object records occupy 352 bytes.*)
+
+An arena index addresses a global vertex, while a draw still names its own local triangle. Keep the first index in the object record and use it only for mesh reads.
+
+Let geometry borrow the arena owner instead of retaining buffer generations. Read its latest buffers and bind group after growth. Surface and pick shaders add the range start; indexed caps, outlines and ambient drawing use the matching index interval. The application cache remains per geometry until the next connection.
+
+> **Self-Check Question:** *Why must an old geometry read the arena’s latest binding after growth?*  
+> **Answer:** A retained binding reads the old buffers. Borrowing the shared owner gives every draw the same current buffers, including earlier ranges preserved by the growth helper.
+
+- **Hands-On Lab Experiment:** Trace local occurrence zero with a nonzero first index. Compare its storage address with its local primitive number. Inspect the browser scene; the application cache still uses standalone uploads here.
 
 <details>
 <summary>Implementation 96zzl-read-shared-ranges-through-object-records: Read shared ranges through object records</summary>
@@ -2485,6 +2627,21 @@ Update the existing block with this supplied code; keep unchanged lines:
 
 <a id="checkpoint-96zzm-connect-the-renderer-to-one-mesh-arena"></a>
 
+### Step 7 of 14 · Connect the renderer to one mesh arena (`96zzm-connect-the-renderer-to-one-mesh-arena`)
+
+- **Goal:** Render prepared source meshes through one shared arena and release its owner when unused.
+- **Data Flow Trace:** `prepared mesh → cached geometry lease → shared arena → object range → existing renderer passes`
+- **Files You Touch:** `src/geometry_cache.rs` (*Keep one shared arena alongside the existing weak geometry cache.*) · `src/renderer.rs` (*Connect visible source objects to the shared arena cache.*) · `src/browser.rs` (*Include retained packed upload rows in the browser’s CPU payload diagnostic.*) · `src/global_outline_tests.rs` (*Supply exact shared-owner accounting, cached-source reuse, preserved standalone placeholder and document-release checks.*)
+
+Connect the existing renderer cache to the shared arena. Keep weak geometry leases for definition reuse, while the arena owns one vertex buffer and one index buffer.
+
+Upload a source range once. Each object record carries its start; earlier geometry reads the current handles after growth. Count arena capacity once, include retained CPU upload rows, and drop the owner when the last geometry lease disappears.
+
+> **Self-Check Question:** *Why are geometry leases weak while the arena itself has one strong owner?*  
+> **Answer:** Object rows keep live geometry leases. The cache must not keep removed geometry alive; it owns shared storage only while a live lease remains.
+
+- **Hands-On Lab Experiment:** Compare geometry uploads before and after moving and selecting an existing placed copy. Close the document and inspect the GPU geometry byte count: the shared owner must be released.
+
 <details>
 <summary>Implementation 96zzm-connect-the-renderer-to-one-mesh-arena: Connect the renderer to one mesh arena</summary>
 
@@ -3316,6 +3473,19 @@ Update the existing block with this supplied code; keep unchanged lines:
 
 <a id="checkpoint-96zzn-describe-eight-byte-draw-slots"></a>
 
+### Step 8 of 14 · Describe eight-byte draw slots (`96zzn-describe-eight-byte-draw-slots`)
+
+- **Goal:** Store an object row and primitive ID base in one instance-step vertex record.
+- **Data Flow Trace:** `object row + primitive ID base → eight-byte slot → instance-step vertex input`
+- **Files You Touch:** `src/draw_slots.rs` (*Type the compact integer layout and reuse the existing growing buffer for slot ownership.*) · `src/lib.rs` (*Register the shared slot owner before connecting the instance pipeline.*) · `src/draw_slots_tests.rs` (*Supply a real GPU readback fixture for exact large integer IDs, growth, reuse, sentinel and release.*)
+
+Separate instance selection from object properties. A draw slot contains two integers: the object row to read and the primitive ID base. Reserve slot zero for an ordinary draw that keeps its own object row. Reuse the growing buffer and preserve that sentinel through reset and release.
+
+> **Self-Check Question:** *Why does a draw slot use an instance-step buffer?*  
+> **Answer:** Every vertex of one placed instance reads the same slot; the next instance advances to another object row and ID base.
+
+- **Hands-On Lab Experiment:** Trace slots for two placed copies. Predict the uploaded bytes and explain why slot zero remains available after clearing the instances.
+
 <details>
 <summary>Implementation 96zzn-describe-eight-byte-draw-slots: Describe eight-byte draw slots</summary>
 
@@ -3416,6 +3586,19 @@ After that block, append this supplied code:
 </details>
 
 <a id="checkpoint-96zzo-read-instance-properties-through-draw-slots"></a>
+
+### Step 9 of 14 · Read instance properties through draw slots (`96zzo-read-instance-properties-through-draw-slots`)
+
+- **Goal:** Connect compact draw slots to the existing instance color pipeline.
+- **Data Flow Trace:** `instance slot → property record + ID base → shared mesh range → color and physical triangle`
+- **Files You Touch:** `src/draw_slots.rs` (*Keep one comparison shadow in the slot owner.*) · `src/instance_gpu.rs` (*Keep slots beside the existing batch property records.*) · `src/object_record_tests.rs` (*Validate the actual shader assembled by the instance pipeline.*) · `src/pick_gpu_tests.rs` (*Retain exact two-record allocation checks and include the three eight-byte slots.*)
+
+Bind an eight-byte slot beside the shared source mesh. Its object row chooses a full property record, and its ID base names the placed triangle. Keep the shader’s local triangle address separate from the original owner ID. Reuse unchanged slot bytes when only object properties change.
+
+> **Self-Check Question:** *Why must placed copies have separate primitive ID bases?*  
+> **Answer:** They share source triangles but occupy distinct places. Physical visibility must distinguish those occurrences while picking retains each original object owner.
+
+- **Hands-On Lab Experiment:** Create two placed copies, move one, toggle normal diagnostics and select it. Check the source upload count stays fixed and Undo restores the same image.
 
 <details>
 <summary>Implementation 96zzo-read-instance-properties-through-draw-slots: Read instance properties through draw slots</summary>
@@ -3757,6 +3940,19 @@ Update the existing block with this supplied code; keep unchanged lines:
 
 <a id="checkpoint-96zzp-classify-contact-fill-shading"></a>
 
+### Step 10 of 14 · Classify contact fill shading (`96zzp-classify-contact-fill-shading`)
+
+- **Goal:** Read the contact marker from packed RGBA and keep that display fill opaque and unlit.
+- **Data Flow Trace:** `derived RGBA → packed vertex → contact classification → opaque unlit display`
+- **Files You Touch:** `src/triangle.wgsl` (*Keep packed alpha available when placing a surface vertex.*) · `src/face_pick.wgsl` (*Reuse the same RGBA placement input in source-face picking.*) · `src/global_outline_tests.rs` (*Supply an actual rendered closed-source fixture for contact color, opacity/x-ray exemptions, selection, original picks, source preservation and release.*)
+
+The derived display already retains the kernel contact marker: alpha is one byte out of 255. Carry that byte through the shared vertex decoder. Classify it once when placing the vertex, preserve its own color before selection, and exempt the fill from solid opacity and x-ray. Keep the original object owner and primitive address.
+
+> **Self-Check Question:** *Why is this alpha a marker instead of transparency?*  
+> **Answer:** The derived contact display uses this reserved value to identify a fill. Its presentation is opaque; applying the marker as opacity would nearly erase it.
+
+- **Hands-On Lab Experiment:** Trace the contact marker through RGBA packing and compare its fragment with an ordinary face. Predict the result at opacity zero and when its original owner is selected.
+
 <details>
 <summary>Implementation 96zzp-classify-contact-fill-shading: Classify contact fill shading</summary>
 
@@ -4043,6 +4239,19 @@ After that block, append this supplied code:
 </details>
 
 <a id="checkpoint-96zzq-open-files-through-one-measured-session-reader"></a>
+
+### Step 11 of 14 · Open files through one measured Session reader (`96zzq-open-files-through-one-measured-session-reader`)
+
+- **Goal:** Prepare browser file imports once through the measured full original-document reader.
+- **Data Flow Trace:** `file bytes → decode → full validation → kernel → display walk → atomic history adoption`
+- **Files You Touch:** `src/load_measure.rs` (*Let the existing timer observe String errors without duplicating its clock and completion algorithm.*) · `src/document_source.rs` (*Expose observations on the existing full reader and share its browser callback.*) · `src/source_phase_tests.rs` (*Supply fixtures against actual original Element/interaction bytes, exact phase order and failure boundaries, and retained source locations.*) · `src/lib.rs` (*Register the optional full-source observation fixtures.*) · `src/scene_document.rs` (*Reuse original-document import while allowing the browser file origin to retain its reload location.*) · `src/publication.rs` (*Remove the older mesh reader and unmeasured fallback; preserve the existing archive path.*)
+
+Use one full Session reader for browser files. Reuse the phase timer for decode, validation, kernel reconstruction and the actual display walk. Retain the source reload location, and adopt the candidate only after preparation succeeds. Keep archive opening on its existing path.
+
+> **Self-Check Question:** *Why must timing and file adoption use the same full reader?*  
+> **Answer:** Measurements must describe the work that prepares the accepted document. A decode, validation or display error must leave the visible document and its undo/redo history intact.
+
+- **Hands-On Lab Experiment:** Open an Element Session with interactions, download Report, then try malformed bytes. Inspect the four successful phases, the failed decode, and unchanged accepted drawing. Undo and Redo must preserve original owners.
 
 <details>
 <summary>Implementation 96zzq-open-files-through-one-measured-session-reader: Open files through one measured Session reader</summary>
@@ -4521,6 +4730,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-96zzr-route-current-close-and-opacity-commands"></a>
 
+### Step 12 of 14 · Route current Close and Opacity commands (`96zzr-route-current-close-and-opacity-commands`)
+
+- **Goal:** Finish an active curve with Close and read the current Opacity argument convention.
+- **Data Flow Trace:** `command words → existing editor action → draft or display state`
+- **Files You Touch:** `src/commands.rs` (*Route the public command through the existing curve-closing action.*) · `src/editor.rs` (*Protect other tools and construction-plane picks before building a closed curve.*) · `src/opacity_command_tests.rs` (*Update the original invalid-input fixture for the required current parser behavior.*) · `src/current_command_tests.rs` (*Supply original-document, one-undo, retained-draft and precision-boundary fixtures.*) · `src/lib.rs` (*Register the optional command fixtures.*) · `src/inventory_tests.rs` (*Update the comparison fixture to require the now-matched first-argument convention and its exact value.*)
+
+Route Close through the existing curve builder and one history transaction, protecting other tools and construction-plane picks. Read the first Opacity value as a finite double before narrowing for the shader. Later words follow the current parser convention.
+
+> **Self-Check Question:** *Why keep document release separate from Close?*  
+> **Answer:** Close finishes an unfinished curve. A document lifetime action owns release and history cleanup; a drawing command must not erase existing geometry.
+
+- **Hands-On Lab Experiment:** With existing geometry visible, run Close without a draft and confirm it remains. Begin Polyline, enter three points separately, run Close, and Undo once. Try Opacity 0.5 extra, then Opacity 1.000000001 extra; only the first is valid.
+
 <details>
 <summary>Implementation 96zzr-route-current-close-and-opacity-commands: Route current Close and Opacity commands</summary>
 
@@ -4726,6 +4948,19 @@ Update the existing block with this supplied code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-96zzs-reuse-full-source-preparation-for-editor-and-reload"></a>
+
+### Step 13 of 14 · Reuse full source preparation for editor and reload (`96zzs-reuse-full-source-preparation-for-editor-and-reload`)
+
+- **Goal:** Reuse the full Session reader for byte actions and released mesh sources.
+- **Data Flow Trace:** `source bytes → shared full reader → prepared scene or restored source`
+- **Files You Touch:** `src/editor.rs` (*Prepare every byte action once through the existing full candidate reader.*) · `src/document.rs` (*Validate the same full original file before recovering a released mesh source.*) · `src/full_source_action_tests.rs` (*Supply all four editor actions, original Element payloads, shared locations, one-undo and mixed-file reload fixtures.*) · `src/lib.rs` (*Register the optional full-source action fixtures.*)
+
+Route all editor byte imports through the existing atomic candidate preparation. Reuse that reader when restoring a released mesh from a mixed Session file, checking its file version first. Keep source locations and original payloads; avoid a second geometry-type whitelist.
+
+> **Self-Check Question:** *Why must a mesh reload accept the entire original file?*  
+> **Answer:** A mesh can share its Session file with points, Elements and other originals. Reloading its source must validate that complete file, then recover the mesh by its original GUID.
+
+- **Hands-On Lab Experiment:** Trace an imported mixed file through candidate preparation, original source release and reload. Identify which owner keeps the reload location and which check rejects changed bytes.
 
 <details>
 <summary>Implementation 96zzs-reuse-full-source-preparation-for-editor-and-reload: Reuse full source preparation for editor and reload</summary>
@@ -6313,6 +6548,19 @@ After that block, append this supplied code:
 
 <a id="checkpoint-96zzt-share-the-current-selection-yellow"></a>
 
+### Step 14 of 14 · Share the current selection yellow (`96zzt-share-the-current-selection-yellow`)
+
+- **Goal:** Use the current selection yellow for surfaces and temporary highlights without changing original colors.
+- **Data Flow Trace:** `Session palette → CPU highlight data and shared WGSL → selected display`
+- **Files You Touch:** `src/colour.rs` (*Define selection presentation once from the existing Session palette.*) · `src/highlight.rs` (*Use the shared palette in the existing temporary overlay owner.*) · `src/tool_preview.rs` (*Use the shared palette in the existing temporary overlay owner.*) · `src/clipping_gpu.rs` (*Include the same generated selection constant in the shared shader assembly.*) · `src/triangle.wgsl` (*Read selection presentation from the shared shader constant.*) · `src/global_outline_tests.rs` (*Update the existing exact contact-selection pixel assertion to the current palette.*) · `src/pick_gpu_tests.rs` (*Require current yellow in the original surface and temporary-preview GPU fixtures; preserve ownership and upload checks.*)
+
+Read selection yellow from the Session color palette. Reuse it in temporary CPU highlights and generate the shared WGSL constant from those same components. Surface selection changes presentation; it must preserve authored colors, original owners and GPU storage.
+
+> **Self-Check Question:** *Why generate the shader constant from the CPU palette?*  
+> **Answer:** Both sides must use the same components. A shared definition prevents surface selection and temporary overlays from drifting apart, without adding a uniform or changing the object record.
+
+- **Hands-On Lab Experiment:** Select a surface, then select one of its original edges or controls. Compare their yellow. Clear selection and confirm the original colors return; Undo should still describe geometry edits.
+
 <details>
 <summary>Implementation 96zzt-share-the-current-selection-yellow: Share the current selection yellow</summary>
 
@@ -6720,9 +6968,11 @@ Update the existing block with this supplied code; keep unchanged lines:
 
 </details>
 
-## Run, Check, and Save
+---
 
-From `session_viewer`:
+## 5. Build, Verify, and Save Your Checkpoint
+
+Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 96zzt-share-the-current-selection-yellow
@@ -6733,10 +6983,10 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. Use [checkpoint recovery](../../recovery.md) to restore any saved checkpoint.
+Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
 
-## Expected Visual Result & Experiment
+## 6. Lesson Summary & Expected Visual Result
 
-- **Try this:** Select a surface, then select one of its original edges or controls. Compare their yellow. Clear selection and confirm the original colors return; Undo should still describe geometry edits.
+- **Final Lesson Experiment:** Select a surface, then select one of its original edges or controls. Compare their yellow. Clear selection and confirm the original colors return; Undo should still describe geometry edits.
 
-Continue with [Slots, independent instance owners and stable record updates](96zzu-separate-primitive-addresses-from-selection.md).
+Continue with [Slots, independent instance owners and stable record updates](../../consolidation/96zzu-separate-primitive-addresses-from-selection.md).

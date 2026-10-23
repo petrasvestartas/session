@@ -1,92 +1,161 @@
 # 20.1 · Shared surface geometry and finite visibility addresses
 
-**Section 10: Shared GPU Arenas, Floating-Origin Precision, Multisampling, and Production Parity** · **Lesson 20.1** (Redraft `10.5`) · **21 checkpoints (`96zh-bind-the-shared-geometry-as-storage` → `96zzb-read-section-visibility-from-one-image`)**
+**Section 10: Shared GPU Arenas, Floating-Origin Precision, Multisampling, and Production Parity** · **Lesson 20.1** (Redraft `10.5`) · **21 checkpoints (`96zh-bind-the-shared-geometry-as-storage` → `96zzb-read-section-visibility-from-one-image`)** · **Study time: 10.5–21 h**
 
-> **Learning Goal:** Reuse the existing geometry buffers for shader vertex reads.
+> **What You Will Learn & Build:** Reuse the existing geometry buffers for shader vertex reads. By the final checkpoint (`96zzb-read-section-visibility-from-one-image`), you will use one physical primitive address for mesh and section ink visibility.
 
-## Visual WebGPU & Architecture Schematic
+## 1. Visual Pipeline & WebGPU Architecture (Black & White Schematics)
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1px solid #cbd5e1;border-radius:10px;background:#f8fafc;">
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
+<svg viewBox="0 0 840 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <rect x="4" y="4" width="832" height="212" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Lesson 20.1 Execution Flow: Shared surface geometry and finite visibility addresses</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">Concrete data pipeline you build in this lesson (21 Checkpoints: 96zh-bind-the-shared-geometry-as-storage → 96zzb-read-section-visibility-from-one-image)</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
+  
+    
+    <rect x="18" y="68" width="253" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="144" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
+    <line x1="28" y1="92" x2="261" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="144" y="108" text-anchor="middle" font-size="11" fill="#111111">Follow gpu_geometry.rs,</text>
+    <text x="144" y="124" text-anchor="middle" font-size="11" fill="#111111">triangle.wgsl, gpu_mesh.rs,</text>
+    <text x="144" y="140" text-anchor="middle" font-size="11" fill="#111111">instance_gpu.rs…</text>
+    <line x1="271" y1="108" x2="291" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="293" y="68" width="253" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="419" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
+    <line x1="303" y1="92" x2="536" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">Follow the cap address from color</text>
+    <text x="419" y="124" text-anchor="middle" font-size="11" fill="#111111">or cropped picking to the fitted</text>
+    <text x="419" y="140" text-anchor="middle" font-size="11" fill="#111111">source…</text>
+    <line x1="546" y1="108" x2="566" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="568" y="68" width="253" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="694" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
+    <line x1="578" y1="92" x2="811" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="694" y="108" text-anchor="middle" font-size="11" fill="#111111">GPU Frame Output</text>
+    
+    <rect x="18" y="162" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="32" y="181" font-size="11" font-weight="700" fill="#111111">Files You Edit in Lesson 20.1:</text>
+    <text x="215" y="181" font-size="11" fill="#111111">src/gpu_geometry.rs  ·  src/triangle.wgsl  ·  src/instance_gpu.rs  ·  src/triangle_pick.wgsl  ·  src/face_pick.wgsl  ·  src/gpu_mesh.rs</text>
+    <text x="32" y="198" font-size="10.5" fill="#111111">21 Checkpoints: 96zh-bind-the-shared-geometry-as-storage → 96zzb-read-section-visibility-from-one-image — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
+  
+</svg>
+</div>
+
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
 <svg viewBox="0 0 840 240" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#475569"/>
-    </marker>
-    <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#2563eb"/>
-    </marker>
-    <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#059669"/>
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
     </marker>
   </defs>
-  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
-  <text x="20" y="28" font-size="14" font-weight="700" fill="#0f172a">Section 10 Production Architecture: Shared GPU Storage Arena, f64 Floating Origin, Reversed-Z, 4x MSAA & Matrix Shader</text>
-  <text x="20" y="46" font-size="11.5" fill="#475569">How the maintained viewer pulls vertices from one growable GPU arena, eliminates jitter at 10^12 units, and renders procedural Matrices.</text>
-  <line x1="16" y1="54" x2="824" y2="54" stroke="#e2e8f0" stroke-width="1"/>
+  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Section 10 Production Architecture: Shared GPU Storage Arena, f64 Floating Origin, Reversed-Z, 4x MSAA & Matrix Shader</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">How the maintained viewer pulls vertices from one growable GPU arena, eliminates jitter at 10^12 units, and renders procedural Matrices.</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
   
-    <rect x="18" y="68" width="250" height="145" rx="6" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
-    <text x="143" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1e40af">1. Shared GPU Arena (Ch 19–20)</text>
-    <text x="28" y="108" font-size="10.5" fill="#1e3a8a">• 1 Growable Storage Buffer Arena</text>
-    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#1d4ed8">• Vertex Pulling (@builtin(vertex_index))</text>
-    <text x="28" y="144" font-size="10.5" fill="#1e3a8a">• 8-byte Draw Slots -&gt; ObjectRecord</text>
-    <text x="28" y="162" font-size="10.5" fill="#1e3a8a">• slot_table.wgsl maps Rg32Uint</text>
-    <text x="28" y="178" font-size="10.5" fill="#1e3a8a">  primitive IDs to Element/Face owners</text>
-    <text x="28" y="194" font-size="10" fill="#1e3a8a">• Free-list span reuse after GPU lease</text>
+    <rect x="18" y="68" width="250" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="143" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">1. Shared GPU Arena (Ch 19–20)</text>
+    <text x="28" y="108" font-size="10.5" fill="#111111">• 1 Growable Storage Buffer Arena</text>
+    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#111111">• Vertex Pulling (@builtin(vertex_index))</text>
+    <text x="28" y="144" font-size="10.5" fill="#111111">• 8-byte Draw Slots -&gt; ObjectRecord</text>
+    <text x="28" y="162" font-size="10.5" fill="#111111">• slot_table.wgsl maps Rg32Uint</text>
+    <text x="28" y="178" font-size="10.5" fill="#111111">  primitive IDs to Element/Face owners</text>
+    <text x="28" y="194" font-size="10" fill="#111111">• Free-list span reuse after GPU lease</text>
 
-    <line x1="268" y1="138" x2="298" y2="138" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
+    <line x1="268" y1="138" x2="298" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="300" y="68" width="265" height="145" rx="6" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5"/>
-    <text x="432" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#9a3412">2. f64 Floating Origin &amp; Reversed-Z (Ch 21)</text>
-    <text x="312" y="108" font-size="10.5" font-weight="600" fill="#c2410c">• rel_f32 = (world_f64 - anchor_f64) as f32</text>
-    <text x="312" y="125" font-size="10" fill="#7c2d12">  Zero vertex/grid jitter even at 10^12 m!</text>
-    <text x="312" y="144" font-size="10.5" font-weight="600" fill="#c2410c">• Reversed-Z Depth (GreaterEqual):</text>
-    <text x="312" y="160" font-size="10" fill="#7c2d12">  Near plane = 1.0, Far plane = 0.0</text>
-    <text x="312" y="178" font-size="10.5" fill="#7c2d12">• Held world base grid &amp; preserved</text>
-    <text x="312" y="193" font-size="10.5" fill="#7c2d12">  live camera during Session reload</text>
+    <rect x="300" y="68" width="265" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="432" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">2. f64 Floating Origin &amp; Reversed-Z (Ch 21)</text>
+    <text x="312" y="108" font-size="10.5" font-weight="600" fill="#111111">• rel_f32 = (world_f64 - anchor_f64) as f32</text>
+    <text x="312" y="125" font-size="10" fill="#111111">  Zero vertex/grid jitter even at 10^12 m!</text>
+    <text x="312" y="144" font-size="10.5" font-weight="600" fill="#111111">• Reversed-Z Depth (GreaterEqual):</text>
+    <text x="312" y="160" font-size="10" fill="#111111">  Near plane = 1.0, Far plane = 0.0</text>
+    <text x="312" y="178" font-size="10.5" fill="#111111">• Held world base grid &amp; preserved</text>
+    <text x="312" y="193" font-size="10.5" fill="#111111">  live camera during Session reload</text>
 
-    <line x1="565" y1="138" x2="595" y2="138" stroke="#059669" stroke-width="2" marker-end="url(#arrow-green)"/>
+    <line x1="565" y1="138" x2="595" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="597" y="68" width="223" height="145" rx="6" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1.5"/>
-    <text x="708" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#065f46">3. 4x MSAA &amp; Matrix Shader (Ch 22)</text>
-    <text x="609" y="108" font-size="10.5" fill="#064e3b">• Coherent 1x/4x MSAA sample targets</text>
-    <text x="609" y="126" font-size="10.5" font-weight="600" fill="#047857">• matrix.wgsl (16w header + 3w/cell):</text>
-    <text x="609" y="142" font-size="10" fill="#064e3b">  Heatmap + procedural 3-decimal digits</text>
-    <text x="609" y="157" font-size="10" fill="#064e3b">  (0 cell blank; plate-less title; yellow</text>
-    <text x="609" y="172" font-size="10" fill="#064e3b">  selected border; Rg32Uint whole pick)</text>
-    <text x="609" y="190" font-size="10" fill="#064e3b">• Coalesced single-flight frame scheduler</text>
+    <rect x="597" y="68" width="223" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="708" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">3. 4x MSAA &amp; Matrix Shader (Ch 22)</text>
+    <text x="609" y="108" font-size="10.5" fill="#111111">• Coherent 1x/4x MSAA sample targets</text>
+    <text x="609" y="126" font-size="10.5" font-weight="600" fill="#111111">• matrix.wgsl (16w header + 3w/cell):</text>
+    <text x="609" y="142" font-size="10" fill="#111111">  Heatmap + procedural 3-decimal digits</text>
+    <text x="609" y="157" font-size="10" fill="#111111">  (0 cell blank; plate-less title; yellow</text>
+    <text x="609" y="172" font-size="10" fill="#111111">  selected border; Rg32Uint whole pick)</text>
+    <text x="609" y="190" font-size="10" fill="#111111">• Coalesced single-flight frame scheduler</text>
     
 </svg>
 </div>
 
-### Lesson Data Flow (`Rust` → `WebGPU` → `WGSL`)
+## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
 
-```
-Follow gpu_geometry.rs, triangle.wgsl, gpu_mesh.rs, instance_gpu.rs and renderer.rs in this cumulative checkpoint; compare the maintained engine/gpu/ and shaders/triangle.wgsl ownership..
-Stroke axis → surface fit and section check → exact source hits → bounded tile fallback.
-Follow the cap address from color or cropped picking to the fitted source test..
-```
+Before writing code, review how the three layers in this chapter talk to each other:
 
-- Reuse the existing geometry buffers for shader vertex reads.
-- Prepare a combined uniform group without copying either uniform.
-- Use one physical primitive address for mesh and section ink visibility.
-- **Why it works (Why retain one geometry buffer owner?):** Changing how a shader reads vertices must not upload a second copy of positions, normals or indices. The same original geometry still serves all placed instances.
-
-### Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `Browser`)
-
-| Layer | Construct | First-Year Student Explanation |
+| Layer | Construct | Plain-English Explanation for Students |
 | :--- | :--- | :--- |
 | **WGSL (Vertex Pull)** | `@group(0) @binding(b) var<storage, read> arena_verts: array<u32>;` | Fetches packed vertex positions, normals, and colors directly from a single growable storage buffer using `@builtin(vertex_index)`. |
 | **Rust/WGSL (`f64`->`f32`)** | `let rel: Vec3 = (world_f64 - anchor_f64).as_vec3();` | Subtracts the camera-area `f64` anchor on the CPU before converting to `f32`, preventing 32-bit float mantissa exhaustion far from `(0,0,0)`. |
 | **WGSL (`matrix.wgsl`)** | 16-word header + 3 words/cell procedural digits | Renders matrix heatmaps and 3-decimal numeric digits procedurally inside the fragment shader with zero texture uploads per cell. |
 | **Rust (`ink_ranges.rs`)** | Merged contiguous `Range<u32>` instance draws | Toggles point/line/edge/CAD-wire family visibility without rebuilding GPU buffers or invalidating original owner indices. |
 
-**Production source (`session_viewer/src`):** [engine/gpu/arena.rs](../../../../src/engine/gpu/arena.rs), [engine/gpu/buffers.rs](../../../../src/engine/gpu/buffers.rs), [engine/gpu/objects.rs](../../../../src/engine/gpu/objects.rs), [engine/gpu/slots.rs](../../../../src/engine/gpu/slots.rs), [engine/gpu/instanced.rs](../../../../src/engine/gpu/instanced.rs), [engine/gpu/faces.rs](../../../../src/engine/gpu/faces.rs), [engine/gpu/clip.rs](../../../../src/engine/gpu/clip.rs), [engine/gpu/triangle_tiles.rs](../../../../src/engine/gpu/triangle_tiles.rs), [app/scene_sync/tombs.rs](../../../../src/app/scene_sync/tombs.rs), [build.rs](../../../../build.rs).
+**Authoritative production source (`session_viewer/src`):** [engine/gpu/arena.rs](../../../../src/engine/gpu/arena.rs), [engine/gpu/buffers.rs](../../../../src/engine/gpu/buffers.rs), [engine/gpu/objects.rs](../../../../src/engine/gpu/objects.rs), [engine/gpu/slots.rs](../../../../src/engine/gpu/slots.rs), [engine/gpu/instanced.rs](../../../../src/engine/gpu/instanced.rs), [engine/gpu/faces.rs](../../../../src/engine/gpu/faces.rs), [engine/gpu/clip.rs](../../../../src/engine/gpu/clip.rs), [engine/gpu/triangle_tiles.rs](../../../../src/engine/gpu/triangle_tiles.rs), [app/scene_sync/tombs.rs](../../../../src/app/scene_sync/tombs.rs), [build.rs](../../../../build.rs).
 
-## Implementation Checkpoints
+## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
 
-Apply these checkpoints in order inside `workspace/journey`. Expand each block to view the Rust/WGSL/HTML edits:
+| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
+| ---: | :--- | :--- | :--- | :--- |
+| **1** | [`96zh-bind-the-shared-geometry-as-storage`](#checkpoint-96zh-bind-the-shared-geometry-as-storage) | Reuse the existing geometry buffers for shader vertex reads. | `src/gpu_geometry.rs` | `Follow gpu_geometry.rs, triangle.wgsl, gpu_mesh.rs, instance_gpu.rs and renderer.rs in this cumulative checkpoint; compare the maintained engine/gpu/ and shaders/triangle.wgsl ownership.` |
+| **2** | [`96zi-read-source-vertices-through-one-shader-helper`](#checkpoint-96zi-read-source-vertices-through-one-shader-helper) | Define the same vertex reader for ordinary and instanced drawing. | `src/triangle.wgsl`, `src/instance_gpu.rs`, `src/triangle_pick.wgsl`, `src/face_pick.wgsl` | `Follow gpu_geometry.rs, triangle.wgsl, gpu_mesh.rs, instance_gpu.rs and renderer.rs in this cumulative checkpoint; compare the maintained engine/gpu/ and shaders/triangle.wgsl ownership.` |
+| **3** | [`96zj-activate-shared-vertex-pulling-for-color`](#checkpoint-96zj-activate-shared-vertex-pulling-for-color) | Rasterize ordinary and instanced triangles from their shared storage buffers. | `src/triangle.wgsl`, `src/gpu_mesh.rs`, `src/renderer.rs`, `src/highlight.rs` | `Follow gpu_geometry.rs, triangle.wgsl, gpu_mesh.rs, instance_gpu.rs and renderer.rs in this cumulative checkpoint; compare the maintained engine/gpu/ and shaders/triangle.wgsl ownership.` |
+| **4** | [`96zk-assign-frame-triangle-ranges`](#checkpoint-96zk-assign-frame-triangle-ranges) | Give every placed color triangle the address of its projected record. | `src/gpu_mesh.rs`, `src/triangle.wgsl`, `src/cap_count.wgsl`, `src/renderer.rs` | `Follow gpu_geometry.rs, triangle.wgsl, gpu_mesh.rs, instance_gpu.rs and renderer.rs in this cumulative checkpoint; compare the maintained engine/gpu/ and shaders/triangle.wgsl ownership.` |
+| **5** | [`96zl-own-the-integer-primitive-image`](#checkpoint-96zl-own-the-integer-primitive-image) | Allocate the frame image that will name rasterized triangles. | `src/primitive_image.rs`, `src/lib.rs`, `src/renderer.rs` | `Follow gpu_geometry.rs, triangle.wgsl, gpu_mesh.rs, instance_gpu.rs and renderer.rs in this cumulative checkpoint; compare the maintained engine/gpu/ and shaders/triangle.wgsl ownership.` |
+| **6** | [`96zm-write-triangle-addresses-beside-color`](#checkpoint-96zm-write-triangle-addresses-beside-color) | Write color and a lossless triangle address in the same depth-tested pass. | `src/triangle.wgsl`, `src/renderer.rs`, `src/instance_gpu.rs`, `src/global_outline_tests.rs` | `Follow gpu_geometry.rs, triangle.wgsl, gpu_mesh.rs, instance_gpu.rs and renderer.rs in this cumulative checkpoint; compare the maintained engine/gpu/ and shaders/triangle.wgsl ownership.` |
+| **7** | [`96zn-bind-visible-triangle-addresses-for-ink`](#checkpoint-96zn-bind-visible-triangle-addresses-for-ink) | Make the exact triangle image available to the existing shared ink shader. | `src/finite_ink.rs`, `src/renderer.rs`, `src/pick_encode.rs`, `src/finite_visibility.wgsl` | `Follow gpu_geometry.rs, triangle.wgsl, gpu_mesh.rs, instance_gpu.rs and renderer.rs in this cumulative checkpoint; compare the maintained engine/gpu/ and shaders/triangle.wgsl ownership.` |
+| **8** | [`96zo-describe-ink-depth-and-surface-slack`](#checkpoint-96zo-describe-ink-depth-and-surface-slack) | Type the current axis record and depth-carrying error budget. | `src/ink_plane.wgsl`, `src/finite_visibility.wgsl`, `src/finite_sources.rs` | `Follow gpu_geometry.rs, triangle.wgsl, gpu_mesh.rs, instance_gpu.rs and renderer.rs in this cumulative checkpoint; compare the maintained engine/gpu/ and shaders/triangle.wgsl ownership.` |
+| **9** | [`96zp-fit-a-neighboring-surface-along-the-stroke`](#checkpoint-96zp-fit-a-neighboring-surface-along-the-stroke) | Type the current fallback that carries a neighboring plane to the stroke axis. | `src/ink_plane.wgsl` | `Follow gpu_geometry.rs, triangle.wgsl, gpu_mesh.rs, instance_gpu.rs and renderer.rs in this cumulative checkpoint; compare the maintained engine/gpu/ and shaders/triangle.wgsl ownership.` |
+| **10** | [`96zq-own-a-cropped-primitive-image-for-picks`](#checkpoint-96zq-own-a-cropped-primitive-image-for-picks) | Retain a bounded triangle image beside integer owners and depth. | `src/pick_image.rs`, `src/pick_gpu.rs`, `src/pick_gpu_tests.rs` | `Follow gpu_geometry.rs, triangle.wgsl, gpu_mesh.rs, instance_gpu.rs and renderer.rs in this cumulative checkpoint; compare the maintained engine/gpu/ and shaders/triangle.wgsl ownership.` |
+| **11** | [`96zr-share-crop-and-clipping-bindings-for-pulled-picks`](#checkpoint-96zr-share-crop-and-clipping-bindings-for-pulled-picks) | Prepare a combined uniform group without copying either uniform. | `src/pick_pipeline.rs` | `Follow gpu_geometry.rs, triangle.wgsl, gpu_mesh.rs, instance_gpu.rs and renderer.rs in this cumulative checkpoint; compare the maintained engine/gpu/ and shaders/triangle.wgsl ownership.` |
+| **12** | [`96zs-write-first-pick-primitives-from-shared-geometry`](#checkpoint-96zs-write-first-pick-primitives-from-shared-geometry) | Rasterize bounded integer owners and primitive addresses together. | `src/pick_pipeline.rs`, `src/triangle_pick.wgsl`, `src/pick_gpu.rs`, `src/renderer.rs` | `Follow gpu_geometry.rs, triangle.wgsl, gpu_mesh.rs, instance_gpu.rs and renderer.rs in this cumulative checkpoint; compare the maintained engine/gpu/ and shaders/triangle.wgsl ownership.` |
+| **13** | [`96zt-fit-surface-depth-beneath-a-point-disc`](#checkpoint-96zt-fit-surface-depth-beneath-a-point-disc) | Type the current two-axis surface carry for a disc fragment. | `src/ink_plane.wgsl` | `Follow gpu_geometry.rs, triangle.wgsl, gpu_mesh.rs, instance_gpu.rs and renderer.rs in this cumulative checkpoint; compare the maintained engine/gpu/ and shaders/triangle.wgsl ownership.` |
+| **14** | [`96zu-test-the-disc-center-against-a-surface`](#checkpoint-96zu-test-the-disc-center-against-a-surface) | Type the current center check that prevents a hidden point leaking at a fringe. | `src/ink_plane.wgsl` | `Follow gpu_geometry.rs, triangle.wgsl, gpu_mesh.rs, instance_gpu.rs and renderer.rs in this cumulative checkpoint; compare the maintained engine/gpu/ and shaders/triangle.wgsl ownership.` |
+| **15** | [`96zv-carry-the-rasterized-triangle-gradient-to-ink`](#checkpoint-96zv-carry-the-rasterized-triangle-gradient-to-ink) | Read the lossless primitive address and use its projected surface gradient. | `src/ink_plane.wgsl` | `Follow gpu_geometry.rs, triangle.wgsl, gpu_mesh.rs, instance_gpu.rs and renderer.rs in this cumulative checkpoint; compare the maintained engine/gpu/ and shaders/triangle.wgsl ownership.` |
+| **16** | [`96zw-connect-surface-fitted-point-visibility`](#checkpoint-96zw-connect-surface-fitted-point-visibility) | Use the disc fragment and center tests for original point color and integer picks. | `src/finite_visibility.wgsl`, `src/finite_marker.wgsl`, `src/finite_marker_pick.wgsl`, `src/finite_visibility_tests.rs` | `Original point → projected disc → surface fit and center check → color and cropped owner pick.` |
+| **17** | [`96zx-test-the-rasterized-neighbors-at-the-stroke-source`](#checkpoint-96zx-test-the-rasterized-neighbors-at-the-stroke-source) | Prepare exact source tests using the matching primitive image. | `src/ink_plane.wgsl` | `Projected stroke axis → primitive image → exact source hit and neighboring triangle hits` |
+| **18** | [`96zy-connect-fitted-surfaces-and-exact-stroke-occlusion`](#checkpoint-96zy-connect-fitted-surfaces-and-exact-stroke-occlusion) | Activate surface fitting, source-neighbor tests and bounded tile fallback for original strokes. | `src/finite_visibility.wgsl`, `src/ink_plane.wgsl` | `Stroke axis → surface fit and section check → exact source hits → bounded tile fallback` |
+| **19** | [`96zz-separate-hidden-ink-color-from-pick-ownership`](#checkpoint-96zz-separate-hidden-ink-color-from-pick-ownership) | Reveal hidden ink through glass without selecting an occluded original. | `src/finite_visibility.wgsl`, `src/finite_stroke.wgsl`, `src/finite_stroke_pick.wgsl`, `src/finite_chain.wgsl` | `Physical visibility → color attenuation or integer discard → original owner pick` |
+| **20** | [`96zza-connect-section-primitive-images`](#checkpoint-96zza-connect-section-primitive-images) | Share lossless cap addresses with mesh surfaces in color and first-pick images. | `src/physical.wgsl`, `src/clipping_gpu.rs`, `src/triangle.wgsl`, `src/triangle_pick.wgsl` | `Reserved plane address → shared integer output → matching color or cropped pick image → fitted ink` |
+| **21** | [`96zzb-read-section-visibility-from-one-image`](#checkpoint-96zzb-read-section-visibility-from-one-image) | Use one physical primitive address for mesh and section ink visibility. | `src/finite_visibility.wgsl`, `src/finite_ink.rs`, `src/renderer.rs`, `src/pick_encode.rs` | `Follow the cap address from color or cropped picking to the fitted source test.` |
+
+---
+
+## 4. Step-by-Step Coding Notebook (Concept + Implementation)
+
+Work through each notebook cell below in order inside `workspace/journey`. Read the **Concept Walkthrough** and **Self-Check Q&A** first, then expand the **Implementation** block to type and verify the code.
 
 <a id="checkpoint-96zh-bind-the-shared-geometry-as-storage"></a>
+
+### Step 1 of 21 · Bind the shared geometry as storage (`96zh-bind-the-shared-geometry-as-storage`)
+
+- **Goal:** Reuse the existing geometry buffers for shader vertex reads.
+- **Data Flow Trace:** `Follow gpu_geometry.rs, triangle.wgsl, gpu_mesh.rs, instance_gpu.rs and renderer.rs in this cumulative checkpoint; compare the maintained engine/gpu/ and shaders/triangle.wgsl ownership.`
+- **Files You Touch:** `src/gpu_geometry.rs` (*Keep the vertex-pulling bind group beside the shared buffers.*)
+
+A triangle address requires knowing which index occurrence is being rasterized, not just which source vertex was fetched by indexed drawing.
+
+Prepare vertex pulling through the three existing buffers. The position/color buffer and index buffer already have STORAGE usage; add it to the normal buffer. A shared explicit layout binds all three as read-only vertex-stage storage. Keep the original indexed draw path for the existing picking and mask pipelines. This preparatory step does not activate the new color draw path yet.
+
+> **Self-Check Question:** *Why retain one geometry buffer owner?*  
+> **Answer:** Changing how a shader reads vertices must not upload a second copy of positions, normals or indices. The same original geometry still serves all placed instances.
+
+- **What You Should See:** The original CAD view, colors, normal diagnostic, selection and integer pick owners remain stable while this GPU boundary connects. The supplied GPU fixtures check its buffer or primitive-address behavior.
+- **Hands-On Lab Experiment:** Rebuild and compare the existing scene and GPU geometry byte counts. The ordinary nonempty meshes should retain their buffer sizes.
 
 <details>
 <summary>Implementation 96zh-bind-the-shared-geometry-as-storage: Bind the shared geometry as storage</summary>
@@ -249,6 +318,21 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-96zi-read-source-vertices-through-one-shader-helper"></a>
+
+### Step 2 of 21 · Read source vertices through one shader helper (`96zi-read-source-vertices-through-one-shader-helper`)
+
+- **Goal:** Define the same vertex reader for ordinary and instanced drawing.
+- **Data Flow Trace:** `Follow gpu_geometry.rs, triangle.wgsl, gpu_mesh.rs, instance_gpu.rs and renderer.rs in this cumulative checkpoint; compare the maintained engine/gpu/ and shaders/triangle.wgsl ownership.`
+- **Files You Touch:** `src/triangle.wgsl` (*Give ordinary and instanced vertex functions one object access boundary.*) · `src/instance_gpu.rs` (*Customize only the object storage declaration and lookup; retain one geometry function and one vertex entry.*) · `src/triangle_pick.wgsl` (*Keep indexed object and source-face picking on the shared explicit object record without activating their storage vertex path.*) · `src/face_pick.wgsl` (*Keep indexed object and source-face picking on the shared explicit object record without activating their storage vertex path.*)
+
+A storage array of f32 has a four-byte stride.
+
+Read the source index first, then its six position/color scalars and three normal scalars. The source buffers remain unchanged. Pass ObjectSettings explicitly to the existing geometry function. A small object_at helper selects a uniform for ordinary drawing or a storage record for instancing, replacing the fragile geometry-signature rewrites. Update both indexed picking shaders to pass their uniform record explicitly too. Keep the current vertex attributes active for this preparatory boundary; the next step connects the storage reader.
+
+> **Self-Check Question:** *Why does an index occurrence differ from a source vertex?*  
+> **Answer:** Several triangles may reuse one source vertex. A nonindexed invocation number identifies the occurrence; reading the index buffer then recovers the shared position and attributes.
+
+- **Hands-On Lab Experiment:** Rebuild ordinary and instanced scenes. The same geometry and colors must remain visible before activation.
 
 <details>
 <summary>Implementation 96zi-read-source-vertices-through-one-shader-helper: Read source vertices through one shader helper</summary>
@@ -519,6 +603,21 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-96zj-activate-shared-vertex-pulling-for-color"></a>
+
+### Step 3 of 21 · Activate shared vertex pulling for color (`96zj-activate-shared-vertex-pulling-for-color`)
+
+- **Goal:** Rasterize ordinary and instanced triangles from their shared storage buffers.
+- **Data Flow Trace:** `Follow gpu_geometry.rs, triangle.wgsl, gpu_mesh.rs, instance_gpu.rs and renderer.rs in this cumulative checkpoint; compare the maintained engine/gpu/ and shaders/triangle.wgsl ownership.`
+- **Files You Touch:** `src/triangle.wgsl` (*Activate the storage reader with the nonindexed occurrence number.*) · `src/gpu_mesh.rs` (*Keep ordinary pulled color draws beside the unchanged indexed picking and mask draw.*) · `src/renderer.rs` (*Share the explicit storage layout with ordinary color pipelines.*) · `src/highlight.rs` (*Selection mesh overlays use the same pulled color entry.*) · `src/instance_gpu.rs` (*Bind the same geometry storage layout for instanced color drawing.*) · `src/pick_gpu_tests.rs` (*Reuse the supplied pixel readback for the normal diagnostic instead of duplicating GPU setup.*)
+
+Connect the reader to the color vertex entry.
+
+The builtin vertex_index now names an index occurrence because this pass uses draw rather than draw_indexed. Read the shared source attributes, then apply the same object and camera transforms. Add the explicit geometry layout as group three and remove vertex attribute layouts from these color pipelines. Ordinary geometry, selection mesh overlays and instance batches call the same pulled draw helper. Existing integer picking and mask passes retain their indexed draw path. Primitive addressing and MRT connect after this equivalent color boundary.
+
+> **Self-Check Question:** *Why must the draw call and vertex entry change together?*  
+> **Answer:** An indexed draw gives vertex_index the already fetched source vertex index. Pulling the index buffer again would fetch the wrong occurrence. A nonindexed draw supplies the sequential occurrence that the reader expects.
+
+- **Hands-On Lab Experiment:** Compare original object/face colors, normal inspection, selected faces and shared instances at two pixel densities. Integer picking must still address the same originals.
 
 <details>
 <summary>Implementation 96zj-activate-shared-vertex-pulling-for-color: Activate shared vertex pulling for color</summary>
@@ -1492,6 +1591,21 @@ After that block, append this supplied code:
 
 <a id="checkpoint-96zk-assign-frame-triangle-ranges"></a>
 
+### Step 4 of 21 · Assign frame triangle ranges (`96zk-assign-frame-triangle-ranges`)
+
+- **Goal:** Give every placed color triangle the address of its projected record.
+- **Data Flow Trace:** `Follow gpu_geometry.rs, triangle.wgsl, gpu_mesh.rs, instance_gpu.rs and renderer.rs in this cumulative checkpoint; compare the maintained engine/gpu/ and shaders/triangle.wgsl ownership.`
+- **Files You Touch:** `src/gpu_mesh.rs` (*Retain the row’s projected interval across object-style updates.*) · `src/triangle.wgsl` (*A triangle address must never turn an unselected original yellow.*) · `src/cap_count.wgsl` (*Section counting reads the same selection bit.*) · `src/renderer.rs` (*Assign the same row-order prefix sums used by projection before copying instance records.*) · `src/global_outline_tests.rs` (*Supply actual shared placements, frame intervals, low-bit selection, later edits, original integer picks, invalid packing and visibility rebuilding.*)
+
+Finite projection concatenates the triangles of visible GPU mesh rows.
+
+Assign each row the same prefix sum before projection and instance-record updates. A shared source has different ranges for its different placements. Keep the current 160-byte teaching object record: selection uses its low bit, and the remaining 31 bits temporarily hold the primitive base. Check the address range before packing. Decode the selection bit everywhere, including section counting, so a nonzero base cannot select an object. Preserve that base through later object updates. The pulled vertex entry now carries a flat one-based triangle address; the next lesson writes it to a second attachment. This teaching packing is an adapter to the current viewer’s separate draw-slot base.
+
+> **Self-Check Question:** *Why must instance records be updated after assigning the ranges?*  
+> **Answer:** A batch shares source geometry but each placement has its own projected triangle interval. Copying records before assigning the base would give two placements the same address.
+
+- **Hands-On Lab Experiment:** Select, hide and restore placed originals. Their colors and original pick owners must remain unchanged while the visible triangle intervals are rebuilt.
+
 <details>
 <summary>Implementation 96zk-assign-frame-triangle-ranges: Assign frame triangle ranges</summary>
 
@@ -2037,6 +2151,21 @@ After that block, append this supplied code:
 </details>
 
 <a id="checkpoint-96zl-own-the-integer-primitive-image"></a>
+
+### Step 5 of 21 · Own the integer primitive image (`96zl-own-the-integer-primitive-image`)
+
+- **Goal:** Allocate the frame image that will name rasterized triangles.
+- **Data Flow Trace:** `Follow gpu_geometry.rs, triangle.wgsl, gpu_mesh.rs, instance_gpu.rs and renderer.rs in this cumulative checkpoint; compare the maintained engine/gpu/ and shaders/triangle.wgsl ownership.`
+- **Files You Touch:** `src/primitive_image.rs` (*Own the current integer format and share its explicit no-blend target declaration.*) · `src/lib.rs` (*Connect the private target owner.*) · `src/renderer.rs` (*Retain the primitive image with the renderer’s frame targets.*)
+
+The color and depth images tell us what is visible.
+
+A second integer color attachment can name the projected triangle at each covered pixel. Use the current RG16Uint format: two 16-bit channels hold one 32-bit address without float rounding. Own the texture and view together, with render, shader-read and diagnostic-copy usage. Recreate it at the physical framebuffer size alongside depth. Zero will mean no mesh triangle. This preparation allocates the image but does not attach or sample it yet.
+
+> **Self-Check Question:** *Why is this an integer color attachment?*  
+> **Answer:** It stores an address, not a displayed color. It must preserve all address bits, have no blending, and later be read with textureLoad.
+
+- **Hands-On Lab Experiment:** Resize the canvas. The primitive target must follow physical pixels while existing color drawing remains unchanged.
 
 <details>
 <summary>Implementation 96zl-own-the-integer-primitive-image: Own the integer primitive image</summary>
@@ -2781,6 +2910,21 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-96zm-write-triangle-addresses-beside-color"></a>
+
+### Step 6 of 21 · Write triangle addresses beside color (`96zm-write-triangle-addresses-beside-color`)
+
+- **Goal:** Write color and a lossless triangle address in the same depth-tested pass.
+- **Data Flow Trace:** `Follow gpu_geometry.rs, triangle.wgsl, gpu_mesh.rs, instance_gpu.rs and renderer.rs in this cumulative checkpoint; compare the maintained engine/gpu/ and shaders/triangle.wgsl ownership.`
+- **Files You Touch:** `src/triangle.wgsl` (*Keep the existing lighting and normal diagnostic in one reusable fragment helper.*) · `src/renderer.rs` (*Share both pipeline formats while allowing overlays to retain underlying addresses.*) · `src/instance_gpu.rs` (*Instance fragments use the same lossless second attachment.*) · `src/global_outline_tests.rs` (*Supply actual integer attachment readback, placed copies, original source-face overlays, shared definition instances, both densities, resize and empty clearing.*)
+
+Return two fragment outputs: displayed RGBA and the low/high 16-bit halves of the flat primitive address.
+
+Attach the integer image beside color, clear it to zero and store it for later shader reads. Both ordinary and instance pipelines declare the same second format. Selection mesh overlays keep their color output but disable writes to the primitive target, retaining the original triangle underneath. Existing ink, text and UI passes remain color-only. Section caps still use their separate depth image; their primitive sentinel is a following bridge.
+
+> **Self-Check Question:** *Why disable primitive writes for a selected-face overlay?*  
+> **Answer:** The overlay is derived presentation geometry. Its local triangles must not replace the original mesh address used to interpret depth and visibility.
+
+- **Hands-On Lab Experiment:** Render placed copies and select a source face. Their colors remain unchanged; integer readback must identify different placement intervals and retain the underlying original triangle through the overlay.
 
 <details>
 <summary>Implementation 96zm-write-triangle-addresses-beside-color: Write triangle addresses beside color</summary>
@@ -3738,6 +3882,21 @@ After that block, append this supplied code:
 
 <a id="checkpoint-96zn-bind-visible-triangle-addresses-for-ink"></a>
 
+### Step 7 of 21 · Bind visible triangle addresses for ink (`96zn-bind-visible-triangle-addresses-for-ink`)
+
+- **Goal:** Make the exact triangle image available to the existing shared ink shader.
+- **Data Flow Trace:** `Follow gpu_geometry.rs, triangle.wgsl, gpu_mesh.rs, instance_gpu.rs and renderer.rs in this cumulative checkpoint; compare the maintained engine/gpu/ and shaders/triangle.wgsl ownership.`
+- **Files You Touch:** `src/finite_ink.rs` (*Retain the integer primitive view in the cached bindings.*) · `src/renderer.rs` (*Pass the current primitive view through the existing color or integer-pick tables.*) · `src/pick_encode.rs` (*Keep the primitive resource when the cropped picking pass replaces its section image.*) · `src/finite_visibility.wgsl` (*Declare the lossless texture before activating primitive-aware plane fitting.*)
+
+The primitive image now identifies the triangle that wrote depth at a physical pixel.
+
+Add it to the existing finite-ink tables, explicit bind-group layout and cached bind group. Declare an unsigned texture binding, not a floating or filtered texture. Cache the primitive view identity alongside the projected records, tile lists, depth and section image so resizing cannot retain an obsolete binding. The same tables reach ordinary ink, grid, selected ink and integer ink picking. Declare the WGSL resource now; the following plane-fit lessons will read it. No visibility decision changes at this preparatory boundary.
+
+> **Self-Check Question:** *Why include the image view in the binding cache key?*  
+> **Answer:** Resizing replaces the image. Identical triangle buffers and scene contents do not make the old texture view valid for the new framebuffer.
+
+- **Hands-On Lab Experiment:** Resize and switch between original CAD files. Colors, integer picks and primitive addresses must remain stable while the ink bindings follow the current frame images.
+
 <details>
 <summary>Implementation 96zn-bind-visible-triangle-addresses-for-ink: Bind visible triangle addresses for ink</summary>
 
@@ -4550,6 +4709,21 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-96zo-describe-ink-depth-and-surface-slack"></a>
 
+### Step 8 of 21 · Describe ink depth and surface slack (`96zo-describe-ink-depth-and-surface-slack`)
+
+- **Goal:** Type the current axis record and depth-carrying error budget.
+- **Data Flow Trace:** `Follow gpu_geometry.rs, triangle.wgsl, gpu_mesh.rs, instance_gpu.rs and renderer.rs in this cumulative checkpoint; compare the maintained engine/gpu/ and shaders/triangle.wgsl ownership.`
+- **Files You Touch:** `src/ink_plane.wgsl` (*Type the current axis and tolerance math once, with the declared forward-depth reader adapter.*) · `src/finite_visibility.wgsl` (*Keep surface fitting as a shared shader helper file.*) · `src/finite_sources.rs` (*Expand the helper before compiling either color or integer ink shaders.*)
+
+A thick stroke covers pixels beside its center line.
+
+Comparing its center depth with an unrelated side pixel can clip a coplanar stroke. Prepare the current InkAxis record: center, depth, direction, slope and sag. Sag represents a curved source edge rising above its display facets. Use the current relative rounding and subpixel slope tolerances rather than a fixed world-space bias. Keep one helper for carrying a surface depth to the stroke. For now, the depth reader explicitly converts the teaching forward-depth image; reversed camera depth will remove that conversion. These helpers do not change visibility yet.
+
+> **Self-Check Question:** *Why does the tolerance include a pixel lever?*  
+> **Answer:** Carrying a sampled plane farther amplifies depth error from subpixel rasterization. The error bound depends on slope and distance, not only the center depth.
+
+- **Hands-On Lab Experiment:** Compile and compare the unchanged CAD view. Follow the units of each InkAxis field before connecting the helpers.
+
 <details>
 <summary>Implementation 96zo-describe-ink-depth-and-surface-slack: Describe ink depth and surface slack</summary>
 
@@ -4631,6 +4805,21 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-96zp-fit-a-neighboring-surface-along-the-stroke"></a>
+
+### Step 9 of 21 · Fit a neighboring surface along the stroke (`96zp-fit-a-neighboring-surface-along-the-stroke`)
+
+- **Goal:** Type the current fallback that carries a neighboring plane to the stroke axis.
+- **Data Flow Trace:** `Follow gpu_geometry.rs, triangle.wgsl, gpu_mesh.rs, instance_gpu.rs and renderer.rs in this cumulative checkpoint; compare the maintained engine/gpu/ and shaders/triangle.wgsl ownership.`
+- **Files You Touch:** `src/ink_plane.wgsl` (*Type the current neighbor validation, perpendicular step and axis-plane carry without duplicating the tolerance helpers.*)
+
+A surface can end at the stroke, so first try a one-pixel step away from it and then the opposite direction.
+
+Accept a neighbor pair only when the next slope agrees within the current kink bound. Express the center offset as a combination of stroke direction and the neighbor step; carry the sampled depth using the stroke and surface slopes. If neither side forms a plane, compare raw depth with the relative tolerance. These exact current helpers stay inactive until the primitive-gradient, point-disc and caller stages are ready.
+
+> **Self-Check Question:** *Why inspect a second neighbor?*  
+> **Answer:** Two pixels can cross a depth discontinuity. A third pixel tests whether the adjacent differences describe one surface.
+
+- **Hands-On Lab Experiment:** Sketch a coplanar stroke and an occluder edge. Work through the two neighbor choices and the carried depth; the current pixels remain unchanged at this preparatory boundary.
 
 <details>
 <summary>Implementation 96zp-fit-a-neighboring-surface-along-the-stroke: Fit a neighboring surface along the stroke</summary>
@@ -4726,6 +4915,21 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-96zq-own-a-cropped-primitive-image-for-picks"></a>
+
+### Step 10 of 21 · Own a cropped primitive image for picks (`96zq-own-a-cropped-primitive-image-for-picks`)
+
+- **Goal:** Retain a bounded triangle image beside integer owners and depth.
+- **Data Flow Trace:** `Follow gpu_geometry.rs, triangle.wgsl, gpu_mesh.rs, instance_gpu.rs and renderer.rs in this cumulative checkpoint; compare the maintained engine/gpu/ and shaders/triangle.wgsl ownership.`
+- **Files You Touch:** `src/pick_image.rs` (*Own matching bounded primitive and depth targets.*) · `src/pick_gpu.rs` (*Count owner, depth, section and primitive bytes honestly.*) · `src/pick_gpu_tests.rs` (*Include the actual four primitive bytes per cropped pixel while retaining the same bounded readback allocation assertion.*)
+
+A pick can happen before a color frame or after its camera became stale.
+
+It needs its own primitive image with the same cropped extent as pick depth, not the previous canvas image. Reuse the existing RG16Uint image owner and allocate it only when the bounded pick target changes. Include its four bytes per pixel in the pick memory report. This preparation does not attach the image yet.
+
+> **Self-Check Question:** *Why not reuse the last color image?*  
+> **Answer:** Its camera, scene or size may differ from the queued pick. The integer answer must come from the precise request that is currently in flight.
+
+- **Hands-On Lab Experiment:** Request a pick before drawing and after resizing. Allocation remains bounded by the crop rather than by the whole canvas.
 
 <details>
 <summary>Implementation 96zq-own-a-cropped-primitive-image-for-picks: Own a cropped primitive image for picks</summary>
@@ -4886,6 +5090,21 @@ Update the existing block with this supplied code; keep unchanged lines:
 
 <a id="checkpoint-96zr-share-crop-and-clipping-bindings-for-pulled-picks"></a>
 
+### Step 11 of 21 · Share crop and clipping bindings for pulled picks (`96zr-share-crop-and-clipping-bindings-for-pulled-picks`)
+
+- **Goal:** Prepare a combined uniform group without copying either uniform.
+- **Data Flow Trace:** `Follow gpu_geometry.rs, triangle.wgsl, gpu_mesh.rs, instance_gpu.rs and renderer.rs in this cumulative checkpoint; compare the maintained engine/gpu/ and shaders/triangle.wgsl ownership.`
+- **Files You Touch:** `src/pick_pipeline.rs` (*Prepare an explicit shared layout and bind the existing two uniform buffers.*)
+
+Color vertex pulling uses group three for shared geometry.
+
+The current mesh pick pipeline already uses that group for clipping. Prepare a two-binding uniform group for crop and clipping together, leaving group three available for the exact same geometry buffers. Keep the original single crop group for source-face, ink, text and other pick pipelines. Both groups refer to existing uniform buffers; no second crop or clipping upload is needed. This preparatory boundary does not switch the mesh pipeline yet.
+
+> **Self-Check Question:** *Why keep the original crop group too?*  
+> **Answer:** Other pick pipelines have their own explicit layouts. Changing their group implicitly would break otherwise independent face, ink and text picking.
+
+- **Hands-On Lab Experiment:** Rebuild and check unchanged integer owners while the combined layout is prepared.
+
 <details>
 <summary>Implementation 96zr-share-crop-and-clipping-bindings-for-pulled-picks: Share crop and clipping bindings for pulled picks</summary>
 
@@ -4941,6 +5160,21 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-96zs-write-first-pick-primitives-from-shared-geometry"></a>
+
+### Step 12 of 21 · Write first-pick primitives from shared geometry (`96zs-write-first-pick-primitives-from-shared-geometry`)
+
+- **Goal:** Rasterize bounded integer owners and primitive addresses together.
+- **Data Flow Trace:** `Follow gpu_geometry.rs, triangle.wgsl, gpu_mesh.rs, instance_gpu.rs and renderer.rs in this cumulative checkpoint; compare the maintained engine/gpu/ and shaders/triangle.wgsl ownership.`
+- **Files You Touch:** `src/pick_pipeline.rs` (*Reserve group three for the same shared geometry storage.*) · `src/triangle_pick.wgsl` (*Reuse source vertex reads and preserve original owners in the first integer frame.*) · `src/pick_gpu.rs` (*Keep the existing fallback clipping buffer alongside its bind group.*) · `src/renderer.rs` (*Use the scene’s current clipping buffer for bounded mesh picks.*) · `src/pick_encode.rs` (*Receive both existing uniforms at the encoder boundary.*) · `src/global_outline_tests.rs` (*Reuse one primitive texture readback for color and cropped integer passes.*)
+
+Switch only mesh picking to the shared storage reader and nonindexed occurrence draw.
+
+Combine crop and clipping at group two; keep shared geometry at group three. The fragment writes the original owner and the same lossless primitive address used by color drawing. Source-face selection runs in a following color-only integer pass so it cannot overwrite the mesh primitive image. Ink receives the matching cropped primitive view through its existing tables. A pick remains valid before the first color frame and after a scene or camera change.
+
+> **Self-Check Question:** *Why draw source-face IDs in a following pass?*  
+> **Answer:** The source-face selection overlay writes a different integer payload. It should retain the original mesh triangle image and its depth instead of inventing a new primitive range.
+
+- **Hands-On Lab Experiment:** Pick each placed original before drawing, move or hide one, and repeat. Owner IDs and projected intervals must refer to the current request.
 
 <details>
 <summary>Implementation 96zs-write-first-pick-primitives-from-shared-geometry: Write first-pick primitives from shared geometry</summary>
@@ -5650,6 +5884,21 @@ After that block, append this supplied code:
 
 <a id="checkpoint-96zt-fit-surface-depth-beneath-a-point-disc"></a>
 
+### Step 13 of 21 · Fit surface depth beneath a point disc (`96zt-fit-surface-depth-beneath-a-point-disc`)
+
+- **Goal:** Type the current two-axis surface carry for a disc fragment.
+- **Data Flow Trace:** `Follow gpu_geometry.rs, triangle.wgsl, gpu_mesh.rs, instance_gpu.rs and renderer.rs in this cumulative checkpoint; compare the maintained engine/gpu/ and shaders/triangle.wgsl ownership.`
+- **Files You Touch:** `src/ink_plane.wgsl` (*Type the current two-axis disc-plane carry while reusing the existing neighbor and tolerance helpers.*)
+
+A point has no stroke direction.
+
+Fit depth independently along the screen x and y axes, trying the neighbor away from the center first. Carry the sampled plane to the disc center and reuse the same depth tolerance and visibility rule as the stroke. If either axis cannot form a planar pair, use the conservative raw-depth comparison. This preparatory helper does not change marker visibility yet.
+
+> **Self-Check Question:** *Why does a disc need two fitted slopes?*  
+> **Answer:** Its covered pixels surround the center in every direction. One slope cannot carry an arbitrary fragment position to that center.
+
+- **Hands-On Lab Experiment:** Work through a point on a sloping face and a point behind it. Compile the helper while the existing point picture remains unchanged.
+
 <details>
 <summary>Implementation 96zt-fit-surface-depth-beneath-a-point-disc: Fit surface depth beneath a point disc</summary>
 
@@ -5723,6 +5972,21 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-96zu-test-the-disc-center-against-a-surface"></a>
+
+### Step 14 of 21 · Test the disc center against a surface (`96zu-test-the-disc-center-against-a-surface`)
+
+- **Goal:** Type the current center check that prevents a hidden point leaking at a fringe.
+- **Data Flow Trace:** `Follow gpu_geometry.rs, triangle.wgsl, gpu_mesh.rs, instance_gpu.rs and renderer.rs in this cumulative checkpoint; compare the maintained engine/gpu/ and shaders/triangle.wgsl ownership.`
+- **Files You Touch:** `src/ink_plane.wgsl` (*Type the current source-center occlusion check and reuse it with fragment visibility.*)
+
+A fragment beside an occluder may be exposed even though the original point center is behind it.
+
+Inspect the center pixel at the fragment’s subpixel phase, try every neighbor quadrant and require the diagonal to agree with the fitted plane. A matching nearer plane hides the point. Combine this center check with the previous fragment test. Keep the helpers inactive until marker callers connect.
+
+> **Self-Check Question:** *Why check the diagonal too?*  
+> **Answer:** An edge or corner can make horizontal and vertical pairs look plausible individually. The diagonal tests whether they belong to one plane.
+
+- **Hands-On Lab Experiment:** Sketch a point center hidden just behind a face edge. Explain which quadrant can prove that the center remains occluded.
 
 <details>
 <summary>Implementation 96zu-test-the-disc-center-against-a-surface: Test the disc center against a surface</summary>
@@ -5812,6 +6076,21 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-96zv-carry-the-rasterized-triangle-gradient-to-ink"></a>
 
+### Step 15 of 21 · Carry the rasterized triangle gradient to ink (`96zv-carry-the-rasterized-triangle-gradient-to-ink`)
+
+- **Goal:** Read the lossless primitive address and use its projected surface gradient.
+- **Data Flow Trace:** `Follow gpu_geometry.rs, triangle.wgsl, gpu_mesh.rs, instance_gpu.rs and renderer.rs in this cumulative checkpoint; compare the maintained engine/gpu/ and shaders/triangle.wgsl ownership.`
+- **Files You Touch:** `src/ink_plane.wgsl` (*Type the current gradient carry with the matching canvas-or-crop primitive reader.*)
+
+The color and first-pick passes now produce matching depth and primitive images.
+
+Read the unsigned halves at the same pixel and recover the one-based triangle address. Its projected record supplies a depth gradient, so carrying the surface to the stroke needs no neighbor fit when that gradient is valid. Missing or excessively steep records use the existing neighbor fallback. Keep the current slope and sag error budget. This preparatory boundary still leaves the existing finite-visibility callers unchanged.
+
+> **Self-Check Question:** *Why must the primitive and depth readers use the same pixel mapping?*  
+> **Answer:** Color uses canvas pixels while first picking uses a bounded crop. Mixing their origins would fit the wrong triangle even though the integer address itself is exact.
+
+- **Hands-On Lab Experiment:** Compare a normal projected triangle with a near-clipped or grazing triangle. Identify when the explicit gradient or neighbor fallback applies.
+
 <details>
 <summary>Implementation 96zv-carry-the-rasterized-triangle-gradient-to-ink: Carry the rasterized triangle gradient to ink</summary>
 
@@ -5893,6 +6172,22 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-96zw-connect-surface-fitted-point-visibility"></a>
+
+### Step 16 of 21 · Connect surface-fitted point visibility (`96zw-connect-surface-fitted-point-visibility`)
+
+- **Goal:** Use the disc fragment and center tests for original point color and integer picks.
+- **Data Flow Trace:** `Original point → projected disc → surface fit and center check → color and cropped owner pick.`
+- **Files You Touch:** `src/finite_visibility.wgsl` (*Connect the point-specific surface and center tests after clipping and section checks.*) · `src/finite_marker.wgsl` (*Use the same original point predicate for color and cropped integer ownership.*) · `src/finite_marker_pick.wgsl` (*Use the same original point predicate for color and cropped integer ownership.*) · `src/finite_visibility_tests.rs` (*Supply an actual point disc pixel and first-pick regression at both physical display scales.*)
+
+A point is a disc, so a stroke axis cannot describe its visibility.
+
+Connect the two-axis surface fit and the center occlusion check prepared in the preceding steps. Use the same function in color and cropped integer picking. Keep the section and clipping checks, and preserve hidden-ink alpha through translucent faces. The camera still uses the declared forward-depth conversion; ray-facing discs and multisampling remain later steps.
+
+> **Self-Check Question:** *Why must the center test run in integer picking too?*  
+> **Answer:** A visible fringe of a point whose center is behind a face must not win a pick. The same disc predicate keeps color and ownership consistent.
+
+- **What You Should See:** A visible point retains its full CSS disc on a sloping face. A hidden point paints no opaque ink and cannot win the first pick.
+- **Hands-On Lab Experiment:** Compare a point on a sloping face with a hidden point. Pick before drawing any color frame, repeat at both display scales, and verify that the original point owner wins only when visible.
 
 <details>
 <summary>Implementation 96zw-connect-surface-fitted-point-visibility: Connect surface-fitted point visibility</summary>
@@ -6033,6 +6328,22 @@ After that block, append this supplied code:
 
 <a id="checkpoint-96zx-test-the-rasterized-neighbors-at-the-stroke-source"></a>
 
+### Step 17 of 21 · Test rasterized neighbors at the stroke source (`96zx-test-the-rasterized-neighbors-at-the-stroke-source`)
+
+- **Goal:** Prepare exact source tests using the matching primitive image.
+- **Data Flow Trace:** `Projected stroke axis → primitive image → exact source hit and neighboring triangle hits`
+- **Files You Touch:** `src/ink_plane.wgsl` (*Build a weighted source axis and reuse one exact clipped-triangle predicate for fringe and source neighbors.*)
+
+A thick stroke may touch a triangle outside its center line.
+
+After projection, depth is affine along the screen segment. Weight each endpoint by its distance to the other end, avoiding cancellation when a near-clipped endpoint lies far off screen. Read the triangle at its coverage pixel and the four pixels surrounding the source. Test each projected triangle at the exact center line, using the current depth floor and clipping predicate. Reject empty or out-of-range primitive addresses. Keep this helper separate from tile traversal so the same exact hit rule is used once. This stage prepares the rule without changing active stroke visibility.
+
+> **Self-Check Question:** *Why test the exact center line after fitting a rasterized surface?*  
+> **Answer:** Coverage pixels can lie beside the center line or across a face edge. Exact projected triangles settle whether the source itself is occluded.
+
+- **What You Should See:** The view stays unchanged while the exact source helpers compile. Original geometry and integer owners remain unchanged.
+- **Hands-On Lab Experiment:** Trace one center-line sample across a projected face edge and compare its original triangle address with the rasterized neighbor. The browser picture stays unchanged until the [visibility connection](../../96zy-connect-fitted-surfaces-and-exact-stroke-occlusion.md).
+
 <details>
 <summary>Implementation 96zx-test-the-rasterized-neighbors-at-the-stroke-source: Test rasterized neighbors at the stroke source</summary>
 
@@ -6107,6 +6418,24 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-96zy-connect-fitted-surfaces-and-exact-stroke-occlusion"></a>
+
+### Step 18 of 21 · Connect fitted surfaces and exact stroke occlusion (`96zy-connect-fitted-surfaces-and-exact-stroke-occlusion`)
+
+- **Goal:** Activate surface fitting, source-neighbor tests and bounded tile fallback for original strokes.
+- **Data Flow Trace:** `Stroke axis → surface fit and section check → exact source hits → bounded tile fallback`
+- **Files You Touch:** `src/finite_visibility.wgsl` (*Retain the strict construction-grid rule while original strokes use the current fitted and exact predicates.*) · `src/ink_plane.wgsl` (*Retain the declared forward-depth rounding allowance in exact source tests until the reversed camera replaces this adapter.*)
+
+Build an InkAxis from the original segment and fit the physical triangle under its coverage pixel.
+
+A cap under the source is checked on its clipping plane; a cap only beside the source makes the source pixel decide the fit. Test the fringe and source neighbors exactly before accepting a fitted surface. If the fit rejects the stroke, traverse its bounded tile list with the same exact triangle predicate. An absent list leaves the fit in charge; an incomplete or overflowing list conservatively hides the stroke. Keep the strict construction-grid rule separately: coplanar grid lines must remain hidden. Source sag is still zero, so curved source-edge slack needs its next data bridge.
+
+The current helpers use reversed depth, while this checkpoint still converts a forward-depth image. Carry its existing two-float-rounding allowance into the exact depth floor. The allowance follows the represented forward depth; it is not a world-space offset. This prevents coplanar original surface and CAD edges from hiding themselves at the far end of the teaching camera range. Remove the conversion allowance when the reversed camera connects.
+
+> **Self-Check Question:** *What supplies visibility when a projected tile list is unavailable?*  
+> **Answer:** The bounded physical-depth fallback remains available. Otherwise the [source-neighbor helper](../../96zx-test-the-rasterized-neighbors-at-the-stroke-source.md) resolves the original center line against projected triangles.
+
+- **What You Should See:** Coplanar ordinary strokes retain their CSS width. With opaque faces, front strokes draw and pick their original owner; hidden strokes do neither.
+- **Hands-On Lab Experiment:** Create a Box and a Line on one face. Orbit to a grazing view: the coplanar line keeps its CSS width. Move the line behind an opaque face; it must neither draw nor win the original pick. Undo the move.
 
 <details>
 <summary>Implementation 96zy-connect-fitted-surfaces-and-exact-stroke-occlusion: Connect fitted surfaces and exact stroke occlusion</summary>
@@ -6296,6 +6625,22 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-96zz-separate-hidden-ink-color-from-pick-ownership"></a>
+
+### Step 19 of 21 · Separate hidden ink color from pick ownership (`96zz-separate-hidden-ink-color-from-pick-ownership`)
+
+- **Goal:** Reveal hidden ink through glass without selecting an occluded original.
+- **Data Flow Trace:** `Physical visibility → color attenuation or integer discard → original owner pick`
+- **Files You Touch:** `src/finite_visibility.wgsl` (*Pass an explicit pick mode and reuse the shared hidden-ink alpha rule.*) · `src/finite_stroke.wgsl` (*Choose color attenuation or integer discard at the fragment call.*) · `src/finite_stroke_pick.wgsl` (*Choose color attenuation or integer discard at the fragment call.*) · `src/finite_chain.wgsl` (*Choose color attenuation or integer discard at the fragment call.*) · `src/finite_chain_pick.wgsl` (*Choose color attenuation or integer discard at the fragment call.*) · `src/finite_marker.wgsl` (*Choose color attenuation or integer discard at the fragment call.*) · `src/finite_marker_pick.wgsl` (*Choose color attenuation or integer discard at the fragment call.*) · `src/finite_visibility_tests.rs` (*Supply actual color, pre-color and post-color integer ownership checks for all three original ink families at both densities.*) · `src/opacity_gpu_tests.rs` (*Update the supplied glass fixture to require the current nearer face owner; retain exact blending, X-ray, restoration and reuse checks.*)
+
+Translucency changes color, but it must not give hidden ink ownership of a pick.
+
+The preceding predicates decide physical visibility. Reuse one alpha helper for strokes and points: color may attenuate hidden ink by one minus face opacity; integer picking discards it. Pass the mode explicitly from each color and pick fragment. Keep clipping as an unconditional discard. This removes the duplicated glass-alpha expression while keeping the fitted and exact visibility rules unchanged.
+
+> **Self-Check Question:** *Why is a nonzero color alpha insufficient for picking?*  
+> **Answer:** Hidden ink can be intentionally drawn through a translucent face. Its color contribution does not make its source physically visible.
+
+- **What You Should See:** Hidden original ink can show through translucent faces. It cannot win an integer pick; the nearer original face keeps ownership.
+- **Hands-On Lab Experiment:** Place a point, line or headed line behind a translucent face. Confirm that the ink is visible through it while a pick still selects the nearer original face. Repeat before drawing a color frame.
 
 <details>
 <summary>Implementation 96zz-separate-hidden-ink-color-from-pick-ownership: Separate hidden ink color from pick ownership</summary>
@@ -6728,6 +7073,22 @@ Update the existing block with this supplied code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-96zza-connect-section-primitive-images"></a>
+
+### Step 20 of 21 · Connect section primitives to color and first picking (`96zza-connect-section-primitive-images`)
+
+- **Goal:** Share lossless cap addresses with mesh surfaces in color and first-pick images.
+- **Data Flow Trace:** `Reserved plane address → shared integer output → matching color or cropped pick image → fitted ink`
+- **Files You Touch:** `src/physical.wgsl` (*Own one lossless primitive encoder in the shared physical shader.*) · `src/clipping_gpu.rs` (*Assemble physical declarations once alongside clipping in every relevant shader.*) · `src/triangle.wgsl` (*Reuse the shared encoder instead of repeating the bit packing.*) · `src/triangle_pick.wgsl` (*Reuse the shared encoder instead of repeating the bit packing.*) · `src/ink_plane.wgsl` (*Decode a cap before any mesh lookup; reject unavailable projected addresses without clamping them to a different triangle.*) · `src/cap_color.wgsl` (*Add the integer output while keeping existing section consumers working.*) · `src/cap_pipeline.rs` (*Reuse the shared unblended integer target.*) · `src/caps_gpu.rs` (*Accept the renderer’s existing primitive view.*) · `src/renderer.rs` (*Pass the matching physical primitive image into the section pass.*) · `src/cap_pick.wgsl` (*Keep the original owner and section record beside the primitive output.*) · `src/cap_pick_pipeline.rs` (*Reuse the same integer target format without blending.*) · `src/cap_pick_gpu.rs` (*Attach the existing bounded crop image, loading previous mesh addresses.*) · `src/global_outline_tests.rs` (*Supply actual integer color, selection, clearing and pre-color cropped ownership checks at both physical display scales.*)
+
+Connect a section cap to the same physical primitive images used by mesh surfaces.
+
+Decode the reserved address before a projected-triangle lookup and use the clipping plane’s slope. Its low bit records selection; the rest identifies the plane. Negate the slope for the existing one-minus-forward depth adapter. Add the shared unblended RG16Uint target to both existing cap passes. Reuse one physical_primitive encoder for mesh and cap color/pick fragments. Write the marker’s low and high halves without float conversion, and load earlier mesh addresses so only covered cap pixels change. The color marker records selection; the first-pick marker is even, as in the current viewer. Keep original ownership and the separate float section output for existing masks and source tests. The supplied fixtures read both integer images at physical DPR1/2, including selected caps, empty pixels and picks before any color draw.
+
+> **Self-Check Question:** *Why must a cap address bypass projected mesh storage?*  
+> **Answer:** It describes a clipping plane, rather than a mesh triangle. Its plane gives the surface gradient, while the original owner still comes from the existing cap-picking records.
+
+- **What You Should See:** Color and cropped first picks retain exact section addresses, matching depth and original ownership.
+- **Hands-On Lab Experiment:** Cut and select a closed solid, then pick the section. Verify selected color, original ownership, and release. The supplied GPU checks additionally inspect the exact integer address before the first color frame.
 
 <details>
 <summary>Implementation 96zza-connect-section-primitive-images: Connect section primitives to color and first picking</summary>
@@ -7463,6 +7824,22 @@ After that block, append this supplied code:
 </details>
 
 <a id="checkpoint-96zzb-read-section-visibility-from-one-image"></a>
+
+### Step 21 of 21 · Read section visibility from one image (`96zzb-read-section-visibility-from-one-image`)
+
+- **Goal:** Use one physical primitive address for mesh and section ink visibility.
+- **Data Flow Trace:** `Follow the cap address from color or cropped picking to the fitted source test.`
+- **Files You Touch:** `src/finite_visibility.wgsl` (*Remove the redundant section texture declaration.*) · `src/finite_ink.rs` (*Retain only physical depth and primitive texture identities in the cache.*) · `src/renderer.rs` (*Pass only the physical primitive image to finite ink.*) · `src/pick_encode.rs` (*Use the crop’s own matching primitive image.*)
+
+The primitive image already identifies every visible section plane.
+
+Use its reserved address for finite point and stroke visibility, including the cropped first-pick image. Reconstruct section depth from the clipping plane. Remove the duplicate float section binding from finite ink; outline and ambient passes keep their existing input until their own conversion.
+
+> **Self-Check Question:** *Why must a cropped pick use its own primitive image?*  
+> **Answer:** Its texels describe the cropped depth attachment, while full-canvas coordinates still reconstruct the source and clipping plane.
+
+- **What You Should See:** Finite ink no longer binds the float section image.
+- **Hands-On Lab Experiment:** Pick a section before drawing color, then compare hidden points and strokes at both pixel densities.
 
 <details>
 <summary>Implementation 96zzb-read-section-visibility-from-one-image: Read section visibility from one image</summary>
@@ -8403,9 +8780,11 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 </details>
 
-## Run, Check, and Save
+---
 
-From `session_viewer`:
+## 5. Build, Verify, and Save Your Checkpoint
+
+Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 96zzb-read-section-visibility-from-one-image
@@ -8416,12 +8795,12 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. Use [checkpoint recovery](../../recovery.md) to restore any saved checkpoint.
+Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
 
-## Expected Visual Result & Experiment
+## 6. Lesson Summary & Expected Visual Result
 
 Finite ink no longer binds the float section image.
 
-- **Try this:** Pick a section before drawing color, then compare hidden points and strokes at both pixel densities.
+- **Final Lesson Experiment:** Pick a section before drawing color, then compare hidden points and strokes at both pixel densities.
 
-Continue with [Physical formats, shared section inputs and display defaults](96zzc-share-section-addresses-with-outlines-and-ambient.md).
+Continue with [Physical formats, shared section inputs and display defaults](../../consolidation/96zzc-share-section-addresses-with-outlines-and-ambient.md).

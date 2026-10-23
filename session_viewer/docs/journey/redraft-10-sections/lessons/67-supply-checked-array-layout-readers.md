@@ -1,87 +1,147 @@
 # 12.2 · Locate original arrays without downloading their bodies
 
-**Section 7: Out-of-Core HTTP Range Streaming, Shared Instances, and Drawing Sheets** · **Lesson 12.2** (Redraft `7.2`) · **10 checkpoints (`67-supply-checked-array-layout-readers` → `67si-validate-complete-octrees-before-range-streaming`)**
+**Section 7: Out-of-Core HTTP Range Streaming, Shared Instances, and Drawing Sheets** · **Lesson 12.2** (Redraft `7.2`) · **10 checkpoints (`67-supply-checked-array-layout-readers` → `67si-validate-complete-octrees-before-range-streaming`)** · **Study time: 5–10 h**
 
-> **Learning Goal:** Bound scalar headers and byte addresses.
+> **What You Will Learn & Build:** Bound scalar headers and byte addresses. By the final checkpoint (`67si-validate-complete-octrees-before-range-streaming`), you will validate complete octrees before range streaming.
 
-## Visual WebGPU & Architecture Schematic
+## 1. Visual Pipeline & WebGPU Architecture (Black & White Schematics)
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1px solid #cbd5e1;border-radius:10px;background:#f8fafc;">
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
+<svg viewBox="0 0 840 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <rect x="4" y="4" width="832" height="212" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Lesson 12.2 Execution Flow: Locate original arrays without downloading their bodies</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">Concrete data pipeline you build in this lesson (10 Checkpoints: 67-supply-checked-array-layout-readers → 67si-validate-complete-octrees-before-range-streaming)</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
+  
+    
+    <rect x="18" y="68" width="184" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="110" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
+    <line x1="28" y1="92" x2="192" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="110" y="108" text-anchor="middle" font-size="11" fill="#111111">original file bytes</text>
+    <line x1="202" y1="108" x2="222" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="224" y="68" width="184" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="316" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
+    <line x1="234" y1="92" x2="398" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="316" y="108" text-anchor="middle" font-size="11" fill="#111111">checked source layout</text>
+    <line x1="408" y1="108" x2="428" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="430" y="68" width="184" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="522" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
+    <line x1="440" y1="92" x2="604" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="522" y="108" text-anchor="middle" font-size="11" fill="#111111">existing GPU array owners</text>
+    <line x1="614" y1="108" x2="634" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="636" y="68" width="184" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="728" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
+    <line x1="646" y1="92" x2="810" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="728" y="108" text-anchor="middle" font-size="11" fill="#111111">later range streaming</text>
+    
+    <rect x="18" y="162" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="32" y="181" font-size="11" font-weight="700" fill="#111111">Files You Edit in Lesson 12.2:</text>
+    <text x="215" y="181" font-size="11" fill="#111111">src/stream.rs  ·  src/lib.rs</text>
+    <text x="32" y="198" font-size="10.5" fill="#111111">10 Checkpoints: 67-supply-checked-array-layout-readers → 67si-validate-complete-octrees-before-range-streaming — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
+  
+</svg>
+</div>
+
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
 <svg viewBox="0 0 840 240" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#475569"/>
-    </marker>
-    <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#2563eb"/>
-    </marker>
-    <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#059669"/>
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
     </marker>
   </defs>
-  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
-  <text x="20" y="28" font-size="14" font-weight="700" fill="#0f172a">Section 7 WebGPU Streaming & Instancing: HTTP Range Requests, Shared Source Meshes & 2D Drawing Sheets</text>
-  <text x="20" y="46" font-size="11.5" fill="#475569">How massive multi-gigabyte scenes stream out-of-core via HTTP 206 Partial Content and draw 1,000+ placements from 1 GPU buffer.</text>
-  <line x1="16" y1="54" x2="824" y2="54" stroke="#e2e8f0" stroke-width="1"/>
+  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Section 7 WebGPU Streaming & Instancing: HTTP Range Requests, Shared Source Meshes & 2D Drawing Sheets</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">How massive multi-gigabyte scenes stream out-of-core via HTTP 206 Partial Content and draw 1,000+ placements from 1 GPU buffer.</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
   
-    <rect x="18" y="68" width="245" height="145" rx="6" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
-    <text x="140" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1e40af">1. HTTP 206 Range Streaming (Ch 12)</text>
-    <text x="28" y="108" font-size="10.5" fill="#1e3a8a">• Fetch compact Manifest + World Bounds</text>
-    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#1d4ed8">• Prioritize visible frustum chunks</text>
-    <text x="28" y="144" font-size="10.5" fill="#1e3a8a">• Range: bytes=start-end (bounded memory)</text>
-    <text x="28" y="162" font-size="10.5" fill="#1e3a8a">• Evict cold off-screen chunks under</text>
-    <text x="28" y="178" font-size="10.5" fill="#1e3a8a">  memory budget without losing metadata</text>
+    <rect x="18" y="68" width="245" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="140" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">1. HTTP 206 Range Streaming (Ch 12)</text>
+    <text x="28" y="108" font-size="10.5" fill="#111111">• Fetch compact Manifest + World Bounds</text>
+    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#111111">• Prioritize visible frustum chunks</text>
+    <text x="28" y="144" font-size="10.5" fill="#111111">• Range: bytes=start-end (bounded memory)</text>
+    <text x="28" y="162" font-size="10.5" fill="#111111">• Evict cold off-screen chunks under</text>
+    <text x="28" y="178" font-size="10.5" fill="#111111">  memory budget without losing metadata</text>
 
-    <line x1="263" y1="138" x2="293" y2="138" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
+    <line x1="263" y1="138" x2="293" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="295" y="68" width="265" height="145" rx="6" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5"/>
-    <text x="427" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#9a3412">2. GPU Hardware Instancing (Ch 13)</text>
-    <text x="307" y="108" font-size="10.5" fill="#7c2d12">• 1 Shared Definition Buffer (e.g. Bolt)</text>
-    <text x="307" y="126" font-size="10.5" font-weight="600" fill="#c2410c">• N Instance Rows (@builtin(instance_index)):</text>
-    <text x="307" y="142" font-size="10" fill="#7c2d12">  Per-instance mat4x4 transform, tint,</text>
-    <text x="307" y="157" font-size="10" fill="#7c2d12">  and distinct instance_owner_id</text>
-    <text x="307" y="176" font-size="10.5" fill="#7c2d12">• draw_indexed(0..idx_cnt, 0, 0..N_inst)</text>
+    <rect x="295" y="68" width="265" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="427" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">2. GPU Hardware Instancing (Ch 13)</text>
+    <text x="307" y="108" font-size="10.5" fill="#111111">• 1 Shared Definition Buffer (e.g. Bolt)</text>
+    <text x="307" y="126" font-size="10.5" font-weight="600" fill="#111111">• N Instance Rows (@builtin(instance_index)):</text>
+    <text x="307" y="142" font-size="10" fill="#111111">  Per-instance mat4x4 transform, tint,</text>
+    <text x="307" y="157" font-size="10" fill="#111111">  and distinct instance_owner_id</text>
+    <text x="307" y="176" font-size="10.5" fill="#111111">• draw_indexed(0..idx_cnt, 0, 0..N_inst)</text>
 
-    <line x1="560" y1="138" x2="590" y2="138" stroke="#059669" stroke-width="2" marker-end="url(#arrow-green)"/>
+    <line x1="560" y1="138" x2="590" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="592" y="68" width="228" height="145" rx="6" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1.5"/>
-    <text x="706" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#065f46">3. 2D Drawing Sheets &amp; Blocks</text>
-    <text x="604" y="108" font-size="10.5" fill="#064e3b">• Paper-space Sheet frames &amp; title</text>
-    <text x="604" y="124" font-size="10.5" fill="#064e3b">  blocks (`SheetInit / SheetRows`)</text>
-    <text x="604" y="144" font-size="10.5" font-weight="600" fill="#047857">• Calibrated mm/inch pen widths</text>
-    <text x="604" y="162" font-size="10.5" fill="#064e3b">• Switch smoothly between 3D Model</text>
-    <text x="604" y="178" font-size="10.5" fill="#064e3b">  view and 2D Sheet layouts</text>
+    <rect x="592" y="68" width="228" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="706" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">3. 2D Drawing Sheets &amp; Blocks</text>
+    <text x="604" y="108" font-size="10.5" fill="#111111">• Paper-space Sheet frames &amp; title</text>
+    <text x="604" y="124" font-size="10.5" fill="#111111">  blocks (SheetInit / SheetRows)</text>
+    <text x="604" y="144" font-size="10.5" font-weight="600" fill="#111111">• Calibrated mm/inch pen widths</text>
+    <text x="604" y="162" font-size="10.5" fill="#111111">• Switch smoothly between 3D Model</text>
+    <text x="604" y="178" font-size="10.5" fill="#111111">  view and 2D Sheet layouts</text>
     
 </svg>
 </div>
 
-### Lesson Data Flow (`Rust` → `WebGPU` → `WGSL`)
+## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
 
-```
-original file bytes → checked source layout → existing GPU array owners → later range streaming.
-```
+Before writing code, review how the three layers in this chapter talk to each other:
 
-- Bound scalar headers and byte addresses.
-- Find coordinate arrays without downloading their bodies.
-- Validate complete octrees before range streaming.
-- **Why it works (Why check addition before comparing the message end?):** An overflowing byte address could wrap into a small, apparently valid offset.
-
-### Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `Browser`)
-
-| Layer | Construct | First-Year Student Explanation |
+| Layer | Construct | Plain-English Explanation for Students |
 | :--- | :--- | :--- |
 | **HTTP / Fetch** | `Range: bytes=start-end` -> `206 Partial Content` | Fetches only the exact byte slice of an octree node or sheet column needed for the current camera view. |
 | **Protobuf Wire** | Varint tag + length prefix scanner | Skips over multi-megabyte coordinate arrays by reading their byte range offsets without allocating their contents. |
 | **Rust (Residency)** | `budget.reserve(bytes)?` -> LRU eviction | Guarantees resident + in-flight pages never exceed the memory cap; coarse root pages stay pinned so the scene is never blank. |
 | **GPU Instancing** | Shared definition buffer + per-instance record | Draws N placed copies of a complex CAD component using 1 shared vertex/index allocation and N compact instance records. |
 
-**Production source (`session_viewer/src`):** [app/manifest.rs](../../../../src/app/manifest.rs), [app/session_io.rs](../../../../src/app/session_io.rs), [app/stream.rs](../../../../src/app/stream.rs), [app/range_gate.rs](../../../../src/app/range_gate.rs), [app/fetch.rs](../../../../src/app/fetch.rs), [app/loader.rs](../../../../src/app/loader.rs), [app/live.rs](../../../../src/app/live.rs).
+**Authoritative production source (`session_viewer/src`):** [app/manifest.rs](../../../../src/app/manifest.rs), [app/session_io.rs](../../../../src/app/session_io.rs), [app/stream.rs](../../../../src/app/stream.rs), [app/range_gate.rs](../../../../src/app/range_gate.rs), [app/fetch.rs](../../../../src/app/fetch.rs), [app/loader.rs](../../../../src/app/loader.rs), [app/live.rs](../../../../src/app/live.rs).
 
-## Implementation Checkpoints
+## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
 
-Apply these checkpoints in order inside `workspace/journey`. Expand each block to view the Rust/WGSL/HTML edits:
+| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
+| ---: | :--- | :--- | :--- | :--- |
+| **1** | [`67-supply-checked-array-layout-readers`](#checkpoint-67-supply-checked-array-layout-readers) | Bound scalar headers and byte addresses. | `src/stream.rs`, `src/lib.rs` | `original file bytes → checked source layout → existing GPU array owners → later range streaming` |
+| **2** | [`67sa-locate-original-cloud-and-sheet-array-fields`](#checkpoint-67sa-locate-original-cloud-and-sheet-array-fields) | Locate original cloud and sheet array fields. | `src/stream.rs` | `original file bytes → checked source layout → existing GPU array owners → later range streaming` |
+| **3** | [`67sb-convert-bounded-doubles-and-cache-metadata-windows`](#checkpoint-67sb-convert-bounded-doubles-and-cache-metadata-windows) | Convert bounded doubles and cache metadata windows. | `src/stream.rs` | `original file bytes → checked source layout → existing GPU array owners → later range streaming` |
+| **4** | [`67sc-decode-packed-arrays-for-existing-gpu-owners`](#checkpoint-67sc-decode-packed-arrays-for-existing-gpu-owners) | Decode packed arrays for existing GPU owners. | `src/stream.rs` | `original file bytes → checked source layout → existing GPU array owners → later range streaming` |
+| **5** | [`67sd-descend-bounded-original-protobuf-messages`](#checkpoint-67sd-descend-bounded-original-protobuf-messages) | Descend bounded original protobuf messages. | `src/stream.rs` | `original file bytes → checked source layout → existing GPU array owners → later range streaming` |
+| **6** | [`67se-find-coordinate-arrays-without-downloading-their-bodies`](#checkpoint-67se-find-coordinate-arrays-without-downloading-their-bodies) | Find coordinate arrays without downloading their bodies. | `src/stream.rs` | `original file bytes → checked source layout → existing GPU array owners → later range streaming` |
+| **7** | [`67sf-validate-sheet-side-array-lengths`](#checkpoint-67sf-validate-sheet-side-array-lengths) | Validate sheet side-array lengths. | `src/stream.rs` | `original file bytes → checked source layout → existing GPU array owners → later range streaming` |
+| **8** | [`67sg-collect-original-octree-node-columns`](#checkpoint-67sg-collect-original-octree-node-columns) | Collect original octree node columns. | `src/stream.rs` | `original file bytes → checked source layout → existing GPU array owners → later range streaming` |
+| **9** | [`67sh-check-octree-bounds-and-unique-child-ownership`](#checkpoint-67sh-check-octree-bounds-and-unique-child-ownership) | Check octree bounds and unique child ownership. | `src/stream.rs` | `original file bytes → checked source layout → existing GPU array owners → later range streaming` |
+| **10** | [`67si-validate-complete-octrees-before-range-streaming`](#checkpoint-67si-validate-complete-octrees-before-range-streaming) | Validate complete octrees before range streaming. | `src/stream.rs` | `original file bytes → checked source layout → existing GPU array owners → later range streaming` |
+
+---
+
+## 4. Step-by-Step Coding Notebook (Concept + Implementation)
+
+Work through each notebook cell below in order inside `workspace/journey`. Read the **Concept Walkthrough** and **Self-Check Q&A** first, then expand the **Implementation** block to type and verify the code.
 
 <a id="checkpoint-67-supply-checked-array-layout-readers"></a>
+
+### Step 1 of 10 · Bound scalar headers and byte addresses (`67-supply-checked-array-layout-readers`)
+
+- **Goal:** Bound scalar headers and byte addresses.
+- **Data Flow Trace:** `original file bytes → checked source layout → existing GPU array owners → later range streaming`
+- **Files You Touch:** `src/stream.rs` (*Bound scalar headers and byte addresses.*) · `src/lib.rs` (*Register the source component.*)
+
+Reuse the varint decoder from 66b. A protobuf scalar has a wire-dependent byte length; byte addresses stay u64 until a bounded slice requires usize. checked_add must precede the end comparison. This is the boundary between an external file layout and later GPU-ready arrays.
+
+> **Self-Check Question:** *Why check addition before comparing the message end?*  
+> **Answer:** An overflowing byte address could wrap into a small, apparently valid offset.
+
+- **What You Should See:** The cumulative browser application compiles. This parser preparation preserves the current drawing; actual range requests and streamed pages connect in the following lessons.
+- **Hands-On Lab Experiment:** Trace a body at u64::MAX-2 with length 4; predict the rejection before evaluating the end bound.
 
 <details>
 <summary>Implementation 67-supply-checked-array-layout-readers: Bound scalar headers and byte addresses</summary>
@@ -123,6 +183,21 @@ After that block, type:
 </details>
 
 <a id="checkpoint-67sa-locate-original-cloud-and-sheet-array-fields"></a>
+
+### Step 2 of 10 · Locate original cloud and sheet array fields (`67sa-locate-original-cloud-and-sheet-array-fields`)
+
+- **Goal:** Locate original cloud and sheet array fields.
+- **Data Flow Trace:** `original file bytes → checked source layout → existing GPU array owners → later range streaming`
+- **Files You Touch:** `src/stream.rs` (*Locate original cloud and sheet array fields.*)
+
+CloudFields and SheetFields retain offsets into the original file rather than owned coordinate arrays.
+
+Field records the parsed tag, body start and next address. Parse scalar fields with the helper from the preceding lesson; length-delimited bodies require a second checked address addition. ETags remain attached to the original layout so later ranges can reject mixed revisions.
+
+> **Self-Check Question:** *Does a field body offset point at its length prefix?*  
+> **Answer:** No. The body begins after both the tag and the length varint.
+
+- **Hands-On Lab Experiment:** Draw the tag, length prefix and body for a three-byte packed array. Mark body and next separately.
 
 <details>
 <summary>Implementation 67sa-locate-original-cloud-and-sheet-array-fields: Locate original cloud and sheet array fields</summary>
@@ -265,6 +340,21 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-67sb-convert-bounded-doubles-and-cache-metadata-windows"></a>
 
+### Step 3 of 10 · Convert bounded doubles and cache metadata windows (`67sb-convert-bounded-doubles-and-cache-metadata-windows`)
+
+- **Goal:** Convert bounded doubles and cache metadata windows.
+- **Data Flow Trace:** `original file bytes → checked source layout → existing GPU array owners → later range streaming`
+- **Files You Touch:** `src/stream.rs` (*Convert bounded doubles and cache metadata windows.*)
+
+Keep original source precision separate from the f32 upload representation.
+
+Require the exact declared byte count before converting doubles, then reject non-finite values in either representation. MetadataWindow serves a borrowed slice only when the complete range is cached. Its read length batches nearby small fields within 64 KiB and the enclosing message; it does not allocate a geometry-sized header.
+
+> **Self-Check Question:** *Why reject a finite f64 that becomes infinite as f32?*  
+> **Answer:** The source value is valid as f64 but cannot be represented in the GPU coordinate format.
+
+- **Hands-On Lab Experiment:** Compare a request inside a cached window with one crossing its end. Trace a finite 1 e 300 source coordinate through the f32 check.
+
 <details>
 <summary>Implementation 67sb-convert-bounded-doubles-and-cache-metadata-windows: Convert bounded doubles and cache metadata windows</summary>
 
@@ -388,6 +478,21 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-67sc-decode-packed-arrays-for-existing-gpu-owners"></a>
+
+### Step 4 of 10 · Decode packed arrays for existing GPU owners (`67sc-decode-packed-arrays-for-existing-gpu-owners`)
+
+- **Goal:** Decode packed arrays for existing GPU owners.
+- **Data Flow Trace:** `original file bytes → checked source layout → existing GPU array owners → later range streaming`
+- **Files You Touch:** `src/stream.rs` (*Decode packed arrays for existing GPU owners.*)
+
+Read fixed-width arrays with explicit little-endian conversion and varints with the shared decoder.
+
+These low-level readers are used after layout and length validation; they are not independent whole-file validators. Streamed positions become f32 upload triples while original bytes remain in the source. Normals reuse cloud_normals::oct16, and colours pack four byte channels into one u32.
+
+> **Self-Check Question:** *Does decoding normals require another normal encoding algorithm?*  
+> **Answer:** No. Reuse the octahedral encoder already written for the cloud owner.
+
+- **Hands-On Lab Experiment:** Decode little-endian bytes for 1.0 and predict the packed value of RGBA[255,0,0,255]. Compare a zero normal with a valid axis normal.
 
 <details>
 <summary>Implementation 67sc-decode-packed-arrays-for-existing-gpu-owners: Decode packed arrays for existing GPU owners</summary>
@@ -539,6 +644,21 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-67sd-descend-bounded-original-protobuf-messages"></a>
 
+### Step 5 of 10 · Descend bounded original protobuf messages (`67sd-descend-bounded-original-protobuf-messages`)
+
+- **Goal:** Descend bounded original protobuf messages.
+- **Data Flow Trace:** `original file bytes → checked source layout → existing GPU array owners → later range streaming`
+- **Files You Touch:** `src/stream.rs` (*Descend bounded original protobuf messages.*)
+
+Walk nested length-delimited messages using parent-end constraints.
+
+Small names can precede the target; a larger skipped body stops this prefix-only fast path. Reaching a target nested message requires its end to agree with the declared parent end. Failure means this specialized layout is unavailable, not that arbitrary source data can be accepted.
+
+> **Self-Check Question:** *Why refuse a large field before the expected geometry message?*  
+> **Answer:** A bounded prefix reader cannot skip an arbitrary geometry body while claiming it has inspected the layout.
+
+- **Hands-On Lab Experiment:** Trace a nested message whose declared end exceeds its parent, then a small name before the expected field.
+
 <details>
 <summary>Implementation 67sd-descend-bounded-original-protobuf-messages: Descend bounded original protobuf messages</summary>
 
@@ -643,6 +763,21 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-67se-find-coordinate-arrays-without-downloading-their-bodies"></a>
+
+### Step 6 of 10 · Find coordinate arrays without downloading their bodies (`67se-find-coordinate-arrays-without-downloading-their-bodies`)
+
+- **Goal:** Find coordinate arrays without downloading their bodies.
+- **Data Flow Trace:** `original file bytes → checked source layout → existing GPU array owners → later range streaming`
+- **Files You Touch:** `src/stream.rs` (*Find coordinate arrays without downloading their bodies.*)
+
+After entering the cloud or sheet message, scan only the permitted leading fields.
+
+The coordinates field supplies its source offset and length without reading the entire body. cloud_layout and sheet_layout use the same scanner; plain chooses the whole-file path when neither bounded specialization matches. A truncated varint cannot produce a guessed offset.
+
+> **Self-Check Question:** *How can a short prefix locate a much larger coordinate array?*  
+> **Answer:** The field header declares the array length; its body does not need to be present in the prefix.
+
+- **Hands-On Lab Experiment:** Sketch a short prefix declaring a megabyte coordinate body. Identify which bytes must be downloaded now and which remain for later range requests.
 
 <details>
 <summary>Implementation 67se-find-coordinate-arrays-without-downloading-their-bodies: Find coordinate arrays without downloading their bodies</summary>
@@ -779,6 +914,21 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-67sf-validate-sheet-side-array-lengths"></a>
 
+### Step 7 of 10 · Validate sheet side-array lengths (`67sf-validate-sheet-side-array-lengths`)
+
+- **Goal:** Validate sheet side-array lengths.
+- **Data Flow Trace:** `original file bytes → checked source layout → existing GPU array owners → later range streaming`
+- **Files You Touch:** `src/stream.rs` (*Validate sheet side-array lengths.*)
+
+SheetFields::set records each optional side array once.
+
+Colours, widths and IDs must match the declared segment count, while metadata names remain bounded UTF-8. Reject duplicate known fields and wrong wire types; skip unknown fields to preserve forward compatibility. Actual sheet GPU drawing is connected at 71, using these original entity IDs.
+
+> **Self-Check Question:** *Why must a colour field match the segment count?*  
+> **Answer:** Its fixed32 values index the same original segments as the coordinate array.
+
+- **Hands-On Lab Experiment:** For two segments, predict the accepted colour byte count. Try a duplicate colour field and an invalid UTF-8 metadata name.
+
 <details>
 <summary>Implementation 67sf-validate-sheet-side-array-lengths: Validate sheet side-array lengths</summary>
 
@@ -865,6 +1015,21 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-67sg-collect-original-octree-node-columns"></a>
+
+### Step 8 of 10 · Collect original octree node columns (`67sg-collect-original-octree-node-columns`)
+
+- **Goal:** Collect original octree node columns.
+- **Data Flow Trace:** `original file bytes → checked source layout → existing GPU array owners → later range streaming`
+- **Files You Touch:** `src/stream.rs` (*Collect original octree node columns.*)
+
+Store the original octree as parallel columns.
+
+Validate fixed-width alignment and every varint before adopting a field, then use the already-written packed readers. set_field only fills columns; it does not establish topology. The next two lessons verify node bounds and connected parent relationships before streamed level selection uses them.
+
+> **Self-Check Question:** *Why validate a packed varint column before decoding it?*  
+> **Answer:** The permissive packed reader can stop at malformed input; the column must first be known complete.
+
+- **Hands-On Lab Experiment:** List the seven node columns. Explain why a truncated final varint must reject the column rather than silently drop a node.
 
 <details>
 <summary>Implementation 67sg-collect-original-octree-node-columns: Collect original octree node columns</summary>
@@ -970,6 +1135,21 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-67sh-check-octree-bounds-and-unique-child-ownership"></a>
+
+### Step 9 of 10 · Check octree bounds and unique child ownership (`67sh-check-octree-bounds-and-unique-child-ownership`)
+
+- **Goal:** Check octree bounds and unique child ownership.
+- **Data Flow Trace:** `original file bytes → checked source layout → existing GPU array owners → later range streaming`
+- **Files You Touch:** `src/stream.rs` (*Check octree bounds and unique child ownership.*)
+
+A node must have representable finite bounds, nonnegative size and spacing, and a point interval inside the original cloud.
+
+Child indices must be valid, unclaimed and exactly one level below their parent. Strictly increasing levels prevent cycles; the full-table check in the next lesson also rejects detached nodes. These checks protect later GPU page selection without rewriting original topology.
+
+> **Self-Check Question:** *Can two octree parents claim the same child?*  
+> **Answer:** No. The shared parent bitmap rejects a second claim and the root cannot be a child.
+
+- **Hands-On Lab Experiment:** Trace a duplicate child claim and a child with the wrong level. Compare an interval ending exactly at the cloud count with one ending past it.
 
 <details>
 <summary>Implementation 67sh-check-octree-bounds-and-unique-child-ownership: Check octree bounds and unique child ownership</summary>
@@ -1093,6 +1273,21 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-67si-validate-complete-octrees-before-range-streaming"></a>
+
+### Step 10 of 10 · Validate complete octrees before range streaming (`67si-validate-complete-octrees-before-range-streaming`)
+
+- **Goal:** Validate complete octrees before range streaming.
+- **Data Flow Trace:** `original file bytes → checked source layout → existing GPU array owners → later range streaming`
+- **Files You Touch:** `src/stream.rs` (*Validate complete octrees before range streaming.*)
+
+Check column lengths with checked multiplication before indexing.
+
+Then validate each node and its children with one shared parent bitmap. A final parent check rejects disconnected nodes. The supplied fixtures exercise malformed headers, finite conversion, original IDs, sheet fields and hostile topology; browser range requests connect in the following lessons.
+
+> **Self-Check Question:** *Do valid individual nodes prove the table is connected?*  
+> **Answer:** No. Every non-root node must also have exactly one valid parent.
+
+- **Hands-On Lab Experiment:** Predict outcomes for an empty tree, a single valid root and an otherwise valid detached node. Continue to the range-request lessons using this same module.
 
 <details>
 <summary>Implementation 67si-validate-complete-octrees-before-range-streaming: Validate complete octrees before range streaming</summary>
@@ -1234,9 +1429,11 @@ After that block, append this supplied code:
 
 </details>
 
-## Run, Check, and Save
+---
 
-From `session_viewer`:
+## 5. Build, Verify, and Save Your Checkpoint
+
+Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 67si-validate-complete-octrees-before-range-streaming
@@ -1247,10 +1444,10 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. Use [checkpoint recovery](../../recovery.md) to restore any saved checkpoint.
+Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
 
-## Expected Visual Result & Experiment
+## 6. Lesson Summary & Expected Visual Result
 
-- **Try this:** Predict outcomes for an empty tree, a single valid root and an otherwise valid detached node. Continue to the range-request lessons using this same module.
+- **Final Lesson Experiment:** Predict outcomes for an empty tree, a single valid root and an otherwise valid detached node. Continue to the range-request lessons using this same module.
 
-Continue with [Bounded scheduling, exact replies and cancellation](66za-own-original-range-read-permits.md).
+Continue with [Bounded scheduling, exact replies and cancellation](../../consolidation/66za-own-original-range-read-permits.md).

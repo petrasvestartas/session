@@ -1,91 +1,157 @@
 # 7.3 · Construction-plane drafts and one final commit
 
-**Section 5: Interactive Drawing, Snapping, Gumball Handles, and Scene Hierarchy** · **Lesson 7.3** (Redraft `5.3`) · **5 checkpoints (`48-coordinates` → `48d-input`)**
+**Section 5: Interactive Drawing, Snapping, Gumball Handles, and Scene Hierarchy** · **Lesson 7.3** (Redraft `5.3`) · **5 checkpoints (`48-coordinates` → `48d-input`)** · **Study time: 2.5–5 h**
 
-> **Learning Goal:** Resolve drawing points on the construction plane.
+> **What You Will Learn & Build:** Resolve drawing points on the construction plane. By the final checkpoint (`48d-input`), you will draw points and lines through the shared command dock.
 
-## Visual WebGPU & Architecture Schematic
+## 1. Visual Pipeline & WebGPU Architecture (Black & White Schematics)
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1px solid #cbd5e1;border-radius:10px;background:#f8fafc;">
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
+<svg viewBox="0 0 840 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <rect x="4" y="4" width="832" height="212" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Lesson 7.3 Execution Flow: Construction-plane drafts and one final commit</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">Concrete data pipeline you build in this lesson (5 Checkpoints: 48-coordinates → 48d-input)</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
+  
+    
+    <rect x="18" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="89" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
+    <line x1="28" y1="92" x2="151" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">typed world</text>
+    <text x="89" y="124" text-anchor="middle" font-size="11" fill="#111111">coordinate or</text>
+    <text x="89" y="140" text-anchor="middle" font-size="11" fill="#111111">screen…</text>
+    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="183" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="254" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
+    <line x1="193" y1="92" x2="316" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">finite bounds</text>
+    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="348" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="419" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
+    <line x1="358" y1="92" x2="481" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">construction-plane</text>
+    <text x="419" y="124" text-anchor="middle" font-size="11" fill="#111111">intersection</text>
+    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="513" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="584" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
+    <line x1="523" y1="92" x2="646" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">valid</text>
+    <text x="584" y="124" text-anchor="middle" font-size="11" fill="#111111">double-precision</text>
+    <text x="584" y="140" text-anchor="middle" font-size="11" fill="#111111">point</text>
+    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="678" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="749" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
+    <line x1="688" y1="92" x2="811" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">actual command</text>
+    <text x="749" y="124" text-anchor="middle" font-size="11" fill="#111111">field or canvas</text>
+    <text x="749" y="140" text-anchor="middle" font-size="11" fill="#111111">gesture</text>
+    
+    <rect x="18" y="162" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="32" y="181" font-size="11" font-weight="700" fill="#111111">Files You Edit in Lesson 7.3:</text>
+    <text x="215" y="181" font-size="11" fill="#111111">src/tool_coords.rs  ·  src/tool_coords_tests.rs  ·  src/lib.rs  ·  src/tool.rs  ·  src/tool_preview.rs  ·  src/renderer.rs</text>
+    <text x="32" y="198" font-size="10.5" fill="#111111">5 Checkpoints: 48-coordinates → 48d-input — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
+  
+</svg>
+</div>
+
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
 <svg viewBox="0 0 840 240" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#475569"/>
-    </marker>
-    <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#2563eb"/>
-    </marker>
-    <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#059669"/>
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
     </marker>
   </defs>
-  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
-  <text x="20" y="28" font-size="14" font-weight="700" fill="#0f172a">Chapter 7 Interactive CAD Manipulation: Construction-Plane Ray Hit, Snap Priority & 3D Gumball (widget.wgsl)</text>
-  <text x="20" y="46" font-size="11.5" fill="#475569">How 2D mouse drags become exact 3D CAD coordinates via construction planes, geometric snapping, and constant-screen-size Gumball handles.</text>
-  <line x1="16" y1="54" x2="824" y2="54" stroke="#e2e8f0" stroke-width="1"/>
+  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Chapter 7 Interactive CAD Manipulation: Construction-Plane Ray Hit, Snap Priority & 3D Gumball (widget.wgsl)</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">How 2D mouse drags become exact 3D CAD coordinates via construction planes, geometric snapping, and constant-screen-size Gumball handles.</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
   
-    <rect x="18" y="68" width="240" height="145" rx="6" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
-    <text x="138" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1e40af">1. Construction Plane &amp; Snapping</text>
-    <text x="28" y="108" font-size="10.5" fill="#1e3a8a">• Ray R(t) = O + t·D intersects Plane(P0, N):</text>
-    <text x="28" y="124" font-size="10.5" font-weight="700" fill="#1d4ed8">  t = dot(P0 - O, N) / dot(D, N)</text>
-    <text x="28" y="144" font-size="10.5" font-weight="600" fill="#1e40af">• Snap Priority within pixel radius:</text>
-    <text x="28" y="160" font-size="10" fill="#1e3a8a">  1. Endpoint / Vertex   2. Midpoint</text>
-    <text x="28" y="175" font-size="10" fill="#1e3a8a">  3. Curve Nearest       4. Grid Step</text>
-    <text x="28" y="193" font-size="10" fill="#1e3a8a">• Typed "x,y,z" overrides cursor ray</text>
+    <rect x="18" y="68" width="240" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="138" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">1. Construction Plane &amp; Snapping</text>
+    <text x="28" y="108" font-size="10.5" fill="#111111">• Ray R(t) = O + t·D intersects Plane(P0, N):</text>
+    <text x="28" y="124" font-size="10.5" font-weight="700" fill="#111111">  t = dot(P0 - O, N) / dot(D, N)</text>
+    <text x="28" y="144" font-size="10.5" font-weight="600" fill="#111111">• Snap Priority within pixel radius:</text>
+    <text x="28" y="160" font-size="10" fill="#111111">  1. Endpoint / Vertex   2. Midpoint</text>
+    <text x="28" y="175" font-size="10" fill="#111111">  3. Curve Nearest       4. Grid Step</text>
+    <text x="28" y="193" font-size="10" fill="#111111">• Typed "x,y,z" overrides cursor ray</text>
 
-    <line x1="258" y1="138" x2="288" y2="138" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
+    <line x1="258" y1="138" x2="288" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="290" y="68" width="250" height="145" rx="6" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5"/>
-    <text x="415" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#9a3412">2. Tool State &amp; Preview Overlay</text>
-    <text x="302" y="108" font-size="10.5" fill="#7c2d12">• Active Tool (Line / Polyline / Point)</text>
-    <text x="302" y="126" font-size="10.5" font-weight="600" fill="#c2410c">• Rubber-band preview buffer:</text>
-    <text x="302" y="142" font-size="10" fill="#7c2d12">  Updates every pointermove without</text>
-    <text x="302" y="157" font-size="10" fill="#7c2d12">  polluting Undo history stack</text>
-    <text x="302" y="176" font-size="10.5" fill="#7c2d12">• Enter / Final Click -&gt; 1 atomic Undo</text>
-    <text x="302" y="192" font-size="10.5" fill="#7c2d12">• Escape -&gt; cancel &amp; clear preview</text>
+    <rect x="290" y="68" width="250" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="415" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">2. Tool State &amp; Preview Overlay</text>
+    <text x="302" y="108" font-size="10.5" fill="#111111">• Active Tool (Line / Polyline / Point)</text>
+    <text x="302" y="126" font-size="10.5" font-weight="600" fill="#111111">• Rubber-band preview buffer:</text>
+    <text x="302" y="142" font-size="10" fill="#111111">  Updates every pointermove without</text>
+    <text x="302" y="157" font-size="10" fill="#111111">  polluting Undo history stack</text>
+    <text x="302" y="176" font-size="10.5" fill="#111111">• Enter / Final Click -&gt; 1 atomic Undo</text>
+    <text x="302" y="192" font-size="10.5" fill="#111111">• Escape -&gt; cancel &amp; clear preview</text>
 
-    <line x1="540" y1="138" x2="570" y2="138" stroke="#059669" stroke-width="2" marker-end="url(#arrow-green)"/>
+    <line x1="540" y1="138" x2="570" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="572" y="68" width="248" height="145" rx="6" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1.5"/>
-    <text x="696" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#065f46">3. 3D Gumball Widget (widget.wgsl)</text>
-    <text x="584" y="108" font-size="10.5" fill="#064e3b">• Placed at selection bounding center</text>
-    <text x="584" y="126" font-size="10.5" font-weight="600" fill="#047857">• Scaled by camera distance w so</text>
-    <text x="584" y="142" font-size="10.5" font-weight="600" fill="#047857">  handles stay constant pixel size!</text>
-    <text x="584" y="160" font-size="10" fill="#064e3b">• Axis arrows (Translate X/Y/Z)</text>
-    <text x="584" y="175" font-size="10" fill="#064e3b">• Arc rings (Rotate) + Boxes (Scale)</text>
-    <text x="584" y="192" font-size="10" fill="#064e3b">• Picked via Rg32Uint widget sub_id</text>
+    <rect x="572" y="68" width="248" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="696" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">3. 3D Gumball Widget (widget.wgsl)</text>
+    <text x="584" y="108" font-size="10.5" fill="#111111">• Placed at selection bounding center</text>
+    <text x="584" y="126" font-size="10.5" font-weight="600" fill="#111111">• Scaled by camera distance w so</text>
+    <text x="584" y="142" font-size="10.5" font-weight="600" fill="#111111">  handles stay constant pixel size!</text>
+    <text x="584" y="160" font-size="10" fill="#111111">• Axis arrows (Translate X/Y/Z)</text>
+    <text x="584" y="175" font-size="10" fill="#111111">• Arc rings (Rotate) + Boxes (Scale)</text>
+    <text x="584" y="192" font-size="10" fill="#111111">• Picked via Rg32Uint widget sub_id</text>
     
 </svg>
 </div>
 
-### Lesson Data Flow (`Rust` → `WebGPU` → `WGSL`)
+## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
 
-```
-typed world coordinate or screen ray → finite bounds → construction-plane intersection → valid double-precision point.
-unfinished draft → bounded display band and cursor → read-only depth → no saved pick owner.
-actual command field or canvas gesture → tool-owned input → temporary preview → complete or cancel → shared dock answer.
-```
+Before writing code, review how the three layers in this chapter talk to each other:
 
-- Resolve drawing points on the construction plane.
-- Draw a temporary rubber band and cursor.
-- Draw points and lines through the shared command dock.
-- **Why it works (Why use the current camera for a click?):** The same screen position points elsewhere after orbiting or zooming. Reusing an old ray would place geometry away from the cursor.
-
-### Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `Browser`)
-
-| Layer | Construct | First-Year Student Explanation |
+| Layer | Construct | Plain-English Explanation for Students |
 | :--- | :--- | :--- |
 | **Rust (CAD Math)** | Ray–Plane Intersection `t = dot(P0 - O, N) / dot(D, N)` | Projects a 2D mouse ray onto the active 3D construction plane (`Plane`), with priority snapping (`Endpoint > Midpoint > Curve > Grid`). |
 | **Rust (Editor)** | Preview Overlay vs. Atomic Undo Commit | Rubber-band preview geometry updates on every `pointermove` without touching the Undo stack; `Enter` or final click commits one atomic kernel transaction. |
 | **WGSL (`widget.wgsl`)** | Perspective-Compensated 3D Gumball Handles | Scales axis arrows, rotation arcs, and scale boxes by camera depth `w` so the 3D Gumball gizmo stays a constant clickable pixel size at any zoom. |
 
-**Production source (`session_viewer/src`):** [app/command/mod.rs](../../../src/app/command/mod.rs), [app/command/tool.rs](../../../src/app/command/tool.rs), [app/cplane.rs](../../../src/app/cplane.rs), [app/snap.rs](../../../src/app/snap.rs), [app/gizmo.rs](../../../src/app/gizmo.rs), [engine/gpu/widget.rs](../../../src/engine/gpu/widget.rs), [app/deform.rs](../../../src/app/deform.rs).
+**Authoritative production source (`session_viewer/src`):** [app/command/mod.rs](../../../src/app/command/mod.rs), [app/command/tool.rs](../../../src/app/command/tool.rs), [app/cplane.rs](../../../src/app/cplane.rs), [app/snap.rs](../../../src/app/snap.rs), [app/gizmo.rs](../../../src/app/gizmo.rs), [engine/gpu/widget.rs](../../../src/engine/gpu/widget.rs), [app/deform.rs](../../../src/app/deform.rs)
 
-## Implementation Checkpoints
+## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
 
-Apply these checkpoints in order inside `workspace/journey`. Expand each block to view the Rust/WGSL/HTML edits:
+| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
+| ---: | :--- | :--- | :--- | :--- |
+| **1** | [`48-coordinates`](#checkpoint-48-coordinates) | Resolve drawing points on the construction plane. | `src/tool_coords.rs`, `src/tool_coords_tests.rs`, `src/lib.rs` | `typed world coordinate or screen ray → finite bounds → construction-plane intersection → valid double-precision point` |
+| **2** | [`48a-draft`](#checkpoint-48a-draft) | Keep unfinished point tools outside the document. | `src/tool.rs`, `src/lib.rs` | `tool point count → accepted draft points → checked final candidate → prepared original geometry` |
+| **3** | [`48b-preview`](#checkpoint-48b-preview) | Draw a temporary rubber band and cursor. | `src/tool_preview.rs`, `src/lib.rs`, `src/renderer.rs`, `src/pick_gpu_tests.rs` | `unfinished draft → bounded display band and cursor → read-only depth → no saved pick owner` |
+| **4** | [`48c-commit`](#checkpoint-48c-commit) | Commit completed tools in one Undo transaction. | `src/editor.rs`, `src/tool_tests.rs`, `src/lib.rs` | `running draft → validated completion → one source insertion → one Undo entry` |
+| **5** | [`48d-input`](#checkpoint-48d-input) | Draw points and lines through the shared command dock. | `src/panel.rs`, `src/commands.rs`, `src/browser.rs` | `actual command field or canvas gesture → tool-owned input → temporary preview → complete or cancel → shared dock answer` |
+
+---
+
+## 4. Step-by-Step Coding Notebook (Concept + Implementation)
+
+Work through each notebook cell below in order inside `workspace/journey`. Read the **Concept Walkthrough** and **Self-Check Q&A** first, then expand the **Implementation** block to type and verify the code.
 
 <a id="checkpoint-48-coordinates"></a>
+
+### Step 1 of 5 · Resolve drawing points on the construction plane (`48-coordinates`)
+
+- **Goal:** Resolve drawing points on the construction plane.
+- **Data Flow Trace:** `typed world coordinate or screen ray → finite bounds → construction-plane intersection → valid double-precision point`
+- **Files You Touch:** `src/tool_coords.rs` (*Validate world coordinates and intersect the current ray with the XY plane.*) · `src/tool_coords_tests.rs` (*Copy finite-coordinate, camera round-trip and invalid-ray checks.*) · `src/lib.rs` (*Register the tool component and copied checks.*)
+
+Validate finite world coordinates, then intersect the current camera ray with the XY construction plane. Parallel or clipped rays cannot provide a drawing point.
+
+> **Self-Check Question:** *Why use the current camera for a click?*  
+> **Answer:** The same screen position points elsewhere after orbiting or zooming. Reusing an old ray would place geometry away from the cursor.
+
+- **What You Should See:** Inspect tool_coords_tests, then repeat the earlier command exercise. These helpers are connected to actual drawing input at48d.
+- **Hands-On Lab Experiment:** Compare the same world point under perspective and orthographic projection. Reject NaN, coordinates beyond±1e12 and a ray parallel to the plane.
 
 <details>
 <summary>Implementation 48-coordinates: Resolve drawing points on the construction plane</summary>
@@ -146,6 +212,20 @@ After that block, type:
 
 <a id="checkpoint-48a-draft"></a>
 
+### Step 2 of 5 · Keep unfinished point tools outside the document (`48a-draft`)
+
+- **Goal:** Keep unfinished point tools outside the document.
+- **Data Flow Trace:** `tool point count → accepted draft points → checked final candidate → prepared original geometry`
+- **Files You Touch:** `src/tool.rs` (*Define Point and Line tools with temporary accepted points and a cursor.*) · `src/lib.rs` (*Register the tool component and copied checks.*)
+
+A draft owns a tool, its accepted points and a temporary cursor. The last point builds checked original geometry without replacing accepted points if validation fails.
+
+> **Self-Check Question:** *Does accepting a first line point create a source row?*  
+> **Answer:** No. It changes only the draft. The checked final candidate becomes a source in the commit lesson.
+
+- **What You Should See:** Continue the earlier command exercise. Point and Line tools are defined here; the editor adopts them at48c.
+- **Hands-On Lab Experiment:** Compare two identical line endpoints with distinct endpoints. A refused final point must leave the first accepted draft point available.
+
 <details>
 <summary>Implementation 48a-draft: Keep unfinished point tools outside the document</summary>
 
@@ -187,6 +267,20 @@ After that block, type:
 </details>
 
 <a id="checkpoint-48b-preview"></a>
+
+### Step 3 of 5 · Draw a temporary rubber band and cursor (`48b-preview`)
+
+- **Goal:** Draw a temporary rubber band and cursor.
+- **Data Flow Trace:** `unfinished draft → bounded display band and cursor → read-only depth → no saved pick owner`
+- **Files You Touch:** `src/tool_preview.rs` (*Draw and release a bounded temporary band and cursor.*) · `src/lib.rs` (*Register the tool component and copied checks.*) · `src/renderer.rs` (*Keep tool preview presentation separate from primary geometry and integer picking.*) · `src/pick_gpu_tests.rs` (*Copy actual preview pixels, bounded bytes, no pick ownership and resource release checks.*)
+
+Reuse the existing stroke and marker pipelines for one temporary band and cursor. They own no saved-object pick IDs and leave primary scene uploads unchanged.
+
+> **Self-Check Question:** *Why keep preview buffers separate from scene buffers?*  
+> **Answer:** Pointer motion changes small derived display data. The original scene and its Undo snapshots stay shared and untouched.
+
+- **What You Should See:** Run the actual preview GPU test. The visible exercise remains the earlier two-box view until the editor and browser connect the draft.
+- **Hands-On Lab Experiment:** Update the cursor repeatedly, cancel the preview and compare source GPU counters. The empty preview must release its derived buffers.
 
 <details>
 <summary>Implementation 48b-preview: Draw a temporary rubber band and cursor</summary>
@@ -828,6 +922,20 @@ After that block, append this supplied code:
 </details>
 
 <a id="checkpoint-48c-commit"></a>
+
+### Step 4 of 5 · Commit completed tools in one Undo transaction (`48c-commit`)
+
+- **Goal:** Commit completed tools in one Undo transaction.
+- **Data Flow Trace:** `running draft → validated completion → one source insertion → one Undo entry`
+- **Files You Touch:** `src/editor.rs` (*Own tool input, keep previews out of history and insert a completed source atomically.*) · `src/tool_tests.rs` (*Copy source precision, one-Undo completion, invalid draft input and cancellation/history checks.*) · `src/lib.rs` (*Register the tool component and copied checks.*)
+
+The editor keeps draft motion out of history. Completing Point or Line inserts checked original geometry once; invalid input and cancellation preserve earlier source geometry and redo.
+
+> **Self-Check Question:** *What happens to redo when an unfinished tool is cancelled?*  
+> **Answer:** It remains available. Preview motion and cancellation never edit the document or consume its redo branch.
+
+- **What You Should See:** Inspect tool_tests. Confirm precise original endpoints, one Undo for a completed line, cancellation preserving redo and Close clearing unfinished drawing. Browser input follows at48d.
+- **Hands-On Lab Experiment:** Place one line point, try the same endpoint and then a valid endpoint. The error must keep the draft; completing it must create exactly one source.
 
 <details>
 <summary>Implementation 48c-commit: Commit completed tools in one Undo transaction</summary>
@@ -1552,6 +1660,20 @@ After that block, type:
 </details>
 
 <a id="checkpoint-48d-input"></a>
+
+### Step 5 of 5 · Draw points and lines through the shared command dock (`48d-input`)
+
+- **Goal:** Draw points and lines through the shared command dock.
+- **Data Flow Trace:** `actual command field or canvas gesture → tool-owned input → temporary preview → complete or cancel → shared dock answer`
+- **Files You Touch:** `src/panel.rs` (*Route tool coordinates and canvas gestures, own cancellation and show one command answer.*) · `src/commands.rs` (*Route tool coordinates and canvas gestures, own cancellation and show one command answer.*) · `src/browser.rs` (*Route tool coordinates and canvas gestures, own cancellation and show one command answer.*)
+
+Type Point or Line, then click the plane or type world coordinates. Cursor motion shows a temporary band; completion creates one source and Escape cancels from the field or drawing.
+
+> **Self-Check Question:** *Why intercept a tool click before requesting an object pick?*  
+> **Answer:** The click places a construction-plane point. Asking the integer picker to select an existing object would give it a different meaning.
+
+- **What You Should See:** Close; Line; -0.65,-0.35,0. Move the cursor over the drawing: the yellow band is temporary. Click a second point or type 0.65,0.35,0; Undo removes the entire line. Point and a coordinate create one point.
+- **Hands-On Lab Experiment:** Start another line, place its first point, then click Cancel or press Escape after clicking the drawing. No source or Undo entry should be created.
 
 <details>
 <summary>Implementation 48d-input: Draw points and lines through the shared command dock</summary>
@@ -2843,9 +2965,11 @@ Edit the existing block to match this code; keep unchanged lines:
 
 </details>
 
-## Run, Check, and Save
+---
 
-From `session_viewer`:
+## 5. Build, Verify, and Save Your Checkpoint
+
+Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 48d-input
@@ -2856,12 +2980,12 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. Use [checkpoint recovery](../recovery.md) to restore any saved checkpoint.
+Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../recovery.md) to save or restore any checkpoint ID.
 
-## Expected Visual Result & Experiment
+## 6. Lesson Summary & Expected Visual Result
 
 Close; Line; -0.65,-0.35,0. Move the cursor over the drawing: the yellow band is temporary. Click a second point or type 0.65,0.35,0; Undo removes the entire line. Point and a coordinate create one point.
 
-- **Try this:** Start another line, place its first point, then click Cancel or press Escape after clicking the drawing. No source or Undo entry should be created.
+- **Final Lesson Experiment:** Start another line, place its first point, then click Cancel or press Escape after clicking the drawing. No source or Undo entry should be created.
 
 Continue with [Precise snapping with derived search caches](49-settings.md).

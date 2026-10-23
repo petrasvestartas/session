@@ -1,88 +1,179 @@
 # 16.4 · Measurements, temporary marks and retained CAD pieces
 
-**Section 8: Precision Coordinate Frames, Solid Primitives, Surfacing, and CAD Editing** · **Lesson 16.4** (Redraft `8.14`) · **37 checkpoints (`84-measure-original-curves-surfaces-and-closed-solids` → `84zod-explode-supported-original-families`)**
+**Section 8: Precision Coordinate Frames, Solid Primitives, Surfacing, and CAD Editing** · **Lesson 16.4** (Redraft `8.14`) · **37 checkpoints (`84-measure-original-curves-surfaces-and-closed-solids` → `84zod-explode-supported-original-families`)** · **Study time: 24.20000000000001–37 h**
 
-> **Learning Goal:** Reject open geometry, choose a world point near the mesh and reuse the shared swept-volume helper.
+> **What You Will Learn & Build:** Reject open geometry, choose a world point near the mesh and reuse the shared swept-volume helper. By the final checkpoint (`84zod-explode-supported-original-families`), you will count derived pieces before allocating them.
 
-## Visual WebGPU & Architecture Schematic
+## 1. Visual Pipeline & WebGPU Architecture (Black & White Schematics)
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1px solid #cbd5e1;border-radius:10px;background:#f8fafc;">
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
+<svg viewBox="0 0 840 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <rect x="4" y="4" width="832" height="212" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Lesson 16.4 Execution Flow: Measurements, temporary marks and retained CAD pieces</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">Concrete data pipeline you build in this lesson (37 Checkpoints: 84-measure-original-curves-surfaces-and-closed-solids → 84zod-explode-supported-original-families)</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
+  
+    
+    <rect x="18" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="89" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
+    <line x1="28" y1="92" x2="151" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">original geometry</text>
+    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="183" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="254" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
+    <line x1="193" y1="92" x2="316" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">placed source</text>
+    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="348" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="419" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
+    <line x1="358" y1="92" x2="481" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">measure or refusal</text>
+    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="513" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="584" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
+    <line x1="523" y1="92" x2="646" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">original family</text>
+    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="678" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="749" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
+    <line x1="688" y1="92" x2="811" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">pure calculation</text>
+    
+    <rect x="18" y="162" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="32" y="181" font-size="11" font-weight="700" fill="#111111">Files You Edit in Lesson 16.4:</text>
+    <text x="215" y="181" font-size="11" fill="#111111">src/measure_volume.rs  ·  src/lib.rs  ·  src/scene.rs  ·  src/bounds_original.rs  ·  src/source_edit.rs  ·  src/gpu_geometry.rs</text>
+    <text x="32" y="198" font-size="10.5" fill="#111111">37 Checkpoints: 84-measure-original-curves-surfaces-and-closed-solids → 84zod-explode-supported-original-families — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
+  
+</svg>
+</div>
+
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
 <svg viewBox="0 0 840 240" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#475569"/>
-    </marker>
-    <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#2563eb"/>
-    </marker>
-    <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#059669"/>
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
     </marker>
   </defs>
-  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
-  <text x="20" y="28" font-size="14" font-weight="700" fill="#0f172a">Section 8 Precision CAD Frames, Solid Primitives, Surfacing & Sub-Object Deformation (Chapters 14–16)</text>
-  <text x="20" y="46" font-size="11.5" fill="#475569">How double-precision coordinate frames (Plane), parametric solids, Loft/Sweep/Extrude surfaces, and Gumball control edits work.</text>
-  <line x1="16" y1="54" x2="824" y2="54" stroke="#e2e8f0" stroke-width="1"/>
+  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Section 8 Precision CAD Frames, Solid Primitives, Surfacing & Sub-Object Deformation (Chapters 14–16)</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">How double-precision coordinate frames (Plane), parametric solids, Loft/Sweep/Extrude surfaces, and Gumball control edits work.</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
   
-    <rect x="18" y="68" width="245" height="145" rx="6" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
-    <text x="140" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1e40af">1. Orthonormal Frames (Ch 14)</text>
-    <text x="28" y="108" font-size="10.5" fill="#1e3a8a">• Plane { origin: Vec3d, x, y, z }</text>
-    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#1d4ed8">• Rejects non-finite / collinear axes</text>
-    <text x="28" y="144" font-size="10.5" fill="#1e3a8a">• Basis change: World &lt;-&gt; Local Plane</text>
-    <text x="28" y="162" font-size="10.5" fill="#1e3a8a">• Exact Mirror, Rotate3D, Orient,</text>
-    <text x="28" y="178" font-size="10.5" fill="#1e3a8a">  and Align frame transformations</text>
+    <rect x="18" y="68" width="245" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="140" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">1. Orthonormal Frames (Ch 14)</text>
+    <text x="28" y="108" font-size="10.5" fill="#111111">• Plane { origin: Vec3d, x, y, z }</text>
+    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#111111">• Rejects non-finite / collinear axes</text>
+    <text x="28" y="144" font-size="10.5" fill="#111111">• Basis change: World &lt;-&gt; Local Plane</text>
+    <text x="28" y="162" font-size="10.5" fill="#111111">• Exact Mirror, Rotate3D, Orient,</text>
+    <text x="28" y="178" font-size="10.5" fill="#111111">  and Align frame transformations</text>
 
-    <line x1="263" y1="138" x2="293" y2="138" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
+    <line x1="263" y1="138" x2="293" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="295" y="68" width="265" height="145" rx="6" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5"/>
-    <text x="427" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#9a3412">2. Solids &amp; Surfacing (Ch 15–16)</text>
-    <text x="307" y="108" font-size="10.5" fill="#7c2d12">• Parametric Box, Cylinder, Sphere, Cone</text>
-    <text x="307" y="126" font-size="10.5" font-weight="600" fill="#c2410c">• Extrude, Revolve, Loft, Sweep, Planar</text>
-    <text x="307" y="144" font-size="10.5" fill="#7c2d12">• Curve Split, Trim, Extend, Join, Fillet</text>
-    <text x="307" y="162" font-size="10.5" fill="#7c2d12">• Every operation commits an atomic</text>
-    <text x="307" y="178" font-size="10.5" fill="#7c2d12">  session_rust kernel transaction</text>
+    <rect x="295" y="68" width="265" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="427" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">2. Solids &amp; Surfacing (Ch 15–16)</text>
+    <text x="307" y="108" font-size="10.5" fill="#111111">• Parametric Box, Cylinder, Sphere, Cone</text>
+    <text x="307" y="126" font-size="10.5" font-weight="600" fill="#111111">• Extrude, Revolve, Loft, Sweep, Planar</text>
+    <text x="307" y="144" font-size="10.5" fill="#111111">• Curve Split, Trim, Extend, Join, Fillet</text>
+    <text x="307" y="162" font-size="10.5" fill="#111111">• Every operation commits an atomic</text>
+    <text x="307" y="178" font-size="10.5" fill="#111112">  session_rust kernel transaction</text>
 
-    <line x1="560" y1="138" x2="590" y2="138" stroke="#059669" stroke-width="2" marker-end="url(#arrow-green)"/>
+    <line x1="560" y1="138" x2="590" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="592" y="68" width="228" height="145" rx="6" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1.5"/>
-    <text x="706" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#065f46">3. Rational Control-Point Deform</text>
-    <text x="604" y="108" font-size="10.5" fill="#064e3b">• Pick NURBS control point or vertex</text>
-    <text x="604" y="126" font-size="10.5" font-weight="600" fill="#047857">• Preserve homogeneous weight w</text>
-    <text x="604" y="142" font-size="10.5" font-weight="600" fill="#047857">  on rational curve control drags!</text>
-    <text x="604" y="162" font-size="10.5" fill="#064e3b">• Rebuild derived GPU tessellation</text>
-    <text x="604" y="178" font-size="10.5" fill="#064e3b">  in-place while keeping Object ID</text>
+    <rect x="592" y="68" width="228" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="706" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">3. Rational Control-Point Deform</text>
+    <text x="604" y="108" font-size="10.5" fill="#111111">• Pick NURBS control point or vertex</text>
+    <text x="604" y="126" font-size="10.5" font-weight="600" fill="#111111">• Preserve homogeneous weight w</text>
+    <text x="604" y="142" font-size="10.5" font-weight="600" fill="#111111">  on rational curve control drags!</text>
+    <text x="604" y="162" font-size="10.5" fill="#111111">• Rebuild derived GPU tessellation</text>
+    <text x="604" y="178" font-size="10.5" fill="#111111">  in-place while keeping Object ID</text>
     
 </svg>
 </div>
 
-### Lesson Data Flow (`Rust` → `WebGPU` → `WGSL`)
+## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
 
-```
-original geometry → placed source → measure or refusal.
-selected whole owner or face → measurement or original box → unchanged or single history entry.
-original family → pure calculation → result or refusal.
-```
+Before writing code, review how the three layers in this chapter talk to each other:
 
-- Reject open geometry, choose a world point near the mesh and reuse the shared swept-volume helper.
-- Extend a plane-plane intersection past surface control points.
-- Count derived pieces before allocating them.
-- **Why it works (Why choose an origin on the mesh?):** Subtracting a nearby origin keeps large world translations out of the triple products and preserves volume precision.
-
-### Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `Browser`)
-
-| Layer | Construct | First-Year Student Explanation |
+| Layer | Construct | Plain-English Explanation for Students |
 | :--- | :--- | :--- |
 | **CAD Coords** | `w10,20,0` vs `@5,0,0` vs `10<30` | `w` forces absolute World coordinates; `@` measures relative to the last accepted point; `<` uses polar distance and angle in the active Construction Plane. |
 | **Rational NURBS** | Homogeneous control point `(w*x, w*y, w*z, w)` | Represents circles, ellipses, and conic arcs with zero approximation error using non-uniform weights `w`. |
 | **B-Rep Split/Trim** | Plane/Cutter intersection -> Face loop classification | Splits or trims B-Rep and mesh faces along cutting planes/curves while keeping retained topology tables valid. |
 
-**Production source (`session_viewer/src`):** [app/command/verbs/project_to_plane.rs](../../../../src/app/command/verbs/project_to_plane.rs), [app/command/verbs/extend.rs](../../../../src/app/command/verbs/extend.rs), [app/splitting.rs](../../../../src/app/splitting.rs), [app/command/verbs/measure.rs](../../../../src/app/command/verbs/measure.rs), [app/command/verbs/trim/parts.rs](../../../../src/app/command/verbs/trim/parts.rs), [app/command/verbs/explode.rs](../../../../src/app/command/verbs/explode.rs), [app/walk/frames.rs](../../../../src/app/walk/frames.rs), [build.rs](../../../../build.rs).
+**Authoritative production source (`session_viewer/src`):** [app/command/verbs/project_to_plane.rs](../../../../src/app/command/verbs/project_to_plane.rs), [app/command/verbs/extend.rs](../../../../src/app/command/verbs/extend.rs), [app/splitting.rs](../../../../src/app/splitting.rs), [app/command/verbs/measure.rs](../../../../src/app/command/verbs/measure.rs), [app/command/verbs/trim/parts.rs](../../../../src/app/command/verbs/trim/parts.rs), [app/command/verbs/explode.rs](../../../../src/app/command/verbs/explode.rs), [app/walk/frames.rs](../../../../src/app/walk/frames.rs), [build.rs](../../../../build.rs).
 
-## Implementation Checkpoints
+## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
 
-Apply these checkpoints in order inside `workspace/journey`. Expand each block to view the Rust/WGSL/HTML edits:
+| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
+| ---: | :--- | :--- | :--- | :--- |
+| **1** | [`84-measure-original-curves-surfaces-and-closed-solids`](#checkpoint-84-measure-original-curves-surfaces-and-closed-solids) | Reject open geometry, choose a world point near the mesh and reuse the shared swept-volume helper. | `src/measure_volume.rs`, `src/lib.rs` | `original geometry → placed source → measure or refusal` |
+| **2** | [`84a-validate-an-original-box-and-derive-wire-only-display`](#checkpoint-84a-validate-an-original-box-and-derive-wire-only-display) | Validate an original box and derive wire-only display. | `src/scene.rs`, `src/bounds_original.rs`, `src/lib.rs` | `original box frame → finite orthonormal validation → twelve display edges` |
+| **3** | [`84b-adopt-original-boxes-and-retain-precise-placed-bounds`](#checkpoint-84b-adopt-original-boxes-and-retain-precise-placed-bounds) | Adopt original boxes and retain precise placed bounds. | `src/bounds_original.rs`, `src/scene.rs`, `src/source_edit.rs`, `src/gpu_geometry.rs` | `original corners → world placement → stable source row → checked replacement` |
+| **4** | [`84c-save-and-reopen-the-original-box-frame`](#checkpoint-84c-save-and-reopen-the-original-box-frame) | Save and reopen the original box frame. | `src/geometry_snapshot.rs`, `src/document_source.rs`, `src/document_geometry.rs`, `src/archive_identity.rs` | `original box owner → protobuf box record → checked source import → same original frame` |
+| **5** | [`84d-own-temporary-measurement-labels-without-scene-identities`](#checkpoint-84d-own-temporary-measurement-labels-without-scene-identities) | Own temporary measurement labels without scene identities. | `src/measure_mark.rs`, `src/lib.rs` | `numeric value and points → unused label IDs → temporary presentation words` |
+| **6** | [`84e-report-distance-and-world-bounding-lengths`](#checkpoint-84e-report-distance-and-world-bounding-lengths) | Report distance and world bounding lengths. | `src/measure_mark.rs` | `selected bounds or two points → world extents and deltas → formatted result` |
+| **7** | [`84f-collect-only-supported-finite-original-measurements`](#checkpoint-84f-collect-only-supported-finite-original-measurements) | Collect only supported finite original measurements. | `src/measure_mark.rs` | `selected original owners → placed source copies → supported totals and refusals` |
+| **8** | [`84g-format-totals-refusals-and-three-axis-box-extents`](#checkpoint-84g-format-totals-refusals-and-three-axis-box-extents) | Format totals refusals and three-axis box extents. | `src/measure_mark.rs` | `finite total and refusals → current value formatting → temporary result chip` |
+| **9** | [`84h-keep-measurements-outside-geometry-history`](#checkpoint-84h-keep-measurements-outside-geometry-history) | Keep measurements outside geometry history. | `src/editor.rs` | `selected whole owner or face → measurement or original box → unchanged or single history entry` |
+| **10** | [`84i-accept-two-distance-points-through-the-drawing-tool`](#checkpoint-84i-accept-two-distance-points-through-the-drawing-tool) | Accept two distance points through the drawing tool. | `src/tool.rs`, `src/editor.rs` | `drawing-plane or world points → existing snapping tool → temporary measured pair` |
+| **11** | [`84j-register-measurements-and-end-temporary-marks-predictably`](#checkpoint-84j-register-measurements-and-end-temporary-marks-predictably) | Register measurements and end temporary marks predictably. | `src/editor.rs`, `src/commands.rs` | `current command vocabulary → checked measurement action → explicit mark lifecycle` |
+| **12** | [`84k-draw-cached-unpickable-measurement-strokes`](#checkpoint-84k-draw-cached-unpickable-measurement-strokes) | Draw cached unpickable measurement strokes. | `src/stroke_gpu.rs`, `src/measure_gpu.rs`, `src/lib.rs` | `temporary point pair → cached CSS-width stroke → overlay colour pass` |
+| **13** | [`84l-merge-measurement-chips-with-cached-scene-text`](#checkpoint-84l-merge-measurement-chips-with-cached-scene-text) | Merge measurement chips with cached scene text. | `src/renderer.rs` | `unchanged mark guard → merged cached text → stroke overlay → value chip` |
+| **14** | [`84m-exercise-original-boxes-and-temporary-distance-annotations`](#checkpoint-84m-exercise-original-boxes-and-temporary-distance-annotations) | Exercise original boxes and temporary distance annotations. | `src/browser.rs`, `src/measure_tests.rs`, `src/lib.rs` | `original solid → reversible wire box → temporary distance line and value` |
+| **15** | [`84zza-describe-removable-cad-parts`](#checkpoint-84zza-describe-removable-cad-parts) | Represent curve intervals, BRep face groups and mesh sides without replacing the original CAD geometry. | `src/trim_parts.rs`, `src/lib.rs` | `original CAD geometry → removable parts → retained source geometry` |
+| **16** | [`84zzb-read-trim-part-previews`](#checkpoint-84zzb-read-trim-part-previews) | Expose part counts, sampled curve outlines, section edges and meshes through one Parts owner. | `src/trim_parts.rs` | `original CAD geometry → removable parts → retained source geometry` |
+| **17** | [`84zzc-collect-curve-crossings`](#checkpoint-84zzc-collect-curve-crossings) | Collect kernel curve intersections, filter open endpoints and merge a closed seam. | `src/trim_parts.rs` | `original CAD geometry → removable parts → retained source geometry` |
+| **18** | [`84zzd-preserve-trimmed-source-types`](#checkpoint-84zzd-preserve-trimmed-source-types) | Rebuild kept curves in their original source family with their presentation. | `src/trim_parts.rs` | `original CAD geometry → removable parts → retained source geometry` |
+| **19** | [`84zze-group-faces-by-cutting-planes`](#checkpoint-84zze-group-faces-by-cutting-planes) | Extend a plane-plane intersection past surface control points. | `src/trim_parts.rs` | `original CAD geometry → removable parts → retained source geometry` |
+| **20** | [`84zzf-cut-planar-brep-faces`](#checkpoint-84zzf-cut-planar-brep-faces) | Find crossed planar faces, split them through the kernel and collect section edges. | `src/trim_parts.rs` | `original CAD geometry → removable parts → retained source geometry` |
+| **21** | [`84zzg-assemble-removable-face-groups`](#checkpoint-84zzg-assemble-removable-face-groups) | Combine curve regions, fallback fence planes and crossed plane sections into one Parts value. | `src/trim_parts.rs` | `original CAD geometry → removable parts → retained source geometry` |
+| **22** | [`84zzh-mark-retained-brep-topology`](#checkpoint-84zzh-mark-retained-brep-topology) | Walk retained faces through wires and edges to mark their surfaces, vertices and curve tables. | `src/trim_parts.rs` | `original CAD geometry → removable parts → retained source geometry` |
+| **23** | [`84zzi-rebuild-retained-brep-tables`](#checkpoint-84zzi-rebuild-retained-brep-tables) | Compact marked BRep tables and rewrite every reference. | `src/trim_parts.rs` | `original CAD geometry → removable parts → retained source geometry` |
+| **24** | [`84zzj-split-mesh-faces-at-a-plane`](#checkpoint-84zzj-split-mesh-faces-at-a-plane) | Classify mesh vertices, reuse one cut vertex per original edge and build both clipped face rings. | `src/trim_parts.rs` | `original CAD geometry → removable parts → retained source geometry` |
+| **25** | [`84zzk-compact-both-trimmed-mesh-sides`](#checkpoint-84zzk-compact-both-trimmed-mesh-sides) | Compact each clipped mesh side to only its used vertices, rewrite its faces and preserve source name and color. | `src/trim_parts.rs` | `original CAD geometry → removable parts → retained source geometry` |
+| **26** | [`84zzl-rebuild-kept-cad-parts`](#checkpoint-84zzl-rebuild-kept-cad-parts) | Merge adjacent kept curve intervals, remove BRep face groups and return the retained mesh half. | `src/trim_parts.rs` | `original CAD geometry → removable parts → retained source geometry` |
+| **27** | [`84zzm-connect-original-trim-recipes`](#checkpoint-84zzm-connect-original-trim-recipes) | Route original curves, surfaces, BReps and meshes through the shared part builders. | `src/trim_parts.rs` | `original CAD geometry → removable parts → retained source geometry` |
+| **28** | [`84zna-index-selection-loops-by-pixel-row`](#checkpoint-84zna-index-selection-loops-by-pixel-row) | Build a row index for the even-odd point test. | `src/selection_region.rs`, `src/lib.rs` | `original CAD samples → screen region → window or crossing result` |
+| **29** | [`84znb-test-window-membership-and-segment-crossings`](#checkpoint-84znb-test-window-membership-and-segment-crossings) | Complete Region with point membership and segment clipping against the rectangle. | `src/selection_region.rs` | `original CAD samples → screen region → window or crossing result` |
+| **30** | [`84znc-sample-original-cad-families-for-selection`](#checkpoint-84znc-sample-original-cad-families-for-selection) | Reuse original curve corners, curved domains, mesh vertices and BRep references as bounded selection samples. | `src/selection_region.rs` | `original CAD samples → screen region → window or crossing result` |
+| **31** | [`84znd-collect-original-boundary-strokes`](#checkpoint-84znd-collect-original-boundary-strokes) | Build surface grids and closed mesh outlines, then combine BRep vertices, edges and curved faces. | `src/selection_region.rs` | `original CAD samples → screen region → window or crossing result` |
+| **32** | [`84zne-test-crossing-selection-on-original-strokes`](#checkpoint-84zne-test-crossing-selection-on-original-strokes) | Dispatch original geometry families to their shared stroke builders. | `src/selection_region.rs` | `original CAD samples → screen region → window or crossing result` |
+| **33** | [`84znf-connect-window-and-bounds-selection-tests`](#checkpoint-84znf-connect-window-and-bounds-selection-tests) | Add projection, conservative screen bounds and complete-enclosure dispatch. | `src/selection_region.rs` | `original CAD samples → screen region → window or crossing result` |
+| **34** | [`84zoa-classify-originals-and-isolate-one-mesh-face`](#checkpoint-84zoa-classify-originals-and-isolate-one-mesh-face) | Name each original geometry kind once. | `src/source_shape.rs`, `src/lib.rs`, `src/explode_geometry.rs` | `original family → pure calculation → result or refusal` |
+| **35** | [`84zob-copy-original-brep-edges-and-pcurves`](#checkpoint-84zob-copy-original-brep-edges-and-pcurves) | Copy an edge, its endpoint vertices and its surface pcurves into a new BRep. | `src/explode_geometry.rs` | `original family → pure calculation → result or refusal` |
+| **36** | [`84zoc-build-one-original-brep-face`](#checkpoint-84zoc-build-one-original-brep-face) | Reuse the copied-edge helper to rebuild one face surface, ordered wire references and one oriented shell. | `src/explode_geometry.rs` | `original family → pure calculation → result or refusal` |
+| **37** | [`84zod-explode-supported-original-families`](#checkpoint-84zod-explode-supported-original-families) | Count derived pieces before allocating them. | `src/explode_geometry.rs` | `original family → pure calculation → result or refusal` |
+
+---
+
+## 4. Step-by-Step Coding Notebook (Concept + Implementation)
+
+Work through each notebook cell below in order inside `workspace/journey`. Read the **Concept Walkthrough** and **Self-Check Q&A** first, then expand the **Implementation** block to type and verify the code.
 
 <a id="checkpoint-84-measure-original-curves-surfaces-and-closed-solids"></a>
+
+### Step 1 of 37 · Measure original closed-solid volume (`84-measure-original-curves-surfaces-and-closed-solids`)
+
+- **Goal:** Reject open geometry, choose a world point near the mesh and reuse the shared swept-volume helper.
+- **Data Flow Trace:** `original geometry → placed source → measure or refusal`
+- **Files You Touch:** `src/measure_volume.rs` (*Type the complete original helpers introduced today.*) · `src/lib.rs` (*Register this original measurement owner.*)
+
+Reject open geometry, choose a world point near the mesh and reuse the shared swept-volume helper. Orient solid BRep face meshes before adding their signed volumes.
+
+> **Self-Check Question:** *Why choose an origin on the mesh?*  
+> **Answer:** Subtracting a nearby origin keeps large world translations out of the triple products and preserves volume precision.
+
+- **What You Should See:** The original split face and its cutter remain visible while measurement connects.
+- **Hands-On Lab Experiment:** Inspect the far-translated box and reversed-face fixtures. Compare an open mesh refusal with a geometry kind that has no volume.
 
 <details>
 <summary>Implementation 84-measure-original-curves-surfaces-and-closed-solids: Measure original closed-solid volume</summary>
@@ -208,6 +299,19 @@ After that block, append this supplied code:
 </details>
 
 <a id="checkpoint-84a-validate-an-original-box-and-derive-wire-only-display"></a>
+
+### Step 2 of 37 · Validate an original box and derive wire-only display (`84a-validate-an-original-box-and-derive-wire-only-display`)
+
+- **Goal:** Validate an original box and derive wire-only display.
+- **Data Flow Trace:** `original box frame → finite orthonormal validation → twelve display edges`
+- **Files You Touch:** `src/scene.rs` (*Retain an independent original geometry owner beside the existing mesh display.*) · `src/bounds_original.rs` (*Validate original box frames and prepare a wire-only display.*) · `src/lib.rs` (*Register the measurement component.*)
+
+Keep the original box frame separate from its twelve-edge display proxy. Reject nonfinite extents and nonorthogonal axes before allocation.
+
+> **Self-Check Question:** *Does an original bounding box need opaque display faces?*  
+> **Answer:** No. Its eight corners and twelve edges show the bounds while leaving the enclosed solid visible.
+
+- **Hands-On Lab Experiment:** Inspect nonnegative half-extents, unit axes and mirrored orthogonal bases. Preserve original GUID, name and source flags in the proxy metadata.
 
 <details>
 <summary>Implementation 84a-validate-an-original-box-and-derive-wire-only-display: Validate an original box and derive wire-only display</summary>
@@ -1110,6 +1214,19 @@ After that block, type:
 </details>
 
 <a id="checkpoint-84b-adopt-original-boxes-and-retain-precise-placed-bounds"></a>
+
+### Step 3 of 37 · Adopt original boxes and retain precise placed bounds (`84b-adopt-original-boxes-and-retain-precise-placed-bounds`)
+
+- **Goal:** Adopt original boxes and retain precise placed bounds.
+- **Data Flow Trace:** `original corners → world placement → stable source row → checked replacement`
+- **Files You Touch:** `src/bounds_original.rs` (*Adopt and place original boxes without substituting their display proxy.*) · `src/scene.rs` (*Use original box bounds and preserve the original family during source replacement.*) · `src/source_edit.rs` (*Return the original box allocation before considering display geometry.*) · `src/gpu_geometry.rs` (*Skip empty triangle draws before binding a wire-only box index buffer.*) · `src/highlight.rs` (*Show whole selection on wire-only original edges without creating selected proxy faces.*)
+
+Compute bounds from original f64 corners, insert an original box owner and reject edits that would deform only its mesh proxy.
+
+> **Self-Check Question:** *Can distant original box extents survive Save independently of display floats?*  
+> **Answer:** Yes. Original f64 coordinates remain the source. The current f32 display still requires the later large-world rendering audit.
+
+- **Hands-On Lab Experiment:** Inspect world placement and original replacement guards. A flat box may have a zero half-extent and still retains all original coordinates.
 
 <details>
 <summary>Implementation 84b-adopt-original-boxes-and-retain-precise-placed-bounds: Adopt original boxes and retain precise placed bounds</summary>
@@ -2232,6 +2349,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-84c-save-and-reopen-the-original-box-frame"></a>
 
+### Step 4 of 37 · Save and reopen the original box frame (`84c-save-and-reopen-the-original-box-frame`)
+
+- **Goal:** Save and reopen the original box frame.
+- **Data Flow Trace:** `original box owner → protobuf box record → checked source import → same original frame`
+- **Files You Touch:** `src/geometry_snapshot.rs` (*Retain validated original OBB records through mixed document persistence.*) · `src/document_source.rs` (*Retain validated original OBB records through mixed document persistence.*) · `src/document_geometry.rs` (*Retain validated original OBB records through mixed document persistence.*) · `src/archive_identity.rs` (*Retain validated original OBB records through mixed document persistence.*) · `src/source_validate.rs` (*Retain validated original OBB records through mixed document persistence.*)
+
+Include original boxes in mixed document identity, validation, snapshot and import paths. Preserve their family and precise coordinates.
+
+> **Self-Check Question:** *Should a box proxy be serialized as a mesh?*  
+> **Answer:** No. Save writes the original OBB record. The proxy exists only for drawing and ownership addresses.
+
+- **Hands-On Lab Experiment:** Inspect box GUID collision checks, exact coordinate fields and finite-frame validation. Reopen a flat box whose centre exceeds one billion.
+
 <details>
 <summary>Implementation 84c-save-and-reopen-the-original-box-frame: Save and reopen the original box frame</summary>
 
@@ -3167,6 +3297,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-84d-own-temporary-measurement-labels-without-scene-identities"></a>
 
+### Step 5 of 37 · Own temporary measurement labels without scene identities (`84d-own-temporary-measurement-labels-without-scene-identities`)
+
+- **Goal:** Own temporary measurement labels without scene identities.
+- **Data Flow Trace:** `numeric value and points → unused label IDs → temporary presentation words`
+- **Files You Touch:** `src/measure_mark.rs` (*Own temporary points, unit suffixes and collision-free labels.*) · `src/lib.rs` (*Register the measurement component.*)
+
+Assign unused presentation IDs to a value chip and endpoint squares. Keep these annotations outside original scene rows and integer picking.
+
+> **Self-Check Question:** *Can a measurement chip reuse an existing label ID?*  
+> **Answer:** No. Allocate from unused presentation IDs while checking existing labels. Each mark carries no original object owner.
+
+- **Hands-On Lab Experiment:** Inspect the value chip, endpoint squares and collision check. Compare source row count before and after creating a mark.
+
 <details>
 <summary>Implementation 84d-own-temporary-measurement-labels-without-scene-identities: Own temporary measurement labels without scene identities</summary>
 
@@ -3208,6 +3351,19 @@ After that block, type:
 
 <a id="checkpoint-84e-report-distance-and-world-bounding-lengths"></a>
 
+### Step 6 of 37 · Report distance and world bounding lengths (`84e-report-distance-and-world-bounding-lengths`)
+
+- **Goal:** Report distance and world bounding lengths.
+- **Data Flow Trace:** `selected bounds or two points → world extents and deltas → formatted result`
+- **Files You Touch:** `src/measure_mark.rs` (*Resolve world selected bounds and distance without changing source geometry.*)
+
+Union precise selected bounds and calculate two-point distance with signed world-coordinate deltas. Preserve model coordinates when labeling units.
+
+> **Self-Check Question:** *Does changing a unit suffix rescale geometry?*  
+> **Answer:** No. Units describe the existing model coordinates. Numerical conversion requires a separate geometry operation.
+
+- **Hands-On Lab Experiment:** Compare a 3–4–5 distance and its signed deltas. Inspect world X/Y/Z bounds independently of the current drawing plane.
+
 <details>
 <summary>Implementation 84e-report-distance-and-world-bounding-lengths: Report distance and world bounding lengths</summary>
 
@@ -3240,6 +3396,19 @@ After that block, type:
 
 <a id="checkpoint-84f-collect-only-supported-finite-original-measurements"></a>
 
+### Step 7 of 37 · Collect only supported finite original measurements (`84f-collect-only-supported-finite-original-measurements`)
+
+- **Goal:** Collect only supported finite original measurements.
+- **Data Flow Trace:** `selected original owners → placed source copies → supported totals and refusals`
+- **Files You Touch:** `src/measure_mark.rs` (*Collect original length, area and volume while keeping refusals explicit.*)
+
+Transform temporary original copies and aggregate supported results. Track unsupported families and open solids separately.
+
+> **Self-Check Question:** *What happens when selection mixes curves with unsupported objects?*  
+> **Answer:** Supported originals contribute to the total; the result reports skipped objects. Released editable sources require Reload.
+
+- **Hands-On Lab Experiment:** Trace selected-face ownership, original placement, finite result checks and open-solid names. No collection opens a history transaction.
+
 <details>
 <summary>Implementation 84f-collect-only-supported-finite-original-measurements: Collect only supported finite original measurements</summary>
 
@@ -3270,6 +3439,19 @@ After that block, type:
 </details>
 
 <a id="checkpoint-84g-format-totals-refusals-and-three-axis-box-extents"></a>
+
+### Step 8 of 37 · Format totals refusals and three-axis box extents (`84g-format-totals-refusals-and-three-axis-box-extents`)
+
+- **Goal:** Format totals refusals and three-axis box extents.
+- **Data Flow Trace:** `finite total and refusals → current value formatting → temporary result chip`
+- **Files You Touch:** `src/measure_mark.rs` (*Report current formatted totals and world bounding lengths with bounded errors.*)
+
+Format values with current rounding and unit powers. Bound open-object names and attach one temporary value chip to the selected bounds.
+
+> **Self-Check Question:** *Should one open object erase a valid closed-object volume?*  
+> **Answer:** No. Report the measured closed total and separately name the refused open objects; an entirely unsupported selection returns an error.
+
+- **Hands-On Lab Experiment:** Compare three-decimal and very small values, plural counts and skipped objects. More than three open names become three names plus a remaining count.
 
 <details>
 <summary>Implementation 84g-format-totals-refusals-and-three-axis-box-extents: Format totals refusals and three-axis box extents</summary>
@@ -3302,6 +3484,19 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-84h-keep-measurements-outside-geometry-history"></a>
+
+### Step 9 of 37 · Keep measurements outside geometry history (`84h-keep-measurements-outside-geometry-history`)
+
+- **Goal:** Keep measurements outside geometry history.
+- **Data Flow Trace:** `selected whole owner or face → measurement or original box → unchanged or single history entry`
+- **Files You Touch:** `src/editor.rs` (*Own temporary marks and connect selected-original numerical results and box creation.*)
+
+Connect selected-parent measurement and checked box creation. Distance results change presentation; original bounding boxes use one scene transaction.
+
+> **Self-Check Question:** *Does measuring a selected face use whole-object selection?*  
+> **Answer:** No. Its selected parent supplies original geometry while the face index limits Area. A whole-object measure uses normal eligible selection.
+
+- **Hands-On Lab Experiment:** Inspect selected-parent resolution and the one BoundingBox transaction. Keep Redo after a measurement and reject released originals before creating a box.
 
 <details>
 <summary>Implementation 84h-keep-measurements-outside-geometry-history: Keep measurements outside geometry history</summary>
@@ -4468,6 +4663,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-84i-accept-two-distance-points-through-the-drawing-tool"></a>
+
+### Step 10 of 37 · Accept two distance points through the drawing tool (`84i-accept-two-distance-points-through-the-drawing-tool`)
+
+- **Goal:** Accept two distance points through the drawing tool.
+- **Data Flow Trace:** `drawing-plane or world points → existing snapping tool → temporary measured pair`
+- **Files You Touch:** `src/tool.rs` (*Add a two-point measurement result to the existing drawing tool.*) · `src/editor.rs` (*Complete accepted distance points without opening scene history and expose measurement actions.*)
+
+Use the existing point parser and snapping owner for distance input. Validate initial arguments before replacing a pending tool and finish without inserting geometry.
+
+> **Self-Check Question:** *Should invalid initial distance input discard an accepted drawing point?*  
+> **Answer:** No. Validate it before switching owners. Once started, distance enables object snapping and accepts exactly two points.
+
+- **Hands-On Lab Experiment:** Compare world-prefixed points with relative points on CPlane XZ. Completion creates a mark, keeps source row count and records no Undo step.
 
 <details>
 <summary>Implementation 84i-accept-two-distance-points-through-the-drawing-tool: Accept two distance points through the drawing tool</summary>
@@ -5946,6 +6154,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-84j-register-measurements-and-end-temporary-marks-predictably"></a>
 
+### Step 11 of 37 · Register measurements and end temporary marks predictably (`84j-register-measurements-and-end-temporary-marks-predictably`)
+
+- **Goal:** Register measurements and end temporary marks predictably.
+- **Data Flow Trace:** `current command vocabulary → checked measurement action → explicit mark lifecycle`
+- **Files You Touch:** `src/editor.rs` (*Connect transient mark cleanup and completed-mark Escape.*) · `src/commands.rs` (*Register original BoundingBox and current numerical measurement commands.*)
+
+Register current measurement verbs and box commands. Preserve marks during pointer views; clear them on the next typed command or Escape.
+
+> **Self-Check Question:** *Can orbiting the scene remove a completed distance annotation?*  
+> **Answer:** No. Pointer view controls retain it. Another typed command or Escape removes the temporary annotation without editing sources.
+
+- **Hands-On Lab Experiment:** Try Length, Area, Volume, BoundingBox, Length BoundingBox and Measure Distance. Compare arity errors, pending drawing input and Escape after completion.
+
 <details>
 <summary>Implementation 84j-register-measurements-and-end-temporary-marks-predictably: Register measurements and end temporary marks predictably</summary>
 
@@ -7343,6 +7564,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-84k-draw-cached-unpickable-measurement-strokes"></a>
 
+### Step 12 of 37 · Draw cached unpickable measurement strokes (`84k-draw-cached-unpickable-measurement-strokes`)
+
+- **Goal:** Draw cached unpickable measurement strokes.
+- **Data Flow Trace:** `temporary point pair → cached CSS-width stroke → overlay colour pass`
+- **Files You Touch:** `src/stroke_gpu.rs` (*Add a colour-only overlay lane with explicit depth behaviour.*) · `src/measure_gpu.rs` (*Cache unchanged marks and account for their actual stroke allocation.*) · `src/lib.rs` (*Register the measurement component.*)
+
+Create a depth-independent overlay lane for temporary measurement segments. Reuse unchanged stroke allocation and keep it outside integer picks.
+
+> **Self-Check Question:** *Does the measurement line acquire a geometry pick address?*  
+> **Answer:** No. This overlay draws colour only. Its endpoints and value chip remain presentation data.
+
+- **Hands-On Lab Experiment:** Inspect the 1.5 CSS-pixel width, Always depth comparison and disabled depth writes. Compare actual allocated bytes with used segments.
+
 <details>
 <summary>Implementation 84k-draw-cached-unpickable-measurement-strokes: Draw cached unpickable measurement strokes</summary>
 
@@ -7405,6 +7639,19 @@ After that block, type:
 </details>
 
 <a id="checkpoint-84l-merge-measurement-chips-with-cached-scene-text"></a>
+
+### Step 13 of 37 · Merge measurement chips with cached scene text (`84l-merge-measurement-chips-with-cached-scene-text`)
+
+- **Goal:** Merge measurement chips with cached scene text.
+- **Data Flow Trace:** `unchanged mark guard → merged cached text → stroke overlay → value chip`
+- **Files You Touch:** `src/renderer.rs` (*Draw cached measurement strokes and merge temporary chips with the existing text owner.*)
+
+Merge collision-free measurement words into the existing text lane and draw temporary strokes before text. Skip unchanged marks during camera motion.
+
+> **Self-Check Question:** *Should rotating reshape the same measurement words every frame?*  
+> **Answer:** No. Keep the mark and text document unchanged while updating only their projected frame.
+
+- **Hands-On Lab Experiment:** Trace the unchanged-mark guard and lazy text adoption. Removing the mark releases its stroke data and removes only its presentation labels.
 
 <details>
 <summary>Implementation 84l-merge-measurement-chips-with-cached-scene-text: Merge measurement chips with cached scene text</summary>
@@ -8081,6 +8328,20 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-84m-exercise-original-boxes-and-temporary-distance-annotations"></a>
+
+### Step 14 of 37 · Exercise original boxes and temporary distance annotations (`84m-exercise-original-boxes-and-temporary-distance-annotations`)
+
+- **Goal:** Exercise original boxes and temporary distance annotations.
+- **Data Flow Trace:** `original solid → reversible wire box → temporary distance line and value`
+- **Files You Touch:** `src/browser.rs` (*Route current measurement input, physical Escape and truthful annotation diagnostics.*) · `src/measure_tests.rs` (*Copy original box, exact archive, numerical, selected-face, history, distance and label-collision fixtures.*) · `src/lib.rs` (*Register the measurement component.*)
+
+Copy original/history/coordinate fixtures and observe actual measurement state in the browser. Display a selected wire box around its original solid.
+
+> **Self-Check Question:** *What distinguishes BoundingBox from measuring its lengths?*  
+> **Answer:** BoundingBox creates an original OBB and one Undo step. Length BoundingBox only reports world extents; it adds no geometry or history.
+
+- **What You Should See:** A selected original wire bounding box surrounds the solid. A temporary black distance line, endpoint squares and a 2 mm value chip remain outside geometry history.
+- **Hands-On Lab Experiment:** Type Close, CPlane XY and Box w-1,-1,0 2 2 0.4. Type Select All, BoundingBox and Length BoundingBox: expect X 2, Y 2, Z 0.4 mm. Undo removes the box and Redo restores it. Type View Isometric, Select None and Fit, then Measure Distance w-1,0,1 w1,0,1: expect 2 mm, dx 2, dy 0, dz 0. Orbit and zoom retain the black line, endpoint squares and chip. Escape removes them. Select the solid and compare Area 11.2 mm² and Volume 1.6 mm³. Ctrl+Shift-select a face and compare its own area. Save/Open must retain the original wire box; measurements remain temporary.
 
 <details>
 <summary>Implementation 84m-exercise-original-boxes-and-temporary-distance-annotations: Exercise original boxes and temporary distance annotations</summary>
@@ -9150,6 +9411,19 @@ After that block, append this supplied code:
 
 <a id="checkpoint-84zza-describe-removable-cad-parts"></a>
 
+### Step 15 of 37 · Describe removable CAD parts (`84zza-describe-removable-cad-parts`)
+
+- **Goal:** Represent curve intervals, BRep face groups and mesh sides without replacing the original CAD geometry.
+- **Data Flow Trace:** `original CAD geometry → removable parts → retained source geometry`
+- **Files You Touch:** `src/trim_parts.rs` (*Type the original CAD part representation and seam-aware curve helpers.*) · `src/lib.rs` (*Register the shared part owner.*)
+
+Represent curve intervals, BRep face groups and mesh sides without replacing the original CAD geometry. Write seam-aware curve intervals and pieces.
+
+> **Self-Check Question:** *Why can the last interval end before it starts?*  
+> **Answer:** A closed curve wraps through its parameter seam; join its tail and head.
+
+- **Hands-On Lab Experiment:** Draw three cuts on a closed curve and trace the last interval through the seam.
+
 <details>
 <summary>Implementation 84zza-describe-removable-cad-parts: Describe removable CAD parts</summary>
 
@@ -9190,6 +9464,19 @@ After that block, type:
 </details>
 
 <a id="checkpoint-84zzb-read-trim-part-previews"></a>
+
+### Step 16 of 37 · Read trim part previews (`84zzb-read-trim-part-previews`)
+
+- **Goal:** Expose part counts, sampled curve outlines, section edges and meshes through one Parts owner.
+- **Data Flow Trace:** `original CAD geometry → removable parts → retained source geometry`
+- **Files You Touch:** `src/trim_parts.rs` (*Add this part-building behavior to the existing owner.*)
+
+Expose part counts, sampled curve outlines, section edges and meshes through one Parts owner. These helpers prepare later pointer picking.
+
+> **Self-Check Question:** *Why return face meshes with their part index?*  
+> **Answer:** Several faces can belong to one removable part; the click must recover that group.
+
+- **Hands-On Lab Experiment:** Trace a two-face group and identify the part returned by either face mesh.
 
 <details>
 <summary>Implementation 84zzb-read-trim-part-previews: Read trim part previews</summary>
@@ -9289,6 +9576,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-84zzc-collect-curve-crossings"></a>
 
+### Step 17 of 37 · Collect curve crossings (`84zzc-collect-curve-crossings`)
+
+- **Goal:** Collect kernel curve intersections, filter open endpoints and merge a closed seam.
+- **Data Flow Trace:** `original CAD geometry → removable parts → retained source geometry`
+- **Files You Touch:** `src/trim_parts.rs` (*Add this part-building behavior to the existing owner.*)
+
+Collect kernel curve intersections, filter open endpoints and merge a closed seam. Add shared compact-table helpers for later BRep reconstruction.
+
+> **Self-Check Question:** *Why remove open endpoints from the cut list?*  
+> **Answer:** An endpoint creates no additional removable interval.
+
+- **Hands-On Lab Experiment:** Compare cuts at the start, middle and end of an open curve; then repeat on a closed curve.
+
 <details>
 <summary>Implementation 84zzc-collect-curve-crossings: Collect curve crossings</summary>
 
@@ -9357,6 +9657,19 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-84zzd-preserve-trimmed-source-types"></a>
+
+### Step 18 of 37 · Preserve trimmed source types (`84zzd-preserve-trimmed-source-types`)
+
+- **Goal:** Rebuild kept curves in their original source family with their presentation.
+- **Data Flow Trace:** `original CAD geometry → removable parts → retained source geometry`
+- **Files You Touch:** `src/trim_parts.rs` (*Add this part-building behavior to the existing owner.*)
+
+Rebuild kept curves in their original source family with their presentation. Wrap a surface as a single-face BRep using the existing kernel split API.
+
+> **Self-Check Question:** *Why discard incompatible per-control colors?*  
+> **Answer:** A trimmed curve can have a different control count; stale color arrays no longer describe it.
+
+- **Hands-On Lab Experiment:** Trace which line properties survive trimming and when a NURBS color array is cleared.
 
 <details>
 <summary>Implementation 84zzd-preserve-trimmed-source-types: Preserve trimmed source types</summary>
@@ -9477,6 +9790,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-84zze-group-faces-by-cutting-planes"></a>
 
+### Step 19 of 37 · Group faces by cutting planes (`84zze-group-faces-by-cutting-planes`)
+
+- **Goal:** Extend a plane-plane intersection past surface control points.
+- **Data Flow Trace:** `original CAD geometry → removable parts → retained source geometry`
+- **Files You Touch:** `src/trim_parts.rs` (*Add this part-building behavior to the existing owner.*)
+
+Extend a plane-plane intersection past surface control points. Group faces by plane-side signs while retaining independently cut face regions.
+
+> **Self-Check Question:** *Why keep curve-cut regions separate?*  
+> **Answer:** Faces split by a curve are individually removable even when they share the same plane-side signs.
+
+- **Hands-On Lab Experiment:** Compare two unsplit faces on one side with two faces split by a curve.
+
 <details>
 <summary>Implementation 84zze-group-faces-by-cutting-planes: Group faces by cutting planes</summary>
 
@@ -9584,6 +9910,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-84zzf-cut-planar-brep-faces"></a>
+
+### Step 20 of 37 · Cut planar BRep faces (`84zzf-cut-planar-brep-faces`)
+
+- **Goal:** Find crossed planar faces, split them through the kernel and collect section edges.
+- **Data Flow Trace:** `original CAD geometry → removable parts → retained source geometry`
+- **Files You Touch:** `src/trim_parts.rs` (*Add this part-building behavior to the existing owner.*)
+
+Find crossed planar faces, split them through the kernel and collect section edges. Report unsupported curved sections explicitly.
+
+> **Self-Check Question:** *Why scale the plane tolerance with the geometry?*  
+> **Answer:** The local coordinate magnitude controls how close a point must be to the plane.
+
+- **Hands-On Lab Experiment:** Trace a missing plane, a crossed flat face and a crossed curved face through the error paths.
 
 <details>
 <summary>Implementation 84zzf-cut-planar-brep-faces: Cut planar BRep faces</summary>
@@ -9702,6 +10041,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-84zzg-assemble-removable-face-groups"></a>
+
+### Step 21 of 37 · Assemble removable face groups (`84zzg-assemble-removable-face-groups`)
+
+- **Goal:** Combine curve regions, fallback fence planes and crossed plane sections into one Parts value.
+- **Data Flow Trace:** `original CAD geometry → removable parts → retained source geometry`
+- **Files You Touch:** `src/trim_parts.rs` (*Add this part-building behavior to the existing owner.*)
+
+Combine curve regions, fallback fence planes and crossed plane sections into one Parts value. Keep the source BRep unchanged by working on its clone.
+
+> **Self-Check Question:** *Why ignore a plane that misses one target?*  
+> **Answer:** The same cutter list can cross another selected target.
+
+- **Hands-On Lab Experiment:** Trace one curve that splits a face and one fence plane that crosses another target.
 
 <details>
 <summary>Implementation 84zzg-assemble-removable-face-groups: Assemble removable face groups</summary>
@@ -9844,6 +10196,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-84zzh-mark-retained-brep-topology"></a>
 
+### Step 22 of 37 · Mark retained BRep topology (`84zzh-mark-retained-brep-topology`)
+
+- **Goal:** Walk retained faces through wires and edges to mark their surfaces, vertices and curve tables.
+- **Data Flow Trace:** `original CAD geometry → removable parts → retained source geometry`
+- **Files You Touch:** `src/trim_parts.rs` (*Add this part-building behavior to the existing owner.*)
+
+Walk retained faces through wires and edges to mark their surfaces, vertices and curve tables. This preparatory function returns an error until the next lesson compacts those tables.
+
+> **Self-Check Question:** *Why follow references before deleting table entries?*  
+> **Answer:** Deleting first would shift indices before the surviving references can be mapped.
+
+- **Hands-On Lab Experiment:** Trace a retained face through one wire, edge, vertex and pcurve; mark every required table entry.
+
 <details>
 <summary>Implementation 84zzh-mark-retained-brep-topology: Mark retained BRep topology</summary>
 
@@ -9968,6 +10333,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-84zzi-rebuild-retained-brep-tables"></a>
 
+### Step 23 of 37 · Rebuild retained BRep tables (`84zzi-rebuild-retained-brep-tables`)
+
+- **Goal:** Compact marked BRep tables and rewrite every reference.
+- **Data Flow Trace:** `original CAD geometry → removable parts → retained source geometry`
+- **Files You Touch:** `src/trim_parts.rs` (*Add this part-building behavior to the existing owner.*)
+
+Compact marked BRep tables and rewrite every reference. Keep shell orientation, drop empty shells and retain solids only when their shells remain closed.
+
+> **Self-Check Question:** *Why can removing a face turn a solid into an open shell?*  
+> **Answer:** A solid requires closed shells; the remaining faces still form useful surface geometry.
+
+- **Hands-On Lab Experiment:** Trace a removed box face through shell references and the final closed-shell check.
+
 <details>
 <summary>Implementation 84zzi-rebuild-retained-brep-tables: Rebuild retained BRep tables</summary>
 
@@ -9997,6 +10375,19 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-84zzj-split-mesh-faces-at-a-plane"></a>
+
+### Step 24 of 37 · Split mesh faces at a plane (`84zzj-split-mesh-faces-at-a-plane`)
+
+- **Goal:** Classify mesh vertices, reuse one cut vertex per original edge and build both clipped face rings.
+- **Data Flow Trace:** `original CAD geometry → removable parts → retained source geometry`
+- **Files You Touch:** `src/trim_parts.rs` (*Add this part-building behavior to the existing owner.*)
+
+Classify mesh vertices, reuse one cut vertex per original edge and build both clipped face rings. This preparatory function returns an error until its output tables are compacted next.
+
+> **Self-Check Question:** *Why sort the edge endpoints in the crossing key?*  
+> **Answer:** Adjacent faces can traverse the same edge in opposite directions; both must reuse one cut vertex.
+
+- **Hands-On Lab Experiment:** Trace an edge shared by two faces and verify both clipped rings receive the same crossing index.
 
 <details>
 <summary>Implementation 84zzj-split-mesh-faces-at-a-plane: Split mesh faces at a plane</summary>
@@ -10135,6 +10526,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-84zzk-compact-both-trimmed-mesh-sides"></a>
 
+### Step 25 of 37 · Compact both trimmed mesh sides (`84zzk-compact-both-trimmed-mesh-sides`)
+
+- **Goal:** Compact each clipped mesh side to only its used vertices, rewrite its faces and preserve source name and color.
+- **Data Flow Trace:** `original CAD geometry → removable parts → retained source geometry`
+- **Files You Touch:** `src/trim_parts.rs` (*Add this part-building behavior to the existing owner.*)
+
+Compact each clipped mesh side to only its used vertices, rewrite its faces and preserve source name and color. Return both sides and their cut segments.
+
+> **Self-Check Question:** *Why build a separate vertex map for each side?*  
+> **Answer:** Each output mesh owns only the vertices its own faces reference.
+
+- **Hands-On Lab Experiment:** Trace a cut vertex used by both halves and an original vertex used by just one.
+
 <details>
 <summary>Implementation 84zzk-compact-both-trimmed-mesh-sides: Compact both trimmed mesh sides</summary>
 
@@ -10164,6 +10568,19 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-84zzl-rebuild-kept-cad-parts"></a>
+
+### Step 26 of 37 · Rebuild kept CAD parts (`84zzl-rebuild-kept-cad-parts`)
+
+- **Goal:** Merge adjacent kept curve intervals, remove BRep face groups and return the retained mesh half.
+- **Data Flow Trace:** `original CAD geometry → removable parts → retained source geometry`
+- **Files You Touch:** `src/trim_parts.rs` (*Add this part-building behavior to the existing owner.*)
+
+Merge adjacent kept curve intervals, remove BRep face groups and return the retained mesh half. Preserve the last part so complete removal remains the Delete command.
+
+> **Self-Check Question:** *Why start a closed curve after a removed part?*  
+> **Answer:** A kept run that crosses the parameter seam should remain one geometry.
+
+- **Hands-On Lab Experiment:** Mark two adjacent kept intervals across a closed seam and trace their single rebuilt run.
 
 <details>
 <summary>Implementation 84zzl-rebuild-kept-cad-parts: Rebuild kept CAD parts</summary>
@@ -10271,6 +10688,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-84zzm-connect-original-trim-recipes"></a>
+
+### Step 27 of 37 · Connect original trim recipes (`84zzm-connect-original-trim-recipes`)
+
+- **Goal:** Route original curves, surfaces, BReps and meshes through the shared part builders.
+- **Data Flow Trace:** `original CAD geometry → removable parts → retained source geometry`
+- **Files You Touch:** `src/trim_parts.rs` (*Add this part-building behavior to the existing owner.*)
+
+Route original curves, surfaces, BReps and meshes through the shared part builders. Keep the original validation fixtures supplied separately.
+
+> **Self-Check Question:** *Why try successive planes when trimming a mesh?*  
+> **Answer:** The first plane can miss this target; stop at the first real split or substantive error.
+
+- **Hands-On Lab Experiment:** Trace a missed plane followed by a crossed plane. The interactive Trim command is connected in later lessons.
 
 <details>
 <summary>Implementation 84zzm-connect-original-trim-recipes: Connect original trim recipes</summary>
@@ -10514,6 +10944,19 @@ After that block, append this supplied code:
 
 <a id="checkpoint-84zna-index-selection-loops-by-pixel-row"></a>
 
+### Step 28 of 37 · Index selection loops by pixel row (`84zna-index-selection-loops-by-pixel-row`)
+
+- **Goal:** Build a row index for the even-odd point test.
+- **Data Flow Trace:** `original CAD samples → screen region → window or crossing result`
+- **Files You Touch:** `src/selection_region.rs` (*Type the shared selection region and row index.*) · `src/lib.rs` (*Register the selection owner.*)
+
+Build a row index for the even-odd point test. Keep rectangles in the same Region owner so later crossing selection can reuse their bounds.
+
+> **Self-Check Question:** *Why exclude the upper endpoint of each crossing edge?*  
+> **Answer:** Counting a shared vertex twice would change whether its row is inside.
+
+- **Hands-On Lab Experiment:** Sketch a four-corner rectangle and calculate the crossings at the centre of one pixel row.
+
 <details>
 <summary>Implementation 84zna-index-selection-loops-by-pixel-row: Index selection loops by pixel row</summary>
 
@@ -10571,6 +11014,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-84znb-test-window-membership-and-segment-crossings"></a>
+
+### Step 29 of 37 · Test window membership and segment crossings (`84znb-test-window-membership-and-segment-crossings`)
+
+- **Goal:** Complete Region with point membership and segment clipping against the rectangle.
+- **Data Flow Trace:** `original CAD samples → screen region → window or crossing result`
+- **Files You Touch:** `src/selection_region.rs` (*Extend the existing original selection owner.*)
+
+Complete Region with point membership and segment clipping against the rectangle. Clip the segment parameter interval rather than sampling its length.
+
+> **Self-Check Question:** *Why keep a parameter interval for a crossing stroke?*  
+> **Answer:** A long stroke can cross the window even when both endpoints are outside.
+
+- **Hands-On Lab Experiment:** Trace a horizontal stroke with both endpoints outside and compare it with a parallel stroke above the window.
 
 <details>
 <summary>Implementation 84znb-test-window-membership-and-segment-crossings: Test window membership and segment crossings</summary>
@@ -10659,6 +11115,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-84znc-sample-original-cad-families-for-selection"></a>
+
+### Step 30 of 37 · Sample original CAD families for selection (`84znc-sample-original-cad-families-for-selection`)
+
+- **Goal:** Reuse original curve corners, curved domains, mesh vertices and BRep references as bounded selection samples.
+- **Data Flow Trace:** `original CAD samples → screen region → window or crossing result`
+- **Files You Touch:** `src/selection_region.rs` (*Extend the existing original selection owner.*)
+
+Reuse original curve corners, curved domains, mesh vertices and BRep references as bounded selection samples. Distinguish no samples from a failed inside test.
+
+> **Self-Check Question:** *Why preserve None for an empty sample iterator?*  
+> **Answer:** An empty geometry cannot establish complete enclosure; its bounds may supply the fallback.
+
+- **Hands-On Lab Experiment:** Compare a degree-one curve with a curved domain. Trace the first outside sample through the enclosure helper.
 
 <details>
 <summary>Implementation 84znc-sample-original-cad-families-for-selection: Sample original CAD families for selection</summary>
@@ -10775,6 +11244,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-84znd-collect-original-boundary-strokes"></a>
 
+### Step 31 of 37 · Collect original boundary strokes (`84znd-collect-original-boundary-strokes`)
+
+- **Goal:** Build surface grids and closed mesh outlines, then combine BRep vertices, edges and curved faces.
+- **Data Flow Trace:** `original CAD samples → screen region → window or crossing result`
+- **Files You Touch:** `src/selection_region.rs` (*Extend the existing original selection owner.*)
+
+Build surface grids and closed mesh outlines, then combine BRep vertices, edges and curved faces. Keep each original boundary as an ordered stroke.
+
+> **Self-Check Question:** *Why close a mesh face outline explicitly?*  
+> **Answer:** The last vertex and first vertex form an edge that crossing selection must also test.
+
+- **Hands-On Lab Experiment:** Trace the last edge of a triangular mesh face and a curved BRep face through the stroke collector.
+
 <details>
 <summary>Implementation 84znd-collect-original-boundary-strokes: Collect original boundary strokes</summary>
 
@@ -10867,6 +11349,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-84zne-test-crossing-selection-on-original-strokes"></a>
+
+### Step 32 of 37 · Test crossing selection on original strokes (`84zne-test-crossing-selection-on-original-strokes`)
+
+- **Goal:** Dispatch original geometry families to their shared stroke builders.
+- **Data Flow Trace:** `original CAD samples → screen region → window or crossing result`
+- **Files You Touch:** `src/selection_region.rs` (*Extend the existing original selection owner.*)
+
+Dispatch original geometry families to their shared stroke builders. Crossing selection accepts an inside sample or a rectangle-crossing segment; cloud sampling remains bounded.
+
+> **Self-Check Question:** *Why project each stroke before testing adjacent points?*  
+> **Answer:** Membership and crossing use screen pixels, while original geometry and its placements stay in world coordinates.
+
+- **Hands-On Lab Experiment:** Trace a projected curve that crosses a rectangle although every sampled point lies outside. The browser connection is taught after these helpers.
 
 <details>
 <summary>Implementation 84zne-test-crossing-selection-on-original-strokes: Test crossing selection on original strokes</summary>
@@ -10978,6 +11473,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-84znf-connect-window-and-bounds-selection-tests"></a>
+
+### Step 33 of 37 · Connect window and bounds selection tests (`84znf-connect-window-and-bounds-selection-tests`)
+
+- **Goal:** Add projection, conservative screen bounds and complete-enclosure dispatch.
+- **Data Flow Trace:** `original CAD samples → screen region → window or crossing result`
+- **Files You Touch:** `src/selection_region.rs` (*Extend the existing original selection owner.*)
+
+Add projection, conservative screen bounds and complete-enclosure dispatch. Supply the original validation fixtures separately; the existing selection command connects this owner in the next lesson.
+
+> **Self-Check Question:** *Why keep the bounds fallback separate from sampled geometry?*  
+> **Answer:** Planes and empty original families cannot establish membership from samples, but their projected bounds can still guide selection.
+
+- **Hands-On Lab Experiment:** Trace a complete window test, a crossing test and an original with no samples through their separate results.
 
 <details>
 <summary>Implementation 84znf-connect-window-and-bounds-selection-tests: Connect window and bounds selection tests</summary>
@@ -11145,6 +11653,20 @@ After that block, append this supplied code:
 
 <a id="checkpoint-84zoa-classify-originals-and-isolate-one-mesh-face"></a>
 
+### Step 34 of 37 · Classify originals and isolate one mesh face (`84zoa-classify-originals-and-isolate-one-mesh-face`)
+
+- **Goal:** Name each original geometry kind once.
+- **Data Flow Trace:** `original family → pure calculation → result or refusal`
+- **Files You Touch:** `src/source_shape.rs` (*Type the whole original helpers introduced today.*) · `src/lib.rs` (*Compile the shared original geometry classifier.*) · `src/explode_geometry.rs` (*Type the whole original helpers introduced today.*)
+
+Name each original geometry kind once. Build one mesh face with compact vertex keys, preserve its hole rings and retain its display attributes.
+
+> **Self-Check Question:** *Why remap vertices for a separated face?*  
+> **Answer:** The new mesh owns a compact vertex table. All outer and hole rings must refer to that new table.
+
+- **What You Should See:** Original-family classification and single mesh-face extraction are prepared.
+- **Hands-On Lab Experiment:** Trace a face with a hole and a vertex shared by both rings. Check that the new mesh owns each copied vertex once.
+
 <details>
 <summary>Implementation 84zoa-classify-originals-and-isolate-one-mesh-face: Classify originals and isolate one mesh face</summary>
 
@@ -11215,6 +11737,20 @@ After that block, type:
 </details>
 
 <a id="checkpoint-84zob-copy-original-brep-edges-and-pcurves"></a>
+
+### Step 35 of 37 · Copy original BRep edges and pcurves (`84zob-copy-original-brep-edges-and-pcurves`)
+
+- **Goal:** Copy an edge, its endpoint vertices and its surface pcurves into a new BRep.
+- **Data Flow Trace:** `original family → pure calculation → result or refusal`
+- **Files You Touch:** `src/explode_geometry.rs` (*Extend this original owner with today’s complete helper.*)
+
+Copy an edge, its endpoint vertices and its surface pcurves into a new BRep. Reuse vertex mappings and preserve seam curves, tolerances and degenerated edges.
+
+> **Self-Check Question:** *Why keep both pcurves on a seam?*  
+> **Answer:** A periodic surface uses the same spatial edge on two parameter boundaries. Both uses must survive the separated face.
+
+- **What You Should See:** BRep face extraction can preserve the required original edge and pcurve records.
+- **Hands-On Lab Experiment:** Trace a cylindrical seam and a degenerated pole edge through the copied tables.
 
 <details>
 <summary>Implementation 84zob-copy-original-brep-edges-and-pcurves: Copy original BRep edges and pcurves</summary>
@@ -11313,6 +11849,20 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-84zoc-build-one-original-brep-face"></a>
 
+### Step 36 of 37 · Build one original BRep face (`84zoc-build-one-original-brep-face`)
+
+- **Goal:** Reuse the copied-edge helper to rebuild one face surface, ordered wire references and one oriented shell.
+- **Data Flow Trace:** `original family → pure calculation → result or refusal`
+- **Files You Touch:** `src/explode_geometry.rs` (*Extend this original owner with today’s complete helper.*)
+
+Reuse the copied-edge helper to rebuild one face surface, ordered wire references and one oriented shell. Keep shared edges unique within that face.
+
+> **Self-Check Question:** *Why preserve reference orientation?*  
+> **Answer:** An edge table entry stores geometry. Each wire and shell reference also carries the direction in which that geometry is used.
+
+- **What You Should See:** One original BRep face can be rebuilt from its retained boundary data.
+- **Hands-On Lab Experiment:** Trace a reversed face and a face with an inner wire. Check the original BRep remains unchanged.
+
 <details>
 <summary>Implementation 84zoc-build-one-original-brep-face: Build one original BRep face</summary>
 
@@ -11396,6 +11946,20 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-84zod-explode-supported-original-families"></a>
+
+### Step 37 of 37 · Explode supported original families (`84zod-explode-supported-original-families`)
+
+- **Goal:** Count derived pieces before allocating them.
+- **Data Flow Trace:** `original family → pure calculation → result or refusal`
+- **Files You Touch:** `src/explode_geometry.rs` (*Extend this original owner with today’s complete helper.*)
+
+Count derived pieces before allocating them. Split polylines, BRep faces, mesh faces and point clouds while preserving their original display attributes. Reject unsupported or single-piece inputs.
+
+> **Self-Check Question:** *Why check the count before making pieces?*  
+> **Answer:** The bounded command must refuse excessive output before constructing thousands of objects.
+
+- **What You Should See:** Supported original families have an explode dispatcher; browser acceptance follows with the connected command.
+- **Hands-On Lab Experiment:** Inspect the original topology and family fixtures. Compare a one-face sphere refusal with a six-face box result.
 
 <details>
 <summary>Implementation 84zod-explode-supported-original-families: Explode supported original families</summary>
@@ -11640,9 +12204,11 @@ After that block, append this supplied code:
 
 </details>
 
-## Run, Check, and Save
+---
 
-From `session_viewer`:
+## 5. Build, Verify, and Save Your Checkpoint
+
+Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 84zod-explode-supported-original-families
@@ -11653,12 +12219,12 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. Use [checkpoint recovery](../../recovery.md) to restore any saved checkpoint.
+Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
 
-## Expected Visual Result & Experiment
+## 6. Lesson Summary & Expected Visual Result
 
 Supported original families have an explode dispatcher; browser acceptance follows with the connected command.
 
-- **Try this:** Inspect the original topology and family fixtures. Compare a one-face sphere refusal with a six-face box result.
+- **Final Lesson Experiment:** Inspect the original topology and family fixtures. Compare a one-face sphere refusal with a six-face box result.
 
-Continue with [Text, Plane, Trim and integrated editing commands](85-copy-current-original-command-recipes.md).
+Continue with [Text, Plane, Trim and integrated editing commands](../../consolidation/85-copy-current-original-command-recipes.md).

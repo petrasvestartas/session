@@ -1,88 +1,167 @@
 # 14.3 · Planar boundaries and checked solid foundations
 
-**Section 8: Precision Coordinate Frames, Solid Primitives, Surfacing, and CAD Editing** · **Lesson 14.3** (Redraft `8.3`) · **21 checkpoints (`73-construct-rectangles-and-polygons-in-plane-axes` → `73t-build-regular-kernel-polyhedra`)**
+**Section 8: Precision Coordinate Frames, Solid Primitives, Surfacing, and CAD Editing** · **Lesson 14.3** (Redraft `8.3`) · **21 checkpoints (`73-construct-rectangles-and-polygons-in-plane-axes` → `73t-build-regular-kernel-polyhedra`)** · **Study time: 14.400000000000004–21 h**
 
-> **Learning Goal:** Construct rectangles and polygons in plane axes.
+> **What You Will Learn & Build:** Construct rectangles and polygons in plane axes. By the final checkpoint (`73t-build-regular-kernel-polyhedra`), you will connect tetrahedron and octahedron constructors to the shared radius questions, unit-face cache and placed builder.
 
-## Visual WebGPU & Architecture Schematic
+## 1. Visual Pipeline & WebGPU Architecture (Black & White Schematics)
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1px solid #cbd5e1;border-radius:10px;background:#f8fafc;">
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
+<svg viewBox="0 0 840 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <rect x="4" y="4" width="832" height="212" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Lesson 14.3 Execution Flow: Planar boundaries and checked solid foundations</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">Concrete data pipeline you build in this lesson (21 Checkpoints: 73-construct-rectangles-and-polygons-in-plane-axes → 73t-build-regular-kernel-polyhedra)</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
+  
+    
+    <rect x="18" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="89" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
+    <line x1="28" y1="92" x2="151" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">two original points</text>
+    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="183" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="254" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
+    <line x1="193" y1="92" x2="316" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">plane-axis</text>
+    <text x="254" y="124" text-anchor="middle" font-size="11" fill="#111111">dimensions</text>
+    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="348" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="419" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
+    <line x1="358" y1="92" x2="481" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">closed original</text>
+    <text x="419" y="124" text-anchor="middle" font-size="11" fill="#111111">boundary</text>
+    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="513" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="584" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
+    <line x1="523" y1="92" x2="646" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">Build regular</text>
+    <text x="584" y="124" text-anchor="middle" font-size="11" fill="#111111">kernel polyhedra</text>
+    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="678" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="749" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
+    <line x1="688" y1="92" x2="811" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">Session kernel</text>
+    <text x="749" y="124" text-anchor="middle" font-size="11" fill="#111111">geometry</text>
+    
+    <rect x="18" y="162" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="32" y="181" font-size="11" font-weight="700" fill="#111111">Files You Edit in Lesson 14.3:</text>
+    <text x="215" y="181" font-size="11" fill="#111111">src/planar.rs  ·  src/lib.rs  ·  src/tool.rs  ·  src/editor.rs  ·  src/commands.rs  ·  src/tool_preview.rs</text>
+    <text x="32" y="198" font-size="10.5" fill="#111111">21 Checkpoints: 73-construct-rectangles-and-polygons-in-plane-axes → 73t-build-regular-kernel-polyhedra — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
+  
+</svg>
+</div>
+
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
 <svg viewBox="0 0 840 240" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#475569"/>
-    </marker>
-    <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#2563eb"/>
-    </marker>
-    <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#059669"/>
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
     </marker>
   </defs>
-  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
-  <text x="20" y="28" font-size="14" font-weight="700" fill="#0f172a">Section 8 Precision CAD Frames, Solid Primitives, Surfacing & Sub-Object Deformation (Chapters 14–16)</text>
-  <text x="20" y="46" font-size="11.5" fill="#475569">How double-precision coordinate frames (Plane), parametric solids, Loft/Sweep/Extrude surfaces, and Gumball control edits work.</text>
-  <line x1="16" y1="54" x2="824" y2="54" stroke="#e2e8f0" stroke-width="1"/>
+  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Section 8 Precision CAD Frames, Solid Primitives, Surfacing & Sub-Object Deformation (Chapters 14–16)</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">How double-precision coordinate frames (Plane), parametric solids, Loft/Sweep/Extrude surfaces, and Gumball control edits work.</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
   
-    <rect x="18" y="68" width="245" height="145" rx="6" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
-    <text x="140" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1e40af">1. Orthonormal Frames (Ch 14)</text>
-    <text x="28" y="108" font-size="10.5" fill="#1e3a8a">• Plane { origin: Vec3d, x, y, z }</text>
-    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#1d4ed8">• Rejects non-finite / collinear axes</text>
-    <text x="28" y="144" font-size="10.5" fill="#1e3a8a">• Basis change: World &lt;-&gt; Local Plane</text>
-    <text x="28" y="162" font-size="10.5" fill="#1e3a8a">• Exact Mirror, Rotate3D, Orient,</text>
-    <text x="28" y="178" font-size="10.5" fill="#1e3a8a">  and Align frame transformations</text>
+    <rect x="18" y="68" width="245" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="140" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">1. Orthonormal Frames (Ch 14)</text>
+    <text x="28" y="108" font-size="10.5" fill="#111111">• Plane { origin: Vec3d, x, y, z }</text>
+    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#111111">• Rejects non-finite / collinear axes</text>
+    <text x="28" y="144" font-size="10.5" fill="#111111">• Basis change: World &lt;-&gt; Local Plane</text>
+    <text x="28" y="162" font-size="10.5" fill="#111111">• Exact Mirror, Rotate3D, Orient,</text>
+    <text x="28" y="178" font-size="10.5" fill="#111111">  and Align frame transformations</text>
 
-    <line x1="263" y1="138" x2="293" y2="138" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
+    <line x1="263" y1="138" x2="293" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="295" y="68" width="265" height="145" rx="6" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5"/>
-    <text x="427" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#9a3412">2. Solids &amp; Surfacing (Ch 15–16)</text>
-    <text x="307" y="108" font-size="10.5" fill="#7c2d12">• Parametric Box, Cylinder, Sphere, Cone</text>
-    <text x="307" y="126" font-size="10.5" font-weight="600" fill="#c2410c">• Extrude, Revolve, Loft, Sweep, Planar</text>
-    <text x="307" y="144" font-size="10.5" fill="#7c2d12">• Curve Split, Trim, Extend, Join, Fillet</text>
-    <text x="307" y="162" font-size="10.5" fill="#7c2d12">• Every operation commits an atomic</text>
-    <text x="307" y="178" font-size="10.5" fill="#7c2d12">  session_rust kernel transaction</text>
+    <rect x="295" y="68" width="265" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="427" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">2. Solids &amp; Surfacing (Ch 15–16)</text>
+    <text x="307" y="108" font-size="10.5" fill="#111111">• Parametric Box, Cylinder, Sphere, Cone</text>
+    <text x="307" y="126" font-size="10.5" font-weight="600" fill="#111111">• Extrude, Revolve, Loft, Sweep, Planar</text>
+    <text x="307" y="144" font-size="10.5" fill="#111111">• Curve Split, Trim, Extend, Join, Fillet</text>
+    <text x="307" y="162" font-size="10.5" fill="#111111">• Every operation commits an atomic</text>
+    <text x="307" y="178" font-size="10.5" fill="#111112">  session_rust kernel transaction</text>
 
-    <line x1="560" y1="138" x2="590" y2="138" stroke="#059669" stroke-width="2" marker-end="url(#arrow-green)"/>
+    <line x1="560" y1="138" x2="590" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="592" y="68" width="228" height="145" rx="6" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1.5"/>
-    <text x="706" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#065f46">3. Rational Control-Point Deform</text>
-    <text x="604" y="108" font-size="10.5" fill="#064e3b">• Pick NURBS control point or vertex</text>
-    <text x="604" y="126" font-size="10.5" font-weight="600" fill="#047857">• Preserve homogeneous weight w</text>
-    <text x="604" y="142" font-size="10.5" font-weight="600" fill="#047857">  on rational curve control drags!</text>
-    <text x="604" y="162" font-size="10.5" fill="#064e3b">• Rebuild derived GPU tessellation</text>
-    <text x="604" y="178" font-size="10.5" fill="#064e3b">  in-place while keeping Object ID</text>
+    <rect x="592" y="68" width="228" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="706" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">3. Rational Control-Point Deform</text>
+    <text x="604" y="108" font-size="10.5" fill="#111111">• Pick NURBS control point or vertex</text>
+    <text x="604" y="126" font-size="10.5" font-weight="600" fill="#111111">• Preserve homogeneous weight w</text>
+    <text x="604" y="142" font-size="10.5" font-weight="600" fill="#111111">  on rational curve control drags!</text>
+    <text x="604" y="162" font-size="10.5" fill="#111111">• Rebuild derived GPU tessellation</text>
+    <text x="604" y="178" font-size="10.5" fill="#111111">  in-place while keeping Object ID</text>
     
 </svg>
 </div>
 
-### Lesson Data Flow (`Rust` → `WebGPU` → `WGSL`)
+## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
 
-```
-two original points → plane-axis dimensions → closed original boundary.
-Build a right-handed solid frame → original f64 kernel coordinates → later temporary preview and accepted geometry.
-Build regular kernel polyhedra → Session kernel geometry → existing preview and placement helpers.
-```
+Before writing code, review how the three layers in this chapter talk to each other:
 
-- Construct rectangles and polygons in plane axes.
-- Place kernel coordinates in a construction-plane frame.
-- Connect tetrahedron and octahedron constructors to the shared radius questions, unit-face cache and placed builder.
-- **Why it works (Does the second polygon point set a bounding-box corner?):** No. It is a polygon corner on the radius from the first point, which is the center.
-
-### Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `Browser`)
-
-| Layer | Construct | First-Year Student Explanation |
+| Layer | Construct | Plain-English Explanation for Students |
 | :--- | :--- | :--- |
 | **CAD Coords** | `w10,20,0` vs `@5,0,0` vs `10<30` | `w` forces absolute World coordinates; `@` measures relative to the last accepted point; `<` uses polar distance and angle in the active Construction Plane. |
 | **Rational NURBS** | Homogeneous control point `(w*x, w*y, w*z, w)` | Represents circles, ellipses, and conic arcs with zero approximation error using non-uniform weights `w`. |
 | **B-Rep Split/Trim** | Plane/Cutter intersection -> Face loop classification | Splits or trims B-Rep and mesh faces along cutting planes/curves while keeping retained topology tables valid. |
 
-**Production source (`session_viewer/src`):** [app/walk/sheet.rs](../../../../src/app/walk/sheet.rs), [app/sheet_query.rs](../../../../src/app/sheet_query.rs), [app/stream.rs](../../../../src/app/stream.rs), [app/cplane.rs](../../../../src/app/cplane.rs), [app/coords.rs](../../../../src/app/coords.rs), [app/command/tool/shape.rs](../../../../src/app/command/tool/shape.rs), [app/command/tool/gather.rs](../../../../src/app/command/tool/gather.rs), [app/deform.rs](../../../../src/app/deform.rs).
+**Authoritative production source (`session_viewer/src`):** [app/walk/sheet.rs](../../../../src/app/walk/sheet.rs), [app/sheet_query.rs](../../../../src/app/sheet_query.rs), [app/stream.rs](../../../../src/app/stream.rs), [app/cplane.rs](../../../../src/app/cplane.rs), [app/coords.rs](../../../../src/app/coords.rs), [app/command/tool/shape.rs](../../../../src/app/command/tool/shape.rs), [app/command/tool/gather.rs](../../../../src/app/command/tool/gather.rs), [app/deform.rs](../../../../src/app/deform.rs).
 
-## Implementation Checkpoints
+## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
 
-Apply these checkpoints in order inside `workspace/journey`. Expand each block to view the Rust/WGSL/HTML edits:
+| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
+| ---: | :--- | :--- | :--- | :--- |
+| **1** | [`73-construct-rectangles-and-polygons-in-plane-axes`](#checkpoint-73-construct-rectangles-and-polygons-in-plane-axes) | Construct rectangles and polygons in plane axes. | `src/planar.rs`, `src/lib.rs` | `two original points → plane-axis dimensions → closed original boundary` |
+| **2** | [`73a-bound-generated-original-construction-points`](#checkpoint-73a-bound-generated-original-construction-points) | Bound generated original construction points. | `src/planar.rs` | `original construction → generated doubles → point cap and finite bounds` |
+| **3** | [`73b-give-point-tools-a-plane-aware-construction-hook`](#checkpoint-73b-give-point-tools-a-plane-aware-construction-hook) | Give point tools a plane aware construction hook. | `src/tool.rs` | `existing point collector → plane-aware tool → original or temporary boundary` |
+| **4** | [`73c-build-original-rectangle-and-polygon-tool-results`](#checkpoint-73c-build-original-rectangle-and-polygon-tool-results) | Build original rectangle and polygon tool results. | `src/tool.rs` | `two accepted points → checked construction → original polyline tool result` |
+| **5** | [`73d-preserve-world-replay-for-multiword-construction-names`](#checkpoint-73d-preserve-world-replay-for-multiword-construction-names) | Preserve world replay for multiword construction names. | `src/tool.rs` | `multiword name → explicit world points → active frame construction` |
+| **6** | [`73e-keep-polygon-sides-in-the-current-draft`](#checkpoint-73e-keep-polygon-sides-in-the-current-draft) | Keep polygon sides in the current draft. | `src/tool.rs`, `src/editor.rs` | `Sides text → bounded current tool → prompt and preview` |
+| **7** | [`73f-register-current-planar-options-and-temporary-outlines`](#checkpoint-73f-register-current-planar-options-and-temporary-outlines) | Register current planar options and temporary outlines. | `src/tool.rs`, `src/commands.rs`, `src/tool_preview.rs` | `current command option → two-point collector → temporary full boundary` |
+| **8** | [`73g-exercise-oriented-original-planar-constructions`](#checkpoint-73g-exercise-oriented-original-planar-constructions) | Exercise oriented original planar constructions. | `src/planar_tests.rs`, `src/lib.rs` | `oriented original construction → temporary preview → completed polyline → original reopening` |
+| **9** | [`73h-match-solid-command-options`](#checkpoint-73h-match-solid-command-options) | Compare normalized option words while keeping Enter and Escape outside shape choices.. | `src/primitive_options.rs`, `src/lib.rs` | `Match solid command options → original f64 kernel coordinates → later temporary preview and accepted geometry` |
+| **10** | [`73i-describe-solid-command-questions`](#checkpoint-73i-describe-solid-command-questions) | Represent typed coordinates and numbers explicitly. | `src/primitive_shape.rs`, `src/lib.rs` | `Describe solid command questions → original f64 kernel coordinates → later temporary preview and accepted geometry` |
+| **11** | [`73j-build-a-right-handed-solid-frame`](#checkpoint-73j-build-a-right-handed-solid-frame) | Place kernel coordinates in a construction-plane frame. | `src/primitive_shape.rs` | `Build a right-handed solid frame → original f64 kernel coordinates → later temporary preview and accepted geometry` |
+| **12** | [`73k-sample-solid-preview-wires`](#checkpoint-73k-sample-solid-preview-wires) | Sample circles and boxes in the existing frame. | `src/primitive_shape.rs` | `Sample solid preview wires → original f64 kernel coordinates → later temporary preview and accepted geometry` |
+| **13** | [`73l-describe-solid-builders-and-dimensions`](#checkpoint-73l-describe-solid-builders-and-dimensions) | Read sizes and signed heights from answers, then describe one creation command through question, preview and kernel-build functions.. | `src/primitive_shape.rs` | `Describe solid builders and dimensions → original f64 kernel coordinates → later temporary preview and accepted geometry` |
+| **14** | [`73m-validate-solid-sizes-and-radius`](#checkpoint-73m-validate-solid-sizes-and-radius) | Reject nonfinite and degenerate dimensions. | `src/primitive_shape.rs` | `Validate solid sizes and radius → original f64 kernel coordinates → later temporary preview and accepted geometry` |
+| **15** | [`73n-weld-solid-tessellation-once`](#checkpoint-73n-weld-solid-tessellation-once) | Join kernel face meshes by reusing nearby corners, then retain either a placed BRep or its mesh representation. | `src/primitive_shape.rs` | `Weld solid tessellation once → original f64 kernel coordinates → later temporary preview and accepted geometry` |
+| **16** | [`73o-scale-and-cache-polyhedron-faces`](#checkpoint-73o-scale-and-cache-polyhedron-faces) | Cache unit polyhedron face outlines, then apply the requested circumradius and the existing placement frame. | `src/primitive_shape.rs` | `Scale and cache polyhedron faces → original f64 kernel coordinates → later temporary preview and accepted geometry` |
+| **17** | [`73p-build-a-placed-kernel-box`](#checkpoint-73p-build-a-placed-kernel-box) | Build a box through the Session kernel and place its center half a signed height above the construction plane. | `src/primitive_box.rs`, `src/lib.rs` | `Build a placed kernel box → Session kernel geometry → existing preview and placement helpers` |
+| **18** | [`73q-read-box-questions-and-corner-clicks`](#checkpoint-73q-read-box-questions-and-corner-clicks) | Connect the box builder to its question sequence. | `src/primitive_box.rs` | `Read box questions and corner clicks → Session kernel geometry → existing preview and placement helpers` |
+| **19** | [`73r-build-an-oriented-kernel-pyramid`](#checkpoint-73r-build-an-oriented-kernel-pyramid) | Read a base diagonal and signed height. | `src/primitive_pyramid.rs`, `src/lib.rs` | `Build an oriented kernel pyramid → Session kernel geometry → existing preview and placement helpers` |
+| **20** | [`73s-build-a-block-with-a-kernel-hole`](#checkpoint-73s-build-a-block-with-a-kernel-hole) | Reuse the existing box questions and dimension reader. | `src/primitive_block_with_hole.rs`, `src/lib.rs` | `Build a block with a kernel hole → Session kernel geometry → existing preview and placement helpers` |
+| **21** | [`73t-build-regular-kernel-polyhedra`](#checkpoint-73t-build-regular-kernel-polyhedra) | Connect tetrahedron and octahedron constructors to the shared radius questions, unit-face cache and placed builder. | `src/primitive_tetrahedron.rs`, `src/lib.rs`, `src/primitive_octahedron.rs` | `Build regular kernel polyhedra → Session kernel geometry → existing preview and placement helpers` |
+
+---
+
+## 4. Step-by-Step Coding Notebook (Concept + Implementation)
+
+Work through each notebook cell below in order inside `workspace/journey`. Read the **Concept Walkthrough** and **Self-Check Q&A** first, then expand the **Implementation** block to type and verify the code.
 
 <a id="checkpoint-73-construct-rectangles-and-polygons-in-plane-axes"></a>
+
+### Step 1 of 21 · Construct rectangles and polygons in plane axes (`73-construct-rectangles-and-polygons-in-plane-axes`)
+
+- **Goal:** Construct rectangles and polygons in plane axes.
+- **Data Flow Trace:** `two original points → plane-axis dimensions → closed original boundary`
+- **Files You Touch:** `src/planar.rs` (*Construct current planar polylines from signed dimensions and a checked orientation frame.*) · `src/lib.rs` (*Register the planar component.*)
+
+Measure the second point along the current frame and produce original closed kernel polylines.
+
+> **Self-Check Question:** *Does the second polygon point set a bounding-box corner?*  
+> **Answer:** No. It is a polygon corner on the radius from the first point, which is the center.
+
+- **What You Should See:** The original line, polyline and marker remain visible while current planar constructions extend the same draft. The completed exercise creates a closed rectangle and oriented polygon.
+- **Hands-On Lab Experiment:** Inspect signed rectangle dimensions and the polygon rotation that places a corner on the second point.
 
 <details>
 <summary>Implementation 73-construct-rectangles-and-polygons-in-plane-axes: Construct rectangles and polygons in plane axes</summary>
@@ -125,6 +204,19 @@ After that block, type:
 
 <a id="checkpoint-73a-bound-generated-original-construction-points"></a>
 
+### Step 2 of 21 · Bound generated original construction points (`73a-bound-generated-original-construction-points`)
+
+- **Goal:** Bound generated original construction points.
+- **Data Flow Trace:** `original construction → generated doubles → point cap and finite bounds`
+- **Files You Touch:** `src/planar.rs` (*Bound original side counts and generated coordinates before preparing the resulting chain.*)
+
+Validate polygon sides and every generated original coordinate before preparing display geometry.
+
+> **Self-Check Question:** *Why reserve one point below4096 sides?*  
+> **Answer:** The closed original polyline repeats its first point at the end;4095 sides produce4096 original points.
+
+- **Hands-On Lab Experiment:** Try Sides2 and4096, zero-width rectangles and a generated point beyond the coordinate range.
+
 <details>
 <summary>Implementation 73a-bound-generated-original-construction-points: Bound generated original construction points</summary>
 
@@ -154,6 +246,19 @@ After that block, type:
 </details>
 
 <a id="checkpoint-73b-give-point-tools-a-plane-aware-construction-hook"></a>
+
+### Step 3 of 21 · Give point tools a plane aware construction hook (`73b-give-point-tools-a-plane-aware-construction-hook`)
+
+- **Goal:** Give point tools a plane aware construction hook.
+- **Data Flow Trace:** `existing point collector → plane-aware tool → original or temporary boundary`
+- **Files You Touch:** `src/tool.rs` (*Extend the point-tool interface with original construction frames and temporary boundary hooks.*)
+
+Extend the existing tool with plane-aware builds, temporary outlines and optional side-count input.
+
+> **Self-Check Question:** *Should every tool accept Sides?*  
+> **Answer:** No. Only Polygon owns a side count; other tools reject that input. Existing Point, Line and Move keep their behavior.
+
+- **Hands-On Lab Experiment:** Compare the default tool hooks with the explicit Polygon side-count hook.
 
 <details>
 <summary>Implementation 73b-give-point-tools-a-plane-aware-construction-hook: Give point tools a plane aware construction hook</summary>
@@ -187,6 +292,19 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-73c-build-original-rectangle-and-polygon-tool-results"></a>
+
+### Step 4 of 21 · Build original rectangle and polygon tool results (`73c-build-original-rectangle-and-polygon-tool-results`)
+
+- **Goal:** Build original rectangle and polygon tool results.
+- **Data Flow Trace:** `two accepted points → checked construction → original polyline tool result`
+- **Files You Touch:** `src/tool.rs` (*Build precise original rectangle and polygon results through the current construction frame.*)
+
+Add two-point construction tools that generate one validated original polyline in the current frame.
+
+> **Self-Check Question:** *Should changing the construction frame flatten the shape to XY?*  
+> **Answer:** No. Generate every original point along the current plane axes and preserve its world placement.
+
+- **Hands-On Lab Experiment:** Compare Rectangle in XZ with a rotated Polygon on a translated three-point frame.
 
 <details>
 <summary>Implementation 73c-build-original-rectangle-and-polygon-tool-results: Build original rectangle and polygon tool results</summary>
@@ -388,6 +506,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-73d-preserve-world-replay-for-multiword-construction-names"></a>
 
+### Step 5 of 21 · Preserve world replay for multiword construction names (`73d-preserve-world-replay-for-multiword-construction-names`)
+
+- **Goal:** Preserve world replay for multiword construction names.
+- **Data Flow Trace:** `multiword name → explicit world points → active frame construction`
+- **Files You Touch:** `src/tool.rs` (*Replay original world points independently of multiword names and derive temporary construction boundaries.*)
+
+Strip the complete tool name before replay and use the active frame for construction and temporary boundaries.
+
+> **Self-Check Question:** *Can splitting at the first space recover a Rectangle command?*  
+> **Answer:** No. Polyline Rectangle is a multiword name. Remove its full name before parsing the world-prefixed input points.
+
+- **Hands-On Lab Experiment:** Finish a tilted Rectangle and verify its first original coordinate is still the accepted world point.
+
 <details>
 <summary>Implementation 73d-preserve-world-replay-for-multiword-construction-names: Preserve world replay for multiword construction names</summary>
 
@@ -423,6 +554,19 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-73e-keep-polygon-sides-in-the-current-draft"></a>
+
+### Step 6 of 21 · Keep polygon sides in the current draft (`73e-keep-polygon-sides-in-the-current-draft`)
+
+- **Goal:** Keep polygon sides in the current draft.
+- **Data Flow Trace:** `Sides text → bounded current tool → prompt and preview`
+- **Files You Touch:** `src/tool.rs` (*Keep validated polygon side counts beside unfinished original input.*) · `src/editor.rs` (*Route bounded Sides input to the current unfinished Polygon and preserve original draft points.*)
+
+Validate Sides before changing the tool; update the prompt without creating geometry or a history transaction.
+
+> **Self-Check Question:** *Does Sides5 commit a polygon?*  
+> **Answer:** No. It changes unfinished input. Completion still needs the center and corner, then commits exactly once.
+
+- **Hands-On Lab Experiment:** Start Polygon, set Sides5, reject2 and4096, and finish its second point.
 
 <details>
 <summary>Implementation 73e-keep-polygon-sides-in-the-current-draft: Keep polygon sides in the current draft</summary>
@@ -1628,6 +1772,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-73f-register-current-planar-options-and-temporary-outlines"></a>
 
+### Step 7 of 21 · Register current planar options and temporary outlines (`73f-register-current-planar-options-and-temporary-outlines`)
+
+- **Goal:** Register current planar options and temporary outlines.
+- **Data Flow Trace:** `current command option → two-point collector → temporary full boundary`
+- **Files You Touch:** `src/tool.rs` (*Offer current planar construction choices on the Polyline tools.*) · `src/commands.rs` (*Register current Polyline Points, Rectangle and Polygon options and direct coordinates.*) · `src/tool_preview.rs` (*Draw complete temporary construction boundaries while retaining the current cursor marker.*)
+
+Connect Points, Rectangle and Polygon options to the same collector and draw complete unfinished boundaries.
+
+> **Self-Check Question:** *Does the preview become part of Save?*  
+> **Answer:** No. The generated preview is temporary; only the completed original construction enters the scene and history.
+
+- **Hands-On Lab Experiment:** Hover the second Rectangle corner and compare its four preview edges with the unchanged original scene.
+
 <details>
 <summary>Implementation 73f-register-current-planar-options-and-temporary-outlines: Register current planar options and temporary outlines</summary>
 
@@ -1928,6 +2085,20 @@ Edit the existing block to match this code; keep unchanged lines:
 
 <a id="checkpoint-73g-exercise-oriented-original-planar-constructions"></a>
 
+### Step 8 of 21 · Exercise oriented original planar constructions (`73g-exercise-oriented-original-planar-constructions`)
+
+- **Goal:** Exercise oriented original planar constructions.
+- **Data Flow Trace:** `oriented original construction → temporary preview → completed polyline → original reopening`
+- **Files You Touch:** `src/planar_tests.rs` (*Copy current oriented construction, original archive, side-cap, failed-input and temporary-preview fixtures.*) · `src/lib.rs` (*Register the planar component.*)
+
+Copy precise plane, side-count, preview, original persistence and single-transaction fixtures.
+
+> **Self-Check Question:** *What proves an oriented polygon keeps its source geometry?*  
+> **Answer:** Its original radius, closing point and tilted plane coordinates remain exact through Save/Open and Undo/Redo.
+
+- **What You Should See:** An original rectangle and five-sided polygon render on white. Both are closed kernel polylines in the chosen plane; hover remains temporary. Invalid input preserves the draft, and completion creates one Undo transaction with exact original Save/Open.
+- **Hands-On Lab Experiment:** Type Close, CPlane XY, Polyline Rectangle w-0.8,-0.4,0 w-0.1,0.4,0, Polyline Polygon, Sides5, w0.5,0,0, w0.8,0,0 and Fit. Try invalid corners, Escape and Undo/Redo.
+
 <details>
 <summary>Implementation 73g-exercise-oriented-original-planar-constructions: Exercise oriented original planar constructions</summary>
 
@@ -1983,6 +2154,19 @@ After that block, append this supplied code:
 
 <a id="checkpoint-73h-match-solid-command-options"></a>
 
+### Step 9 of 21 · Match solid command options (`73h-match-solid-command-options`)
+
+- **Goal:** Compare normalized option words while keeping Enter and Escape outside shape choices..
+- **Data Flow Trace:** `Match solid command options → original f64 kernel coordinates → later temporary preview and accepted geometry`
+- **Files You Touch:** `src/primitive_options.rs` (*Normalize option labels once and consume matching input words.*) · `src/lib.rs` (*Register the shared option matcher.*)
+
+Compare normalized option words while keeping Enter and Escape outside shape choices.
+
+> **Self-Check Question:** *Why exclude Escape from the option iterator?*  
+> **Answer:** Escape is an action that cancels an owner, rather than a solid representation.
+
+- **Hands-On Lab Experiment:** Try matching mixed case and a multiword label on paper; count how many input words the match consumes.
+
 <details>
 <summary>Implementation 73h-match-solid-command-options: Match solid command options</summary>
 
@@ -2023,6 +2207,19 @@ After that block, type:
 </details>
 
 <a id="checkpoint-73i-describe-solid-command-questions"></a>
+
+### Step 10 of 21 · Describe solid command questions (`73i-describe-solid-command-questions`)
+
+- **Goal:** Represent typed coordinates and numbers explicitly.
+- **Data Flow Trace:** `Describe solid command questions → original f64 kernel coordinates → later temporary preview and accepted geometry`
+- **Files You Touch:** `src/primitive_shape.rs` (*Describe the solid answers and questions using kernel points.*) · `src/lib.rs` (*Register the foundation as it is written.*)
+
+Represent typed coordinates and numbers explicitly. Give each question its interpretation and optional default.
+
+> **Self-Check Question:** *Why keep a numeric answer separate from a clicked point?*  
+> **Answer:** The same number can mean a size or a signed height; the question decides how to interpret it.
+
+- **Hands-On Lab Experiment:** Describe Center, Radius and Height using the three constructors. Predict which answers Enter can accept.
 
 <details>
 <summary>Implementation 73i-describe-solid-command-questions: Describe solid command questions</summary>
@@ -2065,6 +2262,19 @@ After that block, type:
 
 <a id="checkpoint-73j-build-a-right-handed-solid-frame"></a>
 
+### Step 11 of 21 · Build a right-handed solid frame (`73j-build-a-right-handed-solid-frame`)
+
+- **Goal:** Place kernel coordinates in a construction-plane frame.
+- **Data Flow Trace:** `Build a right-handed solid frame → original f64 kernel coordinates → later temporary preview and accepted geometry`
+- **Files You Touch:** `src/primitive_shape.rs` (*Continue the shared solid foundation with this lesson’s functions.*)
+
+Place kernel coordinates in a construction-plane frame. Rotate, flip and roll its axes without changing original source geometry.
+
+> **Self-Check Question:** *Why reverse both y and z when flipping the frame?*  
+> **Answer:** Reversing both axes keeps x cross y equal to z, preserving a rotation.
+
+- **Hands-On Lab Experiment:** Use the Top and Front plane axes to calculate the normal. Predict a local point after flipping the frame.
+
 <details>
 <summary>Implementation 73j-build-a-right-handed-solid-frame: Build a right-handed solid frame</summary>
 
@@ -2102,6 +2312,19 @@ After that block, type:
 
 <a id="checkpoint-73k-sample-solid-preview-wires"></a>
 
+### Step 12 of 21 · Sample solid preview wires (`73k-sample-solid-preview-wires`)
+
+- **Goal:** Sample circles and boxes in the existing frame.
+- **Data Flow Trace:** `Sample solid preview wires → original f64 kernel coordinates → later temporary preview and accepted geometry`
+- **Files You Touch:** `src/primitive_shape.rs` (*Continue the shared solid foundation with this lesson’s functions.*)
+
+Sample circles and boxes in the existing frame. These points describe temporary preview wires; the kernel still creates the accepted solid.
+
+> **Self-Check Question:** *Why include the first point again at the end of an oval?*  
+> **Answer:** The repeated endpoint closes the preview polyline. It is distinct from a duplicate solid vertex.
+
+- **Hands-On Lab Experiment:** Predict the number of circle points and box wire chains. Change the ring sample count temporarily and restore it.
+
 <details>
 <summary>Implementation 73k-sample-solid-preview-wires: Sample solid preview wires</summary>
 
@@ -2137,6 +2360,19 @@ Edit the existing block to match this code; keep unchanged lines:
 
 <a id="checkpoint-73l-describe-solid-builders-and-dimensions"></a>
 
+### Step 13 of 21 · Describe solid builders and dimensions (`73l-describe-solid-builders-and-dimensions`)
+
+- **Goal:** Read sizes and signed heights from answers, then describe one creation command through question, preview and kernel-build functions..
+- **Data Flow Trace:** `Describe solid builders and dimensions → original f64 kernel coordinates → later temporary preview and accepted geometry`
+- **Files You Touch:** `src/primitive_shape.rs` (*Continue the shared solid foundation with this lesson’s functions.*)
+
+Read sizes and signed heights from answers, then describe one creation command through question, preview and kernel-build functions.
+
+> **Self-Check Question:** *Why use function pointers in Shape?*  
+> **Answer:** Every solid follows the same question lifecycle while supplying its own dimension rules, preview and builder.
+
+- **Hands-On Lab Experiment:** Compare a negative typed height with a point below the plane. Trace which callback accepts the answer and which one builds geometry.
+
 <details>
 <summary>Implementation 73l-describe-solid-builders-and-dimensions: Describe solid builders and dimensions</summary>
 
@@ -2169,6 +2405,19 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-73m-validate-solid-sizes-and-radius"></a>
+
+### Step 14 of 21 · Validate solid sizes and radius (`73m-validate-solid-sizes-and-radius`)
+
+- **Goal:** Reject nonfinite and degenerate dimensions.
+- **Data Flow Trace:** `Validate solid sizes and radius → original f64 kernel coordinates → later temporary preview and accepted geometry`
+- **Files You Touch:** `src/primitive_shape.rs` (*Continue the shared solid foundation with this lesson’s functions.*)
+
+Reject nonfinite and degenerate dimensions. Read a center and radius once, then reuse the same frame for three great-circle previews.
+
+> **Self-Check Question:** *Why can a height be negative while a radius must be positive?*  
+> **Answer:** Height specifies a direction along the frame normal. Radius measures a nonnegative distance.
+
+- **Hands-On Lab Experiment:** Predict the error for NaN, zero and an oversized radius. Trace the three rolled frames used by the sphere preview.
 
 <details>
 <summary>Implementation 73m-validate-solid-sizes-and-radius: Validate solid sizes and radius</summary>
@@ -2203,6 +2452,19 @@ After that block, type:
 </details>
 
 <a id="checkpoint-73n-weld-solid-tessellation-once"></a>
+
+### Step 15 of 21 · Weld solid tessellation once (`73n-weld-solid-tessellation-once`)
+
+- **Goal:** Join kernel face meshes by reusing nearby corners, then retain either a placed BRep or its mesh representation.
+- **Data Flow Trace:** `Weld solid tessellation once → original f64 kernel coordinates → later temporary preview and accepted geometry`
+- **Files You Touch:** `src/primitive_shape.rs` (*Continue the shared solid foundation with this lesson’s functions.*)
+
+Join kernel face meshes by reusing nearby corners, then retain either a placed BRep or its mesh representation. Search neighboring cells to avoid cracks at a cell boundary.
+
+> **Self-Check Question:** *Why search neighboring cells as well as the rounded cell?*  
+> **Answer:** Two close points can round into adjacent cells. Their actual distance determines whether they share a corner.
+
+- **Hands-On Lab Experiment:** Choose two nearby points on opposite sides of a cell boundary. Predict whether a single-cell lookup would leave a crack.
 
 <details>
 <summary>Implementation 73n-weld-solid-tessellation-once: Weld solid tessellation once</summary>
@@ -2244,6 +2506,19 @@ After that block, type:
 </details>
 
 <a id="checkpoint-73o-scale-and-cache-polyhedron-faces"></a>
+
+### Step 16 of 21 · Scale and cache polyhedron faces (`73o-scale-and-cache-polyhedron-faces`)
+
+- **Goal:** Cache unit polyhedron face outlines, then apply the requested circumradius and the existing placement frame.
+- **Data Flow Trace:** `Scale and cache polyhedron faces → original f64 kernel coordinates → later temporary preview and accepted geometry`
+- **Files You Touch:** `src/primitive_shape.rs` (*Continue the shared solid foundation with this lesson’s functions.*)
+
+Cache unit polyhedron face outlines, then apply the requested circumradius and the existing placement frame. Supply the original frame validation fixture separately.
+
+> **Self-Check Question:** *Why normalize by circumradius instead of scaling by one chosen vertex coordinate?*  
+> **Answer:** Circumradius measures the furthest corner from the origin and is independent of axis orientation.
+
+- **Hands-On Lab Experiment:** Compare mesh and BRep output for a small radius. Explain the BRep tolerance check before rebuilding the browser.
 
 <details>
 <summary>Implementation 73o-scale-and-cache-polyhedron-faces: Scale and cache polyhedron faces</summary>
@@ -2305,6 +2580,19 @@ After that block, append this supplied code:
 
 <a id="checkpoint-73p-build-a-placed-kernel-box"></a>
 
+### Step 17 of 21 · Build a placed kernel box (`73p-build-a-placed-kernel-box`)
+
+- **Goal:** Build a box through the Session kernel and place its center half a signed height above the construction plane.
+- **Data Flow Trace:** `Build a placed kernel box → Session kernel geometry → existing preview and placement helpers`
+- **Files You Touch:** `src/primitive_box.rs` (*Build and place the kernel box, with its width and preview helpers.*) · `src/lib.rs` (*Register the box helpers before connecting their question sequence.*)
+
+Build a box through the Session kernel and place its center half a signed height above the construction plane. Draw its line, base and full-box preview from the shared frame.
+
+> **Self-Check Question:** *Why translate by half the signed height?*  
+> **Answer:** The kernel box is centered. The translation places its bottom on the construction plane; a negative height puts it below that plane.
+
+- **Hands-On Lab Experiment:** Trace positive and negative heights. Predict the preview coordinates on the Front plane.
+
 <details>
 <summary>Implementation 73p-build-a-placed-kernel-box: Build a placed kernel box</summary>
 
@@ -2345,6 +2633,19 @@ After that block, type:
 </details>
 
 <a id="checkpoint-73q-read-box-questions-and-corner-clicks"></a>
+
+### Step 18 of 21 · Read box questions and corner clicks (`73q-read-box-questions-and-corner-clicks`)
+
+- **Goal:** Connect the box builder to its question sequence.
+- **Data Flow Trace:** `Read box questions and corner clicks → Session kernel geometry → existing preview and placement helpers`
+- **Files You Touch:** `src/primitive_box.rs` (*Insert the shape descriptor and question reader before the helpers already written.*)
+
+Connect the box builder to its question sequence. A corner click supplies two base dimensions, while typed dimensions ask for width separately.
+
+> **Self-Check Question:** *Why does one corner click supply two dimensions?*  
+> **Answer:** Its local u and v coordinates give half the centered base lengths; absolute values choose positive dimensions.
+
+- **Hands-On Lab Experiment:** Compare Center, a corner click and Height with Center, Length, Width and Height. Check their accepted solids have the same corners.
 
 <details>
 <summary>Implementation 73q-read-box-questions-and-corner-clicks: Read box questions and corner clicks</summary>
@@ -2412,6 +2713,19 @@ After that block, append this supplied code:
 </details>
 
 <a id="checkpoint-73r-build-an-oriented-kernel-pyramid"></a>
+
+### Step 19 of 21 · Build an oriented kernel pyramid (`73r-build-an-oriented-kernel-pyramid`)
+
+- **Goal:** Read a base diagonal and signed height.
+- **Data Flow Trace:** `Build an oriented kernel pyramid → Session kernel geometry → existing preview and placement helpers`
+- **Files You Touch:** `src/primitive_pyramid.rs` (*Type the kernel builder and reuse the shared original-coordinate helpers.*) · `src/lib.rs` (*Register the completed original solid module.*)
+
+Read a base diagonal and signed height. Use the shared upright frame for the kernel pyramid and draw the matching temporary edges.
+
+> **Self-Check Question:** *Why make the height positive before building?*  
+> **Answer:** The flipped frame carries the downward direction, so the kernel receives a positive size without losing placement.
+
+- **Hands-On Lab Experiment:** Compare the pyramid below the Top plane with one along the Front plane. Predict the apex before checking the supplied fixture.
 
 <details>
 <summary>Implementation 73r-build-an-oriented-kernel-pyramid: Build an oriented kernel pyramid</summary>
@@ -2492,6 +2806,19 @@ After that block, append this supplied code:
 
 <a id="checkpoint-73s-build-a-block-with-a-kernel-hole"></a>
 
+### Step 20 of 21 · Build a block with a kernel hole (`73s-build-a-block-with-a-kernel-hole`)
+
+- **Goal:** Reuse the existing box questions and dimension reader.
+- **Data Flow Trace:** `Build a block with a kernel hole → Session kernel geometry → existing preview and placement helpers`
+- **Files You Touch:** `src/primitive_block_with_hole.rs` (*Type the kernel builder and reuse the shared original-coordinate helpers.*) · `src/lib.rs` (*Register the completed original solid module.*)
+
+Reuse the existing box questions and dimension reader. Add a bounded hole radius and place the Session kernel block in the same frame.
+
+> **Self-Check Question:** *Why reuse the box reader for the outer dimensions?*  
+> **Answer:** The block and box accept the same centered dimensions. Only the additional hole question and kernel builder differ.
+
+- **Hands-On Lab Experiment:** Compare a radius that fits with one exceeding half the smaller base dimension. Explain the refusal before the kernel call.
+
 <details>
 <summary>Implementation 73s-build-a-block-with-a-kernel-hole: Build a block with a kernel hole</summary>
 
@@ -2566,6 +2893,19 @@ After that block, append this supplied code:
 </details>
 
 <a id="checkpoint-73t-build-regular-kernel-polyhedra"></a>
+
+### Step 21 of 21 · Build regular kernel polyhedra (`73t-build-regular-kernel-polyhedra`)
+
+- **Goal:** Connect tetrahedron and octahedron constructors to the shared radius questions, unit-face cache and placed builder.
+- **Data Flow Trace:** `Build regular kernel polyhedra → Session kernel geometry → existing preview and placement helpers`
+- **Files You Touch:** `src/primitive_tetrahedron.rs` (*Type the kernel builder and reuse the shared original-coordinate helpers.*) · `src/lib.rs` (*Register the completed original solid module.*) · `src/primitive_octahedron.rs` (*Type the kernel builder and reuse the shared original-coordinate helpers.*)
+
+Connect tetrahedron and octahedron constructors to the shared radius questions, unit-face cache and placed builder. Reuse the same foundation for the remaining regular solids.
+
+> **Self-Check Question:** *Why share the radius reader and polyhedron builder?*  
+> **Answer:** Their question and placement rules match; only the kernel constructor and cached face outlines differ.
+
+- **Hands-On Lab Experiment:** Compare tetrahedron and octahedron corner counts. Explain why both use the same radius and frame rules.
 
 <details>
 <summary>Implementation 73t-build-regular-kernel-polyhedra: Build regular kernel polyhedra</summary>
@@ -2694,9 +3034,11 @@ After that block, append this supplied code:
 
 </details>
 
-## Run, Check, and Save
+---
 
-From `session_viewer`:
+## 5. Build, Verify, and Save Your Checkpoint
+
+Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 73t-build-regular-kernel-polyhedra
@@ -2707,10 +3049,10 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. Use [checkpoint recovery](../../recovery.md) to restore any saved checkpoint.
+Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
 
-## Expected Visual Result & Experiment
+## 6. Lesson Summary & Expected Visual Result
 
-- **Try this:** Compare tetrahedron and octahedron corner counts. Explain why both use the same radius and frame rules.
+- **Final Lesson Experiment:** Compare tetrahedron and octahedron corner counts. Explain why both use the same radius and frame rules.
 
-Continue with [Solid questions, previews and one original commit](74-copy-current-solid-geometry-and-question-definitions.md).
+Continue with [Solid questions, previews and one original commit](../../consolidation/74-copy-current-solid-geometry-and-question-definitions.md).

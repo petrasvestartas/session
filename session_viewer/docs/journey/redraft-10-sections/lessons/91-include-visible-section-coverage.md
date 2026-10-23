@@ -1,88 +1,147 @@
 # 18.3 · Section-aware outlines and one presentation composite
 
-**Section 9: Compute Tile Visibility, Clipping Half-Spaces, Section Caps, and Ambient Occlusion** · **Lesson 18.3** (Redraft `9.7`) · **10 checkpoints (`91-include-visible-section-coverage` → `91i-prove-actual-outlines-and-original-ownership`)**
+**Section 9: Compute Tile Visibility, Clipping Half-Spaces, Section Caps, and Ambient Occlusion** · **Lesson 18.3** (Redraft `9.7`) · **10 checkpoints (`91-include-visible-section-coverage` → `91i-prove-actual-outlines-and-original-ownership`)** · **Study time: 5–10 h**
 
-> **Learning Goal:** Include visible section coverage.
+> **What You Will Learn & Build:** Include visible section coverage. By the final checkpoint (`91i-prove-actual-outlines-and-original-ownership`), you will prove actual outlines and original ownership.
 
-## Visual WebGPU & Architecture Schematic
+## 1. Visual Pipeline & WebGPU Architecture (Black & White Schematics)
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1px solid #cbd5e1;border-radius:10px;background:#f8fafc;">
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
+<svg viewBox="0 0 840 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <rect x="4" y="4" width="832" height="212" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Lesson 18.3 Execution Flow: Section-aware outlines and one presentation composite</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">Concrete data pipeline you build in this lesson (10 Checkpoints: 91-include-visible-section-coverage → 91i-prove-actual-outlines-and-original-ownership)</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
+  
+    
+    <rect x="18" y="68" width="184" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="110" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
+    <line x1="28" y1="92" x2="192" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="110" y="108" text-anchor="middle" font-size="11" fill="#111111">original visible surfaces</text>
+    <line x1="202" y1="108" x2="222" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="224" y="68" width="184" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="316" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
+    <line x1="234" y1="92" x2="398" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="316" y="108" text-anchor="middle" font-size="11" fill="#111111">equal CSS masks</text>
+    <line x1="408" y1="108" x2="428" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="430" y="68" width="184" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="522" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
+    <line x1="440" y1="92" x2="604" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="522" y="108" text-anchor="middle" font-size="11" fill="#111111">max alpha</text>
+    <line x1="614" y1="108" x2="634" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="636" y="68" width="184" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="728" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
+    <line x1="646" y1="92" x2="810" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="728" y="108" text-anchor="middle" font-size="11" fill="#111111">one black outline</text>
+    
+    <rect x="18" y="162" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="32" y="181" font-size="11" font-weight="700" fill="#111111">Files You Edit in Lesson 18.3:</text>
+    <text x="215" y="181" font-size="11" fill="#111111">src/outline_caps.wgsl  ·  src/outline_caps.rs  ·  src/lib.rs  ·  src/outline_composite.wgsl  ·  src/outline_composite.rs  ·  src/outline_gpu.rs</text>
+    <text x="32" y="198" font-size="10.5" fill="#111111">10 Checkpoints: 91-include-visible-section-coverage → 91i-prove-actual-outlines-and-original-ownership — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
+  
+</svg>
+</div>
+
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
 <svg viewBox="0 0 840 240" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#475569"/>
-    </marker>
-    <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#2563eb"/>
-    </marker>
-    <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#059669"/>
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
     </marker>
   </defs>
-  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
-  <text x="20" y="28" font-size="14" font-weight="700" fill="#0f172a">Section 9 Compute Tile Visibility, Clipping Half-Spaces, Winding Section Caps & Horizon GTAO (Ch 17–18)</text>
-  <text x="20" y="46" font-size="11.5" fill="#475569">How @compute shaders bin triangles into screen tiles for hidden-line removal, clip solids with winding caps, and shade crevices.</text>
-  <line x1="16" y1="54" x2="824" y2="54" stroke="#e2e8f0" stroke-width="1"/>
+  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Section 9 Compute Tile Visibility, Clipping Half-Spaces, Winding Section Caps & Horizon GTAO (Ch 17–18)</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">How @compute shaders bin triangles into screen tiles for hidden-line removal, clip solids with winding caps, and shade crevices.</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
   
-    <rect x="18" y="68" width="250" height="145" rx="6" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
-    <text x="143" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1e40af">1. @compute Tile Visibility (Ch 17)</text>
-    <text x="28" y="108" font-size="10.5" fill="#1e3a8a">• projected_triangle.wgsl projects tris</text>
-    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#1d4ed8">• atomicAdd tile counts + prefix-sum CSR</text>
-    <text x="28" y="144" font-size="10.5" fill="#1e3a8a">• ink_visibility.wgsl tests center-line</text>
-    <text x="28" y="160" font-size="10.5" fill="#1e3a8a">  against covering triangles in tile</text>
-    <text x="28" y="178" font-size="10.5" fill="#1e3a8a">• Hidden lines dashed/faded cleanly!</text>
+    <rect x="18" y="68" width="250" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="143" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">1. @compute Tile Visibility (Ch 17)</text>
+    <text x="28" y="108" font-size="10.5" fill="#111111">• projected_triangle.wgsl projects tris</text>
+    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#111111">• atomicAdd tile counts + prefix-sum CSR</text>
+    <text x="28" y="144" font-size="10.5" fill="#111111">• ink_visibility.wgsl tests center-line</text>
+    <text x="28" y="160" font-size="10.5" fill="#111111">  against covering triangles in tile</text>
+    <text x="28" y="178" font-size="10.5" fill="#111111">• Hidden lines dashed/faded cleanly!</text>
 
-    <line x1="268" y1="138" x2="298" y2="138" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
+    <line x1="268" y1="138" x2="298" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="300" y="68" width="265" height="145" rx="6" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5"/>
-    <text x="432" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#9a3412">2. Clipping &amp; Winding Caps (Ch 17)</text>
-    <text x="312" y="108" font-size="10.5" fill="#7c2d12">• Half-space: dot(pos_world, plane) &lt; 0</text>
-    <text x="312" y="126" font-size="10.5" font-weight="600" fill="#c2410c">• Signed front/back crossing count</text>
-    <text x="312" y="142" font-size="10" fill="#7c2d12">  at clip plane depth (cap.wgsl):</text>
-    <text x="312" y="158" font-size="10" fill="#7c2d12">  Fills closed solid interiors while</text>
-    <text x="312" y="173" font-size="10" fill="#7c2d12">  leaving internal bores hollow!</text>
-    <text x="312" y="191" font-size="10.5" fill="#7c2d12">• Cap picks resolve to solid owner_id</text>
+    <rect x="300" y="68" width="265" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="432" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">2. Clipping &amp; Winding Caps (Ch 17)</text>
+    <text x="312" y="108" font-size="10.5" fill="#111111">• Half-space: dot(pos_world, plane) &lt; 0</text>
+    <text x="312" y="126" font-size="10.5" font-weight="600" fill="#111111">• Signed front/back crossing count</text>
+    <text x="312" y="142" font-size="10" fill="#111111">  at clip plane depth (cap.wgsl):</text>
+    <text x="312" y="158" font-size="10" fill="#111111">  Fills closed solid interiors while</text>
+    <text x="312" y="173" font-size="10" fill="#111111">  leaving internal bores hollow!</text>
+    <text x="312" y="191" font-size="10.5" fill="#111111">• Cap picks resolve to solid owner_id</text>
 
-    <line x1="565" y1="138" x2="595" y2="138" stroke="#059669" stroke-width="2" marker-end="url(#arrow-green)"/>
+    <line x1="565" y1="138" x2="595" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="597" y="68" width="223" height="145" rx="6" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1.5"/>
-    <text x="708" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#065f46">3. Horizon GTAO &amp; X-Ray (Ch 18)</text>
-    <text x="609" y="108" font-size="10.5" fill="#064e3b">• ambient_depth.wgsl -&gt; 6-mip pyramid</text>
-    <text x="609" y="126" font-size="10.5" font-weight="600" fill="#047857">• ssao.wgsl + bilateral blur +</text>
-    <text x="609" y="142" font-size="10.5" font-weight="600" fill="#047857">  ambient_composite.wgsl (Arctic)</text>
-    <text x="609" y="160" font-size="10" fill="#064e3b">• Glass / X-Ray translucent shells</text>
-    <text x="609" y="175" font-size="10" fill="#064e3b">  allow picking interior Wood joints</text>
+    <rect x="597" y="68" width="223" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="708" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">3. Horizon GTAO &amp; X-Ray (Ch 18)</text>
+    <text x="609" y="108" font-size="10.5" fill="#111111">• ambient_depth.wgsl -&gt; 6-mip pyramid</text>
+    <text x="609" y="126" font-size="10.5" font-weight="600" fill="#111111">• ssao.wgsl + bilateral blur +</text>
+    <text x="609" y="142" font-size="10.5" font-weight="600" fill="#111111">  ambient_composite.wgsl (Arctic)</text>
+    <text x="609" y="160" font-size="10" fill="#111111">• Glass / X-Ray translucent shells</text>
+    <text x="609" y="175" font-size="10" fill="#111111">  allow picking interior Wood joints</text>
     
 </svg>
 </div>
 
-### Lesson Data Flow (`Rust` → `WebGPU` → `WGSL`)
+## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
 
-```
-original visible surfaces → equal CSS masks → max alpha → one black outline.
-```
+Before writing code, review how the three layers in this chapter talk to each other:
 
-- Include visible section coverage.
-- Prepare masks without a second blend.
-- Prove actual outlines and original ownership.
-- **Why it works (Can a section outline invent a new original face?):** No. Read the visible cap depth and original selection marker. Reject absent or nonselected caps before adding coverage.
-
-### Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `Browser`)
-
-| Layer | Construct | First-Year Student Explanation |
+| Layer | Construct | Plain-English Explanation for Students |
 | :--- | :--- | :--- |
 | **WGSL (`@compute`)** | `@compute @workgroup_size(64) fn main(@builtin(global_invocation_id) id: vec3<u32>)` | Runs general-purpose parallel GPU threads (outside vertex/fragment rasterization) to project triangles and prefix-sum tile counts. |
 | **WGSL (Atomics)** | `atomicAdd(&tile_counts[tile_id], 1u)` | Safely increments shared GPU buffer counters when multiple triangles overlap the same screen tile concurrently. |
 | **Math (Winding Cap)** | `signed_crossings != 0` at clip plane depth | Fills only the solid interior of a clipped B-Rep/mesh while leaving interior bores and open shells hollow. |
 | **WGSL (`ssao.wgsl`)** | Multi-level depth pyramid horizon integration | Samples 6 mip levels of linear depth and per-object contact radius to shade crevices and ground contact. |
 
-**Production source (`session_viewer/src`):** [engine/gpu/ssao.rs](../../../../src/engine/gpu/ssao.rs), [engine/gpu/ssao/pipelines.rs](../../../../src/engine/gpu/ssao/pipelines.rs), [shaders/ssao.wgsl](../../../../src/shaders/ssao.wgsl), [shaders/triangle.wgsl](../../../../src/shaders/triangle.wgsl), [shaders/ink_visibility.wgsl](../../../../src/shaders/ink_visibility.wgsl), [engine/gpu/surface_outline.rs](../../../../src/engine/gpu/surface_outline.rs), [engine/gpu/render.rs](../../../../src/engine/gpu/render.rs), [engine/performance.rs](../../../../src/engine/performance.rs), [engine/gpu/timing.rs](../../../../src/engine/gpu/timing.rs), [app/command/tool/elements.rs](../../../../src/app/command/tool/elements.rs), [build.rs](../../../../build.rs).
+**Authoritative production source (`session_viewer/src`):** [engine/gpu/ssao.rs](../../../../src/engine/gpu/ssao.rs), [engine/gpu/ssao/pipelines.rs](../../../../src/engine/gpu/ssao/pipelines.rs), [shaders/ssao.wgsl](../../../../src/shaders/ssao.wgsl), [shaders/triangle.wgsl](../../../../src/shaders/triangle.wgsl), [shaders/ink_visibility.wgsl](../../../../src/shaders/ink_visibility.wgsl), [engine/gpu/surface_outline.rs](../../../../src/engine/gpu/surface_outline.rs), [engine/gpu/render.rs](../../../../src/engine/gpu/render.rs), [engine/performance.rs](../../../../src/engine/performance.rs), [engine/gpu/timing.rs](../../../../src/engine/gpu/timing.rs), [app/command/tool/elements.rs](../../../../src/app/command/tool/elements.rs), [build.rs](../../../../build.rs).
 
-## Implementation Checkpoints
+## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
 
-Apply these checkpoints in order inside `workspace/journey`. Expand each block to view the Rust/WGSL/HTML edits:
+| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
+| ---: | :--- | :--- | :--- | :--- |
+| **1** | [`91-include-visible-section-coverage`](#checkpoint-91-include-visible-section-coverage) | Include visible section coverage. | `src/outline_caps.wgsl` | `original visible surfaces → equal CSS masks → max alpha → one black outline` |
+| **2** | [`91a-cache-visible-section-bindings`](#checkpoint-91a-cache-visible-section-bindings) | Cache visible section bindings. | `src/outline_caps.rs`, `src/lib.rs` | `original visible surfaces → equal CSS masks → max alpha → one black outline` |
+| **3** | [`91b-combine-outline-alpha-once`](#checkpoint-91b-combine-outline-alpha-once) | Combine outline alpha once. | `src/outline_composite.wgsl` | `original visible surfaces → equal CSS masks → max alpha → one black outline` |
+| **4** | [`91c-cache-one-black-outline-composite`](#checkpoint-91c-cache-one-black-outline-composite) | Cache one black outline composite. | `src/outline_composite.rs`, `src/lib.rs` | `original visible surfaces → equal CSS masks → max alpha → one black outline` |
+| **5** | [`91d-separate-source-scope-from-outline-selection`](#checkpoint-91d-separate-source-scope-from-outline-selection) | Separate source scope from outline selection. | `src/outline_gpu.rs` | `original visible surfaces → equal CSS masks → max alpha → one black outline` |
+| **6** | [`91e-prepare-masks-without-a-second-blend`](#checkpoint-91e-prepare-masks-without-a-second-blend) | Prepare masks without a second blend. | `src/outline_gpu.rs` | `original visible surfaces → equal CSS masks → max alpha → one black outline` |
+| **7** | [`91f-own-independent-global-outline-resources`](#checkpoint-91f-own-independent-global-outline-resources) | Own independent global outline resources. | `src/renderer.rs` | `original visible surfaces → equal CSS masks → max alpha → one black outline` |
+| **8** | [`91g-draw-all-solid-and-selected-coverage-consistently`](#checkpoint-91g-draw-all-solid-and-selected-coverage-consistently) | Draw all-solid and selected coverage consistently. | `src/renderer.rs` | `original visible surfaces → equal CSS masks → max alpha → one black outline` |
+| **9** | [`91h-connect-outline-and-arctic-presentation-commands`](#checkpoint-91h-connect-outline-and-arctic-presentation-commands) | Connect Outline and Arctic presentation commands. | `src/editor.rs`, `src/commands.rs`, `src/browser.rs` | `original visible surfaces → equal CSS masks → max alpha → one black outline` |
+| **10** | [`91i-prove-actual-outlines-and-original-ownership`](#checkpoint-91i-prove-actual-outlines-and-original-ownership) | Prove actual outlines and original ownership. | `src/global_outline_tests.rs`, `src/renderer.rs`, `src/global_outline_command_tests.rs`, `src/lib.rs` | `original visible surfaces → equal CSS masks → max alpha → one black outline` |
+
+---
+
+## 4. Step-by-Step Coding Notebook (Concept + Implementation)
+
+Work through each notebook cell below in order inside `workspace/journey`. Read the **Concept Walkthrough** and **Self-Check Q&A** first, then expand the **Implementation** block to type and verify the code.
 
 <a id="checkpoint-91-include-visible-section-coverage"></a>
+
+### Step 1 of 10 · Include visible section coverage (`91-include-visible-section-coverage`)
+
+- **Goal:** Include visible section coverage.
+- **Data Flow Trace:** `original visible surfaces → equal CSS masks → max alpha → one black outline`
+- **Files You Touch:** `src/outline_caps.wgsl` (*Add exact visible section coverage without source mutation.*)
+
+Include visible section coverage.
+
+> **Self-Check Question:** *Can a section outline invent a new original face?*  
+> **Answer:** No. Read the visible cap depth and original selection marker. Reject absent or nonselected caps before adding coverage.
+
+- **Hands-On Lab Experiment:** Compare all-solid and selected-only cap pixels, saved forward depth and the one-pixel inactive section image.
 
 <details>
 <summary>Implementation 91-include-visible-section-coverage: Include visible section coverage</summary>
@@ -104,6 +163,19 @@ Create the file and type:
 </details>
 
 <a id="checkpoint-91a-cache-visible-section-bindings"></a>
+
+### Step 2 of 10 · Cache visible section bindings (`91a-cache-visible-section-bindings`)
+
+- **Goal:** Cache visible section bindings.
+- **Data Flow Trace:** `original visible surfaces → equal CSS masks → max alpha → one black outline`
+- **Files You Touch:** `src/outline_caps.rs` (*Own the compatible visible section mask pipeline.*) · `src/lib.rs` (*Register the completed outline component.*)
+
+Cache visible section bindings.
+
+> **Self-Check Question:** *Should every orbit rebuild the cap bind group?*  
+> **Answer:** No. Keep the stable radius uniform and current section view. Rebind when that image is replaced.
+
+- **Hands-On Lab Experiment:** Inspect read-only depth testing and the cached input view.
 
 <details>
 <summary>Implementation 91a-cache-visible-section-bindings: Cache visible section bindings</summary>
@@ -146,6 +218,19 @@ After that block, type:
 
 <a id="checkpoint-91b-combine-outline-alpha-once"></a>
 
+### Step 3 of 10 · Combine outline alpha once (`91b-combine-outline-alpha-once`)
+
+- **Goal:** Combine outline alpha once.
+- **Data Flow Trace:** `original visible surfaces → equal CSS masks → max alpha → one black outline`
+- **Files You Touch:** `src/outline_composite.wgsl` (*Combine current global and selected alpha in one shader.*)
+
+Combine outline alpha once.
+
+> **Self-Check Question:** *Should two overlapping outline masks darken twice?*  
+> **Answer:** No. Take their maximum alpha, then blend black once. This preserves the maintained width and antialiasing.
+
+- **Hands-On Lab Experiment:** Compare max(a,b) with blending a and b in sequence along a curved silhouette.
+
 <details>
 <summary>Implementation 91b-combine-outline-alpha-once: Combine outline alpha once</summary>
 
@@ -166,6 +251,19 @@ Create the file and type:
 </details>
 
 <a id="checkpoint-91c-cache-one-black-outline-composite"></a>
+
+### Step 4 of 10 · Cache one black outline composite (`91c-cache-one-black-outline-composite`)
+
+- **Goal:** Cache one black outline composite.
+- **Data Flow Trace:** `original visible surfaces → equal CSS masks → max alpha → one black outline`
+- **Files You Touch:** `src/outline_composite.rs` (*Own one compatible cached outline composition.*) · `src/lib.rs` (*Register the completed outline component.*)
+
+Cache one black outline composite.
+
+> **Self-Check Question:** *Must the compositor keep obsolete resized images?*  
+> **Answer:** No. Replace its bindings when either alpha view changes; release it with global outline ownership.
+
+- **Hands-On Lab Experiment:** Trace two exact input views, one alpha blend and physical resource lifetime.
 
 <details>
 <summary>Implementation 91c-cache-one-black-outline-composite: Cache one black outline composite</summary>
@@ -207,6 +305,19 @@ After that block, type:
 </details>
 
 <a id="checkpoint-91d-separate-source-scope-from-outline-selection"></a>
+
+### Step 5 of 10 · Separate source scope from outline selection (`91d-separate-source-scope-from-outline-selection`)
+
+- **Goal:** Separate source scope from outline selection.
+- **Data Flow Trace:** `original visible surfaces → equal CSS masks → max alpha → one black outline`
+- **Files You Touch:** `src/outline_gpu.rs` (*Own cap coverage and an explicit independent all-solid scope.*)
+
+Separate source scope from outline selection.
+
+> **Self-Check Question:** *Can global outlining simply select every object?*  
+> **Answer:** No. Selection affects original face color and picking. Give mask preparation its own all-solid scope and the same CSS radius.
+
+- **Hands-On Lab Experiment:** Inspect the independent scope key, radius marker and original mesh draw filter.
 
 <details>
 <summary>Implementation 91d-separate-source-scope-from-outline-selection: Separate source scope from outline selection</summary>
@@ -817,6 +928,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-91e-prepare-masks-without-a-second-blend"></a>
 
+### Step 6 of 10 · Prepare masks without a second blend (`91e-prepare-masks-without-a-second-blend`)
+
+- **Goal:** Prepare masks without a second blend.
+- **Data Flow Trace:** `original visible surfaces → equal CSS masks → max alpha → one black outline`
+- **Files You Touch:** `src/outline_gpu.rs` (*Separate cached mask preparation from black composition.*)
+
+Prepare masks without a second blend.
+
+> **Self-Check Question:** *Can selected and global masks share a final pass?*  
+> **Answer:** Yes. Prepare each complete alpha image separately, then expose it to the one-blend compositor. The earlier selected-only entry point remains available.
+
+- **Hands-On Lab Experiment:** Trace original depth, shared clipping, visible cap coverage, pooled search and resting cache reuse.
+
 <details>
 <summary>Implementation 91e-prepare-masks-without-a-second-blend: Prepare masks without a second blend</summary>
 
@@ -1426,6 +1550,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-91f-own-independent-global-outline-resources"></a>
+
+### Step 7 of 10 · Own independent global outline resources (`91f-own-independent-global-outline-resources`)
+
+- **Goal:** Own independent global outline resources.
+- **Data Flow Trace:** `original visible surfaces → equal CSS masks → max alpha → one black outline`
+- **Files You Touch:** `src/renderer.rs` (*Own independent global masks and derived cache invalidation.*)
+
+Own independent global outline resources.
+
+> **Self-Check Question:** *Does hiding one original require reuploading its geometry?*  
+> **Answer:** No. Invalidate derived coverage and rebuild only visible inputs. Off and an empty scene release global masks and retained alpha bindings.
+
+- **Hands-On Lab Experiment:** Compare global ownership, source/selection invalidation and truthful allocation/work counters.
 
 <details>
 <summary>Implementation 91f-own-independent-global-outline-resources: Own independent global outline resources</summary>
@@ -2192,6 +2329,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-91g-draw-all-solid-and-selected-coverage-consistently"></a>
 
+### Step 8 of 10 · Draw all-solid and selected coverage consistently (`91g-draw-all-solid-and-selected-coverage-consistently`)
+
+- **Goal:** Draw all-solid and selected coverage consistently.
+- **Data Flow Trace:** `original visible surfaces → equal CSS masks → max alpha → one black outline`
+- **Files You Touch:** `src/renderer.rs` (*Route visible original and cap masks into one black outline pass.*)
+
+Draw all-solid and selected coverage consistently.
+
+> **Self-Check Question:** *Can highlighting narrow a curved silhouette?*  
+> **Answer:** No. Source ink and selection stay separate. Both scopes use the maintained CSS radius, and their completed alpha images feed one black blend.
+
+- **Hands-On Lab Experiment:** Enable global outlines on a cylinder, select it and compare the same outer boundary at two densities.
+
 <details>
 <summary>Implementation 91g-draw-all-solid-and-selected-coverage-consistently: Draw all-solid and selected coverage consistently</summary>
 
@@ -2226,6 +2376,19 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-91h-connect-outline-and-arctic-presentation-commands"></a>
+
+### Step 9 of 10 · Connect Outline and Arctic presentation commands (`91h-connect-outline-and-arctic-presentation-commands`)
+
+- **Goal:** Connect Outline and Arctic presentation commands.
+- **Data Flow Trace:** `original visible surfaces → equal CSS masks → max alpha → one black outline`
+- **Files You Touch:** `src/editor.rs` (*Connect current presentation commands and explicit browser outline diagnostics.*) · `src/commands.rs` (*Connect current presentation commands and explicit browser outline diagnostics.*) · `src/browser.rs` (*Connect current presentation commands and explicit browser outline diagnostics.*)
+
+Connect Outline and Arctic presentation commands.
+
+> **Self-Check Question:** *Does Arctic Off reset the Outline preference?*  
+> **Answer:** No. Arctic On enables global outlines. View Outline has its own strict On/Off and toggle; presentation changes preserve document history and pending tools.
+
+- **Hands-On Lab Experiment:** Try View Outline On/Off while a Line awaits its second point, then Arctic On/Off and Redo.
 
 <details>
 <summary>Implementation 91h-connect-outline-and-arctic-presentation-commands: Connect Outline and Arctic presentation commands</summary>
@@ -4813,6 +4976,20 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-91i-prove-actual-outlines-and-original-ownership"></a>
 
+### Step 10 of 10 · Prove actual outlines and original ownership (`91i-prove-actual-outlines-and-original-ownership`)
+
+- **Goal:** Prove actual outlines and original ownership.
+- **Data Flow Trace:** `original visible surfaces → equal CSS masks → max alpha → one black outline`
+- **Files You Touch:** `src/global_outline_tests.rs` (*Copy supplied actual outline width, cap, cache and original-owner fixtures.*) · `src/renderer.rs` (*Register actual renderer-local outline fixtures.*) · `src/global_outline_command_tests.rs` (*Copy supplied strict presentation/history/original fixtures.*) · `src/lib.rs` (*Register the completed outline component.*)
+
+Prove actual outlines and original ownership.
+
+> **Self-Check Question:** *What verifies consistent curved-surface outlines?*  
+> **Answer:** Actual alpha and color pixels, original integer picks and source equality. Verify two densities, visible caps, one-blend overlap, cache reuse and resource release.
+
+- **What You Should See:** The original curved pedestal has a continuous black silhouette with one consistent CSS width.
+- **Hands-On Lab Experiment:** Fit Example CAD and compare View Outline On and Off while orbiting its curved silhouette. Select an original and clear selection to compare its boundary with the global outline. The supplied two-density masks and cap cases document numerical coverage beyond this browser inspection.
+
 <details>
 <summary>Implementation 91i-prove-actual-outlines-and-original-ownership: Prove actual outlines and original ownership</summary>
 
@@ -4910,9 +5087,11 @@ After that block, append this supplied code:
 
 </details>
 
-## Run, Check, and Save
+---
 
-From `session_viewer`:
+## 5. Build, Verify, and Save Your Checkpoint
+
+Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 91i-prove-actual-outlines-and-original-ownership
@@ -4923,12 +5102,12 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. Use [checkpoint recovery](../../recovery.md) to restore any saved checkpoint.
+Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
 
-## Expected Visual Result & Experiment
+## 6. Lesson Summary & Expected Visual Result
 
 The original curved pedestal has a continuous black silhouette with one consistent CSS width.
 
-- **Try this:** Fit Example CAD and compare View Outline On and Off while orbiting its curved silhouette. Select an original and clear selection to compare its boundary with the global outline. The supplied two-density masks and cap cases document numerical coverage beyond this browser inspection.
+- **Final Lesson Experiment:** Fit Example CAD and compare View Outline On and Off while orbiting its curved silhouette. Select an original and clear selection to compare its boundary with the global outline. The supplied two-density masks and cap cases document numerical coverage beyond this browser inspection.
 
-Continue with [Original Wood Elements and portable source records](92-link-current-wood-element-builders.md).
+Continue with [Original Wood Elements and portable source records](../../consolidation/92-link-current-wood-element-builders.md).

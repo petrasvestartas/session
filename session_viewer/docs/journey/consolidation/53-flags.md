@@ -1,90 +1,170 @@
 # 8.3 · Layers, visibility and source-preserving properties
 
-**Section 5: Interactive Drawing, Snapping, Gumball Handles, and Scene Hierarchy** · **Lesson 8.3** (Redraft `5.9`) · **23 checkpoints (`53-flags` → `53u-layers`)**
+**Section 5: Interactive Drawing, Snapping, Gumball Handles, and Scene Hierarchy** · **Lesson 8.3** (Redraft `5.9`) · **23 checkpoints (`53-flags` → `53u-layers`)** · **Study time: 11.5–23 h**
 
-> **Learning Goal:** Separate layer presentation from original sources.
+> **What You Will Learn & Build:** Separate layer presentation from original sources. By the final checkpoint (`53u-layers`), you will exercise layers shortcuts colours and exact source ownership.
 
-## Visual WebGPU & Architecture Schematic
+## 1. Visual Pipeline & WebGPU Architecture (Black & White Schematics)
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1px solid #cbd5e1;border-radius:10px;background:#f8fafc;">
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
+<svg viewBox="0 0 840 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <rect x="4" y="4" width="832" height="212" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Lesson 8.3 Execution Flow: Layers, visibility and source-preserving properties</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">Concrete data pipeline you build in this lesson (23 Checkpoints: 53-flags → 53u-layers)</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
+  
+    
+    <rect x="18" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="89" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
+    <line x1="28" y1="92" x2="151" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">original source</text>
+    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="183" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="254" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
+    <line x1="193" y1="92" x2="316" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">plain viewer</text>
+    <text x="254" y="124" text-anchor="middle" font-size="11" fill="#111111">identities</text>
+    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="348" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="419" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
+    <line x1="358" y1="92" x2="481" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">independent</text>
+    <text x="419" y="124" text-anchor="middle" font-size="11" fill="#111111">presentation</text>
+    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="513" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="584" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
+    <line x1="523" y1="92" x2="646" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">unchanged saved</text>
+    <text x="584" y="124" text-anchor="middle" font-size="11" fill="#111111">geometry</text>
+    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="678" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="749" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
+    <line x1="688" y1="92" x2="811" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">real layer controls</text>
+    
+    <rect x="18" y="162" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="32" y="181" font-size="11" font-weight="700" fill="#111111">Files You Edit in Lesson 8.3:</text>
+    <text x="215" y="181" font-size="11" fill="#111111">src/view_flags.rs  ·  src/lib.rs  ·  src/scene.rs  ·  src/hierarchy.rs  ·  src/gpu_mesh.rs  ·  src/triangle.wgsl</text>
+    <text x="32" y="198" font-size="10.5" fill="#111111">23 Checkpoints: 53-flags → 53u-layers — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
+  
+</svg>
+</div>
+
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
 <svg viewBox="0 0 840 240" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#475569"/>
-    </marker>
-    <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#2563eb"/>
-    </marker>
-    <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#059669"/>
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
     </marker>
   </defs>
-  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
-  <text x="20" y="28" font-size="14" font-weight="700" fill="#0f172a">Chapter 8 Scene Graph & Layer Architecture: Hierarchical Transforms, Lamp Inheritance & Inspector Focus</text>
-  <text x="20" y="46" font-size="11.5" fill="#475569">How parent-child Element trees and Layer visibility lamps compose without losing individual child visibility states.</text>
-  <line x1="16" y1="54" x2="824" y2="54" stroke="#e2e8f0" stroke-width="1"/>
+  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Chapter 8 Scene Graph & Layer Architecture: Hierarchical Transforms, Lamp Inheritance & Inspector Focus</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">How parent-child Element trees and Layer visibility lamps compose without losing individual child visibility states.</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
   
-    <rect x="18" y="68" width="250" height="145" rx="6" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
-    <text x="143" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1e40af">1. Scene Tree &amp; Matrix Composition</text>
-    <text x="28" y="108" font-size="10.5" fill="#1e3a8a">• Root Element -&gt; Child Assembly -&gt; Leaf</text>
-    <text x="28" y="126" font-size="10.5" font-weight="700" fill="#1d4ed8">• M_world(child) = M_world(parent) * M_local</text>
-    <text x="28" y="146" font-size="10.5" fill="#1e3a8a">• Tree path identity keeps duplicate</text>
-    <text x="28" y="162" font-size="10.5" fill="#1e3a8a">  group names distinct</text>
-    <text x="28" y="180" font-size="10.5" fill="#1e3a8a">• Cycle-safe parent reassignment</text>
+    <rect x="18" y="68" width="250" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="143" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">1. Scene Tree &amp; Matrix Composition</text>
+    <text x="28" y="108" font-size="10.5" fill="#111111">• Root Element -&gt; Child Assembly -&gt; Leaf</text>
+    <text x="28" y="126" font-size="10.5" font-weight="700" fill="#111111">• M_world(child) = M_world(parent) * M_local</text>
+    <text x="28" y="146" font-size="10.5" fill="#111111">• Tree path identity keeps duplicate</text>
+    <text x="28" y="162" font-size="10.5" fill="#111111">  group names distinct</text>
+    <text x="28" y="180" font-size="10.5" fill="#111111">• Cycle-safe parent reassignment</text>
 
-    <line x1="268" y1="138" x2="298" y2="138" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
+    <line x1="268" y1="138" x2="298" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="300" y="68" width="265" height="145" rx="6" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5"/>
-    <text x="432" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#9a3412">2. Layer &amp; Parent Lamp Restoration</text>
-    <text x="312" y="108" font-size="10.5" fill="#7c2d12">• Effective Visible =</text>
-    <text x="312" y="124" font-size="10.5" font-weight="600" fill="#c2410c">  layer_lamp &amp;&amp; parent_lamps &amp;&amp; own_lamp</text>
-    <text x="312" y="144" font-size="10" fill="#7c2d12">• Toggling a parent/layer lamp OFF hides</text>
-    <text x="312" y="159" font-size="10" fill="#7c2d12">  descendants without overwriting own_lamp;</text>
-    <text x="312" y="174" font-size="10" fill="#7c2d12">  toggling back ON restores prior state!</text>
-    <text x="312" y="192" font-size="10.5" fill="#7c2d12">• Hidden/Locked rows skipped in Rg32Uint pick</text>
+    <rect x="300" y="68" width="265" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="432" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">2. Layer &amp; Parent Lamp Restoration</text>
+    <text x="312" y="108" font-size="10.5" fill="#111111">• Effective Visible =</text>
+    <text x="312" y="124" font-size="10.5" font-weight="600" fill="#111111">  layer_lamp &amp;&amp; parent_lamps &amp;&amp; own_lamp</text>
+    <text x="312" y="144" font-size="10" fill="#111111">• Toggling a parent/layer lamp OFF hides</text>
+    <text x="312" y="159" font-size="10" fill="#111111">  descendants without overwriting own_lamp;</text>
+    <text x="312" y="174" font-size="10" fill="#111111">  toggling back ON restores prior state!</text>
+    <text x="312" y="192" font-size="10.5" fill="#111111">• Hidden/Locked rows skipped in Rg32Uint pick</text>
 
-    <line x1="565" y1="138" x2="595" y2="138" stroke="#059669" stroke-width="2" marker-end="url(#arrow-green)"/>
+    <line x1="565" y1="138" x2="595" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="597" y="68" width="223" height="145" rx="6" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1.5"/>
-    <text x="708" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#065f46">3. Inspector &amp; Focus Adapter</text>
-    <text x="609" y="108" font-size="10.5" fill="#064e3b">• egui Tree / Layer / Property UI</text>
-    <text x="609" y="126" font-size="10.5" font-weight="600" fill="#047857">• Layer-rename focus adapter:</text>
-    <text x="609" y="142" font-size="10" fill="#064e3b">  Suppresses Command Dock auto-focus</text>
-    <text x="609" y="157" font-size="10" fill="#064e3b">  while editing layer/object names</text>
-    <text x="609" y="176" font-size="10.5" fill="#064e3b">• Selection filter &amp; Next/Prev</text>
-    <text x="609" y="192" font-size="10.5" fill="#064e3b">  member navigation</text>
+    <rect x="597" y="68" width="223" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="708" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">3. Inspector &amp; Focus Adapter</text>
+    <text x="609" y="108" font-size="10.5" fill="#111111">• egui Tree / Layer / Property UI</text>
+    <text x="609" y="126" font-size="10.5" font-weight="600" fill="#111111">• Layer-rename focus adapter:</text>
+    <text x="609" y="142" font-size="10" fill="#111111">  Suppresses Command Dock auto-focus</text>
+    <text x="609" y="157" font-size="10" fill="#111111">  while editing layer/object names</text>
+    <text x="609" y="176" font-size="10.5" fill="#111111">• Selection filter &amp; Next/Prev</text>
+    <text x="609" y="192" font-size="10.5" fill="#111111">  member navigation</text>
     
 </svg>
 </div>
 
-### Lesson Data Flow (`Rust` → `WebGPU` → `WGSL`)
+## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
 
-```
-original source → plain viewer identities → independent presentation → unchanged saved geometry.
-eligible selection → unique parent moves or explicit copies → target subtree → unchanged world placement.
-real layer controls → source-preserving properties → group edit → exact undo and save → canvas shortcuts.
-```
+Before writing code, review how the three layers in this chapter talk to each other:
 
-- Separate layer presentation from original sources.
-- Move and copy objects between layer trees.
-- Exercise layers shortcuts colours and exact source ownership.
-- **Why it works (Does hiding a row rewrite its original visible flag?):** No. Presentation holds the viewer identity in a separate set. Original geometry and its source metadata remain unchanged.
-
-### Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `Browser`)
-
-| Layer | Construct | First-Year Student Explanation |
+| Layer | Construct | Plain-English Explanation for Students |
 | :--- | :--- | :--- |
 | **Rust (`session_rust`)** | Hierarchical `Element` Transform `M_world = M_parent * M_local` | Composes parent assembly transforms down the scene tree while keeping duplicate group names distinct via full tree-path identity. |
 | **Rust (Scene Tree)** | Effective Visibility `layer_lamp && parent_lamps && own_lamp` | Hiding a parent group or layer masks descendants without overwriting their stored child lamp states, restoring them faithfully when re-enabled. |
 | **Rust (`command_dock`)** | Layer-Rename Focus Adapter (`src/command_dock/mod.rs`) | Temporarily yields keyboard focus while renaming a layer or object in the inspector so typing does not get hijacked by the Command Dock prompt. |
 
-**Production source (`session_viewer/src`):** [app/hierarchy.rs](../../../src/app/hierarchy.rs), [app/layers.rs](../../../src/app/layers.rs), [app/ui/layers.rs](../../../src/app/ui/layers.rs), [app/gesture/mod.rs](../../../src/app/gesture/mod.rs), [state/drag.rs](../../../src/state/drag.rs), [state/box_select.rs](../../../src/state/box_select.rs).
+**Authoritative production source (`session_viewer/src`):** [app/hierarchy.rs](../../../src/app/hierarchy.rs), [app/layers.rs](../../../src/app/layers.rs), [app/ui/layers.rs](../../../src/app/ui/layers.rs), [app/gesture/mod.rs](../../../src/app/gesture/mod.rs), [state/drag.rs](../../../src/state/drag.rs), [state/box_select.rs](../../../src/state/box_select.rs)
 
-## Implementation Checkpoints
+## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
 
-Apply these checkpoints in order inside `workspace/journey`. Expand each block to view the Rust/WGSL/HTML edits:
+| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
+| ---: | :--- | :--- | :--- | :--- |
+| **1** | [`53-flags`](#checkpoint-53-flags) | Separate layer presentation from original sources. | `src/view_flags.rs`, `src/lib.rs` | `original source → plain viewer identities → independent presentation → unchanged saved geometry` |
+| **2** | [`53a-ids`](#checkpoint-53a-ids) | Index live identities and initialise view flags. | `src/scene.rs`, `src/hierarchy.rs` | `monotonic object identity → shared membership set → original flag initialisation → checked lifetime` |
+| **3** | [`53b-uniform`](#checkpoint-53b-uniform) | Update surface colour and pickability in small GPU records. | `src/gpu_mesh.rs`, `src/triangle.wgsl`, `src/face_pick.rs`, `src/renderer.rs` | `original shared vertices → 160-byte settings → integer eligibility → optional face RGB` |
+| **4** | [`53bb-eligibility`](#checkpoint-53bb-eligibility) | Resolve live visibility and selection eligibility. | `src/scene.rs`, `src/multi_selection_tests.rs`, `src/pick_gpu_tests.rs` | `live view flags → eligible source identities → placed bounds → protected selection` |
+| **5** | [`53c-presentation`](#checkpoint-53c-presentation) | Use current visibility and colours in every derived pass. | `src/renderer.rs`, `src/highlight.rs`, `src/pick_sources.rs`, `src/snap_sources.rs` | `one view state → surface and wire passes → source picking and snapping → consistent bounds` |
+| **6** | [`53d-hide-show`](#checkpoint-53d-hide-show) | Connect Hide Show and canvas Delete shortcuts. | `src/editor.rs`, `src/history.rs`, `src/commands.rs`, `src/shortcuts.rs` | `canvas key ownership → presentation or document action → selection repair → unchanged source metadata` |
+| **7** | [`53e-properties`](#checkpoint-53e-properties) | Apply eye lock and independent colour properties. | `src/layer_properties.rs`, `src/lib.rs`, `src/editor.rs`, `src/hierarchy.rs` | `stable row key → descendant identities → one presentation property → repaired selection` |
+| **8** | [`53f-portable`](#checkpoint-53f-portable) | Keep tree identities stable across edits and saves. | `src/hierarchy.rs` | `source key → stable portable UUID → shared document records → collision-free repeated save` |
+| **9** | [`53g-branches`](#checkpoint-53g-branches) | Represent group edits with temporary branches. | `src/layer_edit.rs`, `src/lib.rs` | `shared flat tree → temporary branch ownership → subtree edit → repaired flat records` |
+| **10** | [`53h-layer-targets`](#checkpoint-53h-layer-targets) | Validate current layers and protected ancestors. | `src/scene.rs`, `src/layer_edit.rs`, `src/layer_properties.rs` | `stable key → group outside geometry → editable source guard → protected current ancestry` |
+| **11** | [`53i-copy-records`](#checkpoint-53i-copy-records) | Copy row identities while sharing source allocations. | `src/scene.rs` | `original row → fresh identity → shared source and display → inherited view colours` |
+| **12** | [`53j-transfers`](#checkpoint-53j-transfers) | Move and copy objects between layer trees. | `src/layer_edit.rs` | `eligible selection → unique parent moves or explicit copies → target subtree → unchanged world placement` |
+| **13** | [`53k-new-rename`](#checkpoint-53k-new-rename) | Create and rename uniquely named layers. | `src/layer_edit.rs` | `eligible group → unique new name → stable node identity → one document transaction` |
+| **14** | [`53l-delete-duplicate`](#checkpoint-53l-delete-duplicate) | Delete and duplicate complete layer contents. | `src/layer_edit.rs` | `protected group → complete subtree → shared-source copies or removal → exact undo` |
+| **15** | [`53m-actions`](#checkpoint-53m-actions) | Commit group edits through one history boundary. | `src/layer_edit.rs`, `src/editor.rs` | `checked layer action → document or presentation boundary → repaired selection → one undo` |
+| **16** | [`53n-routing`](#checkpoint-53n-routing) | Create geometry on the current layer or Created. | `src/layer_edit.rs`, `src/scene.rs`, `src/hierarchy.rs`, `src/snapshot_tests.rs` | `new original geometry → current group or Created → stable tree node → ordinary source ownership` |
+| **17** | [`53o-palette`](#checkpoint-53o-palette) | Supply nine colour swatches and RGB sliders. | `src/layer_palette.rs`, `src/lib.rs` | `nine swatches → measured controls → RGB bytes → one channel value` |
+| **18** | [`53p-panel-state`](#checkpoint-53p-panel-state) | Resolve layer presentation for real tree controls. | `src/tree_panel.rs` | `stable tree rows → current presentation → pending UI drafts → checked scene actions` |
+| **19** | [`53q-properties-ui`](#checkpoint-53q-properties-ui) | Draw eye lock and independent colour menus. | `src/tree_panel.rs` | `row presentation → real eye and lock controls → channel menu → pending property action` |
+| **20** | [`53r-name`](#checkpoint-53r-name) | Own rename text and populated deletion confirmation. | `src/tree_panel.rs` | `focused name draft → owned Enter or Escape → checked rename → explicit deletion confirmation` |
+| **21** | [`53s-tree-controls`](#checkpoint-53s-tree-controls) | Connect group menus to the wider tree panel. | `src/tree_panel.rs` | `wider right-side tree → group context menu → pending edit or draft → checked source operation` |
+| **22** | [`53t-input`](#checkpoint-53t-input) | Route layer controls before handles and canvas input. | `src/panel.rs`, `src/browser.rs` | `measured panel input → pending layer edit → checked editor result → canvas ownership outside` |
+| **23** | [`53u-layers`](#checkpoint-53u-layers) | Exercise layers shortcuts colours and exact source ownership. | `src/command_dock/mod.rs`, `src/view_flags_tests.rs`, `src/lib.rs`, `src/layer_edit_tests.rs` | `real layer controls → source-preserving properties → group edit → exact undo and save → canvas shortcuts` |
+
+---
+
+## 4. Step-by-Step Coding Notebook (Concept + Implementation)
+
+Work through each notebook cell below in order inside `workspace/journey`. Read the **Concept Walkthrough** and **Self-Check Q&A** first, then expand the **Implementation** block to type and verify the code.
 
 <a id="checkpoint-53-flags"></a>
+
+### Step 1 of 23 · Separate layer presentation from original sources (`53-flags`)
+
+- **Goal:** Separate layer presentation from original sources.
+- **Data Flow Trace:** `original source → plain viewer identities → independent presentation → unchanged saved geometry`
+- **Files You Touch:** `src/view_flags.rs` (*Store presentation identities and independent colour channels outside source geometry.*) · `src/lib.rs` (*Register the new source component.*)
+
+Store hidden identities, locks and independent face/edge RGB overrides without owning a mesh. Document edits and presentation settings have different lifetimes.
+
+> **Self-Check Question:** *Does hiding a row rewrite its original visible flag?*  
+> **Answer:** No. Presentation holds the viewer identity in a separate set. Original geometry and its source metadata remain unchanged.
+
+- **What You Should See:** Continue the nested-frame exercise from52k. This preparation connects one layer component; full menus and canvas shortcuts are exercised at the end of53.
+- **Hands-On Lab Experiment:** Follow one identity through a shared snapshot. Changing presentation should copy only the small flag record, never the original mesh.
 
 <details>
 <summary>Implementation 53-flags: Separate layer presentation from original sources</summary>
@@ -126,6 +206,19 @@ After that block, type:
 </details>
 
 <a id="checkpoint-53a-ids"></a>
+
+### Step 2 of 23 · Index live identities and initialise view flags (`53a-ids`)
+
+- **Goal:** Index live identities and initialise view flags.
+- **Data Flow Trace:** `monotonic object identity → shared membership set → original flag initialisation → checked lifetime`
+- **Files You Touch:** `src/scene.rs` (*Maintain live identities and initialise independent flags in every source insertion and removal path.*) · `src/hierarchy.rs` (*Index read-only identities once instead of walking the tree for each surface pick.*)
+
+Maintain constant-time live identity membership across every geometry lane. Initialise presentation from original source flags once, then preserve the original metadata.
+
+> **Self-Check Question:** *Why maintain a live identity set?*  
+> **Answer:** A surface pick should check membership directly rather than scan every mesh. Removing a row updates this set without reusing its identity.
+
+- **Hands-On Lab Experiment:** Insert a line, point, curve and mesh. Remove one and confirm that its integer identity stops resolving while other lanes remain eligible.
 
 <details>
 <summary>Implementation 53a-ids: Index live identities and initialise view flags</summary>
@@ -1205,6 +1298,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-53b-uniform"></a>
 
+### Step 3 of 23 · Update surface colour and pickability in small GPU records (`53b-uniform`)
+
+- **Goal:** Update surface colour and pickability in small GPU records.
+- **Data Flow Trace:** `original shared vertices → 160-byte settings → integer eligibility → optional face RGB`
+- **Files You Touch:** `src/gpu_mesh.rs` (*Extend surface settings without changing original geometry or integer identity precision.*) · `src/triangle.wgsl` (*Extend surface settings without changing original geometry or integer identity precision.*) · `src/face_pick.rs` (*Extend surface settings without changing original geometry or integer identity precision.*) · `src/renderer.rs` (*Derive dynamic pick ownership and face colour while reusing surface geometry buffers.*)
+
+Add an optional face colour to the160-byte surface record. Visibility and locks determine integer pick owners; recolouring reuses the original vertex allocation.
+
+> **Self-Check Question:** *Must recolouring upload a second mesh?*  
+> **Answer:** No. The optional face colour occupies one16-byte uniform range. Geometry stays shared, and selected gold takes precedence over the display override.
+
+- **Hands-On Lab Experiment:** Compare settings writes for a face colour, selection and model change. Each should update only its changed range.
+
 <details>
 <summary>Implementation 53b-uniform: Update surface colour and pickability in small GPU records</summary>
 
@@ -2109,6 +2215,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-53bb-eligibility"></a>
 
+### Step 4 of 23 · Resolve live visibility and selection eligibility (`53bb-eligibility`)
+
+- **Goal:** Resolve live visibility and selection eligibility.
+- **Data Flow Trace:** `live view flags → eligible source identities → placed bounds → protected selection`
+- **Files You Touch:** `src/scene.rs` (*Resolve current source visibility, eligible picks and placed bounds from independent presentation.*) · `src/multi_selection_tests.rs` (*Copy the complete selection regression with real view-state fixtures.*) · `src/pick_gpu_tests.rs` (*Copy the integer-pick regression using actual presentation locks.*)
+
+Resolve visible unlocked identities from presentation while keeping original flags untouched. Bounds and control markers use the same live state; rendering connects next.
+
+> **Self-Check Question:** *Is a locked visible surface a selectable object?*  
+> **Answer:** No. It remains visible and can occlude geometry behind it, but its integer owner and independent selection are disabled.
+
+- **Hands-On Lab Experiment:** Compare visible unlocked, visible locked and hidden identities. They should resolve consistently without changing original source metadata.
+
 <details>
 <summary>Implementation 53bb-eligibility: Resolve live visibility and selection eligibility</summary>
 
@@ -2980,6 +3099,19 @@ Update the existing block with this supplied code; keep unchanged lines:
 
 <a id="checkpoint-53c-presentation"></a>
 
+### Step 5 of 23 · Use current visibility and colours in every derived pass (`53c-presentation`)
+
+- **Goal:** Use current visibility and colours in every derived pass.
+- **Data Flow Trace:** `one view state → surface and wire passes → source picking and snapping → consistent bounds`
+- **Files You Touch:** `src/renderer.rs` (*Apply independent face, edge and object colours across every derived rendering lane.*) · `src/highlight.rs` (*Use current presentation eligibility while preserving original source records.*) · `src/pick_sources.rs` (*Use current presentation eligibility while preserving original source records.*) · `src/snap_sources.rs` (*Use current presentation eligibility while preserving original source records.*) · `src/picking.rs` (*Use current presentation eligibility while preserving original source records.*) · `src/pick_gpu_tests.rs` (*Copy the preserved integer-pick regression with current visibility and lock fixtures.*)
+
+Make surfaces, wires, markers, snapping and highlighting consult the same presentation flags. Preserve source colours when no channel override is present.
+
+> **Self-Check Question:** *Should a hidden mesh remain available to snapping?*  
+> **Answer:** No. Rendering, picking, snapping and bounds use the same visible identity set. A locked visible surface still occludes the pick buffer with owner zero.
+
+- **Hands-On Lab Experiment:** Hide a selected parent and its attributes. Check that rendering, fitting and snapping agree without changing any source coordinate.
+
 <details>
 <summary>Implementation 53c-presentation: Use current visibility and colours in every derived pass</summary>
 
@@ -3814,6 +3946,19 @@ Update the existing block with this supplied code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-53d-hide-show"></a>
+
+### Step 6 of 23 · Connect Hide Show and canvas Delete shortcuts (`53d-hide-show`)
+
+- **Goal:** Connect Hide Show and canvas Delete shortcuts.
+- **Data Flow Trace:** `canvas key ownership → presentation or document action → selection repair → unchanged source metadata`
+- **Files You Touch:** `src/editor.rs` (*Hide selected descendants without a document edit and reveal all sources with Show.*) · `src/history.rs` (*Keep canvas shortcuts and presentation separate from text editing and document history.*) · `src/commands.rs` (*Keep canvas shortcuts and presentation separate from text editing and document history.*) · `src/shortcuts.rs` (*Keep canvas shortcuts and presentation separate from text editing and document history.*) · `src/shortcuts_tests.rs` (*Copy the preserved focus/modifier cases and new H/S/Delete ownership checks.*)
+
+Hide selected descendants and clear their selection; Show reveals all sources. H/S/Delete own canvas input while text fields retain editing and platform Undo/Redo.
+
+> **Self-Check Question:** *Does Hide become an Undo transaction?*  
+> **Answer:** No. Hide and Show alter presentation. Delete changes the document and remains undoable; text-field Delete edits text instead of deleting geometry.
+
+- **Hands-On Lab Experiment:** Use H then S outside the command field. Use Delete on a selected object, undo once, then type H/S inside a focused text field.
 
 <details>
 <summary>Implementation 53d-hide-show: Connect Hide Show and canvas Delete shortcuts</summary>
@@ -4737,6 +4882,20 @@ Update the existing block with this supplied code; keep unchanged lines:
 
 <a id="checkpoint-53e-properties"></a>
 
+### Step 7 of 23 · Apply eye lock and independent colour properties (`53e-properties`)
+
+- **Goal:** Apply eye lock and independent colour properties.
+- **Data Flow Trace:** `stable row key → descendant identities → one presentation property → repaired selection`
+- **Files You Touch:** `src/layer_properties.rs` (*Apply one property to a row and its descendants without mutating source geometry.*) · `src/lib.rs` (*Register the new source component.*) · `src/editor.rs` (*Route layer properties through selection repair and snap-cache invalidation.*) · `src/hierarchy.rs` (*Resolve nearest source tree colours once when a document is imported.*) · `src/scene.rs` (*Seed inherited source-node colours without rewriting their original records.*)
+
+Resolve a stable tree row to its descendants and update only their presentation. Face and edge Original clear separate overrides.
+
+> **Self-Check Question:** *Does restoring Faces Original clear the edge colour?*  
+> **Answer:** No. Each channel has its own map. Clearing the face override leaves the independently chosen edge override intact.
+
+- **What You Should See:** Preparation: the property actions now store independent parent lamps and face/edge overrides. The browser picture is unchanged; controls connect at53t.
+- **Hands-On Lab Experiment:** Trace Hidden through layer_properties.rs: a group changes its lamp key and held rows, while an object changes its own hidden set. Predict which child remains hidden when a parent is shown. Run the full interactive exercise after53t.
+
 <details>
 <summary>Implementation 53e-properties: Apply eye lock and independent colour properties</summary>
 
@@ -5579,6 +5738,19 @@ Edit the existing block to match this code; keep unchanged lines:
 
 <a id="checkpoint-53f-portable"></a>
 
+### Step 8 of 23 · Keep tree identities stable across edits and saves (`53f-portable`)
+
+- **Goal:** Keep tree identities stable across edits and saves.
+- **Data Flow Trace:** `source key → stable portable UUID → shared document records → collision-free repeated save`
+- **Files You Touch:** `src/hierarchy.rs` (*Preserve portable UUIDs and rebuild immutable tree indexes after group edits.*)
+
+Give each imported node a stable portable UUID in addition to its document-scoped source key. Repeated saves preserve identity; repeated imports remain distinct.
+
+> **Self-Check Question:** *Why avoid allocating new tree UUIDs on every Save?*  
+> **Answer:** Saving is not a document edit. Stable portable UUIDs allow repeated snapshots to preserve the exact hierarchy while separating repeated imports.
+
+- **Hands-On Lab Experiment:** Save one generated tree twice, then import the same nested file twice. Compare decoded tree identities rather than protobuf byte ordering.
+
 <details>
 <summary>Implementation 53f-portable: Keep tree identities stable across edits and saves</summary>
 
@@ -5854,6 +6026,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-53g-branches"></a>
 
+### Step 9 of 23 · Represent group edits with temporary branches (`53g-branches`)
+
+- **Goal:** Represent group edits with temporary branches.
+- **Data Flow Trace:** `shared flat tree → temporary branch ownership → subtree edit → repaired flat records`
+- **Files You Touch:** `src/layer_edit.rs` (*Represent atomic subtree edits without owning kernel geometry.*) · `src/lib.rs` (*Register the new source component.*)
+
+Convert one immutable flat tree into temporary branches for an edit, then flatten it with repaired parents, depths and subtree endpoints.
+
+> **Self-Check Question:** *Does making a temporary branch copy source geometry?*  
+> **Answer:** No. Branches contain lightweight node metadata and identities. Original source and display allocations remain shared by scene snapshots.
+
+- **Hands-On Lab Experiment:** Move a nested branch in the temporary tree and inspect its new parent and depth. Its geometry identity should not change.
+
 <details>
 <summary>Implementation 53g-branches: Represent group edits with temporary branches</summary>
 
@@ -5894,6 +6079,19 @@ After that block, type:
 </details>
 
 <a id="checkpoint-53h-layer-targets"></a>
+
+### Step 10 of 23 · Validate current layers and protected ancestors (`53h-layer-targets`)
+
+- **Goal:** Validate current layers and protected ancestors.
+- **Data Flow Trace:** `stable key → group outside geometry → editable source guard → protected current ancestry`
+- **Files You Touch:** `src/scene.rs` (*Retain the generated-document identity separately from the selected current layer.*) · `src/layer_edit.rs` (*Resolve eligible groups and current-layer ancestry without changing source records.*) · `src/layer_properties.rs` (*Protect the current layer and every ancestor from hiding.*)
+
+A layer is a group outside every object. Resolve it by stable key, reject released editable sources and protect the current layer’s ancestors.
+
+> **Self-Check Question:** *Can an attributes group become the current layer?*  
+> **Answer:** No. Groups beneath an object are part of that object’s source ownership. New independent geometry belongs only to a document or ordinary layer group.
+
+- **Hands-On Lab Experiment:** Try choosing an object or its attributes as current. Then choose a normal sublayer and check that its ancestors refuse hiding or deletion.
 
 <details>
 <summary>Implementation 53h-layer-targets: Validate current layers and protected ancestors</summary>
@@ -6613,6 +6811,19 @@ Edit the existing block to match this code; keep unchanged lines:
 
 <a id="checkpoint-53i-copy-records"></a>
 
+### Step 11 of 23 · Copy row identities while sharing source allocations (`53i-copy-records`)
+
+- **Goal:** Copy row identities while sharing source allocations.
+- **Data Flow Trace:** `original row → fresh identity → shared source and display → inherited view colours`
+- **Files You Touch:** `src/scene.rs` (*Allocate copied rows without duplicating original CPU geometry or rewriting coordinates.*)
+
+Allocate a fresh viewer identity and portable geometry GUID for copies. Keep precise world placement, original geometry and display storage shared.
+
+> **Self-Check Question:** *Does copying a row bake its world placement into vertices?*  
+> **Answer:** No. The copied row shares original geometry and keeps the same precise placement matrix. Saving writes its separate portable geometry identity.
+
+- **Hands-On Lab Experiment:** Copy a mesh and compare its source allocation, display allocation, world matrix and new viewer identity with the original.
+
 <details>
 <summary>Implementation 53i-copy-records: Copy row identities while sharing source allocations</summary>
 
@@ -6646,6 +6857,19 @@ Edit the existing block to match this code; keep unchanged lines:
 
 <a id="checkpoint-53j-transfers"></a>
 
+### Step 12 of 23 · Move and copy objects between layer trees (`53j-transfers`)
+
+- **Goal:** Move and copy objects between layer trees.
+- **Data Flow Trace:** `eligible selection → unique parent moves or explicit copies → target subtree → unchanged world placement`
+- **Files You Touch:** `src/layer_edit.rs` (*Transfer source-owned branches and copy explicit selections with checked node and depth limits.*)
+
+Move a selected parent with its attached subtree once. Copy each explicitly selected object; preserve world placements and roll back failed document transactions.
+
+> **Self-Check Question:** *Should selecting a parent and child move that child twice?*  
+> **Answer:** No. Parent moves carry a deduplicated subtree. Object-layer copying keeps each explicit selected object as a separate new row.
+
+- **Hands-On Lab Experiment:** Move a parent between imported documents, save and reopen, then undo. Compare both the parent and attached attribute world matrices exactly.
+
 <details>
 <summary>Implementation 53j-transfers: Move and copy objects between layer trees</summary>
 
@@ -6676,6 +6900,19 @@ After that block, type:
 </details>
 
 <a id="checkpoint-53k-new-rename"></a>
+
+### Step 13 of 23 · Create and rename uniquely named layers (`53k-new-rename`)
+
+- **Goal:** Create and rename uniquely named layers.
+- **Data Flow Trace:** `eligible group → unique new name → stable node identity → one document transaction`
+- **Files You Touch:** `src/layer_edit.rs` (*Create checked layer groups and rename labels without replacing their stable identities.*)
+
+Create a sibling or sublayer with a fresh stable identity. Trim new names, reject empty/slashed/used names, and preserve the current key through rename and Undo.
+
+> **Self-Check Question:** *Does renaming the current layer change its identity?*  
+> **Answer:** No. Its stable node key remains unchanged, so current-layer selection follows the renamed record and returns through Undo.
+
+- **Hands-On Lab Experiment:** Create Layer01 and a sublayer, then rename it. Try an empty name, a slash and an existing name; failures must preserve the redo branch.
 
 <details>
 <summary>Implementation 53k-new-rename: Create and rename uniquely named layers</summary>
@@ -6708,6 +6945,19 @@ After that block, type:
 
 <a id="checkpoint-53l-delete-duplicate"></a>
 
+### Step 14 of 23 · Delete and duplicate complete layer contents (`53l-delete-duplicate`)
+
+- **Goal:** Delete and duplicate complete layer contents.
+- **Data Flow Trace:** `protected group → complete subtree → shared-source copies or removal → exact undo`
+- **Files You Touch:** `src/layer_edit.rs` (*Delete protected subtrees and duplicate descendants while sharing original source geometry.*)
+
+Refuse root and current-layer deletion. Remove a group with every descendant, or duplicate its source-owned subtree and independent view flags as one edit.
+
+> **Self-Check Question:** *Can deleting a layer leave its read-only attributes behind?*  
+> **Answer:** No. The complete layer subtree belongs to one deletion transaction. Undo restores all identities, source sharing and read-only ownership together.
+
+- **Hands-On Lab Experiment:** Duplicate Posts, hide and lock the copy, then delete and undo it. The original and copy should keep separate identities and exact placements.
+
 <details>
 <summary>Implementation 53l-delete-duplicate: Delete and duplicate complete layer contents</summary>
 
@@ -6738,6 +6988,19 @@ After that block, type:
 </details>
 
 <a id="checkpoint-53m-actions"></a>
+
+### Step 15 of 23 · Commit group edits through one history boundary (`53m-actions`)
+
+- **Goal:** Commit group edits through one history boundary.
+- **Data Flow Trace:** `checked layer action → document or presentation boundary → repaired selection → one undo`
+- **Files You Touch:** `src/layer_edit.rs` (*Dispatch current selection and document layer edits through their separate ownership boundaries.*) · `src/editor.rs` (*Commit each successful layer document action once and preserve redo on failure.*)
+
+Dispatch checked layer actions through document history. Choosing current is presentation; invalid names, stale keys and protected deletions leave Undo/Redo untouched.
+
+> **Self-Check Question:** *Should setting the current layer consume Undo?*  
+> **Answer:** No. It changes where later geometry is created. New, rename, move, copy, duplicate and delete each become one document transaction.
+
+- **Hands-On Lab Experiment:** Create a layer, set it current, rename it, then undo twice. The two document edits reverse without an extra current-selection history entry.
 
 <details>
 <summary>Implementation 53m-actions: Commit group edits through one history boundary</summary>
@@ -7535,6 +7798,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-53n-routing"></a>
+
+### Step 16 of 23 · Create geometry on the current layer or Created (`53n-routing`)
+
+- **Goal:** Create geometry on the current layer or Created.
+- **Data Flow Trace:** `new original geometry → current group or Created → stable tree node → ordinary source ownership`
+- **Files You Touch:** `src/layer_edit.rs` (*Attach new geometry to checked current groups or the generated root.*) · `src/scene.rs` (*Route generated geometry through one stable layer attachment in every insertion lane.*) · `src/hierarchy.rs` (*Avoid duplicate fallback rows once generated lines, curves and points have tree nodes.*) · `src/snapshot_tests.rs` (*Copy the preserved source/placement regression with its generated Created hierarchy assertion.*)
+
+Attach every generated geometry lane to the chosen group, preserving world position. When no current group exists, create or reuse the generated Created root.
+
+> **Self-Check Question:** *Can a newly drawn line disappear from the layer tree?*  
+> **Answer:** No. Lines, points, curves and meshes all attach to stable source-backed nodes. They remain visible tree rows even before mixed saving arrives.
+
+- **Hands-On Lab Experiment:** Choose an empty sublayer as current. Add a mesh, line, point and curve; each should appear under that layer and undo independently.
 
 <details>
 <summary>Implementation 53n-routing: Create geometry on the current layer or Created</summary>
@@ -8347,6 +8623,19 @@ Update the existing block with this supplied code; keep unchanged lines:
 
 <a id="checkpoint-53o-palette"></a>
 
+### Step 17 of 23 · Supply nine colour swatches and RGB sliders (`53o-palette`)
+
+- **Goal:** Supply nine colour swatches and RGB sliders.
+- **Data Flow Trace:** `nine swatches → measured controls → RGB bytes → one channel value`
+- **Files You Touch:** `src/layer_palette.rs` (*Draw maintained colour swatches and checked RGB sliders without editing source geometry.*) · `src/lib.rs` (*Register the new source component.*)
+
+Provide the maintained palette and byte-range RGB sliders as measured egui controls. Each chosen colour belongs to one independent face or edge channel.
+
+> **Self-Check Question:** *Why return an RGB value from the palette helper?*  
+> **Answer:** It keeps drawing controls separate from editing scene presentation. The caller resolves the row identity and applies the selected channel.
+
+- **Hands-On Lab Experiment:** Compare Red Orange Yellow Green Blue Violet White Gray Black with a custom RGB value. Source colours should remain available through Original.
+
 <details>
 <summary>Implementation 53o-palette: Supply nine colour swatches and RGB sliders</summary>
 
@@ -8387,6 +8676,19 @@ After that block, type:
 </details>
 
 <a id="checkpoint-53p-panel-state"></a>
+
+### Step 18 of 23 · Resolve layer presentation for real tree controls (`53p-panel-state`)
+
+- **Goal:** Resolve layer presentation for real tree controls.
+- **Data Flow Trace:** `stable tree rows → current presentation → pending UI drafts → checked scene actions`
+- **Files You Touch:** `src/tree_panel.rs` (*Keep row presentation and pending layer drafts separate from source and history ownership.*)
+
+Refresh tree rows with their current visibility, lock state, colour channels and eligible group actions. Keep rename and confirmation drafts outside document history.
+
+> **Self-Check Question:** *Does a layer-name draft change saved geometry?*  
+> **Answer:** No. Draft text and error messages belong to the panel. The document changes only after a checked rename action succeeds.
+
+- **Hands-On Lab Experiment:** Compare a hidden row, locked row and empty layer. Empty groups still need a context menu even though they contain no selectable geometry.
 
 <details>
 <summary>Implementation 53p-panel-state: Resolve layer presentation for real tree controls</summary>
@@ -8520,6 +8822,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-53q-properties-ui"></a>
 
+### Step 19 of 23 · Draw eye lock and independent colour menus (`53q-properties-ui`)
+
+- **Goal:** Draw eye lock and independent colour menus.
+- **Data Flow Trace:** `row presentation → real eye and lock controls → channel menu → pending property action`
+- **Files You Touch:** `src/tree_panel.rs` (*Draw actual layer property controls and record colour-popup rectangles for input ownership.*)
+
+Use actual measured eye, lock and colour controls. The current layer cannot be hidden; Faces and Edges expose separate Original, swatch and RGB choices.
+
+> **Self-Check Question:** *Should a colour popup outside the panel allow canvas picking underneath?*  
+> **Answer:** No. Its measured rectangle owns pointer and wheel input until the popup closes. The canvas resumes ownership outside panel controls.
+
+- **Hands-On Lab Experiment:** Open the Edges menu, choose green, then restore Faces Original. Inspect the unchanged edge channel and original source colours.
+
 <details>
 <summary>Implementation 53q-properties-ui: Draw eye lock and independent colour menus</summary>
 
@@ -8549,6 +8864,19 @@ After that block, type:
 </details>
 
 <a id="checkpoint-53r-name"></a>
+
+### Step 20 of 23 · Own rename text and populated deletion confirmation (`53r-name`)
+
+- **Goal:** Own rename text and populated deletion confirmation.
+- **Data Flow Trace:** `focused name draft → owned Enter or Escape → checked rename → explicit deletion confirmation`
+- **Files You Touch:** `src/tree_panel.rs` (*Own name-field keys and show explicit populated-layer deletion controls.*)
+
+Focus the layer-name field, consume Enter/Escape before the command dock, preserve invalid drafts and require explicit confirmation before deleting populated layers.
+
+> **Self-Check Question:** *What should H S and Delete do in the rename field?*  
+> **Answer:** They edit text, rather than operating on the canvas. Invalid names remain visible with an error, and Escape cancels the draft without a document edit.
+
+- **Hands-On Lab Experiment:** Type H/S in a name, submit a used name, correct it, then cancel a populated deletion. No canvas shortcut or accidental deletion should occur.
 
 <details>
 <summary>Implementation 53r-name: Own rename text and populated deletion confirmation</summary>
@@ -8580,6 +8908,19 @@ After that block, type:
 </details>
 
 <a id="checkpoint-53s-tree-controls"></a>
+
+### Step 21 of 23 · Connect group menus to the wider tree panel (`53s-tree-controls`)
+
+- **Goal:** Connect group menus to the wider tree panel.
+- **Data Flow Trace:** `wider right-side tree → group context menu → pending edit or draft → checked source operation`
+- **Files You Touch:** `src/tree_panel.rs` (*Connect measured group menus and property controls while preserving read-only source selection guards.*)
+
+Make empty groups respond to context menus. Expose current, new, sublayer, rename, duplicate, move, copy and protected deletion through real tree controls.
+
+> **Self-Check Question:** *Why keep an empty group’s label enabled?*  
+> **Answer:** Its geometry selection is empty, but its context menu still creates sublayers, sets current, renames or deletes the group.
+
+- **Hands-On Lab Experiment:** Right-click an empty Layer01. Create a sublayer, set it current, then copy a selected object onto it and undo once.
 
 <details>
 <summary>Implementation 53s-tree-controls: Connect group menus to the wider tree panel</summary>
@@ -8804,6 +9145,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-53t-input"></a>
+
+### Step 22 of 23 · Route layer controls before handles and canvas input (`53t-input`)
+
+- **Goal:** Route layer controls before handles and canvas input.
+- **Data Flow Trace:** `measured panel input → pending layer edit → checked editor result → canvas ownership outside`
+- **Files You Touch:** `src/panel.rs` (*Preserve active text-field focus and let popup rectangles own pointer and wheel input.*) · `src/browser.rs` (*Route pending layer edits and properties first, retain errors and expose current presentation diagnostics.*)
+
+Apply pending layer actions before handle gestures and asynchronous picks. Preserve existing text-field focus, include popup rectangles and retain rename errors until corrected.
+
+> **Self-Check Question:** *Should a failed layer rename close its field?*  
+> **Answer:** No. The typed name and error remain visible. Successful submission closes the draft; neither result submits a canvas pick beneath the control.
+
+- **Hands-On Lab Experiment:** Rename a group to a used name, then correct it. Scroll inside the colour menu and confirm that navigation resumes only outside the panel.
 
 <details>
 <summary>Implementation 53t-input: Route layer controls before handles and canvas input</summary>
@@ -10057,6 +10411,22 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-53u-layers"></a>
 
+### Step 23 of 23 · Exercise layers shortcuts colours and exact source ownership (`53u-layers`)
+
+- **Goal:** Exercise layers shortcuts colours and exact source ownership.
+- **Data Flow Trace:** `real layer controls → source-preserving properties → group edit → exact undo and save → canvas shortcuts`
+- **Files You Touch:** `src/command_dock/mod.rs` (*Request command focus once; an open dock must allow the layer name to own typing.*) · `src/view_flags_tests.rs` (*Copy the full source ownership, history and actual control regressions.*) · `src/lib.rs` (*Register the new source component.*) · `src/layer_edit_tests.rs` (*Copy the full source ownership, history and actual control regressions.*) · `src/layer_ui_tests.rs` (*Copy the full source ownership, history and actual control regressions.*) · `src/pick_gpu_tests.rs` (*Copy the actual GPU colour, independent channel and geometry-reuse regression.*)
+
+The new layer-name field and the command dock share egui keyboard focus.
+
+Adapt the existing dock at this boundary: request focus once when focus_command is set, and gate completion and Escape on the field response. command_open describes display state, so it must not reclaim the keyboard every frame. Then exercise the full layer workflow using supplied source, history, GPU and combined egui fixtures. Preserve precise original geometry while presentation and layer membership change independently.
+
+> **Self-Check Question:** *Which layer operations belong in document Undo?*  
+> **Answer:** New, rename, move, copy, duplicate and delete. Hiding, showing, locking, recolouring, expansion and choosing current change presentation without consuming document Undo.
+
+- **What You Should See:** Type Close, Example Nested, Fit, View Isometric, then Layers All. Right-click Frame to create a sublayer, set it current, and add Example Box. Rename the layer, edit Faces and Edges separately, duplicate it and delete the copy with confirmation. Undo each document edit. Select Posts, press H then S outside text fields, and verify that Delete plus Undo restores its parent and attribute together. Hide one child, switch its parent off and on, and verify the child stays hidden while visible siblings return. Selecting a panel row fits its current selection.
+- **Hands-On Lab Experiment:** Create a sublayer, set it current, add geometry, rename, colour Faces and Edges, duplicate and delete with confirmation. Undo each document edit; use H/S/Delete only outside focused fields.
+
 <details>
 <summary>Implementation 53u-layers: Exercise layers shortcuts colours and exact source ownership</summary>
 
@@ -10981,9 +11351,11 @@ After that block, append this supplied code:
 
 </details>
 
-## Run, Check, and Save
+---
 
-From `session_viewer`:
+## 5. Build, Verify, and Save Your Checkpoint
+
+Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 53u-layers
@@ -10994,12 +11366,12 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. Use [checkpoint recovery](../recovery.md) to restore any saved checkpoint.
+Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../recovery.md) to save or restore any checkpoint ID.
 
-## Expected Visual Result & Experiment
+## 6. Lesson Summary & Expected Visual Result
 
 Type Close, Example Nested, Fit, View Isometric, then Layers All. Right-click Frame to create a sublayer, set it current, and add Example Box. Rename the layer, edit Faces and Edges separately, duplicate it and delete the copy with confirmation. Undo each document edit. Select Posts, press H then S outside text fields, and verify that Delete plus Undo restores its parent and attribute together. Hide one child, switch its parent off and on, and verify the child stays hidden while visible siblings return. Selecting a panel row fits its current selection.
 
-- **Try this:** Create a sublayer, set it current, add geometry, rename, colour Faces and Edges, duplicate and delete with confirmation. Undo each document edit; use H/S/Delete only outside focused fields.
+- **Final Lesson Experiment:** Create a sublayer, set it current, add geometry, rename, colour Faces and Edges, duplicate and delete with confirmation. Undo each document edit; use H/S/Delete only outside focused fields.
 
 Continue with [Navigation, delayed picks and direct dragging](54-camera.md).

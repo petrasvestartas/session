@@ -1,88 +1,141 @@
 # 18.5 · Glass, X-ray and shared visibility rules
 
-**Section 9: Compute Tile Visibility, Clipping Half-Spaces, Section Caps, and Ambient Occlusion** · **Lesson 18.5** (Redraft `9.9`) · **9 checkpoints (`93-classify-original-solids-independently-of-clipping` → `93h-prove-actual-glass-x-ray-and-source-ownership`)**
+**Section 9: Compute Tile Visibility, Clipping Half-Spaces, Section Caps, and Ambient Occlusion** · **Lesson 18.5** (Redraft `9.9`) · **9 checkpoints (`93-classify-original-solids-independently-of-clipping` → `93h-prove-actual-glass-x-ray-and-source-ownership`)** · **Study time: 4.5–9 h**
 
-> **Learning Goal:** Classify original solids independently of clipping.
+> **What You Will Learn & Build:** Classify original solids independently of clipping. By the final checkpoint (`93h-prove-actual-glass-x-ray-and-source-ownership`), you will prove actual glass x-ray and source ownership.
 
-## Visual WebGPU & Architecture Schematic
+## 1. Visual Pipeline & WebGPU Architecture (Black & White Schematics)
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1px solid #cbd5e1;border-radius:10px;background:#f8fafc;">
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
+<svg viewBox="0 0 840 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <rect x="4" y="4" width="832" height="212" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Lesson 18.5 Execution Flow: Glass, X-ray and shared visibility rules</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">Concrete data pipeline you build in this lesson (9 Checkpoints: 93-classify-original-solids-independently-of-clipping → 93h-prove-actual-glass-x-ray-and-source-ownership)</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
+  
+    
+    <rect x="18" y="68" width="253" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="144" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
+    <line x1="28" y1="92" x2="261" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="144" y="108" text-anchor="middle" font-size="11" fill="#111111">original closedness</text>
+    <line x1="271" y1="108" x2="291" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="293" y="68" width="253" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="419" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
+    <line x1="303" y1="92" x2="536" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">face alpha and hidden ink</text>
+    <line x1="546" y1="108" x2="566" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="568" y="68" width="253" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="694" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
+    <line x1="578" y1="92" x2="811" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="694" y="108" text-anchor="middle" font-size="11" fill="#111111">original x-ray picks</text>
+    
+    <rect x="18" y="162" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="32" y="181" font-size="11" font-weight="700" fill="#111111">Files You Edit in Lesson 18.5:</text>
+    <text x="215" y="181" font-size="11" fill="#111111">src/caps_gpu.rs  ·  src/gpu_mesh.rs  ·  src/renderer.rs  ·  src/triangle.wgsl  ·  src/triangle_pick.wgsl  ·  src/face_pick.wgsl</text>
+    <text x="32" y="198" font-size="10.5" fill="#111111">9 Checkpoints: 93-classify-original-solids-independently-of-clipping → 93h-prove-actual-glass-x-ray-and-source-ownership — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
+  
+</svg>
+</div>
+
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
 <svg viewBox="0 0 840 240" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#475569"/>
-    </marker>
-    <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#2563eb"/>
-    </marker>
-    <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#059669"/>
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
     </marker>
   </defs>
-  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
-  <text x="20" y="28" font-size="14" font-weight="700" fill="#0f172a">Section 9 Compute Tile Visibility, Clipping Half-Spaces, Winding Section Caps & Horizon GTAO (Ch 17–18)</text>
-  <text x="20" y="46" font-size="11.5" fill="#475569">How @compute shaders bin triangles into screen tiles for hidden-line removal, clip solids with winding caps, and shade crevices.</text>
-  <line x1="16" y1="54" x2="824" y2="54" stroke="#e2e8f0" stroke-width="1"/>
+  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Section 9 Compute Tile Visibility, Clipping Half-Spaces, Winding Section Caps & Horizon GTAO (Ch 17–18)</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">How @compute shaders bin triangles into screen tiles for hidden-line removal, clip solids with winding caps, and shade crevices.</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
   
-    <rect x="18" y="68" width="250" height="145" rx="6" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
-    <text x="143" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1e40af">1. @compute Tile Visibility (Ch 17)</text>
-    <text x="28" y="108" font-size="10.5" fill="#1e3a8a">• projected_triangle.wgsl projects tris</text>
-    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#1d4ed8">• atomicAdd tile counts + prefix-sum CSR</text>
-    <text x="28" y="144" font-size="10.5" fill="#1e3a8a">• ink_visibility.wgsl tests center-line</text>
-    <text x="28" y="160" font-size="10.5" fill="#1e3a8a">  against covering triangles in tile</text>
-    <text x="28" y="178" font-size="10.5" fill="#1e3a8a">• Hidden lines dashed/faded cleanly!</text>
+    <rect x="18" y="68" width="250" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="143" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">1. @compute Tile Visibility (Ch 17)</text>
+    <text x="28" y="108" font-size="10.5" fill="#111111">• projected_triangle.wgsl projects tris</text>
+    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#111111">• atomicAdd tile counts + prefix-sum CSR</text>
+    <text x="28" y="144" font-size="10.5" fill="#111111">• ink_visibility.wgsl tests center-line</text>
+    <text x="28" y="160" font-size="10.5" fill="#111111">  against covering triangles in tile</text>
+    <text x="28" y="178" font-size="10.5" fill="#111111">• Hidden lines dashed/faded cleanly!</text>
 
-    <line x1="268" y1="138" x2="298" y2="138" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
+    <line x1="268" y1="138" x2="298" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="300" y="68" width="265" height="145" rx="6" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5"/>
-    <text x="432" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#9a3412">2. Clipping &amp; Winding Caps (Ch 17)</text>
-    <text x="312" y="108" font-size="10.5" fill="#7c2d12">• Half-space: dot(pos_world, plane) &lt; 0</text>
-    <text x="312" y="126" font-size="10.5" font-weight="600" fill="#c2410c">• Signed front/back crossing count</text>
-    <text x="312" y="142" font-size="10" fill="#7c2d12">  at clip plane depth (cap.wgsl):</text>
-    <text x="312" y="158" font-size="10" fill="#7c2d12">  Fills closed solid interiors while</text>
-    <text x="312" y="173" font-size="10" fill="#7c2d12">  leaving internal bores hollow!</text>
-    <text x="312" y="191" font-size="10.5" fill="#7c2d12">• Cap picks resolve to solid owner_id</text>
+    <rect x="300" y="68" width="265" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="432" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">2. Clipping &amp; Winding Caps (Ch 17)</text>
+    <text x="312" y="108" font-size="10.5" fill="#111111">• Half-space: dot(pos_world, plane) &lt; 0</text>
+    <text x="312" y="126" font-size="10.5" font-weight="600" fill="#111111">• Signed front/back crossing count</text>
+    <text x="312" y="142" font-size="10" fill="#111111">  at clip plane depth (cap.wgsl):</text>
+    <text x="312" y="158" font-size="10" fill="#111111">  Fills closed solid interiors while</text>
+    <text x="312" y="173" font-size="10" fill="#111111">  leaving internal bores hollow!</text>
+    <text x="312" y="191" font-size="10.5" fill="#111111">• Cap picks resolve to solid owner_id</text>
 
-    <line x1="565" y1="138" x2="595" y2="138" stroke="#059669" stroke-width="2" marker-end="url(#arrow-green)"/>
+    <line x1="565" y1="138" x2="595" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="597" y="68" width="223" height="145" rx="6" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1.5"/>
-    <text x="708" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#065f46">3. Horizon GTAO &amp; X-Ray (Ch 18)</text>
-    <text x="609" y="108" font-size="10.5" fill="#064e3b">• ambient_depth.wgsl -&gt; 6-mip pyramid</text>
-    <text x="609" y="126" font-size="10.5" font-weight="600" fill="#047857">• ssao.wgsl + bilateral blur +</text>
-    <text x="609" y="142" font-size="10.5" font-weight="600" fill="#047857">  ambient_composite.wgsl (Arctic)</text>
-    <text x="609" y="160" font-size="10" fill="#064e3b">• Glass / X-Ray translucent shells</text>
-    <text x="609" y="175" font-size="10" fill="#064e3b">  allow picking interior Wood joints</text>
+    <rect x="597" y="68" width="223" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="708" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">3. Horizon GTAO &amp; X-Ray (Ch 18)</text>
+    <text x="609" y="108" font-size="10.5" fill="#111111">• ambient_depth.wgsl -&gt; 6-mip pyramid</text>
+    <text x="609" y="126" font-size="10.5" font-weight="600" fill="#111111">• ssao.wgsl + bilateral blur +</text>
+    <text x="609" y="142" font-size="10.5" font-weight="600" fill="#111111">  ambient_composite.wgsl (Arctic)</text>
+    <text x="609" y="160" font-size="10" fill="#111111">• Glass / X-Ray translucent shells</text>
+    <text x="609" y="175" font-size="10" fill="#111111">  allow picking interior Wood joints</text>
     
 </svg>
 </div>
 
-### Lesson Data Flow (`Rust` → `WebGPU` → `WGSL`)
+## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
 
-```
-original closedness → face alpha and hidden ink → original x-ray picks.
-```
+Before writing code, review how the three layers in this chapter talk to each other:
 
-- Classify original solids independently of clipping.
-- Carry opacity into finite original ink.
-- Prove actual glass x-ray and source ownership.
-- **Why it works (Must a clipping plane exist before glass works?):** No. Classify closedness from the original once and reuse its weak cache. Keep cap tokens inactive until a real plane is present.
-
-### Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `Browser`)
-
-| Layer | Construct | First-Year Student Explanation |
+| Layer | Construct | Plain-English Explanation for Students |
 | :--- | :--- | :--- |
 | **WGSL (`@compute`)** | `@compute @workgroup_size(64) fn main(@builtin(global_invocation_id) id: vec3<u32>)` | Runs general-purpose parallel GPU threads (outside vertex/fragment rasterization) to project triangles and prefix-sum tile counts. |
 | **WGSL (Atomics)** | `atomicAdd(&tile_counts[tile_id], 1u)` | Safely increments shared GPU buffer counters when multiple triangles overlap the same screen tile concurrently. |
 | **Math (Winding Cap)** | `signed_crossings != 0` at clip plane depth | Fills only the solid interior of a clipped B-Rep/mesh while leaving interior bores and open shells hollow. |
 | **WGSL (`ssao.wgsl`)** | Multi-level depth pyramid horizon integration | Samples 6 mip levels of linear depth and per-object contact radius to shade crevices and ground contact. |
 
-**Production source (`session_viewer/src`):** [engine/gpu/ssao.rs](../../../../src/engine/gpu/ssao.rs), [engine/gpu/ssao/pipelines.rs](../../../../src/engine/gpu/ssao/pipelines.rs), [shaders/ssao.wgsl](../../../../src/shaders/ssao.wgsl), [shaders/triangle.wgsl](../../../../src/shaders/triangle.wgsl), [shaders/ink_visibility.wgsl](../../../../src/shaders/ink_visibility.wgsl), [engine/gpu/surface_outline.rs](../../../../src/engine/gpu/surface_outline.rs), [engine/gpu/render.rs](../../../../src/engine/gpu/render.rs), [engine/performance.rs](../../../../src/engine/performance.rs), [engine/gpu/timing.rs](../../../../src/engine/gpu/timing.rs), [app/command/tool/elements.rs](../../../../src/app/command/tool/elements.rs), [build.rs](../../../../build.rs).
+**Authoritative production source (`session_viewer/src`):** [engine/gpu/ssao.rs](../../../../src/engine/gpu/ssao.rs), [engine/gpu/ssao/pipelines.rs](../../../../src/engine/gpu/ssao/pipelines.rs), [shaders/ssao.wgsl](../../../../src/shaders/ssao.wgsl), [shaders/triangle.wgsl](../../../../src/shaders/triangle.wgsl), [shaders/ink_visibility.wgsl](../../../../src/shaders/ink_visibility.wgsl), [engine/gpu/surface_outline.rs](../../../../src/engine/gpu/surface_outline.rs), [engine/gpu/render.rs](../../../../src/engine/gpu/render.rs), [engine/performance.rs](../../../../src/engine/performance.rs), [engine/gpu/timing.rs](../../../../src/engine/gpu/timing.rs), [app/command/tool/elements.rs](../../../../src/app/command/tool/elements.rs), [build.rs](../../../../build.rs).
 
-## Implementation Checkpoints
+## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
 
-Apply these checkpoints in order inside `workspace/journey`. Expand each block to view the Rust/WGSL/HTML edits:
+| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
+| ---: | :--- | :--- | :--- | :--- |
+| **1** | [`93-classify-original-solids-independently-of-clipping`](#checkpoint-93-classify-original-solids-independently-of-clipping) | Classify original solids independently of clipping. | `src/caps_gpu.rs`, `src/gpu_mesh.rs` | `original closedness → face alpha and hidden ink → original x-ray picks` |
+| **2** | [`93a-own-opacity-in-the-existing-surface-frame`](#checkpoint-93a-own-opacity-in-the-existing-surface-frame) | Own opacity in the existing surface frame. | `src/renderer.rs` | `original closedness → face alpha and hidden ink → original x-ray picks` |
+| **3** | [`93b-blend-closed-faces-and-retain-opaque-open-surfaces`](#checkpoint-93b-blend-closed-faces-and-retain-opaque-open-surfaces) | Blend closed faces and retain opaque open surfaces. | `src/triangle.wgsl` | `original closedness → face alpha and hidden ink → original x-ray picks` |
+| **4** | [`93c-exclude-x-ray-faces-from-original-picks-and-masks`](#checkpoint-93c-exclude-x-ray-faces-from-original-picks-and-masks) | Exclude x-ray faces from original picks and masks. | `src/triangle_pick.wgsl`, `src/face_pick.wgsl`, `src/outline_mask.wgsl`, `src/ambient_sources.wgsl` | `original closedness → face alpha and hidden ink → original x-ray picks` |
+| **5** | [`93d-carry-opacity-into-finite-original-ink`](#checkpoint-93d-carry-opacity-into-finite-original-ink) | Carry opacity into finite original ink. | `src/stroke_gpu.rs`, `src/highlight.rs`, `src/finite_visibility.wgsl`, `src/finite_stroke.wgsl` | `original closedness → face alpha and hidden ink → original x-ray picks` |
+| **6** | [`93e-fade-hidden-ink-without-showing-clipped-geometry`](#checkpoint-93e-fade-hidden-ink-without-showing-clipped-geometry) | Fade hidden ink without showing clipped geometry. | `src/finite_stroke.wgsl`, `src/finite_chain.wgsl`, `src/finite_marker.wgsl`, `src/finite_stroke_pick.wgsl` | `original closedness → face alpha and hidden ink → original x-ray picks` |
+| **7** | [`93f-invalidate-presentation-and-preserve-cached-geometry`](#checkpoint-93f-invalidate-presentation-and-preserve-cached-geometry) | Invalidate presentation and preserve cached geometry. | `src/renderer.rs` | `original closedness → face alpha and hidden ink → original x-ray picks` |
+| **8** | [`93g-connect-strict-opacity-presentation-commands`](#checkpoint-93g-connect-strict-opacity-presentation-commands) | Connect strict Opacity presentation commands. | `src/editor.rs`, `src/commands.rs`, `src/browser.rs` | `original closedness → face alpha and hidden ink → original x-ray picks` |
+| **9** | [`93h-prove-actual-glass-x-ray-and-source-ownership`](#checkpoint-93h-prove-actual-glass-x-ray-and-source-ownership) | Prove actual glass x-ray and source ownership. | `src/opacity_gpu_tests.rs`, `src/renderer.rs`, `src/opacity_command_tests.rs`, `src/lib.rs` | `original closedness → face alpha and hidden ink → original x-ray picks` |
+
+---
+
+## 4. Step-by-Step Coding Notebook (Concept + Implementation)
+
+Work through each notebook cell below in order inside `workspace/journey`. Read the **Concept Walkthrough** and **Self-Check Q&A** first, then expand the **Implementation** block to type and verify the code.
 
 <a id="checkpoint-93-classify-original-solids-independently-of-clipping"></a>
+
+### Step 1 of 9 · Classify original solids independently of clipping (`93-classify-original-solids-independently-of-clipping`)
+
+- **Goal:** Classify original solids independently of clipping.
+- **Data Flow Trace:** `original closedness → face alpha and hidden ink → original x-ray picks`
+- **Files You Touch:** `src/caps_gpu.rs` (*Reuse original closedness for surfaces while keeping section tokens lazy.*) · `src/gpu_mesh.rs` (*Own explicit derived x-ray flags without changing original geometry.*)
+
+Classify original solids independently of clipping.
+
+> **Self-Check Question:** *Must a clipping plane exist before glass works?*  
+> **Answer:** No. Classify closedness from the original once and reuse its weak cache. Keep cap tokens inactive until a real plane is present.
+
+- **What You Should See:** Original typed beams, columns and a plate retain their current Wood solids, features and editable parent ownership.
+- **Hands-On Lab Experiment:** Compare a closed mesh, an open surface and a cached original BRep before adding any clipping plane.
 
 <details>
 <summary>Implementation 93-classify-original-solids-independently-of-clipping: Classify original solids independently of clipping</summary>
@@ -328,6 +381,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-93a-own-opacity-in-the-existing-surface-frame"></a>
+
+### Step 2 of 9 · Own opacity in the existing surface frame (`93a-own-opacity-in-the-existing-surface-frame`)
+
+- **Goal:** Own opacity in the existing surface frame.
+- **Data Flow Trace:** `original closedness → face alpha and hidden ink → original x-ray picks`
+- **Files You Touch:** `src/renderer.rs` (*Own opaque-default presentation alpha in the existing surface frame.*)
+
+Own opacity in the existing surface frame.
+
+> **Self-Check Question:** *Does Opacity replace source face colors?*  
+> **Answer:** No. The view owns one scalar and an alpha-blending surface pipeline. Original object colors and geometry remain shared.
+
+- **Hands-On Lab Experiment:** Inspect the existing 80-byte view frame and opaque default 1.
 
 <details>
 <summary>Implementation 93a-own-opacity-in-the-existing-surface-frame: Own opacity in the existing surface frame</summary>
@@ -1090,6 +1156,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-93b-blend-closed-faces-and-retain-opaque-open-surfaces"></a>
 
+### Step 3 of 9 · Blend closed faces and retain opaque open surfaces (`93b-blend-closed-faces-and-retain-opaque-open-surfaces`)
+
+- **Goal:** Blend closed faces and retain opaque open surfaces.
+- **Data Flow Trace:** `original closedness → face alpha and hidden ink → original x-ray picks`
+- **Files You Touch:** `src/triangle.wgsl` (*Adapt current closed/open alpha and mirrored-front behavior to the earlier source shader.*)
+
+Blend closed faces and retain opaque open surfaces.
+
+> **Self-Check Question:** *Should a half-transparent solid draw its back face again?*  
+> **Answer:** No. Reject closed back faces while glass is active, respecting original winding and mirrored placement. Open surfaces remain opaque.
+
+- **Hands-On Lab Experiment:** Compare one front-face blend, a mirrored solid and an open surface at 0.5.
+
 <details>
 <summary>Implementation 93b-blend-closed-faces-and-retain-opaque-open-surfaces: Blend closed faces and retain opaque open surfaces</summary>
 
@@ -1240,6 +1319,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-93c-exclude-x-ray-faces-from-original-picks-and-masks"></a>
 
+### Step 4 of 9 · Exclude x-ray faces from original picks and masks (`93c-exclude-x-ray-faces-from-original-picks-and-masks`)
+
+- **Goal:** Exclude x-ray faces from original picks and masks.
+- **Data Flow Trace:** `original closedness → face alpha and hidden ink → original x-ray picks`
+- **Files You Touch:** `src/triangle_pick.wgsl` (*Apply one derived x-ray face predicate without source mutation.*) · `src/face_pick.wgsl` (*Apply one derived x-ray face predicate without source mutation.*) · `src/outline_mask.wgsl` (*Apply one derived x-ray face predicate without source mutation.*) · `src/ambient_sources.wgsl` (*Apply one derived x-ray face predicate without source mutation.*)
+
+Exclude x-ray faces from original picks and masks.
+
+> **Self-Check Question:** *Does Opacity 0 erase the original object?*  
+> **Answer:** No. Closed faces stop drawing and taking face picks; original edge and line owners remain available. Open surfaces still draw their faces.
+
+- **Hands-On Lab Experiment:** Inspect derived x-ray flags in surface IDs, face IDs, outline coverage and ambient properties.
+
 <details>
 <summary>Implementation 93c-exclude-x-ray-faces-from-original-picks-and-masks: Exclude x-ray faces from original picks and masks</summary>
 
@@ -1338,6 +1430,19 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-93d-carry-opacity-into-finite-original-ink"></a>
+
+### Step 5 of 9 · Carry opacity into finite original ink (`93d-carry-opacity-into-finite-original-ink`)
+
+- **Goal:** Carry opacity into finite original ink.
+- **Data Flow Trace:** `original closedness → face alpha and hidden ink → original x-ray picks`
+- **Files You Touch:** `src/stroke_gpu.rs` (*Carry view opacity through compatible finite-ink frames and alpha helpers.*) · `src/highlight.rs` (*Carry view opacity through compatible finite-ink frames and alpha helpers.*) · `src/finite_visibility.wgsl` (*Carry view opacity through compatible finite-ink frames and alpha helpers.*) · `src/finite_stroke.wgsl` (*Name the opacity scalar in the existing compatible lane frame.*) · `src/finite_chain.wgsl` (*Name the opacity scalar in the existing compatible lane frame.*) · `src/finite_marker.wgsl` (*Name the opacity scalar in the existing compatible lane frame.*)
+
+Carry opacity into finite original ink.
+
+> **Self-Check Question:** *Can hidden ink read the surface view uniform directly?*  
+> **Answer:** Its lane has a different frame. Fill its existing padding with opacity, keeping the 80-byte binding and the default 1.
+
+- **Hands-On Lab Experiment:** Trace actual lane frames, selected ink and the current hidden-alpha recipe.
 
 <details>
 <summary>Implementation 93d-carry-opacity-into-finite-original-ink: Carry opacity into finite original ink</summary>
@@ -1762,6 +1867,19 @@ Edit the existing block to match this code; keep unchanged lines:
 
 <a id="checkpoint-93e-fade-hidden-ink-without-showing-clipped-geometry"></a>
 
+### Step 6 of 9 · Fade hidden ink without showing clipped geometry (`93e-fade-hidden-ink-without-showing-clipped-geometry`)
+
+- **Goal:** Fade hidden ink without showing clipped geometry.
+- **Data Flow Trace:** `original closedness → face alpha and hidden ink → original x-ray picks`
+- **Files You Touch:** `src/finite_stroke.wgsl` (*Use the same original ink visibility alpha for color and integer picks.*) · `src/finite_chain.wgsl` (*Use the same original ink visibility alpha for color and integer picks.*) · `src/finite_marker.wgsl` (*Use the same original ink visibility alpha for color and integer picks.*) · `src/finite_stroke_pick.wgsl` (*Use the same original ink visibility alpha for color and integer picks.*) · `src/finite_chain_pick.wgsl` (*Use the same original ink visibility alpha for color and integer picks.*) · `src/finite_marker_pick.wgsl` (*Use the same original ink visibility alpha for color and integer picks.*)
+
+Fade hidden ink without showing clipped geometry.
+
+> **Self-Check Question:** *Should clipping be treated as merely hidden glass ink?*  
+> **Answer:** No. Clipped originals stay absent. Visible ink has full alpha, hidden glass ink has 1-opacity, and x-ray exposes original ink.
+
+- **Hands-On Lab Experiment:** Compare a hidden line behind a closed face with a line cut away by a clipping plane.
+
 <details>
 <summary>Implementation 93e-fade-hidden-ink-without-showing-clipped-geometry: Fade hidden ink without showing clipped geometry</summary>
 
@@ -1905,6 +2023,19 @@ Edit the existing block to match this code; keep unchanged lines:
 
 <a id="checkpoint-93f-invalidate-presentation-and-preserve-cached-geometry"></a>
 
+### Step 7 of 9 · Invalidate presentation and preserve cached geometry (`93f-invalidate-presentation-and-preserve-cached-geometry`)
+
+- **Goal:** Invalidate presentation and preserve cached geometry.
+- **Data Flow Trace:** `original closedness → face alpha and hidden ink → original x-ray picks`
+- **Files You Touch:** `src/renderer.rs` (*Connect opacity changes to compatible original source flags and presentation caches.*)
+
+Invalidate presentation and preserve cached geometry.
+
+> **Self-Check Question:** *Does an opacity change reupload original vertices?*  
+> **Answer:** No. Patch the derived x-ray flags, cancel obsolete picks and invalidate presentation masks. Earlier glass draws use retained per-owner geometry; opaque instance batching remains available.
+
+- **Hands-On Lab Experiment:** Change 0.5 to 0 to 1 and compare original geometry uploads and restored solid pixels.
+
 <details>
 <summary>Implementation 93f-invalidate-presentation-and-preserve-cached-geometry: Invalidate presentation and preserve cached geometry</summary>
 
@@ -1937,6 +2068,19 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-93g-connect-strict-opacity-presentation-commands"></a>
+
+### Step 8 of 9 · Connect strict Opacity presentation commands (`93g-connect-strict-opacity-presentation-commands`)
+
+- **Goal:** Connect strict Opacity presentation commands.
+- **Data Flow Trace:** `original closedness → face alpha and hidden ink → original x-ray picks`
+- **Files You Touch:** `src/editor.rs` (*Connect strict presentation alpha and truthful browser state.*) · `src/commands.rs` (*Connect strict presentation alpha and truthful browser state.*) · `src/browser.rs` (*Connect strict presentation alpha and truthful browser state.*)
+
+Connect strict Opacity presentation commands.
+
+> **Self-Check Question:** *Should changing Opacity discard a pending line point?*  
+> **Answer:** No. Validate a finite 0..1 scalar and return a presentation change before document/tool cleanup. History and original source stay unchanged.
+
+- **Hands-On Lab Experiment:** Try Opacity 0/0.4/0.7/1, reject NaN and excess arguments, then finish or cancel the pending line and Redo.
 
 <details>
 <summary>Implementation 93g-connect-strict-opacity-presentation-commands: Connect strict Opacity presentation commands</summary>
@@ -4572,6 +4716,20 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-93h-prove-actual-glass-x-ray-and-source-ownership"></a>
 
+### Step 9 of 9 · Prove actual glass x-ray and source ownership (`93h-prove-actual-glass-x-ray-and-source-ownership`)
+
+- **Goal:** Prove actual glass x-ray and source ownership.
+- **Data Flow Trace:** `original closedness → face alpha and hidden ink → original x-ray picks`
+- **Files You Touch:** `src/opacity_gpu_tests.rs` (*Copy supplied actual alpha, hidden ink, original pick and refresh fixtures.*) · `src/renderer.rs` (*Register actual renderer-local transparency fixtures.*) · `src/opacity_command_tests.rs` (*Copy supplied strict presentation/pending-point/history fixtures.*) · `src/lib.rs` (*Register the completed transparency component.*)
+
+Prove actual glass x-ray and source ownership.
+
+> **Self-Check Question:** *What proves transparency works?*  
+> **Answer:** Actual face/ink color and integer picks. Verify open/mirrored/refreshed sources, unchanged originals, no vertex reupload and exact solid restoration.
+
+- **What You Should See:** The original closed pedestal is translucent while its black original ink and consistent silhouette remain visible.
+- **Hands-On Lab Experiment:** Fit Example CAD in an isometric view. Compare Opacity 1, 0.4 and 0 while inspecting the closed solid and its original ink; restore 1. Select the solid, move it and Undo, then compare its restored drawing. Native fixtures separately check exact blended pixels, mirrored originals and upload reuse.
+
 <details>
 <summary>Implementation 93h-prove-actual-glass-x-ray-and-source-ownership: Prove actual glass x-ray and source ownership</summary>
 
@@ -4669,9 +4827,11 @@ After that block, append this supplied code:
 
 </details>
 
-## Run, Check, and Save
+---
 
-From `session_viewer`:
+## 5. Build, Verify, and Save Your Checkpoint
+
+Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 93h-prove-actual-glass-x-ray-and-source-ownership
@@ -4682,12 +4842,12 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. Use [checkpoint recovery](../../recovery.md) to restore any saved checkpoint.
+Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
 
-## Expected Visual Result & Experiment
+## 6. Lesson Summary & Expected Visual Result
 
 The original closed pedestal is translucent while its black original ink and consistent silhouette remain visible.
 
-- **Try this:** Fit Example CAD in an isometric view. Compare Opacity 1, 0.4 and 0 while inspecting the closed solid and its original ink; restore 1. Select the solid, move it and Undo, then compare its restored drawing. Native fixtures separately check exact blended pixels, mirrored originals and upload reuse.
+- **Final Lesson Experiment:** Fit Example CAD in an isometric view. Compare Opacity 1, 0.4 and 0 while inspecting the closed solid and its original ink; restore 1. Select the solid, move it and Undo, then compare its restored drawing. Native fixtures separately check exact blended pixels, mirrored originals and upload reuse.
 
-Continue with [Matched rendering comparisons from original sources](94-declare-the-rendering-comparison-contract.md).
+Continue with [Matched rendering comparisons from original sources](../../consolidation/94-declare-the-rendering-comparison-contract.md).

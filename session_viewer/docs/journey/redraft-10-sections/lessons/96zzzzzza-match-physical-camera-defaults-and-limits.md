@@ -1,92 +1,155 @@
 # 21.5 · Physical camera, world grid and framed navigation
 
-**Section 10: Shared GPU Arenas, Floating-Origin Precision, Multisampling, and Production Parity** · **Lesson 21.5** (Redraft `10.15`) · **6 checkpoints (`96zzzzzza-match-physical-camera-defaults-and-limits` → `96zzzzzzf-match-wheel-input-and-framed-projection`)**
+**Section 10: Shared GPU Arenas, Floating-Origin Precision, Multisampling, and Production Parity** · **Lesson 21.5** (Redraft `10.15`) · **6 checkpoints (`96zzzzzza-match-physical-camera-defaults-and-limits` → `96zzzzzzf-match-wheel-input-and-framed-projection`)** · **Study time: 4.7–8.7 h**
 
-> **Learning Goal:** Keep camera defaults and numeric limits in physical units.
+> **What You Will Learn & Build:** Keep camera defaults and numeric limits in physical units. By the final checkpoint (`96zzzzzzf-match-wheel-input-and-framed-projection`), you will use current wheel units and preserve the visible region when changing from orthographic to perspective.
 
-## Visual WebGPU & Architecture Schematic
+## 1. Visual Pipeline & WebGPU Architecture (Black & White Schematics)
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1px solid #cbd5e1;border-radius:10px;background:#f8fafc;">
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
+<svg viewBox="0 0 840 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <rect x="4" y="4" width="832" height="212" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Lesson 21.5 Execution Flow: Physical camera, world grid and framed navigation</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">Concrete data pipeline you build in this lesson (6 Checkpoints: 96zzzzzza-match-physical-camera-defaults-and-limits → 96zzzzzzf-match-wheel-input-and-framed-projection)</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
+  
+    
+    <rect x="18" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="89" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
+    <line x1="28" y1="92" x2="151" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">File unit</text>
+    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="183" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="254" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
+    <line x1="193" y1="92" x2="316" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">physical default</text>
+    <text x="254" y="124" text-anchor="middle" font-size="11" fill="#111111">and limits</text>
+    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="348" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="419" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
+    <line x1="358" y1="92" x2="481" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">existing camera and</text>
+    <text x="419" y="124" text-anchor="middle" font-size="11" fill="#111111">named-view owners</text>
+    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="513" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="584" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
+    <line x1="523" y1="92" x2="646" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">Raw wheel event and</text>
+    <text x="584" y="124" text-anchor="middle" font-size="11" fill="#111111">actual DPR</text>
+    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="678" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="749" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
+    <line x1="688" y1="92" x2="811" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">current amount</text>
+    
+    <rect x="18" y="162" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="32" y="181" font-size="11" font-weight="700" fill="#111111">Files You Edit in Lesson 21.5:</text>
+    <text x="215" y="181" font-size="11" fill="#111111">src/camera.rs  ·  src/camera_reference_tests.rs  ·  src/camera_reference_fixture.json  ·  src/camera_defaults_tests.rs  ·  src/lib.rs  ·  src/camera_space_tests.rs</text>
+    <text x="32" y="198" font-size="10.5" fill="#111111">6 Checkpoints: 96zzzzzza-match-physical-camera-defaults-and-limits → 96zzzzzzf-match-wheel-input-and-framed-projection — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
+  
+</svg>
+</div>
+
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
 <svg viewBox="0 0 840 240" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#475569"/>
-    </marker>
-    <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#2563eb"/>
-    </marker>
-    <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#059669"/>
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
     </marker>
   </defs>
-  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
-  <text x="20" y="28" font-size="14" font-weight="700" fill="#0f172a">Section 10 Production Architecture: Shared GPU Storage Arena, f64 Floating Origin, Reversed-Z, 4x MSAA & Matrix Shader</text>
-  <text x="20" y="46" font-size="11.5" fill="#475569">How the maintained viewer pulls vertices from one growable GPU arena, eliminates jitter at 10^12 units, and renders procedural Matrices.</text>
-  <line x1="16" y1="54" x2="824" y2="54" stroke="#e2e8f0" stroke-width="1"/>
+  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Section 10 Production Architecture: Shared GPU Storage Arena, f64 Floating Origin, Reversed-Z, 4x MSAA & Matrix Shader</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">How the maintained viewer pulls vertices from one growable GPU arena, eliminates jitter at 10^12 units, and renders procedural Matrices.</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
   
-    <rect x="18" y="68" width="250" height="145" rx="6" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
-    <text x="143" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1e40af">1. Shared GPU Arena (Ch 19–20)</text>
-    <text x="28" y="108" font-size="10.5" fill="#1e3a8a">• 1 Growable Storage Buffer Arena</text>
-    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#1d4ed8">• Vertex Pulling (@builtin(vertex_index))</text>
-    <text x="28" y="144" font-size="10.5" fill="#1e3a8a">• 8-byte Draw Slots -&gt; ObjectRecord</text>
-    <text x="28" y="162" font-size="10.5" fill="#1e3a8a">• slot_table.wgsl maps Rg32Uint</text>
-    <text x="28" y="178" font-size="10.5" fill="#1e3a8a">  primitive IDs to Element/Face owners</text>
-    <text x="28" y="194" font-size="10" fill="#1e3a8a">• Free-list span reuse after GPU lease</text>
+    <rect x="18" y="68" width="250" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="143" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">1. Shared GPU Arena (Ch 19–20)</text>
+    <text x="28" y="108" font-size="10.5" fill="#111111">• 1 Growable Storage Buffer Arena</text>
+    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#111111">• Vertex Pulling (@builtin(vertex_index))</text>
+    <text x="28" y="144" font-size="10.5" fill="#111111">• 8-byte Draw Slots -&gt; ObjectRecord</text>
+    <text x="28" y="162" font-size="10.5" fill="#111111">• slot_table.wgsl maps Rg32Uint</text>
+    <text x="28" y="178" font-size="10.5" fill="#111111">  primitive IDs to Element/Face owners</text>
+    <text x="28" y="194" font-size="10" fill="#111111">• Free-list span reuse after GPU lease</text>
 
-    <line x1="268" y1="138" x2="298" y2="138" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
+    <line x1="268" y1="138" x2="298" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="300" y="68" width="265" height="145" rx="6" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5"/>
-    <text x="432" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#9a3412">2. f64 Floating Origin &amp; Reversed-Z (Ch 21)</text>
-    <text x="312" y="108" font-size="10.5" font-weight="600" fill="#c2410c">• rel_f32 = (world_f64 - anchor_f64) as f32</text>
-    <text x="312" y="125" font-size="10" fill="#7c2d12">  Zero vertex/grid jitter even at 10^12 m!</text>
-    <text x="312" y="144" font-size="10.5" font-weight="600" fill="#c2410c">• Reversed-Z Depth (GreaterEqual):</text>
-    <text x="312" y="160" font-size="10" fill="#7c2d12">  Near plane = 1.0, Far plane = 0.0</text>
-    <text x="312" y="178" font-size="10.5" fill="#7c2d12">• Held world base grid &amp; preserved</text>
-    <text x="312" y="193" font-size="10.5" fill="#7c2d12">  live camera during Session reload</text>
+    <rect x="300" y="68" width="265" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="432" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">2. f64 Floating Origin &amp; Reversed-Z (Ch 21)</text>
+    <text x="312" y="108" font-size="10.5" font-weight="600" fill="#111111">• rel_f32 = (world_f64 - anchor_f64) as f32</text>
+    <text x="312" y="125" font-size="10" fill="#111111">  Zero vertex/grid jitter even at 10^12 m!</text>
+    <text x="312" y="144" font-size="10.5" font-weight="600" fill="#111111">• Reversed-Z Depth (GreaterEqual):</text>
+    <text x="312" y="160" font-size="10" fill="#111111">  Near plane = 1.0, Far plane = 0.0</text>
+    <text x="312" y="178" font-size="10.5" fill="#111111">• Held world base grid &amp; preserved</text>
+    <text x="312" y="193" font-size="10.5" fill="#111111">  live camera during Session reload</text>
 
-    <line x1="565" y1="138" x2="595" y2="138" stroke="#059669" stroke-width="2" marker-end="url(#arrow-green)"/>
+    <line x1="565" y1="138" x2="595" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="597" y="68" width="223" height="145" rx="6" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1.5"/>
-    <text x="708" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#065f46">3. 4x MSAA &amp; Matrix Shader (Ch 22)</text>
-    <text x="609" y="108" font-size="10.5" fill="#064e3b">• Coherent 1x/4x MSAA sample targets</text>
-    <text x="609" y="126" font-size="10.5" font-weight="600" fill="#047857">• matrix.wgsl (16w header + 3w/cell):</text>
-    <text x="609" y="142" font-size="10" fill="#064e3b">  Heatmap + procedural 3-decimal digits</text>
-    <text x="609" y="157" font-size="10" fill="#064e3b">  (0 cell blank; plate-less title; yellow</text>
-    <text x="609" y="172" font-size="10" fill="#064e3b">  selected border; Rg32Uint whole pick)</text>
-    <text x="609" y="190" font-size="10" fill="#064e3b">• Coalesced single-flight frame scheduler</text>
+    <rect x="597" y="68" width="223" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="708" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">3. 4x MSAA &amp; Matrix Shader (Ch 22)</text>
+    <text x="609" y="108" font-size="10.5" fill="#111111">• Coherent 1x/4x MSAA sample targets</text>
+    <text x="609" y="126" font-size="10.5" font-weight="600" fill="#111111">• matrix.wgsl (16w header + 3w/cell):</text>
+    <text x="609" y="142" font-size="10" fill="#111111">  Heatmap + procedural 3-decimal digits</text>
+    <text x="609" y="157" font-size="10" fill="#111111">  (0 cell blank; plate-less title; yellow</text>
+    <text x="609" y="172" font-size="10" fill="#111111">  selected border; Rg32Uint whole pick)</text>
+    <text x="609" y="190" font-size="10" fill="#111111">• Coalesced single-flight frame scheduler</text>
     
 </svg>
 </div>
 
-### Lesson Data Flow (`Rust` → `WebGPU` → `WGSL`)
+## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
 
-```
-File unit → physical default and limits → existing camera and named-view owners.
-Screen coordinate → shifted target plane → camera axes → shared scene/construction-plane range → precise world ray.
-Raw wheel event and actual DPR → current amount → existing precise zoom owner; projection change → clipped visible corners → existing Fit.
-```
+Before writing code, review how the three layers in this chapter talk to each other:
 
-- Keep camera defaults and numeric limits in physical units.
-- Keep drawing rays and rendered depth consistent in both projections, including when the construction grid is hidden.
-- Use current wheel units and preserve the visible region when changing from orthographic to perspective.
-- **Why it works (Why must zoom limits be independent of the last fitted radius?):** A fitted object describes the document, not the permitted camera travel. Radius-based limits can stop navigation before the current viewer would, and change when another object is fitted.
-
-### Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `Browser`)
-
-| Layer | Construct | First-Year Student Explanation |
+| Layer | Construct | Plain-English Explanation for Students |
 | :--- | :--- | :--- |
 | **WGSL (Vertex Pull)** | `@group(0) @binding(b) var<storage, read> arena_verts: array<u32>;` | Fetches packed vertex positions, normals, and colors directly from a single growable storage buffer using `@builtin(vertex_index)`. |
 | **Rust/WGSL (`f64`->`f32`)** | `let rel: Vec3 = (world_f64 - anchor_f64).as_vec3();` | Subtracts the camera-area `f64` anchor on the CPU before converting to `f32`, preventing 32-bit float mantissa exhaustion far from `(0,0,0)`. |
 | **WGSL (`matrix.wgsl`)** | 16-word header + 3 words/cell procedural digits | Renders matrix heatmaps and 3-decimal numeric digits procedurally inside the fragment shader with zero texture uploads per cell. |
 | **Rust (`ink_ranges.rs`)** | Merged contiguous `Range<u32>` instance draws | Toggles point/line/edge/CAD-wire family visibility without rebuilding GPU buffers or invalidating original owner indices. |
 
-**Production source (`session_viewer/src`):** [camera.rs](../../../../src/camera.rs), [state.rs](../../../../src/state.rs), [engine/gpu/objects.rs](../../../../src/engine/gpu/objects.rs), [engine/gpu/frame.rs](../../../../src/engine/gpu/frame.rs), [engine/gpu/targets.rs](../../../../src/engine/gpu/targets.rs), [shaders/grid.wgsl](../../../../src/shaders/grid.wgsl), [shaders/ribbon.wgsl](../../../../src/shaders/ribbon.wgsl), [app/cplane.rs](../../../../src/app/cplane.rs), [build.rs](../../../../build.rs).
+**Authoritative production source (`session_viewer/src`):** [camera.rs](../../../../src/camera.rs), [state.rs](../../../../src/state.rs), [engine/gpu/objects.rs](../../../../src/engine/gpu/objects.rs), [engine/gpu/frame.rs](../../../../src/engine/gpu/frame.rs), [engine/gpu/targets.rs](../../../../src/engine/gpu/targets.rs), [shaders/grid.wgsl](../../../../src/shaders/grid.wgsl), [shaders/ribbon.wgsl](../../../../src/shaders/ribbon.wgsl), [app/cplane.rs](../../../../src/app/cplane.rs), [build.rs](../../../../build.rs).
 
-## Implementation Checkpoints
+## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
 
-Apply these checkpoints in order inside `workspace/journey`. Expand each block to view the Rust/WGSL/HTML edits:
+| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
+| ---: | :--- | :--- | :--- | :--- |
+| **1** | [`96zzzzzza-match-physical-camera-defaults-and-limits`](#checkpoint-96zzzzzza-match-physical-camera-defaults-and-limits) | Keep camera defaults and numeric limits in physical units. | `src/camera.rs`, `src/camera_reference_tests.rs`, `src/camera_reference_fixture.json`, `src/camera_defaults_tests.rs` | `File unit → physical default and limits → existing camera and named-view owners` |
+| **2** | [`96zzzzzzb-omit-unused-background-pick-pipelines`](#checkpoint-96zzzzzzb-omit-unused-background-pick-pipelines) | Create an integer pipeline only for lanes that can own a pick. | `src/stroke_gpu.rs`, `src/grid_pick_pipeline_tests.rs` | `Lane role → optional base integer shader/pipeline → unchanged original picking` |
+| **3** | [`96zzzzzzc-draw-the-construction-grid-as-physical-lines`](#checkpoint-96zzzzzzc-draw-the-construction-grid-as-physical-lines) | Reuse the grid owner with a physical background pipeline. | `src/grid.rs`, `src/grid.wgsl`, `src/stroke_gpu.rs`, `src/renderer.rs` | `Existing builder body → physical LineList targets → precise grid endpoints → background pass → original surfaces` |
+| **4** | [`96zzzzzzd-build-viewing-rays-without-matrix-inversion`](#checkpoint-96zzzzzzd-build-viewing-rays-without-matrix-inversion) | Keep drawing rays and rendered depth consistent in both projections, including when the construction grid is hidden. | `src/camera.rs`, `src/camera_analytic_ray_tests.rs`, `src/lib.rs`, `src/camera_depth_reach_tests.rs` | `Screen coordinate → shifted target plane → camera axes → shared scene/construction-plane range → precise world ray` |
+| **5** | [`96zzzzzze-grow-camera-depth-from-cached-world-bounds`](#checkpoint-96zzzzzze-grow-camera-depth-from-cached-world-bounds) | Keep later or moved originals inside the depth range without refitting the view or walking their vertices on every camera frame. | `src/bounds.rs`, `src/camera.rs`, `src/renderer.rs`, `src/gizmo_edit.rs` | `Displayed scene and text metrics → numeric world bounds → monotonic camera extent → shared depth range → anchored frame` |
+| **6** | [`96zzzzzzf-match-wheel-input-and-framed-projection`](#checkpoint-96zzzzzzf-match-wheel-input-and-framed-projection) | Use current wheel units and preserve the visible region when changing from orthographic to perspective. | `src/navigation.rs`, `src/editor.rs`, `src/camera.rs`, `src/touch.rs` | `Raw wheel event and actual DPR → current amount → existing precise zoom owner; projection change → clipped visible corners → existing Fit` |
+
+---
+
+## 4. Step-by-Step Coding Notebook (Concept + Implementation)
+
+Work through each notebook cell below in order inside `workspace/journey`. Read the **Concept Walkthrough** and **Self-Check Q&A** first, then expand the **Implementation** block to type and verify the code.
 
 <a id="checkpoint-96zzzzzza-match-physical-camera-defaults-and-limits"></a>
+
+### Step 1 of 6 · Match physical camera defaults and limits (`96zzzzzza-match-physical-camera-defaults-and-limits`)
+
+- **Goal:** Keep camera defaults and numeric limits in physical units.
+- **Data Flow Trace:** `File unit → physical default and limits → existing camera and named-view owners`
+- **Files You Touch:** `src/camera.rs` (*Reuse the existing isometric recipe and convert the three-metre default once.*) · `src/camera_reference_tests.rs` (*Supply the exact maintained-camera source and its zoom helper as a native-only independent reference; it is not part of learner browser implementation.*) · `src/camera_reference_fixture.json` (*Supply the dated source and reference hashes for independent camera validation.*) · `src/camera_defaults_tests.rs` (*Supply independent default/rotation, reference-integrity, zoom-bound and tiny-fit checks in both units.*) · `src/lib.rs` (*Register optional native camera comparisons; browser builds omit both modules.*) · `src/camera_space_tests.rs` (*Declare the existing Top pose for exact rectangle crossing/window sets; retain distant source, pixel and ownership assertions.*) · `src/drawing_tests.rs` (*Keep the plane-click fixture at its original unit-sized Top pose so existing distant source points cannot become accidental near-cursor snaps.*) · `src/editor.rs` (*Retain exact Reset/aspect and navigation-independent Undo assertions, with default distances now expressed in metres.*) · `src/navigation_complete_tests.rs` (*Retain the same cursor-zoom pose and exact target-plane invariance in both projections and panel frames.*) · `src/navigation_tests.rs` (*Declare the original three-unit wheel fixture so its absolute accumulation tolerance and history assertions remain unchanged.*) · `src/picking.rs` (*Declare the original Top ray before asserting turquoise-before-pink original surface ordering and bounded-ray rejection.*) · `src/primitive_tests.rs` (*Declare the axis-aligned Top view before testing the height-axis refusal and orbit recovery.*) · `src/projection_tests.rs` (*Keep the close orthographic fixture at its declared three-unit Top pose and preserve behind-eye picking, history and Reset projection assertions.*) · `src/global_outline_tests.rs` (*Declare the existing unit-sized camera/editor poses for GPU fixture scenes; retain exact pixels, primitive/source IDs, released-drag completion, caches, uploads and release.*) · `src/pick_gpu_tests.rs` (*Declare the existing unit-sized camera/editor poses for GPU fixture scenes; retain exact pixels, primitive/source IDs, released-drag completion, caches, uploads and release.*) · `src/snap_tests.rs` (*Keep the original Top pose for exact grid-rounding and unrounded typed-coordinate assertions.*) · `src/widget_tests.rs` (*Keep the original three-unit isometric widget fixture, exact hover pixels, physical tile reuse and no-pick-owner checks.*)
+
+Reuse the isometric orientation already taught for named views. The maintained default eye distance is three metres, so convert it to the file unit instead of using three scene units. A fresh camera has no scene extent. Zoom and tiny-object Fit use physical distance bounds rather than bounds tied to the last fitted object. The generic zoom factor API stays the same; command and wheel step mapping remain separate input work.
+
+> **Self-Check Question:** *Why must zoom limits be independent of the last fitted radius?*  
+> **Answer:** A fitted object describes the document, not the permitted camera travel. Radius-based limits can stop navigation before the current viewer would, and change when another object is fitted.
+
+- **What You Should See:** View Reset uses the current physical isometric pose. Zoom and tiny-object Fit retain unit-independent physical limits.
+- **Hands-On Lab Experiment:** Create a Box with 1000-unit sides and use View Reset. Compare its isometric view with Fit. Zoom repeatedly in and out, then Fit a tiny original. Navigation must not stop merely because the earlier fitted object was small.
 
 <details>
 <summary>Implementation 96zzzzzza-match-physical-camera-defaults-and-limits: Match physical camera defaults and limits</summary>
@@ -4910,6 +4973,20 @@ Update the existing block with this supplied code; keep unchanged lines:
 
 <a id="checkpoint-96zzzzzzb-omit-unused-background-pick-pipelines"></a>
 
+### Step 2 of 6 · Omit unused background pick pipelines (`96zzzzzzb-omit-unused-background-pick-pipelines`)
+
+- **Goal:** Create an integer pipeline only for lanes that can own a pick.
+- **Data Flow Trace:** `Lane role → optional base integer shader/pipeline → unchanged original picking`
+- **Files You Touch:** `src/stroke_gpu.rs` (*Give background lanes no base integer shader or pipeline while keeping the original lane builder and pick path.*) · `src/grid_pick_pipeline_tests.rs` (*Supply actual resource, grid pixels, no-owner, original-pick/source/upload and release checks.*)
+
+The grid has no document pick IDs, yet the base lane currently compiles its integer shader and pipeline. Make that resource optional in the shared builder. Original stroke, chain and point lanes retain their existing pipeline. The grid still uses its previous finite color raster in this checkpoint; the next lesson replaces that raster and removes its finite resources.
+
+> **Self-Check Question:** *Why make the pipeline optional when grid IDs are already absent?*  
+> **Answer:** Missing IDs prevent a draw, but they do not prevent shader and pipeline creation. The optional owner avoids allocating a resource that this background lane cannot use.
+
+- **What You Should See:** The grid and original selection keep their existing browser behavior. Its unused base integer pipeline is absent; original lanes retain theirs.
+- **Hands-On Lab Experiment:** Show the grid on an empty document and click a grid line: no original should be selected. Create a Box, Fit and click a face, then Undo a Move. The optional GPU fixture separately inspects which base pipelines exist. Physical one-pixel grid rendering follows in the next lesson.
+
 <details>
 <summary>Implementation 96zzzzzzb-omit-unused-background-pick-pipelines: Omit unused background pick pipelines</summary>
 
@@ -5368,6 +5445,20 @@ After that block, append this supplied code:
 </details>
 
 <a id="checkpoint-96zzzzzzc-draw-the-construction-grid-as-physical-lines"></a>
+
+### Step 3 of 6 · Draw the construction grid as physical lines (`96zzzzzzc-draw-the-construction-grid-as-physical-lines`)
+
+- **Goal:** Reuse the grid owner with a physical background pipeline.
+- **Data Flow Trace:** `Existing builder body → physical LineList targets → precise grid endpoints → background pass → original surfaces`
+- **Files You Touch:** `src/grid.rs` (*Use the maintained 1000-unit cell recipe.*) · `src/grid.wgsl` (*Transform the existing endpoints and write physical color with primitive zero.*) · `src/stroke_gpu.rs` (*Declare the common target builder, then move the existing body into it immediately.*) · `src/renderer.rs` (*Draw the grid in the physical background before surfaces and remove its finite setup/draw.*) · `src/widget_tests.rs` (*Reuse the native pixel reader with a declared sRGB target; old callers remain unchanged.*) · `src/grid_source_tests.rs` (*Retain count, colors, bounds and invalid-input checks with current default spacing.*) · `src/grid_reference_fixture.json` (*Supply dated independent native-grid pixels and declared physical poses.*) · `src/grid_hardware_tests.rs` (*Supply exact native-grid raster, opaque/glass background order, no-owner, source reuse and release checks.*) · `src/lib.rs` (*Register optional native grid validation outside the browser graph.*)
+
+Retain the precise endpoints and grid cache. Reuse the builder body already taught, then extend its target choice for a hardware line: one physical pixel at either density, physical color and background primitive zero. Draw it before surfaces without changing depth, so transparent faces reveal the grid behind them. Regular finite ink keeps CSS coverage and original owners. Default cells are 1000 scene units, with 5000-unit half extent; custom settings retain the same recipe.
+
+> **Self-Check Question:** *Why separate pickability from the physical target?*  
+> **Answer:** Pickability controls integer selection resources. The physical target controls the color/primitive attachments and topology. Keeping those choices explicit lets the grid omit its pick pipeline while joining the scene background pass.
+
+- **What You Should See:** The construction grid has one-physical-pixel floor and axis lines, stays behind original faces and cannot become a document selection.
+- **Hands-On Lab Experiment:** Use View Reset, View Top and Zoom Out twice, then compare View Grid On and Off. Inspect the 1000-unit cells at two device densities. Add a Box, Fit and compare Opacity 1 and 0.5. Click an empty grid line and a visible original: only the original can own a selection.
 
 <details>
 <summary>Implementation 96zzzzzzc-draw-the-construction-grid-as-physical-lines: Draw the construction grid as physical lines</summary>
@@ -7532,6 +7623,20 @@ After that block, append this supplied code:
 
 <a id="checkpoint-96zzzzzzd-build-viewing-rays-without-matrix-inversion"></a>
 
+### Step 4 of 6 · Build viewing rays without matrix inversion (`96zzzzzzd-build-viewing-rays-without-matrix-inversion`)
+
+- **Goal:** Keep drawing rays and rendered depth consistent in both projections, including when the construction grid is hidden.
+- **Data Flow Trace:** `Screen coordinate → shifted target plane → camera axes → shared scene/construction-plane range → precise world ray`
+- **Files You Touch:** `src/camera.rs` (*Construct analytic viewing rays and share the current ground/fixed-plane range independently of grid visibility.*) · `src/camera_analytic_ray_tests.rs` (*Supply independent current ray-line comparisons, exact projected endpoints, both units and precise distant-origin guards.*) · `src/lib.rs` (*Register the optional native ray and depth comparisons outside the browser graph.*) · `src/camera_depth_reach_tests.rs` (*Supply independent maintained-camera matrices and controlled fixed-plane translations in both units.*) · `src/camera_reverse_tests.rs` (*Declare a translated fixed plane and a scene extent dominating its grid while retaining all reversed endpoints and ray bounds.*) · `src/camera_space_tests.rs` (*Declare the same local/far fixed plane and a dominant physical unit-equivalence extent; retain all screen, depth, ray, original, selection and source assertions.*) · `src/global_outline_tests.rs` (*Use translated fixed planes and a declared dominant 20000-unit scene extent for controlled origin/pan comparisons; retain every existing pixel, original owner, source, upload and release assertion.*) · `src/grid_source_tests.rs` (*Keep the deliberately narrow scene-only clipping positive control, and separately assert identical current hidden/shown grid matrices and every visible grid reference inside the far plane.*)
+
+An orthographic projection may have a small determinant simply because its view is large. Construct the target-plane offset from the camera axes, frame shift and half field of view. Perspective rays pass through the eye; orthographic rays stay parallel. Keep the existing near origin and finite far endpoint used by learner queries. One depth-limit helper serves both the ray and projection. Its reach includes the scene and the default 5000-scene-unit ground square, or the fixed construction plane around its original origin. Hiding grid lines only changes drawing; it must not shorten the visible depth range or make a below-ground original disappear.
+
+> **Self-Check Question:** *Why keep finite endpoints when the maintained camera returns an infinite ray line?*  
+> **Answer:** The line and direction agree, while learner queries already use a near origin and maximum distance to reject geometry outside the visible depth interval. Computing those same endpoints analytically preserves their existing contract.
+
+- **What You Should See:** Point cursors stay under the pointer in large orthographic and perspective views. A below-ground Box remains visible and selectable after View Reset with the same camera matrix whether the grid is shown or hidden.
+- **Hands-On Lab Experiment:** Use View Reset, View Top and Zoom Out three times. Disable object and grid snapping, place a Point on XY, then Undo and Redo. Repeat in perspective. Separately create Box w0,0,-2000 1000 1000 1000, use View Reset, View Top and Zoom Out twice. Switch View Grid On and Off: the box keeps its depth, pixels and selection while grid lines appear and disappear.
+
 <details>
 <summary>Implementation 96zzzzzzd-build-viewing-rays-without-matrix-inversion: Build viewing rays without matrix inversion</summary>
 
@@ -8376,6 +8481,20 @@ Update the existing block with this supplied code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-96zzzzzze-grow-camera-depth-from-cached-world-bounds"></a>
+
+### Step 5 of 6 · Grow camera depth from cached world bounds (`96zzzzzze-grow-camera-depth-from-cached-world-bounds`)
+
+- **Goal:** Keep later or moved originals inside the depth range without refitting the view or walking their vertices on every camera frame.
+- **Data Flow Trace:** `Displayed scene and text metrics → numeric world bounds → monotonic camera extent → shared depth range → anchored frame`
+- **Files You Touch:** `src/bounds.rs` (*Share one numeric eight-corner traversal.*) · `src/camera.rs` (*Reuse the shared corners in the existing Fit owner.*) · `src/renderer.rs` (*Keep only six numeric bounds coordinates, with no Scene or source owner.*) · `src/gizmo_edit.rs` (*Access the active displayed preview for derived metrics without editing original source records.*) · `src/editor.rs` (*Match the existing display-scene precedence when refreshing derived text metrics.*) · `src/browser_rebase.rs` (*Grow from cached world bounds before origin preparation.*) · `src/browser.rs` (*Pass the existing mutable editor to cached camera preparation.*) · `src/camera_extent_tests.rs` (*Supply independent current-camera, original GPU pixel/pick, cache ownership and preview metric controls.*)
+
+Fit changes framing; receiving a deep original should not require fitting again just to make it visible. Cache the displayed scene’s numeric world bounds when its rows are adopted. Use one eight-corner helper for fitting and extent growth. Grow only the camera radius, leaving its target, distance, orientation and free frame alone. Camera-only frames then inspect eight corners rather than original vertices. The cache owns no Scene or original geometry. Text metrics can change after fonts arrive, so refresh those bounds only when their measured extent changes. Apply metrics to the scene currently being displayed, including editing previews, before preparing the anchored frame. The radius grows monotonically. The first original can replace the empty-scene distance fallback and change depth coefficients without moving the view.
+
+> **Self-Check Question:** *Why grow the extent instead of fitting again?*  
+> **Answer:** New depth must not move the user’s view. Growing the far reach preserves the target, orientation, distance and free frame. An explicit Fit remains the operation that changes framing.
+
+- **What You Should See:** An original below the previous depth range appears and can be picked after View Reset without Fit. Camera navigation reuses numeric bounds and original GPU geometry; an empty adoption releases its cached bounds.
+- **Hands-On Lab Experiment:** Create Box w0,0,-20000 1000 1000 1000. Use View Reset, View Top and View Orthographic with grid lines hidden. The box remains visible without Fit. Select the original, move it and Undo/Redo; compare its source and pixels. The optional native preview fixture separately checks font-derived bounds on the displayed text row.
 
 <details>
 <summary>Implementation 96zzzzzze-grow-camera-depth-from-cached-world-bounds: Grow camera depth from cached world bounds</summary>
@@ -10779,6 +10898,20 @@ After that block, append this supplied code:
 </details>
 
 <a id="checkpoint-96zzzzzzf-match-wheel-input-and-framed-projection"></a>
+
+### Step 6 of 6 · Match wheel input and framed projection (`96zzzzzzf-match-wheel-input-and-framed-projection`)
+
+- **Goal:** Use current wheel units and preserve the visible region when changing from orthographic to perspective.
+- **Data Flow Trace:** `Raw wheel event and actual DPR → current amount → existing precise zoom owner; projection change → clipped visible corners → existing Fit`
+- **Files You Touch:** `src/navigation.rs` (*Map raw wheel domains through the current finite amount and double-precision factor.*) · `src/editor.rs` (*Retain the existing zoom-at action with a precise factor.*) · `src/camera.rs` (*Keep double precision to the distance update.*) · `src/touch.rs` (*Let the existing pinch ratio use the precise action boundary.*) · `src/browser.rs` (*Use actual window density rather than canvas size or render-density caps.*) · `src/bounds.rs` (*Share the finite ordered-box guard.*) · `src/navigation_tests.rs` (*Declare current pixel/line/page units and finite conversion while retaining accumulation, roundtrip, jump and history controls.*) · `src/projection_tests.rs` (*Expect current perspective framing, then restore the declared close-pick pose while retaining all original owner and history assertions.*) · `src/camera_navigation_tests.rs` (*Supply independent current wheel/cursor and clipped-corner framing comparisons, units, original source and mode guards.*) · `src/lib.rs` (*Register optional current-camera navigation validation outside the browser graph.*) · `src/fit_tests.rs` (*Expect the precise factor now carried by the existing camera API; retain every original view, corner, cursor and tight tolerance assertion.*) · `src/navigation_complete_tests.rs` (*Expect the precise factor now carried by the existing camera API; retain every original view, corner, cursor and tight tolerance assertion.*)
+
+DOM pixel deltas are logical values. Convert them with the actual window density before the current f32 amount conversion. Line deltas already describe steps; page events are ignored. Keep the current f32 amount conversion and finite guard, then use a double-precision zoom factor through the existing action and camera. Render-density limits do not change wheel sensitivity. Projection changes also need deliberate framing. Switching into perspective can lose what an orthographic view showed. Clip the current world-box corners to the visible rectangle, preserve their forward depth and reuse Fit. Switching back, or requesting the active mode again, does not refit.
+
+> **Self-Check Question:** *Why use the window DPR when rendering is capped at a lower density?*  
+> **Answer:** DOM pixel deltas are logical values. The input adapter converts them with the actual window DPR to match the current physical wheel amount. Render density is an independent quality choice; using its cap would change navigation sensitivity.
+
+- **What You Should See:** Pixel and line wheel events follow the current camera at actual DPR 1, 2 and 3. Perspective transitions frame the region that was visible in orthographic mode without editing original geometry or adding history entries.
+- **Hands-On Lab Experiment:** Compare the explicit 100-logical-pixel wheel protocol at device densities 1, 2 and 3, including actual DPR 3 with rendering capped at 2. The automated trusted mouse-wheel control separately records the logical delta the browser actually delivers. Check that line events keep their step unit and page events leave the view alone. Crop a large original in an orthographic view, switch to perspective, then switch back. Compare the original line endpoints, selection and Undo/Redo history.
 
 <details>
 <summary>Implementation 96zzzzzzf-match-wheel-input-and-framed-projection: Match wheel input and framed projection</summary>
@@ -13533,9 +13666,11 @@ Update the existing block with this supplied code; keep unchanged lines:
 
 </details>
 
-## Run, Check, and Save
+---
 
-From `session_viewer`:
+## 5. Build, Verify, and Save Your Checkpoint
+
+Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 96zzzzzzf-match-wheel-input-and-framed-projection
@@ -13546,10 +13681,10 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. Use [checkpoint recovery](../../recovery.md) to restore any saved checkpoint.
+Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
 
-## Expected Visual Result & Experiment
+## 6. Lesson Summary & Expected Visual Result
 
 Pixel and line wheel events follow the current camera at actual DPR 1, 2 and 3. Perspective transitions frame the region that was visible in orthographic mode without editing original geometry or adding history entries.
 
-- **Try this:** Compare the explicit 100-logical-pixel wheel protocol at device densities 1, 2 and 3, including actual DPR 3 with rendering capped at 2. The automated trusted mouse-wheel control separately records the logical delta the browser actually delivers. Check that line events keep their step unit and page events leave the view alone. Crop a large original in an orthographic view, switch to perspective, then switch back. Compare the original line endpoints, selection and Undo/Redo history.
+- **Final Lesson Experiment:** Compare the explicit 100-logical-pixel wheel protocol at device densities 1, 2 and 3, including actual DPR 3 with rendering capped at 2. The automated trusted mouse-wheel control separately records the logical delta the browser actually delivers. Check that line events keep their step unit and page events leave the view alone. Crop a large original in an orthographic view, switch to perspective, then switch back. Compare the original line endpoints, selection and Undo/Redo history.

@@ -1,92 +1,157 @@
 # 22.3 · Original boundary pens, joins and vertex markers
 
-**Section 10: Shared GPU Arenas, Floating-Origin Precision, Multisampling, and Production Parity** · **Lesson 22.3** (Redraft `10.18`) · **4 checkpoints (`96zzzzzzn-respect-original-boundary-pens` → `96zzzzzzq-taper-crowded-original-mesh-vertices`)**
+**Section 10: Shared GPU Arenas, Floating-Origin Precision, Multisampling, and Production Parity** · **Lesson 22.3** (Redraft `10.18`) · **4 checkpoints (`96zzzzzzn-respect-original-boundary-pens` → `96zzzzzzq-taper-crowded-original-mesh-vertices`)** · **Study time: 4–8 h**
 
-> **Learning Goal:** Render original edge widths and colors, hide authored zero-width mesh edges, and omit coplanar seams without changing source face keys.
+> **What You Will Learn & Build:** Render original edge widths and colors, hide authored zero-width mesh edges, and omit coplanar seams without changing source face keys. By the final checkpoint (`96zzzzzzq-taper-crowded-original-mesh-vertices`), you will keep dense source vertices distinguishable while retaining explicit point sizes, editing controls and original ownership.
 
-## Visual WebGPU & Architecture Schematic
+## 1. Visual Pipeline & WebGPU Architecture (Black & White Schematics)
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1px solid #cbd5e1;border-radius:10px;background:#f8fafc;">
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
+<svg viewBox="0 0 840 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <rect x="4" y="4" width="832" height="212" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Lesson 22.3 Execution Flow: Original boundary pens, joins and vertex markers</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">Concrete data pipeline you build in this lesson (4 Checkpoints: 96zzzzzzn-respect-original-boundary-pens → 96zzzzzzq-taper-crowded-original-mesh-vertices)</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
+  
+    
+    <rect x="18" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="89" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
+    <line x1="28" y1="92" x2="151" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">Original topology</text>
+    <text x="89" y="124" text-anchor="middle" font-size="11" fill="#111111">and style order</text>
+    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="183" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="254" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
+    <line x1="193" y1="92" x2="316" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">shared prepared</text>
+    <text x="254" y="124" text-anchor="middle" font-size="11" fill="#111111">numeric pens</text>
+    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="348" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="419" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
+    <line x1="358" y1="92" x2="481" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">existing boundary</text>
+    <text x="419" y="124" text-anchor="middle" font-size="11" fill="#111111">stroke lane</text>
+    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="513" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="584" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
+    <line x1="523" y1="92" x2="646" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">actual source edge</text>
+    <text x="584" y="124" text-anchor="middle" font-size="11" fill="#111111">queries</text>
+    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="678" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="749" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
+    <line x1="688" y1="92" x2="811" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">Render bounds and</text>
+    <text x="749" y="124" text-anchor="middle" font-size="11" fill="#111111">source vertex count</text>
+    
+    <rect x="18" y="162" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="32" y="181" font-size="11" font-weight="700" fill="#111111">Files You Edit in Lesson 22.3:</text>
+    <text x="215" y="181" font-size="11" fill="#111111">src/mesh_pens.rs  ·  src/lib.rs  ·  src/mesh_parts.rs  ·  src/bounds_original.rs  ·  src/pick_sources.rs  ·  src/source_pen_tests.rs</text>
+    <text x="32" y="198" font-size="10.5" fill="#111111">4 Checkpoints: 96zzzzzzn-respect-original-boundary-pens → 96zzzzzzq-taper-crowded-original-mesh-vertices — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
+  
+</svg>
+</div>
+
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
 <svg viewBox="0 0 840 240" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#475569"/>
-    </marker>
-    <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#2563eb"/>
-    </marker>
-    <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#059669"/>
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
     </marker>
   </defs>
-  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
-  <text x="20" y="28" font-size="14" font-weight="700" fill="#0f172a">Section 10 Production Architecture: Shared GPU Storage Arena, f64 Floating Origin, Reversed-Z, 4x MSAA & Matrix Shader</text>
-  <text x="20" y="46" font-size="11.5" fill="#475569">How the maintained viewer pulls vertices from one growable GPU arena, eliminates jitter at 10^12 units, and renders procedural Matrices.</text>
-  <line x1="16" y1="54" x2="824" y2="54" stroke="#e2e8f0" stroke-width="1"/>
+  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Section 10 Production Architecture: Shared GPU Storage Arena, f64 Floating Origin, Reversed-Z, 4x MSAA & Matrix Shader</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">How the maintained viewer pulls vertices from one growable GPU arena, eliminates jitter at 10^12 units, and renders procedural Matrices.</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
   
-    <rect x="18" y="68" width="250" height="145" rx="6" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
-    <text x="143" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1e40af">1. Shared GPU Arena (Ch 19–20)</text>
-    <text x="28" y="108" font-size="10.5" fill="#1e3a8a">• 1 Growable Storage Buffer Arena</text>
-    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#1d4ed8">• Vertex Pulling (@builtin(vertex_index))</text>
-    <text x="28" y="144" font-size="10.5" fill="#1e3a8a">• 8-byte Draw Slots -&gt; ObjectRecord</text>
-    <text x="28" y="162" font-size="10.5" fill="#1e3a8a">• slot_table.wgsl maps Rg32Uint</text>
-    <text x="28" y="178" font-size="10.5" fill="#1e3a8a">  primitive IDs to Element/Face owners</text>
-    <text x="28" y="194" font-size="10" fill="#1e3a8a">• Free-list span reuse after GPU lease</text>
+    <rect x="18" y="68" width="250" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="143" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">1. Shared GPU Arena (Ch 19–20)</text>
+    <text x="28" y="108" font-size="10.5" fill="#111111">• 1 Growable Storage Buffer Arena</text>
+    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#111111">• Vertex Pulling (@builtin(vertex_index))</text>
+    <text x="28" y="144" font-size="10.5" fill="#111111">• 8-byte Draw Slots -&gt; ObjectRecord</text>
+    <text x="28" y="162" font-size="10.5" fill="#111111">• slot_table.wgsl maps Rg32Uint</text>
+    <text x="28" y="178" font-size="10.5" fill="#111111">  primitive IDs to Element/Face owners</text>
+    <text x="28" y="194" font-size="10" fill="#111111">• Free-list span reuse after GPU lease</text>
 
-    <line x1="268" y1="138" x2="298" y2="138" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
+    <line x1="268" y1="138" x2="298" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="300" y="68" width="265" height="145" rx="6" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5"/>
-    <text x="432" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#9a3412">2. f64 Floating Origin &amp; Reversed-Z (Ch 21)</text>
-    <text x="312" y="108" font-size="10.5" font-weight="600" fill="#c2410c">• rel_f32 = (world_f64 - anchor_f64) as f32</text>
-    <text x="312" y="125" font-size="10" fill="#7c2d12">  Zero vertex/grid jitter even at 10^12 m!</text>
-    <text x="312" y="144" font-size="10.5" font-weight="600" fill="#c2410c">• Reversed-Z Depth (GreaterEqual):</text>
-    <text x="312" y="160" font-size="10" fill="#7c2d12">  Near plane = 1.0, Far plane = 0.0</text>
-    <text x="312" y="178" font-size="10.5" fill="#7c2d12">• Held world base grid &amp; preserved</text>
-    <text x="312" y="193" font-size="10.5" fill="#7c2d12">  live camera during Session reload</text>
+    <rect x="300" y="68" width="265" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="432" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">2. f64 Floating Origin &amp; Reversed-Z (Ch 21)</text>
+    <text x="312" y="108" font-size="10.5" font-weight="600" fill="#111111">• rel_f32 = (world_f64 - anchor_f64) as f32</text>
+    <text x="312" y="125" font-size="10" fill="#111111">  Zero vertex/grid jitter even at 10^12 m!</text>
+    <text x="312" y="144" font-size="10.5" font-weight="600" fill="#111111">• Reversed-Z Depth (GreaterEqual):</text>
+    <text x="312" y="160" font-size="10" fill="#111111">  Near plane = 1.0, Far plane = 0.0</text>
+    <text x="312" y="178" font-size="10.5" fill="#111111">• Held world base grid &amp; preserved</text>
+    <text x="312" y="193" font-size="10.5" fill="#111111">  live camera during Session reload</text>
 
-    <line x1="565" y1="138" x2="595" y2="138" stroke="#059669" stroke-width="2" marker-end="url(#arrow-green)"/>
+    <line x1="565" y1="138" x2="595" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="597" y="68" width="223" height="145" rx="6" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1.5"/>
-    <text x="708" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#065f46">3. 4x MSAA &amp; Matrix Shader (Ch 22)</text>
-    <text x="609" y="108" font-size="10.5" fill="#064e3b">• Coherent 1x/4x MSAA sample targets</text>
-    <text x="609" y="126" font-size="10.5" font-weight="600" fill="#047857">• matrix.wgsl (16w header + 3w/cell):</text>
-    <text x="609" y="142" font-size="10" fill="#064e3b">  Heatmap + procedural 3-decimal digits</text>
-    <text x="609" y="157" font-size="10" fill="#064e3b">  (0 cell blank; plate-less title; yellow</text>
-    <text x="609" y="172" font-size="10" fill="#064e3b">  selected border; Rg32Uint whole pick)</text>
-    <text x="609" y="190" font-size="10" fill="#064e3b">• Coalesced single-flight frame scheduler</text>
+    <rect x="597" y="68" width="223" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="708" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">3. 4x MSAA &amp; Matrix Shader (Ch 22)</text>
+    <text x="609" y="108" font-size="10.5" fill="#111111">• Coherent 1x/4x MSAA sample targets</text>
+    <text x="609" y="126" font-size="10.5" font-weight="600" fill="#111111">• matrix.wgsl (16w header + 3w/cell):</text>
+    <text x="609" y="142" font-size="10" fill="#111111">  Heatmap + procedural 3-decimal digits</text>
+    <text x="609" y="157" font-size="10" fill="#111111">  (0 cell blank; plate-less title; yellow</text>
+    <text x="609" y="172" font-size="10" fill="#111111">  selected border; Rg32Uint whole pick)</text>
+    <text x="609" y="190" font-size="10" fill="#111111">• Coalesced single-flight frame scheduler</text>
     
 </svg>
 </div>
 
-### Lesson Data Flow (`Rust` → `WebGPU` → `WGSL`)
+## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
 
-```
-Original topology and style order → shared prepared numeric pens → existing boundary stroke lane → actual source edge queries.
-Original nonzero edge incidence → endpoint address → anchored marker → existing point upload.
-Render bounds and source vertex count → one shared spacing scalar → signed GPU size → common radius and query coverage.
-```
+Before writing code, review how the three layers in this chapter talk to each other:
 
-- Render original edge widths and colors, hide authored zero-width mesh edges, and omit coplanar seams without changing source face keys.
-- Render the maintained default and authored mesh vertex dots without duplicating source meshes or endpoint positions.
-- Keep dense source vertices distinguishable while retaining explicit point sizes, editing controls and original ownership.
-- **Why it works (Why must edge colors and widths use topology encounter order instead of a sorted edge list?):** The source stores edge style streams in the order seeded while walking faces and their rings. Sorting endpoint pairs changes that order and assigns styles to different original edges. Preserve actual endpoint keys for source queries.
-
-### Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `Browser`)
-
-| Layer | Construct | First-Year Student Explanation |
+| Layer | Construct | Plain-English Explanation for Students |
 | :--- | :--- | :--- |
 | **WGSL (Vertex Pull)** | `@group(0) @binding(b) var<storage, read> arena_verts: array<u32>;` | Fetches packed vertex positions, normals, and colors directly from a single growable storage buffer using `@builtin(vertex_index)`. |
 | **Rust/WGSL (`f64`->`f32`)** | `let rel: Vec3 = (world_f64 - anchor_f64).as_vec3();` | Subtracts the camera-area `f64` anchor on the CPU before converting to `f32`, preventing 32-bit float mantissa exhaustion far from `(0,0,0)`. |
 | **WGSL (`matrix.wgsl`)** | 16-word header + 3 words/cell procedural digits | Renders matrix heatmaps and 3-decimal numeric digits procedurally inside the fragment shader with zero texture uploads per cell. |
 | **Rust (`ink_ranges.rs`)** | Merged contiguous `Range<u32>` instance draws | Toggles point/line/edge/CAD-wire family visibility without rebuilding GPU buffers or invalidating original owner indices. |
 
-**Production source (`session_viewer/src`):** [engine/gpu/render.rs](../../../../src/engine/gpu/render.rs), [engine/gpu/pass.rs](../../../../src/engine/gpu/pass.rs), [engine/gpu/targets.rs](../../../../src/engine/gpu/targets.rs), [engine/gpu/frame.rs](../../../../src/engine/gpu/frame.rs), [engine/gpu/view.rs](../../../../src/engine/gpu/view.rs), [engine/pipelines/mod.rs](../../../../src/engine/pipelines/mod.rs), [shaders/triangle.wgsl](../../../../src/shaders/triangle.wgsl), [shaders/ribbon.wgsl](../../../../src/shaders/ribbon.wgsl), [shaders/vector.wgsl](../../../../src/shaders/vector.wgsl), [shaders/ink_visibility.wgsl](../../../../src/shaders/ink_visibility.wgsl), [app/scene.rs](../../../../src/app/scene.rs), [build.rs](../../../../build.rs).
+**Authoritative production source (`session_viewer/src`):** [engine/gpu/render.rs](../../../../src/engine/gpu/render.rs), [engine/gpu/pass.rs](../../../../src/engine/gpu/pass.rs), [engine/gpu/targets.rs](../../../../src/engine/gpu/targets.rs), [engine/gpu/frame.rs](../../../../src/engine/gpu/frame.rs), [engine/gpu/view.rs](../../../../src/engine/gpu/view.rs), [engine/pipelines/mod.rs](../../../../src/engine/pipelines/mod.rs), [shaders/triangle.wgsl](../../../../src/shaders/triangle.wgsl), [shaders/ribbon.wgsl](../../../../src/shaders/ribbon.wgsl), [shaders/vector.wgsl](../../../../src/shaders/vector.wgsl), [shaders/ink_visibility.wgsl](../../../../src/shaders/ink_visibility.wgsl), [app/scene.rs](../../../../src/app/scene.rs), [build.rs](../../../../build.rs).
 
-## Implementation Checkpoints
+## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
 
-Apply these checkpoints in order inside `workspace/journey`. Expand each block to view the Rust/WGSL/HTML edits:
+| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
+| ---: | :--- | :--- | :--- | :--- |
+| **1** | [`96zzzzzzn-respect-original-boundary-pens`](#checkpoint-96zzzzzzn-respect-original-boundary-pens) | Render original edge widths and colors, hide authored zero-width mesh edges, and omit coplanar seams without changing source face keys. | `src/mesh_pens.rs`, `src/lib.rs`, `src/mesh_parts.rs`, `src/bounds_original.rs` | `Original topology and style order → shared prepared numeric pens → existing boundary stroke lane → actual source edge queries` |
+| **2** | [`96zzzzzzo-close-original-boundary-joins`](#checkpoint-96zzzzzzo-close-original-boundary-joins) | Close wide original boundary corners and preserve actual source queries at round ends and flat near-plane cuts. | `src/stroke_quad.wgsl`, `src/finite_project_source.rs`, `src/stroke.wgsl`, `src/finite_stroke.wgsl` | `Original endpoints → shared near-clipped screen quad → distance coverage → matching integer query` |
+| **3** | [`96zzzzzzp-draw-default-mesh-vertex-dots`](#checkpoint-96zzzzzzp-draw-default-mesh-vertex-dots) | Render the maintained default and authored mesh vertex dots without duplicating source meshes or endpoint positions. | `src/mesh_pens.rs`, `src/mesh_parts.rs`, `src/bounds_original.rs`, `src/plane_original.rs` | `Original nonzero edge incidence → endpoint address → anchored marker → existing point upload` |
+| **4** | [`96zzzzzzq-taper-crowded-original-mesh-vertices`](#checkpoint-96zzzzzzq-taper-crowded-original-mesh-vertices) | Keep dense source vertices distinguishable while retaining explicit point sizes, editing controls and original ownership. | `src/mesh.rs`, `src/marker.rs`, `src/pick_sources.rs`, `src/stroke_gpu.rs` | `Render bounds and source vertex count → one shared spacing scalar → signed GPU size → common radius and query coverage` |
+
+---
+
+## 4. Step-by-Step Coding Notebook (Concept + Implementation)
+
+Work through each notebook cell below in order inside `workspace/journey`. Read the **Concept Walkthrough** and **Self-Check Q&A** first, then expand the **Implementation** block to type and verify the code.
 
 <a id="checkpoint-96zzzzzzn-respect-original-boundary-pens"></a>
+
+### Step 1 of 4 · Respect original boundary pens (`96zzzzzzn-respect-original-boundary-pens`)
+
+- **Goal:** Render original edge widths and colors, hide authored zero-width mesh edges, and omit coplanar seams without changing source face keys.
+- **Data Flow Trace:** `Original topology and style order → shared prepared numeric pens → existing boundary stroke lane → actual source edge queries`
+- **Files You Touch:** `src/mesh_pens.rs` (*Prepare only numeric pens using the already-taught topology and original encounter order.*) · `src/lib.rs` (*Connect the prepared style producer to the independent learner runtime.*) · `src/mesh_parts.rs` (*Keep lightweight pens beside the existing shared source-key display.*) · `src/bounds_original.rs` (*Existing analytic bounds edges retain their default black pen.*) · `src/pick_sources.rs` (*Keep source endpoint keys, boundary addresses and pen slots aligned.*) · `src/source_pen_tests.rs` (*Supply real GPU/source/archive, sparse style-order and source-unload controls.*) · `src/renderer.rs` (*Connect Native validation outside the browser runtime.*) · `src/plane_original.rs` (*Existing analytic plane boundaries retain their default black pen.*) · `src/mesh_arena_tests.rs` (*Keep the supplied stale-binding GPU probe inside its actual bound arrays; preserve all pixel, identity and write-count assertions.*)
+
+A mesh with an authored seven-pixel pen currently looks identical to its one-pixel version. Prepare pens in the topology producer’s edge order, then feed the existing stroke lane. Use the same preparation to suppress coplanar seams while preserving source face identity.
+
+A Mesh width of zero hides an edge; a single zero width denotes an undecorated printed fill. BRep and NURBS widths instead use the default pen for nonpositive values. Dense meshes above the maintained triangle budget also keep their faces without edge decoration. Store only numeric pens on the existing shared display so source unloading does not change appearance.
+
+> **Self-Check Question:** *Why must edge colors and widths use topology encounter order instead of a sorted edge list?*  
+> **Answer:** The source stores edge style streams in the order seeded while walking faces and their rings. Sorting endpoint pairs changes that order and assigns styles to different original edges. Preserve actual endpoint keys for source queries.
+
+- **What You Should See:** The authored pen changes the actual GPU border. Sparse original keys and complete source records remain unchanged; coplanar seams and hidden mesh edges do not become visible ink.
+- **Hands-On Lab Experiment:** Compare default and seven-pixel borders, a hidden sparse edge, original per-edge colors, a coplanar face pair and BRep/NURBS boundary pens. Check source unload, shared placement and exact restoration.
 
 <details>
 <summary>Implementation 96zzzzzzn-respect-original-boundary-pens: Respect original boundary pens</summary>
@@ -813,6 +878,22 @@ Update the existing block with this supplied code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-96zzzzzzo-close-original-boundary-joins"></a>
+
+### Step 2 of 4 · Close original boundary joins (`96zzzzzzo-close-original-boundary-joins`)
+
+- **Goal:** Close wide original boundary corners and preserve actual source queries at round ends and flat near-plane cuts.
+- **Data Flow Trace:** `Original endpoints → shared near-clipped screen quad → distance coverage → matching integer query`
+- **Files You Touch:** `src/stroke_quad.wgsl` (*Share near-clipped round-stroke projection without new records or buffers.*) · `src/finite_project_source.rs` (*Expand the one shared projection helper in both consumers.*) · `src/stroke.wgsl` (*Use one shared stroke shape for ordinary and finite rendering.*) · `src/finite_stroke.wgsl` (*Use one shared stroke shape for ordinary and finite rendering.*) · `src/stroke_coverage.wgsl` (*Measure distance to the finite segment; keep near cuts flat.*) · `src/stroke_pick.wgsl` (*Keep color and integer queries on the same end policy.*) · `src/finite_stroke_pick.wgsl` (*Keep color and integer queries on the same end policy.*) · `src/round_caps_tests.rs` (*Copy actual GPU validation fixtures.*) · `src/renderer.rs` (*Register Native validation only.*) · `src/stroke_gpu.rs` (*Exercise the actual existing legacy pipeline in Native fixtures.*) · `src/cap_gpu_tests.rs` (*Sample the unoccluded original back face, away from the now-visible end-on construction-plane marker. Keep the zero section-fill assertion.*) · `src/finite_visibility_tests.rs` (*Retain exact clipped headed-chain comparison; distinguish genuine round source caps with exact body, flat-cut and bounded-cap pixel assertions.*)
+
+A wide source border leaves a white gap outside each corner. Expand the existing stroke quad along its length, then measure fragment distance to the finite segment. Share this footprint with the existing query shaders.
+
+Original endpoints receive round caps; a camera near-plane cut stays flat. A nonzero line viewed end-on uses its nearest reverse-depth endpoint. Identical source endpoints remain hidden. Both existing finite and legacy lanes consume the same helper without new geometry owners, buffers or metadata.
+
+> **Self-Check Question:** *Why must a near-plane cut remain flat even when original line endpoints are round?*  
+> **Answer:** Clipping creates a camera boundary rather than another original endpoint. A round cap there would invent ink beyond the visible source segment and allow queries on that invented shape.
+
+- **What You Should See:** Original borders close at wide corners; end-on original lines remain visible and queryable. Near cuts stay flat, complete source records remain unchanged, and shared geometry survives placement and source unload.
+- **Hands-On Lab Experiment:** Inspect actual original Mesh, NURBS and BRep corners, free ends, end-on lines, near cuts and a shared mirrored pair at both densities and projections. Compare integer source queries with the rendered footprint.
 
 <details>
 <summary>Implementation 96zzzzzzo-close-original-boundary-joins: Close original boundary joins</summary>
@@ -1552,6 +1633,22 @@ Update the existing block with this supplied code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-96zzzzzzp-draw-default-mesh-vertex-dots"></a>
+
+### Step 3 of 4 · Draw default mesh vertex dots (`96zzzzzzp-draw-default-mesh-vertex-dots`)
+
+- **Goal:** Render the maintained default and authored mesh vertex dots without duplicating source meshes or endpoint positions.
+- **Data Flow Trace:** `Original nonzero edge incidence → endpoint address → anchored marker → existing point upload`
+- **Files You Touch:** `src/mesh_pens.rs` (*Prepare numeric endpoint references and only authored point colors on the existing display owner.*) · `src/mesh_parts.rs` (*Retain four-byte references into existing f64 endpoints rather than duplicate positions or original meshes.*) · `src/bounds_original.rs` (*Bounding frames do not invent mesh vertex markers.*) · `src/plane_original.rs` (*Original planes retain their own frame glyph policy.*) · `src/pick_sources.rs` (*Build ordinary point instances with object ownership and no new editable component domain.*) · `src/renderer.rs` (*Upload through the existing point buffer once, releasing temporary CPU instances.*) · `src/mesh_marker_tests.rs` (*Exercise actual GPU dots, source keys, authored colors, incidence and shared source unloading.*) · `src/source_pen_tests.rs` (*Extend the existing real 200000-triangle budget case without duplicating its dense fixture.*) · `src/global_outline_tests.rs` (*This existing fixture manually isolates surface-buffer rebasing; suppress both original ink and new default dots while preserving every surface/grid/cap/pick/source assertion. Production complete-lane marker rebasing is separately exercised at a billion units.*) · `src/scene_origin_tests.rs` (*Keep the original point/control count exact after the new eight default Box vertex markers; verify all marker values, owners, ordering and large-origin equality independently.*)
+
+The original mesh border has ink but its default vertex dots are missing. Reuse its prepared topology to reference eligible endpoints, then upload their markers through the existing point lane.
+
+A nonzero authored edge makes its endpoint vertices eligible even when a coplanar seam is omitted from the ink. Printed and dense fills have no dots. Preserve exact authored point colors when requested; otherwise use the maintained dark default. These dots select their object and remain separate from active editing controls.
+
+> **Self-Check Question:** *Why retain an endpoint address rather than another original mesh or a second list of vertex positions?*  
+> **Answer:** The existing shared display owner already retains precise endpoints after source unloading. A compact address reuses those positions and keeps transformed instances independent without introducing another geometry owner.
+
+- **What You Should See:** Eligible original mesh vertices have their dark default or authored dot colors, original source queries remain correct, and shared placed geometry survives unloading and restoration.
+- **Hands-On Lab Experiment:** Inspect actual sparse original vertices, authored and ignored point colors, zero widths, coplanar seam incidence, source unload and a mirrored shared pair. Check both projections and pixel densities.
 
 <details>
 <summary>Implementation 96zzzzzzp-draw-default-mesh-vertex-dots: Draw default mesh vertex dots</summary>
@@ -2991,6 +3088,26 @@ Update the existing block with this supplied code; keep unchanged lines:
 
 <a id="checkpoint-96zzzzzzq-taper-crowded-original-mesh-vertices"></a>
 
+### Step 4 of 4 · Taper crowded original mesh vertices (`96zzzzzzq-taper-crowded-original-mesh-vertices`)
+
+- **Goal:** Keep dense source vertices distinguishable while retaining explicit point sizes, editing controls and original ownership.
+- **Data Flow Trace:** `Render bounds and source vertex count → one shared spacing scalar → signed GPU size → common radius and query coverage`
+- **Files You Touch:** `src/mesh.rs` (*Retain one prepared mesh spacing scalar after original source release.*) · `src/marker.rs` (*Name the render-only size mode explicitly; original point widths and editing-control diameters remain unchanged.*) · `src/pick_sources.rs` (*Reuse the existing32byte point instance, endpoint addresses and upload; no distance array, extra metadata or buffer.*) · `src/stroke_gpu.rs` (*Accept the explicit finite mesh-spacing size mode while rejecting zero and nonfinite display data.*) · `src/marker_radius.wgsl` (*Project one instance spacing at each vertex depth; retain the actual three-diameter taper and half-physical-pixel minimum.*) · `src/finite_project_source.rs` (*Expand one shared radius helper for both color/pick and existing finite/legacy paths.*) · `src/marker.wgsl` (*Use the same radius rule in the existing marker paths.*) · `src/finite_marker.wgsl` (*Use the same radius rule in the existing marker paths.*) · `src/mesh_density_tests.rs` (*Exercise actual dense physical footprints, explicit point/control independence, correct rear-edge visibility, source release and shared geometry.*) · `src/renderer.rs` (*Register the three actual source-bound density GPU checks.*) · `src/marker_coverage.wgsl` (*Measure the circle at the actual physical fragment pixel relative to its fixed centre; keep one shared colour/query coverage function.*) · `src/marker_pick.wgsl` (*Carry a fixed screen centre instead of interpolating the expanded quad offset.*) · `src/finite_marker_pick.wgsl` (*Reuse the existing fixed axis centre; drop the redundant interpolated offset.*)
+
+Dense original mesh dots overlap until the blue face becomes an opaque dark sheet. Estimate spacing once, then taper each default dot at its projected depth while keeping a half-physical-pixel minimum.
+
+Reuse the existing 32-byte point layout. Positive GPU sizes retain explicit CSS diameters; negative values carry prepared mesh spacing in millimetres. A named constructor makes this render-only mode explicit, and original source widths remain unchanged. One helper serves both existing finite and legacy color/query paths. The original mesh owner retains one scalar after source release; no per-vertex distance array, extra buffer or neighbor-normal table is added.
+
+Measure each disc from the fragment’s physical pixel and a fixed screen centre. Interpolating a quad offset shifts dense-dot coverage with rasterizer rounding. Crop queries must use the same pixel origin as colour.
+
+The half-pixel floor can still crowd a distant mesh. The readable and extreme views show that limit; the taper does not remove it.
+
+> **Self-Check Question:** *Why apply the half-physical-pixel minimum after the crowding taper?*  
+> **Answer:** Crowded default dots must become smaller before the lower bound is applied. This preserves a visible footprint without keeping an unnecessarily large radius at a higher pixel density.
+
+- **What You Should See:** Crowding-aware dots retain more of the face at readable zoom levels. At extreme zoom-out, the half-physical-pixel minimum can still overlap. Explicit point sizes, active controls, original ownership and shared geometry remain stable.
+- **Hands-On Lab Experiment:** Compare the actual crowded original grid with its preceding dark-sheet render and the maintained taper reference. Inspect both projections and densities, explicit points and controls, source unload, camera changes and shared mirrored placement. Compare the readable and extreme-zoom views: the minimum physical footprint intentionally limits further thinning.
+
 <details>
 <summary>Implementation 96zzzzzzq-taper-crowded-original-mesh-vertices: Taper crowded original mesh vertices</summary>
 
@@ -4208,9 +4325,11 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 </details>
 
-## Run, Check, and Save
+---
 
-From `session_viewer`:
+## 5. Build, Verify, and Save Your Checkpoint
+
+Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 96zzzzzzq-taper-crowded-original-mesh-vertices
@@ -4221,12 +4340,12 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. Use [checkpoint recovery](../../recovery.md) to restore any saved checkpoint.
+Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
 
-## Expected Visual Result & Experiment
+## 6. Lesson Summary & Expected Visual Result
 
 Crowding-aware dots retain more of the face at readable zoom levels. At extreme zoom-out, the half-physical-pixel minimum can still overlap. Explicit point sizes, active controls, original ownership and shared geometry remain stable.
 
-- **Try this:** Compare the actual crowded original grid with its preceding dark-sheet render and the maintained taper reference. Inspect both projections and densities, explicit points and controls, source unload, camera changes and shared mirrored placement. Compare the readable and extreme-zoom views: the minimum physical footprint intentionally limits further thinning.
+- **Final Lesson Experiment:** Compare the actual crowded original grid with its preceding dark-sheet render and the maintained taper reference. Inspect both projections and densities, explicit points and controls, source unload, camera changes and shared mirrored placement. Compare the readable and extreme-zoom views: the minimum physical footprint intentionally limits further thinning.
 
-Continue with [Original ambient inputs and real pass ordering](96zzzzzzr-share-geometric-ambient-inputs.md).
+Continue with [Original ambient inputs and real pass ordering](../../consolidation/96zzzzzzr-share-geometric-ambient-inputs.md).

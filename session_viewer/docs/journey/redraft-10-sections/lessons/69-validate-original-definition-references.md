@@ -1,89 +1,155 @@
 # 13.1 · Shared original definitions and independently placed instances
 
-**Section 7: Out-of-Core HTTP Range Streaming, Shared Instances, and Drawing Sheets** · **Lesson 13.1** (Redraft `7.5`) · **9 checkpoints (`69-validate-original-definition-references` → `69i-check-sharing-precision-history-and-release`)**
+**Section 7: Out-of-Core HTTP Range Streaming, Shared Instances, and Drawing Sheets** · **Lesson 13.1** (Redraft `7.5`) · **9 checkpoints (`69-validate-original-definition-references` → `69i-check-sharing-precision-history-and-release`)** · **Study time: 4.5–9 h**
 
-> **Learning Goal:** Validate original definition references.
+> **What You Will Learn & Build:** Validate original definition references. By the final checkpoint (`69i-check-sharing-precision-history-and-release`), you will check sharing precision history and release.
 
-## Visual WebGPU & Architecture Schematic
+## 1. Visual Pipeline & WebGPU Architecture (Black & White Schematics)
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1px solid #cbd5e1;border-radius:10px;background:#f8fafc;">
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
+<svg viewBox="0 0 840 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <rect x="4" y="4" width="832" height="212" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Lesson 13.1 Execution Flow: Shared original definitions and independently placed instances</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">Concrete data pipeline you build in this lesson (9 Checkpoints: 69-validate-original-definition-references → 69i-check-sharing-precision-history-and-release)</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
+  
+    
+    <rect x="18" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="89" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
+    <line x1="28" y1="92" x2="151" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">original</text>
+    <text x="89" y="124" text-anchor="middle" font-size="11" fill="#111111">definitions</text>
+    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="183" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="254" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
+    <line x1="193" y1="92" x2="316" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">checked references</text>
+    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="348" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="419" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
+    <line x1="358" y1="92" x2="481" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">shared original</text>
+    <text x="419" y="124" text-anchor="middle" font-size="11" fill="#111111">owners</text>
+    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="513" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="584" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
+    <line x1="523" y1="92" x2="646" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">shared originals</text>
+    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="678" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="749" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
+    <line x1="688" y1="92" x2="811" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">independent</text>
+    <text x="749" y="124" text-anchor="middle" font-size="11" fill="#111111">snapshots</text>
+    
+    <rect x="18" y="162" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="32" y="181" font-size="11" font-weight="700" fill="#111111">Files You Edit in Lesson 13.1:</text>
+    <text x="215" y="181" font-size="11" fill="#111111">src/instance_plan.rs  ·  src/lib.rs  ·  src/instance_definition.rs  ·  src/scene.rs  ·  src/document_source.rs  ·  src/document_geometry.rs</text>
+    <text x="32" y="198" font-size="10.5" fill="#111111">9 Checkpoints: 69-validate-original-definition-references → 69i-check-sharing-precision-history-and-release — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
+  
+</svg>
+</div>
+
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
 <svg viewBox="0 0 840 240" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#475569"/>
-    </marker>
-    <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#2563eb"/>
-    </marker>
-    <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#059669"/>
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
     </marker>
   </defs>
-  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
-  <text x="20" y="28" font-size="14" font-weight="700" fill="#0f172a">Section 7 WebGPU Streaming & Instancing: HTTP Range Requests, Shared Source Meshes & 2D Drawing Sheets</text>
-  <text x="20" y="46" font-size="11.5" fill="#475569">How massive multi-gigabyte scenes stream out-of-core via HTTP 206 Partial Content and draw 1,000+ placements from 1 GPU buffer.</text>
-  <line x1="16" y1="54" x2="824" y2="54" stroke="#e2e8f0" stroke-width="1"/>
+  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Section 7 WebGPU Streaming & Instancing: HTTP Range Requests, Shared Source Meshes & 2D Drawing Sheets</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">How massive multi-gigabyte scenes stream out-of-core via HTTP 206 Partial Content and draw 1,000+ placements from 1 GPU buffer.</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
   
-    <rect x="18" y="68" width="245" height="145" rx="6" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
-    <text x="140" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1e40af">1. HTTP 206 Range Streaming (Ch 12)</text>
-    <text x="28" y="108" font-size="10.5" fill="#1e3a8a">• Fetch compact Manifest + World Bounds</text>
-    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#1d4ed8">• Prioritize visible frustum chunks</text>
-    <text x="28" y="144" font-size="10.5" fill="#1e3a8a">• Range: bytes=start-end (bounded memory)</text>
-    <text x="28" y="162" font-size="10.5" fill="#1e3a8a">• Evict cold off-screen chunks under</text>
-    <text x="28" y="178" font-size="10.5" fill="#1e3a8a">  memory budget without losing metadata</text>
+    <rect x="18" y="68" width="245" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="140" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">1. HTTP 206 Range Streaming (Ch 12)</text>
+    <text x="28" y="108" font-size="10.5" fill="#111111">• Fetch compact Manifest + World Bounds</text>
+    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#111111">• Prioritize visible frustum chunks</text>
+    <text x="28" y="144" font-size="10.5" fill="#111111">• Range: bytes=start-end (bounded memory)</text>
+    <text x="28" y="162" font-size="10.5" fill="#111111">• Evict cold off-screen chunks under</text>
+    <text x="28" y="178" font-size="10.5" fill="#111111">  memory budget without losing metadata</text>
 
-    <line x1="263" y1="138" x2="293" y2="138" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
+    <line x1="263" y1="138" x2="293" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="295" y="68" width="265" height="145" rx="6" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5"/>
-    <text x="427" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#9a3412">2. GPU Hardware Instancing (Ch 13)</text>
-    <text x="307" y="108" font-size="10.5" fill="#7c2d12">• 1 Shared Definition Buffer (e.g. Bolt)</text>
-    <text x="307" y="126" font-size="10.5" font-weight="600" fill="#c2410c">• N Instance Rows (@builtin(instance_index)):</text>
-    <text x="307" y="142" font-size="10" fill="#7c2d12">  Per-instance mat4x4 transform, tint,</text>
-    <text x="307" y="157" font-size="10" fill="#7c2d12">  and distinct instance_owner_id</text>
-    <text x="307" y="176" font-size="10.5" fill="#7c2d12">• draw_indexed(0..idx_cnt, 0, 0..N_inst)</text>
+    <rect x="295" y="68" width="265" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="427" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">2. GPU Hardware Instancing (Ch 13)</text>
+    <text x="307" y="108" font-size="10.5" fill="#111111">• 1 Shared Definition Buffer (e.g. Bolt)</text>
+    <text x="307" y="126" font-size="10.5" font-weight="600" fill="#111111">• N Instance Rows (@builtin(instance_index)):</text>
+    <text x="307" y="142" font-size="10" fill="#111111">  Per-instance mat4x4 transform, tint,</text>
+    <text x="307" y="157" font-size="10" fill="#111111">  and distinct instance_owner_id</text>
+    <text x="307" y="176" font-size="10.5" fill="#111111">• draw_indexed(0..idx_cnt, 0, 0..N_inst)</text>
 
-    <line x1="560" y1="138" x2="590" y2="138" stroke="#059669" stroke-width="2" marker-end="url(#arrow-green)"/>
+    <line x1="560" y1="138" x2="590" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="592" y="68" width="228" height="145" rx="6" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1.5"/>
-    <text x="706" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#065f46">3. 2D Drawing Sheets &amp; Blocks</text>
-    <text x="604" y="108" font-size="10.5" fill="#064e3b">• Paper-space Sheet frames &amp; title</text>
-    <text x="604" y="124" font-size="10.5" fill="#064e3b">  blocks (`SheetInit / SheetRows`)</text>
-    <text x="604" y="144" font-size="10.5" font-weight="600" fill="#047857">• Calibrated mm/inch pen widths</text>
-    <text x="604" y="162" font-size="10.5" fill="#064e3b">• Switch smoothly between 3D Model</text>
-    <text x="604" y="178" font-size="10.5" fill="#064e3b">  view and 2D Sheet layouts</text>
+    <rect x="592" y="68" width="228" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="706" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">3. 2D Drawing Sheets &amp; Blocks</text>
+    <text x="604" y="108" font-size="10.5" fill="#111111">• Paper-space Sheet frames &amp; title</text>
+    <text x="604" y="124" font-size="10.5" fill="#111111">  blocks (SheetInit / SheetRows)</text>
+    <text x="604" y="144" font-size="10.5" font-weight="600" fill="#111111">• Calibrated mm/inch pen widths</text>
+    <text x="604" y="162" font-size="10.5" fill="#111111">• Switch smoothly between 3D Model</text>
+    <text x="604" y="178" font-size="10.5" fill="#111111">  view and 2D Sheet layouts</text>
     
 </svg>
 </div>
 
-### Lesson Data Flow (`Rust` → `WebGPU` → `WGSL`)
+## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
 
-```
-original definitions → checked references → shared original owners.
-original reference → canonical Session placement → tree ancestry → document model.
-shared originals → independent snapshots → source ledger → closed history.
-```
+Before writing code, review how the three layers in this chapter talk to each other:
 
-- Validate original definition references.
-- Import canonical original instance placements.
-- Check sharing precision history and release.
-- **Why it works (Does an instance contain its own geometry copy?):** No. It references one original definition by GUID. Keep the reference and shared original separate from its viewer identity and placement.
-
-### Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `Browser`)
-
-| Layer | Construct | First-Year Student Explanation |
+| Layer | Construct | Plain-English Explanation for Students |
 | :--- | :--- | :--- |
 | **HTTP / Fetch** | `Range: bytes=start-end` -> `206 Partial Content` | Fetches only the exact byte slice of an octree node or sheet column needed for the current camera view. |
 | **Protobuf Wire** | Varint tag + length prefix scanner | Skips over multi-megabyte coordinate arrays by reading their byte range offsets without allocating their contents. |
 | **Rust (Residency)** | `budget.reserve(bytes)?` -> LRU eviction | Guarantees resident + in-flight pages never exceed the memory cap; coarse root pages stay pinned so the scene is never blank. |
 | **GPU Instancing** | Shared definition buffer + per-instance record | Draws N placed copies of a complex CAD component using 1 shared vertex/index allocation and N compact instance records. |
 
-**Production source (`session_viewer/src`):** [app/scene_instances.rs](../../../../src/app/scene_instances.rs), [engine/gpu/instanced.rs](../../../../src/engine/gpu/instanced.rs), [engine/gpu/slots.rs](../../../../src/engine/gpu/slots.rs), [app/walk/brep_shapes.rs](../../../../src/app/walk/brep_shapes.rs), [app/hierarchy.rs](../../../../src/app/hierarchy.rs), [app/sheet_query.rs](../../../../src/app/sheet_query.rs).
+**Authoritative production source (`session_viewer/src`):** [app/scene_instances.rs](../../../../src/app/scene_instances.rs), [engine/gpu/instanced.rs](../../../../src/engine/gpu/instanced.rs), [engine/gpu/slots.rs](../../../../src/engine/gpu/slots.rs), [app/walk/brep_shapes.rs](../../../../src/app/walk/brep_shapes.rs), [app/hierarchy.rs](../../../../src/app/hierarchy.rs), [app/sheet_query.rs](../../../../src/app/sheet_query.rs).
 
-## Implementation Checkpoints
+## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
 
-Apply these checkpoints in order inside `workspace/journey`. Expand each block to view the Rust/WGSL/HTML edits:
+| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
+| ---: | :--- | :--- | :--- | :--- |
+| **1** | [`69-validate-original-definition-references`](#checkpoint-69-validate-original-definition-references) | Validate original definition references. | `src/instance_plan.rs`, `src/lib.rs` | `original definitions → checked references → shared original owners` |
+| **2** | [`69b-prepare-each-used-definition-once`](#checkpoint-69b-prepare-each-used-definition-once) | Prepare each used definition once. | `src/instance_definition.rs`, `src/lib.rs` | `definition lookup → one prepared template → reused display source` |
+| **3** | [`69c-keep-instance-bindings-through-scene-history`](#checkpoint-69c-keep-instance-bindings-through-scene-history) | Keep instance bindings through scene history. | `src/scene.rs` | `viewer identity → original binding → cloned history → final release` |
+| **4** | [`69d-append-independently-placed-shared-rows`](#checkpoint-69d-append-independently-placed-shared-rows) | Append independently placed shared rows. | `src/scene.rs` | `shared template → checked placement → independent row → original binding` |
+| **5** | [`69e-import-canonical-original-instance-placements`](#checkpoint-69e-import-canonical-original-instance-placements) | Import canonical original instance placements. | `src/document_source.rs`, `src/document_geometry.rs`, `src/scene_document.rs` | `original reference → canonical Session placement → tree ancestry → document model` |
+| **6** | [`69f-protect-shared-originals-during-part-edits`](#checkpoint-69f-protect-shared-originals-during-part-edits) | Protect shared originals during part edits. | `src/part_preview.rs` | `shared original → requested part edit → explicit refusal → unchanged definition` |
+| **7** | [`69g-collect-shared-definitions-without-flattening`](#checkpoint-69g-collect-shared-definitions-without-flattening) | Collect shared definitions without flattening. | `src/instance_snapshot.rs`, `src/lib.rs` | `live instance IDs → original definition records → collision check → stable inventory` |
+| **8** | [`69h-save-original-instance-references-and-namespaces`](#checkpoint-69h-save-original-instance-references-and-namespaces) | Save original instance references and namespaces. | `src/geometry_snapshot.rs`, `src/archive_identity.rs`, `src/archive_document.rs` | `independent viewer rows → original references → definition inventory → shared reopened sources` |
+| **9** | [`69i-check-sharing-precision-history-and-release`](#checkpoint-69i-check-sharing-precision-history-and-release) | Check sharing precision history and release. | `src/memory.rs`, `src/instance_specimen.rs`, `src/lib.rs`, `src/instance_scene_tests.rs` | `shared originals → independent snapshots → source ledger → closed history` |
+
+---
+
+## 4. Step-by-Step Coding Notebook (Concept + Implementation)
+
+Work through each notebook cell below in order inside `workspace/journey`. Read the **Concept Walkthrough** and **Self-Check Q&A** first, then expand the **Implementation** block to type and verify the code.
 
 <a id="checkpoint-69-validate-original-definition-references"></a>
+
+### Step 1 of 9 · Validate original definition references (`69-validate-original-definition-references`)
+
+- **Goal:** Validate original definition references.
+- **Data Flow Trace:** `original definitions → checked references → shared original owners`
+- **Files You Touch:** `src/instance_plan.rs` (*Validate original definition references and retain shared owners.*) · `src/lib.rs` (*Register the source component.*)
+
+Check definition identities and supported families before deriving any placed display rows.
+
+> **Self-Check Question:** *Does an instance contain its own geometry copy?*  
+> **Answer:** No. It references one original definition by GUID. Keep the reference and shared original separate from its viewer identity and placement.
+
+- **What You Should See:** The previous mixed original source scene remains visible while shared definitions connect. The final endpoint adds two independently selectable placements of one original definition.
+- **Hands-On Lab Experiment:** Refuse missing, duplicate and unsupported definitions; trace the shared original owner through release.
 
 <details>
 <summary>Implementation 69-validate-original-definition-references: Validate original definition references</summary>
@@ -153,6 +219,19 @@ After that block, append this supplied code:
 
 <a id="checkpoint-69b-prepare-each-used-definition-once"></a>
 
+### Step 2 of 9 · Prepare each used definition once (`69b-prepare-each-used-definition-once`)
+
+- **Goal:** Prepare each used definition once.
+- **Data Flow Trace:** `definition lookup → one prepared template → reused display source`
+- **Files You Touch:** `src/instance_definition.rs` (*Prepare each referenced original definition once.*) · `src/lib.rs` (*Register the source component.*)
+
+Prepare one display template for each used original definition. Repeated placements clone shared owners and derived geometry.
+
+> **Self-Check Question:** *Must every instance run the CAD tessellator?*  
+> **Answer:** No. Prepare each used definition once and share its resulting geometry. The placement remains independent.
+
+- **Hands-On Lab Experiment:** Compare original and derived Rc identities for two references to one mesh definition.
+
 <details>
 <summary>Implementation 69b-prepare-each-used-definition-once: Prepare each used definition once</summary>
 
@@ -193,6 +272,19 @@ After that block, type:
 </details>
 
 <a id="checkpoint-69c-keep-instance-bindings-through-scene-history"></a>
+
+### Step 3 of 9 · Keep instance bindings through scene history (`69c-keep-instance-bindings-through-scene-history`)
+
+- **Goal:** Keep instance bindings through scene history.
+- **Data Flow Trace:** `viewer identity → original binding → cloned history → final release`
+- **Files You Touch:** `src/scene.rs` (*Preserve instance bindings through row identity and scene lifetime operations.*)
+
+Carry original instance bindings through Copy, Delete, Undo, scene append and Close without changing source records.
+
+> **Self-Check Question:** *Does copying an instance duplicate its original definition?*  
+> **Answer:** No. The copied row has an independent viewer GUID and model while retaining the shared original definition and reference.
+
+- **Hands-On Lab Experiment:** Copy and remove a bound owner; inspect the binding after Undo and after clearing scene history.
 
 <details>
 <summary>Implementation 69c-keep-instance-bindings-through-scene-history: Keep instance bindings through scene history</summary>
@@ -1140,6 +1232,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-69d-append-independently-placed-shared-rows"></a>
 
+### Step 4 of 9 · Append independently placed shared rows (`69d-append-independently-placed-shared-rows`)
+
+- **Goal:** Append independently placed shared rows.
+- **Data Flow Trace:** `shared template → checked placement → independent row → original binding`
+- **Files You Touch:** `src/scene.rs` (*Append checked independent instance rows without cloning the growing scene.*)
+
+Validate one placed template before appending its row. Avoid cloning the growing destination scene for every instance.
+
+> **Self-Check Question:** *Why prepare the placed row in a tiny temporary scene?*  
+> **Answer:** Existing placement checks remain usable while the growing destination is cloned only once for atomic document import.
+
+- **Hands-On Lab Experiment:** Compare two precise models while their original and derived geometry allocations remain shared.
+
 <details>
 <summary>Implementation 69d-append-independently-placed-shared-rows: Append independently placed shared rows</summary>
 
@@ -1172,6 +1277,19 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-69e-import-canonical-original-instance-placements"></a>
+
+### Step 5 of 9 · Import canonical original instance placements (`69e-import-canonical-original-instance-placements`)
+
+- **Goal:** Import canonical original instance placements.
+- **Data Flow Trace:** `original reference → canonical Session placement → tree ancestry → document model`
+- **Files You Touch:** `src/document_source.rs` (*Import original definitions and apply canonical instance placement once.*) · `src/document_geometry.rs` (*Import original definitions and apply canonical instance placement once.*) · `src/scene_document.rs` (*Copy the revised unsupported nested-definition fixture.*)
+
+Resolve each original reference, preserve its tree identity and combine document placement with canonical source ancestry once.
+
+> **Self-Check Question:** *Should the viewer multiply the legacy instance transform again?*  
+> **Answer:** No. The kernel already folds it into Session.xforms. Multiplying it again would apply the same placement twice.
+
+- **Hands-On Lab Experiment:** Import a source at 1000000000.125 with a legacy 1000 shift and an extra 0.25 document translation.
 
 <details>
 <summary>Implementation 69e-import-canonical-original-instance-placements: Import canonical original instance placements</summary>
@@ -1325,6 +1443,19 @@ Update the existing block with this supplied code; keep unchanged lines:
 
 <a id="checkpoint-69f-protect-shared-originals-during-part-edits"></a>
 
+### Step 6 of 9 · Protect shared originals during part edits (`69f-protect-shared-originals-during-part-edits`)
+
+- **Goal:** Protect shared originals during part edits.
+- **Data Flow Trace:** `shared original → requested part edit → explicit refusal → unchanged definition`
+- **Files You Touch:** `src/part_preview.rs` (*Protect original definitions from unsupported source-part edits.*)
+
+Refuse source-part previews until explicit shared-definition editing or detachment is implemented. Whole-row placement remains reversible.
+
+> **Self-Check Question:** *May a part edit change only the displayed mesh and Save the old definition?*  
+> **Answer:** No. That would save geometry different from the display. Keep this guard until subject 77 connects explicit source editing and detachment.
+
+- **Hands-On Lab Experiment:** Request a face preview on a definition instance and verify the original definition remains exact.
+
 <details>
 <summary>Implementation 69f-protect-shared-originals-during-part-edits: Protect shared originals during part edits</summary>
 
@@ -1357,6 +1488,19 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-69g-collect-shared-definitions-without-flattening"></a>
+
+### Step 7 of 9 · Collect shared definitions without flattening (`69g-collect-shared-definitions-without-flattening`)
+
+- **Goal:** Collect shared definitions without flattening.
+- **Data Flow Trace:** `live instance IDs → original definition records → collision check → stable inventory`
+- **Files You Touch:** `src/instance_snapshot.rs` (*Collect original definitions once and reject semantic identity conflicts.*) · `src/lib.rs` (*Register the source component.*)
+
+Save each live original definition once. Compare different owners by semantic protobuf records, independent of map encoding order.
+
+> **Self-Check Question:** *Do different protobuf byte orders imply different geometry?*  
+> **Answer:** No. Protobuf maps may encode in different orders. Compare semantic source records, using Rc identity to skip repeated serialization.
+
+- **Hands-On Lab Experiment:** Merge conflicting same-GUID definitions and refuse Save instead of silently choosing one source.
 
 <details>
 <summary>Implementation 69g-collect-shared-definitions-without-flattening: Collect shared definitions without flattening</summary>
@@ -1398,6 +1542,19 @@ After that block, type:
 </details>
 
 <a id="checkpoint-69h-save-original-instance-references-and-namespaces"></a>
+
+### Step 8 of 9 · Save original instance references and namespaces (`69h-save-original-instance-references-and-namespaces`)
+
+- **Goal:** Save original instance references and namespaces.
+- **Data Flow Trace:** `independent viewer rows → original references → definition inventory → shared reopened sources`
+- **Files You Touch:** `src/geometry_snapshot.rs` (*Save original references and definitions without flattening source geometry.*) · `src/archive_identity.rs` (*Save original references and definitions without flattening source geometry.*) · `src/archive_document.rs` (*Save original references and definitions without flattening source geometry.*)
+
+Save original references beside definitions and portable instance identities. Reopening prepares shared definitions again.
+
+> **Self-Check Question:** *Should Save replace instances with world-space triangles?*  
+> **Answer:** No. Keep original definition records, reference GUIDs and source placements so editable identities survive reopening.
+
+- **Hands-On Lab Experiment:** Compare all eight basic definition families and 16 references before and after Save/Open.
 
 <details>
 <summary>Implementation 69h-save-original-instance-references-and-namespaces: Save original instance references and namespaces</summary>
@@ -1593,6 +1750,19 @@ Edit the existing block to match this code; keep unchanged lines:
 
 <a id="checkpoint-69i-check-sharing-precision-history-and-release"></a>
 
+### Step 9 of 9 · Check sharing precision history and release (`69i-check-sharing-precision-history-and-release`)
+
+- **Goal:** Check sharing precision history and release.
+- **Data Flow Trace:** `shared originals → independent snapshots → source ledger → closed history`
+- **Files You Touch:** `src/memory.rs` (*Count original instance documents and definitions across shared scene snapshots.*) · `src/instance_specimen.rs` (*Copy precise original and visible shared-definition examples.*) · `src/lib.rs` (*Register the source component.*) · `src/instance_scene_tests.rs` (*Copy original reference, family, identity, placement, history and release regressions.*)
+
+Count original documents and definition owners once across scene snapshots. Supply regression sources with legacy and precise placements.
+
+> **Self-Check Question:** *Does Undo require another original geometry allocation?*  
+> **Answer:** No. Scene snapshots retain shared original owners and independent presentation state. Close releases history and current owners.
+
+- **Hands-On Lab Experiment:** Run reference sharing, all-family persistence, conflicting namespaces, precise placement, colour and Delete/Undo regressions.
+
 <details>
 <summary>Implementation 69i-check-sharing-precision-history-and-release: Check sharing precision history and release</summary>
 
@@ -1703,9 +1873,11 @@ After that block, append this supplied code:
 
 </details>
 
-## Run, Check, and Save
+---
 
-From `session_viewer`:
+## 5. Build, Verify, and Save Your Checkpoint
+
+Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 69i-check-sharing-precision-history-and-release
@@ -1716,10 +1888,10 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. Use [checkpoint recovery](../../recovery.md) to restore any saved checkpoint.
+Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
 
-## Expected Visual Result & Experiment
+## 6. Lesson Summary & Expected Visual Result
 
-- **Try this:** Run reference sharing, all-family persistence, conflicting namespaces, precise placement, colour and Delete/Undo regressions.
+- **Final Lesson Experiment:** Run reference sharing, all-family persistence, conflicting namespaces, precise placement, colour and Delete/Undo regressions.
 
-Continue with [Independent presentation and reusable CAD preparation](69j-preserve-per-instance-original-colours.md).
+Continue with [Independent presentation and reusable CAD preparation](../../consolidation/69j-preserve-per-instance-original-colours.md).

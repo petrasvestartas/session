@@ -1,93 +1,157 @@
 # 5.1 · Original lines and a screen-space stroke lane
 
-**Section 4: Screen-Space Ink, Point Markers, NURBS Curves, and GPU Integer Picking** · **Lesson 5.1** (Redraft `4.1`) · **7 checkpoints (`35-stroke` → `35d-input`)**
+**Section 4: Screen-Space Ink, Point Markers, NURBS Curves, and GPU Integer Picking** · **Lesson 5.1** (Redraft `4.1`) · **7 checkpoints (`35-stroke` → `35d-input`)** · **Study time: 5–8.5 h**
 
-> **Learning Goal:** Prepare finite line endpoints, colour and screen width while retaining the original kernel line.
+> **What You Will Learn & Build:** Prepare finite line endpoints, colour and screen width while retaining the original kernel line. By the final checkpoint (`35d-input`), you will insert an editable line as one undoable command and prove its width in actual browser pixels.
 
-## Visual WebGPU & Architecture Schematic
+## 1. Visual Pipeline & WebGPU Architecture (Black & White Schematics)
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1px solid #cbd5e1;border-radius:10px;background:#f8fafc;">
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
+<svg viewBox="0 0 840 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <rect x="4" y="4" width="832" height="212" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Lesson 5.1 Execution Flow: Original lines and a screen-space stroke lane</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">Concrete data pipeline you build in this lesson (7 Checkpoints: 35-stroke → 35d-input)</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
+  
+    
+    <rect x="18" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="89" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
+    <line x1="28" y1="92" x2="151" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">kernel Line</text>
+    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="183" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="254" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
+    <line x1="193" y1="92" x2="316" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">source owner</text>
+    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="348" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="419" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
+    <line x1="358" y1="92" x2="481" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">display record</text>
+    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="513" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="584" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
+    <line x1="523" y1="92" x2="646" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">checked packed</text>
+    <text x="584" y="124" text-anchor="middle" font-size="11" fill="#111111">bytes</text>
+    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="678" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="749" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
+    <line x1="688" y1="92" x2="811" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">later GPU lane</text>
+    
+    <rect x="18" y="162" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="32" y="181" font-size="11" font-weight="700" fill="#111111">Files You Edit in Lesson 5.1:</text>
+    <text x="215" y="181" font-size="11" fill="#111111">src/stroke.rs  ·  src/lib.rs  ·  src/stroke_tests.rs  ·  src/scene.rs  ·  src/document.rs  ·  src/line_scene_tests.rs</text>
+    <text x="32" y="198" font-size="10.5" fill="#111111">7 Checkpoints: 35-stroke → 35d-input — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
+  
+</svg>
+</div>
+
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
 <svg viewBox="0 0 840 240" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#475569"/>
-    </marker>
-    <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#2563eb"/>
-    </marker>
-    <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#059669"/>
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
     </marker>
   </defs>
-  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
-  <text x="20" y="28" font-size="14" font-weight="700" fill="#0f172a">Chapter 5 WebGPU Shader Geometry: Screen-Space Ribbon Extrusion (ribbon.wgsl), Joins & Point Discs</text>
-  <text x="20" y="46" font-size="11.5" fill="#475569">Why 1-pixel hardware GL_LINES fail in CAD—and how vertex shaders extrude 3D segments into crisp, constant-CSS-pixel screen quads.</text>
-  <line x1="16" y1="54" x2="824" y2="54" stroke="#e2e8f0" stroke-width="1"/>
+  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Chapter 5 WebGPU Shader Geometry: Screen-Space Ribbon Extrusion (ribbon.wgsl), Joins & Point Discs</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">Why 1-pixel hardware GL_LINES fail in CAD—and how vertex shaders extrude 3D segments into crisp, constant-CSS-pixel screen quads.</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
   
-    <rect x="18" y="68" width="215" height="145" rx="6" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
-    <text x="125" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1e40af">1. Homogeneous Near-Clip</text>
-    <text x="28" y="108" font-size="10.5" fill="#1e3a8a">• Input: 3D segment (A, B) + width</text>
-    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#1d4ed8">• Clip to w &gt; near BEFORE divide!</text>
-    <text x="28" y="143" font-size="10" fill="#1e3a8a">  (If B is behind camera, dividing</text>
-    <text x="28" y="158" font-size="10" fill="#1e3a8a">   xyz/w flips the line across screen!)</text>
-    <text x="28" y="178" font-size="10.5" fill="#1e3a8a">• Project clipped A', B' to physical</text>
-    <text x="28" y="193" font-size="10.5" fill="#1e3a8a">  viewport pixels: pA, pB</text>
+    <rect x="18" y="68" width="215" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="125" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">1. Homogeneous Near-Clip</text>
+    <text x="28" y="108" font-size="10.5" fill="#111111">• Input: 3D segment (A, B) + width</text>
+    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#111111">• Clip to w &gt; near BEFORE divide!</text>
+    <text x="28" y="143" font-size="10" fill="#111111">  (If B is behind camera, dividing</text>
+    <text x="28" y="158" font-size="10" fill="#111111">   xyz/w flips the line across screen!)</text>
+    <text x="28" y="178" font-size="10.5" fill="#111111">• Project clipped A', B' to physical</text>
+    <text x="28" y="193" font-size="10.5" fill="#111111">  viewport pixels: pA, pB</text>
 
-    <line x1="233" y1="138" x2="263" y2="138" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
+    <line x1="233" y1="138" x2="263" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="265" y="68" width="285" height="145" rx="6" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5"/>
-    <text x="407" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#9a3412">2. Screen-Space Quad Extrusion (6 Verts)</text>
+    <rect x="265" y="68" width="285" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="407" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">2. Screen-Space Quad Extrusion (6 Verts)</text>
     <!-- Mini Visual of Extruded Line Quad -->
-    <line x1="295" y1="135" x2="435" y2="115" stroke="#c2410c" stroke-width="2.5" stroke-dasharray="4,3"/>
-    <polygon points="292,120 432,100 438,130 298,150" fill="rgba(251,146,60,0.22)" stroke="#ea580c" stroke-width="1.5"/>
-    <circle cx="295" cy="135" r="3.5" fill="#9a3412"/>
-    <circle cx="435" cy="115" r="3.5" fill="#9a3412"/>
-    <text x="282" y="168" font-size="10" fill="#7c2d12">dir = normalize(pB - pA)</text>
-    <text x="282" y="183" font-size="10" font-weight="600" fill="#c2410c">perp = vec2(-dir.y, dir.x) * (half_w + AA)</text>
-    <text x="282" y="198" font-size="10" fill="#7c2d12">vector.wgsl adds miter/bevel joins &amp; arrows</text>
+    <polygon points="292,120 432,100 438,130 298,150" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <line x1="295" y1="135" x2="435" y2="115" stroke="#111111" stroke-width="2" stroke-dasharray="4,3"/>
+    <circle cx="295" cy="135" r="3.5" fill="#111111"/>
+    <circle cx="435" cy="115" r="3.5" fill="#111111"/>
+    <text x="282" y="168" font-size="10" fill="#111111">dir = normalize(pB - pA)</text>
+    <text x="282" y="183" font-size="10" font-weight="600" fill="#111111">perp = vec2(-dir.y, dir.x) * (half_w + AA)</text>
+    <text x="282" y="198" font-size="10" fill="#111111">vector.wgsl adds miter/bevel joins &amp; arrows</text>
 
-    <line x1="550" y1="138" x2="580" y2="138" stroke="#059669" stroke-width="2" marker-end="url(#arrow-green)"/>
+    <line x1="550" y1="138" x2="580" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="582" y="68" width="238" height="145" rx="6" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1.5"/>
-    <text x="701" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#065f46">3. Analytical AA &amp; Point Discs</text>
-    <text x="594" y="108" font-size="10.5" fill="#064e3b">• ribbon.wgsl: smoothstep coverage</text>
-    <text x="594" y="123" font-size="10.5" fill="#064e3b">  from signed edge distance</text>
-    <text x="594" y="143" font-size="10.5" font-weight="600" fill="#047857">• glyph.wgsl (Point Markers):</text>
-    <text x="594" y="158" font-size="10" fill="#064e3b">  Screen quad around 3D point; discard</text>
-    <text x="594" y="173" font-size="10" fill="#064e3b">  outside radius r, feather 1px rim</text>
-    <text x="594" y="193" font-size="10.5" fill="#064e3b">• NURBS: evaluate spans -&gt; polyline</text>
+    <rect x="582" y="68" width="238" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="701" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">3. Analytical AA &amp; Point Discs</text>
+    <text x="594" y="108" font-size="10.5" fill="#111111">• ribbon.wgsl: smoothstep coverage</text>
+    <text x="594" y="123" font-size="10.5" fill="#111111">  from signed edge distance</text>
+    <text x="594" y="143" font-size="10.5" font-weight="600" fill="#111111">• glyph.wgsl (Point Markers):</text>
+    <text x="594" y="158" font-size="10" fill="#111111">  Screen quad around 3D point; discard</text>
+    <text x="594" y="173" font-size="10" fill="#111111">  outside radius r, feather 1px rim</text>
+    <text x="594" y="193" font-size="10.5" fill="#111111">• NURBS: evaluate spans -&gt; polyline</text>
     
 </svg>
 </div>
 
-### Lesson Data Flow (`Rust` → `WebGPU` → `WGSL`)
+## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
 
-```
-kernel Line → source owner → display record → checked packed bytes → later GPU lane.
-checked shader → instance layout → shared view binding → alpha coverage → depth-tested lane.
-Example Line → prepared source → one history transaction → stroke batch → camera-only reuse.
-```
+Before writing code, review how the three layers in this chapter talk to each other:
 
-- Prepare finite line endpoints, colour and screen width while retaining the original kernel line.
-- Create one pipeline and view uniform for a batch of stroke instances.
-- Insert an editable line as one undoable command and prove its width in actual browser pixels.
-- **Why it works (Why retain the original line after packing its endpoints into floats?):** Display floats cannot preserve exact coordinates or source metadata. Editing and saving must continue to use the original kernel line.
-
-### Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `Browser`)
-
-| Layer | Construct | First-Year Student Explanation |
+| Layer | Construct | Plain-English Explanation for Students |
 | :--- | :--- | :--- |
 | **WGSL (`ribbon.wgsl`)** | Homogeneous Near-Plane Clip (`w > near`) | Clips 3D line segments in 4D clip space BEFORE dividing by `w`, preventing lines with one endpoint behind the camera from flipping across the screen. |
 | **WGSL (`ribbon.wgsl` / `vector.wgsl`)** | Screen-Space Perpendicular Quad Extrusion | Expands each 3D segment into a 6-vertex screen-space quad along `perp = vec2(-dir.y, dir.x) * (half_width + aa)` for crisp, constant-CSS-pixel CAD strokes and miter/bevel joins. |
 | **WGSL (`glyph.wgsl`)** | Analytical Signed-Distance Coverage (`smoothstep`) | Computes pixel center distance to the stroke edge or point-marker radius in the fragment shader for smooth anti-aliased edges. |
 
-**Production source (`session_viewer/src`):** [app/walk/curves.rs](../../../src/app/walk/curves.rs), [engine/gpu/segments.rs](../../../src/engine/gpu/segments.rs), [shaders/ribbon.wgsl](../../../src/shaders/ribbon.wgsl), [shaders/vector.wgsl](../../../src/shaders/vector.wgsl), [app/walk/points.rs](../../../src/app/walk/points.rs), [shaders/glyph.wgsl](../../../src/shaders/glyph.wgsl), [shaders/ink_visibility.wgsl](../../../src/shaders/ink_visibility.wgsl), [shaders/triangle.wgsl](../../../src/shaders/triangle.wgsl), [shaders/grid.wgsl](../../../src/shaders/grid.wgsl).
+**Authoritative production source (`session_viewer/src`):** [app/walk/curves.rs](../../../src/app/walk/curves.rs), [engine/gpu/segments.rs](../../../src/engine/gpu/segments.rs), [shaders/ribbon.wgsl](../../../src/shaders/ribbon.wgsl), [shaders/vector.wgsl](../../../src/shaders/vector.wgsl), [app/walk/points.rs](../../../src/app/walk/points.rs), [shaders/glyph.wgsl](../../../src/shaders/glyph.wgsl), [shaders/ink_visibility.wgsl](../../../src/shaders/ink_visibility.wgsl), [shaders/triangle.wgsl](../../../src/shaders/triangle.wgsl), [shaders/grid.wgsl](../../../src/shaders/grid.wgsl)
 
-## Implementation Checkpoints
+## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
 
-Apply these checkpoints in order inside `workspace/journey`. Expand each block to view the Rust/WGSL/HTML edits:
+| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
+| ---: | :--- | :--- | :--- | :--- |
+| **1** | [`35-stroke`](#checkpoint-35-stroke) | Prepare finite line endpoints, colour and screen width while retaining the original kernel line. | `src/stroke.rs`, `src/lib.rs`, `src/stroke_tests.rs` | `kernel Line → source owner → display record → checked packed bytes → later GPU lane` |
+| **2** | [`35a-document`](#checkpoint-35a-document) | Give prepared lines stable document IDs, history ownership and world-space bounds. | `src/scene.rs`, `src/document.rs`, `src/lib.rs`, `src/line_scene_tests.rs` | `prepared line → scene row → shared source history → placed bounds → complete Close` |
+| **3** | [`35b-extrude`](#checkpoint-35b-extrude) | Expand a projected segment into two triangles with a width that survives camera zoom. | `src/stroke.wgsl`, `src/stroke.rs` | `world endpoints → near clipping → pixel direction → perpendicular extrusion → edge coverage` |
+| **4** | [`35c-lane`](#checkpoint-35c-lane) | Create one pipeline and view uniform for a batch of stroke instances. | `src/stroke_gpu.rs`, `src/lib.rs` | `checked shader → instance layout → shared view binding → alpha coverage → depth-tested lane` |
+| **5** | [`35ca-sync`](#checkpoint-35ca-sync) | Synchronize a stroke batch, draw it and retain vertex buffers through camera-only changes. | `src/stroke_gpu.rs` | `checked packed strokes → changed bytes → one GPU buffer → view-only updates → six vertices per instance` |
+| **6** | [`35cb-render`](#checkpoint-35cb-render) | Draw document strokes with shared depth, correct device density and complete Close accounting. | `src/renderer.rs`, `src/browser.rs`, `src/memory.rs`, `src/scene.rs` | `scene line owners → unchanged-data reuse → shared drawing pass → density-aware view → buffer release` |
+| **7** | [`35d-input`](#checkpoint-35d-input) | Insert an editable line as one undoable command and prove its width in actual browser pixels. | `src/editor.rs`, `src/browser.rs`, `src/stroke_input_tests.rs`, `src/lib.rs` | `Example Line → prepared source → one history transaction → stroke batch → camera-only reuse` |
+
+---
+
+## 4. Step-by-Step Coding Notebook (Concept + Implementation)
+
+Work through each notebook cell below in order inside `workspace/journey`. Read the **Concept Walkthrough** and **Self-Check Q&A** first, then expand the **Implementation** block to type and verify the code.
 
 <a id="checkpoint-35-stroke"></a>
+
+### Step 1 of 7 · Prepare a stroke without changing its source (`35-stroke`)
+
+- **Goal:** Prepare finite line endpoints, colour and screen width while retaining the original kernel line.
+- **Data Flow Trace:** `kernel Line → source owner → display record → checked packed bytes → later GPU lane`
+- **Files You Touch:** `src/stroke.rs` (*Keep exact kernel ownership separate from a checked packed display record.*) · `src/lib.rs` (*Register stroke preparation and its checks.*) · `src/stroke_tests.rs` (*Copy source ownership, packed layout and invalid-display checks.*)
+
+Prepare one line for display while keeping its original kernel owner. Store two finite endpoints, colour and a width measured in screen pixels.
+
+Packing changes display precision only. Invalid coordinates or widths fail before GPU allocation. A zero-length line remains a valid source; the later shader suppresses its empty stroke. Width zero, negative or nonfinite uses the default pen, matching production.
+
+> **Self-Check Question:** *Why retain the original line after packing its endpoints into floats?*  
+> **Answer:** Display floats cannot preserve exact coordinates or source metadata. Editing and saving must continue to use the original kernel line.
+
+- **What You Should See:** The packed stroke record is 44 bytes; exact source coordinates, GUID and colour remain available. This prepares the source owner; the later stroke pipeline connects it to browser drawing.
+- **Hands-On Lab Experiment:** Prepare the same shared line twice and drop one prepared owner. Both used the same source; the other owner still retains it.
 
 <details>
 <summary>Implementation 35-stroke: Prepare a stroke without changing its source</summary>
@@ -159,6 +223,22 @@ Copy this supplied file:
 </details>
 
 <a id="checkpoint-35a-document"></a>
+
+### Step 2 of 7 · Retain line owners in document history (`35a-document`)
+
+- **Goal:** Give prepared lines stable document IDs, history ownership and world-space bounds.
+- **Data Flow Trace:** `prepared line → scene row → shared source history → placed bounds → complete Close`
+- **Files You Touch:** `src/scene.rs` (*Retain exact line owners and apply placement before display conversion.*) · `src/document.rs` (*Reject incomplete saves while the loader still supports only meshes.*) · `src/lib.rs` (*Register mixed row ownership checks.*) · `src/line_scene_tests.rs` (*Copy mixed IDs, placement, history and release checks.*)
+
+Keep line rows beside the existing mesh rows. Give both tables IDs from the same checked sequence and clone only shared kernel owners into history.
+
+Include original placed endpoints in scene bounds. Clear both tables on Close or replacement. The existing mesh-only snapshot rejects new line rows explicitly; complete mixed-geometry saving is taught with the later loader.
+
+> **Self-Check Question:** *Why share a line source across history snapshots?*  
+> **Answer:** A placement edit changes the row’s transform, not its exact source line. Undo can restore placement while retaining the same kernel owner.
+
+- **What You Should See:** Run the checks. Line IDs stay distinct from mesh IDs, bounds include placed endpoints, and Close releases active and historical line sources.
+- **Hands-On Lab Experiment:** Move a line row, Undo and Redo, then Close. The kernel owner remains shared until both the scene and history release it.
 
 <details>
 <summary>Implementation 35a-document: Retain line owners in document history</summary>
@@ -784,6 +864,22 @@ Copy this supplied file:
 
 <a id="checkpoint-35b-extrude"></a>
 
+### Step 3 of 7 · Extrude a stroke in screen pixels (`35b-extrude`)
+
+- **Goal:** Expand a projected segment into two triangles with a width that survives camera zoom.
+- **Data Flow Trace:** `world endpoints → near clipping → pixel direction → perpendicular extrusion → edge coverage`
+- **Files You Touch:** `src/stroke.wgsl` (*Extrude in physical pixels and interpolate coverage in screen space.*) · `src/stroke.rs` (*Expose the same shader text to the lane and its GPU check.*)
+
+Project both endpoints, clip a crossing segment to the near plane, then expand perpendicular to its direction in pixels. Multiplying the offset by clip w preserves width through perspective division.
+
+Suppress a segment with no projected length. Linear screen interpolation carries edge distance to the fragment stage, which fades only the last pixel. Device density converts the CSS pen width into physical pixels.
+
+> **Self-Check Question:** *Why multiply a screen offset by the endpoint’s clip w?*  
+> **Answer:** Perspective division would otherwise shrink that offset with distance. Multiplying by w keeps its final projected width constant.
+
+- **What You Should See:** Run the GPU check. The real drawing device validates the stroke shader; its visible lane is connected next.
+- **Hands-On Lab Experiment:** Trace the six corners: they form two triangles. The width divides by viewport pixels and multiplies by clip w before perspective division.
+
 <details>
 <summary>Implementation 35b-extrude: Extrude a stroke in screen pixels</summary>
 
@@ -836,6 +932,24 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-35c-lane"></a>
 
+### Step 4 of 7 · Create the shared stroke pipeline (`35c-lane`)
+
+- **Goal:** Create one pipeline and view uniform for a batch of stroke instances.
+- **Data Flow Trace:** `checked shader → instance layout → shared view binding → alpha coverage → depth-tested lane`
+- **Files You Touch:** `src/stroke_gpu.rs` (*Create one depth-tested instanced lane with alpha coverage and its own view binding.*) · `src/lib.rs` (*Register the shared GPU lane.*)
+
+Create a shared stroke pipeline with an instance record for each segment. The shader generates six corners; the batch supplies endpoints, colour and width.
+
+Use alpha blending for the shader’s edge coverage and the existing depth format without writing stroke depth. A separate view binding holds the matrix, viewport and density. Allocate segment buffers only when the lane receives data.
+
+> **Self-Check Question:** *Why use six generated vertices and one instance record per segment?*  
+> **Answer:** Every segment uses the same two-triangle shape. Its endpoints and style change per instance, so no separate mesh or pipeline is needed for each line.
+
+- **What You Should See:** Build and open the viewer. The existing mesh picture still works; the shared stroke pipeline is ready for drawing in the following checkpoints.
+- **Hands-On Lab Experiment:** Compare the 44-byte instance attributes with the packed stroke record: positions occupy the first 24 bytes, followed by colour and width. The reference GPU fixture validates this layout and the 80-byte view uniform.
+
+From `session_viewer`, run `npm --prefix ../session_tests run course -- verify 35c-lane` to reproduce that reference check. It reconstructs the canonical checkpoint under `target`; it does not test or change your handwritten project. Compare your source with `course -- check 35c-lane` and run your project separately.
+
 <details>
 <summary>Implementation 35c-lane: Create the shared stroke pipeline</summary>
 
@@ -887,6 +1001,24 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-35ca-sync"></a>
+
+### Step 5 of 7 · Upload changed stroke instances only (`35ca-sync`)
+
+- **Goal:** Synchronize a stroke batch, draw it and retain vertex buffers through camera-only changes.
+- **Data Flow Trace:** `checked packed strokes → changed bytes → one GPU buffer → view-only updates → six vertices per instance`
+- **Files You Touch:** `src/stroke_gpu.rs` (*Keep segment uploads separate from camera uniforms and release empty batches.*)
+
+Upload a stroke batch only when its checked packed bytes change. Keep camera, viewport and density in the shared uniform instead of rebuilding segment vertices.
+
+An empty batch drops its buffer. Invalid data leaves the existing batch unchanged. Native GPU renders measure anti-aliased width in linear colour space and verify buffer reuse, exact payload accounting and release.
+
+> **Self-Check Question:** *Why compare packed data before replacing the vertex buffer?*  
+> **Answer:** Camera and unrelated mesh edits do not change stroke endpoints or style. Reusing the buffer avoids uploading the same data on every interaction.
+
+- **What You Should See:** Inspect the supplied state fixtures and open the viewer. The stroke lane can now upload and retain checked display records; actual scene drawing follows next.
+- **Hands-On Lab Experiment:** The reference GPU fixture checks pen width in both projections at two zooms and DPR1/2, unchanged uploads for an identical batch and camera-only changes, and buffer release on clear.
+
+From `session_viewer`, run `npm --prefix ../session_tests run course -- verify 35ca-sync` to reproduce that reference check. It reconstructs the canonical checkpoint under `target`; it does not test or change your handwritten project. Compare your source with `course -- check 35ca-sync` and run your project separately.
 
 <details>
 <summary>Implementation 35ca-sync: Upload changed stroke instances only</summary>
@@ -967,6 +1099,24 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-35cb-render"></a>
+
+### Step 6 of 7 · Connect the stroke lane to the document renderer (`35cb-render`)
+
+- **Goal:** Draw document strokes with shared depth, correct device density and complete Close accounting.
+- **Data Flow Trace:** `scene line owners → unchanged-data reuse → shared drawing pass → density-aware view → buffer release`
+- **Files You Touch:** `src/renderer.rs` (*Retain one stroke lane and the physical view dimensions.*) · `src/browser.rs` (*Use recovery’s effective density for both canvas size and stroke width.*) · `src/memory.rs` (*Count line rows, distinct kernel owners and allocated row capacity.*) · `src/scene.rs` (*Expose actual line table capacity for CPU accounting.*)
+
+Synchronize placed line records when the scene changes, then draw their shared lane in the existing depth pass. Camera changes update uniforms while vertex data stays resident.
+
+Pass the effective browser density through recovery’s existing cap. Report line rows and buffer usage separately from the earlier mesh counters. Closing clears line owners, history and GPU instances; the renderer retains no kernel line handle.
+
+> **Self-Check Question:** *Why does the renderer receive packed strokes rather than kernel owners?*  
+> **Answer:** The document owns editable sources and history. GPU display data can survive source release without keeping those kernel owners alive.
+
+- **What You Should See:** Build and open the viewer. Existing meshes still draw; the renderer now also draws source lines when present. The next checkpoint adds the command that inserts a line.
+- **Hands-On Lab Experiment:** The reference GPU fixture closes a line-bearing document and checks kernel weak-owner expiry and zero stroke allocation.
+
+From `session_viewer`, run `npm --prefix ../session_tests run course -- verify 35cb-render` to reproduce that reference check. It reconstructs the canonical checkpoint under `target`; it does not test or change your handwritten project. Compare your source with `course -- check 35cb-render` and run your project separately.
 
 <details>
 <summary>Implementation 35cb-render: Connect the stroke lane to the document renderer</summary>
@@ -2573,6 +2723,22 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-35d-input"></a>
 
+### Step 7 of 7 · Insert a line through the real command dock (`35d-input`)
+
+- **Goal:** Insert an editable line as one undoable command and prove its width in actual browser pixels.
+- **Data Flow Trace:** `Example Line → prepared source → one history transaction → stroke batch → camera-only reuse`
+- **Files You Touch:** `src/editor.rs` (*Add a document action for the example line.*) · `src/browser.rs` (*Expose the new action through the actual command list.*) · `src/stroke_input_tests.rs` (*Copy the source lifetime and undoable command checks.*) · `src/lib.rs` (*Register the command checks.*)
+
+Register Example Line in the existing dock and dispatch an Editor action. Prepare the kernel line before committing one history transaction. The line retains its original endpoints and style.
+
+Chrome checks real width at densities one and two in both projections, unchanged vertex uploads during zoom, document Undo/Redo and complete Close. Saving lines remains an explicit error until mixed-geometry serialization is taught.
+
+> **Self-Check Question:** *Why does line insertion go through Editor instead of directly changing the GPU buffer?*  
+> **Answer:** The document must own identity, original coordinates and Undo. The renderer follows accepted document changes and never becomes the editable authority.
+
+- **What You Should See:** Close the document, type Example Line, then zoom. The horizontal stroke remains five CSS pixels wide.
+- **Hands-On Lab Experiment:** Undo the line, Redo it, then Close. Inspect actual live line and GPU counters before and after each command.
+
 <details>
 <summary>Implementation 35d-input: Insert a line through the real command dock</summary>
 
@@ -3772,9 +3938,11 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 </details>
 
-## Run, Check, and Save
+---
 
-From `session_viewer`:
+## 5. Build, Verify, and Save Your Checkpoint
+
+Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 35d-input
@@ -3785,12 +3953,12 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. Use [checkpoint recovery](../recovery.md) to restore any saved checkpoint.
+Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../recovery.md) to save or restore any checkpoint ID.
 
-## Expected Visual Result & Experiment
+## 6. Lesson Summary & Expected Visual Result
 
 Close the document, type Example Line, then zoom. The horizontal stroke remains five CSS pixels wide.
 
-- **Try this:** Undo the line, Redo it, then Close. Inspect actual live line and GPU counters before and after each command.
+- **Final Lesson Experiment:** Undo the line, Redo it, then Close. Inspect actual live line and GPU counters before and after each command.
 
 Continue with [Joined paths and headed ends](36-chain.md).

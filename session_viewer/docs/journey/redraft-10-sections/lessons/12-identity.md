@@ -1,105 +1,166 @@
 # 2.4 · Selection that agrees with the displayed view
 
-**Section 2: 3D Meshes, Camera Matrices, Depth, and Ray Picking** · **Lesson 2.4** (Redraft `2.4`) · **4 checkpoints (`12-identity` → `13-picking`)**
+**Section 2: 3D Meshes, Camera Matrices, Depth, and Ray Picking** · **Lesson 2.4** (Redraft `2.4`) · **4 checkpoints (`12-identity` → `13-picking`)** · **Study time: 2.25–4.25 h**
 
-> **Learning Goal:** Select and delete objects using stable identities, then highlight the selected object.
+> **What You Will Learn & Build:** Select and delete objects using stable identities, then highlight the selected object. By the final checkpoint (`13-picking`), you will click a visible triangle to select its stable object ID, including after camera movement.
 
-## Visual WebGPU & Architecture Schematic
+## 1. Visual Pipeline & WebGPU Architecture (Black & White Schematics)
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1px solid #cbd5e1;border-radius:10px;background:#f8fafc;">
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
+<svg viewBox="0 0 840 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <rect x="4" y="4" width="832" height="212" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Lesson 2.4 Execution Flow: Selection that agrees with the displayed view</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">Concrete data pipeline you build in this lesson (4 Checkpoints: 12-identity → 13-picking)</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
+  
+    
+    <rect x="18" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="89" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
+    <line x1="28" y1="92" x2="151" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">selected ObjectId</text>
+    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="183" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="254" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
+    <line x1="193" y1="92" x2="316" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">upload copy</text>
+    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="348" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="419" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
+    <line x1="358" y1="92" x2="481" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">yellow display</text>
+    <text x="419" y="124" text-anchor="middle" font-size="11" fill="#111111">vertices</text>
+    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="513" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="584" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
+    <line x1="523" y1="92" x2="646" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">Canvas click</text>
+    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="678" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="749" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
+    <line x1="688" y1="92" x2="811" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">normalized point</text>
+    
+    <rect x="18" y="162" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="32" y="181" font-size="11" font-weight="700" fill="#111111">Files You Edit in Lesson 2.4:</text>
+    <text x="215" y="181" font-size="11" fill="#111111">src/gpu_mesh.rs  ·  src/renderer.rs  ·  src/browser.rs  ·  src/camera.rs  ·  src/picking.rs  ·  src/lib.rs</text>
+    <text x="32" y="198" font-size="10.5" fill="#111111">4 Checkpoints: 12-identity → 13-picking — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
+  
+</svg>
+</div>
+
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
 <svg viewBox="0 0 840 240" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#475569"/>
-    </marker>
-    <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#2563eb"/>
-    </marker>
-    <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#059669"/>
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
     </marker>
   </defs>
-  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
-  <text x="20" y="28" font-size="14" font-weight="700" fill="#0f172a">Chapter 2 WebGPU Pipeline: 3D Vertex/Index Buffers, Camera Uniform (mat4x4), Depth32Float & Ray Picking</text>
-  <text x="20" y="46" font-size="11.5" fill="#475569">How 3D world coordinates project onto the 2D canvas with hardware Z-buffering—and how a 2D mouse click unprojects back into a 3D ray.</text>
-  <line x1="16" y1="54" x2="824" y2="54" stroke="#e2e8f0" stroke-width="1"/>
+  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Chapter 2 WebGPU Pipeline: 3D Vertex/Index Buffers, Camera Uniform (mat4x4), Depth32Float & Ray Picking</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">How 3D world coordinates project onto the 2D canvas with hardware Z-buffering—and how a 2D mouse click unprojects back into a 3D ray.</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
   
     <!-- CPU Buffers -->
-    <rect x="18" y="68" width="185" height="145" rx="6" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5"/>
-    <text x="110" y="88" text-anchor="middle" font-size="12" font-weight="700" fill="#9a3412">1. Rust CPU Data (#[repr(C)])</text>
-    <text x="28" y="108" font-size="11" fill="#7c2d12">• vertices: Vec&lt;[f32; 3]&gt;</text>
-    <text x="28" y="125" font-size="11" fill="#7c2d12">• indices:  Vec&lt;u32&gt; (shared!)</text>
-    <text x="28" y="142" font-size="11" fill="#7c2d12">• camera.view_proj: [[f32;4];4]</text>
-    <text x="28" y="162" font-size="10.5" font-weight="600" fill="#c2410c">bytemuck::cast_slice(&amp;data)</text>
-    <text x="28" y="180" font-size="10.5" fill="#7c2d12">• Undo / Redo Snapshot Stack</text>
-    <text x="28" y="197" font-size="10.5" fill="#7c2d12">• Orbit / Pan / Zoom Camera</text>
+    <rect x="18" y="68" width="185" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="110" y="88" text-anchor="middle" font-size="12" font-weight="700" fill="#111111">1. Rust CPU Data (#[repr(C)])</text>
+    <text x="28" y="108" font-size="11" fill="#111111">• vertices: Vec&lt;[f32; 3]&gt;</text>
+    <text x="28" y="125" font-size="11" fill="#111111">• indices:  Vec&lt;u32&gt; (shared!)</text>
+    <text x="28" y="142" font-size="11" fill="#111111">• camera.view_proj: [[f32;4];4]</text>
+    <text x="28" y="162" font-size="10.5" font-weight="600" fill="#111111">bytemuck::cast_slice(&amp;data)</text>
+    <text x="28" y="180" font-size="10.5" fill="#111111">• Undo / Redo Snapshot Stack</text>
+    <text x="28" y="197" font-size="10.5" fill="#111111">• Orbit / Pan / Zoom Camera</text>
 
-    <line x1="203" y1="115" x2="233" y2="115" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>
+    <line x1="203" y1="115" x2="233" y2="115" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
     <!-- Vertex Shader -->
-    <rect x="235" y="68" width="205" height="90" rx="6" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
-    <text x="337" y="87" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1e40af">2. @vertex Shader Stage</text>
-    <text x="245" y="105" font-size="10.5" fill="#1e3a8a">@location(0) pos: vec3&lt;f32&gt;</text>
-    <text x="245" y="122" font-size="10.5" fill="#1e3a8a">@group(0) @binding(0) view_proj</text>
-    <text x="245" y="142" font-size="11" font-weight="700" fill="#1d4ed8">clip = view_proj * vec4(pos, 1.0)</text>
+    <rect x="235" y="68" width="205" height="90" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="337" y="87" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">2. @vertex Shader Stage</text>
+    <text x="245" y="105" font-size="10.5" fill="#111111">@location(0) pos: vec3&lt;f32&gt;</text>
+    <text x="245" y="122" font-size="10.5" fill="#111111">@group(0) @binding(0) view_proj</text>
+    <text x="245" y="142" font-size="11" font-weight="700" fill="#111111">clip = view_proj * vec4(pos, 1.0)</text>
 
-    <line x1="440" y1="115" x2="470" y2="115" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
+    <line x1="440" y1="115" x2="470" y2="115" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
     <!-- Raster + Depth32Float -->
-    <rect x="472" y="68" width="185" height="90" rx="6" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1.5"/>
-    <text x="564" y="87" text-anchor="middle" font-size="11.5" font-weight="700" fill="#065f46">3. Depth32Float Z-Test</text>
-    <text x="482" y="105" font-size="10.5" fill="#064e3b">NDC = clip.xyz / clip.w</text>
-    <text x="482" y="122" font-size="10.5" font-weight="600" fill="#047857">if z_fragment &lt;= z_buffer[x,y]:</text>
-    <text x="482" y="139" font-size="10.5" fill="#064e3b">  write pixel &amp; update z_buffer</text>
+    <rect x="472" y="68" width="185" height="90" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="564" y="87" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">3. Depth32Float Z-Test</text>
+    <text x="482" y="105" font-size="10.5" fill="#111111">NDC = clip.xyz / clip.w</text>
+    <text x="482" y="122" font-size="10.5" font-weight="600" fill="#111111">if z_fragment &lt;= z_buffer[x,y]:</text>
+    <text x="482" y="139" font-size="10.5" fill="#111111">  write pixel &amp; update z_buffer</text>
 
-    <line x1="657" y1="115" x2="685" y2="115" stroke="#059669" stroke-width="2" marker-end="url(#arrow-green)"/>
+    <line x1="657" y1="115" x2="685" y2="115" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
     <!-- Screen & Reverse Ray Pick -->
-    <rect x="687" y="68" width="133" height="145" rx="6" fill="#fdf2f8" stroke="#f472b6" stroke-width="1.5"/>
-    <text x="753" y="87" text-anchor="middle" font-size="11.5" font-weight="700" fill="#9d174d">4. Canvas &amp; Pick</text>
-    <text x="696" y="106" font-size="10.5" fill="#831843">• Nearer mesh</text>
-    <text x="696" y="120" font-size="10.5" fill="#831843">  occludes rear</text>
-    <text x="696" y="142" font-size="10.5" font-weight="600" fill="#9d174d">• Click (px, py):</text>
-    <text x="696" y="157" font-size="10" fill="#831843">  inv_view_proj</text>
-    <text x="696" y="172" font-size="10" fill="#831843">  -&gt; 3D Ray(O, D)</text>
-    <text x="696" y="187" font-size="10" fill="#831843">  -&gt; min t hit ID!</text>
+    <rect x="687" y="68" width="133" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="753" y="87" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">4. Canvas &amp; Pick</text>
+    <text x="696" y="106" font-size="10.5" fill="#111111">• Nearer mesh</text>
+    <text x="696" y="120" font-size="10.5" fill="#111111">  occludes rear</text>
+    <text x="696" y="142" font-size="10.5" font-weight="600" fill="#111111">• Click (px, py):</text>
+    <text x="696" y="157" font-size="10" fill="#111111">  inv_view_proj</text>
+    <text x="696" y="172" font-size="10" fill="#111111">  -&gt; 3D Ray(O, D)</text>
+    <text x="696" y="187" font-size="10" fill="#111111">  -&gt; min t hit ID!</text>
 
     <!-- Bottom Reverse Arrow for Ray Picking -->
-    <rect x="235" y="168" width="422" height="45" rx="6" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1"/>
-    <text x="446" y="187" text-anchor="middle" font-size="11" font-weight="600" fill="#334155">CPU Ray Picking (Inverse Path): Screen (px, py) → NDC (-1..+1) → inv(view_proj) → World Ray (O + t·D)</text>
-    <text x="446" y="203" text-anchor="middle" font-size="10.5" fill="#475569">Tests every triangle via Möller–Trumbore; smallest positive t wins (matching hardware Depth32Float occlusion!)</text>
+    <rect x="235" y="168" width="422" height="45" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="446" y="187" text-anchor="middle" font-size="11" font-weight="600" fill="#111111">CPU Ray Picking (Inverse Path): Screen (px, py) → NDC (-1..+1) → inv(view_proj) → World Ray (O + t·D)</text>
+    <text x="446" y="203" text-anchor="middle" font-size="10.5" fill="#111111">Tests every triangle via Möller–Trumbore; smallest positive t wins (matching hardware Depth32Float occlusion!)</text>
     
 </svg>
 </div>
 
-### Lesson Data Flow (`Rust` → `WebGPU` → `WGSL`)
+## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
 
-```
-selected ObjectId → upload copy → yellow display vertices.
-Scene point → barycentric coverage → interpolated depth → nearest ObjectId.
-Canvas click → normalized point → inverse camera → pick → selected display.
-```
+Before writing code, review how the three layers in this chapter talk to each other:
 
-- Select and delete objects using stable identities, then highlight the selected object.
-- Query triangle coverage and depth without changing the scene.
-- Click a visible triangle to select its stable object ID, including after camera movement.
-- **Why it works (Why tint a copy rather than the retained mesh?):** The scene keeps the authored colour. Clearing selection must recover that colour instead of replacing source data.
-
-### Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `Browser`)
-
-| Layer | Construct | First-Year Student Explanation |
+| Layer | Construct | Plain-English Explanation for Students |
 | :--- | :--- | :--- |
 | **Rust (`bytemuck`)** | `#[repr(C)]` + `Pod` / `Zeroable` | Guarantees Rust structs (`Vertex`, `CameraUniform`) have exact C/GPU byte layout so `bytemuck::cast_slice` uploads raw bytes to `wgpu::Buffer` with zero copying. |
 | **WGSL Shader** | `@group(0) @binding(0) var<uniform> view_proj: mat4x4<f32>` | Transforms 3D world vertices into 4D homogeneous clip coordinates (`view_proj * vec4<f32>(pos, 1.0)`). |
 | **WebGPU / Math** | `Depth32Float` + Inverse Ray `inv(view_proj)` | Forward pass uses a 32-bit float Z-buffer (`LessEqual`) so nearer triangles occlude farther ones; clicking unprojects `(px, py)` back into a 3D ray to pick the closest hit `t`. |
 
-**Production source (`session_viewer/src`):** `session_viewer/src`
+**Authoritative production source (`session_viewer/src`):** `session_viewer/src`
 
-## Implementation Checkpoints
+## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
 
-Apply these checkpoints in order inside `workspace/journey`. Expand each block to view the Rust/WGSL/HTML edits:
+| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
+| ---: | :--- | :--- | :--- | :--- |
+| **1** | [`12-identity`](#checkpoint-12-identity) | Select and delete objects using stable identities, then highlight the selected object. | `src/gpu_mesh.rs`, `src/renderer.rs`, `src/browser.rs` | `selected ObjectId → upload copy → yellow display vertices` |
+| **2** | [`12a-coordinates`](#checkpoint-12a-coordinates) | Undo the camera transform before querying CPU geometry. | `src/camera.rs` | `Screen point → divide scale → reverse rotation → add scene centre` |
+| **3** | [`12b-picking`](#checkpoint-12b-picking) | Query triangle coverage and depth without changing the scene. | `src/picking.rs`, `src/lib.rs` | `Scene point → barycentric coverage → interpolated depth → nearest ObjectId` |
+| **4** | [`13-picking`](#checkpoint-13-picking) | Click a visible triangle to select its stable object ID, including after camera movement. | `src/browser.rs` | `Canvas click → normalized point → inverse camera → pick → selected display` |
+
+---
+
+## 4. Step-by-Step Coding Notebook (Concept + Implementation)
+
+Work through each notebook cell below in order inside `workspace/journey`. Read the **Concept Walkthrough** and **Self-Check Q&A** first, then expand the **Implementation** block to type and verify the code.
 
 <a id="checkpoint-12-identity"></a>
+
+### Step 1 of 4 · Display selection by object identity (`12-identity`)
+
+- **Goal:** Select and delete objects using stable identities, then highlight the selected object.
+- **Data Flow Trace:** `selected ObjectId → upload copy → yellow display vertices`
+- **Files You Touch:** `src/gpu_mesh.rs` (*Let the uploaded representation know whether to show selection.*) · `src/renderer.rs` (*Import ObjectId at the renderer boundary.*) · `src/browser.rs` (*Add Select Next and Delete to the vocabulary.*)
+
+Selection stores Option<ObjectId>, so it follows the object through row changes. GpuMesh uploads a yellow copy for the selected ID while Scene retains its original colours.
+
+Delete removes the selected ID and clears selection. The CPU mesh is borrowed during upload; only the copied display colours change.
+
+> **Self-Check Question:** *Why tint a copy rather than the retained mesh?*  
+> **Answer:** The scene keeps the authored colour. Clearing selection must recover that colour instead of replacing source data.
+
+- **What You Should See:** Type Select Next. The first object turns yellow; its stored mesh colour remains pink.
+- **Hands-On Lab Experiment:** Select the first object, then Delete. Add the extra triangle and toggle it off. Only the original far triangle should remain.
 
 <details>
 <summary>Implementation 12-identity: Display selection by object identity</summary>
@@ -811,6 +872,22 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-12a-coordinates"></a>
 
+### Step 2 of 4 · Convert screen positions back to the scene (`12a-coordinates`)
+
+- **Goal:** Undo the camera transform before querying CPU geometry.
+- **Data Flow Trace:** `Screen point → divide scale → reverse rotation → add scene centre`
+- **Files You Touch:** `src/camera.rs` (*Add the inverse conversion for our flat camera. Rust’s sin_cos returns the sine and cosine as a pair.*)
+
+Divide a screen point by camera scale, reverse rotation, then add the camera centre. world_from_screen returns the corresponding scene point.
+
+A round-trip check transforms a known scene point into the view and restores it after pan, zoom and rotation.
+
+> **Self-Check Question:** *Why reverse the camera before testing geometry?*  
+> **Answer:** The click is in the displayed view; mesh positions are in scene coordinates. The conversion puts both in the same coordinates.
+
+- **What You Should See:** Inspect the supplied state fixtures. The new round-trip test restores a known scene point after pan, zoom and rotation.
+- **Hands-On Lab Experiment:** Trace [0.4, 0.0] through the forward and inverse coordinate conversions. Undoing scale and rotation must recover both coordinates within 0.000001; inspect the supplied round-trip fixture.
+
 <details>
 <summary>Implementation 12a-coordinates: Convert screen positions back to the scene</summary>
 
@@ -1023,6 +1100,22 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-12b-picking"></a>
 
+### Step 3 of 4 · Find the nearest triangle at a scene point (`12b-picking`)
+
+- **Goal:** Query triangle coverage and depth without changing the scene.
+- **Data Flow Trace:** `Scene point → barycentric coverage → interpolated depth → nearest ObjectId`
+- **Files You Touch:** `src/picking.rs` (*Create the CPU query and tests. It reads scene data and returns identity without changing selection or GPU resources.*) · `src/lib.rs` (*Register the query module.*)
+
+Test each indexed triangle with barycentric weights. Nonnegative weights with a sum at most one place the point inside it; those weights also interpolate depth. Retain the nearest covered object.
+
+The query borrows Scene and returns Option<ObjectId>. It does not change selection. None means no triangle covers the point.
+
+> **Self-Check Question:** *Why return an ObjectId rather than a row?*  
+> **Answer:** Rows can move after removal. Returning the stable name lets the caller retain the same object.
+
+- **What You Should See:** Inspect the supplied state fixtures. The nearer object wins the overlap; removing it reveals the far object; empty and invalid positions return None.
+- **Hands-On Lab Experiment:** In the overlap test, remove the near object before the first query. The far object should now win at the same scene point.
+
 <details>
 <summary>Implementation 12b-picking: Find the nearest triangle at a scene point</summary>
 
@@ -1067,6 +1160,22 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-13-picking"></a>
+
+### Step 4 of 4 · Select the visible object with a mouse click (`13-picking`)
+
+- **Goal:** Click a visible triangle to select its stable object ID, including after camera movement.
+- **Data Flow Trace:** `Canvas click → normalized point → inverse camera → pick → selected display`
+- **Files You Touch:** `src/browser.rs` (*Convert an unconsumed canvas click into a picking request.*)
+
+Convert an unconsumed canvas click from CSS pixels to normalized screen coordinates. Reverse y, undo the camera, then ask the query for the visible ObjectId.
+
+The command dock handles its own input first. A scene click updates selection and uploads its display colour.
+
+> **Self-Check Question:** *Why test whether the command dock consumed the click?*  
+> **Answer:** Clicking or editing the dock must not also select scene geometry.
+
+- **What You Should See:** Click the visible far triangle. It turns yellow.
+- **Hands-On Lab Experiment:** Select the front triangle at the overlap and delete it. Click that same place again. The far triangle should now be selected with its original ID. Then move the camera and repeat: explain the coordinate conversions rather than memorising a pixel position.
 
 <details>
 <summary>Implementation 13-picking: Select the visible object with a mouse click</summary>
@@ -1428,9 +1537,11 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 </details>
 
-## Run, Check, and Save
+---
 
-From `session_viewer`:
+## 5. Build, Verify, and Save Your Checkpoint
+
+Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 13-picking
@@ -1441,12 +1552,12 @@ cargo build --lib --locked --target wasm32-unknown-unknown -j1
 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. Use [checkpoint recovery](../../recovery.md) to restore any saved checkpoint.
+Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
 
-## Expected Visual Result & Experiment
+## 6. Lesson Summary & Expected Visual Result
 
 Click the visible far triangle. It turns yellow.
 
-- **Try this:** Select the front triangle at the overlap and delete it. Click that same place again. The far triangle should now be selected with its original ID. Then move the camera and repeat: explain the coordinate conversions rather than memorising a pixel position.
+- **Final Lesson Experiment:** Select the front triangle at the overlap and delete it. Click that same place again. The far triangle should now be selected with its original ID. Then move the camera and repeat: explain the coordinate conversions rather than memorising a pixel position.
 
-Continue with [Document history and perspective rays](13a-history.md).
+Continue with [Document history and perspective rays](../../consolidation/13a-history.md).

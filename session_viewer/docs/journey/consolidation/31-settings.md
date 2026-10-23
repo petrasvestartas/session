@@ -1,92 +1,183 @@
 # 3.6 · Shared GPU geometry and releasable source ownership
 
-**Section 3: Scene Documents, Transactions, and Browser GPU Lifetime** · **Lesson 3.6** (Redraft `3.6`) · **23 checkpoints (`31-settings` → `32fl-guards`)**
+**Section 3: Scene Documents, Transactions, and Browser GPU Lifetime** · **Lesson 3.6** (Redraft `3.6`) · **23 checkpoints (`31-settings` → `32fl-guards`)** · **Study time: 23–46 h**
 
-> **Learning Goal:** Put placement and selection in an explicitly packed object uniform.
+> **What You Will Learn & Build:** Put placement and selection in an explicitly packed object uniform. By the final checkpoint (`32fl-guards`), you will verify whole-origin protection, independent duplicate imports and checked release epochs.
 
-## Visual WebGPU & Architecture Schematic
+## 1. Visual Pipeline & WebGPU Architecture (Black & White Schematics)
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1px solid #cbd5e1;border-radius:10px;background:#f8fafc;">
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
+<svg viewBox="0 0 840 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <rect x="4" y="4" width="832" height="212" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Lesson 3.6 Execution Flow: Shared GPU geometry and releasable source ownership</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">Concrete data pipeline you build in this lesson (23 Checkpoints: 31-settings → 32fl-guards)</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
+  
+    
+    <rect x="18" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="89" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
+    <line x1="28" y1="92" x2="151" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">Object placement</text>
+    <text x="89" y="124" text-anchor="middle" font-size="11" fill="#111111">and selection</text>
+    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="183" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="254" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
+    <line x1="193" y1="92" x2="316" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">eighty uniform</text>
+    <text x="254" y="124" text-anchor="middle" font-size="11" fill="#111111">bytes</text>
+    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="348" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="419" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
+    <line x1="358" y1="92" x2="481" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">vertex shader;</text>
+    <text x="419" y="124" text-anchor="middle" font-size="11" fill="#111111">source colours stay</text>
+    <text x="419" y="140" text-anchor="middle" font-size="11" fill="#111111">unchanged</text>
+    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="513" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="584" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
+    <line x1="523" y1="92" x2="646" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">Modified history</text>
+    <text x="584" y="124" text-anchor="middle" font-size="11" fill="#111111">origin</text>
+    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="678" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="749" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
+    <line x1="688" y1="92" x2="811" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">protection;</text>
+    <text x="749" y="124" text-anchor="middle" font-size="11" fill="#111111">independent origin</text>
+    
+    <rect x="18" y="162" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="32" y="181" font-size="11" font-weight="700" fill="#111111">Files You Edit in Lesson 3.6:</text>
+    <text x="215" y="181" font-size="11" fill="#111111">src/gpu_mesh.rs  ·  src/triangle.wgsl  ·  src/gpu_geometry.rs  ·  src/lib.rs  ·  src/geometry_cache.rs  ·  src/renderer.rs</text>
+    <text x="32" y="198" font-size="10.5" fill="#111111">23 Checkpoints: 31-settings → 32fl-guards — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
+  
+</svg>
+</div>
+
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
 <svg viewBox="0 0 840 240" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#475569"/>
-    </marker>
-    <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#2563eb"/>
-    </marker>
-    <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#059669"/>
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
     </marker>
   </defs>
-  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
-  <text x="20" y="28" font-size="14" font-weight="700" fill="#0f172a">Chapter 3 Architecture: Transactional Protobuf (.pb) Decode, World Placements & Incremental GPU Sync</text>
-  <text x="20" y="46" font-size="11.5" fill="#475569">Separating exact session_rust kernel geometry from GPU display buffers so view changes never re-upload unchanged meshes.</text>
-  <line x1="16" y1="54" x2="824" y2="54" stroke="#e2e8f0" stroke-width="1"/>
+  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Chapter 3 Architecture: Transactional Protobuf (.pb) Decode, World Placements & Incremental GPU Sync</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">Separating exact session_rust kernel geometry from GPU display buffers so view changes never re-upload unchanged meshes.</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
   
-    <rect x="18" y="68" width="185" height="145" rx="6" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
-    <text x="110" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1e40af">1. Async .pb File / URL I/O</text>
-    <text x="28" y="108" font-size="10.5" fill="#1e3a8a">• Ticket #N (cancels #N-1)</text>
-    <text x="28" y="126" font-size="10.5" fill="#1e3a8a">• Bounded Protobuf decode</text>
-    <text x="28" y="144" font-size="10.5" font-weight="600" fill="#1d4ed8">• Topological validation</text>
-    <text x="28" y="162" font-size="10.5" fill="#1e3a8a">• Corrupt file? Reject with</text>
-    <text x="28" y="177" font-size="10.5" fill="#1e3a8a">  ZERO partial scene mutation</text>
+    <rect x="18" y="68" width="185" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="110" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">1. Async .pb File / URL I/O</text>
+    <text x="28" y="108" font-size="10.5" fill="#111111">• Ticket #N (cancels #N-1)</text>
+    <text x="28" y="126" font-size="10.5" fill="#111111">• Bounded Protobuf decode</text>
+    <text x="28" y="144" font-size="10.5" font-weight="600" fill="#111111">• Topological validation</text>
+    <text x="28" y="162" font-size="10.5" fill="#111111">• Corrupt file? Reject with</text>
+    <text x="28" y="177" font-size="10.5" fill="#111111">  ZERO partial scene mutation</text>
 
-    <line x1="203" y1="138" x2="233" y2="138" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
+    <line x1="203" y1="138" x2="233" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="235" y="68" width="275" height="145" rx="6" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5"/>
-    <text x="372" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#9a3412">2. Editor Owner (Browser-Independent)</text>
-    <text x="247" y="108" font-size="10.5" fill="#7c2d12">• Kernel Mesh (local-space f64 coordinates)</text>
-    <text x="247" y="126" font-size="10.5" fill="#7c2d12">• Placement 4x4 Matrix (world transform)</text>
-    <text x="247" y="144" font-size="10.5" font-weight="600" fill="#c2410c">• Releasable Source Ownership:</text>
-    <text x="247" y="160" font-size="10" fill="#7c2d12">  Drop cold CPU source after GPU upload;</text>
-    <text x="247" y="175" font-size="10" fill="#7c2d12">  re-fetch exact SHA/revision on edit!</text>
-    <text x="247" y="195" font-size="10.5" fill="#7c2d12">• Emits Change { sync_scene, redraw }</text>
+    <rect x="235" y="68" width="275" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="372" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">2. Editor Owner (Browser-Independent)</text>
+    <text x="247" y="108" font-size="10.5" fill="#111111">• Kernel Mesh (local-space f64 coordinates)</text>
+    <text x="247" y="126" font-size="10.5" fill="#111111">• Placement 4x4 Matrix (world transform)</text>
+    <text x="247" y="144" font-size="10.5" font-weight="600" fill="#111111">• Releasable Source Ownership:</text>
+    <text x="247" y="160" font-size="10" fill="#111111">  Drop cold CPU source after GPU upload;</text>
+    <text x="247" y="175" font-size="10" fill="#111111">  re-fetch exact SHA/revision on edit!</text>
+    <text x="247" y="195" font-size="10.5" fill="#111111">• Emits Change { sync_scene, redraw }</text>
 
-    <line x1="510" y1="115" x2="542" y2="115" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>
-    <line x1="510" y1="175" x2="542" y2="175" stroke="#059669" stroke-width="2" marker-end="url(#arrow-green)"/>
+    <line x1="510" y1="115" x2="542" y2="115" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
+    <line x1="510" y1="175" x2="542" y2="175" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="544" y="68" width="276" height="68" rx="6" fill="#fdf2f8" stroke="#f472b6" stroke-width="1.5"/>
-    <text x="556" y="86" font-size="11" font-weight="700" fill="#9d174d">3A. Geometry Changed (sync_scene = true)</text>
-    <text x="556" y="104" font-size="10.5" fill="#831843">• Upload changed mesh vertex/index buffers</text>
-    <text x="556" y="120" font-size="10.5" fill="#831843">• Retain unchanged object GPU allocations</text>
+    <rect x="544" y="68" width="276" height="68" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="556" y="86" font-size="11" font-weight="700" fill="#111111">3A. Geometry Changed (sync_scene = true)</text>
+    <text x="556" y="104" font-size="10.5" fill="#111111">• Upload changed mesh vertex/index buffers</text>
+    <text x="556" y="120" font-size="10.5" fill="#111111">• Retain unchanged object GPU allocations</text>
 
-    <rect x="544" y="145" width="276" height="68" rx="6" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1.5"/>
-    <text x="556" y="163" font-size="11" font-weight="700" fill="#065f46">3B. View / Camera Only (sync_scene = false)</text>
-    <text x="556" y="181" font-size="10.5" fill="#064e3b">• queue.write_buffer(camera_uniform) ONLY</text>
-    <text x="556" y="197" font-size="10.5" fill="#064e3b">• Zero geometry re-uploads during Orbit/Fit!</text>
+    <rect x="544" y="145" width="276" height="68" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="556" y="163" font-size="11" font-weight="700" fill="#111111">3B. View / Camera Only (sync_scene = false)</text>
+    <text x="556" y="181" font-size="10.5" fill="#111111">• queue.write_buffer(camera_uniform) ONLY</text>
+    <text x="556" y="197" font-size="10.5" fill="#111111">• Zero geometry re-uploads during Orbit/Fit!</text>
     
 </svg>
 </div>
 
-### Lesson Data Flow (`Rust` → `WebGPU` → `WGSL`)
+## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
 
-```
-Object placement and selection → eighty uniform bytes → vertex shader; source colours stay unchanged.
-Scene row → Option of borrowed editable geometry/provenance → checked source consumers.
-Modified history origin → protection; independent origin → release; exhausted epoch → no mutation.
-```
+Before writing code, review how the three layers in this chapter talk to each other:
 
-- Put placement and selection in an explicitly packed object uniform.
-- Route saving, source accounting and owner checks through borrowed source accessors.
-- Verify whole-origin protection, independent duplicate imports and checked release epochs.
-- **Why it works (Why must selection move before we can share one vertex buffer?):** Two objects can use the same geometry while only one is selected. A gold colour written into their shared vertices would affect both. Keep immutable source colours in the vertex buffer and choose the displayed colour from each object’s uniform.
-
-### Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `Browser`)
-
-| Layer | Construct | First-Year Student Explanation |
+| Layer | Construct | Plain-English Explanation for Students |
 | :--- | :--- | :--- |
 | **Protobuf (`.pb`)** | `session_proto` Binary Wire Format | Compact binary serialization for `Session` models; decoded with strict byte/count limits and topological validation before touching the live scene. |
 | **Rust (`session_rust`)** | Kernel `Mesh` + World Placement `4x4` Matrix | Separates exact `f64` kernel geometry from placed world instances; cold CPU source bytes can be released after GPU upload and re-fetched on edit. |
 | **Rust (`wgpu`)** | `Change { sync_scene, redraw }` | Incremental dirty-flag contract: camera orbit/fit sets `sync_scene = false` (updating only the 64-byte camera uniform), while geometry edits upload only changed buffers. |
 
-**Production source (`session_viewer/src`):** `session_viewer/src`
+**Authoritative production source (`session_viewer/src`):** `session_viewer/src`
 
-## Implementation Checkpoints
+## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
 
-Apply these checkpoints in order inside `workspace/journey`. Expand each block to view the Rust/WGSL/HTML edits:
+| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
+| ---: | :--- | :--- | :--- | :--- |
+| **1** | [`31-settings`](#checkpoint-31-settings) | Put placement and selection in an explicitly packed object uniform. | `src/gpu_mesh.rs`, `src/triangle.wgsl` | `Object placement and selection → eighty uniform bytes → vertex shader; source colours stay unchanged` |
+| **2** | [`31a-geometry`](#checkpoint-31a-geometry) | Separate vertex/index storage from each object’s uniform and retain its CPU source. | `src/gpu_geometry.rs`, `src/lib.rs`, `src/gpu_mesh.rs` | `CPU display Rc → GPU geometry Rc → object row with its own uniform → draw` |
+| **3** | [`31b-cache`](#checkpoint-31b-cache) | Cache GPU geometry by its retained CPU allocation and release dead cache entries. | `src/geometry_cache.rs`, `src/lib.rs`, `src/renderer.rs`, `src/browser.rs` | `Scene row → source allocation identity → weak cache lookup → shared GPU geometry → object settings` |
+| **4** | [`31c-incremental`](#checkpoint-31c-incremental) | Retain GPU rows by object and geometry identity, then write only changed uniform ranges. | `src/gpu_mesh.rs`, `src/renderer.rs` | `Scene row → retained GPU row → matrix or selection byte difference → queued range write → next draw` |
+| **5** | [`32-history`](#checkpoint-32-history) | Inspect undo/redo roots and release both branches explicitly. | `src/history.rs` | `Scene snapshots → shared source/display owners → history reset → ownership tests` |
+| **6** | [`32a-cpu`](#checkpoint-32a-cpu) | Account for active/history rows, retained sources/documents and unique display payloads. | `src/mesh.rs`, `src/editor.rs`, `src/renderer.rs`, `src/memory.rs` | `Borrowed scene roots and GPU display owners → identity sets → scoped CPU ledger` |
+| **7** | [`32b-gpu`](#checkpoint-32b-gpu) | Measure live document buffer sizes separately from cumulative allocation counters. | `src/gpu_geometry.rs`, `src/gpu_mesh.rs`, `src/memory.rs`, `src/renderer.rs` | `Live GPU rows → unique geometry owners and independent settings → buffer-size ledger` |
+| **8** | [`32c-close`](#checkpoint-32c-close) | Drop active rows and both history branches while preserving the local ID counter and camera. | `src/scene.rs`, `src/editor.rs` | `Close action → scene storage release and history reset → empty renderer synchronization` |
+| **9** | [`32d-command`](#checkpoint-32d-command) | Wire Close into the dock and cancel pending delivery before closing the editor. | `src/browser.rs` | `Typed Close → read-ticket cancellation → editor close → empty GPU rows → dock result` |
+| **10** | [`32e-release`](#checkpoint-32e-release) | Check imported history owners, the CPU/GPU release boundary, late read failures and reopening. | `src/editor.rs` | `Weak old owners → Close → editor roots gone → empty GPU synchronization → fresh document IDs` |
+| **11** | [`32f-metadata`](#checkpoint-32f-metadata) | Retain names, original source GUIDs and visibility/locking flags without keeping kernel owners alive. | `src/lib.rs`, `src/row_metadata.rs`, `src/scene.rs`, `src/browser.rs` | `Prepared source → independent row metadata → shared scene snapshots → source ownership proof` |
+| **12** | [`32fa-access`](#checkpoint-32fa-access) | Route saving, source accounting and owner checks through borrowed source accessors. | `src/scene.rs`, `src/document.rs`, `src/memory.rs`, `src/source_tests.rs` | `Scene row → Option of borrowed editable geometry/provenance → checked source consumers` |
+| **13** | [`32fb-boundary`](#checkpoint-32fb-boundary) | Finish migrating owner checks and prevent other modules from bypassing source availability. | `src/editor.rs`, `src/history.rs`, `src/file_identity_tests.rs`, `src/document_tests.rs` | `Remaining native ownership proofs → borrowed accessors → private source fields` |
+| **14** | [`32fc-version`](#checkpoint-32fc-version) | Own a small document header, a distinct import ID and an exact file fingerprint. | `Cargo.toml`, `src/lib.rs`, `src/origin.rs` | `Own a small document header, a distinct import ID and an exact file fingerprint.` |
+| **15** | [`32fd-origin`](#checkpoint-32fd-origin) | Share one geometry-free origin across imported rows and history. | `src/document.rs`, `src/lib.rs`, `src/origin_tests.rs`, `src/browser.rs` | `Share one geometry-free origin across imported rows and history.` |
+| **16** | [`32fe-location`](#checkpoint-32fe-location) | Retain an owned Blob URL through imports and history, then release it with its last owner. | `src/lib.rs`, `src/reload_url.rs`, `src/origin.rs`, `src/document.rs` | `Retain an owned Blob URL through imports and history, then release it with its last owner.` |
+| **17** | [`32ff-bridge`](#checkpoint-32ff-bridge) | Transfer the accepted File through synchronous delivery and create its URL at adoption. | `src/file_input.rs`, `src/browser.rs` | `Transfer the accepted File through synchronous delivery and create its URL at adoption.` |
+| **18** | [`32fg-state`](#checkpoint-32fg-state) | Represent source residency without changing retained display, identity or placement. | `src/lib.rs`, `src/edit_source.rs`, `src/scene.rs`, `src/browser.rs` | `Represent source residency without changing retained display, identity or placement.` |
+| **19** | [`32fh-policy`](#checkpoint-32fh-policy) | Require a reload location, original kernel allocation and unchanged row metadata. | `src/scene.rs` | `Require a reload location, original kernel allocation and unchanged row metadata.` |
+| **20** | [`32fi-history`](#checkpoint-32fi-history) | Release a validated whole-origin set without clearing Undo/Redo or changing placements. | `src/history.rs`, `src/editor.rs`, `src/scene.rs` | `Release a validated whole-origin set without clearing Undo/Redo or changing placements.` |
+| **21** | [`32fj-proof`](#checkpoint-32fj-proof) | Observe imported kernel expiration while retained displays and placements survive Undo/Redo. | `src/lib.rs`, `src/unload_tests.rs` | `Weak kernel/document observers → unload all roots → retained display → cold model-history travel` |
+| **22** | [`32fk-command`](#checkpoint-32fk-command) | Keep the drawing and GPU allocations while the dock unloads eligible imported sources. | `src/browser.rs` | `Keep the drawing and GPU allocations while the dock unloads eligible imported sources.` |
+| **23** | [`32fl-guards`](#checkpoint-32fl-guards) | Verify whole-origin protection, independent duplicate imports and checked release epochs. | `src/editor.rs` | `Modified history origin → protection; independent origin → release; exhausted epoch → no mutation` |
+
+---
+
+## 4. Step-by-Step Coding Notebook (Concept + Implementation)
+
+Work through each notebook cell below in order inside `workspace/journey`. Read the **Concept Walkthrough** and **Self-Check Q&A** first, then expand the **Implementation** block to type and verify the code.
 
 <a id="checkpoint-31-settings"></a>
+
+### Step 1 of 23 · Keep selection out of the vertex data (`31-settings`)
+
+- **Goal:** Put placement and selection in an explicitly packed object uniform.
+- **Data Flow Trace:** `Object placement and selection → eighty uniform bytes → vertex shader; source colours stay unchanged`
+- **Files You Touch:** `src/gpu_mesh.rs` (*Upload original vertex colours regardless of which object is selected.*) · `src/triangle.wgsl` (*Describe the same eighty-byte object layout in WGSL.*)
+
+Our renderer currently copies gold into every selected vertex during upload. That makes selection part of geometry storage. Before sharing any buffers, separate those two responsibilities.
+
+The first sixty-four bytes still contain the placement matrix. The next sixteen bytes form a vec4 selection field: its first float is one or zero and its remaining floats are zero. We pack all eighty bytes explicitly rather than depending on the layout of a Rust struct.
+
+The [WGSL layout rules](https://www.w3.org/TR/WGSL/#alignment-and-size) align both a matrix and a vec4 to sixteen bytes. A four-column matrix occupies sixty-four bytes, so the following field begins at byte sixty-four and the complete uniform occupies eighty.
+
+The shader multiplies by object.model and uses object.selection.x to choose the original colour or our existing gold. Lighting still runs after that choice. Source geometry and its colour values do not change when selection changes.
+
+This endpoint still rebuilds GPU rows after every scene change. It establishes the data boundary; the following lessons change ownership and reuse.
+
+> **Self-Check Question:** *Why must selection move before we can share one vertex buffer?*  
+> **Answer:** Two objects can use the same geometry while only one is selected. A gold colour written into their shared vertices would affect both. Keep immutable source colours in the vertex buffer and choose the displayed colour from each object’s uniform.
+
+- **What You Should See:** Select an object and move it. Its colour and placement now come from an object uniform; the original vertex colours and positions stay unchanged.
+- **Hands-On Lab Experiment:** Temporarily put the selection flag at byte sixty-eight while leaving the shader field unchanged. Predict why the first selection component remains zero. Restore byte sixty-four before continuing.
 
 <details>
 <summary>Implementation 31-settings: Keep selection out of the vertex data</summary>
@@ -348,6 +439,26 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-31a-geometry"></a>
 
+### Step 2 of 23 · Give immutable GPU geometry one owner (`31a-geometry`)
+
+- **Goal:** Separate vertex/index storage from each object’s uniform and retain its CPU source.
+- **Data Flow Trace:** `CPU display Rc → GPU geometry Rc → object row with its own uniform → draw`
+- **Files You Touch:** `src/gpu_geometry.rs` (*Create an owner for immutable buffers and the CPU display allocation that produced them.*) · `src/lib.rs` (*Make geometry storage available to the draw row.*) · `src/gpu_mesh.rs` (*Use a shared geometry owner.*)
+
+A GPU row currently owns vertices, indices and placement together. Extract the immutable part into GpuGeometry. It retains the exact CPU-display Rc<Mesh> that produced its buffers; that owner will also make identity safe when we introduce the cache.
+
+GpuMesh becomes one object’s draw state: a shared geometry owner and its own bind group. with_geometry accepts an existing geometry owner, while upload remains a convenient wrapper that creates one. The renderer still calls upload independently at this endpoint. Automatic reuse arrives next.
+
+Follow the two draws. GpuMesh binds its object settings at group one, then GpuGeometry binds its vertex and index buffers. The render pass borrows both; it does not consume either.
+
+The native GPU check constructs two rows from one geometry owner with different placement and selection. It checks shared allocation identity and release before drawing the ordinary lesson scene, whose independently selected rows verify the uniform boundary. This proves the ownership boundary, not automatic scene instancing; the later definition/instance lessons supply that document model.
+
+> **Self-Check Question:** *What does cloning Rc<GpuGeometry> copy?*  
+> **Answer:** It adds an owner of the same geometry allocation. It does not upload another vertex or index buffer. Each GPU row still owns an independent placement/selection uniform, so objects can share geometry without sharing their settings.
+
+- **What You Should See:** Run the GPU ownership checks below. Two object rows sharing a display must share vertex/index storage while keeping separate uniforms.
+- **Hands-On Lab Experiment:** Follow Rc::clone from a geometry owner into two GPU rows. Predict the strong owner count after the local owner is dropped and after each row is dropped. Do not confuse that count with a byte count.
+
 <details>
 <summary>Implementation 31a-geometry: Give immutable GPU geometry one owner</summary>
 
@@ -539,6 +650,24 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-31b-cache"></a>
+
+### Step 3 of 23 · Reuse uploads while their geometry is alive (`31b-cache`)
+
+- **Goal:** Cache GPU geometry by its retained CPU allocation and release dead cache entries.
+- **Data Flow Trace:** `Scene row → source allocation identity → weak cache lookup → shared GPU geometry → object settings`
+- **Files You Touch:** `src/geometry_cache.rs` (*Keep weak cache entries and cumulative upload evidence without pinning unused GPU buffers.*) · `src/lib.rs` (*Expose the geometry cache to the renderer.*) · `src/renderer.rs` (*Keep geometry reuse and object allocation counts with the renderer.*) · `src/browser.rs` (*Wait until the renderer exists before reporting GPU diagnostics.*)
+
+Now the renderer can ask for an existing upload before creating buffers. GeometryCache maps a CPU display address to Weak<GpuGeometry>. The pointer is an identity key only: we never dereference it.
+
+A live GpuGeometry owns its source Rc. Therefore a successful Weak::upgrade cannot accidentally refer to another allocation that reused that address. An expired entry has no reusable buffers; get uploads the current source and replaces it. prune removes expired entries after old GPU rows are dropped. Equal vertex values in different CPU allocations deliberately remain separate keys.
+
+Renderer constructs itself with an empty row list and then synchronizes the initial scene through the same path used for later changes. This avoids a separate startup cache policy. Each scene synchronization still creates new object uniforms, but retained geometry no longer needs another vertex/index upload.
+
+> **Self-Check Question:** *Why must the cache store Weak owners and retain the CPU source inside GpuGeometry?*  
+> **Answer:** Weak entries do not keep unused GPU geometry alive. A successful upgrade yields a geometry owner that still retains the exact CPU allocation used as the key, so that address cannot have been reused for another live source. If upgrade fails, upload the current source and replace the dead entry.
+
+- **What You Should See:** Run the cache checks below. A second live owner must reuse the same upload; after the final owner drops, the weak cache must not retain it.
+- **Hands-On Lab Experiment:** Explain why cloning Rc<Mesh> finds the same upload while constructing a new Mesh with equal vertices does not. Then drop every GPU row and prune; the weak cache must not keep a geometry owner alive.
 
 <details>
 <summary>Implementation 31b-cache: Reuse uploads while their geometry is alive</summary>
@@ -1515,6 +1644,24 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-31c-incremental"></a>
 
+### Step 4 of 23 · Update only changed object settings (`31c-incremental`)
+
+- **Goal:** Retain GPU rows by object and geometry identity, then write only changed uniform ranges.
+- **Data Flow Trace:** `Scene row → retained GPU row → matrix or selection byte difference → queued range write → next draw`
+- **Files You Touch:** `src/gpu_mesh.rs` (*Retain row identity, its writable settings buffer and the bytes last sent.*) · `src/renderer.rs` (*Accumulate settings write evidence.*)
+
+Retain a GPU row when both its `ObjectId` and CPU display owner match. Reorder retained rows into scene order; drop unmatched rows before pruning the weak cache.
+
+Store the last eighty encoded uniform bytes. Compare the 64-byte matrix and 16-byte selection ranges separately: Move writes the matrix, selection writes its flag, and unchanged values write nothing. Compare encoded floats so an invisible double change causes no upload.
+
+Add `COPY_DST`. Queue writes execute before the next draw submission; offsets 0 and 64 and lengths 64 and 16 meet four-byte alignment. Hidden counters track actual range writes and bytes. See [wgpu's write contract](https://docs.rs/wgpu/29.0.4/wgpu/struct.Queue.html#method.write_buffer).
+
+> **Self-Check Question:** *Why must row reuse compare both ObjectId and the geometry owner?*  
+> **Answer:** ObjectId identifies the document row, but a geometry edit may replace its display allocation. Reuse settings and geometry only when both identities match. Otherwise request the correct upload and construct a new GPU row. Matching rows update only changed matrix or selection bytes.
+
+- **What You Should See:** Move a selected object, then Undo. Run the GPU counter checks: these changes update only the matrix range, without reuploading vertex or index buffers.
+- **Hands-On Lab Experiment:** Select the same row again without changing placement; the browser drawing stays unchanged. Trace the supplied repeated-sync fixture and predict zero additional writes. Explain why a deleted row may need a fresh upload when Undo restores it: the cache deliberately has only weak ownership.
+
 <details>
 <summary>Implementation 31c-incremental: Update only changed object settings</summary>
 
@@ -2001,6 +2148,28 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-32-history"></a>
 
+### Step 5 of 23 · Find the owners retained by history (`32-history`)
+
+- **Goal:** Inspect undo/redo roots and release both branches explicitly.
+- **Data Flow Trace:** `Scene snapshots → shared source/display owners → history reset → ownership tests`
+- **Files You Touch:** `src/history.rs` (*Expose borrowed snapshot roots and an explicit reset of both branches.*)
+
+Deleting a row removes it from drawing, but Undo can bring it back. That requires an owner somewhere. Our History keeps scene snapshots whose rows clone Rc owners rather than copying mesh payloads.
+
+Add a borrowed iterator over both history branches. It lets accounting inspect the roots without cloning their owners. clear replaces History with its empty default, dropping the snapshots and their vector storage. Ordinary edits still keep history; this explicit reset will be used by document close.
+
+The first test removes a row, confirms history retains its source/display values, then clears history and confirms those values are gone. The second leaves an extra object only in Redo and proves clearing both branches prevents it from returning.
+
+[Weak::upgrade](https://doc.rust-lang.org/std/rc/struct.Weak.html#method.upgrade) lets a check observe whether a value still has an owner. A failed upgrade proves the managed value is gone; the Weak control allocation itself remains until its weak references are dropped. It is not a measurement of process memory.
+
+The browser still behaves as before at this endpoint. We are making the ownership roots inspectable before wiring a destructive document operation into commands.
+
+> **Self-Check Question:** *Why can deleting every visible row leave its source alive?*  
+> **Answer:** Undo and Redo hold scene snapshots. Their rows share the original source and display owners so history can restore them. Removing visible rows does not remove those snapshot owners. Closing a document must drop both history branches as well as the active rows.
+
+- **What You Should See:** Run the history checks below. After edits and Undo, inspect both branches; releasing history must empty both retained roots without changing active rows.
+- **Hands-On Lab Experiment:** Keep a cloned Rc of a removed display in a test scope. Predict why clearing history will no longer make its Weak upgrade fail until that extra owner is dropped.
+
 <details>
 <summary>Implementation 32-history: Find the owners retained by history</summary>
 
@@ -2279,6 +2448,26 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-32a-cpu"></a>
 
+### Step 6 of 23 · Count shared CPU displays once (`32a-cpu`)
+
+- **Goal:** Account for active/history rows, retained sources/documents and unique display payloads.
+- **Data Flow Trace:** `Borrowed scene roots and GPU display owners → identity sets → scoped CPU ledger`
+- **Files You Touch:** `src/mesh.rs` (*Count allocated display-vector capacity rather than just occupied elements.*) · `src/editor.rs` (*Inspect active and retained snapshot roots without creating new owners.*) · `src/renderer.rs` (*Expose borrowed live geometry owners for accounting and weak lifetime checks.*) · `src/memory.rs` (*Count unique live owners and known display capacities across editor and GPU roots.*) · `src/lib.rs` (*Expose the scoped ownership ledger.*) · `src/browser.rs` (*Publish accounting only through private canvas diagnostics.*)
+
+Count shared CPU allocations once across the scene, history and GPU-held displays. Count row records separately from distinct mesh, document and display owners.
+
+A retained session can still own geometry after a display row disappears. Visit every mesh in each unique session, then add display owners retained by GPU geometry.
+
+Use `HashSet` pointer identities from borrowed live `Rc` values without dereferencing raw pointers. Counting must not retain those owners.
+
+Display bytes count vector capacity rather than length. This scoped ledger excludes kernel payload, row strings, hash tables and allocator overhead. Tests cover shared snapshots, a removed imported row and reserved spare capacity.
+
+> **Self-Check Question:** *Why does the CPU ledger include display owners held by GPU geometry?*  
+> **Answer:** GpuGeometry retains the CPU display that produced its buffers. That owner can outlive the editor rows, especially between closing the editor and synchronizing the renderer. Count that retained display once alongside active/history displays; do not mistake zero visible rows for zero live display payload.
+
+- **What You Should See:** Run the CPU accounting checks below. One display shared by active rows and history must be counted once, while every row remains counted.
+- **Hands-On Lab Experiment:** Compare a Vec with length three and capacity sixteen. Explain why its payload allocation is larger than its currently occupied elements. Then explain which memory categories this ledger deliberately does not claim to measure.
+
 <details>
 <summary>Implementation 32a-cpu: Count shared CPU displays once</summary>
 
@@ -2395,6 +2584,26 @@ After that block, type:
 
 <a id="checkpoint-32b-gpu"></a>
 
+### Step 7 of 23 · Count each shared GPU buffer once (`32b-gpu`)
+
+- **Goal:** Measure live document buffer sizes separately from cumulative allocation counters.
+- **Data Flow Trace:** `Live GPU rows → unique geometry owners and independent settings → buffer-size ledger`
+- **Files You Touch:** `src/gpu_geometry.rs` (*Read actual buffer sizes, including initialization alignment.*) · `src/gpu_mesh.rs` (*Report the independent settings buffer owned by one GPU row.*) · `src/memory.rs` (*Count shared geometry once while retaining each row’s separate settings cost.*) · `src/renderer.rs` (*Distinguish live document resources from cumulative upload/write counters.*) · `src/browser.rs` (*Expose live document buffer sizes without adding runtime controls.*)
+
+The upload counters tell us how much work happened over time. They cannot tell us how much document storage is alive now. Add a live GPU ledger that visits each geometry allocation once and every object-settings buffer separately.
+
+Its four fields are unique geometry owners, their vertex/index buffer bytes, object-settings buffers, and settings-buffer bytes. [Buffer::size](https://docs.rs/wgpu/29.0.4/wgpu/struct.Buffer.html#method.size) reports the buffer size selected at creation. The ledger excludes camera/depth/dock resources, pending staging work, driver overhead and memory pooling; it is document buffer ownership, not a driver-memory measurement.
+
+The native GPU proof creates two rows sharing one three-vertex geometry. It expects one seventy-two-byte vertex buffer, one eight-byte index buffer, and two eighty-byte settings buffers. That exercises sharing and alignment with an independent known input.
+
+The browser exposes data-gpu-usage alongside data-cpu-usage. After document close these live document figures must become zero, while cumulative uploads remain a useful record of work already performed.
+
+> **Self-Check Question:** *Why can index buffer bytes exceed the six index bytes we supplied?*  
+> **Answer:** Buffer initialization rounds its allocation to the copy-alignment requirement. Three u16 indices carry six payload bytes but this upload has an eight-byte GPU buffer. Read Buffer::size for allocated buffer size rather than equating it with the source slice length.
+
+- **What You Should See:** Run the GPU accounting checks below. Live document buffer bytes must count shared allocations once; cumulative upload counters do not fall when owners drop.
+- **Hands-On Lab Experiment:** For three u16 indices, calculate six payload bytes and eight allocated upload bytes. Then calculate two object uniforms sharing that geometry. Explain why adding geometry bytes for both rows would be wrong.
+
 <details>
 <summary>Implementation 32b-gpu: Count each shared GPU buffer once</summary>
 
@@ -2501,6 +2710,26 @@ After that block, type:
 </details>
 
 <a id="checkpoint-32c-close"></a>
+
+### Step 8 of 23 · Close the document without resetting the view (`32c-close`)
+
+- **Goal:** Drop active rows and both history branches while preserving the local ID counter and camera.
+- **Data Flow Trace:** `Close action → scene storage release and history reset → empty renderer synchronization`
+- **Files You Touch:** `src/scene.rs` (*Release row storage while preserving issued identities; reuse this inside atomic replacement.*) · `src/editor.rs` (*Give closing a typed editor action.*)
+
+Close is different from Delete and Open Replace. Delete is an undoable edit. Replacement is one transaction that lets Undo recover the previous document. Close ends that document history entirely.
+
+Scene::clear drops its row-vector storage and extra-row marker without resetting next_id. Replace reuses that clearing operation inside its existing transaction. Action::Close calls it directly, clears both history branches and clears selection. It returns a scene change so the normal renderer synchronization can release old GPU rows.
+
+The tests create both old document and Redo roots, close, and require empty rows, no surviving history and a later object ID that was never used by the old document. They also check that camera and background settings remain unchanged and repeated close is harmless.
+
+The native GPU proof closes the editor first, then synchronizes an empty scene. Kernel sources/documents are released when the editor roots disappear; CPU displays held by GPU geometry remain until those draw rows are dropped. The browser command is connected in the next lesson.
+
+> **Self-Check Question:** *Why does Close keep next_id even though it drops every row?*  
+> **Answer:** Old asynchronous work may still refer to an issued local identity. Reusing those identities would make it ambiguous which document row was meant. Empty the row storage and history, clear selection, but keep the monotonically issued counter. Camera and background are application settings and remain outside document close.
+
+- **What You Should See:** Run the close checks below. Closing empties active rows, Undo and Redo while preserving camera and ID issuance. The typed Close command follows next.
+- **Hands-On Lab Experiment:** Compare calling Delete three times with calling Close once. Predict which sources history retains in each case, and whether Undo can restore the old document.
 
 <details>
 <summary>Implementation 32c-close: Close the document without resetting the view</summary>
@@ -2889,6 +3118,24 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-32d-command"></a>
+
+### Step 9 of 23 · Close through the command line and revoke reads (`32d-command`)
+
+- **Goal:** Wire Close into the dock and cancel pending delivery before closing the editor.
+- **Data Flow Trace:** `Typed Close → read-ticket cancellation → editor close → empty GPU rows → dock result`
+- **Files You Touch:** `src/browser.rs` (*Offer closing only through the actual dock vocabulary.*)
+
+Expose typed `Close` through the existing dock. Cancel `ReadGate` before returning `Action::Close`, so a pending read cannot refill the closed document.
+
+Remember the action kind before `apply` consumes it. Report “Document closed” only after the scene change and renderer synchronization succeed.
+
+Close drops document and history owners while preserving camera, background and the GPU device. Page-exit disposal later ends the viewer itself; Close leaves it ready for another Open.
+
+> **Self-Check Question:** *Why must Close revoke a pending read before it drops the document?*  
+> **Answer:** A read can finish after the old document was closed. Without ticket cancellation, its result would import old data into the now-empty scene. Revoke the request at command execution; the file task checks ownership before delivery, so both late success and late failure remain silent.
+
+- **What You Should See:** Open `sample.pb`, then type `Close`. The drawing becomes white and both history branches clear. Type `Open` again: the same page must remain usable.
+- **Hands-On Lab Experiment:** Start a file read, then close before it resolves. Predict why cancelling the ticket must happen before a late result can import into the empty scene. Compare this with merely clearing visible rows.
 
 <details>
 <summary>Implementation 32d-command: Close through the command line and revoke reads</summary>
@@ -3491,6 +3738,22 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-32e-release"></a>
 
+### Step 10 of 23 · Prove release does not retain the old document (`32e-release`)
+
+- **Goal:** Check imported history owners, the CPU/GPU release boundary, late read failures and reopening.
+- **Data Flow Trace:** `Weak old owners → Close → editor roots gone → empty GPU synchronization → fresh document IDs`
+- **Files You Touch:** `src/editor.rs` (*Verify imported source/document release across history and fresh identities after reopening.*)
+
+Finish the ownership argument with imported documents and retained history, not just generated demo triangles. The source-only state check records Weak observers across active and undo/redo roots, closes, and verifies that none can recover an old value. Reopening must issue fresh local IDs.
+
+The native GPU proof makes the two release moments explicit. Before synchronization, old GPU geometry still owns the CPU displays used by its buffers. After synchronizing the empty scene, its Weak observers cannot upgrade, live document buffer usage is zero, and the cumulative upload counters have not been reset.
+
+> **Self-Check Question:** *What does a zero live document ledger prove, and what does it not prove?*  
+> **Answer:** It proves the scoped roots and document buffer owners counted by this viewer are gone. Weak checks separately prove the old managed source/display values are dropped. It does not establish process RSS or immediate driver-memory reclamation: other renderer resources, queued GPU work, allocator caches and weak control allocations have separate lifetimes.
+
+- **What You Should See:** Run the release checks below. After Close and empty GPU synchronization, weak observers must find no old document or display owner. The viewer can still open another file.
+- **Hands-On Lab Experiment:** Keep only Weak observers of an old imported document, then close it. Explain why they can prove the value was dropped while still retaining small control allocations themselves. Do not use process memory graphs as a substitute for ownership checks.
+
 <details>
 <summary>Implementation 32e-release: Prove release does not retain the old document</summary>
 
@@ -3521,6 +3784,28 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-32f-metadata"></a>
+
+### Step 11 of 23 · Keep row metadata separate from editable geometry (`32f-metadata`)
+
+- **Goal:** Retain names, original source GUIDs and visibility/locking flags without keeping kernel owners alive.
+- **Data Flow Trace:** `Prepared source → independent row metadata → shared scene snapshots → source ownership proof`
+- **Files You Touch:** `src/lib.rs` (*Give independently retained row metadata its own small module.*) · `src/row_metadata.rs` (*Copy source identity and flags without copying or retaining kernel payload; test independent lifetime and history.*) · `src/scene.rs` (*Retain descriptive values independently of the editable source.*) · `src/browser.rs` (*Expose row values through hidden inspection for actual Chrome import/history checks.*)
+
+Keep each object’s name, GUID and visibility/locking flags when its editable source is unloaded. Store these small values beside the retained display mesh.
+
+Source unloading keeps the picture while dropping eligible editable kernel data. Before dropping any owner, give each row the small descriptive values it will still need. The display mesh, placement and local ObjectId already live on the row. Names and flags currently live inside the kernel mesh.
+
+RowMetadata copies the original source GUID, name, is_visible and is_locked when Scene inserts a prepared mesh. These are owned strings and booleans, with no Rc to the kernel mesh or imported Session. The row shares an Rc<RowMetadata> across history snapshots: Move changes placement, so it does not need to copy or alter metadata. Later attribute edits will replace or copy this metadata deliberately.
+
+Keep source_guid distinct from Object.guid. Repeated imports can have the same source GUID but need different saved identities. This is the distinction introduced in lesson 29; it now remains available without borrowing a kernel mesh.
+
+This endpoint does not unload a source yet. Both source and display still exist. Visibility and locking are preserved as values; their full drawing/editing policy is taught later in the course.
+
+> **Self-Check Question:** *Why is a row’s original source GUID separate from its saved object GUID?*  
+> **Answer:** The original source GUID locates the mesh in the imported document. The saved object GUID distinguishes duplicate imports in this viewer. Forking the saved identity must not change the original identity used to restore a released source.
+
+- **What You Should See:** Run the metadata checks below. Names, GUIDs and visible/locked flags survive after the editable source owner drops; metadata must not retain that source.
+- **Hands-On Lab Experiment:** Replace one row’s metadata Rc in a test with newly owned values. Predict why an older scene snapshot must keep the original values. Do not mutate a shared metadata allocation behind history.
 
 <details>
 <summary>Implementation 32f-metadata: Keep row metadata separate from editable geometry</summary>
@@ -3874,6 +4159,26 @@ After that block, type:
 
 <a id="checkpoint-32fa-access"></a>
 
+### Step 12 of 23 · Ask whether an editable source is available (`32fa-access`)
+
+- **Goal:** Route saving, source accounting and owner checks through borrowed source accessors.
+- **Data Flow Trace:** `Scene row → Option of borrowed editable geometry/provenance → checked source consumers`
+- **Files You Touch:** `src/scene.rs` (*Borrow source owners through an API that can express later source absence.*) · `src/document.rs` (*Require original editable geometry instead of silently exporting display floats.*) · `src/memory.rs` (*Count kernel owners only when they are available.*) · `src/source_tests.rs` (*Optional authoring fixture. Update generated_source_and_display_survive_move_and_history through borrowed source access while preserving every existing assertion.*) · `src/imported_source_tests.rs` (*Optional authoring fixture. Update import_shares_the_retained_sessions_source_allocation through borrowed source access while preserving every existing assertion.*) · `src/snapshot_tests.rs` (*Optional authoring fixture. Update snapshot_uses_live_local_sources_and_separate_placements through borrowed source access while preserving every existing assertion.*)
+
+Introduce `geometry()` and `source()` before making source storage optional. Both return borrowed optional owners. At this stage every row still has geometry; generated rows have no imported-session provenance.
+
+Save uses `geometry().ok_or(...)` and `?` to return a clear error if geometry is missing. It never substitutes derived float display vertices for the editable source.
+
+Accounting visits only available kernel and session owners while counting rows and displays independently. Migrate ownership checks to the same accessors; fixture `unwrap` asserts a known loaded source, while application Save returns `Result`.
+
+Fields remain public during this migration. The next lesson completes it and prevents bypassing the access boundary.
+
+> **Self-Check Question:** *Does Option<&Rc<Mesh>> add another mesh owner?*  
+> **Answer:** No. It borrows the Rc stored by the row. Merely asking for a source neither clones the owner nor copies the geometry. Some indicates an available editable source; the later unloaded state returns None. Saving must handle that absence rather than serializing drawing floats.
+
+- **What You Should See:** Run the source-access checks below. Saving and accounting borrow the available source through its accessor rather than owning another copy.
+- **Hands-On Lab Experiment:** Compare Rc::clone(row.geometry().unwrap()) with merely calling row.geometry(). Predict which expression adds a strong owner and how that affects a later Weak release check.
+
 <details>
 <summary>Implementation 32fa-access: Ask whether an editable source is available</summary>
 
@@ -4225,6 +4530,24 @@ Update the existing block with this supplied code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-32fb-boundary"></a>
+
+### Step 13 of 23 · Make editable ownership a private row boundary (`32fb-boundary`)
+
+- **Goal:** Finish migrating owner checks and prevent other modules from bypassing source availability.
+- **Data Flow Trace:** `Remaining native ownership proofs → borrowed accessors → private source fields`
+- **Files You Touch:** `src/editor.rs` (*Update repeated_close_is_empty_and_drops_sources_without_gpu_owners through borrowed source access while preserving every existing assertion.*) · `src/history.rs` (*Update cleared_history_releases_a_deleted_source_and_display through borrowed source access while preserving every existing assertion.*) · `src/file_identity_tests.rs` (*Optional authoring fixture. Update duplicate_imports_keep_distinct_stored_identity_through_history through borrowed source access while preserving every existing assertion.*) · `src/document_tests.rs` (*Optional authoring fixture. Update import_retains_source_and_undo_removes_the_whole_file through borrowed source access while preserving every existing assertion.*) · `src/replace_tests.rs` (*Optional authoring fixture. Update replacement_history_retains_camera_and_distinct_local_identity through borrowed source access while preserving every existing assertion.*) · `src/save_roundtrip_tests.rs` (*Optional authoring fixture. Update both_imported_copies_reopen_with_their_stored_identity through borrowed source access while preserving every existing assertion.*) · `src/row_metadata.rs` (*Update metadata_does_not_keep_a_closed_kernel_source_alive through borrowed source access while preserving every existing assertion.*) · `src/scene.rs` (*Confine editable kernel storage to the scene row implementation.*)
+
+Finish migrating consumers to `geometry()` and `source()`, then make Object's editable-owner fields private. Direct field access outside the row now fails to compile.
+
+Keep `PreparedMesh.geometry` mandatory: a prepared insertion requires valid geometry. Keep `GpuMesh.geometry` unchanged: it owns display buffers, not editable kernel data.
+
+Rows retain public identity, saved GUID, metadata, model and derived mesh. Source storage can next become Loaded or Released behind its borrowed accessors without changing drawing or history placements. No source unload happens in this step.
+
+> **Self-Check Question:** *Why keep PreparedMesh geometry mandatory when Object geometry is accessed optionally?*  
+> **Answer:** PreparedMesh is a validated candidate ready to insert, so its original geometry must exist. A committed Object has a longer lifetime: its display can remain after editable geometry is unloaded. The preparation boundary and residency boundary have different contracts.
+
+- **What You Should See:** Build and run the checks below. Other modules must use the source accessor; the private row field prevents bypassing source availability.
+- **Hands-On Lab Experiment:** Try reading object.geometry directly from document.rs and predict the compiler error. Explain why a renderer’s row.geometry or a prepared candidate’s geometry can remain valid even after this row source field becomes private.
 
 <details>
 <summary>Implementation 32fb-boundary: Make editable ownership a private row boundary</summary>
@@ -5146,6 +5469,24 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-32fc-version"></a>
 
+### Step 14 of 23 · Record a reload version without retaining geometry (`32fc-version`)
+
+- **Goal:** Own a small document header, a distinct import ID and an exact file fingerprint.
+- **Data Flow Trace:** `Own a small document header, a distinct import ID and an exact file fingerprint.`
+- **Files You Touch:** `Cargo.toml` (*Pin SHA-256 for immutable file-version checks.*) · `src/lib.rs` (*Introduce geometry-free reload metadata.*) · `src/origin.rs` (*Keep descriptive protobuf data and a byte version without retaining kernel objects.*)
+
+An unloaded row will need enough information to find its source again. Define Origin as owned document metadata plus an import ID and FileVersion. Its header retains the source name, GUID, tree, graph, bounds and original placement entries. It deliberately has no objects or definitions.
+
+FileVersion hashes the original bytes with SHA-256. It is a byte-version identifier, not an authentication scheme. An immutable selected File must return that same version when fetched through its later Blob URL. A server that reserializes equivalent protobuf maps may produce different bytes; mutable-server policies belong to the later publication/streaming lessons.
+
+UUID separates two imports of the same file. None of these values owns a kernel Mesh or Session. The native tests include the standard SHA-256 abc vector, changed bytes, independent origin identities and a geometry-free header. Add the pinned dependency and use the supplied lock, while typing this module yourself.
+
+> **Self-Check Question:** *Why can two imports share a file fingerprint but still need different origin IDs?*  
+> **Answer:** A fingerprint identifies the exact bytes. An origin ID identifies one import into this viewer. Repeated imports can share bytes and source GUIDs while having independent rows, history and reload lifetimes.
+
+- **What You Should See:** Run the version checks below. Changing one file byte changes its fingerprint; importing the same bytes again gets a distinct import ID. The browser picture is unchanged.
+- **Hands-On Lab Experiment:** Change one source byte and predict the version comparison. Then import identical bytes twice and explain why their origin IDs should differ.
+
 <details>
 <summary>Implementation 32fc-version: Record a reload version without retaining geometry</summary>
 
@@ -5204,6 +5545,22 @@ Create the file and type:
 </details>
 
 <a id="checkpoint-32fd-origin"></a>
+
+### Step 15 of 23 · Attach one origin to an imported document (`32fd-origin`)
+
+- **Goal:** Share one geometry-free origin across imported rows and history.
+- **Data Flow Trace:** `Share one geometry-free origin across imported rows and history.`
+- **Files You Touch:** `src/document.rs` (*Retain reload metadata separately from the kernel Session.*) · `src/lib.rs` (*Check source ownership independently of drawing.*) · `src/origin_tests.rs` (*Optional authoring fixture. Observe true kernel expiration while retaining only header/version metadata.*) · `src/browser.rs` (*Inspect shared import identity and exact versions without adding controls.*)
+
+Construct an Origin after decoding and validation, before moving the protobuf into the kernel Session. Every prepared row shares the same Rc<Origin> through its Source. A second import gets a different Origin even when its file bytes are identical.
+
+The native check records Weak observers, retains only the Origin, and closes the editor. The Session and kernel value must disappear while the original header remains readable. Another check follows one shared origin through Move and Undo.
+
+> **Self-Check Question:** *Does retaining an Origin after Close keep the imported Session alive?*  
+> **Answer:** No. It owns copied header values and a version, not the Session Rc or any kernel mesh Rc. Weak checks can prove the Session and its meshes are dropped while the retained origin remains readable.
+
+- **What You Should See:** Run the origin checks below. Rows from one import share its small origin header through history without retaining the original document.
+- **Hands-On Lab Experiment:** Clone Source instead of only Origin in the ownership check and predict which Weak observations remain alive.
 
 <details>
 <summary>Implementation 32fd-origin: Attach one origin to an imported document</summary>
@@ -5496,6 +5853,26 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-32fe-location"></a>
+
+### Step 16 of 23 · Give a reload URL an explicit owner (`32fe-location`)
+
+- **Goal:** Retain an owned Blob URL through imports and history, then release it with its last owner.
+- **Data Flow Trace:** `Retain an owned Blob URL through imports and history, then release it with its last owner.`
+- **Files You Touch:** `src/lib.rs` (*Keep browser URL lifetime explicit and independent of kernel ownership.*) · `src/reload_url.rs` (*Revoke a viewer-created Blob URL when its actual resource owner drops.*) · `src/origin.rs` (*Retain an optional reload location without retaining geometry.*) · `src/document.rs` (*Accept location ownership before a read/validation error can occur.*) · `src/editor.rs` (*Keep a URL owner alive until an import commits or fails.*) · `src/origin_tests.rs` (*Optional authoring fixture. Prove successful/history and failed-import URL lifetimes with Weak observers.*)
+
+Keep a reload URL alive while its source is needed. Release the browser Blob URL when its last owner drops.
+
+A version says which bytes a row expects; it does not provide a way to read them again. Add ReloadUrl, an owner of one URL created by this viewer. Its Drop implementation revokes the browser Blob URL. Native checks observe its Rc lifetime through Weak; actual browser revocation is tested after the next adapter endpoint.
+
+Origin can retain an optional Rc<ReloadUrl>. Generated data and ordinary native load calls have no reload location and will be protected from unload. load_at accepts an already owned URL; it validates the file and adopts the location into the same Origin shared by all rows.
+
+Add ImportAt and ReplaceAt to the editor while keeping the existing Import/Replace fixtures. The new actions hold the URL before loading, so failure drops their owner normally. History shares the Origin, keeping the reload location alive until the last relevant snapshot is gone. The browser still uses its old file adapter at this checkpoint.
+
+> **Self-Check Question:** *Why must URL ownership exist before validation can fail?*  
+> **Answer:** Creating a Blob URL allocates a browser resource. If decoding or insertion fails, an action-local owner must still revoke it. A successful import shares that owner through its Origin; Close releases it only after active and history roots are gone.
+
+- **What You Should See:** Run the location checks below. The reload location stays alive while owned and is released once after its final owner drops. File adoption is connected next.
+- **Hands-On Lab Experiment:** Retain a separate Rc<ReloadUrl> in a caller scope and explain why closing the editor cannot revoke that caller’s resource yet.
 
 <details>
 <summary>Implementation 32fe-location: Give a reload URL an explicit owner</summary>
@@ -6251,6 +6628,26 @@ After that block, append this supplied code:
 </details>
 
 <a id="checkpoint-32ff-bridge"></a>
+
+### Step 17 of 23 · Adopt the selected file as a reloadable source (`32ff-bridge`)
+
+- **Goal:** Transfer the accepted File through synchronous delivery and create its URL at adoption.
+- **Data Flow Trace:** `Transfer the accepted File through synchronous delivery and create its URL at adoption.`
+- **Files You Touch:** `src/file_input.rs` (*Hold an accepted File only across one synchronous editor delivery.*) · `src/browser.rs` (*Share one scoped delivery slot between reader and editor callback.*)
+
+Pass the accepted File through one temporary delivery slot. Clear the slot after dispatch so cancelled or unclaimed files are released.
+
+The browser already owns asynchronous file delivery through ReadGate. Add one shared delivery slot holding the accepted File only during the viewer-file dispatch. After the read finishes and its ticket is accepted, the producer places the File in this slot, dispatches, then clears any unclaimed value.
+
+The listener validates the event payload, takes the File, creates ReloadUrl and builds ImportAt or ReplaceAt. An error creating the URL is reported through the Open history entry. A malformed file creates an owner that is dropped when editor loading fails; a stale read never creates a URL.
+
+The slot is a Rust handoff, not a persistent cache of file bytes or kernel sources. It also prevents an unrelated external viewer-file event from manufacturing a located import without an accepted File. Later listener teardown cancels work and releases this handoff lifetime.
+
+> **Self-Check Question:** *Why not create a Blob URL as soon as the user selects a file?*  
+> **Answer:** Its read may be cancelled, superseded or rejected before adoption. Keep the File while reading, finish the request ticket first, and create the URL only when the synchronous editor callback accepts delivery. Clear any unclaimed delivery slot afterwards.
+
+- **What You Should See:** Open `sample.pb`. Run the adoption checks below: only an accepted read may acquire its Blob URL; cancelled or stale reads must not retain one.
+- **Hands-On Lab Experiment:** Remove the final delivery-slot cleanup in a scratch copy and predict what happens if no listener adopts its File. Keep the production implementation unchanged after the experiment.
 
 <details>
 <summary>Implementation 32ff-bridge: Adopt the selected file as a reloadable source</summary>
@@ -7092,6 +7489,24 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-32fg-state"></a>
 
+### Step 18 of 23 · Separate loaded and released editable ownership (`32fg-state`)
+
+- **Goal:** Represent source residency without changing retained display, identity or placement.
+- **Data Flow Trace:** `Represent source residency without changing retained display, identity or placement.`
+- **Files You Touch:** `src/lib.rs` (*Confine source residency representation to the viewer implementation.*) · `src/edit_source.rs` (*Keep Released ownership free of kernel mesh and Session values.*) · `src/scene.rs` (*Retain public display fields while replacing only editable ownership.*) · `src/browser.rs` (*Retain origin inspection even when editable kernel ownership is absent.*)
+
+Replace Object’s private geometry/source fields with EditSource. Loaded owns the required kernel geometry and optional imported Source. Released owns an Origin and epoch. Generated Loaded rows have geometry but no imported Origin.
+
+Keep geometry() and source() total: they return None for Released rather than panicking or substituting a display mesh. origin() remains available in either imported state. release_epoch() distinguishes a current release from a later release cycle.
+
+Scene insertion still requires PreparedMesh geometry. It captures metadata, creates the display Rc, and adopts Loaded ownership. The renderer still sees exactly the same mesh/model/id fields. At this endpoint no code unloads a row yet; existing precision, history and close tests must pass unchanged through the new representation.
+
+> **Self-Check Question:** *Which owners remain in a Released row?*  
+> **Answer:** Its retained row data still owns the display mesh, metadata and placement. Editable storage owns only a geometry-free Origin and release epoch. It cannot retain the old kernel Mesh or Session.
+
+- **What You Should See:** Run the residency checks below. A cold row has no editable source but retains display, metadata, identity and placement. Browser unloading comes later.
+- **Hands-On Lab Experiment:** Follow the Rc edges in Loaded and Released. Explain why adding a kernel Rc to Released would defeat unloading even if source() returned None.
+
 <details>
 <summary>Implementation 32fg-state: Separate loaded and released editable ownership</summary>
 
@@ -7529,6 +7944,26 @@ Edit the existing block to match this code; keep unchanged lines:
 
 <a id="checkpoint-32fh-policy"></a>
 
+### Step 19 of 23 · Protect sources that cannot be unloaded faithfully (`32fh-policy`)
+
+- **Goal:** Require a reload location, original kernel allocation and unchanged row metadata.
+- **Data Flow Trace:** `Require a reload location, original kernel allocation and unchanged row metadata.`
+- **Files You Touch:** `src/scene.rs` (*Only original, located imported sources can be restored by their original file.*)
+
+A release policy must preserve data that cannot be restored. Generated rows have no imported source. Imports without a location cannot be read again. A new kernel allocation or edited source metadata must not silently revert to the original file.
+
+can_unload checks a located Loaded source, its original GUID, name/visibility/locking metadata, and the exact kernel allocation retained by its imported Session. The allocation check distinguishes original data from a modified replacement even when its values happen to compare equal. Model placement is separate row state, so Move does not make an otherwise original source ineligible.
+
+Add borrowed mutable row access for the forthcoming residency pass, and Scene::unload as the operation on a previously validated set of origins. It changes only editable ownership to Released. The editor-wide origin validation comes next; no dock command exists yet.
+
+Native policy tests protect generated/unlocated sources, changed flags and replacement kernel owners. The whole-origin check in the next lesson will inspect active, Undo and Redo roots before any mutation.
+
+> **Self-Check Question:** *Why does one modified history row protect every row of that origin?*  
+> **Answer:** They share one reload source. Reloading its original bytes cannot reproduce modified kernel data in that snapshot. Protect the whole origin whenever any retained row no longer matches the original source contract.
+
+- **What You Should See:** Run the unload-policy checks below. Only unmodified rows with a usable source location are eligible; protected rows remain loaded.
+- **Hands-On Lab Experiment:** Change only placement in a fixture, then change a source flag. Explain why the first remains reloadable while the second must be protected at this endpoint.
+
 <details>
 <summary>Implementation 32fh-policy: Protect sources that cannot be unloaded faithfully</summary>
 
@@ -7945,6 +8380,26 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-32fi-history"></a>
+
+### Step 20 of 23 · Unload sources across active and history roots (`32fi-history`)
+
+- **Goal:** Release a validated whole-origin set without clearing Undo/Redo or changing placements.
+- **Data Flow Trace:** `Release a validated whole-origin set without clearing Undo/Redo or changing placements.`
+- **Files You Touch:** `src/history.rs` (*Visit both history branches without cloning or dropping their rows.*) · `src/editor.rs` (*Add a residency operation distinct from document close.*) · `src/scene.rs` (*Refuse an edit until its original editable source has been restored.*)
+
+Plan source unloading before mutating. Collect eligible origins across active, Undo and Redo roots; exclude any origin with a protected row. An empty plan returns an error.
+
+Issue a checked release epoch, then unload matching rows in every retained root. This changes residency, not document history, and preserves placements. Close keeps the epoch counter so reopened documents cannot reuse completion tokens.
+
+Cold Move and Delete currently return reload-required errors; Save refuses missing geometry. Drawing, picking and camera use retained display state. Automatic restoration comes later.
+
+The native frame checks unloaded source/document expiration and retained display/GPU owners. The next endpoint adds the dock command and moved-object history checks.
+
+> **Self-Check Question:** *Why is unloading only the current Scene insufficient?*  
+> **Answer:** Its Undo and Redo rows retain the same kernel owners. They would keep the source alive and later restore a different residency. Convert every retained row of a validated origin together while keeping its separate placement and display owner.
+
+- **What You Should See:** Run the history-release checks below. Releasing an origin must visit matching active, Undo and Redo rows while retaining their display and placement.
+- **Hands-On Lab Experiment:** Keep an external clone of Source in a fixture and explain why the editor can release its own roots while that external owner still keeps the kernel alive.
 
 <details>
 <summary>Implementation 32fi-history: Unload sources across active and history roots</summary>
@@ -8458,6 +8913,24 @@ Edit the existing block to match this code; keep unchanged lines:
 
 <a id="checkpoint-32fj-proof"></a>
 
+### Step 21 of 23 · Prove unloading preserves placed history (`32fj-proof`)
+
+- **Goal:** Observe imported kernel expiration while retained displays and placements survive Undo/Redo.
+- **Data Flow Trace:** `Weak kernel/document observers → unload all roots → retained display → cold model-history travel`
+- **Files You Touch:** `src/lib.rs` (*Verify actual source release independently of GPU drawing.*) · `src/unload_tests.rs` (*Optional authoring fixture. Prove old source values expire while placed drawing data and history remain available.*)
+
+Use a located imported document and a real placement edit. Retain its derived display Rc, record Weak observers of the kernel mesh and Session, and unload. The old editable values must disappear while the row’s local ID, saved GUID, display owner, placement and camera remain.
+
+An unavailable-source Save or Move must refuse without consuming Undo. Undo then restores the earlier placement and Redo restores the moved placement; both keep the origin’s release epoch. This is residency travel across existing document history, not an undo command for unloading.
+
+The next endpoint exposes the same operation in Chrome and adds GPU retention proof. Rehydration and automatic edit replay remain separate required work.
+
+> **Self-Check Question:** *What proves source unloading did not secretly clear the document history?*  
+> **Answer:** Record the number of scene roots and an earlier model matrix, unload, and Undo the prior Move. The roots remain and the earlier placement returns while that row still has no editable source. Weak observers separately prove the old kernel values are gone.
+
+- **What You Should See:** Run the weak-owner checks below. After source release, the original source allocation must expire while its retained display still draws.
+- **Hands-On Lab Experiment:** Retain only the Origin rather than the display Rc in the fixture. Predict which owners survive and which Weak values expire.
+
 <details>
 <summary>Implementation 32fj-proof: Prove unloading preserves placed history</summary>
 
@@ -8504,6 +8977,26 @@ Copy this supplied file:
 </details>
 
 <a id="checkpoint-32fk-command"></a>
+
+### Step 22 of 23 · Unload editable sources through the command line (`32fk-command`)
+
+- **Goal:** Keep the drawing and GPU allocations while the dock unloads eligible imported sources.
+- **Data Flow Trace:** `Keep the drawing and GPU allocations while the dock unloads eligible imported sources.`
+- **Files You Touch:** `src/browser.rs` (*Offer residency changes through the real command dock.*)
+
+Add typed `Unload Sources` to the existing dock vocabulary. Remember the action kind before `apply` consumes it and report success only after the residency pass and renderer synchronization.
+
+The command drops eligible editable sources while retaining display meshes and GPU allocations. Hidden inspection attributes expose source availability and epoch without adding a control.
+
+Cold Move, Delete and Save currently report that reload is required. They must preserve history and never save float display approximations. Camera and picking still work; Undo/Redo retain the source's cold state. Close clears roots and releases owned URLs.
+
+Explicit reload and automatic edit replay are the next topics.
+
+> **Self-Check Question:** *Why should renderer allocation counters stay unchanged during source unloading?*  
+> **Answer:** The scene rows keep their IDs, display Rc values, selection and model matrices. Renderer synchronization therefore retains the same GPU geometry and settings; only editable CPU ownership changes.
+
+- **What You Should See:** Open `sample.pb`, then type `Unload Sources`. The scene stays visible. Move/Delete/Save now report that source restoration is required; browser reloading is not connected yet.
+- **Hands-On Lab Experiment:** Compare data-gpu-stats before and after unloading. Then Undo a placement and explain why a settings write can occur without a new geometry upload.
 
 <details>
 <summary>Implementation 32fk-command: Unload editable sources through the command line</summary>
@@ -9165,6 +9658,22 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-32fl-guards"></a>
 
+### Step 23 of 23 · Protect history and future reload tickets (`32fl-guards`)
+
+- **Goal:** Verify whole-origin protection, independent duplicate imports and checked release epochs.
+- **Data Flow Trace:** `Modified history origin → protection; independent origin → release; exhausted epoch → no mutation`
+- **Files You Touch:** `src/editor.rs` (*Check modified history, independent imports and exhausted/reopened release issuance.*)
+
+Add the cases that a simple active-row check would miss. A modified metadata row exists only in history, while the active original still looks eligible. Protect that entire origin. A second import of identical bytes has its own Origin and can unload independently.
+
+The epoch test forces exhaustion and verifies that no row becomes cold. It then releases, closes, reopens and releases again: the new rows receive the next epoch rather than reusing one.
+
+> **Self-Check Question:** *Why is a release epoch kept across Close rather than reset for each document?*  
+> **Answer:** A fetch can finish after Close. A later document must not reuse the old release token. Keep checked issuance in the viewer lifetime, and later compare the requested origin and its current released epoch before adopting a result.
+
+- **What You Should See:** Run the unload guard checks below. A modified history row must protect its origin; duplicate imports and exhausted epochs must not release the wrong source.
+- **Hands-On Lab Experiment:** Reset the issuance counter inside Close in a scratch copy and predict the reopened epoch. Explain why origin identity alone should not replace per-release ownership.
+
 <details>
 <summary>Implementation 32fl-guards: Protect history and future reload tickets</summary>
 
@@ -9194,9 +9703,11 @@ Edit the existing block to match this code; keep unchanged lines:
 
 </details>
 
-## Run, Check, and Save
+---
 
-From `session_viewer`:
+## 5. Build, Verify, and Save Your Checkpoint
+
+Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 32fl-guards
@@ -9207,12 +9718,12 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. Use [checkpoint recovery](../recovery.md) to restore any saved checkpoint.
+Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../recovery.md) to save or restore any checkpoint ID.
 
-## Expected Visual Result & Experiment
+## 6. Lesson Summary & Expected Visual Result
 
 Run the unload guard checks below. A modified history row must protect its origin; duplicate imports and exhausted epochs must not release the wrong source.
 
-- **Try this:** Reset the issuance counter inside Close in a scratch copy and predict the reopened epoch. Explain why origin identity alone should not replace per-release ownership.
+- **Final Lesson Experiment:** Reset the issuance counter inside Close in a scratch copy and predict the reopened epoch. Explain why origin identity alone should not replace per-release ownership.
 
 Continue with [Restore exact sources and replay the captured edit](32g-keys.md).

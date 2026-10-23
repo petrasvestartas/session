@@ -1,88 +1,161 @@
 # 16.1 · Projection, extension and stable edit targets
 
-**Section 8: Precision Coordinate Frames, Solid Primitives, Surfacing, and CAD Editing** · **Lesson 16.1** (Redraft `8.11`) · **31 checkpoints (`81-project-originals-through-the-current-plane-algorithms` → `81za-validate-original-split-inputs-and-name-pieces`)**
+**Section 8: Precision Coordinate Frames, Solid Primitives, Surfacing, and CAD Editing** · **Lesson 16.1** (Redraft `8.11`) · **31 checkpoints (`81-project-originals-through-the-current-plane-algorithms` → `81za-validate-original-split-inputs-and-name-pieces`)** · **Study time: 15.5–31 h**
 
-> **Learning Goal:** Conjugate the world projection through the original placement transform.
+> **What You Will Learn & Build:** Conjugate the world projection through the original placement transform. By the final checkpoint (`81za-validate-original-split-inputs-and-name-pieces`), you will accept original cutter curves and a valid selected BRep face.
 
-## Visual WebGPU & Architecture Schematic
+## 1. Visual Pipeline & WebGPU Architecture (Black & White Schematics)
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1px solid #cbd5e1;border-radius:10px;background:#f8fafc;">
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
+<svg viewBox="0 0 840 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <rect x="4" y="4" width="832" height="212" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Lesson 16.1 Execution Flow: Projection, extension and stable edit targets</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">Concrete data pipeline you build in this lesson (31 Checkpoints: 81-project-originals-through-the-current-plane-algorithms → 81za-validate-original-split-inputs-and-name-pieces)</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
+  
+    
+    <rect x="18" y="68" width="253" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="144" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
+    <line x1="28" y1="92" x2="261" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="144" y="108" text-anchor="middle" font-size="11" fill="#111111">original family</text>
+    <line x1="271" y1="108" x2="291" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="293" y="68" width="253" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="419" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
+    <line x1="303" y1="92" x2="536" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">pure calculation</text>
+    <line x1="546" y1="108" x2="566" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="568" y="68" width="253" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="694" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
+    <line x1="578" y1="92" x2="811" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="694" y="108" text-anchor="middle" font-size="11" fill="#111111">result or refusal</text>
+    
+    <rect x="18" y="162" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="32" y="181" font-size="11" font-weight="700" fill="#111111">Files You Edit in Lesson 16.1:</text>
+    <text x="215" y="181" font-size="11" fill="#111111">src/project_geometry.rs  ·  src/source_cut.rs  ·  src/lib.rs  ·  src/extend_reach.rs  ·  src/interval_geometry.rs  ·  src/source_edit.rs</text>
+    <text x="32" y="198" font-size="10.5" fill="#111111">31 Checkpoints: 81-project-originals-through-the-current-plane-algorithms → 81za-validate-original-split-inputs-and-name-pieces — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
+  
+</svg>
+</div>
+
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
 <svg viewBox="0 0 840 240" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#475569"/>
-    </marker>
-    <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#2563eb"/>
-    </marker>
-    <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#059669"/>
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
     </marker>
   </defs>
-  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
-  <text x="20" y="28" font-size="14" font-weight="700" fill="#0f172a">Section 8 Precision CAD Frames, Solid Primitives, Surfacing & Sub-Object Deformation (Chapters 14–16)</text>
-  <text x="20" y="46" font-size="11.5" fill="#475569">How double-precision coordinate frames (Plane), parametric solids, Loft/Sweep/Extrude surfaces, and Gumball control edits work.</text>
-  <line x1="16" y1="54" x2="824" y2="54" stroke="#e2e8f0" stroke-width="1"/>
+  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Section 8 Precision CAD Frames, Solid Primitives, Surfacing & Sub-Object Deformation (Chapters 14–16)</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">How double-precision coordinate frames (Plane), parametric solids, Loft/Sweep/Extrude surfaces, and Gumball control edits work.</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
   
-    <rect x="18" y="68" width="245" height="145" rx="6" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
-    <text x="140" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1e40af">1. Orthonormal Frames (Ch 14)</text>
-    <text x="28" y="108" font-size="10.5" fill="#1e3a8a">• Plane { origin: Vec3d, x, y, z }</text>
-    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#1d4ed8">• Rejects non-finite / collinear axes</text>
-    <text x="28" y="144" font-size="10.5" fill="#1e3a8a">• Basis change: World &lt;-&gt; Local Plane</text>
-    <text x="28" y="162" font-size="10.5" fill="#1e3a8a">• Exact Mirror, Rotate3D, Orient,</text>
-    <text x="28" y="178" font-size="10.5" fill="#1e3a8a">  and Align frame transformations</text>
+    <rect x="18" y="68" width="245" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="140" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">1. Orthonormal Frames (Ch 14)</text>
+    <text x="28" y="108" font-size="10.5" fill="#111111">• Plane { origin: Vec3d, x, y, z }</text>
+    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#111111">• Rejects non-finite / collinear axes</text>
+    <text x="28" y="144" font-size="10.5" fill="#111111">• Basis change: World &lt;-&gt; Local Plane</text>
+    <text x="28" y="162" font-size="10.5" fill="#111111">• Exact Mirror, Rotate3D, Orient,</text>
+    <text x="28" y="178" font-size="10.5" fill="#111111">  and Align frame transformations</text>
 
-    <line x1="263" y1="138" x2="293" y2="138" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
+    <line x1="263" y1="138" x2="293" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="295" y="68" width="265" height="145" rx="6" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5"/>
-    <text x="427" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#9a3412">2. Solids &amp; Surfacing (Ch 15–16)</text>
-    <text x="307" y="108" font-size="10.5" fill="#7c2d12">• Parametric Box, Cylinder, Sphere, Cone</text>
-    <text x="307" y="126" font-size="10.5" font-weight="600" fill="#c2410c">• Extrude, Revolve, Loft, Sweep, Planar</text>
-    <text x="307" y="144" font-size="10.5" fill="#7c2d12">• Curve Split, Trim, Extend, Join, Fillet</text>
-    <text x="307" y="162" font-size="10.5" fill="#7c2d12">• Every operation commits an atomic</text>
-    <text x="307" y="178" font-size="10.5" fill="#7c2d12">  session_rust kernel transaction</text>
+    <rect x="295" y="68" width="265" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="427" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">2. Solids &amp; Surfacing (Ch 15–16)</text>
+    <text x="307" y="108" font-size="10.5" fill="#111111">• Parametric Box, Cylinder, Sphere, Cone</text>
+    <text x="307" y="126" font-size="10.5" font-weight="600" fill="#111111">• Extrude, Revolve, Loft, Sweep, Planar</text>
+    <text x="307" y="144" font-size="10.5" fill="#111111">• Curve Split, Trim, Extend, Join, Fillet</text>
+    <text x="307" y="162" font-size="10.5" fill="#111111">• Every operation commits an atomic</text>
+    <text x="307" y="178" font-size="10.5" fill="#111112">  session_rust kernel transaction</text>
 
-    <line x1="560" y1="138" x2="590" y2="138" stroke="#059669" stroke-width="2" marker-end="url(#arrow-green)"/>
+    <line x1="560" y1="138" x2="590" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="592" y="68" width="228" height="145" rx="6" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1.5"/>
-    <text x="706" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#065f46">3. Rational Control-Point Deform</text>
-    <text x="604" y="108" font-size="10.5" fill="#064e3b">• Pick NURBS control point or vertex</text>
-    <text x="604" y="126" font-size="10.5" font-weight="600" fill="#047857">• Preserve homogeneous weight w</text>
-    <text x="604" y="142" font-size="10.5" font-weight="600" fill="#047857">  on rational curve control drags!</text>
-    <text x="604" y="162" font-size="10.5" fill="#064e3b">• Rebuild derived GPU tessellation</text>
-    <text x="604" y="178" font-size="10.5" fill="#064e3b">  in-place while keeping Object ID</text>
+    <rect x="592" y="68" width="228" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="706" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">3. Rational Control-Point Deform</text>
+    <text x="604" y="108" font-size="10.5" fill="#111111">• Pick NURBS control point or vertex</text>
+    <text x="604" y="126" font-size="10.5" font-weight="600" fill="#111111">• Preserve homogeneous weight w</text>
+    <text x="604" y="142" font-size="10.5" font-weight="600" fill="#111111">  on rational curve control drags!</text>
+    <text x="604" y="162" font-size="10.5" fill="#111111">• Rebuild derived GPU tessellation</text>
+    <text x="604" y="178" font-size="10.5" fill="#111111">  in-place while keeping Object ID</text>
     
 </svg>
 </div>
 
-### Lesson Data Flow (`Rust` → `WebGPU` → `WGSL`)
+## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
 
-```
-original family → pure calculation → result or refusal.
-cursor → conservative bounds → projected segments → start or end.
-originals → projection or endpoint reach → one transaction → exact archive.
-```
+Before writing code, review how the three layers in this chapter talk to each other:
 
-- Conjugate the world projection through the original placement transform.
-- Gather boundaries and sample eligible curve owners.
-- Accept original cutter curves and a valid selected BRep face.
-- **Why it works (Why project through the placement transform?):** The plane is defined in world coordinates, but the source geometry belongs to its local frame. The inverse placement brings the projected result back into that frame.
-
-### Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `Browser`)
-
-| Layer | Construct | First-Year Student Explanation |
+| Layer | Construct | Plain-English Explanation for Students |
 | :--- | :--- | :--- |
 | **CAD Coords** | `w10,20,0` vs `@5,0,0` vs `10<30` | `w` forces absolute World coordinates; `@` measures relative to the last accepted point; `<` uses polar distance and angle in the active Construction Plane. |
 | **Rational NURBS** | Homogeneous control point `(w*x, w*y, w*z, w)` | Represents circles, ellipses, and conic arcs with zero approximation error using non-uniform weights `w`. |
 | **B-Rep Split/Trim** | Plane/Cutter intersection -> Face loop classification | Splits or trims B-Rep and mesh faces along cutting planes/curves while keeping retained topology tables valid. |
 
-**Production source (`session_viewer/src`):** [app/command/verbs/project_to_plane.rs](../../../../src/app/command/verbs/project_to_plane.rs), [app/command/verbs/extend.rs](../../../../src/app/command/verbs/extend.rs), [app/splitting.rs](../../../../src/app/splitting.rs), [app/command/verbs/measure.rs](../../../../src/app/command/verbs/measure.rs), [app/command/verbs/trim/parts.rs](../../../../src/app/command/verbs/trim/parts.rs), [app/command/verbs/explode.rs](../../../../src/app/command/verbs/explode.rs), [app/walk/frames.rs](../../../../src/app/walk/frames.rs), [build.rs](../../../../build.rs).
+**Authoritative production source (`session_viewer/src`):** [app/command/verbs/project_to_plane.rs](../../../../src/app/command/verbs/project_to_plane.rs), [app/command/verbs/extend.rs](../../../../src/app/command/verbs/extend.rs), [app/splitting.rs](../../../../src/app/splitting.rs), [app/command/verbs/measure.rs](../../../../src/app/command/verbs/measure.rs), [app/command/verbs/trim/parts.rs](../../../../src/app/command/verbs/trim/parts.rs), [app/command/verbs/explode.rs](../../../../src/app/command/verbs/explode.rs), [app/walk/frames.rs](../../../../src/app/walk/frames.rs), [build.rs](../../../../build.rs).
 
-## Implementation Checkpoints
+## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
 
-Apply these checkpoints in order inside `workspace/journey`. Expand each block to view the Rust/WGSL/HTML edits:
+| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
+| ---: | :--- | :--- | :--- | :--- |
+| **1** | [`81-project-originals-through-the-current-plane-algorithms`](#checkpoint-81-project-originals-through-the-current-plane-algorithms) | Conjugate the world projection through the original placement transform. | `src/project_geometry.rs` | `original family → pure calculation → result or refusal` |
+| **2** | [`81zza-read-original-cutters-in-object-frames`](#checkpoint-81zza-read-original-cutters-in-object-frames) | Write the cutter records and convert supported originals to curves or planar boundaries. | `src/source_cut.rs`, `src/lib.rs` | `original cutter → object frame → physical reach → edited curve` |
+| **3** | [`81zzb-find-original-cutters-near-the-pointer`](#checkpoint-81zzb-find-original-cutters-near-the-pointer) | Build fence planes and unit rays in the original object frame. | `src/source_cut.rs` | `original cutter → object frame → physical reach → edited curve` |
+| **4** | [`81zzc-grow-original-domains-and-extract-the-tail`](#checkpoint-81zzc-grow-original-domains-and-extract-the-tail) | Define end and reach records. | `src/extend_reach.rs`, `src/lib.rs` | `original cutter → object frame → physical reach → edited curve` |
+| **5** | [`81zzd-find-original-end-directions-and-length-reach`](#checkpoint-81zzd-find-original-end-directions-and-length-reach) | Find outward directions for supported original curve families. | `src/extend_reach.rs` | `original cutter → object frame → physical reach → edited curve` |
+| **6** | [`81zze-stop-straight-growth-at-the-first-boundary`](#checkpoint-81zze-stop-straight-growth-at-the-first-boundary) | Find the nearest positive crossing of original planes, curves and transformed meshes along a straight end.. | `src/extend_reach.rs` | `original cutter → object frame → physical reach → edited curve` |
+| **7** | [`81zzf-stop-curved-growth-at-an-original-boundary`](#checkpoint-81zzf-stop-curved-growth-at-an-original-boundary) | Grow the original NURBS domain and inspect curve or plane crossings beyond its old end. | `src/extend_reach.rs` | `original cutter → object frame → physical reach → edited curve` |
+| **8** | [`81zzg-dispatch-original-extension-families`](#checkpoint-81zzg-dispatch-original-extension-families) | Connect the existing reach helpers for lines, polylines and NURBS curves. | `src/extend_reach.rs` | `original cutter → object frame → physical reach → edited curve` |
+| **9** | [`81a-find-source-cutters-and-current-extension-reach`](#checkpoint-81a-find-source-cutters-and-current-extension-reach) | Trim or extend supported original curves by a normalized physical-length interval. | `src/interval_geometry.rs`, `src/lib.rs` | `original cutter → object frame → physical reach → edited curve` |
+| **10** | [`81b-capture-eligible-original-identity-and-placement`](#checkpoint-81b-capture-eligible-original-identity-and-placement) | Capture eligible original identity and placement. | `src/source_edit.rs`, `src/lib.rs` | `eligible row → original allocation and placement → later freshness check` |
+| **11** | [`81c-replace-an-original-without-replacing-its-row`](#checkpoint-81c-replace-an-original-without-replacing-its-row) | Replace an original without replacing its row. | `src/scene.rs` | `checked original → prepared replacement → unchanged row identity` |
+| **12** | [`81d-own-the-originals-selected-for-projection`](#checkpoint-81d-own-the-originals-selected-for-projection) | Own the originals selected for projection. | `src/project_draft.rs`, `src/lib.rs` | `selected rows → original owners → pending plane questions` |
+| **13** | [`81e-validate-candidate-plane-answers-before-accepting-them`](#checkpoint-81e-validate-candidate-plane-answers-before-accepting-them) | Validate candidate plane answers before accepting them. | `src/project_draft.rs` | `candidate points → finite and plane checks → accepted answers` |
+| **14** | [`81f-prepare-projection-results-as-one-transaction`](#checkpoint-81f-prepare-projection-results-as-one-transaction) | Prepare projection results as one transaction. | `src/project_draft.rs` | `fresh captured originals → prepared edits → one transaction` |
+| **15** | [`81g-own-extension-candidates-and-screen-bounds`](#checkpoint-81g-own-extension-candidates-and-screen-bounds) | Own extension candidates and screen bounds. | `src/extend_draft.rs`, `src/lib.rs` | `temporary owner → world bounds → bounded cursor search` |
+| **16** | [`81h-gather-boundaries-and-sample-eligible-curve-owners`](#checkpoint-81h-gather-boundaries-and-sample-eligible-curve-owners) | Gather boundaries and sample eligible curve owners. | `src/extend_draft.rs` | `eligible boundary picks → cached original curve samples → world bounds` |
+| **17** | [`81i-cache-current-boundary-meshes-and-start-the-end-phase`](#checkpoint-81i-cache-current-boundary-meshes-and-start-the-end-phase) | Cache current boundary meshes and start the end phase. | `src/extend_draft.rs` | `boundary originals → cached cutters and meshes → endpoint phase` |
+| **18** | [`81j-resolve-distance-and-boundary-reach-in-source-coordinates`](#checkpoint-81j-resolve-distance-and-boundary-reach-in-source-coordinates) | Resolve distance and boundary reach in source coordinates. | `src/extend_draft.rs` | `world distance or cutters → inverse placement → local endpoint reach` |
+| **19** | [`81k-find-the-nearest-visible-curve-end-in-css-pixels`](#checkpoint-81k-find-the-nearest-visible-curve-end-in-css-pixels) | Find the nearest visible curve end in CSS pixels. | `src/extend_draft.rs` | `cursor → conservative bounds → projected segments → start or end` |
+| **20** | [`81l-preview-extension-and-refresh-only-changed-originals`](#checkpoint-81l-preview-extension-and-refresh-only-changed-originals) | Preview extension and refresh only changed originals. | `src/extend_draft.rs` | `fresh endpoint → grown original and temporary tail → click → refreshed candidate` |
+| **21** | [`81m-keep-projection-and-extension-in-the-pending-tool-owner`](#checkpoint-81m-keep-projection-and-extension-in-the-pending-tool-owner) | Keep projection and extension in the pending tool owner. | `src/tool.rs` | `pending editor owner → current prompt → temporary guide` |
+| **22** | [`81n-connect-checked-projection-to-one-editor-transaction`](#checkpoint-81n-connect-checked-projection-to-one-editor-transaction) | Connect checked projection to one editor transaction. | `src/editor.rs` | `current editor plane → checked draft → prepared replacements → one history entry` |
+| **23** | [`81o-connect-boundary-picks-repeated-end-clicks-and-cancellation`](#checkpoint-81o-connect-boundary-picks-repeated-end-clicks-and-cancellation) | Connect boundary picks repeated end clicks and cancellation. | `src/editor.rs` | `temporary picks → fresh hover → one replacement → repeated click` |
+| **24** | [`81p-expose-editing-actions-and-normalized-interval-extension`](#checkpoint-81p-expose-editing-actions-and-normalized-interval-extension) | Expose editing actions and normalized interval extension. | `src/editor.rs` | `registered editor action → source handler → normalized interval or pending edit` |
+| **25** | [`81q-route-accepted-editing-input-and-owner-lifecycle-1`](#checkpoint-81q-route-accepted-editing-input-and-owner-lifecycle-1) | Dispatch typed answers and world points to the current draft. | `src/editor.rs` | `route answers to the active editing owner` |
+| **26** | [`81r-route-accepted-editing-input-and-owner-lifecycle-2`](#checkpoint-81r-route-accepted-editing-input-and-owner-lifecycle-2) | Keep navigation available while an edit is pending, then finish through its owner. | `src/editor.rs` | `finish a pending edit through one commit path` |
+| **27** | [`81s-route-accepted-editing-input-and-owner-lifecycle-3`](#checkpoint-81s-route-accepted-editing-input-and-owner-lifecycle-3) | Discard temporary previews and restore the captured selection on cancellation. | `src/editor.rs` | `restore source selection when an edit is cancelled` |
+| **28** | [`81t-register-current-projection-and-extension-commands`](#checkpoint-81t-register-current-projection-and-extension-commands) | Register current projection and extension commands. | `src/editing_commands.rs`, `src/lib.rs`, `src/commands.rs` | `command name and arguments → validated action → pending editor owner` |
+| **29** | [`81u-route-whole-boundary-picks-and-observe-pending-edits`](#checkpoint-81u-route-whole-boundary-picks-and-observe-pending-edits) | Route whole boundary picks and observe pending edits. | `src/browser.rs` | `whole owner integer pick → temporary boundary → pending edit diagnostics` |
+| **30** | [`81v-exercise-original-projection-retry-and-repeated-extension`](#checkpoint-81v-exercise-original-projection-retry-and-repeated-extension) | Exercise original projection retry and repeated extension. | `src/editing_tests.rs`, `src/lib.rs` | `originals → projection or endpoint reach → one transaction → exact archive` |
+| **31** | [`81za-validate-original-split-inputs-and-name-pieces`](#checkpoint-81za-validate-original-split-inputs-and-name-pieces) | Accept original cutter curves and a valid selected BRep face. | `src/split_geometry.rs`, `src/lib.rs` | `original family → pure calculation → result or refusal` |
+
+---
+
+## 4. Step-by-Step Coding Notebook (Concept + Implementation)
+
+Work through each notebook cell below in order inside `workspace/journey`. Read the **Concept Walkthrough** and **Self-Check Q&A** first, then expand the **Implementation** block to type and verify the code.
 
 <a id="checkpoint-81-project-originals-through-the-current-plane-algorithms"></a>
+
+### Step 1 of 31 · Project originals in their placed frame (`81-project-originals-through-the-current-plane-algorithms`)
+
+- **Goal:** Conjugate the world projection through the original placement transform.
+- **Data Flow Trace:** `original family → pure calculation → result or refusal`
+- **Files You Touch:** `src/project_geometry.rs` (*Extend this original owner with today’s complete helper.*)
+
+Conjugate the world projection through the original placement transform. Preserve source types, remove obsolete mesh normals and refuse unsupported or fully collapsed results.
+
+> **Self-Check Question:** *Why project through the placement transform?*  
+> **Answer:** The plane is defined in world coordinates, but the source geometry belongs to its local frame. The inverse placement brings the projected result back into that frame.
+
+- **What You Should See:** The preceding original network and four-corner patch remain visible while checked source editing connects.
+- **Hands-On Lab Experiment:** Inspect the original rational-curve and mesh fixtures. Compare a valid flattened line with a line that collapses to one point.
 
 <details>
 <summary>Implementation 81-project-originals-through-the-current-plane-algorithms: Project originals in their placed frame</summary>
@@ -360,6 +433,20 @@ After that block, append this supplied code:
 
 <a id="checkpoint-81zza-read-original-cutters-in-object-frames"></a>
 
+### Step 2 of 31 · Read original cutters in object frames (`81zza-read-original-cutters-in-object-frames`)
+
+- **Goal:** Write the cutter records and convert supported originals to curves or planar boundaries.
+- **Data Flow Trace:** `original cutter → object frame → physical reach → edited curve`
+- **Files You Touch:** `src/source_cut.rs` (*Type the whole original helpers introduced today.*) · `src/lib.rs` (*Register this original curve-editing owner.*)
+
+Write the cutter records and convert supported originals to curves or planar boundaries. Rebuild a moved plane from three transformed points.
+
+> **Self-Check Question:** *Why rebuild a plane after a stretch?*  
+> **Answer:** Its transformed axes may cease to be orthogonal. Three transformed points define the actual transformed plane.
+
+- **What You Should See:** Original cutters can be read in an object's frame before extension input is connected.
+- **Hands-On Lab Experiment:** Trace a nonuniform stretch and a curved surface through plane conversion.
+
 <details>
 <summary>Implementation 81zza-read-original-cutters-in-object-frames: Read original cutters in object frames</summary>
 
@@ -400,6 +487,20 @@ After that block, type:
 </details>
 
 <a id="checkpoint-81zzb-find-original-cutters-near-the-pointer"></a>
+
+### Step 3 of 31 · Find original cutters near the pointer (`81zzb-find-original-cutters-near-the-pointer`)
+
+- **Goal:** Build fence planes and unit rays in the original object frame.
+- **Data Flow Trace:** `original cutter → object frame → physical reach → edited curve`
+- **Files You Touch:** `src/source_cut.rs` (*Extend this original owner with today’s complete helper.*)
+
+Build fence planes and unit rays in the original object frame. Sample curve spans and find the nearest projected polyline within the pixel aperture.
+
+> **Self-Check Question:** *Why normalize a ray after changing its frame?*  
+> **Answer:** Object scaling changes its length. Intersection tolerances require a unit direction in the mesh frame.
+
+- **What You Should See:** Pointer queries can identify candidate original cutters without modifying the source.
+- **Hands-On Lab Experiment:** Compare a scaled ray and two nearby projected polylines.
 
 <details>
 <summary>Implementation 81zzb-find-original-cutters-near-the-pointer: Find original cutters near the pointer</summary>
@@ -598,6 +699,20 @@ After that block, append this supplied code:
 
 <a id="checkpoint-81zzc-grow-original-domains-and-extract-the-tail"></a>
 
+### Step 4 of 31 · Grow original domains and extract the tail (`81zzc-grow-original-domains-and-extract-the-tail`)
+
+- **Goal:** Define end and reach records.
+- **Data Flow Trace:** `original cutter → object frame → physical reach → edited curve`
+- **Files You Touch:** `src/extend_reach.rs` (*Type the whole original helpers introduced today.*) · `src/lib.rs` (*Register this original curve-editing owner.*)
+
+Define end and reach records. Extend a cloned curve domain, trim out its gained piece and sample that tail from the old end.
+
+> **Self-Check Question:** *Why keep the gained piece?*  
+> **Answer:** The editing preview needs the new segment while the original stays available for cancellation.
+
+- **What You Should See:** Original-domain growth and tail extraction are prepared for extension previews.
+- **Hands-On Lab Experiment:** Compare Start and End tail ordering and mismatched control colours.
+
 <details>
 <summary>Implementation 81zzc-grow-original-domains-and-extract-the-tail: Grow original domains and extract the tail</summary>
 
@@ -638,6 +753,20 @@ After that block, type:
 </details>
 
 <a id="checkpoint-81zzd-find-original-end-directions-and-length-reach"></a>
+
+### Step 5 of 31 · Find original end directions and length reach (`81zzd-find-original-end-directions-and-length-reach`)
+
+- **Goal:** Find outward directions for supported original curve families.
+- **Data Flow Trace:** `original cutter → object frame → physical reach → edited curve`
+- **Files You Touch:** `src/extend_reach.rs` (*Extend this original owner with today’s complete helper.*)
+
+Find outward directions for supported original curve families. Search domain growth until the gained curve has the requested physical length.
+
+> **Self-Check Question:** *Why search by physical length?*  
+> **Answer:** A NURBS parameter step does not represent a fixed distance. Evaluate the gained curve length instead.
+
+- **What You Should See:** Extension helpers can derive original endpoint directions and length reach.
+- **Hands-On Lab Experiment:** Trace a curved end with changing parameter speed and a zero tangent.
 
 <details>
 <summary>Implementation 81zzd-find-original-end-directions-and-length-reach: Find original end directions and length reach</summary>
@@ -702,6 +831,20 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-81zze-stop-straight-growth-at-the-first-boundary"></a>
+
+### Step 6 of 31 · Stop straight growth at the first boundary (`81zze-stop-straight-growth-at-the-first-boundary`)
+
+- **Goal:** Find the nearest positive crossing of original planes, curves and transformed meshes along a straight end..
+- **Data Flow Trace:** `original cutter → object frame → physical reach → edited curve`
+- **Files You Touch:** `src/extend_reach.rs` (*Extend this original owner with today’s complete helper.*)
+
+Find the nearest positive crossing of original planes, curves and transformed meshes along a straight end.
+
+> **Self-Check Question:** *Why ignore a crossing at the old end?*  
+> **Answer:** It does not add a segment. Only a crossing ahead beyond the tolerance can bound growth.
+
+- **What You Should See:** Straight extension can stop at the first original boundary before editing input is connected.
+- **Hands-On Lab Experiment:** Compare crossings behind, at and ahead of the old end.
 
 <details>
 <summary>Implementation 81zze-stop-straight-growth-at-the-first-boundary: Stop straight growth at the first boundary</summary>
@@ -806,6 +949,20 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-81zzf-stop-curved-growth-at-an-original-boundary"></a>
+
+### Step 7 of 31 · Stop curved growth at an original boundary (`81zzf-stop-curved-growth-at-an-original-boundary`)
+
+- **Goal:** Grow the original NURBS domain and inspect curve or plane crossings beyond its old end.
+- **Data Flow Trace:** `original cutter → object frame → physical reach → edited curve`
+- **Files You Touch:** `src/extend_reach.rs` (*Extend this original owner with today’s complete helper.*)
+
+Grow the original NURBS domain and inspect curve or plane crossings beyond its old end. Trim the extension at the first accepted boundary.
+
+> **Self-Check Question:** *Why test the gained domain?*  
+> **Answer:** Crossings inside the original curve do not bound the new segment.
+
+- **What You Should See:** Curved extension can stop at an original boundary while retaining its source geometry.
+- **Hands-On Lab Experiment:** Trace both end directions through increasing domain growth.
 
 <details>
 <summary>Implementation 81zzf-stop-curved-growth-at-an-original-boundary: Stop curved growth at an original boundary</summary>
@@ -935,6 +1092,20 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-81zzg-dispatch-original-extension-families"></a>
+
+### Step 8 of 31 · Dispatch original extension families (`81zzg-dispatch-original-extension-families`)
+
+- **Goal:** Connect the existing reach helpers for lines, polylines and NURBS curves.
+- **Data Flow Trace:** `original cutter → object frame → physical reach → edited curve`
+- **Files You Touch:** `src/extend_reach.rs` (*Extend this original owner with today’s complete helper.*)
+
+Connect the existing reach helpers for lines, polylines and NURBS curves. Return the grown original and its preview tail while rejecting closed curves.
+
+> **Self-Check Question:** *Why reject a closed curve?*  
+> **Answer:** It has no free end to extend. A refusal preserves the existing original.
+
+- **What You Should See:** The prepared extension families share one dispatcher; preview and acceptance connect later.
+- **Hands-On Lab Experiment:** Trace a line, an open polyline, a NURBS curve and a closed curve through dispatch.
 
 <details>
 <summary>Implementation 81zzg-dispatch-original-extension-families: Dispatch original extension families</summary>
@@ -1410,6 +1581,20 @@ After that block, append this supplied code:
 
 <a id="checkpoint-81a-find-source-cutters-and-current-extension-reach"></a>
 
+### Step 9 of 31 · Edit original curve intervals (`81a-find-source-cutters-and-current-extension-reach`)
+
+- **Goal:** Trim or extend supported original curves by a normalized physical-length interval.
+- **Data Flow Trace:** `original cutter → object frame → physical reach → edited curve`
+- **Files You Touch:** `src/interval_geometry.rs` (*Type the whole original helpers introduced today.*) · `src/lib.rs` (*Register this original curve-editing owner.*)
+
+Trim or extend supported original curves by a normalized physical-length interval. Reuse the cutter and extension helpers already written.
+
+> **Self-Check Question:** *Why use physical-length fractions?*  
+> **Answer:** The requested interval is measured along the curve rather than through nonuniform parameters.
+
+- **What You Should See:** The complete cutter/reach helpers compile before the pending edit uses them.
+- **Hands-On Lab Experiment:** Compare a trim, an extension and an unsupported family.
+
 <details>
 <summary>Implementation 81a-find-source-cutters-and-current-extension-reach: Edit original curve intervals</summary>
 
@@ -1535,6 +1720,19 @@ After that block, append this supplied code:
 
 <a id="checkpoint-81b-capture-eligible-original-identity-and-placement"></a>
 
+### Step 10 of 31 · Capture eligible original identity and placement (`81b-capture-eligible-original-identity-and-placement`)
+
+- **Goal:** Capture eligible original identity and placement.
+- **Data Flow Trace:** `eligible row → original allocation and placement → later freshness check`
+- **Files You Touch:** `src/source_edit.rs` (*Capture and validate original allocation, placement and editing eligibility.*) · `src/lib.rs` (*Register the editing component.*)
+
+Capture immutable original allocation and f64 placement together. Refuse hidden, locked, released or replaced owners before editing.
+
+> **Self-Check Question:** *Can a display mesh stand in for its original BRep?*  
+> **Answer:** No. Original family lookup checks CAD and surfaces before their derived mesh. Editing a proxy would lose the actual geometry.
+
+- **Hands-On Lab Experiment:** Capture a placed rational curve, replace its source, and inspect the stale-owner rejection without changing the captured allocation.
+
 <details>
 <summary>Implementation 81b-capture-eligible-original-identity-and-placement: Capture eligible original identity and placement</summary>
 
@@ -1576,6 +1774,19 @@ After that block, type:
 
 <a id="checkpoint-81c-replace-an-original-without-replacing-its-row"></a>
 
+### Step 11 of 31 · Replace an original without replacing its row (`81c-replace-an-original-without-replacing-its-row`)
+
+- **Goal:** Replace an original without replacing its row.
+- **Data Flow Trace:** `checked original → prepared replacement → unchanged row identity`
+- **Files You Touch:** `src/scene.rs` (*Prepare replacement originals before adopting them on the same source row.*)
+
+Prepare and range-check the complete replacement before changing the matching row. Keep the original GUID and placement.
+
+> **Self-Check Question:** *Does replacing an original allocate another viewer ID?*  
+> **Answer:** No. The existing row survives. Its new display is derived from the replacement original; shared old owners remain unchanged.
+
+- **Hands-On Lab Experiment:** Inspect the point, line, path, mesh, surface and BRep branches. Every display coordinate is checked before the row adopts its replacement.
+
 <details>
 <summary>Implementation 81c-replace-an-original-without-replacing-its-row: Replace an original without replacing its row</summary>
 
@@ -1608,6 +1819,19 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-81d-own-the-originals-selected-for-projection"></a>
+
+### Step 12 of 31 · Own the originals selected for projection (`81d-own-the-originals-selected-for-projection`)
+
+- **Goal:** Own the originals selected for projection.
+- **Data Flow Trace:** `selected rows → original owners → pending plane questions`
+- **Files You Touch:** `src/project_draft.rs` (*Capture selected original projection owners.*) · `src/lib.rs` (*Register the editing component.*)
+
+Capture selected eligible originals and count unsupported lanes without copying derived proxies.
+
+> **Self-Check Question:** *Does a pending plane edit alter the originals?*  
+> **Answer:** No. It owns references and accepted questions. The transaction starts only after a valid plane and all replacement results exist.
+
+- **Hands-On Lab Experiment:** Inspect the draft’s selected row identities and unsupported count. Confirm empty selection rejects the start.
 
 <details>
 <summary>Implementation 81d-own-the-originals-selected-for-projection: Own the originals selected for projection</summary>
@@ -1650,6 +1874,19 @@ After that block, type:
 
 <a id="checkpoint-81e-validate-candidate-plane-answers-before-accepting-them"></a>
 
+### Step 13 of 31 · Validate candidate plane answers before accepting them (`81e-validate-candidate-plane-answers-before-accepting-them`)
+
+- **Goal:** Validate candidate plane answers before accepting them.
+- **Data Flow Trace:** `candidate points → finite and plane checks → accepted answers`
+- **Files You Touch:** `src/project_draft.rs` (*Add complete source-editing methods at their dependency boundary.*)
+
+Validate a cloned answer list. Reject repeated, excessive and collinear points while preserving earlier accepted answers.
+
+> **Self-Check Question:** *What survives a bad third plane point?*  
+> **Answer:** The previous two points and all original geometry. A later valid third answer can complete the same pending command.
+
+- **Hands-On Lab Experiment:** Compare zero-length axis and collinear third-point rejection. Check that the candidate list is assigned only after validation.
+
 <details>
 <summary>Implementation 81e-validate-candidate-plane-answers-before-accepting-them: Validate candidate plane answers before accepting them</summary>
 
@@ -1682,6 +1919,19 @@ Edit the existing block to match this code; keep unchanged lines:
 
 <a id="checkpoint-81f-prepare-projection-results-as-one-transaction"></a>
 
+### Step 14 of 31 · Prepare projection results as one transaction (`81f-prepare-projection-results-as-one-transaction`)
+
+- **Goal:** Prepare projection results as one transaction.
+- **Data Flow Trace:** `fresh captured originals → prepared edits → one transaction`
+- **Files You Touch:** `src/project_draft.rs` (*Add complete source-editing methods at their dependency boundary.*)
+
+Check captured owners and prepare every eligible replacement before reporting projected, collapsed and unsupported counts.
+
+> **Self-Check Question:** *Can a collapsed projection erase Redo?*  
+> **Answer:** No. If no replacement is usable, report the skipped counts before opening a transaction.
+
+- **Hands-On Lab Experiment:** Inspect mixed supported and unsupported inputs and all-collapsed input. Compare the pending prompt for each accepted plane point.
+
 <details>
 <summary>Implementation 81f-prepare-projection-results-as-one-transaction: Prepare projection results as one transaction</summary>
 
@@ -1713,6 +1963,19 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-81g-own-extension-candidates-and-screen-bounds"></a>
+
+### Step 15 of 31 · Own extension candidates and screen bounds (`81g-own-extension-candidates-and-screen-bounds`)
+
+- **Goal:** Own extension candidates and screen bounds.
+- **Data Flow Trace:** `temporary owner → world bounds → bounded cursor search`
+- **Files You Touch:** `src/extend_draft.rs` (*Own temporary extension state and screen-search helpers.*) · `src/lib.rs` (*Register the editing component.*)
+
+Own temporary boundaries, cached candidates and one hover result. Provide conservative screen bounds for the cursor search.
+
+> **Self-Check Question:** *Are these samples the saved source curve?*  
+> **Answer:** No. They help locate an endpoint in screen space. The grown result is computed from the retained original geometry.
+
+- **Hands-On Lab Experiment:** Inspect the eight projected bounding corners. Near-plane uncertainty must allow segment checks rather than incorrectly rejecting a visible curve.
 
 <details>
 <summary>Implementation 81g-own-extension-candidates-and-screen-bounds: Own extension candidates and screen bounds</summary>
@@ -1755,6 +2018,19 @@ After that block, type:
 
 <a id="checkpoint-81h-gather-boundaries-and-sample-eligible-curve-owners"></a>
 
+### Step 16 of 31 · Gather boundaries and sample eligible curve owners (`81h-gather-boundaries-and-sample-eligible-curve-owners`)
+
+- **Goal:** Gather boundaries and sample eligible curve owners.
+- **Data Flow Trace:** `eligible boundary picks → cached original curve samples → world bounds`
+- **Files You Touch:** `src/extend_draft.rs` (*Add complete source-editing methods at their dependency boundary.*)
+
+Toggle whole original boundary owners and build bounded world-coordinate samples once for visible unlocked curves.
+
+> **Self-Check Question:** *Should selecting a boundary change ordinary selection?*  
+> **Answer:** The tool retains its own boundary list. Ordinary selection is restored when the tool finishes or cancels.
+
+- **Hands-On Lab Experiment:** Inspect source family guards, the 200,000-sample ceiling and world placement applied exactly once.
+
 <details>
 <summary>Implementation 81h-gather-boundaries-and-sample-eligible-curve-owners: Gather boundaries and sample eligible curve owners</summary>
 
@@ -1787,6 +2063,19 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-81i-cache-current-boundary-meshes-and-start-the-end-phase"></a>
+
+### Step 17 of 31 · Cache current boundary meshes and start the end phase (`81i-cache-current-boundary-meshes-and-start-the-end-phase`)
+
+- **Goal:** Cache current boundary meshes and start the end phase.
+- **Data Flow Trace:** `boundary originals → cached cutters and meshes → endpoint phase`
+- **Files You Touch:** `src/extend_draft.rs` (*Add complete source-editing methods at their dependency boundary.*)
+
+Prepare world cutters and BRep boundary meshes once. Validate boundaries before entering the repeated endpoint phase.
+
+> **Self-Check Question:** *Should every mouse move mesh the same BRep again?*  
+> **Answer:** No. Retain its current-quality boundary meshes for the pending operation and reuse them until the owner becomes stale.
+
+- **Hands-On Lab Experiment:** Compare boundary mode with Distance mode, which needs no boundary mesh. Inspect current-quality BRep face preparation.
 
 <details>
 <summary>Implementation 81i-cache-current-boundary-meshes-and-start-the-end-phase: Cache current boundary meshes and start the end phase</summary>
@@ -1821,6 +2110,19 @@ Edit the existing block to match this code; keep unchanged lines:
 
 <a id="checkpoint-81j-resolve-distance-and-boundary-reach-in-source-coordinates"></a>
 
+### Step 18 of 31 · Resolve distance and boundary reach in source coordinates (`81j-resolve-distance-and-boundary-reach-in-source-coordinates`)
+
+- **Goal:** Resolve distance and boundary reach in source coordinates.
+- **Data Flow Trace:** `world distance or cutters → inverse placement → local endpoint reach`
+- **Files You Touch:** `src/extend_draft.rs` (*Add complete source-editing methods at their dependency boundary.*)
+
+Accept positive finite distance answers before updating state. Transform world reach into the original curve’s local frame.
+
+> **Self-Check Question:** *What does distance25 mean under scale1000?*  
+> **Answer:** Twenty-five world units. For a unit local tangent under uniform scale1000, extend its source parameter distance by0.025.
+
+- **Hands-On Lab Experiment:** Inspect nonuniform-scale tangent length, boundary-local mesh rays and freshness checks before the current extension solver.
+
 <details>
 <summary>Implementation 81j-resolve-distance-and-boundary-reach-in-source-coordinates: Resolve distance and boundary reach in source coordinates</summary>
 
@@ -1853,6 +2155,19 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-81k-find-the-nearest-visible-curve-end-in-css-pixels"></a>
+
+### Step 19 of 31 · Find the nearest visible curve end in CSS pixels (`81k-find-the-nearest-visible-curve-end-in-css-pixels`)
+
+- **Goal:** Find the nearest visible curve end in CSS pixels.
+- **Data Flow Trace:** `cursor → conservative bounds → projected segments → start or end`
+- **Files You Touch:** `src/extend_draft.rs` (*Add complete source-editing methods at their dependency boundary.*)
+
+Prune candidates by cached screen bounds, then measure projected segment distance and choose the nearer arclength half.
+
+> **Self-Check Question:** *Does a high-density screen widen the hover target?*  
+> **Answer:** The tolerance stays12 CSS pixels. Convert consistently through the current canvas projection rather than using physical pixels.
+
+- **Hands-On Lab Experiment:** Inspect missed candidates, segment projection and the midpoint choice. Compare curves outside the cursor’s bounded area.
 
 <details>
 <summary>Implementation 81k-find-the-nearest-visible-curve-end-in-css-pixels: Find the nearest visible curve end in CSS pixels</summary>
@@ -1887,6 +2202,19 @@ Edit the existing block to match this code; keep unchanged lines:
 
 <a id="checkpoint-81l-preview-extension-and-refresh-only-changed-originals"></a>
 
+### Step 20 of 31 · Preview extension and refresh only changed originals (`81l-preview-extension-and-refresh-only-changed-originals`)
+
+- **Goal:** Preview extension and refresh only changed originals.
+- **Data Flow Trace:** `fresh endpoint → grown original and temporary tail → click → refreshed candidate`
+- **Files You Touch:** `src/extend_draft.rs` (*Add complete source-editing methods at their dependency boundary.*)
+
+Solve a fresh endpoint once, retain its temporary tail and resample the changed original after a successful click.
+
+> **Self-Check Question:** *Does the hover preview make a history entry?*  
+> **Answer:** No. Only committing its checked original replacement does. Repeated hover on the same fresh endpoint reuses the result.
+
+- **Hands-On Lab Experiment:** Inspect unchanged endpoint reuse, stale boundary rejection and the per-row refresh after a successful repeated click.
+
 <details>
 <summary>Implementation 81l-preview-extension-and-refresh-only-changed-originals: Preview extension and refresh only changed originals</summary>
 
@@ -1919,6 +2247,19 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-81m-keep-projection-and-extension-in-the-pending-tool-owner"></a>
+
+### Step 21 of 31 · Keep projection and extension in the pending tool owner (`81m-keep-projection-and-extension-in-the-pending-tool-owner`)
+
+- **Goal:** Keep projection and extension in the pending tool owner.
+- **Data Flow Trace:** `pending editor owner → current prompt → temporary guide`
+- **Files You Touch:** `src/tool.rs` (*Connect projection and extension to pending prompts, buttons and temporary guides.*)
+
+Register current tool names, prompts, buttons and temporary guides. Construction-plane questions take priority over nested edit guides.
+
+> **Self-Check Question:** *Does changing CPlane discard a pending editing command?*  
+> **Answer:** The nested plane question stays within the owner. Its guide has priority until the plane question finishes or cancels.
+
+- **Hands-On Lab Experiment:** Inspect Project’s accepted plane points, Extend’s temporary tail and the nested plane guide. None becomes scene geometry.
 
 <details>
 <summary>Implementation 81m-keep-projection-and-extension-in-the-pending-tool-owner: Keep projection and extension in the pending tool owner</summary>
@@ -2217,6 +2558,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-81n-connect-checked-projection-to-one-editor-transaction"></a>
 
+### Step 22 of 31 · Connect checked projection to one editor transaction (`81n-connect-checked-projection-to-one-editor-transaction`)
+
+- **Goal:** Connect checked projection to one editor transaction.
+- **Data Flow Trace:** `current editor plane → checked draft → prepared replacements → one history entry`
+- **Files You Touch:** `src/editor.rs` (*Connect complete source-editing methods to one checked history transaction.*)
+
+Parse initial arguments under this editor’s plane context. Adopt replacements only after the complete plane and all originals validate.
+
+> **Self-Check Question:** *Can a second editor change this projection’s input frame?*  
+> **Answer:** Resolve the command under the active editor’s own plane before parsing. Global parsing context must not leak across editors.
+
+- **Hands-On Lab Experiment:** Inspect view-normal CPlane projection, named planes, Three Point startup and one transaction over all usable selected originals.
+
 <details>
 <summary>Implementation 81n-connect-checked-projection-to-one-editor-transaction: Connect checked projection to one editor transaction</summary>
 
@@ -2250,6 +2604,19 @@ Edit the existing block to match this code; keep unchanged lines:
 
 <a id="checkpoint-81o-connect-boundary-picks-repeated-end-clicks-and-cancellation"></a>
 
+### Step 23 of 31 · Connect boundary picks repeated end clicks and cancellation (`81o-connect-boundary-picks-repeated-end-clicks-and-cancellation`)
+
+- **Goal:** Connect boundary picks repeated end clicks and cancellation.
+- **Data Flow Trace:** `temporary picks → fresh hover → one replacement → repeated click`
+- **Files You Touch:** `src/editor.rs` (*Connect complete source-editing methods to one checked history transaction.*)
+
+Keep boundary picks outside ordinary selection. Commit each checked end click once, then refresh that source for another click.
+
+> **Self-Check Question:** *How many Undo steps do two successful end clicks make?*  
+> **Answer:** Two. Each click changes one original in its own transaction; hovering or missing the curve makes none.
+
+- **Hands-On Lab Experiment:** Inspect boundary pick, positive-distance answer, current camera screen conversion, click freshness and selection restoration at Done.
+
 <details>
 <summary>Implementation 81o-connect-boundary-picks-repeated-end-clicks-and-cancellation: Connect boundary picks repeated end clicks and cancellation</summary>
 
@@ -2282,6 +2649,19 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-81p-expose-editing-actions-and-normalized-interval-extension"></a>
+
+### Step 24 of 31 · Expose editing actions and normalized interval extension (`81p-expose-editing-actions-and-normalized-interval-extension`)
+
+- **Goal:** Expose editing actions and normalized interval extension.
+- **Data Flow Trace:** `registered editor action → source handler → normalized interval or pending edit`
+- **Files You Touch:** `src/editor.rs` (*Connect complete source-editing methods to one checked history transaction.*)
+
+Expose editor actions only after their handlers exist. Interval extension requires one eligible original curve and validates before editing.
+
+> **Self-Check Question:** *Can two selected originals use one interval command?*  
+> **Answer:** This maintained interval command requires one original curve. Refuse ambiguous selection before preparing any replacement.
+
+- **Hands-On Lab Experiment:** Compare Extend -0.5 1.5 on one line with invalid intervals, multiple selection and the pending endpoint command.
 
 <details>
 <summary>Implementation 81p-expose-editing-actions-and-normalized-interval-extension: Expose editing actions and normalized interval extension</summary>
@@ -3418,6 +3798,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-81q-route-accepted-editing-input-and-owner-lifecycle-1"></a>
+
+### Step 25 of 31 · Route answers to the active editing owner (`81q-route-accepted-editing-input-and-owner-lifecycle-1`)
+
+- **Goal:** Dispatch typed answers and world points to the current draft.
+- **Data Flow Trace:** `route answers to the active editing owner`
+- **Files You Touch:** `src/editor.rs` (*Recognize the pending owner’s typed grammar.*)
+
+The pending draft owns its input grammar. Route gather, transform, projection and extension answers to that owner; keep construction-plane choices available before dispatch. Validate the captured original before preparing an edit. Temporary boundary highlights describe the pending operation without changing the source selection.
+
+> **Self-Check Question:** *Why handle global choices before an Extend distance word?*  
+> **Answer:** Escape and CPlane control the pending owner. Treating Escape as a distance would prevent cancellation and leave temporary state active.
+
+- **Hands-On Lab Experiment:** Inspect accepted point dispatch, boundary highlighting, finish/cancel restoration and input choices in the changed routes.
 
 <details>
 <summary>Implementation 81q-route-accepted-editing-input-and-owner-lifecycle-1: Route answers to the active editing owner</summary>
@@ -4708,6 +5101,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-81r-route-accepted-editing-input-and-owner-lifecycle-2"></a>
 
+### Step 26 of 31 · Finish a pending edit through one commit path (`81r-route-accepted-editing-input-and-owner-lifecycle-2`)
+
+- **Goal:** Keep navigation available while an edit is pending, then finish through its owner.
+- **Data Flow Trace:** `finish a pending edit through one commit path`
+- **Files You Touch:** `src/editor.rs` (*Retain drafts during navigation and cancel on unrelated actions.*)
+
+Navigation changes the view while the pending edit retains its captured originals. An unrelated action cancels that edit. Finish delegates to the active owner; Close requires an ordinary curve with enough points. Clicking its first endpoint invokes the same Close action as typed input.
+
+> **Self-Check Question:** *Why finish a pending edit through its existing owner?*  
+> **Answer:** That owner retains the captured originals and accepted parameters. Navigation can change the view, while Finish commits through the same validated edit path.
+
+- **Hands-On Lab Experiment:** Begin an edit, orbit the view and finish it. Verify that the pending owner survives navigation and creates one accepted document change.
+
 <details>
 <summary>Implementation 81r-route-accepted-editing-input-and-owner-lifecycle-2: Finish a pending edit through one commit path</summary>
 
@@ -5884,6 +6290,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-81s-route-accepted-editing-input-and-owner-lifecycle-3"></a>
 
+### Step 27 of 31 · Restore source selection when an edit is cancelled (`81s-route-accepted-editing-input-and-owner-lifecycle-3`)
+
+- **Goal:** Discard temporary previews and restore the captured selection on cancellation.
+- **Data Flow Trace:** `restore source selection when an edit is cancelled`
+- **Files You Touch:** `src/editor.rs` (*Restore captured selection and release preview ownership on Cancel.*)
+
+Cancellation restores the selection captured by projection, extension or gather. Drop the draft and its previews, then report whether the GPU preview needs rebuilding. This completes the owner lifecycle established in [the input-routing lesson](../../81q-route-accepted-editing-input-and-owner-lifecycle-1.md).
+
+> **Self-Check Question:** *Which selection should cancellation restore?*  
+> **Answer:** The selection captured when projection, extension or gather began. Drop the draft and temporary previews before rebuilding their display state.
+
+- **Hands-On Lab Experiment:** Begin an edit with selected originals, create a preview and cancel. Compare the restored source selection and confirm that temporary highlights disappear.
+
 <details>
 <summary>Implementation 81s-route-accepted-editing-input-and-owner-lifecycle-3: Restore source selection when an edit is cancelled</summary>
 
@@ -5917,6 +6336,19 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-81t-register-current-projection-and-extension-commands"></a>
+
+### Step 28 of 31 · Register current projection and extension commands (`81t-register-current-projection-and-extension-commands`)
+
+- **Goal:** Register current projection and extension commands.
+- **Data Flow Trace:** `command name and arguments → validated action → pending editor owner`
+- **Files You Touch:** `src/editing_commands.rs` (*Register current projection and extension names and initial argument guards.*) · `src/lib.rs` (*Register the editing component.*) · `src/commands.rs` (*Connect the source-editing registry to command vocabulary and parsing.*)
+
+Connect current names and arity rules to prepared handlers. Keep positive-distance validation before an active owner is replaced.
+
+> **Self-Check Question:** *Does Extend Distance0 cancel another active drawing tool?*  
+> **Answer:** No. The parser rejects it before an action is applied. Existing accepted answers and Redo survive.
+
+- **Hands-On Lab Experiment:** Compare Extend, Extend Distance, Extend Distance25 and Extend -0.5 1.5. Check Project To Plane named-plane options and initial Three Point arity.
 
 <details>
 <summary>Implementation 81t-register-current-projection-and-extension-commands: Register current projection and extension commands</summary>
@@ -6202,6 +6634,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-81u-route-whole-boundary-picks-and-observe-pending-edits"></a>
+
+### Step 29 of 31 · Route whole boundary picks and observe pending edits (`81u-route-whole-boundary-picks-and-observe-pending-edits`)
+
+- **Goal:** Route whole boundary picks and observe pending edits.
+- **Data Flow Trace:** `whole owner integer pick → temporary boundary → pending edit diagnostics`
+- **Files You Touch:** `src/browser.rs` (*Route editing pointer picks and expose pending-owner facts for browser acceptance.*)
+
+Route mouse/touch boundary selection through whole-owner integer picks. Keep active owner facts observable for the browser exercises.
+
+> **Self-Check Question:** *Should a previous edge-picking mode split a boundary owner?*  
+> **Answer:** No. Boundary gathering temporarily requests the whole original owner without rewriting the user’s saved picking mode.
+
+- **Hands-On Lab Experiment:** Inspect whole-owner routing, current canvas projection and pending Project/Extend diagnostics. Browser execution is still required.
 
 <details>
 <summary>Implementation 81u-route-whole-boundary-picks-and-observe-pending-edits: Route whole boundary picks and observe pending edits</summary>
@@ -7254,6 +7699,20 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-81v-exercise-original-projection-retry-and-repeated-extension"></a>
 
+### Step 30 of 31 · Exercise original projection retry and repeated extension (`81v-exercise-original-projection-retry-and-repeated-extension`)
+
+- **Goal:** Exercise original projection retry and repeated extension.
+- **Data Flow Trace:** `originals → projection or endpoint reach → one transaction → exact archive`
+- **Files You Touch:** `src/editing_tests.rs` (*Copy integrated original-edit, retry, stale-owner, history and archive fixtures.*) · `src/lib.rs` (*Register the editing component.*)
+
+Copy integrated editing/history/archive fixtures and render projected originals with a repeatedly extended line.
+
+> **Self-Check Question:** *What proves an original edit instead of a proxy edit?*  
+> **Answer:** Check original coordinates, rational weights and GUIDs, unchanged placements and old shared allocations, plus Save/Open and Undo/Redo.
+
+- **What You Should See:** An extended original line and a projected original curve lie on the XY plane. Mixed-family projection, plane retry, endpoint reach, stale owners, history and exact original archives are checked.
+- **Hands-On Lab Experiment:** Type Close, Line w0,0,1 w1,0,1, Select All, Project To Plane XY and Extend -0.5 1.5. Type Curve w2,0,1 w2.5,1,2 w3,0,1, Select All and Project To Plane XY. Type View Isometric, Select None and Fit. Try Project To Plane 3Point with a repeated or collinear answer, then a valid answer. Try Extend Distance1, click near a line end twice, Escape and Undo twice; the supplied tests also check scaled-world distances and nearest boundaries.
+
 <details>
 <summary>Implementation 81v-exercise-original-projection-retry-and-repeated-extension: Exercise original projection retry and repeated extension</summary>
 
@@ -7309,6 +7768,20 @@ After that block, append this supplied code:
 
 <a id="checkpoint-81za-validate-original-split-inputs-and-name-pieces"></a>
 
+### Step 31 of 31 · Validate original Split inputs and name pieces (`81za-validate-original-split-inputs-and-name-pieces`)
+
+- **Goal:** Accept original cutter curves and a valid selected BRep face.
+- **Data Flow Trace:** `original family → pure calculation → result or refusal`
+- **Files You Touch:** `src/split_geometry.rs` (*Type the whole original helpers introduced today.*) · `src/lib.rs` (*Register this original source-splitting owner.*)
+
+Accept original cutter curves and a valid selected BRep face. Convert cutters through the Session kernel and assign distinct names only when a curve produces sibling objects.
+
+> **Self-Check Question:** *Why keep a selected solid face inside its BRep?*  
+> **Answer:** Splitting that face changes the BRep topology while the solid remains one joined object. It does not explode the solid into face objects.
+
+- **What You Should See:** Split input validation and original piece naming compile before their editing connection.
+- **Hands-On Lab Experiment:** Trace a multi-face BRep with no selected face. Compare a line cutter with an unsupported geometry kind.
+
 <details>
 <summary>Implementation 81za-validate-original-split-inputs-and-name-pieces: Validate original Split inputs and name pieces</summary>
 
@@ -7348,9 +7821,11 @@ After that block, type:
 
 </details>
 
-## Run, Check, and Save
+---
 
-From `session_viewer`:
+## 5. Build, Verify, and Save Your Checkpoint
+
+Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 81za-validate-original-split-inputs-and-name-pieces
@@ -7361,12 +7836,12 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. Use [checkpoint recovery](../../recovery.md) to restore any saved checkpoint.
+Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
 
-## Expected Visual Result & Experiment
+## 6. Lesson Summary & Expected Visual Result
 
 Split input validation and original piece naming compile before their editing connection.
 
-- **Try this:** Trace a multi-face BRep with no selected face. Compare a line cutter with an unsupported geometry kind.
+- **Final Lesson Experiment:** Trace a multi-face BRep with no selected face. Compare a line cutter with an unsupported geometry kind.
 
-Continue with [Split original curves and joined faces](82-divide-current-original-curve-families.md).
+Continue with [Split original curves and joined faces](../../consolidation/82-divide-current-original-curve-families.md).

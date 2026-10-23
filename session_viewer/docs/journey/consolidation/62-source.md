@@ -1,91 +1,184 @@
 # 10.4 · Original world labels, plates and integer picks
 
-**Section 6: CAD B-Rep Topology, World Text Atlases, Outlines, and Point Clouds** · **Lesson 10.4** (Redraft `6.9`) · **37 checkpoints (`62-source` → `62o-labels`)**
+**Section 6: CAD B-Rep Topology, World Text Atlases, Outlines, and Point Clouds** · **Lesson 10.4** (Redraft `6.9`) · **37 checkpoints (`62-source` → `62o-labels`)** · **Study time: 18.5–37 h**
 
-> **Learning Goal:** Own original scene words and font metrics.
+> **What You Will Learn & Build:** Own original scene words and font metrics. By the final checkpoint (`62o-labels`), you will create pick move and delete the original scene labels.
 
-## Visual WebGPU & Architecture Schematic
+## 1. Visual Pipeline & WebGPU Architecture (Black & White Schematics)
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1px solid #cbd5e1;border-radius:10px;background:#f8fafc;">
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
+<svg viewBox="0 0 840 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <rect x="4" y="4" width="832" height="212" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Lesson 10.4 Execution Flow: Original world labels, plates and integer picks</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">Concrete data pipeline you build in this lesson (37 Checkpoints: 62-source → 62o-labels)</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
+  
+    
+    <rect x="18" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="89" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
+    <line x1="28" y1="92" x2="151" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">original words and</text>
+    <text x="89" y="124" text-anchor="middle" font-size="11" fill="#111111">placement</text>
+    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="183" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="254" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
+    <line x1="193" y1="92" x2="316" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">shared source</text>
+    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="348" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="419" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
+    <line x1="358" y1="92" x2="481" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">checked shaping</text>
+    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="513" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="584" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
+    <line x1="523" y1="92" x2="646" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">derived extent</text>
+    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="678" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="749" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
+    <line x1="688" y1="92" x2="811" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">original text</text>
+    <text x="749" y="124" text-anchor="middle" font-size="11" fill="#111111">example</text>
+    
+    <rect x="18" y="162" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="32" y="181" font-size="11" font-weight="700" fill="#111111">Files You Edit in Lesson 10.4:</text>
+    <text x="215" y="181" font-size="11" fill="#111111">src/scene_label.rs  ·  src/lib.rs  ·  src/text.rs  ·  src/scene.rs  ·  src/hierarchy.rs  ·  src/document.rs</text>
+    <text x="32" y="198" font-size="10.5" fill="#111111">37 Checkpoints: 62-source → 62o-labels — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
+  
+</svg>
+</div>
+
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
 <svg viewBox="0 0 840 240" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#475569"/>
-    </marker>
-    <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#2563eb"/>
-    </marker>
-    <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#059669"/>
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
     </marker>
   </defs>
-  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
-  <text x="20" y="28" font-size="14" font-weight="700" fill="#0f172a">Chapter 10 WebGPU Text & Shared Arena Pipeline: Glyph Atlas Packing, World/Billboard Text & Matrix Shader</text>
-  <text x="20" y="46" font-size="11.5" fill="#475569">How crisp typography (text_plane.wgsl / text.wgsl) and procedural cell digits (matrix.wgsl) render in 3D world space.</text>
-  <line x1="16" y1="54" x2="824" y2="54" stroke="#e2e8f0" stroke-width="1"/>
+  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Chapter 10 WebGPU Text & Shared Arena Pipeline: Glyph Atlas Packing, World/Billboard Text & Matrix Shader</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">How crisp typography (text_plane.wgsl / text.wgsl) and procedural cell digits (matrix.wgsl) render in 3D world space.</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
   
-    <rect x="18" y="68" width="235" height="145" rx="6" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
-    <text x="135" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1e40af">1. Shelf-Packed Glyph Atlas</text>
-    <text x="28" y="108" font-size="10.5" fill="#1e3a8a">• Rasterize needed Unicode codepoints</text>
-    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#1d4ed8">• Pack into R8Unorm GPU Atlas Texture</text>
-    <text x="28" y="142" font-size="10" fill="#1e3a8a">  with 1px padding (no bilinear bleed!)</text>
-    <text x="28" y="160" font-size="10.5" fill="#1e3a8a">• queue.write_texture dirty rects only</text>
-    <text x="28" y="178" font-size="10.5" fill="#1e3a8a">• Layout baseline, kerning &amp; line</text>
-    <text x="28" y="193" font-size="10.5" fill="#1e3a8a">  wraps into instanced glyph quads</text>
+    <rect x="18" y="68" width="235" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="135" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">1. Shelf-Packed Glyph Atlas</text>
+    <text x="28" y="108" font-size="10.5" fill="#111111">• Rasterize needed Unicode codepoints</text>
+    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#111111">• Pack into R8Unorm GPU Atlas Texture</text>
+    <text x="28" y="142" font-size="10" fill="#111111">  with 1px padding (no bilinear bleed!)</text>
+    <text x="28" y="160" font-size="10.5" fill="#111111">• queue.write_texture dirty rects only</text>
+    <text x="28" y="178" font-size="10.5" fill="#111111">• Layout baseline, kerning &amp; line</text>
+    <text x="28" y="193" font-size="10.5" fill="#111111">  wraps into instanced glyph quads</text>
 
-    <line x1="253" y1="138" x2="283" y2="138" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
+    <line x1="253" y1="138" x2="283" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="285" y="68" width="265" height="145" rx="6" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5"/>
-    <text x="417" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#9a3412">2. World-Plane vs Screen Billboard</text>
-    <text x="297" y="108" font-size="10.5" font-weight="600" fill="#c2410c">• text_plane.wgsl (3D World Text):</text>
-    <text x="297" y="123" font-size="10" fill="#7c2d12">  q_world = origin + u*plane_x + v*plane_y</text>
-    <text x="297" y="138" font-size="10" fill="#7c2d12">  Foreshortens naturally with 3D perspective</text>
-    <text x="297" y="158" font-size="10.5" font-weight="600" fill="#c2410c">• text.wgsl (Screen-Aligned Label):</text>
-    <text x="297" y="173" font-size="10" fill="#7c2d12">  Expands along camera Right/Up vectors;</text>
-    <text x="297" y="188" font-size="10" fill="#7c2d12">  optional background plate + 3D leader line</text>
+    <rect x="285" y="68" width="265" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="417" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">2. World-Plane vs Screen Billboard</text>
+    <text x="297" y="108" font-size="10.5" font-weight="600" fill="#111111">• text_plane.wgsl (3D World Text):</text>
+    <text x="297" y="123" font-size="10" fill="#111111">  q_world = origin + u*plane_x + v*plane_y</text>
+    <text x="297" y="138" font-size="10" fill="#111111">  Foreshortens naturally with 3D perspective</text>
+    <text x="297" y="158" font-size="10.5" font-weight="600" fill="#111111">• text.wgsl (Screen-Aligned Label):</text>
+    <text x="297" y="173" font-size="10" fill="#111111">  Expands along camera Right/Up vectors;</text>
+    <text x="297" y="188" font-size="10" fill="#111111">  optional background plate + 3D leader line</text>
 
-    <line x1="550" y1="138" x2="580" y2="138" stroke="#059669" stroke-width="2" marker-end="url(#arrow-green)"/>
+    <line x1="550" y1="138" x2="580" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="582" y="68" width="238" height="145" rx="6" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1.5"/>
-    <text x="701" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#065f46">3. Whole-Text Pick &amp; Matrix (Sec 10)</text>
-    <text x="594" y="108" font-size="10.5" fill="#064e3b">• Clicking any glyph or plate writes</text>
-    <text x="594" y="124" font-size="10.5" font-weight="600" fill="#047857">  the parent Text owner_id to Rg32Uint</text>
-    <text x="594" y="144" font-size="10.5" fill="#064e3b">• Later in Sec 10 (matrix.wgsl):</text>
-    <text x="594" y="160" font-size="10" fill="#064e3b">  16-word header + 3 words/cell renders</text>
-    <text x="594" y="175" font-size="10" fill="#064e3b">  procedural 3-decimal digits (0 blank)</text>
-    <text x="594" y="190" font-size="10" fill="#064e3b">  + plate-less world title &amp; yellow select</text>
+    <rect x="582" y="68" width="238" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="701" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">3. Whole-Text Pick &amp; Matrix (Sec 10)</text>
+    <text x="594" y="108" font-size="10.5" fill="#111111">• Clicking any glyph or plate writes</text>
+    <text x="594" y="124" font-size="10.5" font-weight="600" fill="#111111">  the parent Text owner_id to Rg32Uint</text>
+    <text x="594" y="144" font-size="10.5" fill="#111111">• Later in Sec 10 (matrix.wgsl):</text>
+    <text x="594" y="160" font-size="10" fill="#111111">  16-word header + 3 words/cell renders</text>
+    <text x="594" y="175" font-size="10" fill="#111111">  procedural 3-decimal digits (0 blank)</text>
+    <text x="594" y="190" font-size="10" fill="#111111">  + plate-less world title &amp; yellow select</text>
     
 </svg>
 </div>
 
-### Lesson Data Flow (`Rust` → `WebGPU` → `WGSL`)
+## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
 
-```
-original words and placement → shared source → checked shaping → derived extent.
-rasterize the shaped run into owned coverage bytes.
-original text example → current placement and coverage → original integer pick → one reversible edit.
-```
+Before writing code, review how the three layers in this chapter talk to each other:
 
-- Own original scene words and font metrics.
-- Allocate bounded coverage storage from the shaped glyph bounds.
-- Create pick move and delete the original scene labels.
-- **Why it works (Does a glyph cache replace the original words?):** No. The original label remains a shared source. Shaped metrics, glyph coverage and integer pick addresses are derived presentation data. Screen-only specimens stay outside scene rows.
-
-### Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `Browser`)
-
-| Layer | Construct | First-Year Student Explanation |
+| Layer | Construct | Plain-English Explanation for Students |
 | :--- | :--- | :--- |
 | **Rust / WebGPU** | Shelf-Packed `R8Unorm` Glyph Atlas + 1px Padding | Rasterizes Unicode glyphs on demand into a single-channel GPU texture with a 1-pixel transparent gutter so bilinear filtering never bleeds neighbor glyphs. |
 | **WGSL (`text_plane.wgsl` / `text.wgsl`)** | World-Plane Quad vs. Screen-Aligned Billboard Quad | `text_plane.wgsl` expands glyph quads along 3D plane axes `(plane_x, plane_y)` that foreshorten in perspective; `text.wgsl` expands along camera `(Right, Up)` vectors. |
 | **WGSL (`matrix.wgsl`)** | Procedural Matrix Cell Digits (16-word Header + 3 words/cell) | Draws heatmap cells and procedural 3-decimal digits directly in the fragment shader (leaving `0` cells blank), with a plate-less world title and yellow selection border. |
 
-**Production source (`session_viewer/src`):** [engine/text.rs](../../../src/engine/text.rs), [engine/gpu/text.rs](../../../src/engine/gpu/text.rs), [engine/gpu/text_plane.rs](../../../src/engine/gpu/text_plane.rs), [engine/gpu/text_plate.rs](../../../src/engine/gpu/text_plate.rs), [app/scene_text.rs](../../../src/app/scene_text.rs), [app/fonts.rs](../../../src/app/fonts.rs).
+**Authoritative production source (`session_viewer/src`):** [engine/text.rs](../../../src/engine/text.rs), [engine/gpu/text.rs](../../../src/engine/gpu/text.rs), [engine/gpu/text_plane.rs](../../../src/engine/gpu/text_plane.rs), [engine/gpu/text_plate.rs](../../../src/engine/gpu/text_plate.rs), [app/scene_text.rs](../../../src/app/scene_text.rs), [app/fonts.rs](../../../src/app/fonts.rs)
 
-## Implementation Checkpoints
+## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
 
-Apply these checkpoints in order inside `workspace/journey`. Expand each block to view the Rust/WGSL/HTML edits:
+| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
+| ---: | :--- | :--- | :--- | :--- |
+| **1** | [`62-source`](#checkpoint-62-source) | Own original scene words and font metrics. | `src/scene_label.rs`, `src/lib.rs` | `original words and placement → shared source → checked shaping → derived extent` |
+| **2** | [`62a-placements`](#checkpoint-62a-placements) | Transform the label frame without changing its source. | `src/text.rs`, `src/scene_label.rs` | `shared original placement → instance model → checked world frame → presentation label` |
+| **3** | [`62b-bounds`](#checkpoint-62b-bounds) | Measure the world-sized label and its padded plate. | `src/scene_label.rs` | `font-unit extent → world-height ratio → padded corners → fit bounds` |
+| **4** | [`62c-rows`](#checkpoint-62c-rows) | Register text rows and release them with the scene. | `src/scene.rs` | `validated text → stable row → current layer → explicit scene release` |
+| **5** | [`62d-identity`](#checkpoint-62d-identity) | Include label owners in selection layers and history. | `src/scene.rs`, `src/hierarchy.rs`, `src/document.rs`, `src/memory.rs` | `stable label owner → layer eligibility → one history transaction → shared source reuse` |
+| **6** | [`62e-rectangles`](#checkpoint-62e-rectangles) | Select a label through its projected plate. | `src/scene_label_screen.rs`, `src/lib.rs`, `src/rect_select.rs` | `original placed label → projected plate → window or crossing rectangle → eligible owner` |
+| **7** | [`62f-gpu-support`](#checkpoint-62f-gpu-support) | Supply the text buffer and target adapters. | `src/text_gpu_support.rs`, `src/lib.rs` | `current text vertices → bounded buffer → explicit bindings → colour and integer targets` |
+| **8** | [`62g-plane-shader`](#checkpoint-62g-plane-shader) | Keep plane clipping correct in a small pick window. | `src/text_plane.wgsl` | `original clip position → cropped integer draw → original canvas clip → original row id` |
+| **9** | [`62h-plate-shader`](#checkpoint-62h-plate-shader) | Draw the current rounded nameplate and its original ID. | `src/text_plate.wgsl` | `projected plate → rounded distance → colour coverage or original integer id` |
+| **10** | [`62i-coverage`](#checkpoint-62i-coverage) | Validate one uniform device scale before allocating or positioning text. Keep world origins in f64 and GPU matrices in f32. | `src/scene_text_gpu.rs`, `src/lib.rs` | `keep css pixels separate from framebuffer pixels` |
+| **11** | [`62ia-project-an-original-label-into-framebuffer-coordinates`](#checkpoint-62ia-project-an-original-label-into-framebuffer-coordinates) | Subtract the declared scene origin before projection. Cull invalid depth and apply the CSS/device scale once. | `src/scene_text_gpu.rs` | `project an original label into framebuffer coordinates` |
+| **12** | [`62ib-give-nameplate-vertices-one-gpu-owner`](#checkpoint-62ib-give-nameplate-vertices-one-gpu-owner) | Keep the rectangle input separate from the retained vertex buffer and its color/ID pipelines. | `src/text_plate.rs`, `src/scene_text_gpu.rs` | `give nameplate vertices one gpu owner` |
+| **13** | [`62ic-build-nameplate-color-and-object-id-pipelines`](#checkpoint-62ic-build-nameplate-color-and-object-id-pipelines) | Prepare color and original-ID pipelines for nameplate geometry. | `src/text_plate.rs` | `build nameplate color and object-id pipelines` |
+| **14** | [`62id-own-and-release-nameplate-draw-resources`](#checkpoint-62id-own-and-release-nameplate-draw-resources) | Construct the buffers and pipelines once, draw physical and overlay plates in their declared phases, and reset logical vertex counts independently of capacity. | `src/text_plate.rs` | `own and release nameplate draw resources` |
+| **15** | [`62ie-upload-nameplate-rectangles-in-one-physical-coordinate-system`](#checkpoint-62ie-upload-nameplate-rectangles-in-one-physical-coordinate-system) | Generate the packed rectangle vertices once and retain the split between depth-tested plates and screen overlays. | `src/text_plate.rs` | `upload nameplate rectangles in one physical coordinate system` |
+| **16** | [`62if-place-the-plate-around-the-shaped-label`](#checkpoint-62if-place-the-plate-around-the-shaped-label) | Compute padding and rounded bounds in the same coordinate system as glyph placement. Define text statistics as observations, not source data. | `src/scene_text_gpu.rs` | `place the plate around the shaped label` |
+| **17** | [`62ig-give-world-text-a-bounded-coverage-cache`](#checkpoint-62ig-give-world-text-a-bounded-coverage-cache) | A cached plane owns its texture and bind group. Drop destroys the texture; a changed placement may reuse the raster while font/text changes invalidate it. | `src/text_plane.rs`, `src/scene_text_gpu.rs` | `give world text a bounded coverage cache` |
+| **18** | [`62ih-choose-bounded-glyph-raster-resolution`](#checkpoint-62ih-choose-bounded-glyph-raster-resolution) | Relate projected world height to framebuffer pixels, fit the shaped extent within the texture limit, and read mask/color/subpixel coverage consistently. | `src/text_plane.rs` | `choose bounded glyph raster resolution` |
+| **19** | [`62ii-rasterize-the-shaped-run-into-owned-coverage-bytes`](#checkpoint-62ii-rasterize-the-shaped-run-into-owned-coverage-bytes) | Allocate bounded coverage storage from the shaped glyph bounds. | `src/text_plane.rs` | `rasterize the shaped run into owned coverage bytes` |
+| **20** | [`62ij-upload-and-bind-one-world-text-coverage-texture`](#checkpoint-62ij-upload-and-bind-one-world-text-coverage-texture) | Create the R8 coverage texture, upload rows with the declared byte layout, and bind the texture/sampler into one cached owner. | `src/text_plane.rs` | `upload and bind one world-text coverage texture` |
+| **21** | [`62ik-build-the-world-plane-text-quad`](#checkpoint-62ik-build-the-world-plane-text-quad) | Transform the original text plane into rebased GPU vertices. Keep original label placement and color independent of the generated quad. | `src/text_plane.rs` | `build the world-plane text quad` |
+| **22** | [`62il-build-world-text-color-and-id-pipelines`](#checkpoint-62il-build-world-text-color-and-id-pipelines) | The plane shader reads coverage while color and integer targets retain their distinct fragment contracts. Declare the same vertex layout for both passes. | `src/text_plane.rs` | `build world-text color and id pipelines` |
+| **23** | [`62im-own-the-world-text-buffer-and-pipeline-lifetime`](#checkpoint-62im-own-the-world-text-buffer-and-pipeline-lifetime) | Create retained GPU resources, replace target-dependent pipelines on retarget, and distinguish reset, release and capacity accounting. | `src/text_plane.rs` | `own the world-text buffer and pipeline lifetime` |
+| **24** | [`62in-rebuild-only-invalid-world-text-cache-entries`](#checkpoint-62in-rebuild-only-invalid-world-text-cache-entries) | Match a label to its cache entry, validate the total texture budget before upload, and replace or append one owned entry. | `src/text_plane.rs` | `rebuild only invalid world-text cache entries` |
+| **25** | [`62io-prepare-and-draw-the-retained-world-text-planes`](#checkpoint-62io-prepare-and-draw-the-retained-world-text-planes) | Prune expired labels, skip clipped/empty planes, reuse valid rasters, build the current quads and issue draws from retained cache indices. | `src/text_plane.rs` | `prepare and draw the retained world-text planes` |
+| **26** | [`62ip-collect-anchored-and-overlay-glyph-work-separately`](#checkpoint-62ip-collect-anchored-and-overlay-glyph-work-separately) | Return borrow-scoped TextAreas alongside plate inputs and per-label depths. The borrowed runs survive through preparation; no new source owner is created. | `src/scene_text_gpu.rs` | `collect anchored and overlay glyph work separately` |
+| **27** | [`62iq-give-the-text-lane-its-retained-resource-owners`](#checkpoint-62iq-give-the-text-lane-its-retained-resource-owners) | Declare the lane and its caches, atlas, viewport, pipelines and preparation witness. Build glyph renderers against the appropriate depth predicates. | `src/scene_text_gpu.rs` | `give the text lane its retained resource owners` |
+| **28** | [`62ir-construct-and-rebuild-the-text-lane-once`](#checkpoint-62ir-construct-and-rebuild-the-text-lane-once) | Initialize font/raster resources and world/plate owners. Rebuild atlas-dependent resources when fonts change while keeping original labels in the document. | `src/scene_text_gpu.rs` | `construct and rebuild the text lane once` |
+| **29** | [`62is-reset-the-text-lane-and-record-scoped-preparation-costs`](#checkpoint-62is-reset-the-text-lane-and-record-scoped-preparation-costs) | Retarget pipelines, clear logical work and release owned world/plate resources. Report raster images and buffer capacities with their actual scope. | `src/scene_text_gpu.rs` | `reset the text lane and record scoped preparation costs` |
+| **30** | [`62it-prepare-glyphs-only-when-the-witness-changes`](#checkpoint-62it-prepare-glyphs-only-when-the-witness-changes) | Skip text preparation when its complete frame witness is unchanged. | `src/scene_text_gpu.rs` | `prepare glyphs only when the witness changes` |
+| **31** | [`62iu-draw-the-prepared-text-passes-in-order`](#checkpoint-62iu-draw-the-prepared-text-passes-in-order) | Draw world planes, depth-tested plates and anchored glyphs before overlay plates/glyphs. Connect this completed lane to the frame in the next existing lesson. | `src/scene_text_gpu.rs` | `draw the prepared text passes in order` |
+| **32** | [`62j-frame-pass`](#checkpoint-62j-frame-pass) | Prepare the full text frame and load the scene depth. | `src/renderer.rs` | `camera and CSS density → text frame → current lane preparation → colour/depth load pass` |
+| **33** | [`62k-lane-labels`](#checkpoint-62k-lane-labels) | Merge original scene labels with the screen specimen. | `src/renderer.rs` | `visible source labels and overlays → stable label ids → one lazy document → reused shaping` |
+| **34** | [`62l-picking`](#checkpoint-62l-picking) | Draw original text IDs through bounded readback. | `src/renderer.rs`, `src/pick_gpu.rs`, `src/pick_encode.rs` | `current camera text preparation → bounded integer pass → original owner → current derived bounds` |
+| **35** | [`62m-whole-fonts`](#checkpoint-62m-whole-fonts) | Fetch missing whole fonts as one checked set. | `src/text_fonts.rs`, `src/lib.rs` | `subset coverage miss → bounded font requests → complete font set → atomic adoption` |
+| **36** | [`62n-diagnostics`](#checkpoint-62n-diagnostics) | Show current text sources metrics and preparation errors. | `src/browser.rs` | `font delivery → current derived bounds → truthful diagnostics → visible error status` |
+| **37** | [`62o-labels`](#checkpoint-62o-labels) | Create pick move and delete the original scene labels. | `src/editor.rs`, `src/commands.rs`, `src/scene_label_tests.rs`, `src/lib.rs` | `original text example → current placement and coverage → original integer pick → one reversible edit` |
+
+---
+
+## 4. Step-by-Step Coding Notebook (Concept + Implementation)
+
+Work through each notebook cell below in order inside `workspace/journey`. Read the **Concept Walkthrough** and **Self-Check Q&A** first, then expand the **Implementation** block to type and verify the code.
 
 <a id="checkpoint-62-source"></a>
+
+### Step 1 of 37 · Own original scene words and font metrics (`62-source`)
+
+- **Goal:** Own original scene words and font metrics.
+- **Data Flow Trace:** `original words and placement → shared source → checked shaping → derived extent`
+- **Files You Touch:** `src/scene_label.rs` (*Own immutable original label data and derive measured bounds separately.*) · `src/lib.rs` (*Register the source component.*)
+
+Keep original words, source GUID, name, flags and f64 placement in a shared source. Validate one label before deriving its font-unit extent.
+
+> **Self-Check Question:** *Does a glyph cache replace the original words?*  
+> **Answer:** No. The original label remains a shared source. Shaped metrics, glyph coverage and integer pick addresses are derived presentation data. Screen-only specimens stay outside scene rows.
+
+- **What You Should See:** The earlier CAD bore and screen-font specimen remain visible while the original scene-label lane is prepared. Connect the scene examples at the end of 62.
+- **Hands-On Lab Experiment:** Compare source words and placement with the derived extent. Reject a screen specimen or a source carrying an existing viewer pick address before inserting a row.
 
 <details>
 <summary>Implementation 62-source: Own original scene words and font metrics</summary>
@@ -127,6 +220,19 @@ After that block, type:
 </details>
 
 <a id="checkpoint-62a-placements"></a>
+
+### Step 2 of 37 · Transform the label frame without changing its source (`62a-placements`)
+
+- **Goal:** Transform the label frame without changing its source.
+- **Data Flow Trace:** `shared original placement → instance model → checked world frame → presentation label`
+- **Files You Touch:** `src/text.rs` (*Reuse the checked current label validator for placed labels.*) · `src/scene_label.rs` (*Derive world labels and GPU addresses from stable source and instance identities.*)
+
+Give each instance a stable viewer ID and independent f64 model. Preserve orthogonal equal-scale axes for plane text and uniform scale for billboards.
+
+> **Self-Check Question:** *Should Move rewrite the source label coordinates?*  
+> **Answer:** No. Move changes the instance model. Plane directions remain orthogonal and billboard scale stays uniform; an incompatible placement is rejected before adoption.
+
+- **Hands-On Lab Experiment:** Translate a source at 1,000,000,000.125 by 0.25. Verify the displayed placement changes while original source coordinates and words remain exact.
 
 <details>
 <summary>Implementation 62a-placements: Transform the label frame without changing its source</summary>
@@ -183,6 +289,19 @@ Edit the existing block to match this code; keep unchanged lines:
 
 <a id="checkpoint-62b-bounds"></a>
 
+### Step 3 of 37 · Measure the world-sized label and its padded plate (`62b-bounds`)
+
+- **Goal:** Measure the world-sized label and its padded plate.
+- **Data Flow Trace:** `font-unit extent → world-height ratio → padded corners → fit bounds`
+- **Files You Touch:** `src/scene_label.rs` (*Derive source-owned world bounds without replacing f64 coordinates by display floats.*)
+
+Convert shaped font-unit widths and heights to scene units. Include plane/billboard plates in Fit bounds; screen-sized anchors keep a world anchor.
+
+> **Self-Check Question:** *Does world_height mean the complete multiline label height?*  
+> **Answer:** No. It scales the font em into world units. The shaped line extents determine the complete label and its plate. Camera-facing text changes its projection while preserving that world size.
+
+- **Hands-On Lab Experiment:** Compare font size, line height and world height. Inspect the four padded world corners and the anchor-only bounds for a CSS-sized nameplate.
+
 <details>
 <summary>Implementation 62b-bounds: Measure the world-sized label and its padded plate</summary>
 
@@ -215,6 +334,19 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-62c-rows"></a>
+
+### Step 4 of 37 · Register text rows and release them with the scene (`62c-rows`)
+
+- **Goal:** Register text rows and release them with the scene.
+- **Data Flow Trace:** `validated text → stable row → current layer → explicit scene release`
+- **Files You Touch:** `src/scene.rs` (*Add checked text rows, stable allocation and explicit source cleanup.*)
+
+Insert a validated source on the current layer with an independent viewer ID. Allocate IDs only after label/frame validation; clearing the scene drops text rows.
+
+> **Self-Check Question:** *Does clearing the glyph atlas delete the original scene label?*  
+> **Answer:** No. Scene rows own original labels. Clearing presentation resources is separate; Close drops the rows and document history so their original owners can be released.
+
+- **Hands-On Lab Experiment:** Compare original source GUID with viewer ID and layer-node identity. Insert the same shared source twice and keep independent row identities.
 
 <details>
 <summary>Implementation 62c-rows: Register text rows and release them with the scene</summary>
@@ -979,6 +1111,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-62d-identity"></a>
+
+### Step 5 of 37 · Include label owners in selection layers and history (`62d-identity`)
+
+- **Goal:** Include label owners in selection layers and history.
+- **Data Flow Trace:** `stable label owner → layer eligibility → one history transaction → shared source reuse`
+- **Files You Touch:** `src/scene.rs` (*Connect text to the existing owner, bounds, placement, copy and removal routes.*) · `src/hierarchy.rs` (*Include text identities and truthful source capacity; reject incomplete mixed saves.*) · `src/document.rs` (*Include text identities and truthful source capacity; reject incomplete mixed saves.*) · `src/memory.rs` (*Include text identities and truthful source capacity; reject incomplete mixed saves.*) · `src/editor.rs` (*Make generic whole-owner Move and Select All include the text lane.*)
+
+Connect placed bounds, whole Move, copy, layer identity, Select All, Delete and Undo/Redo. Count unique original text owners separately from repeated scene snapshots.
+
+> **Self-Check Question:** *Does a layer copy need another original word allocation?*  
+> **Answer:** No. A copied row has its own viewer identity and placement while sharing the original text source. Presentation flags and document history remain separate.
+
+- **Hands-On Lab Experiment:** Lock and hide a text row, compare Select All eligibility, copy it and inspect source sharing. Delete then Undo; Close must release the owner. Saving text is explicitly deferred until mixed-document persistence.
 
 <details>
 <summary>Implementation 62d-identity: Include label owners in selection layers and history</summary>
@@ -2761,6 +2906,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-62e-rectangles"></a>
 
+### Step 6 of 37 · Select a label through its projected plate (`62e-rectangles`)
+
+- **Goal:** Select a label through its projected plate.
+- **Data Flow Trace:** `original placed label → projected plate → window or crossing rectangle → eligible owner`
+- **Files You Touch:** `src/scene_label_screen.rs` (*Project source-owned plate extents for rectangle selection.*) · `src/lib.rs` (*Register the source component.*) · `src/rect_select.rs` (*Include only eligible original label owners in rectangle results.*)
+
+Project plane corners and screen-sized/world-sized placements into CSS coordinates. A crossing rectangle fully inside a plate still intersects its owner.
+
+> **Self-Check Question:** *Does a crossing rectangle need to cross a plate boundary?*  
+> **Answer:** No. It also intersects when wholly inside the plate. A window requires every projected corner to fit. Hidden and locked rows remain ineligible.
+
+- **Hands-On Lab Experiment:** Compare a small crossing rectangle inside a plate with the same rectangle drawn left to right. The crossing selects; the small window does not contain the whole plate.
+
 <details>
 <summary>Implementation 62e-rectangles: Select a label through its projected plate</summary>
 
@@ -2824,6 +2982,19 @@ Edit the existing block to match this code; keep unchanged lines:
 
 <a id="checkpoint-62f-gpu-support"></a>
 
+### Step 7 of 37 · Supply the text buffer and target adapters (`62f-gpu-support`)
+
+- **Goal:** Supply the text buffer and target adapters.
+- **Data Flow Trace:** `current text vertices → bounded buffer → explicit bindings → colour and integer targets`
+- **Files You Touch:** `src/text_gpu_support.rs` (*Adapt current text buffers and bindings to this cumulative renderer.*) · `src/lib.rs` (*Register the source component.*)
+
+Keep bounded vertex uploads, explicit target formats, texture bindings and exact allocated buffer sizes compatible with current text code.
+
+> **Self-Check Question:** *Are used vertex bytes the same as reserved GPU bytes?*  
+> **Answer:** No. Buffers reserve capacity and draw only their live vertex count. Report the actual allocation separately, and release both the count and the allocation on cleanup.
+
+- **Hands-On Lab Experiment:** Check the 40-byte plate and 64-byte plane vertex strides against their shader layouts. Inspect the integer target and the 80-byte pick-transform binding.
+
 <details>
 <summary>Implementation 62f-gpu-support: Supply the text buffer and target adapters</summary>
 
@@ -2865,6 +3036,19 @@ After that block, type:
 
 <a id="checkpoint-62g-plane-shader"></a>
 
+### Step 8 of 37 · Keep plane clipping correct in a small pick window (`62g-plane-shader`)
+
+- **Goal:** Keep plane clipping correct in a small pick window.
+- **Data Flow Trace:** `original clip position → cropped integer draw → original canvas clip → original row id`
+- **Files You Touch:** `src/text_plane.wgsl` (*Keep original clip coordinates through the bounded pick crop and shade actual rounded coverage.*)
+
+Carry original homogeneous clip coordinates through the colour and integer shaders. Test the CSS clip in original canvas coordinates after applying a pick crop.
+
+> **Self-Check Question:** *Can a cropped pick image use its local pixel coordinates as canvas coordinates?*  
+> **Answer:** No. Its origin and size differ. Retain the original clip position so colour and integer draws apply the same label clip after perspective division.
+
+- **Hands-On Lab Experiment:** Compare the main image and a 13-pixel pick window over a clipped label. Pixels outside its CSS clip cannot draw or acquire its original row ID.
+
 <details>
 <summary>Implementation 62g-plane-shader: Keep plane clipping correct in a small pick window</summary>
 
@@ -2886,6 +3070,19 @@ Create the file and type:
 
 <a id="checkpoint-62h-plate-shader"></a>
 
+### Step 9 of 37 · Draw the current rounded nameplate and its original ID (`62h-plate-shader`)
+
+- **Goal:** Draw the current rounded nameplate and its original ID.
+- **Data Flow Trace:** `projected plate → rounded distance → colour coverage or original integer id`
+- **Files You Touch:** `src/text_plate.wgsl` (*Shade current rounded plates and preserve integer coverage ownership.*)
+
+Use the same rounded plate distance for colour coverage and integer ownership. Black plates use white source ink; selected plates use yellow with black ink.
+
+> **Self-Check Question:** *Should transparent rounded corners acquire the text owner?*  
+> **Answer:** No. The integer pass discards fragments outside the rounded plate. A locked plate writes the zero address where it occludes, while visible unlocked text keeps its original row ID.
+
+- **Hands-On Lab Experiment:** Inspect the rounded corners in colour and the integer pass. Compare the selected plate with original source color and verify selection never rewrites source words.
+
 <details>
 <summary>Implementation 62h-plate-shader: Draw the current rounded nameplate and its original ID</summary>
 
@@ -2906,6 +3103,22 @@ Create the file and type:
 </details>
 
 <a id="checkpoint-62i-coverage"></a>
+
+### Step 10 of 37 · Keep CSS pixels separate from framebuffer pixels (`62i-coverage`)
+
+- **Goal:** Validate one uniform device scale before allocating or positioning text. Keep world origins in f64 and GPU matrices in f32.
+- **Data Flow Trace:** `keep css pixels separate from framebuffer pixels`
+- **Files You Touch:** `src/scene_text_gpu.rs` (*Add this part of keep css pixels separate from framebuffer pixels.*) · `src/lib.rs` (*Compile the text-frame preparation in the cumulative browser crate.*)
+
+Validate one uniform device scale before allocating or positioning text. Keep world origins in f64 and GPU matrices in f32.
+
+This sequence assembles the text owners in bounded coding sessions. Reuse the already-written shaders and Session geometry. The original glyph scene remains available during preparation; [62j](../62j-frame-pass.md) connects the completed lane to the same browser frame.
+
+> **Self-Check Question:** *When does the canvas have one valid CSS-to-framebuffer scale?*  
+> **Answer:** When framebuffer width/CSS width and framebuffer height/CSS height agree on one finite positive scale. Reject invalid or nonuniform dimensions before text preparation.
+
+- **What You Should See:** The frame scale is validated before text preparation. The browser frame connection follows in [62j](../62j-frame-pass.md).
+- **Hands-On Lab Experiment:** At CSS size 900×760, predict framebuffer sizes and scale at DPR1 and2. Explain why 1800×760 must be rejected as stretched.
 
 <details>
 <summary>Implementation 62i-coverage: Keep CSS pixels separate from framebuffer pixels</summary>
@@ -2948,6 +3161,20 @@ After that block, type:
 
 <a id="checkpoint-62ia-project-an-original-label-into-framebuffer-coordinates"></a>
 
+### Step 11 of 37 · Project an original label into framebuffer coordinates (`62ia-project-an-original-label-into-framebuffer-coordinates`)
+
+- **Goal:** Subtract the declared scene origin before projection. Cull invalid depth and apply the CSS/device scale once.
+- **Data Flow Trace:** `project an original label into framebuffer coordinates`
+- **Files You Touch:** `src/scene_text_gpu.rs` (*Add this part of project an original label into framebuffer coordinates.*)
+
+Subtract the declared scene origin before projection. Cull invalid depth and apply the CSS/device scale once.
+
+> **Self-Check Question:** *Why subtract the scene origin before projecting a label?*  
+> **Answer:** Subtracting in double precision preserves the small offset between a distant label and the frame origin. Narrowing the large world position first would lose that offset.
+
+- **What You Should See:** Label projection produces framebuffer coordinates from a precise origin. The browser frame connection follows in [62j](../62j-frame-pass.md).
+- **Hands-On Lab Experiment:** Project a label at the declared origin, then one unit along camera right. Predict its visibility and pixel displacement before the later frame connection.
+
 <details>
 <summary>Implementation 62ia-project-an-original-label-into-framebuffer-coordinates: Project an original label into framebuffer coordinates</summary>
 
@@ -2978,6 +3205,20 @@ After that block, type:
 </details>
 
 <a id="checkpoint-62ib-give-nameplate-vertices-one-gpu-owner"></a>
+
+### Step 12 of 37 · Give nameplate vertices one GPU owner (`62ib-give-nameplate-vertices-one-gpu-owner`)
+
+- **Goal:** Keep the rectangle input separate from the retained vertex buffer and its color/ID pipelines.
+- **Data Flow Trace:** `give nameplate vertices one gpu owner`
+- **Files You Touch:** `src/text_plate.rs` (*Add this part of give nameplate vertices one gpu owner.*) · `src/scene_text_gpu.rs` (*Compile the already-created child owner in the text lane.*)
+
+Keep the rectangle input separate from the retained vertex buffer and its color/ID pipelines.
+
+> **Self-Check Question:** *Which retained resources does one nameplate owner keep?*  
+> **Answer:** The rectangle vertex buffer, its logical draw counts, and the color and original-ID pipelines. Rectangle inputs remain temporary preparation data.
+
+- **What You Should See:** One retained owner describes nameplate geometry and draw ranges. The browser frame connection follows in [62j](../62j-frame-pass.md).
+- **Hands-On Lab Experiment:** List the plate vertex buffer, bind group and pipelines retained between frames. Identify which owner drops each resource.
 
 <details>
 <summary>Implementation 62ib-give-nameplate-vertices-one-gpu-owner: Give nameplate vertices one GPU owner</summary>
@@ -3021,6 +3262,20 @@ After that block, type:
 
 <a id="checkpoint-62ic-build-nameplate-color-and-object-id-pipelines"></a>
 
+### Step 13 of 37 · Build nameplate color and object-ID pipelines (`62ic-build-nameplate-color-and-object-id-pipelines`)
+
+- **Goal:** Prepare color and original-ID pipelines for nameplate geometry.
+- **Data Flow Trace:** `build nameplate color and object-id pipelines`
+- **Files You Touch:** `src/text_plate.rs` (*Add this part of build nameplate color and object-id pipelines.*)
+
+Use the already-written shader with declared vertex layout, blending, depth and target formats. The ID pass shares geometry without making a plate an editable original.
+
+> **Self-Check Question:** *What differs between a color target and an object-ID target?*  
+> **Answer:** The color target blends coverage; the integer target writes an exact original owner ID. Integer IDs must not blend.
+
+- **What You Should See:** Both pipeline descriptors are prepared. [62j](../62j-frame-pass.md) connects their display work.
+- **Hands-On Lab Experiment:** Compare the color and integer-ID pipeline descriptors. Explain why the ID attachment cannot use alpha blending.
+
 <details>
 <summary>Implementation 62ic-build-nameplate-color-and-object-id-pipelines: Build nameplate color and object-ID pipelines</summary>
 
@@ -3052,6 +3307,20 @@ After that block, type:
 
 <a id="checkpoint-62id-own-and-release-nameplate-draw-resources"></a>
 
+### Step 14 of 37 · Own and release nameplate draw resources (`62id-own-and-release-nameplate-draw-resources`)
+
+- **Goal:** Construct the buffers and pipelines once, draw physical and overlay plates in their declared phases, and reset logical vertex counts independently of capacity.
+- **Data Flow Trace:** `own and release nameplate draw resources`
+- **Files You Touch:** `src/text_plate.rs` (*Add this part of own and release nameplate draw resources.*)
+
+Construct the buffers and pipelines once, draw physical and overlay plates in their declared phases, and reset logical vertex counts independently of capacity.
+
+> **Self-Check Question:** *Does resetting a draw count release its GPU buffer?*  
+> **Answer:** No. A zero logical count suppresses drawing while retaining capacity. Releasing the owner drops its resources.
+
+- **What You Should See:** Nameplate resources can reset their draw counts and release their owner separately. The browser frame connection follows in [62j](../62j-frame-pass.md).
+- **Hands-On Lab Experiment:** Follow reset and release separately. Predict which resource capacities remain after resetting only the draw count.
+
 <details>
 <summary>Implementation 62id-own-and-release-nameplate-draw-resources: Own and release nameplate draw resources</summary>
 
@@ -3082,6 +3351,20 @@ After that block, type:
 </details>
 
 <a id="checkpoint-62ie-upload-nameplate-rectangles-in-one-physical-coordinate-system"></a>
+
+### Step 15 of 37 · Upload nameplate rectangles in one physical coordinate system (`62ie-upload-nameplate-rectangles-in-one-physical-coordinate-system`)
+
+- **Goal:** Generate the packed rectangle vertices once and retain the split between depth-tested plates and screen overlays.
+- **Data Flow Trace:** `upload nameplate rectangles in one physical coordinate system`
+- **Files You Touch:** `src/text_plate.rs` (*Add this part of upload nameplate rectangles in one physical coordinate system.*)
+
+Generate the packed rectangle vertices once and retain the split between depth-tested plates and screen overlays.
+
+> **Self-Check Question:** *Which coordinates are written into the nameplate vertex buffer?*  
+> **Answer:** Framebuffer coordinates, after one CSS/device conversion. Keep separate ranges for depth-tested plates and overlays.
+
+- **What You Should See:** Rectangle uploads retain separate physical and overlay ranges. The browser frame connection follows in [62j](../62j-frame-pass.md).
+- **Hands-On Lab Experiment:** Trace one rectangle’s six vertices in framebuffer pixels. Predict what doubles at DPR2 and what remains an original source value.
 
 <details>
 <summary>Implementation 62ie-upload-nameplate-rectangles-in-one-physical-coordinate-system: Upload nameplate rectangles in one physical coordinate system</summary>
@@ -3115,6 +3398,20 @@ After that block, type:
 
 <a id="checkpoint-62if-place-the-plate-around-the-shaped-label"></a>
 
+### Step 16 of 37 · Place the plate around the shaped label (`62if-place-the-plate-around-the-shaped-label`)
+
+- **Goal:** Compute padding and rounded bounds in the same coordinate system as glyph placement. Define text statistics as observations, not source data.
+- **Data Flow Trace:** `place the plate around the shaped label`
+- **Files You Touch:** `src/scene_text_gpu.rs` (*Add this part of place the plate around the shaped label.*)
+
+Compute padding and rounded bounds in the same coordinate system as glyph placement. Define text statistics as observations, not source data.
+
+> **Self-Check Question:** *Why must plate padding use the same scale as glyph placement?*  
+> **Answer:** Glyphs and their backing rectangle must expand together. Applying device scale twice to padding would change the border with display density.
+
+- **What You Should See:** Plate bounds follow the shaped glyph placement and padding. The browser frame connection follows in [62j](../62j-frame-pass.md).
+- **Hands-On Lab Experiment:** For a shaped label with a given measured width, calculate the plate bounds with padding at DPR1 and2.
+
 <details>
 <summary>Implementation 62if-place-the-plate-around-the-shaped-label: Place the plate around the shaped label</summary>
 
@@ -3145,6 +3442,20 @@ After that block, type:
 </details>
 
 <a id="checkpoint-62ig-give-world-text-a-bounded-coverage-cache"></a>
+
+### Step 17 of 37 · Give world text a bounded coverage cache (`62ig-give-world-text-a-bounded-coverage-cache`)
+
+- **Goal:** A cached plane owns its texture and bind group. Drop destroys the texture; a changed placement may reuse the raster while font/text changes invalidate it.
+- **Data Flow Trace:** `give world text a bounded coverage cache`
+- **Files You Touch:** `src/text_plane.rs` (*Add this part of give world text a bounded coverage cache.*) · `src/scene_text_gpu.rs` (*Compile the already-created child owner in the text lane.*)
+
+A cached plane owns its texture and bind group. Drop destroys the texture; a changed placement may reuse the raster while font/text changes invalidate it.
+
+> **Self-Check Question:** *What makes an old world-text coverage entry reusable?*  
+> **Answer:** Its text, font and raster inputs must still match. A placement change can move the quad while reusing the coverage texture.
+
+- **What You Should See:** Coverage cache entries own their textures and enforce the raster budget. The browser frame connection follows in [62j](../62j-frame-pass.md).
+- **Hands-On Lab Experiment:** List the cache key and its source witnesses. Predict the result of changing only the camera, then the original text.
 
 <details>
 <summary>Implementation 62ig-give-world-text-a-bounded-coverage-cache: Give world text a bounded coverage cache</summary>
@@ -3188,6 +3499,20 @@ After that block, type:
 
 <a id="checkpoint-62ih-choose-bounded-glyph-raster-resolution"></a>
 
+### Step 18 of 37 · Choose bounded glyph raster resolution (`62ih-choose-bounded-glyph-raster-resolution`)
+
+- **Goal:** Relate projected world height to framebuffer pixels, fit the shaped extent within the texture limit, and read mask/color/subpixel coverage consistently.
+- **Data Flow Trace:** `choose bounded glyph raster resolution`
+- **Files You Touch:** `src/text_plane.rs` (*Add this part of choose bounded glyph raster resolution.*)
+
+Relate projected world height to framebuffer pixels, fit the shaped extent within the texture limit, and read mask/color/subpixel coverage consistently.
+
+> **Self-Check Question:** *How is raster resolution bounded for a world-space label?*  
+> **Answer:** Start from projected framebuffer height, then reduce the raster scale until the complete shaped extent fits the device texture limit.
+
+- **What You Should See:** World-text raster resolution fits the device texture limit. The browser frame connection follows in [62j](../62j-frame-pass.md).
+- **Hands-On Lab Experiment:** For a world-sized label, compare the chosen raster scale when zooming closer and when doubling DPR. Locate both upper bounds.
+
 <details>
 <summary>Implementation 62ih-choose-bounded-glyph-raster-resolution: Choose bounded glyph raster resolution</summary>
 
@@ -3218,6 +3543,20 @@ After that block, type:
 </details>
 
 <a id="checkpoint-62ii-rasterize-the-shaped-run-into-owned-coverage-bytes"></a>
+
+### Step 19 of 37 · Rasterize the shaped run into owned coverage bytes (`62ii-rasterize-the-shaped-run-into-owned-coverage-bytes`)
+
+- **Goal:** Allocate bounded coverage storage from the shaped glyph bounds.
+- **Data Flow Trace:** `rasterize the shaped run into owned coverage bytes`
+- **Files You Touch:** `src/text_plane.rs` (*Add this part of rasterize the shaped run into owned coverage bytes.*)
+
+Find glyph/layout bounds before allocating the bounded texture-sized array. Composite coverage into that array without retaining temporary font images as original CAD data.
+
+> **Self-Check Question:** *When can the coverage byte array be allocated safely?*  
+> **Answer:** After measuring the run and checking its dimensions against the texture limit. The width and height then determine the byte count.
+
+- **What You Should See:** The run owns bounded coverage bytes; temporary glyph images can be released. [62j](../62j-frame-pass.md) connects display preparation.
+- **Hands-On Lab Experiment:** Calculate the output byte count for a 128×32 coverage image. Trace alpha, monochrome and subpixel glyph input through the coverage helper.
 
 <details>
 <summary>Implementation 62ii-rasterize-the-shaped-run-into-owned-coverage-bytes: Rasterize the shaped run into owned coverage bytes</summary>
@@ -3251,6 +3590,20 @@ After that block, type:
 
 <a id="checkpoint-62ij-upload-and-bind-one-world-text-coverage-texture"></a>
 
+### Step 20 of 37 · Upload and bind one world-text coverage texture (`62ij-upload-and-bind-one-world-text-coverage-texture`)
+
+- **Goal:** Create the R8 coverage texture, upload rows with the declared byte layout, and bind the texture/sampler into one cached owner.
+- **Data Flow Trace:** `upload and bind one world-text coverage texture`
+- **Files You Touch:** `src/text_plane.rs` (*Add this part of upload and bind one world-text coverage texture.*)
+
+Create the R8 coverage texture, upload rows with the declared byte layout, and bind the texture/sampler into one cached owner.
+
+> **Self-Check Question:** *Which texture format and row layout carry glyph coverage?*  
+> **Answer:** One R8 texel stores each coverage value. The upload declares the coverage width as bytes per row and retains a texture/sampler bind group.
+
+- **What You Should See:** One cached bind group owns the uploaded coverage texture. The browser frame connection follows in [62j](../62j-frame-pass.md).
+- **Hands-On Lab Experiment:** Identify the R8 texture size, row stride and upload operation for that image. Explain when the texture becomes owned by its cache entry.
+
 <details>
 <summary>Implementation 62ij-upload-and-bind-one-world-text-coverage-texture: Upload and bind one world-text coverage texture</summary>
 
@@ -3281,6 +3634,20 @@ After that block, type:
 </details>
 
 <a id="checkpoint-62ik-build-the-world-plane-text-quad"></a>
+
+### Step 21 of 37 · Build the world-plane text quad (`62ik-build-the-world-plane-text-quad`)
+
+- **Goal:** Transform the original text plane into rebased GPU vertices. Keep original label placement and color independent of the generated quad.
+- **Data Flow Trace:** `build the world-plane text quad`
+- **Files You Touch:** `src/text_plane.rs` (*Add this part of build the world-plane text quad.*)
+
+Transform the original text plane into rebased GPU vertices. Keep original label placement and color independent of the generated quad.
+
+> **Self-Check Question:** *Which original data does the generated world-text quad retain?*  
+> **Answer:** The original label supplies placement, size and color. The quad is a derived render input, not a replacement label or new CAD object.
+
+- **What You Should See:** The world-text quad derives its vertices from the original label plane. The browser frame connection follows in [62j](../62j-frame-pass.md).
+- **Hands-On Lab Experiment:** Trace the four original world corners into the generated six-vertex quad. Identify which values depend on camera origin.
 
 <details>
 <summary>Implementation 62ik-build-the-world-plane-text-quad: Build the world-plane text quad</summary>
@@ -3314,6 +3681,20 @@ After that block, type:
 
 <a id="checkpoint-62il-build-world-text-color-and-id-pipelines"></a>
 
+### Step 22 of 37 · Build world-text color and ID pipelines (`62il-build-world-text-color-and-id-pipelines`)
+
+- **Goal:** The plane shader reads coverage while color and integer targets retain their distinct fragment contracts. Declare the same vertex layout for both passes.
+- **Data Flow Trace:** `build world-text color and id pipelines`
+- **Files You Touch:** `src/text_plane.rs` (*Add this part of build world-text color and id pipelines.*)
+
+The plane shader reads coverage while color and integer targets retain their distinct fragment contracts. Declare the same vertex layout for both passes.
+
+> **Self-Check Question:** *Which contracts must the world-text color and ID passes share?*  
+> **Answer:** They share vertex placement and coverage rejection. The color pass blends visible coverage; the ID pass writes the exact original owner.
+
+- **What You Should See:** World-text pipelines share placement and coverage while keeping color and ID targets distinct. The browser frame connection follows in [62j](../62j-frame-pass.md).
+- **Hands-On Lab Experiment:** Compare the world-plane color and ID pipelines. Find the shared coverage cutoff and their depth contracts in the already-written shaders.
+
 <details>
 <summary>Implementation 62il-build-world-text-color-and-id-pipelines: Build world-text color and ID pipelines</summary>
 
@@ -3345,6 +3726,20 @@ After that block, type:
 </details>
 
 <a id="checkpoint-62im-own-the-world-text-buffer-and-pipeline-lifetime"></a>
+
+### Step 23 of 37 · Own the world-text buffer and pipeline lifetime (`62im-own-the-world-text-buffer-and-pipeline-lifetime`)
+
+- **Goal:** Create retained GPU resources, replace target-dependent pipelines on retarget, and distinguish reset, release and capacity accounting.
+- **Data Flow Trace:** `own the world-text buffer and pipeline lifetime`
+- **Files You Touch:** `src/text_plane.rs` (*Add this part of own the world-text buffer and pipeline lifetime.*)
+
+Create retained GPU resources, replace target-dependent pipelines on retarget, and distinguish reset, release and capacity accounting.
+
+> **Self-Check Question:** *What must change when the render target changes?*  
+> **Answer:** Pipelines that depend on its format must be rebuilt. Retained geometry and compatible coverage textures need not be rasterized again.
+
+- **What You Should See:** The world-text owner can retarget pipelines and release retained resources. The browser frame connection follows in [62j](../62j-frame-pass.md).
+- **Hands-On Lab Experiment:** Follow a target-format change through retarget. Identify which pipelines change and which cached original labels remain valid.
 
 <details>
 <summary>Implementation 62im-own-the-world-text-buffer-and-pipeline-lifetime: Own the world-text buffer and pipeline lifetime</summary>
@@ -3378,6 +3773,20 @@ After that block, type:
 
 <a id="checkpoint-62in-rebuild-only-invalid-world-text-cache-entries"></a>
 
+### Step 24 of 37 · Rebuild only invalid world-text cache entries (`62in-rebuild-only-invalid-world-text-cache-entries`)
+
+- **Goal:** Match a label to its cache entry, validate the total texture budget before upload, and replace or append one owned entry.
+- **Data Flow Trace:** `rebuild only invalid world-text cache entries`
+- **Files You Touch:** `src/text_plane.rs` (*Add this part of rebuild only invalid world-text cache entries.*)
+
+Match a label to its cache entry, validate the total texture budget before upload, and replace or append one owned entry.
+
+> **Self-Check Question:** *When does a cached label need a new GPU texture?*  
+> **Answer:** When its font, text or required raster no longer matches the entry. Check the aggregate texture budget before replacing or appending GPU storage.
+
+- **What You Should See:** Only invalid label cache entries require replacement coverage. The browser frame connection follows in [62j](../62j-frame-pass.md).
+- **Hands-On Lab Experiment:** Predict cache hits for repeated frames, a font revision, and a changed label. Trace the byte budget check before texture allocation.
+
 <details>
 <summary>Implementation 62in-rebuild-only-invalid-world-text-cache-entries: Rebuild only invalid world-text cache entries</summary>
 
@@ -3409,6 +3818,20 @@ After that block, type:
 </details>
 
 <a id="checkpoint-62io-prepare-and-draw-the-retained-world-text-planes"></a>
+
+### Step 25 of 37 · Prepare and draw the retained world-text planes (`62io-prepare-and-draw-the-retained-world-text-planes`)
+
+- **Goal:** Prune expired labels, skip clipped/empty planes, reuse valid rasters, build the current quads and issue draws from retained cache indices.
+- **Data Flow Trace:** `prepare and draw the retained world-text planes`
+- **Files You Touch:** `src/text_plane.rs` (*Add this part of prepare and draw the retained world-text planes.*)
+
+Prune expired labels, skip clipped/empty planes, reuse valid rasters, build the current quads and issue draws from retained cache indices.
+
+> **Self-Check Question:** *How do current draw indices refer to retained cache entries?*  
+> **Answer:** Preparation builds indices into the retained cache after pruning expired entries. Draw only those accepted indices for the current frame.
+
+- **What You Should See:** Prepared draw indices reference the surviving retained text planes. The browser frame connection follows in [62j](../62j-frame-pass.md).
+- **Hands-On Lab Experiment:** Follow one visible run from cache lookup to draw index. Explain why cache indices cannot be treated as original object IDs.
 
 <details>
 <summary>Implementation 62io-prepare-and-draw-the-retained-world-text-planes: Prepare and draw the retained world-text planes</summary>
@@ -3442,6 +3865,20 @@ After that block, type:
 
 <a id="checkpoint-62ip-collect-anchored-and-overlay-glyph-work-separately"></a>
 
+### Step 26 of 37 · Collect anchored and overlay glyph work separately (`62ip-collect-anchored-and-overlay-glyph-work-separately`)
+
+- **Goal:** Return borrow-scoped TextAreas alongside plate inputs and per-label depths. The borrowed runs survive through preparation; no new source owner is created.
+- **Data Flow Trace:** `collect anchored and overlay glyph work separately`
+- **Files You Touch:** `src/scene_text_gpu.rs` (*Add this part of collect anchored and overlay glyph work separately.*)
+
+Return borrow-scoped TextAreas alongside plate inputs and per-label depths. The borrowed runs survive through preparation; no new source owner is created.
+
+> **Self-Check Question:** *How long must the borrowed shaped runs stay alive?*  
+> **Answer:** Until glyph preparation finishes reading their text areas. The borrow belongs to this preparation call and does not create another original-source owner.
+
+- **What You Should See:** Anchored glyphs and overlays have separate preparation inputs. The browser frame connection follows in [62j](../62j-frame-pass.md).
+- **Hands-On Lab Experiment:** Place one anchored and one overlay run in their respective TextArea collections. Explain why those areas borrow the existing shaped runs.
+
 <details>
 <summary>Implementation 62ip-collect-anchored-and-overlay-glyph-work-separately: Collect anchored and overlay glyph work separately</summary>
 
@@ -3472,6 +3909,20 @@ After that block, type:
 </details>
 
 <a id="checkpoint-62iq-give-the-text-lane-its-retained-resource-owners"></a>
+
+### Step 27 of 37 · Give the text lane its retained resource owners (`62iq-give-the-text-lane-its-retained-resource-owners`)
+
+- **Goal:** Declare the lane and its caches, atlas, viewport, pipelines and preparation witness. Build glyph renderers against the appropriate depth predicates.
+- **Data Flow Trace:** `give the text lane its retained resource owners`
+- **Files You Touch:** `src/scene_text_gpu.rs` (*Add this part of give the text lane its retained resource owners.*)
+
+Declare the lane and its caches, atlas, viewport, pipelines and preparation witness. Build glyph renderers against the appropriate depth predicates.
+
+> **Self-Check Question:** *Which owners make up the text lane?*  
+> **Answer:** Its font/raster system, glyph atlas and viewport, depth-tested and overlay renderers, world-plane and plate owners, caches and accepted preparation witness.
+
+- **What You Should See:** The text lane retains its atlas, viewport and render owners. The browser frame connection follows in [62j](../62j-frame-pass.md).
+- **Hands-On Lab Experiment:** Draw the text lane ownership tree: document, atlas, raster cache, plane cache and plates. Mark which resources survive a camera move.
 
 <details>
 <summary>Implementation 62iq-give-the-text-lane-its-retained-resource-owners: Give the text lane its retained resource owners</summary>
@@ -3505,6 +3956,20 @@ After that block, type:
 
 <a id="checkpoint-62ir-construct-and-rebuild-the-text-lane-once"></a>
 
+### Step 28 of 37 · Construct and rebuild the text lane once (`62ir-construct-and-rebuild-the-text-lane-once`)
+
+- **Goal:** Initialize font/raster resources and world/plate owners. Rebuild atlas-dependent resources when fonts change while keeping original labels in the document.
+- **Data Flow Trace:** `construct and rebuild the text lane once`
+- **Files You Touch:** `src/scene_text_gpu.rs` (*Add this part of construct and rebuild the text lane once.*)
+
+Initialize font/raster resources and world/plate owners. Rebuild atlas-dependent resources when fonts change while keeping original labels in the document.
+
+> **Self-Check Question:** *Which resources depend on the current font atlas?*  
+> **Answer:** Glyph renderers and their atlas bindings. Rebuild them with the new atlas and invalidate the preparation witness so stale glyph locations cannot draw.
+
+- **What You Should See:** The text lane rebuilds resources that depend on a replaced atlas. The browser frame connection follows in [62j](../62j-frame-pass.md).
+- **Hands-On Lab Experiment:** Trace construction and atlas rebuild. Explain why every glyph renderer must refer to the same current atlas.
+
 <details>
 <summary>Implementation 62ir-construct-and-rebuild-the-text-lane-once: Construct and rebuild the text lane once</summary>
 
@@ -3535,6 +4000,20 @@ After that block, type:
 </details>
 
 <a id="checkpoint-62is-reset-the-text-lane-and-record-scoped-preparation-costs"></a>
+
+### Step 29 of 37 · Reset the text lane and record scoped preparation costs (`62is-reset-the-text-lane-and-record-scoped-preparation-costs`)
+
+- **Goal:** Retarget pipelines, clear logical work and release owned world/plate resources. Report raster images and buffer capacities with their actual scope.
+- **Data Flow Trace:** `reset the text lane and record scoped preparation costs`
+- **Files You Touch:** `src/scene_text_gpu.rs` (*Add this part of reset the text lane and record scoped preparation costs.*)
+
+Retarget pipelines, clear logical work and release owned world/plate resources. Report raster images and buffer capacities with their actual scope.
+
+> **Self-Check Question:** *What do the text preparation counters actually measure?*  
+> **Answer:** Work observed during the declared preparation call. They do not measure total device memory or convert generated glyph resources into source data.
+
+- **What You Should See:** Reset and preparation accounting follow their declared resource scope. The browser frame connection follows in [62j](../62j-frame-pass.md).
+- **Hands-On Lab Experiment:** Predict which preparation counters change after shaping, rasterizing and uploading. Explain why retained capacity is not a timing measurement.
 
 <details>
 <summary>Implementation 62is-reset-the-text-lane-and-record-scoped-preparation-costs: Reset the text lane and record scoped preparation costs</summary>
@@ -3568,6 +4047,20 @@ After that block, type:
 
 <a id="checkpoint-62it-prepare-glyphs-only-when-the-witness-changes"></a>
 
+### Step 30 of 37 · Prepare glyphs only when the witness changes (`62it-prepare-glyphs-only-when-the-witness-changes`)
+
+- **Goal:** Skip text preparation when its complete frame witness is unchanged.
+- **Data Flow Trace:** `prepare glyphs only when the witness changes`
+- **Files You Touch:** `src/scene_text_gpu.rs` (*Add this part of prepare glyphs only when the witness changes.*)
+
+Use document/font/frame revisions to skip unchanged work. Prepare world planes, the viewport, overlay/anchored glyphs and plate inputs, then record the accepted witness.
+
+> **Self-Check Question:** *Which witness lets unchanged text skip preparation?*  
+> **Answer:** The accepted document, font and frame revisions together. A source edit, font replacement or changed projection invalidates that witness.
+
+- **What You Should See:** The owner records a witness only after preparing its inputs. [62j](../62j-frame-pass.md) connects the frame pass.
+- **Hands-On Lab Experiment:** Compare the preparation witnesses for an unchanged frame, a camera change and a source edit. Predict which pass needs rebuilding.
+
 <details>
 <summary>Implementation 62it-prepare-glyphs-only-when-the-witness-changes: Prepare glyphs only when the witness changes</summary>
 
@@ -3599,6 +4092,20 @@ After that block, type:
 </details>
 
 <a id="checkpoint-62iu-draw-the-prepared-text-passes-in-order"></a>
+
+### Step 31 of 37 · Draw the prepared text passes in order (`62iu-draw-the-prepared-text-passes-in-order`)
+
+- **Goal:** Draw world planes, depth-tested plates and anchored glyphs before overlay plates/glyphs. Connect this completed lane to the frame in the next existing lesson.
+- **Data Flow Trace:** `draw the prepared text passes in order`
+- **Files You Touch:** `src/scene_text_gpu.rs` (*Add this part of draw the prepared text passes in order.*)
+
+Draw world planes, depth-tested plates and anchored glyphs before overlay plates/glyphs. Connect this completed lane to the frame in the next existing lesson.
+
+> **Self-Check Question:** *Why does text draw order distinguish anchored and overlay work?*  
+> **Answer:** Anchored text participates in scene depth; overlays must remain readable on top. Draw the prepared ranges in their declared phases rather than sharing one depth rule.
+
+- **What You Should See:** All text owners are assembled. Their placement and depth fixtures validate the boundary before [62j](../62j-frame-pass.md) connects the frame.
+- **Hands-On Lab Experiment:** Trace the completed draw order for world-plane, anchored, nameplate and overlay text. Inspect the supplied numerical fixtures, then proceed to [62j](../62j-frame-pass.md) to connect this lane to the browser frame.
 
 <details>
 <summary>Implementation 62iu-draw-the-prepared-text-passes-in-order: Draw the prepared text passes in order</summary>
@@ -3659,6 +4166,19 @@ After that block, append this supplied code:
 </details>
 
 <a id="checkpoint-62j-frame-pass"></a>
+
+### Step 32 of 37 · Prepare the full text frame and load the scene depth (`62j-frame-pass`)
+
+- **Goal:** Prepare the full text frame and load the scene depth.
+- **Data Flow Trace:** `camera and CSS density → text frame → current lane preparation → colour/depth load pass`
+- **Files You Touch:** `src/renderer.rs` (*Prepare the complete current text frame and preserve already-rendered scene depth.*)
+
+Connect the current text lane to the existing lazy screen specimen. Supply physical/logical canvas facts and draw glyph coverage in a colour/depth load pass.
+
+> **Self-Check Question:** *Should the text load pass clear the CAD depth?*  
+> **Answer:** No. Anchored and world text must compare against the scene depth already drawn. Screen overlays and nameplates use their explicit presentation depth rules.
+
+- **Hands-On Lab Experiment:** Draw the earlier screen specimen through the full lane. Keep primary geometry and integer picks unchanged while supplying the same target format and sample count.
 
 <details>
 <summary>Implementation 62j-frame-pass: Prepare the full text frame and load the scene depth</summary>
@@ -4175,6 +4695,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-62k-lane-labels"></a>
+
+### Step 33 of 37 · Merge original scene labels with the screen specimen (`62k-lane-labels`)
+
+- **Goal:** Merge original scene labels with the screen specimen.
+- **Data Flow Trace:** `visible source labels and overlays → stable label ids → one lazy document → reused shaping`
+- **Files You Touch:** `src/renderer.rs` (*Adopt visible source-owned labels and presentation text in one cached lane.*)
+
+Keep presentation labels outside source identity and merge them with visible scene labels in one lazy lane. Changing placement or selection reuses shaped source words.
+
+> **Self-Check Question:** *Can the presentation specimen share a source row ID?*  
+> **Answer:** No. Its reserved presentation IDs remain outside allocated scene-row IDs. Original scene labels keep their own IDs, source words and eligibility.
+
+- **Hands-On Lab Experiment:** Compare source GUIDs, row IDs and reserved specimen IDs. Change selection and inspect shaping counts; remove all labels to release the lazy lane.
 
 <details>
 <summary>Implementation 62k-lane-labels: Merge original scene labels with the screen specimen</summary>
@@ -4759,6 +5292,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-62l-picking"></a>
+
+### Step 34 of 37 · Draw original text IDs through bounded readback (`62l-picking`)
+
+- **Goal:** Draw original text IDs through bounded readback.
+- **Data Flow Trace:** `current camera text preparation → bounded integer pass → original owner → current derived bounds`
+- **Files You Touch:** `src/renderer.rs` (*Connect bounded text IDs, current metrics and atomic accepted-font adoption.*) · `src/pick_gpu.rs` (*Draw existing text plate and plane integer IDs in the bounded pick window.*) · `src/pick_encode.rs` (*Draw existing text plate and plane integer IDs in the bounded pick window.*)
+
+Prepare text for the current camera before the bounded integer pass. Send the same cached plane and plate owners to that pass and refresh derived font bounds.
+
+> **Self-Check Question:** *Does a text hit identify one raster glyph?*  
+> **Answer:** No. The current plate identifies its original text row. Coverage and glyphs are derived display data; Face and Edge modes do not invent text subgeometry.
+
+- **Hands-On Lab Experiment:** Pick the inside of a plane and a centered nameplate, then lock it. Compare primary mesh allocations, repeated frame skips and unchanged original words.
 
 <details>
 <summary>Implementation 62l-picking: Draw original text IDs through bounded readback</summary>
@@ -5562,6 +6108,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-62m-whole-fonts"></a>
 
+### Step 35 of 37 · Fetch missing whole fonts as one checked set (`62m-whole-fonts`)
+
+- **Goal:** Fetch missing whole fonts as one checked set.
+- **Data Flow Trace:** `subset coverage miss → bounded font requests → complete font set → atomic adoption`
+- **Files You Touch:** `src/text_fonts.rs` (*Fetch and validate the current whole fonts without letting stale replies survive Close.*) · `src/lib.rs` (*Register the source component.*)
+
+Ask once when the subset lacks a character, fetch the three current whole fonts and adopt them atomically. An epoch prevents replies from a closed scene being reused.
+
+> **Self-Check Question:** *Can a partial or stale font reply replace current glyphs?*  
+> **Answer:** No. All fonts must arrive and validate together. Failed requests can retry; replies from an older inbox epoch are discarded after Close.
+
+- **Hands-On Lab Experiment:** Use Ω to trigger the whole fonts. Compare the bundled coverage result with the full Noto face, and inspect the 4 MiB per-file cap and epoch check.
+
 <details>
 <summary>Implementation 62m-whole-fonts: Fetch missing whole fonts as one checked set</summary>
 
@@ -5602,6 +6161,19 @@ After that block, type:
 </details>
 
 <a id="checkpoint-62n-diagnostics"></a>
+
+### Step 36 of 37 · Show current text sources metrics and preparation errors (`62n-diagnostics`)
+
+- **Goal:** Show current text sources metrics and preparation errors.
+- **Data Flow Trace:** `font delivery → current derived bounds → truthful diagnostics → visible error status`
+- **Files You Touch:** `src/browser.rs` (*Connect epoch-guarded fonts, current source/resource diagnostics and visible text errors.*)
+
+Connect font delivery, source/GPU counters and the current preparation error to the viewer. Refresh derived bounds from current glyph metrics while retaining original source data.
+
+> **Self-Check Question:** *Do text errors require hiding the underlying CAD scene?*  
+> **Answer:** No. Keep the CAD scene usable and expose text errors. Diagnostics distinguish original sources, shaped runs, raster images, vertex capacities and actual world-plane texture bytes.
+
+- **Hands-On Lab Experiment:** Inspect original source placement beside the instance model. Verify whole-font adoption removes missing glyphs and Close clears source, atlas and plane allocations.
 
 <details>
 <summary>Implementation 62n-diagnostics: Show current text sources metrics and preparation errors</summary>
@@ -6605,6 +7177,20 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-62o-labels"></a>
 
+### Step 37 of 37 · Create pick move and delete the original scene labels (`62o-labels`)
+
+- **Goal:** Create pick move and delete the original scene labels.
+- **Data Flow Trace:** `original text example → current placement and coverage → original integer pick → one reversible edit`
+- **Files You Touch:** `src/editor.rs` (*Connect original label examples through the existing scene transactions and command dock.*) · `src/commands.rs` (*Connect original label examples through the existing scene transactions and command dock.*) · `src/scene_label_tests.rs` (*Copy original-word/f64 placement, source sharing, layer/copy/delete/Undo/Close, bounds, rectangle and invalid-source regressions.*) · `src/lib.rs` (*Register the source component.*) · `src/pick_gpu_tests.rs` (*Copy actual plane/anchor/billboard/nameplate depth, integer IDs, rounded styles, clip-window agreement, atomic fonts and resource-release checks.*)
+
+Connect plane, billboard, anchor and nameplate examples and copy the complete source/history and actual GPU checks. Keep source words intact through selection, Move, Delete and Undo.
+
+> **Self-Check Question:** *Does Delete erase only the atlas presentation?*  
+> **Answer:** No. Delete removes the original scene row as one history edit. Undo restores its stable identity and shared source; Close clears history and releases the source and display owners.
+
+- **What You Should See:** Type Close, Example CAD, Example Scene Text, Fit and View Isometric; use Select Next twice. The original world-sized label appears on a selected yellow plate. Move, Undo, Redo and Delete operate on its stable scene row. Example Anchor keeps CSS-sized ink at depth; Example Nameplate overlays its source center; Example Billboard preserves world size while facing the camera. Ω fetches the current whole fonts. Close releases the labels. Save explicitly refuses text until mixed persistence connects.
+- **Hands-On Lab Experiment:** Type Close, Example CAD, Example Scene Text, Fit and View Isometric. Use Select Next twice to select the label; Move 0.25 0 0, Undo, Redo and Delete. Test the other three placements and compare all original source fields.
+
 <details>
 <summary>Implementation 62o-labels: Create pick move and delete the original scene labels</summary>
 
@@ -7524,9 +8110,11 @@ After that block, append this supplied code:
 
 </details>
 
-## Run, Check, and Save
+---
 
-From `session_viewer`:
+## 5. Build, Verify, and Save Your Checkpoint
+
+Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 62o-labels
@@ -7537,10 +8125,10 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. Use [checkpoint recovery](../recovery.md) to restore any saved checkpoint.
+Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../recovery.md) to save or restore any checkpoint ID.
 
-## Expected Visual Result & Experiment
+## 6. Lesson Summary & Expected Visual Result
 
 Type Close, Example CAD, Example Scene Text, Fit and View Isometric; use Select Next twice. The original world-sized label appears on a selected yellow plate. Move, Undo, Redo and Delete operate on its stable scene row. Example Anchor keeps CSS-sized ink at depth; Example Nameplate overlays its source center; Example Billboard preserves world size while facing the camera. Ω fetches the current whole fonts. Close releases the labels. Save explicitly refuses text until mixed persistence connects.
 
-- **Try this:** Type Close, Example CAD, Example Scene Text, Fit and View Isometric. Use Select Next twice to select the label; Move 0.25 0 0, Undo, Redo and Delete. Test the other three placements and compare all original source fields.
+- **Final Lesson Experiment:** Type Close, Example CAD, Example Scene Text, Fit and View Isometric. Use Select Next twice to select the label; Move 0.25 0 0, Undo, Redo and Delete. Test the other three placements and compare all original source fields.

@@ -1,92 +1,166 @@
 # 3.5 · Save, replace and asynchronous transaction results
 
-**Section 3: Scene Documents, Transactions, and Browser GPU Lifetime** · **Lesson 3.5** (Redraft `3.5`) · **11 checkpoints (`29-identity` → `30e-recovery`)**
+**Section 3: Scene Documents, Transactions, and Browser GPU Lifetime** · **Lesson 3.5** (Redraft `3.5`) · **11 checkpoints (`29-identity` → `30e-recovery`)** · **Study time: 11–22 h**
 
-> **Learning Goal:** Distinguish a scene object from the original geometry it shares.
+> **What You Will Learn & Build:** Distinguish a scene object from the original geometry it shares. By the final checkpoint (`30e-recovery`), you will test partial replacement failure, preserved selection/Redo and placement upload limits.
 
-## Visual WebGPU & Architecture Schematic
+## 1. Visual Pipeline & WebGPU Architecture (Black & White Schematics)
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1px solid #cbd5e1;border-radius:10px;background:#f8fafc;">
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
+<svg viewBox="0 0 840 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <rect x="4" y="4" width="832" height="212" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Lesson 3.5 Execution Flow: Save, replace and asynchronous transaction results</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">Concrete data pipeline you build in this lesson (11 Checkpoints: 29-identity → 30e-recovery)</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
+  
+    
+    <rect x="18" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="89" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
+    <line x1="28" y1="92" x2="151" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">Source GUID</text>
+    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="183" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="254" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
+    <line x1="193" y1="92" x2="316" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">inserted object</text>
+    <text x="254" y="124" text-anchor="middle" font-size="11" fill="#111111">GUID</text>
+    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="348" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="419" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
+    <line x1="358" y1="92" x2="481" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">cloned history</text>
+    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="513" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="584" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
+    <line x1="523" y1="92" x2="646" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">stable file</text>
+    <text x="584" y="124" text-anchor="middle" font-size="11" fill="#111111">identity</text>
+    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="678" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="749" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
+    <line x1="688" y1="92" x2="811" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">Malformed source or</text>
+    <text x="749" y="124" text-anchor="middle" font-size="11" fill="#111111">failed insertion</text>
+    
+    <rect x="18" y="162" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="32" y="181" font-size="11" font-weight="700" fill="#111111">Files You Edit in Lesson 3.5:</text>
+    <text x="215" y="181" font-size="11" fill="#111111">Cargo.toml  ·  src/scene.rs  ·  src/file_identity_tests.rs  ·  src/lib.rs  ·  src/document.rs  ·  src/snapshot_tests.rs</text>
+    <text x="32" y="198" font-size="10.5" fill="#111111">11 Checkpoints: 29-identity → 30e-recovery — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
+  
+</svg>
+</div>
+
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
 <svg viewBox="0 0 840 240" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#475569"/>
-    </marker>
-    <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#2563eb"/>
-    </marker>
-    <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#059669"/>
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
     </marker>
   </defs>
-  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
-  <text x="20" y="28" font-size="14" font-weight="700" fill="#0f172a">Chapter 3 Architecture: Transactional Protobuf (.pb) Decode, World Placements & Incremental GPU Sync</text>
-  <text x="20" y="46" font-size="11.5" fill="#475569">Separating exact session_rust kernel geometry from GPU display buffers so view changes never re-upload unchanged meshes.</text>
-  <line x1="16" y1="54" x2="824" y2="54" stroke="#e2e8f0" stroke-width="1"/>
+  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Chapter 3 Architecture: Transactional Protobuf (.pb) Decode, World Placements & Incremental GPU Sync</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">Separating exact session_rust kernel geometry from GPU display buffers so view changes never re-upload unchanged meshes.</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
   
-    <rect x="18" y="68" width="185" height="145" rx="6" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
-    <text x="110" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1e40af">1. Async .pb File / URL I/O</text>
-    <text x="28" y="108" font-size="10.5" fill="#1e3a8a">• Ticket #N (cancels #N-1)</text>
-    <text x="28" y="126" font-size="10.5" fill="#1e3a8a">• Bounded Protobuf decode</text>
-    <text x="28" y="144" font-size="10.5" font-weight="600" fill="#1d4ed8">• Topological validation</text>
-    <text x="28" y="162" font-size="10.5" fill="#1e3a8a">• Corrupt file? Reject with</text>
-    <text x="28" y="177" font-size="10.5" fill="#1e3a8a">  ZERO partial scene mutation</text>
+    <rect x="18" y="68" width="185" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="110" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">1. Async .pb File / URL I/O</text>
+    <text x="28" y="108" font-size="10.5" fill="#111111">• Ticket #N (cancels #N-1)</text>
+    <text x="28" y="126" font-size="10.5" fill="#111111">• Bounded Protobuf decode</text>
+    <text x="28" y="144" font-size="10.5" font-weight="600" fill="#111111">• Topological validation</text>
+    <text x="28" y="162" font-size="10.5" fill="#111111">• Corrupt file? Reject with</text>
+    <text x="28" y="177" font-size="10.5" fill="#111111">  ZERO partial scene mutation</text>
 
-    <line x1="203" y1="138" x2="233" y2="138" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
+    <line x1="203" y1="138" x2="233" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="235" y="68" width="275" height="145" rx="6" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5"/>
-    <text x="372" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#9a3412">2. Editor Owner (Browser-Independent)</text>
-    <text x="247" y="108" font-size="10.5" fill="#7c2d12">• Kernel Mesh (local-space f64 coordinates)</text>
-    <text x="247" y="126" font-size="10.5" fill="#7c2d12">• Placement 4x4 Matrix (world transform)</text>
-    <text x="247" y="144" font-size="10.5" font-weight="600" fill="#c2410c">• Releasable Source Ownership:</text>
-    <text x="247" y="160" font-size="10" fill="#7c2d12">  Drop cold CPU source after GPU upload;</text>
-    <text x="247" y="175" font-size="10" fill="#7c2d12">  re-fetch exact SHA/revision on edit!</text>
-    <text x="247" y="195" font-size="10.5" fill="#7c2d12">• Emits Change { sync_scene, redraw }</text>
+    <rect x="235" y="68" width="275" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="372" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">2. Editor Owner (Browser-Independent)</text>
+    <text x="247" y="108" font-size="10.5" fill="#111111">• Kernel Mesh (local-space f64 coordinates)</text>
+    <text x="247" y="126" font-size="10.5" fill="#111111">• Placement 4x4 Matrix (world transform)</text>
+    <text x="247" y="144" font-size="10.5" font-weight="600" fill="#111111">• Releasable Source Ownership:</text>
+    <text x="247" y="160" font-size="10" fill="#111111">  Drop cold CPU source after GPU upload;</text>
+    <text x="247" y="175" font-size="10" fill="#111111">  re-fetch exact SHA/revision on edit!</text>
+    <text x="247" y="195" font-size="10.5" fill="#111111">• Emits Change { sync_scene, redraw }</text>
 
-    <line x1="510" y1="115" x2="542" y2="115" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>
-    <line x1="510" y1="175" x2="542" y2="175" stroke="#059669" stroke-width="2" marker-end="url(#arrow-green)"/>
+    <line x1="510" y1="115" x2="542" y2="115" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
+    <line x1="510" y1="175" x2="542" y2="175" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="544" y="68" width="276" height="68" rx="6" fill="#fdf2f8" stroke="#f472b6" stroke-width="1.5"/>
-    <text x="556" y="86" font-size="11" font-weight="700" fill="#9d174d">3A. Geometry Changed (sync_scene = true)</text>
-    <text x="556" y="104" font-size="10.5" fill="#831843">• Upload changed mesh vertex/index buffers</text>
-    <text x="556" y="120" font-size="10.5" fill="#831843">• Retain unchanged object GPU allocations</text>
+    <rect x="544" y="68" width="276" height="68" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="556" y="86" font-size="11" font-weight="700" fill="#111111">3A. Geometry Changed (sync_scene = true)</text>
+    <text x="556" y="104" font-size="10.5" fill="#111111">• Upload changed mesh vertex/index buffers</text>
+    <text x="556" y="120" font-size="10.5" fill="#111111">• Retain unchanged object GPU allocations</text>
 
-    <rect x="544" y="145" width="276" height="68" rx="6" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1.5"/>
-    <text x="556" y="163" font-size="11" font-weight="700" fill="#065f46">3B. View / Camera Only (sync_scene = false)</text>
-    <text x="556" y="181" font-size="10.5" fill="#064e3b">• queue.write_buffer(camera_uniform) ONLY</text>
-    <text x="556" y="197" font-size="10.5" fill="#064e3b">• Zero geometry re-uploads during Orbit/Fit!</text>
+    <rect x="544" y="145" width="276" height="68" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="556" y="163" font-size="11" font-weight="700" fill="#111111">3B. View / Camera Only (sync_scene = false)</text>
+    <text x="556" y="181" font-size="10.5" fill="#111111">• queue.write_buffer(camera_uniform) ONLY</text>
+    <text x="556" y="197" font-size="10.5" fill="#111111">• Zero geometry re-uploads during Orbit/Fit!</text>
     
 </svg>
 </div>
 
-### Lesson Data Flow (`Rust` → `WebGPU` → `WGSL`)
+## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
 
-```
-Source GUID → inserted object GUID → cloned history → stable file identity.
-File read result → browser event → validated editor action → success or error in the command dock.
-Malformed source or failed insertion → retained old owners and history; double matrix → finite float upload check.
-```
+Before writing code, review how the three layers in this chapter talk to each other:
 
-- Distinguish a scene object from the original geometry it shares.
-- Keep failed reads and imports visible in command history without claiming success.
-- Test partial replacement failure, preserved selection/Redo and placement upload limits.
-- **Why it works (Why can two imports share a source GUID but need different saved GUIDs?):** The source GUID identifies geometry in an original file. Two imports create two scene objects with separate placements and histories. Each needs a unique stored identity. We preserve the source GUID when available, assign a fresh UUID on collision, and store that decision in the object so saving or row changes cannot rename it.
-
-### Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `Browser`)
-
-| Layer | Construct | First-Year Student Explanation |
+| Layer | Construct | Plain-English Explanation for Students |
 | :--- | :--- | :--- |
 | **Protobuf (`.pb`)** | `session_proto` Binary Wire Format | Compact binary serialization for `Session` models; decoded with strict byte/count limits and topological validation before touching the live scene. |
 | **Rust (`session_rust`)** | Kernel `Mesh` + World Placement `4x4` Matrix | Separates exact `f64` kernel geometry from placed world instances; cold CPU source bytes can be released after GPU upload and re-fetched on edit. |
 | **Rust (`wgpu`)** | `Change { sync_scene, redraw }` | Incremental dirty-flag contract: camera orbit/fit sets `sync_scene = false` (updating only the 64-byte camera uniform), while geometry edits upload only changed buffers. |
 
-**Production source (`session_viewer/src`):** `session_viewer/src`
+**Authoritative production source (`session_viewer/src`):** `session_viewer/src`
 
-## Implementation Checkpoints
+## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
 
-Apply these checkpoints in order inside `workspace/journey`. Expand each block to view the Rust/WGSL/HTML edits:
+| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
+| ---: | :--- | :--- | :--- | :--- |
+| **1** | [`29-identity`](#checkpoint-29-identity) | Distinguish a scene object from the original geometry it shares. | `Cargo.toml`, `src/scene.rs`, `src/file_identity_tests.rs`, `src/lib.rs` | `Source GUID → inserted object GUID → cloned history → stable file identity` |
+| **2** | [`29a-snapshot`](#checkpoint-29a-snapshot) | Serialize live source meshes and their placements without changing the editor. | `src/document.rs`, `src/snapshot_tests.rs`, `src/lib.rs` | `Live objects → source protobuf copies + object GUIDs → flat tree and placements → bytes` |
+| **3** | [`29b-placements`](#checkpoint-29b-placements) | Validate stored placements before reconstructing source-backed objects. | `src/placement.rs`, `src/lib.rs`, `src/scene.rs`, `src/prepared.rs` | `Bytes → validated mesh IDs and affine matrices → prepared local sources plus placement → inserted objects` |
+| **4** | [`29c-roundtrip`](#checkpoint-29c-roundtrip) | Check exact local source data, attributes, identities and placement through saving and loading. | `src/save_roundtrip_tests.rs`, `src/lib.rs` | `Live source and placement → snapshot bytes → load → identical source values and object matrices` |
+| **5** | [`29d-save`](#checkpoint-29d-save) | Connect Save to a browser download and reopen the actual downloaded document. | `Cargo.toml`, `src/file_output.rs`, `src/lib.rs`, `src/browser.rs` | `Typed Save → source snapshot → Blob URL → download → Open → restored source and placement` |
+| **6** | [`30-feedback`](#checkpoint-30-feedback) | Keep failed reads and imports visible in command history without claiming success. | `src/browser.rs`, `src/file_input.rs` | `File read result → browser event → validated editor action → success or error in the command dock` |
+| **7** | [`30a-tickets`](#checkpoint-30a-tickets) | Describe latest-read ownership, cancellation and one-shot completion in ordinary Rust. | `src/read_gate.rs`, `src/lib.rs` | `Begin read → pending ticket → supersede, cancel or finish once` |
+| **8** | [`30b-cancel`](#checkpoint-30b-cancel) | Adopt one-shot tickets in the browser and give asynchronous results their own history entry. | `src/file_input.rs`, `src/browser.rs` | `Selected file → ticket-owned task → consume current ticket → deliver outcome; Cancel Open revokes ownership` |
+| **9** | [`30c-replace`](#checkpoint-30c-replace) | Prepare a whole replacement before changing live rows, then commit it through existing history. | `src/scene.rs`, `src/editor.rs`, `src/replace_tests.rs`, `src/lib.rs` | `Replacement bytes → validated prepared sources → history transaction → new rows with fresh local IDs` |
+| **10** | [`30d-bridge`](#checkpoint-30d-bridge) | Carry the selected Open operation through asynchronous file reading and cancel older work immediately. | `src/file_input.rs`, `src/browser.rs` | `Open or Open Replace → new ticket plus captured mode → file bytes → explicit editor action` |
+| **11** | [`30e-recovery`](#checkpoint-30e-recovery) | Test partial replacement failure, preserved selection/Redo and placement upload limits. | `src/placement.rs`, `src/scene.rs`, `src/replace_tests.rs` | `Malformed source or failed insertion → retained old owners and history; double matrix → finite float upload check` |
+
+---
+
+## 4. Step-by-Step Coding Notebook (Concept + Implementation)
+
+Work through each notebook cell below in order inside `workspace/journey`. Read the **Concept Walkthrough** and **Self-Check Q&A** first, then expand the **Implementation** block to type and verify the code.
 
 <a id="checkpoint-29-identity"></a>
+
+### Step 1 of 11 · Give each saved object a stable identity (`29-identity`)
+
+- **Goal:** Distinguish a scene object from the original geometry it shares.
+- **Data Flow Trace:** `Source GUID → inserted object GUID → cloned history → stable file identity`
+- **Files You Touch:** `Cargo.toml` (*Declare the UUID generator explicitly; browser randomness uses its js feature.*) · `src/scene.rs` (*Store the inserted object identity separately from kernel source identity and the local counter.*) · `src/file_identity_tests.rs` (*Optional authoring fixture. Exercise duplicate imports, row removal and history without mutating original source GUIDs.*) · `src/lib.rs` (*Compile the file-identity regression check.*)
+
+Give each inserted object a stored GUID for saving. Local `ObjectId` still identifies the editor object; imported source GUID still identifies its original geometry.
+
+Prefer the geometry GUID when unused. Duplicate imports receive a new UUID without changing their original source mesh or provenance. Check even generated candidates against live objects.
+
+Assign identity once at insertion. History clones the stored `String`; Move and Save must not regenerate it.
+
+The duplicate-import test checks distinct object GUIDs and unchanged source GUIDs, then removes an earlier row and travels through Undo/Redo. Download is connected later.
+
+> **Self-Check Question:** *Why can two imports share a source GUID but need different saved GUIDs?*  
+> **Answer:** The source GUID identifies geometry in an original file. Two imports create two scene objects with separate placements and histories. Each needs a unique stored identity. We preserve the source GUID when available, assign a fresh UUID on collision, and store that decision in the object so saving or row changes cannot rename it.
+
+- **What You Should See:** Import `sample.pb` twice. Run the identity checks: copies may share a source GUID, but each scene object must have its own saved identity.
+- **Hands-On Lab Experiment:** Inspect both imported copies’ source GUIDs and object GUIDs in the check. Predict which pair matches. Add another Undo/Redo cycle, then restore the check.
 
 <details>
 <summary>Implementation 29-identity: Give each saved object a stable identity</summary>
@@ -422,6 +496,26 @@ After that block, type:
 
 <a id="checkpoint-29a-snapshot"></a>
 
+### Step 2 of 11 · Write a snapshot from the editable sources (`29a-snapshot`)
+
+- **Goal:** Serialize live source meshes and their placements without changing the editor.
+- **Data Flow Trace:** `Live objects → source protobuf copies + object GUIDs → flat tree and placements → bytes`
+- **Files You Touch:** `src/document.rs` (*Copy live sources into one bounded flat document, write placements separately and return bytes without editor mutation.*) · `src/snapshot_tests.rs` (*Optional authoring fixture. Check live row membership, source topology/attributes, separate placement and untouched history.*) · `src/lib.rs` (*Compile the read-only snapshot checks.*)
+
+Build Save bytes from live scene objects, including generated and edited objects and excluding deleted rows.
+
+Copy each source mesh's protobuf message, preserving doubles, topology, colours, names and flags. Replace only the copy's GUID with the stored object identity. Keep geometry local and write placement separately, keyed by that same GUID; baking both would move it twice.
+
+This snapshot writes a flat tree. Camera, selection, display arrays and history are application state and stay outside the file.
+
+Match the current loader's bounds: 1–64 meshes and at most 4 MiB encoded. Reject unsupported source data. Today Rust checks inspect the snapshot; placement loading and browser downloading follow.
+
+> **Self-Check Question:** *Why must saving copy source messages instead of modifying the retained session?*  
+> **Answer:** The retained file can contain objects that have since been deleted, and imported source allocations are shared through history. Saving traverses current objects and copies their source messages. It applies the inserted object GUID to each copy and writes placement separately, leaving the original geometry, history and file provenance unchanged.
+
+- **What You Should See:** Run the snapshot checks below. Serialization must read original source coordinates and separate placements without changing the live editor. Browser Save is connected in lesson 29d.
+- **Hands-On Lab Experiment:** Change the box placement in the check, then predict whether mesh vertices or the XformEntry changes. Confirm the retained source GUID stays unchanged and restore the check.
+
 <details>
 <summary>Implementation 29a-snapshot: Write a snapshot from the editable sources</summary>
 
@@ -488,6 +582,26 @@ After that block, type:
 </details>
 
 <a id="checkpoint-29b-placements"></a>
+
+### Step 3 of 11 · Reopen source geometry with its placement (`29b-placements`)
+
+- **Goal:** Validate stored placements before reconstructing source-backed objects.
+- **Data Flow Trace:** `Bytes → validated mesh IDs and affine matrices → prepared local sources plus placement → inserted objects`
+- **Files You Touch:** `src/placement.rs` (*Use one affine validation rule for decoded matrices and direct edits.*) · `src/lib.rs` (*Expose the shared matrix validator.*) · `src/scene.rs` (*Make direct placement edits use the same rule as imported files.*) · `src/prepared.rs` (*Carry the validated object placement beside local source geometry.*) · `src/document.rs` (*Retain the validated stored placement without baking it into source vertices.*) · `src/placement_load_tests.rs` (*Optional authoring fixture. Reject all malformed placement families using actual encoded messages.*)
+
+Accept the saved file's separate placement records. Each must identify an existing mesh, occur once, and contain sixteen finite values with an affine final row.
+
+Share this rule through `placement::valid` for loading and scene placement. Validate before constructing `Xform`: its defaults must not silently fill a short file matrix.
+
+`PreparedMesh` now carries a model matrix. Generated geometry starts at identity; loading copies the validated source placement; insertion retains it.
+
+Snapshot and load now use the same complete validator. Tests reject short, non-finite or projective matrices and orphan or duplicate placement entries before scene mutation. Exact round-trip checks come next; the browser download follows those.
+
+> **Self-Check Question:** *Where must a saved transform be applied when reopening?*  
+> **Answer:** A saved transform belongs to the object placement. Load prepares the original local kernel mesh and attaches its validated matrix. Scene insertion uses that matrix once. It must not transform source vertices and also retain the placement, or the object moves twice.
+
+- **What You Should See:** Run the reopen checks below. Valid stored placements restore the objects; an invalid matrix must reject the document before changing live rows.
+- **Hands-On Lab Experiment:** Change the malformed-placement check’s projective matrix into a finite translation. Predict why validation accepts it, then restore the rejection case. Explain why a fifteen-value matrix remains invalid even if every supplied value is finite.
 
 <details>
 <summary>Implementation 29b-placements: Reopen source geometry with its placement</summary>
@@ -962,6 +1076,26 @@ After that block, type:
 
 <a id="checkpoint-29c-roundtrip"></a>
 
+### Step 4 of 11 · Prove the saved document reopens faithfully (`29c-roundtrip`)
+
+- **Goal:** Check exact local source data, attributes, identities and placement through saving and loading.
+- **Data Flow Trace:** `Live source and placement → snapshot bytes → load → identical source values and object matrices`
+- **Files You Touch:** `src/save_roundtrip_tests.rs` (*Optional authoring fixture. Compare exact source values, stored identities and object matrices after encoding and decoding.*) · `src/lib.rs` (*Compile exact document round-trip checks.*)
+
+Prove snapshot and load preserve the editable document before adding browser downloading.
+
+Save and reopen a triangle with a double coordinate that rounds in its display, a name, hide/lock flags and translation. Compare original source values exactly; derive display again and keep placement separate.
+
+Then save duplicate imports. Reopened GUIDs must match their stored object GUIDs, including the duplicate's new identity; matrices must match too. Imported sources stay untouched.
+
+Compare decoded structure rather than protobuf byte order. Pixels cannot establish source precision or identity. Flags are retained here; drawing and editing policies for hidden/locked objects come later.
+
+> **Self-Check Question:** *What can a screenshot prove about saved precision and identity?*  
+> **Answer:** A screenshot proves the drawing, not exact saved doubles or identifiers. Native round-trip checks compare original vertices, names, attributes, GUIDs and matrices. Duplicate-import checks also ensure separate objects survive one saved file even when they came from the same source GUID.
+
+- **What You Should See:** Run the round-trip checks below. Reopened geometry must retain exact doubles, attributes, saved identities and placements. Compare the source values, not the float display.
+- **Hands-On Lab Experiment:** Change the exact coordinate to 123456789.125. Predict why the reopened kernel coordinate matches exactly even though the display uses floats. Then inspect corresponding imported copies’ saved GUIDs. Restore the checks.
+
 <details>
 <summary>Implementation 29c-roundtrip: Prove the saved document reopens faithfully</summary>
 
@@ -1009,6 +1143,26 @@ After that block, type:
 </details>
 
 <a id="checkpoint-29d-save"></a>
+
+### Step 5 of 11 · Download the editable document from the command line (`29d-save`)
+
+- **Goal:** Connect Save to a browser download and reopen the actual downloaded document.
+- **Data Flow Trace:** `Typed Save → source snapshot → Blob URL → download → Open → restored source and placement`
+- **Files You Touch:** `Cargo.toml` (*Enable the browser object URL and download anchor APIs. These features do not change dependency versions.*) · `src/file_output.rs` (*Create a temporary file owner, request a download and schedule one-shot URL cleanup.*) · `src/lib.rs` (*Expose the browser file-output adapter.*) · `src/browser.rs` (*Offer Save through command completion in the actual dock.*) · `index.html` (*Let the native file picker offer both original specimens and downloaded session files.*)
+
+Connect typed `Save` to `snapshot` and a browser download. Snapshot errors go to command history and start no download.
+
+Copy bytes into `Uint8Array`, wrap them in `Blob`, and create an object URL. A temporary hidden anchor downloads `viewer.session` and is removed; it is not a viewer feature control.
+
+Keep the URL alive for ten seconds, then revoke it with a one-shot callback owning its `String`. If timer scheduling fails, clean up immediately and report the error.
+
+Save reads the document without creating a history edit. The Chrome check downloads and reopens that file, preserving the prior Move's Undo/Redo and the reconstructed scene picture.
+
+> **Self-Check Question:** *Why does Save belong outside document history?*  
+> **Answer:** Save reads the current scene and creates bytes; it does not edit geometry, placement or selection. It must not consume an Undo step. The browser owns file downloading, while the native snapshot and loader own the document contract.
+
+- **What You Should See:** Open `sample.pb`, select an object and move it. Type `Save`, then reopen the downloaded `viewer.session`. The placed scene should return; Save itself must not consume Undo.
+- **Hands-On Lab Experiment:** Save after moving the box, then move it again and save to a second file. Reopen each into a cleared scene and predict which placement it restores. Saving should leave the next Undo step unchanged.
 
 <details>
 <summary>Implementation 29d-save: Download the editable document from the command line</summary>
@@ -1587,6 +1741,26 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-30-feedback"></a>
+
+### Step 6 of 11 · Report the result that actually committed (`30-feedback`)
+
+- **Goal:** Keep failed reads and imports visible in command history without claiming success.
+- **Data Flow Trace:** `File read result → browser event → validated editor action → success or error in the command dock`
+- **Files You Touch:** `src/browser.rs` (*Keep a startup failure visible when the GPU dock could not be created; file errors stay in command history.*) · `src/file_input.rs` (*Route the size refusal through the panel’s main event closure.*)
+
+Report import success only after `Editor::apply` commits successfully. A failed decode retains the scene and records an error instead of saying “File imported.”
+
+An asynchronous file adapter cannot borrow the callback's Panel. Dispatch `viewer-file-error` with text, then let the owning callback update history.
+
+Queue oversized-file errors before reading. Immediate nested dispatch would re-enter the borrowed `FnMut` callback. After an awaited read, retain the latest-request check so stale work cannot publish an error.
+
+Command history carries file feedback; the hidden status stays out of the drawing. Startup failure can still expose status when the GPU dock never became available.
+
+> **Self-Check Question:** *Why must import success be reported inside the successful action branch?*  
+> **Answer:** Receiving bytes does not mean they decoded or entered the scene. Editor::apply can reject a file while preserving scene, selection and history. Only a successful Scene change proves the import committed; an unconditional message after the match would erase the error.
+
+- **What You Should See:** Try opening a text file renamed `.pb`. The command history must show the read/import failure and leave the current document unchanged.
+- **Hands-On Lab Experiment:** Temporarily move the success report back outside the action match. Predict the final status after malformed bytes, reproduce the contradiction, then restore the successful-branch report.
 
 <details>
 <summary>Implementation 30-feedback: Report the result that actually committed</summary>
@@ -2433,6 +2607,28 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-30a-tickets"></a>
 
+### Step 7 of 11 · Give a pending read an explicit ticket (`30a-tickets`)
+
+- **Goal:** Describe latest-read ownership, cancellation and one-shot completion in ordinary Rust.
+- **Data Flow Trace:** `Begin read → pending ticket → supersede, cancel or finish once`
+- **Files You Touch:** `src/read_gate.rs` (*Own one pending ticket and test stale, duplicate, cancelled and exhausted requests independently of browser APIs.*) · `src/lib.rs` (*Expose the native request model without changing the browser adapter yet.*)
+
+The browser currently compares a loose counter before delivering a read. We need to express more than newest number: a cancelled or already completed read must no longer be allowed to publish a result.
+
+Create ReadGate as ordinary Rust. begin issues a checked increasing ticket and makes it the sole pending read. finish returns true only for that pending ticket and consumes it. cancel removes pending ownership without reusing the issued number.
+
+Option distinguishes no pending read from a particular ticket. The counter names requests, while pending determines which request may still commit. Those are separate responsibilities.
+
+begin clears pending before checking the next number. If the counter is exhausted, it returns an error and does not leave an older read able to commit after a refused new request. It never wraps back to an ID a previous operation might still hold.
+
+The checks simulate completions in the wrong order, cancellation, duplicate completion and counter exhaustion. They need no window or GPU. This checkpoint tests the ticket model; the next lesson adopts it in the running file adapter.
+
+> **Self-Check Question:** *Why must a stale completion leave the newer pending ticket intact?*  
+> **Answer:** The old operation owns only its own ticket. If rejecting it also cleared pending state, it would cancel the newer operation. finish compares IDs first, consumes only the matching current ticket, and rejects duplicate completions after it has been consumed.
+
+- **What You Should See:** Run the ReadGate checks below. Start two tickets and complete the older one first: only the current ticket may be accepted. Browser integration follows next.
+- **Hands-On Lab Experiment:** Start three tickets and finish them in reverse order. Predict why only the newest succeeds and why the rejected older completions cannot clear it. Restore the original checks.
+
 <details>
 <summary>Implementation 30a-tickets: Give a pending read an explicit ticket</summary>
 
@@ -2472,6 +2668,26 @@ After that block, type:
 </details>
 
 <a id="checkpoint-30b-cancel"></a>
+
+### Step 8 of 11 · Cancel reads without accepting their late result (`30b-cancel`)
+
+- **Goal:** Adopt one-shot tickets in the browser and give asynchronous results their own history entry.
+- **Data Flow Trace:** `Selected file → ticket-owned task → consume current ticket → deliver outcome; Cancel Open revokes ownership`
+- **Files You Touch:** `src/file_input.rs` (*Share the native gate through short interior mutable borrows.*) · `src/browser.rs` (*Expose the initial row count through hidden diagnostics.*)
+
+Use `Rc<RefCell<ReadGate>>` to share a ticket gate between the command callback and read tasks. Keep mutable borrows short and release them before dispatching events.
+
+A chosen file begins a ticket. Check it before reading; consume it once with `finish` after completion. Stale or cancelled tasks deliver neither bytes nor errors.
+
+Typed `Cancel Open` revokes ownership without editing the document. It does not physically abort `File.arrayBuffer`; its eventual result is ignored.
+
+Append asynchronous feedback as an Open history entry so it cannot overwrite a newer command's result. A hidden object-count attribute lets Chrome detect duplicate insertion even when its pixels overlap perfectly.
+
+> **Self-Check Question:** *Does cancelling a read mean its promise stops running?*  
+> **Answer:** No. File.arrayBuffer has no abort operation here. Cancellation revokes permission to deliver its result. The task may finish later, but finish rejects its ticket and neither scene nor command feedback changes. A separate result entry also prevents a read outcome from rewriting a later typed command.
+
+- **What You Should See:** Start `Open`, then type `Cancel Open` before its read completes. A late result must not enter the document or replace a newer command’s history entry.
+- **Hands-On Lab Experiment:** Hold a read in a debugger, type View Isometric and Cancel Open, then let the read finish. Predict why neither the object count nor command history should change when that cancelled task returns.
 
 <details>
 <summary>Implementation 30b-cancel: Cancel reads without accepting their late result</summary>
@@ -3338,6 +3554,26 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-30c-replace"></a>
 
+### Step 9 of 11 · Replace a document as one reversible change (`30c-replace`)
+
+- **Goal:** Prepare a whole replacement before changing live rows, then commit it through existing history.
+- **Data Flow Trace:** `Replacement bytes → validated prepared sources → history transaction → new rows with fresh local IDs`
+- **Files You Touch:** `src/scene.rs` (*Replace rows while preserving the issued local-ID counter; the caller supplies the transaction.*) · `src/editor.rs` (*Name replacement explicitly instead of giving Import a hidden destructive mode.*) · `src/replace_tests.rs` (*Optional authoring fixture. Prove replacement/Undo/Redo preserve owners, camera state and non-reused local IDs.*) · `src/lib.rs` (*Compile the replacement contract.*)
+
+Add `Action::Replace` for one reversible document replacement. First prepare the entire file with `document::load`; only then enter `History::try_edit` and replace the rows.
+
+`Scene::replace` clears objects and the demo marker, then inserts prepared objects. Keep the ID counter advancing. The transaction restores the old scene if insertion fails partway through.
+
+Repair selection after success. Camera, projection and background remain outside document history. Undo restores the old shared owners; Redo restores the replacement objects.
+
+This step tests the editor operation; browser Open is still append-only until the next lesson. Old objects retained by Undo remain alive and are accounted for later.
+
+> **Self-Check Question:** *Why must the scene counter survive replacing all its rows?*  
+> **Answer:** A replacement must not reuse local IDs held by old selection or delayed work. Clearing rows leaves the increasing counter intact. History restoration also retains the highest issued value, while Undo restores the old objects and shared source allocations.
+
+- **What You Should See:** Run the replacement checks below. A valid replacement is one Undo step; an invalid candidate must leave the existing scene unchanged. The browser command is connected next.
+- **Hands-On Lab Experiment:** In the replacement check, change camera distance and aspect before replacing. Predict why Undo and Redo preserve both values. Explain why setting next_id back to one would make an old selection unsafe.
+
 <details>
 <summary>Implementation 30c-replace: Replace a document as one reversible change</summary>
 
@@ -3660,6 +3896,26 @@ After that block, type:
 </details>
 
 <a id="checkpoint-30d-bridge"></a>
+
+### Step 10 of 11 · Choose append or replace before opening the picker (`30d-bridge`)
+
+- **Goal:** Carry the selected Open operation through asynchronous file reading and cancel older work immediately.
+- **Data Flow Trace:** `Open or Open Replace → new ticket plus captured mode → file bytes → explicit editor action`
+- **Files You Touch:** `src/file_input.rs` (*Capture a typed operation value with the selected file instead of consulting mutable state after reading.*) · `src/browser.rs` (*Offer replacement as a typed command.*)
+
+Add typed `Open Replace`, retaining `Open` for append. Opening either picker begins a ticket and stores its operation as a `Mode` enum.
+
+The selected-file task captures that ticket and mode. `choose` reuses the pending ticket; a newer picker revokes earlier delivery before a file is chosen.
+
+The completion event carries a replace flag and `Uint8Array`. Validate shape and size, then translate to `Action::Import` or `Action::Replace`. Editor never receives browser values.
+
+Picker cancellation revokes its ticket and appends an Open notice. Report append or replacement only after successful commit. A failed replacement retains the document; successful replacement is one Undo change.
+
+> **Self-Check Question:** *Why must a newer Open revoke old work before the new file is chosen?*  
+> **Answer:** Opening a new picker expresses a new request even if the user cancels it. If the ticket were issued only after choosing a file, an older pending read could still commit behind the newer picker. Begin at the command, capture its mode at selection, and consume that ticket before delivering an outcome.
+
+- **What You Should See:** Type `Open Replace` and choose `sample.pb`, then type `Undo`. The preceding document returns as one transaction. `Open Append` instead keeps existing objects.
+- **Hands-On Lab Experiment:** Hold a previous read, open Open Replace, cancel the new picker and then let the old read finish. Predict why the old file must stay rejected despite the new picker having no chosen file.
 
 <details>
 <summary>Implementation 30d-bridge: Choose append or replace before opening the picker</summary>
@@ -4539,6 +4795,24 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-30e-recovery"></a>
 
+### Step 11 of 11 · Prove recovery at the transaction and display boundaries (`30e-recovery`)
+
+- **Goal:** Test partial replacement failure, preserved selection/Redo and placement upload limits.
+- **Data Flow Trace:** `Malformed source or failed insertion → retained old owners and history; double matrix → finite float upload check`
+- **Files You Touch:** `src/placement.rs` (*Reject a finite double coefficient that cannot enter the current float uniform.*) · `src/scene.rs` (*State the full placement boundary in its error.*) · `src/replace_tests.rs` (*Optional authoring fixture. Test refusal before mutation, selection/Redo retention and the double-to-float upload boundary.*)
+
+Test a replacement failure after insertion starts, not only malformed bytes before mutation. Put the object-ID counter one below its limit: one insertion succeeds and the next fails.
+
+History must restore every old row and allocation while retaining the highest issued counter. IDs from failed work must not be reused. A separate malformed-replacement test preserves selection and Redo.
+
+Also reject placement coefficients that are finite as doubles but become infinity in the current float upload. `f64::MAX` demonstrates this boundary for direct placement and encoded files. Keep the previous placement untouched. This limits the display adapter without reducing retained source precision.
+
+> **Self-Check Question:** *Why do we need a failure after the first new row was inserted?*  
+> **Answer:** Malformed decoding fails before a transaction starts. It does not test rollback after mutation. Exhausting the ID counter during the second insertion proves History::try_edit restores old rows and shared owners after a partial replacement, while retaining the highest issued counter so failed work cannot cause ID reuse.
+
+- **What You Should See:** Run the recovery checks below. A replacement that fails on its second mesh must preserve the whole previous scene and its Redo branch.
+- **Hands-On Lab Experiment:** Temporarily remove History::try_edit from the partial-replacement check. Predict why the old scene disappears when the second insertion fails. Restore the transaction. Then compare f64::MAX with its float cast before reading the range-check answer.
+
 <details>
 <summary>Implementation 30e-recovery: Prove recovery at the transaction and display boundaries</summary>
 
@@ -4908,9 +5182,11 @@ After that block, append this supplied code:
 
 </details>
 
-## Run, Check, and Save
+---
 
-From `session_viewer`:
+## 5. Build, Verify, and Save Your Checkpoint
+
+Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 30e-recovery
@@ -4921,12 +5197,12 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. Use [checkpoint recovery](../../recovery.md) to restore any saved checkpoint.
+Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
 
-## Expected Visual Result & Experiment
+## 6. Lesson Summary & Expected Visual Result
 
 Run the recovery checks below. A replacement that fails on its second mesh must preserve the whole previous scene and its Redo branch.
 
-- **Try this:** Temporarily remove History::try_edit from the partial-replacement check. Predict why the old scene disappears when the second insertion fails. Restore the transaction. Then compare f64::MAX with its float cast before reading the range-check answer.
+- **Final Lesson Experiment:** Temporarily remove History::try_edit from the partial-replacement check. Predict why the old scene disappears when the second insertion fails. Restore the transaction. Then compare f64::MAX with its float cast before reading the range-check answer.
 
-Continue with [Shared GPU geometry and releasable source ownership](31-settings.md).
+Continue with [Shared GPU geometry and releasable source ownership](../../consolidation/31-settings.md).

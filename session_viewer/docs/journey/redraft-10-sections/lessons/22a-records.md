@@ -1,92 +1,163 @@
 # 3.3 · Validated files, bounds and useful projections
 
-**Section 3: Scene Documents, Transactions, and Browser GPU Lifetime** · **Lesson 3.3** (Redraft `3.3`) · **14 checkpoints (`22a-records` → `26a-keys`)**
+**Section 3: Scene Documents, Transactions, and Browser GPU Lifetime** · **Lesson 3.3** (Redraft `3.3`) · **14 checkpoints (`22a-records` → `26a-keys`)** · **Study time: 10–17.25 h**
 
-> **Learning Goal:** Run the state checks. A valid box passes; non-finite coordinates and missing vertex references are rejected.
+> **What You Will Learn & Build:** Run the state checks. A valid box passes; non-finite coordinates and missing vertex references are rejected. By the final checkpoint (`26a-keys`), you will let canvas F fit the selection and platform shortcuts run Undo or Redo through existing actions.
 
-## Visual WebGPU & Architecture Schematic
+## 1. Visual Pipeline & WebGPU Architecture (Black & White Schematics)
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1px solid #cbd5e1;border-radius:10px;background:#f8fafc;">
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
+<svg viewBox="0 0 840 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <rect x="4" y="4" width="832" height="212" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Lesson 3.3 Execution Flow: Validated files, bounds and useful projections</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">Concrete data pipeline you build in this lesson (14 Checkpoints: 22a-records → 26a-keys)</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
+  
+    
+    <rect x="18" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="89" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
+    <line x1="28" y1="92" x2="151" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">Raw proto::Mesh</text>
+    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="183" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="254" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
+    <line x1="193" y1="92" x2="316" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">validation</text>
+    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="348" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="419" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
+    <line x1="358" y1="92" x2="481" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">accepted record or</text>
+    <text x="419" y="124" text-anchor="middle" font-size="11" fill="#111111">error</text>
+    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="513" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="584" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
+    <line x1="523" y1="92" x2="646" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">keyboard press</text>
+    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="678" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="749" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
+    <line x1="688" y1="92" x2="811" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">text ownership</text>
+    
+    <rect x="18" y="162" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="32" y="181" font-size="11" font-weight="700" fill="#111111">Files You Edit in Lesson 3.3:</text>
+    <text x="215" y="181" font-size="11" fill="#111111">Cargo.toml  ·  src/document.rs  ·  src/lib.rs  ·  src/specimen.rs  ·  examples/sample.rs  ·  src/document_tests.rs</text>
+    <text x="32" y="198" font-size="10.5" fill="#111111">14 Checkpoints: 22a-records → 26a-keys — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
+  
+</svg>
+</div>
+
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
 <svg viewBox="0 0 840 240" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#475569"/>
-    </marker>
-    <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#2563eb"/>
-    </marker>
-    <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#059669"/>
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
     </marker>
   </defs>
-  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
-  <text x="20" y="28" font-size="14" font-weight="700" fill="#0f172a">Chapter 3 Architecture: Transactional Protobuf (.pb) Decode, World Placements & Incremental GPU Sync</text>
-  <text x="20" y="46" font-size="11.5" fill="#475569">Separating exact session_rust kernel geometry from GPU display buffers so view changes never re-upload unchanged meshes.</text>
-  <line x1="16" y1="54" x2="824" y2="54" stroke="#e2e8f0" stroke-width="1"/>
+  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Chapter 3 Architecture: Transactional Protobuf (.pb) Decode, World Placements & Incremental GPU Sync</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">Separating exact session_rust kernel geometry from GPU display buffers so view changes never re-upload unchanged meshes.</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
   
-    <rect x="18" y="68" width="185" height="145" rx="6" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
-    <text x="110" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1e40af">1. Async .pb File / URL I/O</text>
-    <text x="28" y="108" font-size="10.5" fill="#1e3a8a">• Ticket #N (cancels #N-1)</text>
-    <text x="28" y="126" font-size="10.5" fill="#1e3a8a">• Bounded Protobuf decode</text>
-    <text x="28" y="144" font-size="10.5" font-weight="600" fill="#1d4ed8">• Topological validation</text>
-    <text x="28" y="162" font-size="10.5" fill="#1e3a8a">• Corrupt file? Reject with</text>
-    <text x="28" y="177" font-size="10.5" fill="#1e3a8a">  ZERO partial scene mutation</text>
+    <rect x="18" y="68" width="185" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="110" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">1. Async .pb File / URL I/O</text>
+    <text x="28" y="108" font-size="10.5" fill="#111111">• Ticket #N (cancels #N-1)</text>
+    <text x="28" y="126" font-size="10.5" fill="#111111">• Bounded Protobuf decode</text>
+    <text x="28" y="144" font-size="10.5" font-weight="600" fill="#111111">• Topological validation</text>
+    <text x="28" y="162" font-size="10.5" fill="#111111">• Corrupt file? Reject with</text>
+    <text x="28" y="177" font-size="10.5" fill="#111111">  ZERO partial scene mutation</text>
 
-    <line x1="203" y1="138" x2="233" y2="138" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
+    <line x1="203" y1="138" x2="233" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="235" y="68" width="275" height="145" rx="6" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5"/>
-    <text x="372" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#9a3412">2. Editor Owner (Browser-Independent)</text>
-    <text x="247" y="108" font-size="10.5" fill="#7c2d12">• Kernel Mesh (local-space f64 coordinates)</text>
-    <text x="247" y="126" font-size="10.5" fill="#7c2d12">• Placement 4x4 Matrix (world transform)</text>
-    <text x="247" y="144" font-size="10.5" font-weight="600" fill="#c2410c">• Releasable Source Ownership:</text>
-    <text x="247" y="160" font-size="10" fill="#7c2d12">  Drop cold CPU source after GPU upload;</text>
-    <text x="247" y="175" font-size="10" fill="#7c2d12">  re-fetch exact SHA/revision on edit!</text>
-    <text x="247" y="195" font-size="10.5" fill="#7c2d12">• Emits Change { sync_scene, redraw }</text>
+    <rect x="235" y="68" width="275" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="372" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">2. Editor Owner (Browser-Independent)</text>
+    <text x="247" y="108" font-size="10.5" fill="#111111">• Kernel Mesh (local-space f64 coordinates)</text>
+    <text x="247" y="126" font-size="10.5" fill="#111111">• Placement 4x4 Matrix (world transform)</text>
+    <text x="247" y="144" font-size="10.5" font-weight="600" fill="#111111">• Releasable Source Ownership:</text>
+    <text x="247" y="160" font-size="10" fill="#111111">  Drop cold CPU source after GPU upload;</text>
+    <text x="247" y="175" font-size="10" fill="#111111">  re-fetch exact SHA/revision on edit!</text>
+    <text x="247" y="195" font-size="10.5" fill="#111111">• Emits Change { sync_scene, redraw }</text>
 
-    <line x1="510" y1="115" x2="542" y2="115" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>
-    <line x1="510" y1="175" x2="542" y2="175" stroke="#059669" stroke-width="2" marker-end="url(#arrow-green)"/>
+    <line x1="510" y1="115" x2="542" y2="115" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
+    <line x1="510" y1="175" x2="542" y2="175" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="544" y="68" width="276" height="68" rx="6" fill="#fdf2f8" stroke="#f472b6" stroke-width="1.5"/>
-    <text x="556" y="86" font-size="11" font-weight="700" fill="#9d174d">3A. Geometry Changed (sync_scene = true)</text>
-    <text x="556" y="104" font-size="10.5" fill="#831843">• Upload changed mesh vertex/index buffers</text>
-    <text x="556" y="120" font-size="10.5" fill="#831843">• Retain unchanged object GPU allocations</text>
+    <rect x="544" y="68" width="276" height="68" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="556" y="86" font-size="11" font-weight="700" fill="#111111">3A. Geometry Changed (sync_scene = true)</text>
+    <text x="556" y="104" font-size="10.5" fill="#111111">• Upload changed mesh vertex/index buffers</text>
+    <text x="556" y="120" font-size="10.5" fill="#111111">• Retain unchanged object GPU allocations</text>
 
-    <rect x="544" y="145" width="276" height="68" rx="6" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1.5"/>
-    <text x="556" y="163" font-size="11" font-weight="700" fill="#065f46">3B. View / Camera Only (sync_scene = false)</text>
-    <text x="556" y="181" font-size="10.5" fill="#064e3b">• queue.write_buffer(camera_uniform) ONLY</text>
-    <text x="556" y="197" font-size="10.5" fill="#064e3b">• Zero geometry re-uploads during Orbit/Fit!</text>
+    <rect x="544" y="145" width="276" height="68" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="556" y="163" font-size="11" font-weight="700" fill="#111111">3B. View / Camera Only (sync_scene = false)</text>
+    <text x="556" y="181" font-size="10.5" fill="#111111">• queue.write_buffer(camera_uniform) ONLY</text>
+    <text x="556" y="197" font-size="10.5" fill="#111111">• Zero geometry re-uploads during Orbit/Fit!</text>
     
 </svg>
 </div>
 
-### Lesson Data Flow (`Rust` → `WebGPU` → `WGSL`)
+## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
 
-```
-Raw proto::Mesh → validation → accepted record or error.
-Bounds centre/radius and aspect → camera target, distance and clipping.
-keyboard press → text ownership → existing command → editor action → redraw.
-```
+Before writing code, review how the three layers in this chapter talk to each other:
 
-- Run the state checks. A valid box passes; non-finite coordinates and missing vertex references are rejected.
-- Run the state checks. Every corner remains inside the view across scales and aspect ratios, and fitting preserves orientation.
-- Let canvas F fit the selection and platform shortcuts run Undo or Redo through existing actions.
-- **Why it works (Why validate raw records before constructing a Session?):** Invalid indices and unsupported forms should return a controlled error before kernel construction begins.
-
-### Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `Browser`)
-
-| Layer | Construct | First-Year Student Explanation |
+| Layer | Construct | Plain-English Explanation for Students |
 | :--- | :--- | :--- |
 | **Protobuf (`.pb`)** | `session_proto` Binary Wire Format | Compact binary serialization for `Session` models; decoded with strict byte/count limits and topological validation before touching the live scene. |
 | **Rust (`session_rust`)** | Kernel `Mesh` + World Placement `4x4` Matrix | Separates exact `f64` kernel geometry from placed world instances; cold CPU source bytes can be released after GPU upload and re-fetched on edit. |
 | **Rust (`wgpu`)** | `Change { sync_scene, redraw }` | Incremental dirty-flag contract: camera orbit/fit sets `sync_scene = false` (updating only the 64-byte camera uniform), while geometry edits upload only changed buffers. |
 
-**Production source (`session_viewer/src`):** `session_viewer/src`
+**Authoritative production source (`session_viewer/src`):** `session_viewer/src`
 
-## Implementation Checkpoints
+## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
 
-Apply these checkpoints in order inside `workspace/journey`. Expand each block to view the Rust/WGSL/HTML edits:
+| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
+| ---: | :--- | :--- | :--- | :--- |
+| **1** | [`22a-records`](#checkpoint-22a-records) | Run the state checks. A valid box passes; non-finite coordinates and missing vertex references are rejected. | `Cargo.toml`, `src/document.rs`, `src/lib.rs` | `Raw proto::Mesh → validation → accepted record or error` |
+| **2** | [`22b-session`](#checkpoint-22b-session) | Validate a real Session and its source identities before browser import. | `src/document.rs`, `src/specimen.rs`, `examples/sample.rs`, `src/lib.rs` | `Source GUIDs and flat rows → validated Session shape; specimen → sample.pb` |
+| **3** | [`22c-decode`](#checkpoint-22c-decode) | Run the state checks. Invalid bytes, oversized data and unsupported records are refused before scene insertion. | `src/document.rs`, `src/document_tests.rs`, `src/lib.rs` | `Bytes → decoded record → validation → shared Session and prepared Mesh values` |
+| **4** | [`22d-import`](#checkpoint-22d-import) | Run the state checks. One Undo removes the whole file; Redo restores its IDs and shared source; a failed import preserves selection and redo. | `src/scene.rs`, `src/editor.rs`, `src/document_tests.rs` | `Loaded document → one history edit → rows with source identity → display` |
+| **5** | [`22e-file-reader`](#checkpoint-22e-file-reader) | Build and run the checkpoint. The current scene and commands remain available; file selection is connected next. | `src/file_input.rs`, `index.html`, `src/lib.rs` | `Selected File → request token → await array_buffer → owned byte event` |
+| **6** | [`23-import`](#checkpoint-23-import) | Import a real mesh-session file, keep its source identity, and undo the whole import as one action. | `src/lib.rs`, `src/browser.rs` | `Open → hidden picker → latest read → viewer-file → Action::Import → upload and redraw` |
+| **7** | [`23a-bounds`](#checkpoint-23a-bounds) | Run the state checks. Known corners give the expected centre and radius; a scene with no objects has no bounds. | `src/bounds.rs`, `src/scene.rs`, `src/lib.rs`, `src/fit_tests.rs` | `Displayed vertices → coordinate minima/maxima → centre and radius` |
+| **8** | [`23b-fit-camera`](#checkpoint-23b-fit-camera) | Run the state checks. Every corner remains inside the view across scales and aspect ratios, and fitting preserves orientation. | `src/camera.rs`, `src/fit_tests.rs` | `Bounds centre/radius and aspect → camera target, distance and clipping` |
+| **9** | [`24-fit`](#checkpoint-24-fit) | Frame all current objects without rotating them or changing the document. | `src/editor.rs`, `src/browser.rs`, `src/fit_tests.rs` | `Typed Fit → Editor → Scene::bounds → Camera::fit → redraw` |
+| **10** | [`24a-projection`](#checkpoint-24a-projection) | Run the state checks. Switching preserves target-plane scale; orthographic size ignores depth and its pick rays are parallel. | `src/camera.rs`, `src/projection_tests.rs`, `src/lib.rs` | `Projection enum → camera matrix → drawing and inverse-matrix rays` |
+| **11** | [`24b-projection-actions`](#checkpoint-24b-projection-actions) | Run the state checks. Orthographic fitting contains every corner in tall and wide views; close picking and document Undo keep the chosen view coherent. | `src/camera.rs`, `src/editor.rs`, `src/projection_tests.rs` | `Selected projection → fit opening; Action::Projection → view-only change` |
+| **12** | [`25-projection`](#checkpoint-25-projection) | Switch between perspective and orthographic views while keeping fitting, zoom and picking coherent. | `src/browser.rs` | `Named View command → Projection value → Editor → camera matrix and reported mode` |
+| **13** | [`26-selected`](#checkpoint-26-selected) | Run Fit Selected while keeping geometry, selection and document history unchanged. | `src/scene.rs`, `src/editor.rs`, `src/browser.rs`, `src/lib.rs` | `Fit Selected → Editor → stable ObjectId → selected bounds → Camera::fit → frame` |
+| **14** | [`26a-keys`](#checkpoint-26a-keys) | Let canvas F fit the selection and platform shortcuts run Undo or Redo through existing actions. | `src/shortcuts.rs`, `src/panel.rs`, `src/browser.rs`, `src/lib.rs` | `keyboard press → text ownership → existing command → editor action → redraw` |
+
+---
+
+## 4. Step-by-Step Coding Notebook (Concept + Implementation)
+
+Work through each notebook cell below in order inside `workspace/journey`. Read the **Concept Walkthrough** and **Self-Check Q&A** first, then expand the **Implementation** block to type and verify the code.
 
 <a id="checkpoint-22a-records"></a>
+
+### Step 1 of 14 · Validate a raw mesh record (`22a-records`)
+
+- **Goal:** Run the state checks. A valid box passes; non-finite coordinates and missing vertex references are rejected.
+- **Data Flow Trace:** `Raw proto::Mesh → validation → accepted record or error`
+- **Files You Touch:** `Cargo.toml` (*Add fixed protobuf and browser byte-reading dependencies for the import sequence.*) · `src/document.rs` (*Reject unsupported mesh records before kernel construction; check finite coordinates and referenced vertex keys.*) · `src/lib.rs` (*Register the raw-record validator.*)
+
+Define the source owners and check protobuf mesh records before building kernel objects. Accept finite coordinates, valid vertex references, triangles or quads, and object colours within the stated size limits.
+
+The validator borrows a record and returns Result<(), &str>. It inspects stored triangulation without constructing a Session or changing the scene.
+
+> **Self-Check Question:** *Why validate raw records before constructing a Session?*  
+> **Answer:** Invalid indices and unsupported forms should return a controlled error before kernel construction begins.
+
+- **What You Should See:** Inspect the supplied state fixtures. A valid box passes; non-finite coordinates and missing vertex references are rejected.
+- **Hands-On Lab Experiment:** Inspect the supplied record-validation fixture. Change one face vertex key to a missing key on paper and predict why the loader rejects it.
 
 <details>
 <summary>Implementation 22a-records: Validate a raw mesh record</summary>
@@ -153,6 +224,22 @@ After that block, type:
 </details>
 
 <a id="checkpoint-22b-session"></a>
+
+### Step 2 of 14 · Validate session identity and build a sample file (`22b-session`)
+
+- **Goal:** Validate a real Session and its source identities before browser import.
+- **Data Flow Trace:** `Source GUIDs and flat rows → validated Session shape; specimen → sample.pb`
+- **Files You Touch:** `src/document.rs` (*Import the GUID set used by session validation.*) · `src/specimen.rs` (*Build a small three-piece frame with the real kernel. This is our file specimen, not a second renderer or a new file format.*) · `examples/sample.rs` (*Supply this optional course-author fixture generator; browser exercises use the linked data files or recorded comparison.*) · `src/lib.rs` (*Register the specimen builder.*)
+
+Retain a shared Session with its display meshes and source GUIDs. Validate the supported session shape and flat tree before decoding it into kernel objects.
+
+HashSet compares unique mesh GUIDs with tree row names. The specimen builder creates three named meshes and writes their protobuf bytes to sample.pb.
+
+> **Self-Check Question:** *Why keep GUID separate from ObjectId?*  
+> **Answer:** GUID names a source mesh. ObjectId will name a particular viewer import, so the same source can be imported more than once.
+
+- **What You Should See:** Download the [supplied sample.pb](../../fixtures/sample-23.pb) for the next browser import exercise. Its three meshes have distinct source identities; the supplied validation checks also cover duplicate GUIDs.
+- **Hands-On Lab Experiment:** Change the top beam width in the specimen, write sample.pb again, then restore the original value.
 
 <details>
 <summary>Implementation 22b-session: Validate session identity and build a sample file</summary>
@@ -419,6 +506,22 @@ After that block, type:
 </details>
 
 <a id="checkpoint-22c-decode"></a>
+
+### Step 3 of 14 · Decode and prepare the whole import (`22c-decode`)
+
+- **Goal:** Run the state checks. Invalid bytes, oversized data and unsupported records are refused before scene insertion.
+- **Data Flow Trace:** `Bytes → decoded record → validation → shared Session and prepared Mesh values`
+- **Files You Touch:** `src/document.rs` (*Import the protobuf decoding trait.*) · `src/document_tests.rs` (*Optional authoring fixture. Reject malformed bytes, oversize files and unsupported records before construction.*) · `src/lib.rs` (*Register the byte-level loader checks.*)
+
+Bound byte length, decode the protobuf message, validate it, then construct one shared Session and every display mesh. Return Loaded only when the whole preparation succeeds.
+
+The ? operator stops at the first error. No scene or history is changed here, so a bad later mesh cannot leave a partial import.
+
+> **Self-Check Question:** *Why prepare all meshes before editing the scene?*  
+> **Answer:** A preparation error then leaves the current scene, selection and redo branch untouched.
+
+- **What You Should See:** Inspect the supplied state fixtures. Invalid bytes, oversized data and unsupported records are refused before scene insertion.
+- **Hands-On Lab Experiment:** Read the six malformed-record cases and predict which validation rule rejects each one.
 
 <details>
 <summary>Implementation 22c-decode: Decode and prepare the whole import</summary>
@@ -717,6 +820,22 @@ After that block, type:
 </details>
 
 <a id="checkpoint-22d-import"></a>
+
+### Step 4 of 14 · Commit an import as one undoable action (`22d-import`)
+
+- **Goal:** Run the state checks. One Undo removes the whole file; Redo restores its IDs and shared source; a failed import preserves selection and redo.
+- **Data Flow Trace:** `Loaded document → one history edit → rows with source identity → display`
+- **Files You Touch:** `src/scene.rs` (*An imported display object remembers the document and source GUID it came from. Demo objects have no source document.*) · `src/editor.rs` (*Make file import an ordinary document action.*) · `src/document_tests.rs` (*Optional authoring fixture. Import editor actions and shared-owner comparison for transaction checks.*)
+
+Attach the retained source Session and GUID to every imported object. Prepare bytes before starting History::try_edit, then insert the whole loaded file as one document action.
+
+Rc::clone shares source ownership. Local ObjectId remains unique across imports; snapshots retain the same source allocation on Undo and Redo.
+
+> **Self-Check Question:** *Why retain Rc<Session> on imported rows?*  
+> **Answer:** Display arrays omit source metadata. Shared Session ownership keeps that information available without copying it into each row.
+
+- **What You Should See:** Inspect the supplied state fixtures. One Undo removes the whole file; Redo restores its IDs and shared source; a failed import preserves selection and redo.
+- **Hands-On Lab Experiment:** Trace the supplied two-import fixture. Compare local IDs, source GUIDs and source allocation identity; browser file selection connects in the next lesson.
 
 <details>
 <summary>Implementation 22d-import: Commit an import as one undoable action</summary>
@@ -1249,6 +1368,22 @@ Update the existing block with this supplied code; keep unchanged lines:
 
 <a id="checkpoint-22e-file-reader"></a>
 
+### Step 5 of 14 · Prepare asynchronous file delivery (`22e-file-reader`)
+
+- **Goal:** Build and run the checkpoint. The current scene and commands remain available; file selection is connected next.
+- **Data Flow Trace:** `Selected File → request token → await array_buffer → owned byte event`
+- **Files You Touch:** `src/file_input.rs` (*Read file bytes asynchronously; reject stale request numbers and return completion to the editor callback.*) · `index.html` (*Keep the HTML page small. Feature input belongs to the command dock drawn inside the canvas.*) · `src/lib.rs` (*Expose the complete file-reader component while preparing its browser integration.*)
+
+Add the hidden file input and its reader. A shared request number identifies the latest selection; await reads the selected Blob, then a custom event returns owned bytes.
+
+The reader owns no mutable Editor borrow while waiting. Its browser-event registration and Open command are connected in the next step.
+
+> **Self-Check Question:** *Why compare the request number after await?*  
+> **Answer:** An older read may finish after a newer selection. Its result must not replace the current request.
+
+- **What You Should See:** The file reader compiles while the existing scene remains available. File selection connects next.
+- **Hands-On Lab Experiment:** Find the post-await request comparison. Predict which read is ignored if the second selection finishes first.
+
 <details>
 <summary>Implementation 22e-file-reader: Prepare asynchronous file delivery</summary>
 
@@ -1315,6 +1450,22 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-23-import"></a>
+
+### Step 6 of 14 · Open a file through the command line (`23-import`)
+
+- **Goal:** Import a real mesh-session file, keep its source identity, and undo the whole import as one action.
+- **Data Flow Trace:** `Open → hidden picker → latest read → viewer-file → Action::Import → upload and redraw`
+- **Files You Touch:** `src/lib.rs` (*Keep the reader internal now that the browser callback owns file delivery.*) · `src/browser.rs` (*Add Open to the vocabulary.*)
+
+Type Open to activate the hidden picker. Route selection through the reader and completed bytes through Action::Import in the callback that owns Editor.
+
+The callback reports one completed import and updates the display through the existing Scene change path. The reader never holds the editor while awaiting bytes.
+
+> **Self-Check Question:** *Why do we retain the session after creating the arrays that the renderer needs?*  
+> **Answer:** The GPU arrays contain positions, colours and indices. They do not retain the session name, source mesh identities, tree or graph. Each imported object keeps a source reference: the complete session plus its original mesh GUID. Its local ObjectId remains separate, so opening the same file twice does not confuse selection or undo.
+
+- **What You Should See:** Download the [supplied sample.pb](../../fixtures/sample-23.pb). Type Open in the browser and choose that file; one Undo removes all three orange pieces and Redo restores them.
+- **Hands-On Lab Experiment:** Change the specimen’s top beam width from 1.8 to 2.2, regenerate sample.pb, and import it. You have changed the source, not the renderer. Undo the import, restore 1.8, and regenerate. Then explain why the same source GUID may occur in two imports while their local ObjectIds must differ.
 
 <details>
 <summary>Implementation 23-import: Open a file through the command line</summary>
@@ -1936,6 +2087,22 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-23a-bounds"></a>
 
+### Step 7 of 14 · Measure the displayed scene bounds (`23a-bounds`)
+
+- **Goal:** Run the state checks. Known corners give the expected centre and radius; a scene with no objects has no bounds.
+- **Data Flow Trace:** `Displayed vertices → coordinate minima/maxima → centre and radius`
+- **Files You Touch:** `src/bounds.rs` (*Store coordinate minima/maxima; compute the centre and enclosing-sphere radius from them.*) · `src/scene.rs` (*Accumulate displayed vertices into f64 bounds; return None for an empty scene.*) · `src/lib.rs` (*Register the bounds module beside Camera.*) · `src/fit_tests.rs` (*Optional authoring fixture. Check measured bounds and the empty-scene result.*)
+
+Accumulate displayed vertex coordinates into Bounds. Its centre is the midpoint of the minimum and maximum; its radius encloses the box corners.
+
+Scene::bounds returns Option<Bounds>. The first vertex starts the box; an empty scene returns None instead of invented dimensions.
+
+> **Self-Check Question:** *Why return None for an empty scene?*  
+> **Answer:** There is no geometry to frame. The caller can leave the current camera unchanged.
+
+- **What You Should See:** Inspect the supplied state fixtures. Known corners give the expected centre and radius; a scene with no objects has no bounds.
+- **Hands-On Lab Experiment:** Change one corner in the bounds test and calculate the midpoint before running it.
+
 <details>
 <summary>Implementation 23a-bounds: Measure the displayed scene bounds</summary>
 
@@ -2039,6 +2206,22 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-23b-fit-camera"></a>
+
+### Step 8 of 14 · Fit the camera around the bounds (`23b-fit-camera`)
+
+- **Goal:** Run the state checks. Every corner remains inside the view across scales and aspect ratios, and fitting preserves orientation.
+- **Data Flow Trace:** `Bounds centre/radius and aspect → camera target, distance and clipping`
+- **Files You Touch:** `src/camera.rs` (*Keep the fitted scene scale with the camera. Distance says where the eye is; radius says how large the scene is.*) · `src/fit_tests.rs` (*Optional authoring fixture. Check projected corners, preserved orientation and zoom after fitting.*)
+
+Aim the camera at the bounds centre and back away until its enclosing sphere fits the smaller horizontal or vertical half-angle. Preserve orientation and keep a small margin.
+
+Store the measured radius on Camera. Use it for zoom limits and far depth reach. Keep the near plane at one ten-thousandth of eye distance, independently of scene size, so nearby CAD geometry remains visible when zooming into a large model.
+
+> **Self-Check Question:** *Why use the smaller half-angle?*  
+> **Answer:** That direction limits the visible space. Using only the vertical angle would crop a scene in a tall window.
+
+- **What You Should See:** Inspect the supplied state fixtures. Every corner remains inside the view across scales and aspect ratios, and fitting preserves orientation.
+- **Hands-On Lab Experiment:** Change the 1.1 margin to 1.4, predict a smaller drawing, then restore it.
 
 <details>
 <summary>Implementation 23b-fit-camera: Fit the camera around the bounds</summary>
@@ -2486,6 +2669,22 @@ After that block, append this supplied code:
 </details>
 
 <a id="checkpoint-24-fit"></a>
+
+### Step 9 of 14 · Run Fit through the command line (`24-fit`)
+
+- **Goal:** Frame all current objects without rotating them or changing the document.
+- **Data Flow Trace:** `Typed Fit → Editor → Scene::bounds → Camera::fit → redraw`
+- **Files You Touch:** `src/editor.rs` (*Fit is an explicit action, like Isometric. Import still changes the document; Fit only changes how you look at it.*) · `src/browser.rs` (*Add Fit to the vocabulary.*) · `src/fit_tests.rs` (*Optional authoring fixture. Import editor actions for fitting and document-history checks.*)
+
+Add Fit to Action and the command vocabulary. Editor measures scene bounds and asks Camera to fit them when geometry exists.
+
+Fit returns a view change. It retains selection and document history, and reuses the current geometry buffers. An empty scene leaves the camera unchanged.
+
+> **Self-Check Question:** *Why does Fit need both the scene bounds and the window shape, but no new GPU mesh?*  
+> **Answer:** Scene walks the displayed vertices to find a box. Camera aims at its centre and backs away until the enclosing sphere fits the smaller view angle. The window aspect decides which angle is smaller. Radius also scales zoom limits and clipping. Only the camera uniform changes; object IDs, mesh buffers and history stay as they were.
+
+- **What You Should See:** Open sample.pb, type Pan Right, then Fit. The whole scene returns with a margin while keeping its viewing direction.
+- **Hands-On Lab Experiment:** Before running Fit, predict whether a tall window needs the eye farther away. Resize, fit and compare. Then temporarily change the 1.1 margin to 1.4: the scene should become smaller, not larger. Restore 1.1 when you finish.
 
 <details>
 <summary>Implementation 24-fit: Run Fit through the command line</summary>
@@ -3231,6 +3430,24 @@ After that block, append this supplied code:
 
 <a id="checkpoint-24a-projection"></a>
 
+### Step 10 of 14 · Build perspective and orthographic camera matrices (`24a-projection`)
+
+- **Goal:** Run the state checks. Switching preserves target-plane scale; orthographic size ignores depth and its pick rays are parallel.
+- **Data Flow Trace:** `Projection enum → camera matrix → drawing and inverse-matrix rays`
+- **Files You Touch:** `src/camera.rs` (*Name the projection choices with an enum; derive copying and equality for this small value.*) · `src/projection_tests.rs` (*Optional authoring fixture. Check target-plane scale, depth-independent size and parallel picking rays.*) · `src/lib.rs` (*Register the new checks without changing the production browser entry point.*)
+
+Add Projection to Camera and choose the matching matrix. Give orthographic projection the same target-plane half-height as perspective: distance × tan(30°).
+
+Projection is a small Copy enum. Inverse-matrix picking remains shared: perspective rays spread out, while orthographic rays have separate origins and parallel directions.
+
+Keep the orthographic depth interval tied to scene reach, without the perspective far-plane multiplier. This preserves useful depth separation for thin CAD parts.
+
+> **Self-Check Question:** *Why can one picking method support both projections?*  
+> **Answer:** It inverts the selected camera matrix. The resulting near and far points define the correct ray for that matrix.
+
+- **What You Should See:** Inspect the supplied state fixtures. Switching preserves target-plane scale; orthographic size ignores depth and its pick rays are parallel.
+- **Hands-On Lab Experiment:** Switch the browser between perspective and orthographic projection. Predict how distance changes apparent object size in perspective, then compare the drawing.
+
 <details>
 <summary>Implementation 24a-projection: Build perspective and orthographic camera matrices</summary>
 
@@ -3673,6 +3890,22 @@ After that block, append this supplied code:
 
 <a id="checkpoint-24b-projection-actions"></a>
 
+### Step 11 of 14 · Fit and change projection through the editor (`24b-projection-actions`)
+
+- **Goal:** Run the state checks. Orthographic fitting contains every corner in tall and wide views; close picking and document Undo keep the chosen view coherent.
+- **Data Flow Trace:** `Selected projection → fit opening; Action::Projection → view-only change`
+- **Files You Touch:** `src/camera.rs` (*Fit the sphere through a perspective half-angle or the smaller orthographic half-extent.*) · `src/editor.rs` (*Carry the requested projection in Action for the named view commands.*) · `src/projection_tests.rs` (*Optional authoring fixture. Import bounds and editor actions for fitting, selection and history checks.*)
+
+Fit an enclosing sphere using the selected projection. Perspective uses the smaller half-angle; orthographic uses the smaller half-extent.
+
+Carry Projection in an editor action. Changing it preserves camera parameters and document history; Reset View still restores the perspective default.
+
+> **Self-Check Question:** *Why keep projection outside document history?*  
+> **Answer:** It changes how the document is seen. Undo should restore geometry while retaining the current view choice.
+
+- **What You Should See:** Inspect the supplied state fixtures. Orthographic fitting contains every corner in tall and wide views; close picking and document Undo keep the chosen view coherent.
+- **Hands-On Lab Experiment:** Read the close-orthographic picking test and predict what Reset View does to its projection choice.
+
 <details>
 <summary>Implementation 24b-projection-actions: Fit and change projection through the editor</summary>
 
@@ -3988,6 +4221,22 @@ After that block, append this supplied code:
 </details>
 
 <a id="checkpoint-25-projection"></a>
+
+### Step 12 of 14 · Run the named projection commands (`25-projection`)
+
+- **Goal:** Switch between perspective and orthographic views while keeping fitting, zoom and picking coherent.
+- **Data Flow Trace:** `Named View command → Projection value → Editor → camera matrix and reported mode`
+- **Files You Touch:** `src/browser.rs` (*Add the two named projection commands.*)
+
+Add View Perspective and View Orthographic to the command vocabulary and route them to Action::Projection. Report the active projection on the canvas after applying an action.
+
+The commands preserve target-plane scale and view parameters. Fit remains explicit; run it after switching if perspective crops nearby geometry.
+
+> **Self-Check Question:** *Why can the same ray-picking code work in both views even though their rays have different shapes?*  
+> **Answer:** Camera builds the selected projection and combines it with the same view transform. Drawing uses that matrix. Picking inverts it and maps a screen point at depths 0 and 1 back into the world. Those two points define the correct ray for either matrix. Perspective rays spread out; orthographic rays are parallel. Their different origins and directions come from the matrix, not a second picking routine.
+
+- **What You Should See:** Type View Orthographic, Fit, then View Perspective. The target stays fixed while depth changes relative sizes.
+- **Hands-On Lab Experiment:** Switch modes while looking squarely at the two original triangles. Which one changes size more? Their depths differ, and neither lies on the target plane. Now orbit: the mode should stay selected while the viewing direction changes. Explain why Isometric and Orthographic are not synonyms.
 
 <details>
 <summary>Implementation 25-projection: Run the named projection commands</summary>
@@ -4543,6 +4792,26 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-26-selected"></a>
+
+### Step 13 of 14 · Frame one object without changing its size (`26-selected`)
+
+- **Goal:** Run Fit Selected while keeping geometry, selection and document history unchanged.
+- **Data Flow Trace:** `Fit Selected → Editor → stable ObjectId → selected bounds → Camera::fit → frame`
+- **Files You Touch:** `src/scene.rs` (*Find one stable ID and collect only its displayed vertices. An absent ID or empty mesh returns None.*) · `src/editor.rs` (*Name a separate action for fitting the selection.*) · `src/browser.rs` (*Expose Fit Selected in the existing command vocabulary.*) · `src/lib.rs` (*Register the focused state checks.*) · `src/selected_fit_tests.rs` (*Optional authoring fixture. Check both projection modes, selection, shared mesh identity, history and the empty-selection case.*)
+
+Make `Fit Selected` use one object's bounds with the same fitting policy as `Fit`.
+
+Scene finds the object by `ObjectId`. `?` returns `None` for a missing ID or empty mesh. Start bounds from its first vertex so the origin does not enlarge every box.
+
+Editor uses `Option::and_then` to request bounds only when selection exists, then passes them to Camera. No second fitting formula is needed.
+
+Fitting changes pixels occupied by the object, preserving its model coordinates and shared mesh. It changes neither document units nor object size.
+
+> **Self-Check Question:** *Does fitting an object change its coordinates or only the camera?*  
+> **Answer:** Only the camera target and distance change. The selected object keeps the same shared mesh and stable ID. Bounds are measured in existing model coordinates; fitting changes their screen coverage, not their physical dimensions.
+
+- **What You Should See:** Type `Select Next`, then `Fit Selected`. The selected object fills the view with a margin. Geometry, selection and Undo history stay unchanged.
+- **Hands-On Lab Experiment:** Select Next repeatedly and run Fit Selected after each selection. Predict the camera target from that object’s minimum and maximum coordinates. Then compare perspective and orthographic fits. Explain why neither operation should create an undo entry.
 
 <details>
 <summary>Implementation 26-selected: Frame one object without changing its size</summary>
@@ -5322,6 +5591,22 @@ Copy this supplied file:
 
 <a id="checkpoint-26a-keys"></a>
 
+### Step 14 of 14 · Fit and step history from the keyboard (`26a-keys`)
+
+- **Goal:** Let canvas F fit the selection and platform shortcuts run Undo or Redo through existing actions.
+- **Data Flow Trace:** `keyboard press → text ownership → existing command → editor action → redraw`
+- **Files You Touch:** `src/shortcuts.rs` (*Classify canvas Fit and available history keys without owning browser or document state.*) · `src/panel.rs` (*Use current text focus and content to decide shortcut ownership.*) · `src/browser.rs` (*Echo an accepted shortcut through the same command route before the panel consumes typing.*) · `src/lib.rs` (*Register the shared shortcut policy.*) · `src/shortcuts_tests.rs` (*Copy the modifier and text-ownership checks.*)
+
+Classify a key before the panel can focus on its printable letter. F belongs to the unfocused canvas. History keys belong to the document when no nonempty focused text field owns them.
+
+Both Ctrl and Cmd use the same policy. Ignore repeated, composing and Alt-modified events. Echo the existing command and reuse the normal action route, preserving one history transaction.
+
+> **Self-Check Question:** *Why must Ctrl+Z stay with a nonempty focused command field?*  
+> **Answer:** It edits the text being typed. Document history must change only when that text does not own the shortcut.
+
+- **What You Should See:** Select an object, click the canvas, then press F. Ctrl+Z undoes a document edit; Ctrl+Y or Ctrl+Shift+Z redoes it. Use Cmd on macOS.
+- **Hands-On Lab Experiment:** Focus the command field and type F. It remains text. Type a word, then press Ctrl+Z: document history must stay unchanged.
+
 <details>
 <summary>Implementation 26a-keys: Fit and step history from the keyboard</summary>
 
@@ -5954,9 +6239,11 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 </details>
 
-## Run, Check, and Save
+---
 
-From `session_viewer`:
+## 5. Build, Verify, and Save Your Checkpoint
+
+Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 26a-keys
@@ -5967,12 +6254,12 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. Use [checkpoint recovery](../../recovery.md) to restore any saved checkpoint.
+Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
 
-## Expected Visual Result & Experiment
+## 6. Lesson Summary & Expected Visual Result
 
 Select an object, click the canvas, then press F. Ctrl+Z undoes a document edit; Ctrl+Y or Ctrl+Shift+Z redoes it. Use Cmd on macOS.
 
-- **Try this:** Focus the command field and type F. It remains text. Type a word, then press Ctrl+Z: document history must stay unchanged.
+- **Final Lesson Experiment:** Focus the command field and type F. It remains text. Type a word, then press Ctrl+Z: document history must stay unchanged.
 
-Continue with [Local sources, world placement and display caches](27-placement.md).
+Continue with [Local sources, world placement and display caches](../../consolidation/27-placement.md).

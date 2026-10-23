@@ -1,92 +1,162 @@
 # 3.4 · Local sources, world placement and display caches
 
-**Section 3: Scene Documents, Transactions, and Browser GPU Lifetime** · **Lesson 3.4** (Redraft `3.4`) · **9 checkpoints (`27-placement` → `28c-ownership`)**
+**Section 3: Scene Documents, Transactions, and Browser GPU Lifetime** · **Lesson 3.4** (Redraft `3.4`) · **9 checkpoints (`27-placement` → `28c-ownership`)** · **Study time: 9–18 h**
 
-> **Learning Goal:** Keep local mesh coordinates and an independent object placement.
+> **What You Will Learn & Build:** Keep local mesh coordinates and an independent object placement. By the final checkpoint (`28c-ownership`), you will connect local source geometry, display caches, provenance and document history.
 
-## Visual WebGPU & Architecture Schematic
+## 1. Visual Pipeline & WebGPU Architecture (Black & White Schematics)
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1px solid #cbd5e1;border-radius:10px;background:#f8fafc;">
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
+<svg viewBox="0 0 840 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <rect x="4" y="4" width="832" height="212" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Lesson 3.4 Execution Flow: Local sources, world placement and display caches</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">Concrete data pipeline you build in this lesson (9 Checkpoints: 27-placement → 28c-ownership)</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
+  
+    
+    <rect x="18" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="89" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
+    <line x1="28" y1="92" x2="151" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">Local vertex</text>
+    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="183" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="254" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
+    <line x1="193" y1="92" x2="316" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">Object::world_point</text>
+    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="348" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="419" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
+    <line x1="358" y1="92" x2="481" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">placement matrix</text>
+    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="513" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="584" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
+    <line x1="523" y1="92" x2="646" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">world point</text>
+    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="678" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="749" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
+    <line x1="688" y1="92" x2="811" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">Source mesh plus</text>
+    <text x="749" y="124" text-anchor="middle" font-size="11" fill="#111111">placement</text>
+    
+    <rect x="18" y="162" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="32" y="181" font-size="11" font-weight="700" fill="#111111">Files You Edit in Lesson 3.4:</text>
+    <text x="215" y="181" font-size="11" fill="#111111">src/scene.rs  ·  src/lib.rs  ·  src/placement_tests.rs  ·  src/picking.rs  ·  src/triangle.wgsl  ·  src/gpu_mesh.rs</text>
+    <text x="32" y="198" font-size="10.5" fill="#111111">9 Checkpoints: 27-placement → 28c-ownership — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
+  
+</svg>
+</div>
+
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
 <svg viewBox="0 0 840 240" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#475569"/>
-    </marker>
-    <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#2563eb"/>
-    </marker>
-    <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#059669"/>
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
     </marker>
   </defs>
-  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
-  <text x="20" y="28" font-size="14" font-weight="700" fill="#0f172a">Chapter 3 Architecture: Transactional Protobuf (.pb) Decode, World Placements & Incremental GPU Sync</text>
-  <text x="20" y="46" font-size="11.5" fill="#475569">Separating exact session_rust kernel geometry from GPU display buffers so view changes never re-upload unchanged meshes.</text>
-  <line x1="16" y1="54" x2="824" y2="54" stroke="#e2e8f0" stroke-width="1"/>
+  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Chapter 3 Architecture: Transactional Protobuf (.pb) Decode, World Placements & Incremental GPU Sync</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">Separating exact session_rust kernel geometry from GPU display buffers so view changes never re-upload unchanged meshes.</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
   
-    <rect x="18" y="68" width="185" height="145" rx="6" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
-    <text x="110" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1e40af">1. Async .pb File / URL I/O</text>
-    <text x="28" y="108" font-size="10.5" fill="#1e3a8a">• Ticket #N (cancels #N-1)</text>
-    <text x="28" y="126" font-size="10.5" fill="#1e3a8a">• Bounded Protobuf decode</text>
-    <text x="28" y="144" font-size="10.5" font-weight="600" fill="#1d4ed8">• Topological validation</text>
-    <text x="28" y="162" font-size="10.5" fill="#1e3a8a">• Corrupt file? Reject with</text>
-    <text x="28" y="177" font-size="10.5" fill="#1e3a8a">  ZERO partial scene mutation</text>
+    <rect x="18" y="68" width="185" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="110" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">1. Async .pb File / URL I/O</text>
+    <text x="28" y="108" font-size="10.5" fill="#111111">• Ticket #N (cancels #N-1)</text>
+    <text x="28" y="126" font-size="10.5" fill="#111111">• Bounded Protobuf decode</text>
+    <text x="28" y="144" font-size="10.5" font-weight="600" fill="#111111">• Topological validation</text>
+    <text x="28" y="162" font-size="10.5" fill="#111111">• Corrupt file? Reject with</text>
+    <text x="28" y="177" font-size="10.5" fill="#111111">  ZERO partial scene mutation</text>
 
-    <line x1="203" y1="138" x2="233" y2="138" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
+    <line x1="203" y1="138" x2="233" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="235" y="68" width="275" height="145" rx="6" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5"/>
-    <text x="372" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#9a3412">2. Editor Owner (Browser-Independent)</text>
-    <text x="247" y="108" font-size="10.5" fill="#7c2d12">• Kernel Mesh (local-space f64 coordinates)</text>
-    <text x="247" y="126" font-size="10.5" fill="#7c2d12">• Placement 4x4 Matrix (world transform)</text>
-    <text x="247" y="144" font-size="10.5" font-weight="600" fill="#c2410c">• Releasable Source Ownership:</text>
-    <text x="247" y="160" font-size="10" fill="#7c2d12">  Drop cold CPU source after GPU upload;</text>
-    <text x="247" y="175" font-size="10" fill="#7c2d12">  re-fetch exact SHA/revision on edit!</text>
-    <text x="247" y="195" font-size="10.5" fill="#7c2d12">• Emits Change { sync_scene, redraw }</text>
+    <rect x="235" y="68" width="275" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="372" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">2. Editor Owner (Browser-Independent)</text>
+    <text x="247" y="108" font-size="10.5" fill="#111111">• Kernel Mesh (local-space f64 coordinates)</text>
+    <text x="247" y="126" font-size="10.5" fill="#111111">• Placement 4x4 Matrix (world transform)</text>
+    <text x="247" y="144" font-size="10.5" font-weight="600" fill="#111111">• Releasable Source Ownership:</text>
+    <text x="247" y="160" font-size="10" fill="#111111">  Drop cold CPU source after GPU upload;</text>
+    <text x="247" y="175" font-size="10" fill="#111111">  re-fetch exact SHA/revision on edit!</text>
+    <text x="247" y="195" font-size="10.5" fill="#111111">• Emits Change { sync_scene, redraw }</text>
 
-    <line x1="510" y1="115" x2="542" y2="115" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>
-    <line x1="510" y1="175" x2="542" y2="175" stroke="#059669" stroke-width="2" marker-end="url(#arrow-green)"/>
+    <line x1="510" y1="115" x2="542" y2="115" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
+    <line x1="510" y1="175" x2="542" y2="175" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="544" y="68" width="276" height="68" rx="6" fill="#fdf2f8" stroke="#f472b6" stroke-width="1.5"/>
-    <text x="556" y="86" font-size="11" font-weight="700" fill="#9d174d">3A. Geometry Changed (sync_scene = true)</text>
-    <text x="556" y="104" font-size="10.5" fill="#831843">• Upload changed mesh vertex/index buffers</text>
-    <text x="556" y="120" font-size="10.5" fill="#831843">• Retain unchanged object GPU allocations</text>
+    <rect x="544" y="68" width="276" height="68" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="556" y="86" font-size="11" font-weight="700" fill="#111111">3A. Geometry Changed (sync_scene = true)</text>
+    <text x="556" y="104" font-size="10.5" fill="#111111">• Upload changed mesh vertex/index buffers</text>
+    <text x="556" y="120" font-size="10.5" fill="#111111">• Retain unchanged object GPU allocations</text>
 
-    <rect x="544" y="145" width="276" height="68" rx="6" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1.5"/>
-    <text x="556" y="163" font-size="11" font-weight="700" fill="#065f46">3B. View / Camera Only (sync_scene = false)</text>
-    <text x="556" y="181" font-size="10.5" fill="#064e3b">• queue.write_buffer(camera_uniform) ONLY</text>
-    <text x="556" y="197" font-size="10.5" fill="#064e3b">• Zero geometry re-uploads during Orbit/Fit!</text>
+    <rect x="544" y="145" width="276" height="68" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="556" y="163" font-size="11" font-weight="700" fill="#111111">3B. View / Camera Only (sync_scene = false)</text>
+    <text x="556" y="181" font-size="10.5" fill="#111111">• queue.write_buffer(camera_uniform) ONLY</text>
+    <text x="556" y="197" font-size="10.5" fill="#111111">• Zero geometry re-uploads during Orbit/Fit!</text>
     
 </svg>
 </div>
 
-### Lesson Data Flow (`Rust` → `WebGPU` → `WGSL`)
+## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
 
-```
-Local vertex → Object::world_point → placement matrix → world point.
-Parsed offset → world translation → shared mesh → Undo/Redo → identical placement.
-Source mesh plus placement → Move → Undo/Redo → same source allocation and identity.
-```
+Before writing code, review how the three layers in this chapter talk to each other:
 
-- Keep local mesh coordinates and an independent object placement.
-- Check that Move changes world placement, preserves local geometry, and remains one reversible transaction.
-- Connect local source geometry, display caches, provenance and document history.
-- **Why it works (Which value changes when an object moves without changing shape?):** Its placement matrix changes. The shared mesh keeps local coordinates. Multiplying a local point by the placement produces its world position; multiplying that world point by the camera later produces its screen position.
-
-### Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `Browser`)
-
-| Layer | Construct | First-Year Student Explanation |
+| Layer | Construct | Plain-English Explanation for Students |
 | :--- | :--- | :--- |
 | **Protobuf (`.pb`)** | `session_proto` Binary Wire Format | Compact binary serialization for `Session` models; decoded with strict byte/count limits and topological validation before touching the live scene. |
 | **Rust (`session_rust`)** | Kernel `Mesh` + World Placement `4x4` Matrix | Separates exact `f64` kernel geometry from placed world instances; cold CPU source bytes can be released after GPU upload and re-fetched on edit. |
 | **Rust (`wgpu`)** | `Change { sync_scene, redraw }` | Incremental dirty-flag contract: camera orbit/fit sets `sync_scene = false` (updating only the 64-byte camera uniform), while geometry edits upload only changed buffers. |
 
-**Production source (`session_viewer/src`):** `session_viewer/src`
+**Authoritative production source (`session_viewer/src`):** `session_viewer/src`
 
-## Implementation Checkpoints
+## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
 
-Apply these checkpoints in order inside `workspace/journey`. Expand each block to view the Rust/WGSL/HTML edits:
+| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
+| ---: | :--- | :--- | :--- | :--- |
+| **1** | [`27-placement`](#checkpoint-27-placement) | Keep local mesh coordinates and an independent object placement. | `src/scene.rs`, `src/lib.rs`, `src/placement_tests.rs` | `Local vertex → Object::world_point → placement matrix → world point` |
+| **2** | [`27a-world`](#checkpoint-27a-world) | Use placement for scene bounds, selected bounds and ray picking. | `src/scene.rs`, `src/picking.rs`, `src/placement_tests.rs` | `Object placement → world vertices → bounds or ray/triangle query` |
+| **3** | [`27b-model`](#checkpoint-27b-model) | Send a separate model matrix for each draw while retaining local vertex buffers. | `src/triangle.wgsl`, `src/gpu_mesh.rs`, `src/renderer.rs`, `src/scene.rs` | `Local vertex → model uniform → world point → camera uniform → clip position` |
+| **4** | [`27c-move`](#checkpoint-27c-move) | Translate selected geometry through the existing command and history route. | `src/lib.rs`, `src/offset.rs`, `src/editor.rs`, `src/browser.rs` | `Move x,y,z → finite offset → Editor → history transaction → new placement → GPU upload` |
+| **5** | [`27d-history`](#checkpoint-27d-history) | Check that Move changes world placement, preserves local geometry, and remains one reversible transaction. | `src/lib.rs`, `src/move_tests.rs` | `Parsed offset → world translation → shared mesh → Undo/Redo → identical placement` |
+| **6** | [`28-record`](#checkpoint-28-record) | Give source geometry a shared owner and prepare its display before committing an object. | `src/prepared.rs`, `src/lib.rs`, `src/prepared_tests.rs` | `Kernel mesh → PreparedMesh → shared source geometry plus validated display arrays` |
+| **7** | [`28a-imported`](#checkpoint-28a-imported) | Insert imported source geometry and its prepared display together. | `src/document.rs`, `src/scene.rs`, `src/imported_source_tests.rs`, `src/lib.rs` | `Decoded session → prepared source/display pair → Object source geometry → history snapshot` |
+| **8** | [`28b-generated`](#checkpoint-28b-generated) | Build demo triangles and Example Box from kernel geometry; derive all displays on insertion. | `src/prepared.rs`, `src/scene.rs`, `src/imported_source_tests.rs` | `Kernel triangle or box → PreparedMesh → source-owning Object → derived display` |
+| **9** | [`28c-ownership`](#checkpoint-28c-ownership) | Connect local source geometry, display caches, provenance and document history. | `src/source_tests.rs`, `src/lib.rs` | `Source mesh plus placement → Move → Undo/Redo → same source allocation and identity` |
+
+---
+
+## 4. Step-by-Step Coding Notebook (Concept + Implementation)
+
+Work through each notebook cell below in order inside `workspace/journey`. Read the **Concept Walkthrough** and **Self-Check Q&A** first, then expand the **Implementation** block to type and verify the code.
 
 <a id="checkpoint-27-placement"></a>
+
+### Step 1 of 9 · Give each object a placement (`27-placement`)
+
+- **Goal:** Keep local mesh coordinates and an independent object placement.
+- **Data Flow Trace:** `Local vertex → Object::world_point → placement matrix → world point`
+- **Files You Touch:** `src/scene.rs` (*Store one placement beside the shared local mesh.*) · `src/lib.rs` (*Register the placement checks.*) · `src/placement_tests.rs` (*Optional authoring fixture. Prove mesh identity and local coordinates survive placement, and failed updates leave it unchanged.*)
+
+A mesh describes a shape. A placement describes where one use of that shape belongs. Keeping both in Object lets history retain the same shared mesh while remembering a different placement.
+
+Add an identity matrix to every newly inserted object. Identity leaves coordinates unchanged, so this checkpoint preserves the working picture. Object::world_point borrows a six-float vertex, uses its first three values as a position, and returns a double-precision world point. Its color is not a coordinate and never enters the transform.
+
+Scene::place finds the stable ID before replacing its matrix. It rejects a non-finite matrix and a projective last row. Object placements are affine: they can translate, rotate, scale or shear a shape, but perspective belongs to Camera. Returning Result makes a missing object or invalid placement visible to the caller.
+
+The two checks deliberately use the same Rc<Mesh> before and after a placement. Clone on Rc creates another owner of the allocation. It does not duplicate or rewrite the vertex array. Bounds, picking and GPU presentation will adopt this placement in the next two small lessons; no Move command is exposed yet.
+
+> **Self-Check Question:** *Which value changes when an object moves without changing shape?*  
+> **Answer:** Its placement matrix changes. The shared mesh keeps local coordinates. Multiplying a local point by the placement produces its world position; multiplying that world point by the camera later produces its screen position.
+
+- **What You Should See:** Run the Rust checks below. A translation changes the tested world point while retaining its local vertex. Placement is not connected to drawing yet, so the browser picture stays unchanged.
+- **Hands-On Lab Experiment:** In the state check, change translation from (2, −1, 0.5) to (−3, 4, 0). Predict the resulting world point before running the check, then restore it. Explain why the local vertex and Rc allocation stay unchanged.
 
 <details>
 <summary>Implementation 27-placement: Give each object a placement</summary>
@@ -457,6 +527,26 @@ Copy this supplied file:
 </details>
 
 <a id="checkpoint-27a-world"></a>
+
+### Step 2 of 9 · Ask geometry questions in world coordinates (`27a-world`)
+
+- **Goal:** Use placement for scene bounds, selected bounds and ray picking.
+- **Data Flow Trace:** `Object placement → world vertices → bounds or ray/triangle query`
+- **Files You Touch:** `src/scene.rs` (*Whole-scene bounds include placed points.*) · `src/picking.rs` (*Ask whether the world ray hits the placed triangle.*) · `src/placement_tests.rs` (*Optional authoring fixture. Connect placement, both bounds and camera-ray picking in one state check.*)
+
+A local vertex is useful for sharing a shape, but the camera does not live in every object’s local coordinate system. Bounds and ray tests must agree on where that object is.
+
+Reuse world_point in the whole-scene bounds loop, the selected-object bounds loop and the picking loop. Each loop borrows the original mesh. The returned points are temporary query values, not replacement geometry.
+
+Picking now receives three doubles per position. Colors are irrelevant to intersection. Keep the triangle calculation in doubles instead of subtracting floats and converting only the already-rounded result.
+
+The new state check places a triangle, asks for its bounds, projects its centroid and casts the camera ray back through that pixel. These are connected observations: the same stable ID must be found at its new world location. The live commands still use identity placements until the next lesson connects model matrices to the GPU.
+
+> **Self-Check Question:** *Why must picking and fitting use the same placement as drawing?*  
+> **Answer:** A camera ray and a fitted camera target are expressed in world coordinates. Comparing them with unplaced local vertices asks about a different location. Apply Object::world_point at each query boundary so both questions refer to the placed object.
+
+- **What You Should See:** Run the Rust checks below. Bounds and ray picking must use placed world coordinates, while the stored local mesh remains unchanged. GPU placement follows next.
+- **Hands-On Lab Experiment:** Change the world-query test’s translation to (4, 2, −0.25). Predict the new bounds and camera target, then restore it. Explain why querying colors would not help identify the triangle’s position.
 
 <details>
 <summary>Implementation 27a-world: Ask geometry questions in world coordinates</summary>
@@ -947,6 +1037,26 @@ After that block, append this supplied code:
 </details>
 
 <a id="checkpoint-27b-model"></a>
+
+### Step 3 of 9 · Apply object placement on the GPU (`27b-model`)
+
+- **Goal:** Send a separate model matrix for each draw while retaining local vertex buffers.
+- **Data Flow Trace:** `Local vertex → model uniform → world point → camera uniform → clip position`
+- **Files You Touch:** `src/triangle.wgsl` (*Keep camera and object placement in separate uniform groups.*) · `src/gpu_mesh.rs` (*Upload an object’s mesh and placement together.*) · `src/renderer.rs` (*Remove the upload that ran before the pipeline layout was available.*) · `src/scene.rs` (*Keep the generated box centred in its local coordinates.*)
+
+Bounds and picking now understand placement. Drawing must apply that same matrix, or the visible object and the selectable object would disagree.
+
+Add a second uniform binding to the shader. Group 0 remains the shared camera transform. Group 1 contains one object’s model matrix. The vertex shader first produces a world position, then applies the camera. The fragment shader receives that world position so its derivative-based lighting follows the placed surface too.
+
+GpuMesh uploads the original local vertices, encodes the sixteen model values as floats, and creates the object bind group from the pipeline’s group-1 layout. The bind group retains its referenced buffer. Bind it immediately before drawing that object’s indices.
+
+Finally change Example Box: create its shape around the local origin, then give the Object the translation that used to be baked into its vertices. Its world appearance stays consistent. Its local box coordinates are now reusable. The current renderer still rebuilds uploads on scene changes; later shared-storage lessons will update changed ranges.
+
+> **Self-Check Question:** *Why do model and camera matrices need separate owners?*  
+> **Answer:** The object owns where its shape belongs; the camera owns how the scene is viewed. Binding the object model before each draw lets local mesh data stay unchanged while the same camera draws many placements.
+
+- **What You Should See:** Type `Example Box`, then `View Isometric`. The box now draws at its placed position. Click a visible face: picking must agree with the GPU placement, while local vertices stay unchanged.
+- **Hands-On Lab Experiment:** Change Example Box’s placement translation from (0.9, 0, 0.4) to (1.4, 0, 0.4). Predict where Fit Selected will aim and verify the visible box and its pick agree. Restore the original value. Do not move the box by rewriting its mesh.
 
 <details>
 <summary>Implementation 27b-model: Apply object placement on the GPU</summary>
@@ -1680,6 +1790,26 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-27c-move"></a>
+
+### Step 4 of 9 · Move a placed object with a typed offset (`27c-move`)
+
+- **Goal:** Translate selected geometry through the existing command and history route.
+- **Data Flow Trace:** `Move x,y,z → finite offset → Editor → history transaction → new placement → GPU upload`
+- **Files You Touch:** `src/lib.rs` (*Register the small numeric parser.*) · `src/offset.rs` (*Validate a complete numeric offset before it reaches the document.*) · `src/editor.rs` (*Carry the offset as data in the existing Action enum.*) · `src/browser.rs` (*Offer the named command in the dock vocabulary.*) · `src/panel.rs` (*Recognize Move followed by arguments; the parser validates those arguments.*)
+
+The complete path is ready for a real command: local vertices, world queries and a GPU model matrix. Add Move x,y,z without adding a second editing owner.
+
+The offset parser accepts exactly three comma-separated finite numbers. Spaces around those numbers are harmless. A missing coordinate, extra coordinate, NaN or infinity is an error. Result separates a valid offset from a useful explanation.
+
+Editor asks for the selected stable ID, composes a world translation with its existing model, and submits Scene::place through History::try_edit. The local mesh is still shared. A zero offset changes nothing and does not create an undo entry.
+
+The dock recognizes Move with arguments. It records the submitted line once; result replaces that line’s preliminary answer when parsing or editing fails. The browser still redraws the dock on an error, so an explanation is visible immediately. Later tool lessons will add Move with picked base/target points and command repetition. Today Move needs its complete offset on the line.
+
+> **Self-Check Question:** *Why is a world translation multiplied on the left of the existing placement?*  
+> **Answer:** The existing placement first takes a local point into world coordinates. The new translation then shifts that world point. Translation times existing placement moves along world axes; reversing their order can move along scaled or rotated local axes instead.
+
+- **What You Should See:** Type `Select Next`, `Move 0.5,0,0`, then `Undo`. The selected object moves along world X and returns in one Undo step.
+- **Hands-On Lab Experiment:** Run Move 0,0,0 followed by Undo. Explain why the zero offset creates no history entry. Try Move 1,2 and Move NaN,0,0: both must report an error without moving geometry. Restore the checkpoint before saving.
 
 <details>
 <summary>Implementation 27c-move: Move a placed object with a typed offset</summary>
@@ -2824,6 +2954,26 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-27d-history"></a>
 
+### Step 5 of 9 · Prove placement and history agree (`27d-history`)
+
+- **Goal:** Check that Move changes world placement, preserves local geometry, and remains one reversible transaction.
+- **Data Flow Trace:** `Parsed offset → world translation → shared mesh → Undo/Redo → identical placement`
+- **Files You Touch:** `src/lib.rs` (*Register the direct Move and history checks.*) · `src/move_tests.rs` (*Optional authoring fixture. Verify grammar, world-axis composition, shared geometry, failure/no-op history and selection.*)
+
+The visible result is useful evidence, but a moved picture alone does not prove which data changed. These checks follow the values that future editing tools must preserve.
+
+First parse valid and invalid lines. Then start with a scaled placement. A world-axis Move must shift its world point by the exact requested offset, regardless of that existing scale. Retain an Rc handle and compare local vertices as well as world coordinates.
+
+Scene::place takes ownership of its Xform. Save the sixteen-value array before that call when a later assertion needs it. The array is Copy; the kernel Xform is not.
+
+Undo must restore the complete old placement, and Redo must restore the moved placement. Insert invalid and zero moves between Undo and Redo: neither may discard the redo record. This is why a history transaction belongs in Editor rather than in a browser key handler.
+
+> **Self-Check Question:** *What evidence distinguishes moving a placement from rewriting a mesh?*  
+> **Answer:** The world point shifts by the requested offset, the Rc allocation and local vertices stay identical, and Undo/Redo restore the placement while leaving the camera alone. Invalid input and zero movement must not consume the document’s redo or undo history.
+
+- **What You Should See:** Run the placement/history checks below. Move and Undo must change only placement, preserve shared local geometry, and treat a zero offset as no document edit.
+- **Hands-On Lab Experiment:** Change the existing x scale in the world-axis test from 2 to 3. Predict the local-axis error you would see if the multiplication order were reversed. Confirm the existing implementation still shifts the world point by the same amount, then restore the test.
+
 <details>
 <summary>Implementation 27d-history: Prove placement and history agree</summary>
 
@@ -2871,6 +3021,26 @@ Copy this supplied file:
 </details>
 
 <a id="checkpoint-28-record"></a>
+
+### Step 6 of 9 · Prepare a display from an owned source mesh (`28-record`)
+
+- **Goal:** Give source geometry a shared owner and prepare its display before committing an object.
+- **Data Flow Trace:** `Kernel mesh → PreparedMesh → shared source geometry plus validated display arrays`
+- **Files You Touch:** `src/prepared.rs` (*Create the transit owner. Keep original kernel data beside the display prepared from it.*) · `src/lib.rs` (*Expose the preparation boundary without changing the running browser adapter.*) · `src/prepared_tests.rs` (*Optional authoring fixture. Compare original doubles with the display, and retain name, flags and GUID through preparation.*)
+
+Introduce `PreparedMesh` between source construction and scene insertion. It retains the kernel mesh and a validated derived display. The live scene still uses its earlier insertion path; the next lessons connect this boundary.
+
+`Rc` shares immutable kernel geometry. Optional `Source` records imported-session provenance; generated geometry still has a source mesh without an imported file.
+
+Initialise the kernel mesh's lazy GUID before sharing it, then run the display adapter. `?` rejects invalid display data before consuming an object ID or history entry.
+
+Tests preserve a double coordinate that rounds in the float display, along with name and visibility/locking flags. A finite double too large for a float must fail preparation. Retaining flags does not yet implement their interaction policies.
+
+> **Self-Check Question:** *Why must a save read the source mesh instead of the displayed vertex array?*  
+> **Answer:** The display array uses floats, triangle indices and draw colours. The kernel mesh keeps double coordinates, original topology, names, visibility and locking. PreparedMesh owns the kernel mesh and derives the display from it, so failure happens before the scene takes ownership.
+
+- **What You Should See:** Run the source-record checks below. The original double coordinate remains exact while the display uses floats. This preparation type does not change the browser picture yet.
+- **Hands-On Lab Experiment:** Change the precision check’s coordinate to 123456789.125 and predict the source and float values. Restore it. Explain why a clone of Rc keeps one source allocation while a float display still needs its own arrays.
 
 <details>
 <summary>Implementation 28-record: Prepare a display from an owned source mesh</summary>
@@ -2948,6 +3118,26 @@ After that block, type:
 </details>
 
 <a id="checkpoint-28a-imported"></a>
+
+### Step 7 of 9 · Retain the imported mesh behind each row (`28a-imported`)
+
+- **Goal:** Insert imported source geometry and its prepared display together.
+- **Data Flow Trace:** `Decoded session → prepared source/display pair → Object source geometry → history snapshot`
+- **Files You Touch:** `src/document.rs` (*Load source/display pairs rather than display arrays alone.*) · `src/scene.rs` (*During migration, distinguish rows with source geometry from older demo rows.*) · `src/imported_source_tests.rs` (*Optional authoring fixture. Prove import shares the session’s existing source allocation even when earlier display rows disappear.*) · `src/lib.rs` (*Run the source allocation check at this intermediate checkpoint.*)
+
+Make `Loaded` carry `PreparedMesh` values and retain the source geometry behind each imported row. Preparation still finishes before the scene changes.
+
+The kernel session already owns meshes through `Rc`; clone those handles rather than copying geometry. Keep the session too, because it owns file context such as tree and document name.
+
+During insertion, moving `prepared.display` transfers that field while leaving the other fields available for transfer. History wraps the whole import in one transaction.
+
+Imported rows now have `Some` source geometry. Older demos and generated boxes temporarily have `None`; the next lesson closes that migration gap.
+
+> **Self-Check Question:** *If rows move after deletion, how can the object still find its source?*  
+> **Answer:** Source identity uses a retained session and GUID, not the row index. The object also directly owns the original kernel mesh through Rc. Its display can move to another row without changing either source owner.
+
+- **What You Should See:** Open `sample.pb`. Run the import checks below: every imported row must retain both its original source mesh and its prepared display. Failed preparation must add no rows.
+- **Hands-On Lab Experiment:** In the import test, remove both original demo IDs before inspecting the imported object. Its row number changes while its ObjectId, source GUID and geometry allocation remain stable. Restore the test before checking your files.
 
 <details>
 <summary>Implementation 28a-imported: Retain the imported mesh behind each row</summary>
@@ -3484,6 +3674,26 @@ After that block, type:
 
 <a id="checkpoint-28b-generated"></a>
 
+### Step 8 of 9 · Give generated objects the same source owner (`28b-generated`)
+
+- **Goal:** Build demo triangles and Example Box from kernel geometry; derive all displays on insertion.
+- **Data Flow Trace:** `Kernel triangle or box → PreparedMesh → source-owning Object → derived display`
+- **Files You Touch:** `src/prepared.rs` (*Create demo source geometry before deriving the drawing representation.*) · `src/scene.rs` (*All insertion callers now supply prepared source geometry.*) · `src/imported_source_tests.rs` (*Optional authoring fixture. The source is now required, so remove the temporary Option unwrap in the check.*)
+
+Close the migration. Demo triangles and the optional extra triangle are small kernel meshes; Example Box retains the kernel mesh it already creates. All enter through PreparedMesh. Every Object can now keep its source geometry, placement and optional file provenance independently of the drawing cache.
+
+PreparedMesh::triangle creates three kernel Points and one triangular face. Color is an object attribute. The kernel stores its colour channels in bytes, so these demo colours are quantized before the display adapter reads them; a slight shade change is expected. This does not change the source/drawing ownership rule.
+
+Change Scene::insert to consume a prepared value. The geometry goes to Object::geometry, display goes into the Rc drawing cache, and provenance goes to Object::source. Remove Option from geometry because every call now supplies it. Identity still initializes placement.
+
+Example Box stops discarding its kernel mesh after conversion. Imported objects use the same insertion function, so import no longer patches source fields on the last inserted row. Bounds, picking, GPU matrices and Move keep the ownership conventions already established.
+
+> **Self-Check Question:** *What does None provenance mean after every object owns kernel geometry?*  
+> **Answer:** It means the object was made here instead of imported from a file. It no longer means geometry is missing: Object::geometry is now a required shared source mesh. The display is derived from that source on the same insertion path.
+
+- **What You Should See:** Type `Example Box`, then `Undo`. The generated box now uses the same source/display ownership as imported geometry and remains one reversible object.
+- **Hands-On Lab Experiment:** Change PreparedMesh::triangle’s object colour, then compare its kernel colour with the uploaded display colour. Explain why the conversion may quantize channels and why changing the camera does not rewrite either geometry representation. Restore the original code.
+
 <details>
 <summary>Implementation 28b-generated: Give generated objects the same source owner</summary>
 
@@ -3991,6 +4201,26 @@ Update the existing block with this supplied code; keep unchanged lines:
 
 <a id="checkpoint-28c-ownership"></a>
 
+### Step 9 of 9 · Prove source ownership survives editing (`28c-ownership`)
+
+- **Goal:** Connect local source geometry, display caches, provenance and document history.
+- **Data Flow Trace:** `Source mesh plus placement → Move → Undo/Redo → same source allocation and identity`
+- **Files You Touch:** `src/source_tests.rs` (*Optional authoring fixture. Check source and display allocations, original vertices, placement history and retained file provenance.*) · `src/lib.rs` (*Compile the connected ownership checks with the current scene.*)
+
+Now test the complete boundary rather than only the constructor. A moved object is still the same source shape. Its placement changes, but editing must not bake that placement into either the kernel vertices or drawing arrays.
+
+The first check uses a generated box. It clones the Rc owners, records a source vertex and GUID, moves the box, then travels through history. Pointer equality proves we did not silently replace a source allocation with an equivalent copy.
+
+The second check imports a file, removes the two original demo rows and asks again about the imported object by stable ID. The display row changes, but the owned source mesh still matches the source GUID and retained session.
+
+Together with the preparation and import checks, these checks cover generated and imported source owners. Generated objects have geometry even without file provenance. Imported objects have both. These are the owners Save can use next; it must never rebuild source geometry from the float drawing cache.
+
+> **Self-Check Question:** *Which data must stay unchanged when Move edits only placement?*  
+> **Answer:** The original kernel vertices and attributes, the Rc source allocation, source GUID, imported session and local display arrays must remain unchanged. Undo and Redo change the placement stored in the document, while the camera stays where the user put it.
+
+- **What You Should See:** Run the ownership checks below. Move, Undo and Redo must retain the same source and display allocations; only placement and history change.
+- **Hands-On Lab Experiment:** In the generated-box check, add a second Move with a different offset and another Undo. Predict which placement is restored and why both Rc pointers stay identical. Restore the original checks afterward.
+
 <details>
 <summary>Implementation 28c-ownership: Prove source ownership survives editing</summary>
 
@@ -4037,9 +4267,11 @@ After that block, type:
 
 </details>
 
-## Run, Check, and Save
+---
 
-From `session_viewer`:
+## 5. Build, Verify, and Save Your Checkpoint
+
+Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 28c-ownership
@@ -4050,12 +4282,12 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. Use [checkpoint recovery](../recovery.md) to restore any saved checkpoint.
+Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../recovery.md) to save or restore any checkpoint ID.
 
-## Expected Visual Result & Experiment
+## 6. Lesson Summary & Expected Visual Result
 
 Run the ownership checks below. Move, Undo and Redo must retain the same source and display allocations; only placement and history change.
 
-- **Try this:** In the generated-box check, add a second Move with a different offset and another Undo. Predict which placement is restored and why both Rc pointers stay identical. Restore the original checks afterward.
+- **Final Lesson Experiment:** In the generated-box check, add a second Move with a different offset and another Undo. Predict which placement is restored and why both Rc pointers stay identical. Restore the original checks afterward.
 
 Continue with [Save, replace and asynchronous transaction results](29-identity.md).

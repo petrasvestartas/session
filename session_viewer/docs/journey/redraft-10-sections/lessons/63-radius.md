@@ -1,93 +1,159 @@
 # 11.1 · Coverage-based screen-space outlines
 
-**Section 6: CAD B-Rep Topology, World Text Atlases, Outlines, and Point Clouds** · **Lesson 11.1** (Redraft `6.10`) · **10 checkpoints (`63-radius` → `63h-outline`)**
+**Section 6: CAD B-Rep Topology, World Text Atlases, Outlines, and Point Clouds** · **Lesson 11.1** (Redraft `6.10`) · **10 checkpoints (`63-radius` → `63h-outline`)** · **Study time: 5–10 h**
 
-> **Learning Goal:** Measure outline width in CSS pixels.
+> **What You Will Learn & Build:** Measure outline width in CSS pixels. By the final checkpoint (`63h-outline`), you will check real contours widths reuse picks and cleanup.
 
-## Visual WebGPU & Architecture Schematic
+## 1. Visual Pipeline & WebGPU Architecture (Black & White Schematics)
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1px solid #cbd5e1;border-radius:10px;background:#f8fafc;">
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
+<svg viewBox="0 0 840 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <rect x="4" y="4" width="832" height="212" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Lesson 11.1 Execution Flow: Coverage-based screen-space outlines</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">Concrete data pipeline you build in this lesson (10 Checkpoints: 63-radius → 63h-outline)</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
+  
+    
+    <rect x="18" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="89" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
+    <line x1="28" y1="92" x2="151" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">CSS radius</text>
+    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="183" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="254" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
+    <line x1="193" y1="92" x2="316" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">physical density</text>
+    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="348" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="419" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
+    <line x1="358" y1="92" x2="481" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">bounded sorted taps</text>
+    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="513" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="584" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
+    <line x1="523" y1="92" x2="646" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">shared coverage</text>
+    <text x="584" y="124" text-anchor="middle" font-size="11" fill="#111111">width</text>
+    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="678" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="749" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
+    <line x1="688" y1="92" x2="811" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">actual pixels and</text>
+    <text x="749" y="124" text-anchor="middle" font-size="11" fill="#111111">alpha</text>
+    
+    <rect x="18" y="162" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="32" y="181" font-size="11" font-weight="700" fill="#111111">Files You Edit in Lesson 11.1:</text>
+    <text x="215" y="181" font-size="11" fill="#111111">src/outline_math.rs  ·  src/lib.rs  ·  src/outline.wgsl  ·  src/outline_mask.wgsl  ·  src/outline_gpu.rs  ·  src/gpu_mesh.rs</text>
+    <text x="32" y="198" font-size="10.5" fill="#111111">10 Checkpoints: 63-radius → 63h-outline — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
+  
+</svg>
+</div>
+
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
 <svg viewBox="0 0 840 240" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#475569"/>
-    </marker>
-    <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#2563eb"/>
-    </marker>
-    <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#059669"/>
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
     </marker>
   </defs>
-  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
-  <text x="20" y="28" font-size="14" font-weight="700" fill="#0f172a">Chapter 9 CAD B-Rep Pipeline: Topological Loops/Trims, Crease Normals & Analytical Boundary Wires</text>
-  <text x="20" y="46" font-size="11.5" fill="#475569">How exact Boundary Representations (B-Rep) combine shaded trimmed surface meshes with crisp analytical boundary & isoline curves.</text>
-  <line x1="16" y1="54" x2="824" y2="54" stroke="#e2e8f0" stroke-width="1"/>
+  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Chapter 9 CAD B-Rep Pipeline: Topological Loops/Trims, Crease Normals & Analytical Boundary Wires</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">How exact Boundary Representations (B-Rep) combine shaded trimmed surface meshes with crisp analytical boundary & isoline curves.</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
   
-    <rect x="18" y="68" width="245" height="145" rx="6" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
-    <text x="140" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1e40af">1. B-Rep Topological Validation</text>
-    <text x="28" y="108" font-size="10.5" fill="#1e3a8a">• Solid -&gt; Faces -&gt; Loops (Outer + Holes)</text>
-    <text x="28" y="126" font-size="10.5" fill="#1e3a8a">• Trim curves in 2D (u, v) domain</text>
-    <text x="28" y="144" font-size="10.5" font-weight="600" fill="#1d4ed8">• Validate orientation, loop closure,</text>
-    <text x="28" y="160" font-size="10.5" font-weight="600" fill="#1d4ed8">  and manifold edge adjacency</text>
-    <text x="28" y="180" font-size="10.5" fill="#1e3a8a">• Preserve exact NURBS surface source</text>
+    <rect x="18" y="68" width="245" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="140" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">1. B-Rep Topological Validation</text>
+    <text x="28" y="108" font-size="10.5" fill="#111111">• Solid -&gt; Faces -&gt; Loops (Outer + Holes)</text>
+    <text x="28" y="126" font-size="10.5" fill="#111111">• Trim curves in 2D (u, v) domain</text>
+    <text x="28" y="144" font-size="10.5" font-weight="600" fill="#111111">• Validate orientation, loop closure,</text>
+    <text x="28" y="160" font-size="10.5" font-weight="600" fill="#111111">  and manifold edge adjacency</text>
+    <text x="28" y="180" font-size="10.5" fill="#111111">• Preserve exact NURBS surface source</text>
 
-    <line x1="263" y1="112" x2="295" y2="112" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
-    <line x1="263" y1="175" x2="295" y2="175" stroke="#059669" stroke-width="2" marker-end="url(#arrow-green)"/>
+    <line x1="263" y1="112" x2="295" y2="112" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
+    <line x1="263" y1="175" x2="295" y2="175" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="297" y="68" width="275" height="68" rx="6" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5"/>
-    <text x="309" y="86" font-size="11" font-weight="700" fill="#9a3412">2A. Shaded Trimmed Faces (Surface Lane)</text>
-    <text x="309" y="104" font-size="10.5" fill="#7c2d12">• Tessellate within (u,v) trim loops</text>
-    <text x="309" y="120" font-size="10.5" fill="#7c2d12">• Smooth normals across G1; split at creases!</text>
+    <rect x="297" y="68" width="275" height="68" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="309" y="86" font-size="11" font-weight="700" fill="#111111">2A. Shaded Trimmed Faces (Surface Lane)</text>
+    <text x="309" y="104" font-size="10.5" fill="#111111">• Tessellate within (u,v) trim loops</text>
+    <text x="309" y="120" font-size="10.5" fill="#111111">• Smooth normals across G1; split at creases!</text>
 
-    <rect x="297" y="145" width="275" height="68" rx="6" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1.5"/>
-    <text x="309" y="163" font-size="11" font-weight="700" fill="#065f46">2B. Boundary Wires &amp; Isolines (Ribbon Lane)</text>
-    <text x="309" y="181" font-size="10.5" fill="#064e3b">• Extract 3D topological edges + UV isolines</text>
-    <text x="309" y="197" font-size="10.5" fill="#064e3b">• Render via ribbon.wgsl with depth bias</text>
+    <rect x="297" y="145" width="275" height="68" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="309" y="163" font-size="11" font-weight="700" fill="#111111">2B. Boundary Wires &amp; Isolines (Ribbon Lane)</text>
+    <text x="309" y="181" font-size="10.5" fill="#111111">• Extract 3D topological edges + UV isolines</text>
+    <text x="309" y="197" font-size="10.5" fill="#111111">• Render via ribbon.wgsl with depth bias</text>
 
-    <line x1="572" y1="138" x2="602" y2="138" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>
+    <line x1="572" y1="138" x2="602" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="604" y="68" width="216" height="145" rx="6" fill="#fdf2f8" stroke="#f472b6" stroke-width="1.5"/>
-    <text x="712" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#9d174d">3. Unified B-Rep Sub-Picking</text>
-    <text x="616" y="108" font-size="10.5" fill="#831843">• Every triangle &amp; wire carries</text>
-    <text x="616" y="124" font-size="10.5" font-weight="600" fill="#9d174d">  [brep_owner_id, sub_id]</text>
-    <text x="616" y="144" font-size="10" fill="#831843">• Click selects whole B-Rep solid</text>
-    <text x="616" y="159" font-size="10" fill="#831843">  or drills into Face #i / Edge #j</text>
-    <text x="616" y="178" font-size="10.5" fill="#831843">• Outlines &amp; Point Clouds (Sec 6)</text>
-    <text x="616" y="193" font-size="10" fill="#831843">  share the same owner ID contract</text>
+    <rect x="604" y="68" width="216" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="712" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">3. Unified B-Rep Sub-Picking</text>
+    <text x="616" y="108" font-size="10.5" fill="#111111">• Every triangle &amp; wire carries</text>
+    <text x="616" y="124" font-size="10.5" font-weight="600" fill="#111111">  [brep_owner_id, sub_id]</text>
+    <text x="616" y="144" font-size="10" fill="#111111">• Click selects whole B-Rep solid</text>
+    <text x="616" y="159" font-size="10" fill="#111111">  or drills into Face #i / Edge #j</text>
+    <text x="616" y="178" font-size="10.5" fill="#111111">• Outlines &amp; Point Clouds (Sec 6)</text>
+    <text x="616" y="193" font-size="10" fill="#111111">  share the same owner ID contract</text>
     
 </svg>
 </div>
 
-### Lesson Data Flow (`Rust` → `WebGPU` → `WGSL`)
+## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
 
-```
-CSS radius → physical density → bounded sorted taps → shared coverage width.
-texture layouts → bounded parameter buffers → current shader → reusable pipelines.
-actual pixels and alpha → original picks and topology → cache reuse → resource cleanup.
-```
+Before writing code, review how the three layers in this chapter talk to each other:
 
-- Measure outline width in CSS pixels.
-- Build bounded mask and tap bindings.
-- Check real contours widths reuse picks and cleanup.
-- **Why it works (Should a smooth cylinder get a different outline radius from a box?):** No. Their visible coverage differs, but both use the same CSS radius and tap weights. Physical resolution changes with density; geometry size does not set screen ink width.
-
-### Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `Browser`)
-
-| Layer | Construct | First-Year Student Explanation |
+| Layer | Construct | Plain-English Explanation for Students |
 | :--- | :--- | :--- |
 | **CAD Topology** | `EdgeUse { edge_index, reversed, pcurve_2d }` | Connects two adjacent curved faces along one shared 3D `Edge` while giving each face its own oriented `(u, v)` trim curve. |
 | **WGSL (`splat.wgsl`)** | `let dist2 = dot(pixel_offset, pixel_offset); if dist2 > r2 { discard; }` | Turns each point quad into a crisp circular disc around an integer pixel center and discards corner fragments. |
 | **WGSL (`splat_resolve`)** | `exp(-edl_sum * 75.0 * strength)` | Computes Eye-Dome Lighting from neighbor depth discontinuities so unlit point clouds show 3D surface relief. |
 | **WGSL (`surface_outline`)** | Conservative mask dilation -> single composite | Detects silhouette and selection boundaries in screen space without duplicating 3D wire geometry. |
 
-**Production source (`session_viewer/src`):** [engine/gpu/surface_outline.rs](../../../../src/engine/gpu/surface_outline.rs), [engine/gpu/cloud.rs](../../../../src/engine/gpu/cloud.rs), [engine/gpu/lod.rs](../../../../src/engine/gpu/lod.rs), [engine/gpu/splat.rs](../../../../src/engine/gpu/splat.rs), [shaders/splat.wgsl](../../../../src/shaders/splat.wgsl), [shaders/splat_resolve.wgsl](../../../../src/shaders/splat_resolve.wgsl), [app/cloud_query.rs](../../../../src/app/cloud_query.rs).
+**Authoritative production source (`session_viewer/src`):** [engine/gpu/surface_outline.rs](../../../../src/engine/gpu/surface_outline.rs), [engine/gpu/cloud.rs](../../../../src/engine/gpu/cloud.rs), [engine/gpu/lod.rs](../../../../src/engine/gpu/lod.rs), [engine/gpu/splat.rs](../../../../src/engine/gpu/splat.rs), [shaders/splat.wgsl](../../../../src/shaders/splat.wgsl), [shaders/splat_resolve.wgsl](../../../../src/shaders/splat_resolve.wgsl), [app/cloud_query.rs](../../../../src/app/cloud_query.rs).
 
-## Implementation Checkpoints
+## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
 
-Apply these checkpoints in order inside `workspace/journey`. Expand each block to view the Rust/WGSL/HTML edits:
+| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
+| ---: | :--- | :--- | :--- | :--- |
+| **1** | [`63-radius`](#checkpoint-63-radius) | Measure outline width in CSS pixels. | `src/outline_math.rs`, `src/lib.rs` | `CSS radius → physical density → bounded sorted taps → shared coverage width` |
+| **2** | [`63a-coverage`](#checkpoint-63a-coverage) | Write bounded contour sampling and black-alpha composition. | `src/outline.wgsl`, `src/outline_mask.wgsl` | `original solid transforms → visible R8 coverage → coarse search → black alpha` |
+| **3** | [`63aa-pool-and-dilate-a-conservative-outline-mask`](#checkpoint-63aa-pool-and-dilate-a-conservative-outline-mask) | Accelerate bounded contour sampling with conservative coarse coverage. | `src/outline.wgsl` | `solid coverage → block maximum → neighboring-block dilation → skip empty contour work` |
+| **4** | [`63b-resources`](#checkpoint-63b-resources) | Own and count the derived outline textures. | `src/outline_gpu.rs`, `src/lib.rs` | `derived textures → owning masks → allocated bytes → explicit release` |
+| **5** | [`63c-pipelines`](#checkpoint-63c-pipelines) | Create the mask and fullscreen pipeline layouts. | `src/outline_gpu.rs` | `original vertex layout → depth mask pipeline → fullscreen pipeline → alpha blending` |
+| **6** | [`63d-bindings`](#checkpoint-63d-bindings) | Build bounded mask and tap bindings. | `src/outline_gpu.rs` | `texture layouts → bounded parameter buffers → current shader → reusable pipelines` |
+| **7** | [`63e-reuse`](#checkpoint-63e-reuse) | Reuse masks while camera selection and density stay unchanged. | `src/outline_gpu.rs` | `viewport and density → prepared masks → radius-keyed taps → invalidated frame key` |
+| **8** | [`63f-union`](#checkpoint-63f-union) | Outline the visible union without internal seams. | `src/gpu_mesh.rs`, `src/outline_gpu.rs` | `selected solids → depth-visible union → outside alpha → black load pass` |
+| **9** | [`63g-composite`](#checkpoint-63g-composite) | Connect a lazy silhouette owner to the renderer. | `src/renderer.rs` | `whole selection → lazy owner → black silhouette → immediate release` |
+| **10** | [`63h-outline`](#checkpoint-63h-outline) | Check real contours widths reuse picks and cleanup. | `src/outline_gpu.rs`, `src/renderer.rs`, `src/outline_math_tests.rs`, `src/lib.rs` | `actual pixels and alpha → original picks and topology → cache reuse → resource cleanup` |
+
+---
+
+## 4. Step-by-Step Coding Notebook (Concept + Implementation)
+
+Work through each notebook cell below in order inside `workspace/journey`. Read the **Concept Walkthrough** and **Self-Check Q&A** first, then expand the **Implementation** block to type and verify the code.
 
 <a id="checkpoint-63-radius"></a>
+
+### Step 1 of 10 · Measure outline width in CSS pixels (`63-radius`)
+
+- **Goal:** Measure outline width in CSS pixels.
+- **Data Flow Trace:** `CSS radius → physical density → bounded sorted taps → shared coverage width`
+- **Files You Touch:** `src/outline_math.rs` (*Convert the current production CSS radius and build bounded nearest-first coverage taps.*) · `src/lib.rs` (*Register the source component.*)
+
+Convert one production CSS radius to physical pixels and sort bounded coverage taps nearest first. Flat and curved solids use the same screen-space rule.
+
+> **Self-Check Question:** *Should a smooth cylinder get a different outline radius from a box?*  
+> **Answer:** No. Their visible coverage differs, but both use the same CSS radius and tap weights. Physical resolution changes with density; geometry size does not set screen ink width.
+
+- **What You Should See:** The selected original scene label and blue CAD bore remain visible. Select the CAD whole object after the compositor connects to see its silhouette.
+- **Hands-On Lab Experiment:** Compare densities 1, 1.5 and 2. Check the 12-physical-pixel cap, 512-tap bound and decreasing tap weights.
 
 <details>
 <summary>Implementation 63-radius: Measure outline width in CSS pixels</summary>
@@ -130,6 +196,24 @@ After that block, type:
 
 <a id="checkpoint-63a-coverage"></a>
 
+### Step 2 of 10 · Convolve solid coverage into external contour ink (`63a-coverage`)
+
+- **Goal:** Write bounded contour sampling and black-alpha composition.
+- **Data Flow Trace:** `original solid transforms → visible R8 coverage → coarse search → black alpha`
+- **Files You Touch:** `src/outline.wgsl` (*Type the bounded contour predicate and separate composition entry points.*) · `src/outline_mask.wgsl` (*Transform the original solid vertices and write only depth-visible coverage.*)
+
+Read center coverage and conservatively skip pixels whose coarse neighborhood is empty.
+
+Visit a bounded list of preweighted taps, keeping the strongest nearby coverage. Suppress the solid interior with one minus center coverage. The selected and ordinary masks retain separate radius witnesses; take their maximum before black-alpha composition so overlap is not blended twice.
+
+The mask shader writes derived solid coverage. The next lesson supplies conservative pooling and dilation; the existing resource and pipeline lessons then connect this shader to the browser frame.
+
+> **Self-Check Question:** *Why must contour ink exclude the source solid’s covered interior?*  
+> **Answer:** The mask describes the solid; the contour describes nearby uncovered pixels. Multiply sampled coverage by one minus center coverage, then compose the contour once.
+
+- **What You Should See:** The contour and composition entries are written, with the original geometry picture unchanged during preparation.
+- **Hands-On Lab Experiment:** Trace a covered interior pixel, an uncovered pixel beside an edge, and an empty distant pixel through coverage_at. Predict each output and identify the maximum number of texture reads.
+
 <details>
 <summary>Implementation 63a-coverage: Convolve solid coverage into external contour ink</summary>
 
@@ -160,6 +244,22 @@ Create the file and type:
 </details>
 
 <a id="checkpoint-63aa-pool-and-dilate-a-conservative-outline-mask"></a>
+
+### Step 3 of 10 · Pool and dilate a conservative outline mask (`63aa-pool-and-dilate-a-conservative-outline-mask`)
+
+- **Goal:** Accelerate bounded contour sampling with conservative coarse coverage.
+- **Data Flow Trace:** `solid coverage → block maximum → neighboring-block dilation → skip empty contour work`
+- **Files You Touch:** `src/outline.wgsl` (*Pool and dilate coverage without losing a possible contour hit.*)
+
+Pool each block with a maximum, then dilate by the neighboring blocks.
+
+The resulting mask conservatively marks where contour taps may encounter solid coverage. Clamp border reads and skip out-of-size pooled coordinates. This changes the amount of sampling work without changing the original CAD surface or the final coverage rule.
+
+> **Self-Check Question:** *Why can the coarse mask use a maximum rather than an average?*  
+> **Answer:** A maximum preserves any covered source pixel. An average could erase a small feature and incorrectly skip its outline work.
+
+- **What You Should See:** The completed shader contains contour, composition, pooling and dilation entry points; the following existing resource lessons connect them.
+- **Hands-On Lab Experiment:** Predict pooled and dilated values for a block containing one covered pixel, an empty block beside it, and an odd viewport edge. Explain why a mean would violate the early-out contract.
 
 <details>
 <summary>Implementation 63aa-pool-and-dilate-a-conservative-outline-mask: Pool and dilate a conservative outline mask</summary>
@@ -251,6 +351,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-63b-resources"></a>
 
+### Step 4 of 10 · Own and count the derived outline textures (`63b-resources`)
+
+- **Goal:** Own and count the derived outline textures.
+- **Data Flow Trace:** `derived textures → owning masks → allocated bytes → explicit release`
+- **Files You Touch:** `src/outline_gpu.rs` (*Own R8 images, frame keys, pipeline state and the reusable fullscreen preparation pass.*) · `src/lib.rs` (*Register the source component.*)
+
+Keep full-size coverage and alpha alongside two coarse masks. Count actual textures and retained parameter buffers; dropping an image destroys its GPU texture.
+
+> **Self-Check Question:** *Does a zero live draw count mean no GPU allocation remains?*  
+> **Answer:** No. Reserved textures and buffers still occupy memory. Report their actual bytes while owned; dropping the complete lazy outline owner releases those allocations.
+
+- **Hands-On Lab Experiment:** Compare full and coarse dimensions. Pooling rounds up at the right and bottom edges, including a viewport smaller than one block.
+
 <details>
 <summary>Implementation 63b-resources: Own and count the derived outline textures</summary>
 
@@ -292,6 +405,19 @@ After that block, type:
 
 <a id="checkpoint-63c-pipelines"></a>
 
+### Step 5 of 10 · Create the mask and fullscreen pipeline layouts (`63c-pipelines`)
+
+- **Goal:** Create the mask and fullscreen pipeline layouts.
+- **Data Flow Trace:** `original vertex layout → depth mask pipeline → fullscreen pipeline → alpha blending`
+- **Files You Touch:** `src/outline_gpu.rs` (*Create compatible mask and fullscreen pipelines without reallocating primary geometry.*)
+
+Bind original mesh positions for the depth-visible mask. Fullscreen stages read R8 textures; only the final black-alpha pass blends with scene colour.
+
+> **Self-Check Question:** *Should the mask pipeline replace the primary colour or integer pipeline?*  
+> **Answer:** No. It reuses original vertex buffers and compatible view/object bindings for a derived pass. The primary colour draw and integer ownership remain intact.
+
+- **Hands-On Lab Experiment:** Check the 24-byte vertex stride and forward LessEqual comparison. Compare the R8 preparation target with the scene-colour alpha-blended target.
+
 <details>
 <summary>Implementation 63c-pipelines: Create the mask and fullscreen pipeline layouts</summary>
 
@@ -322,6 +448,19 @@ After that block, type:
 </details>
 
 <a id="checkpoint-63d-bindings"></a>
+
+### Step 6 of 10 · Build bounded mask and tap bindings (`63d-bindings`)
+
+- **Goal:** Build bounded mask and tap bindings.
+- **Data Flow Trace:** `texture layouts → bounded parameter buffers → current shader → reusable pipelines`
+- **Files You Touch:** `src/outline_gpu.rs` (*Build explicit current shader bindings and fixed parameter capacity.*)
+
+Create explicit texture layouts, a 16-byte radius uniform and one fixed 8208-byte sorted-tap buffer. Keep pipelines reusable for the lazy outline owner.
+
+> **Self-Check Question:** *Why is the sorted-tap buffer larger than the used tap count?*  
+> **Answer:** It has fixed capacity for 512 sixteen-byte taps and a sixteen-byte header. The shader reads the live count, while diagnostics report the complete allocation.
+
+- **Hands-On Lab Experiment:** Match each shader group to its layout. The two search bindings share the same selected union mask, so the optional second production channel stays inactive.
 
 <details>
 <summary>Implementation 63d-bindings: Build bounded mask and tap bindings</summary>
@@ -356,6 +495,19 @@ Edit the existing block to match this code; keep unchanged lines:
 
 <a id="checkpoint-63e-reuse"></a>
 
+### Step 7 of 10 · Reuse masks while camera selection and density stay unchanged (`63e-reuse`)
+
+- **Goal:** Reuse masks while camera selection and density stay unchanged.
+- **Data Flow Trace:** `viewport and density → prepared masks → radius-keyed taps → invalidated frame key`
+- **Files You Touch:** `src/outline_gpu.rs` (*Prepare exact-size derived targets, bounded tap bytes and truthful resource counters.*)
+
+Allocate masks only when viewport size or coarse block changes. Upload the tap table only when physical radius changes; keep an explicit revision for scene and selection edits.
+
+> **Self-Check Question:** *Can an unchanged camera alone prove a cached outline is current?*  
+> **Answer:** No. Geometry, visibility and whole selection can change without moving the camera. Include their explicit revision, physical size and density in the reuse key.
+
+- **Hands-On Lab Experiment:** Read allocated-byte counters before and after a same-size preparation. Compare a camera change with a whole-selection change and a density change.
+
 <details>
 <summary>Implementation 63e-reuse: Reuse masks while camera selection and density stay unchanged</summary>
 
@@ -388,6 +540,19 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-63f-union"></a>
+
+### Step 8 of 10 · Outline the visible union without internal seams (`63f-union`)
+
+- **Goal:** Outline the visible union without internal seams.
+- **Data Flow Trace:** `selected solids → depth-visible union → outside alpha → black load pass`
+- **Files You Touch:** `src/gpu_mesh.rs` (*Read whole-selection state from the existing uploaded object uniform.*) · `src/outline_gpu.rs` (*Encode visible selected coverage, cached alpha and a black compositor after geometry ink.*)
+
+Draw all whole-selected solids into one depth-visible mask, then pool, dilate and search outside that union. The black pass loads colour after surface and source-edge ink.
+
+> **Self-Check Question:** *Should two touching selected objects have an outline along their shared join?*  
+> **Answer:** No. A union silhouette surrounds visible coverage, including real holes. Internal tessellation and shared solid joins remain inside the coverage and contribute no outline alpha.
+
+- **Hands-On Lab Experiment:** Compare touching boxes, a smooth cylinder and a block with a bore. Keep the bore center open and its inner contour black; leave original mesh/BRep topology untouched.
 
 <details>
 <summary>Implementation 63f-union: Outline the visible union without internal seams</summary>
@@ -442,6 +607,19 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-63g-composite"></a>
+
+### Step 9 of 10 · Connect a lazy silhouette owner to the renderer (`63g-composite`)
+
+- **Goal:** Connect a lazy silhouette owner to the renderer.
+- **Data Flow Trace:** `whole selection → lazy owner → black silhouette → immediate release`
+- **Files You Touch:** `src/renderer.rs` (*Connect whole-object silhouette invalidation, lazy compositing, current allocation counters and immediate owner release.*)
+
+Create the outline owner only when a whole solid is selected. Invalidate it on scene or selection edits, composite before widgets and text, and drop it immediately on deselection or Close.
+
+> **Self-Check Question:** *Should selecting one source face expand its highlight to the whole solid silhouette?*  
+> **Answer:** No. Partial face and edge highlights keep their local footprint. This pass follows whole-object selection only; the earlier locality regression remains unchanged.
+
+- **Hands-On Lab Experiment:** Select a whole CAD object, then deselect it. Compare derived bytes, primary upload counts and stable original IDs; repeat an unchanged frame to inspect the skip counter.
 
 <details>
 <summary>Implementation 63g-composite: Connect a lazy silhouette owner to the renderer</summary>
@@ -1109,6 +1287,20 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-63h-outline"></a>
 
+### Step 10 of 10 · Check real contours widths reuse picks and cleanup (`63h-outline`)
+
+- **Goal:** Check real contours widths reuse picks and cleanup.
+- **Data Flow Trace:** `actual pixels and alpha → original picks and topology → cache reuse → resource cleanup`
+- **Files You Touch:** `src/outline_gpu.rs` (*Copy the test-only actual-alpha readback accessor.*) · `src/renderer.rs` (*Copy test-only R8 alpha readback with bounded row pitch and wait.*) · `src/outline_math_tests.rs` (*Copy the current production radius, tap capacity and order regressions.*) · `src/lib.rs` (*Register the source component.*) · `src/pick_gpu_tests.rs` (*Copy actual joined-solid, occlusion, curved/flat density, bore-contour, source/pick/reuse/release regressions.*) · `src/browser.rs` (*Expose actual outline allocation, rebuild, skip and compositor draw counters.*)
+
+Copy the actual GPU silhouette regressions and connect browser diagnostics. Verify both original source lanes and two CSS densities before calling silhouette acceptance complete.
+
+> **Self-Check Question:** *Does a native software-GPU check establish smooth Lenovo rotation?*  
+> **Answer:** No. It establishes rendered behavior and source/resource invariants. Fresh browser acceptance and same-hardware full-floor and dome timing remain separate required checks.
+
+- **What You Should See:** Type Close, Example CAD, Fit and View Isometric, then Select Next. The selected CAD solid has black outer and bore contours. Whole selection creates derived outline resources; deselection and Close drop them. Repeat an unchanged frame to reuse coverage, and compare curved and flat solids at both CSS densities.
+- **Hands-On Lab Experiment:** Type Close, Example CAD, Fit and View Isometric, then Select Next. Inspect the black outer and bore contours. Deselect, select a source face, and confirm its highlight remains local.
+
 <details>
 <summary>Implementation 63h-outline: Check real contours widths reuse picks and cleanup</summary>
 
@@ -1269,9 +1461,11 @@ Edit the existing block to match this code; keep unchanged lines:
 
 </details>
 
-## Run, Check, and Save
+---
 
-From `session_viewer`:
+## 5. Build, Verify, and Save Your Checkpoint
+
+Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 63h-outline
@@ -1282,12 +1476,12 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. Use [checkpoint recovery](../../recovery.md) to restore any saved checkpoint.
+Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
 
-## Expected Visual Result & Experiment
+## 6. Lesson Summary & Expected Visual Result
 
 Type Close, Example CAD, Fit and View Isometric, then Select Next. The selected CAD solid has black outer and bore contours. Whole selection creates derived outline resources; deselection and Close drop them. Repeat an unchanged frame to reuse coverage, and compare curved and flat solids at both CSS densities.
 
-- **Try this:** Type Close, Example CAD, Fit and View Isometric, then Select Next. Inspect the black outer and bore contours. Deselect, select a source face, and confirm its highlight remains local.
+- **Final Lesson Experiment:** Type Close, Example CAD, Fit and View Isometric, then Select Next. Inspect the black outer and bore contours. Deselect, select a source face, and confirm its highlight remains local.
 
-Continue with [Validated original cloud columns and placed owners](64-nodes.md).
+Continue with [Validated original cloud columns and placed owners](../../consolidation/64-nodes.md).

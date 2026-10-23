@@ -1,92 +1,166 @@
 # 20.5 · Original picks, ambient metadata and cap consumers
 
-**Section 10: Shared GPU Arenas, Floating-Origin Precision, Multisampling, and Production Parity** · **Lesson 20.5** (Redraft `10.9`) · **16 checkpoints (`96zzzs-allocate-stable-object-record-rows` → `96zzzzh-pick-caps-through-shared-records`)**
+**Section 10: Shared GPU Arenas, Floating-Origin Precision, Multisampling, and Production Parity** · **Lesson 20.5** (Redraft `10.9`) · **16 checkpoints (`96zzzs-allocate-stable-object-record-rows` → `96zzzzh-pick-caps-through-shared-records`)** · **Study time: 12.800000000000002–16 h**
 
-> **Learning Goal:** Prepare bounded row reuse without moving surviving originals.
+> **What You Will Learn & Build:** Prepare bounded row reuse without moving surviving originals. By the final checkpoint (`96zzzzh-pick-caps-through-shared-records`), you will connect both cap crossing passes to current records and retain original owners.
 
-## Visual WebGPU & Architecture Schematic
+## 1. Visual Pipeline & WebGPU Architecture (Black & White Schematics)
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1px solid #cbd5e1;border-radius:10px;background:#f8fafc;">
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
+<svg viewBox="0 0 840 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <rect x="4" y="4" width="832" height="212" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Lesson 20.5 Execution Flow: Original picks, ambient metadata and cap consumers</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">Concrete data pipeline you build in this lesson (16 Checkpoints: 96zzzs-allocate-stable-object-record-rows → 96zzzzh-pick-caps-through-shared-records)</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
+  
+    
+    <rect x="18" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="89" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
+    <line x1="28" y1="92" x2="151" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">Original IDs plus</text>
+    <text x="89" y="124" text-anchor="middle" font-size="11" fill="#111111">previous rows</text>
+    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="183" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="254" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
+    <line x1="193" y1="92" x2="316" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">retained rows and</text>
+    <text x="254" y="124" text-anchor="middle" font-size="11" fill="#111111">reused holes</text>
+    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="348" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="419" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
+    <line x1="358" y1="92" x2="481" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">Current record and</text>
+    <text x="419" y="124" text-anchor="middle" font-size="11" fill="#111111">explicit plane</text>
+    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="513" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="584" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
+    <line x1="523" y1="92" x2="646" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">atomic crossings</text>
+    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="678" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="749" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
+    <line x1="688" y1="92" x2="811" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">original integer</text>
+    <text x="749" y="124" text-anchor="middle" font-size="11" fill="#111111">cap owner</text>
+    
+    <rect x="18" y="162" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="32" y="181" font-size="11" font-weight="700" fill="#111111">Files You Edit in Lesson 20.5:</text>
+    <text x="215" y="181" font-size="11" fill="#111111">src/instance_gpu.rs  ·  src/global_outline_tests.rs  ·  src/object_rows.rs  ·  src/triangle_pick.wgsl  ·  src/pick_pipeline.rs  ·  src/pick_gpu.rs</text>
+    <text x="32" y="198" font-size="10.5" fill="#111111">16 Checkpoints: 96zzzs-allocate-stable-object-record-rows → 96zzzzh-pick-caps-through-shared-records — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
+  
+</svg>
+</div>
+
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
 <svg viewBox="0 0 840 240" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#475569"/>
-    </marker>
-    <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#2563eb"/>
-    </marker>
-    <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#059669"/>
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
     </marker>
   </defs>
-  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
-  <text x="20" y="28" font-size="14" font-weight="700" fill="#0f172a">Section 10 Production Architecture: Shared GPU Storage Arena, f64 Floating Origin, Reversed-Z, 4x MSAA & Matrix Shader</text>
-  <text x="20" y="46" font-size="11.5" fill="#475569">How the maintained viewer pulls vertices from one growable GPU arena, eliminates jitter at 10^12 units, and renders procedural Matrices.</text>
-  <line x1="16" y1="54" x2="824" y2="54" stroke="#e2e8f0" stroke-width="1"/>
+  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Section 10 Production Architecture: Shared GPU Storage Arena, f64 Floating Origin, Reversed-Z, 4x MSAA & Matrix Shader</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">How the maintained viewer pulls vertices from one growable GPU arena, eliminates jitter at 10^12 units, and renders procedural Matrices.</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
   
-    <rect x="18" y="68" width="250" height="145" rx="6" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
-    <text x="143" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1e40af">1. Shared GPU Arena (Ch 19–20)</text>
-    <text x="28" y="108" font-size="10.5" fill="#1e3a8a">• 1 Growable Storage Buffer Arena</text>
-    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#1d4ed8">• Vertex Pulling (@builtin(vertex_index))</text>
-    <text x="28" y="144" font-size="10.5" fill="#1e3a8a">• 8-byte Draw Slots -&gt; ObjectRecord</text>
-    <text x="28" y="162" font-size="10.5" fill="#1e3a8a">• slot_table.wgsl maps Rg32Uint</text>
-    <text x="28" y="178" font-size="10.5" fill="#1e3a8a">  primitive IDs to Element/Face owners</text>
-    <text x="28" y="194" font-size="10" fill="#1e3a8a">• Free-list span reuse after GPU lease</text>
+    <rect x="18" y="68" width="250" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="143" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">1. Shared GPU Arena (Ch 19–20)</text>
+    <text x="28" y="108" font-size="10.5" fill="#111111">• 1 Growable Storage Buffer Arena</text>
+    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#111111">• Vertex Pulling (@builtin(vertex_index))</text>
+    <text x="28" y="144" font-size="10.5" fill="#111111">• 8-byte Draw Slots -&gt; ObjectRecord</text>
+    <text x="28" y="162" font-size="10.5" fill="#111111">• slot_table.wgsl maps Rg32Uint</text>
+    <text x="28" y="178" font-size="10.5" fill="#111111">  primitive IDs to Element/Face owners</text>
+    <text x="28" y="194" font-size="10" fill="#111111">• Free-list span reuse after GPU lease</text>
 
-    <line x1="268" y1="138" x2="298" y2="138" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
+    <line x1="268" y1="138" x2="298" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="300" y="68" width="265" height="145" rx="6" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5"/>
-    <text x="432" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#9a3412">2. f64 Floating Origin &amp; Reversed-Z (Ch 21)</text>
-    <text x="312" y="108" font-size="10.5" font-weight="600" fill="#c2410c">• rel_f32 = (world_f64 - anchor_f64) as f32</text>
-    <text x="312" y="125" font-size="10" fill="#7c2d12">  Zero vertex/grid jitter even at 10^12 m!</text>
-    <text x="312" y="144" font-size="10.5" font-weight="600" fill="#c2410c">• Reversed-Z Depth (GreaterEqual):</text>
-    <text x="312" y="160" font-size="10" fill="#7c2d12">  Near plane = 1.0, Far plane = 0.0</text>
-    <text x="312" y="178" font-size="10.5" fill="#7c2d12">• Held world base grid &amp; preserved</text>
-    <text x="312" y="193" font-size="10.5" fill="#7c2d12">  live camera during Session reload</text>
+    <rect x="300" y="68" width="265" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="432" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">2. f64 Floating Origin &amp; Reversed-Z (Ch 21)</text>
+    <text x="312" y="108" font-size="10.5" font-weight="600" fill="#111111">• rel_f32 = (world_f64 - anchor_f64) as f32</text>
+    <text x="312" y="125" font-size="10" fill="#111111">  Zero vertex/grid jitter even at 10^12 m!</text>
+    <text x="312" y="144" font-size="10.5" font-weight="600" fill="#111111">• Reversed-Z Depth (GreaterEqual):</text>
+    <text x="312" y="160" font-size="10" fill="#111111">  Near plane = 1.0, Far plane = 0.0</text>
+    <text x="312" y="178" font-size="10.5" fill="#111111">• Held world base grid &amp; preserved</text>
+    <text x="312" y="193" font-size="10.5" fill="#111111">  live camera during Session reload</text>
 
-    <line x1="565" y1="138" x2="595" y2="138" stroke="#059669" stroke-width="2" marker-end="url(#arrow-green)"/>
+    <line x1="565" y1="138" x2="595" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="597" y="68" width="223" height="145" rx="6" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1.5"/>
-    <text x="708" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#065f46">3. 4x MSAA &amp; Matrix Shader (Ch 22)</text>
-    <text x="609" y="108" font-size="10.5" fill="#064e3b">• Coherent 1x/4x MSAA sample targets</text>
-    <text x="609" y="126" font-size="10.5" font-weight="600" fill="#047857">• matrix.wgsl (16w header + 3w/cell):</text>
-    <text x="609" y="142" font-size="10" fill="#064e3b">  Heatmap + procedural 3-decimal digits</text>
-    <text x="609" y="157" font-size="10" fill="#064e3b">  (0 cell blank; plate-less title; yellow</text>
-    <text x="609" y="172" font-size="10" fill="#064e3b">  selected border; Rg32Uint whole pick)</text>
-    <text x="609" y="190" font-size="10" fill="#064e3b">• Coalesced single-flight frame scheduler</text>
+    <rect x="597" y="68" width="223" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="708" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">3. 4x MSAA &amp; Matrix Shader (Ch 22)</text>
+    <text x="609" y="108" font-size="10.5" fill="#111111">• Coherent 1x/4x MSAA sample targets</text>
+    <text x="609" y="126" font-size="10.5" font-weight="600" fill="#111111">• matrix.wgsl (16w header + 3w/cell):</text>
+    <text x="609" y="142" font-size="10" fill="#111111">  Heatmap + procedural 3-decimal digits</text>
+    <text x="609" y="157" font-size="10" fill="#111111">  (0 cell blank; plate-less title; yellow</text>
+    <text x="609" y="172" font-size="10" fill="#111111">  selected border; Rg32Uint whole pick)</text>
+    <text x="609" y="190" font-size="10" fill="#111111">• Coalesced single-flight frame scheduler</text>
     
 </svg>
 </div>
 
-### Lesson Data Flow (`Rust` → `WebGPU` → `WGSL`)
+## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
 
-```
-Original IDs plus previous rows → retained rows and reused holes.
-Current packed-record match → object row → prepared projection shader lookup.
-Current record and explicit plane → atomic crossings → original integer cap owner.
-```
+Before writing code, review how the three layers in this chapter talk to each other:
 
-- Prepare bounded row reuse without moving surviving originals.
-- Prepare the compute shader to select the same current object row.
-- Connect both cap crossing passes to current records and retain original owners.
-- **Why it works (Why retain surviving rows before assigning new IDs?):** Assigning a new ID first could steal a row still owned by a live object. Reserve survivors, then reuse only free rows.
-
-### Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `Browser`)
-
-| Layer | Construct | First-Year Student Explanation |
+| Layer | Construct | Plain-English Explanation for Students |
 | :--- | :--- | :--- |
 | **WGSL (Vertex Pull)** | `@group(0) @binding(b) var<storage, read> arena_verts: array<u32>;` | Fetches packed vertex positions, normals, and colors directly from a single growable storage buffer using `@builtin(vertex_index)`. |
 | **Rust/WGSL (`f64`->`f32`)** | `let rel: Vec3 = (world_f64 - anchor_f64).as_vec3();` | Subtracts the camera-area `f64` anchor on the CPU before converting to `f32`, preventing 32-bit float mantissa exhaustion far from `(0,0,0)`. |
 | **WGSL (`matrix.wgsl`)** | 16-word header + 3 words/cell procedural digits | Renders matrix heatmaps and 3-decimal numeric digits procedurally inside the fragment shader with zero texture uploads per cell. |
 | **Rust (`ink_ranges.rs`)** | Merged contiguous `Range<u32>` instance draws | Toggles point/line/edge/CAD-wire family visibility without rebuilding GPU buffers or invalidating original owner indices. |
 
-**Production source (`session_viewer/src`):** [engine/gpu/arena.rs](../../../../src/engine/gpu/arena.rs), [engine/gpu/buffers.rs](../../../../src/engine/gpu/buffers.rs), [engine/gpu/objects.rs](../../../../src/engine/gpu/objects.rs), [engine/gpu/slots.rs](../../../../src/engine/gpu/slots.rs), [engine/gpu/instanced.rs](../../../../src/engine/gpu/instanced.rs), [engine/gpu/faces.rs](../../../../src/engine/gpu/faces.rs), [engine/gpu/clip.rs](../../../../src/engine/gpu/clip.rs), [engine/gpu/triangle_tiles.rs](../../../../src/engine/gpu/triangle_tiles.rs), [app/scene_sync/tombs.rs](../../../../src/app/scene_sync/tombs.rs), [build.rs](../../../../build.rs).
+**Authoritative production source (`session_viewer/src`):** [engine/gpu/arena.rs](../../../../src/engine/gpu/arena.rs), [engine/gpu/buffers.rs](../../../../src/engine/gpu/buffers.rs), [engine/gpu/objects.rs](../../../../src/engine/gpu/objects.rs), [engine/gpu/slots.rs](../../../../src/engine/gpu/slots.rs), [engine/gpu/instanced.rs](../../../../src/engine/gpu/instanced.rs), [engine/gpu/faces.rs](../../../../src/engine/gpu/faces.rs), [engine/gpu/clip.rs](../../../../src/engine/gpu/clip.rs), [engine/gpu/triangle_tiles.rs](../../../../src/engine/gpu/triangle_tiles.rs), [app/scene_sync/tombs.rs](../../../../src/app/scene_sync/tombs.rs), [build.rs](../../../../build.rs).
 
-## Implementation Checkpoints
+## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
 
-Apply these checkpoints in order inside `workspace/journey`. Expand each block to view the Rust/WGSL/HTML edits:
+| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
+| ---: | :--- | :--- | :--- | :--- |
+| **1** | [`96zzzs-allocate-stable-object-record-rows`](#checkpoint-96zzzs-allocate-stable-object-record-rows) | Prepare bounded row reuse without moving surviving originals. | `src/instance_gpu.rs` | `Original IDs plus previous rows → retained rows and reused holes` |
+| **2** | [`96zzzt-retain-live-surface-record-rows`](#checkpoint-96zzzt-retain-live-surface-record-rows) | Connect stable row reuse to the existing surface record table. | `src/instance_gpu.rs`, `src/global_outline_tests.rs` | `Live original IDs → stable record indices → existing draw slots` |
+| **3** | [`96zzzu-prepare-shared-record-pick-consumers`](#checkpoint-96zzzu-prepare-shared-record-pick-consumers) | Share the storage layout and shader adaptation before connecting first picks. | `src/object_rows.rs`, `src/instance_gpu.rs`, `src/triangle_pick.wgsl` | `Object record → flat original owner plus physical primitive → integer pick fragment` |
+| **4** | [`96zzzv-pick-originals-through-shared-records`](#checkpoint-96zzzv-pick-originals-through-shared-records) | Connect first surface picks to current shared object records. | `src/instance_gpu.rs`, `src/pick_pipeline.rs`, `src/pick_gpu.rs`, `src/pick_encode.rs` | `Current shared record and slot → original owner and physical primitive → existing asynchronous readback` |
+| **5** | [`96zzzw-read-source-faces-through-shared-records`](#checkpoint-96zzzw-read-source-faces-through-shared-records) | Connect original source-face picking to the same current object records. | `src/instance_gpu.rs`, `src/face_pick.wgsl`, `src/face_pick.rs`, `src/pick_encode.rs` | `Current object record → original source face plus original owner → existing face readback` |
+| **6** | [`96zzzx-pack-existing-ambient-radius-in-object-records`](#checkpoint-96zzzx-pack-existing-ambient-radius-in-object-records) | Carry the existing source radius in a spare aligned record word. | `src/gpu_mesh.rs`, `src/renderer.rs`, `src/ambient_sources.wgsl`, `src/ambient_source_pipeline.rs` | `Existing placed-source radius → exact float bits in aligned object record → prepared property vertex entry` |
+| **7** | [`96zzzy-read-ambient-properties-through-shared-records`](#checkpoint-96zzzy-read-ambient-properties-through-shared-records) | Connect source normal and radius drawing to the existing object table. | `src/ambient_source_pipeline.rs`, `src/ambient_source_gpu.rs`, `src/ambient_gpu.rs`, `src/renderer.rs` | `Current object row and arena geometry → original source normals and radius → existing ambient recipe` |
+| **8** | [`96zzzz-share-the-object-record-shader-schema`](#checkpoint-96zzzz-share-the-object-record-shader-schema) | Keep one aligned object record declaration across drawing, caps and projection. | `src/object_settings.wgsl`, `src/triangle.wgsl`, `src/cap_count.wgsl`, `src/finite_project.wgsl` | `One aligned object declaration → raster and compute shader assembly → unchanged GPU bytes` |
+| **9** | [`96zzzza-prepare-shared-record-triangle-projection`](#checkpoint-96zzzza-prepare-shared-record-triangle-projection) | Prepare the compute shader to select the same current object row. | `src/instance_gpu.rs`, `src/finite_project.wgsl`, `src/finite_project_source.rs` | `Current packed-record match → object row → prepared projection shader lookup` |
+| **10** | [`96zzzzb-project-triangles-through-shared-records`](#checkpoint-96zzzzb-project-triangles-through-shared-records) | Connect finite triangle projection to the current shared object table. | `src/tile_pipelines.rs`, `src/tile_gpu.rs`, `src/renderer.rs`, `src/global_outline_tests.rs` | `Current object row and arena interval → existing triangle projection → unchanged finite visibility` |
+| **11** | [`96zzzzc-prepare-shared-record-cap-counting`](#checkpoint-96zzzzc-prepare-shared-record-cap-counting) | Separate cap crossing geometry from the object resource and vertex format. | `src/cap_count.wgsl`, `src/cap_pipeline.rs` | `Selected object and plane → existing crossing function → unchanged cap color and owner` |
+| **12** | [`96zzzzd-prepare-cap-plane-and-arena-bindings`](#checkpoint-96zzzzd-prepare-cap-plane-and-arena-bindings) | Prepare explicit plane parameters with current immutable arena bindings. | `src/cap_geometry.rs`, `src/lib.rs` | `Explicit plane plus current arena buffers → reusable cap geometry group` |
+| **13** | [`96zzzze-count-cap-color-through-shared-records`](#checkpoint-96zzzze-count-cap-color-through-shared-records) | Connect cap crossing color to current object records and explicit planes. | `src/cap_count.wgsl`, `src/cap_pipeline.rs`, `src/caps_gpu.rs`, `src/renderer.rs` | `Current object row plus explicit plane → original crossing count → unchanged cap color and depth` |
+| **14** | [`96zzzzf-prepare-shared-record-cap-picks`](#checkpoint-96zzzzf-prepare-shared-record-cap-picks) | Prepare both cap pick crossing states without changing original ownership. | `src/cap_count.wgsl`, `src/cap_pick_pipeline.rs`, `src/current_inventory.json` | `Existing pick resources plus explicit arena range → shared vertex entry → unchanged crossing fragments` |
+| **15** | [`96zzzzg-own-shared-record-cap-pick-resources`](#checkpoint-96zzzzg-own-shared-record-cap-pick-resources) | Reuse explicit plane and arena bindings under the existing pick lifetime. | `src/cap_geometry.rs`, `src/cap_pick_gpu.rs`, `src/current_inventory.json` | `Pick preparation → bounded plane values and current bindings → existing pick lifetime` |
+| **16** | [`96zzzzh-pick-caps-through-shared-records`](#checkpoint-96zzzzh-pick-caps-through-shared-records) | Connect both cap crossing passes to current records and retain original owners. | `src/cap_pick_gpu.rs`, `src/caps_gpu.rs`, `src/pick_encode.rs`, `src/cap_pick_tests.rs` | `Current record and explicit plane → atomic crossings → original integer cap owner` |
+
+---
+
+## 4. Step-by-Step Coding Notebook (Concept + Implementation)
+
+Work through each notebook cell below in order inside `workspace/journey`. Read the **Concept Walkthrough** and **Self-Check Q&A** first, then expand the **Implementation** block to type and verify the code.
 
 <a id="checkpoint-96zzzs-allocate-stable-object-record-rows"></a>
+
+### Step 1 of 16 · Allocate stable object record rows (`96zzzs-allocate-stable-object-record-rows`)
+
+- **Goal:** Prepare bounded row reuse without moving surviving originals.
+- **Data Flow Trace:** `Original IDs plus previous rows → retained rows and reused holes`
+- **Files You Touch:** `src/instance_gpu.rs` (*Retain surviving original IDs, reuse the lowest free row and enforce the shared device bound.*)
+
+A packed table can retain a live object at the same row across edits. Preserve rows belonging to surviving IDs, then assign new objects to the lowest free rows. Retired holes are reusable. Bound every row by the same device capacity already used by the record writer. This lesson prepares the allocator; the next lesson connects it to drawing.
+
+> **Self-Check Question:** *Why retain surviving rows before assigning new IDs?*  
+> **Answer:** Assigning a new ID first could steal a row still owned by a live object. Reserve survivors, then reuse only free rows.
+
+- **What You Should See:** The bounded stable-row allocator is written; drawing still uses the earlier sequential rows.
+- **Hands-On Lab Experiment:** Inspect the supplied reorder, deletion, insertion and capacity fixture. In the browser, use the existing copied-object selection and opacity exercise; allocation is not connected yet.
 
 <details>
 <summary>Implementation 96zzzs-allocate-stable-object-record-rows: Allocate stable object record rows</summary>
@@ -162,6 +236,20 @@ After that block, append this supplied code:
 </details>
 
 <a id="checkpoint-96zzzt-retain-live-surface-record-rows"></a>
+
+### Step 2 of 16 · Retain live surface record rows (`96zzzt-retain-live-surface-record-rows`)
+
+- **Goal:** Connect stable row reuse to the existing surface record table.
+- **Data Flow Trace:** `Live original IDs → stable record indices → existing draw slots`
+- **Files You Touch:** `src/instance_gpu.rs` (*Reserve surviving rows before regrouping instance geometry and reuse retired holes.*) · `src/global_outline_tests.rs` (*Supply retained original-row checks through removal and insertion, exact mapped records and full release.*)
+
+Rebuilding geometry batches must not renumber surviving object records. Use the allocator just written, store each packed record at its retained row, and let draw slots select that row. Retired holes contain zero records until a new original reuses them. Keep the existing scene order and geometry batches; release the whole table when the last surface leaves.
+
+> **Self-Check Question:** *Why can draw slots remain dense while object records contain holes?*  
+> **Answer:** A draw slot explicitly names its object row. Slot order serves geometry batches; record indices retain live ownership independently.
+
+- **What You Should See:** Surviving visible surfaces retain their record rows through removal, insertion and batching changes.
+- **Hands-On Lab Experiment:** Copy a surface, remove one original, add another and select the survivors. Compare transparency and picks, then reload an empty scene to release the table.
 
 <details>
 <summary>Implementation 96zzzt-retain-live-surface-record-rows: Retain live surface record rows</summary>
@@ -389,6 +477,20 @@ Update the existing block with this supplied code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-96zzzu-prepare-shared-record-pick-consumers"></a>
+
+### Step 3 of 16 · Prepare shared record pick consumers (`96zzzu-prepare-shared-record-pick-consumers`)
+
+- **Goal:** Share the storage layout and shader adaptation before connecting first picks.
+- **Data Flow Trace:** `Object record → flat original owner plus physical primitive → integer pick fragment`
+- **Files You Touch:** `src/object_rows.rs` (*Own the record layout and shader adaptation once for every shared consumer.*) · `src/instance_gpu.rs` (*Reuse the exact existing storage binding contract.*) · `src/triangle_pick.wgsl` (*Carry the original owner as a flat unsigned vertex result.*)
+
+The pick fragment needs the original owner, not an object buffer of its own. Carry that integer from the selected object record through a flat vertex output. Reuse one record layout and one shader adaptation for shared consumers. Add a slot-aware vertex entry beside the existing ordinary entry; both call the same geometry helper. The next lesson selects the storage entry when a current record exists.
+
+> **Self-Check Question:** *Why carry an unsigned owner through the vertex output?*  
+> **Answer:** The fragment must identify the original object selected by the draw slot. A flat unsigned varying preserves every ID and removes its direct uniform dependency.
+
+- **What You Should See:** Ordinary picks preserve their earlier owner and primitive output; shared record picking is prepared but not connected.
+- **Hands-On Lab Experiment:** Pick both copied originals and an original source face. Inspect the slot-aware entry and compare the existing high-bit original-ID GPU fixtures.
 
 <details>
 <summary>Implementation 96zzzu-prepare-shared-record-pick-consumers: Prepare shared record pick consumers</summary>
@@ -653,6 +755,20 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-96zzzv-pick-originals-through-shared-records"></a>
+
+### Step 4 of 16 · Pick originals through shared records (`96zzzv-pick-originals-through-shared-records`)
+
+- **Goal:** Connect first surface picks to current shared object records.
+- **Data Flow Trace:** `Current shared record and slot → original owner and physical primitive → existing asynchronous readback`
+- **Files You Touch:** `src/instance_gpu.rs` (*Share current-record validation and the existing record/slot draw across color and first picks.*) · `src/pick_pipeline.rs` (*Reuse one pick pipeline descriptor for the uniform and shared-record entries.*) · `src/pick_gpu.rs` (*Own the shared pick state beside the existing fallback state.*) · `src/pick_encode.rs` (*Accept shared surface records without altering the other pick passes.*) · `src/renderer.rs` (*Use the renderer’s existing record owner for original first picks.*)
+
+Select the slot-aware pick vertex entry when the object has a current shared record. Bind the same record and slot already used for color drawing. Preserve the earlier uniform pick path for capacity or changed-record fallbacks. Both states use one pipeline descriptor, shader and pick fragment; readback and stale-request cancellation remain unchanged.
+
+> **Self-Check Question:** *Why retain the packed-record match guard for picking?*  
+> **Answer:** A mesh may have a newer placement or primitive base than the table snapshot. The guard uses its current uniform until the shared table refreshes, preserving the existing exact picks.
+
+- **What You Should See:** First surface picks consume current shared records while retaining original ownership and stale-request protection.
+- **Hands-On Lab Experiment:** Pick both placements at Opacity 0.95 and 1, select and restore them, then reload a different scene while a read is pending. Inspect the unchanged high-bit and relocated-range pick fixtures.
 
 <details>
 <summary>Implementation 96zzzv-pick-originals-through-shared-records: Pick originals through shared records</summary>
@@ -1348,6 +1464,20 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-96zzzw-read-source-faces-through-shared-records"></a>
 
+### Step 5 of 16 · Read source faces through shared records (`96zzzw-read-source-faces-through-shared-records`)
+
+- **Goal:** Connect original source-face picking to the same current object records.
+- **Data Flow Trace:** `Current object record → original source face plus original owner → existing face readback`
+- **Files You Touch:** `src/instance_gpu.rs` (*Reuse current-record validation and slot binding for consumers with different geometry layouts.*) · `src/face_pick.wgsl` (*Carry original ownership into the source-face fragment as an unsigned value.*) · `src/face_pick.rs` (*Keep a shared-record source-face state beside the existing fallback.*) · `src/pick_encode.rs` (*Share the original object table with both first and source-face pick passes.*)
+
+A source face needs its original face metadata as well as placement and owner. Bind the existing shared object row and slot, then retain the source-face buffers and crop group. Separate record binding from geometry drawing so each consumer can keep its own geometry layout. Both source-face pipeline states share one descriptor and shader; their owner travels through the same unsigned vertex result.
+
+> **Self-Check Question:** *Why separate binding an object record from drawing its geometry?*  
+> **Answer:** The source-face pass has its own face metadata and crop groups. It can reuse the current object row and slot while preserving those consumer-specific bindings.
+
+- **What You Should See:** Original source-face reads consume current shared object records with exact owner and face identity.
+- **Hands-On Lab Experiment:** Select Face on ordinary and copied surfaces. Move and restore a copied original, then repeat the face pick. Inspect the unchanged relocated-range and original-hole face fixtures.
+
 <details>
 <summary>Implementation 96zzzw-read-source-faces-through-shared-records: Read source faces through shared records</summary>
 
@@ -1814,6 +1944,20 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-96zzzx-pack-existing-ambient-radius-in-object-records"></a>
 
+### Step 6 of 16 · Pack existing ambient radius in object records (`96zzzx-pack-existing-ambient-radius-in-object-records`)
+
+- **Goal:** Carry the existing source radius in a spare aligned record word.
+- **Data Flow Trace:** `Existing placed-source radius → exact float bits in aligned object record → prepared property vertex entry`
+- **Files You Touch:** `src/gpu_mesh.rs` (*Store the existing source radius in the spare aligned word and write only a changed value.*) · `src/renderer.rs` (*Reuse the existing source-bound calculations before refreshing shared records.*) · `src/ambient_sources.wgsl` (*Reuse the surface view and object declarations instead of repeating their storage contract.*) · `src/ambient_source_pipeline.rs` (*Assemble property shading with the surface record and geometry helpers already written.*)
+
+The ambient radius is already computed from the placed source bounds. Preserve that one calculation and store its float bits in the spare range word. Keep it when selection updates rebuild the packed record. Refactor the property vertex stage into one helper and prepare a slot-aware entry. Property drawing still uses its earlier uniform pipeline until the next lesson connects the shared entry.
+
+> **Self-Check Question:** *Why bitcast the radius instead of converting its numeric value to an integer?*  
+> **Answer:** The record range is an unsigned vector. A bitcast preserves the original float bits, including fractional radii; numeric conversion would truncate the radius.
+
+- **What You Should See:** Object records carry the existing source radius and ordinary property drawing retains its earlier output.
+- **Hands-On Lab Experiment:** Toggle Arctic on ordinary and copied surfaces, then select and restore an original. Inspect the packed radius word and the prepared slot-aware property entry; it is not connected yet.
+
 <details>
 <summary>Implementation 96zzzx-pack-existing-ambient-radius-in-object-records: Pack existing ambient radius in object records</summary>
 
@@ -2147,6 +2291,20 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-96zzzy-read-ambient-properties-through-shared-records"></a>
 
+### Step 7 of 16 · Read ambient properties through shared records (`96zzzy-read-ambient-properties-through-shared-records`)
+
+- **Goal:** Connect source normal and radius drawing to the existing object table.
+- **Data Flow Trace:** `Current object row and arena geometry → original source normals and radius → existing ambient recipe`
+- **Files You Touch:** `src/ambient_source_pipeline.rs` (*Own the shared property state beside its existing fallback.*) · `src/ambient_source_gpu.rs` (*Accept the existing renderer object table.*) · `src/ambient_gpu.rs` (*Keep the object table available while preparing original source properties.*) · `src/renderer.rs` (*Use the same current object records for rendering, picking and ambient properties.*) · `src/ambient_gpu_tests.rs` (*Supply an exact shared-versus-uniform ambient comparison while retaining every original cache, source, shading and release assertion.*)
+
+Read the normal transform, flags and radius from the current shared object row. Pull positions and packed normals from the same arena already used for color and picks. Keep one property shader and descriptor for shared and uniform fallback states. The ambient algorithm and its cache remain unchanged; only its source resource path changes.
+
+> **Self-Check Question:** *Why keep the ambient recipe unchanged during this connection?*  
+> **Answer:** Changing its source resource should preserve the earlier property values and pixels. The exact comparison isolates that resource change from later contact and pipeline-order work.
+
+- **What You Should See:** Ambient source properties consume current shared records and retain the earlier ambient pixels.
+- **Hands-On Lab Experiment:** Toggle Arctic on an ordinary original and a copied placement. Select and restore them, then inspect the supplied exact shared-versus-uniform ambient comparison and full release checks.
+
 <details>
 <summary>Implementation 96zzzy-read-ambient-properties-through-shared-records: Read ambient properties through shared records</summary>
 
@@ -2451,6 +2609,20 @@ Update the existing block with this supplied code; keep unchanged lines:
 
 <a id="checkpoint-96zzzz-share-the-object-record-shader-schema"></a>
 
+### Step 8 of 16 · Share the object record shader schema (`96zzzz-share-the-object-record-shader-schema`)
+
+- **Goal:** Keep one aligned object record declaration across drawing, caps and projection.
+- **Data Flow Trace:** `One aligned object declaration → raster and compute shader assembly → unchanged GPU bytes`
+- **Files You Touch:** `src/object_settings.wgsl` (*Write the existing aligned record schema once.*) · `src/triangle.wgsl` (*Use the record declaration supplied by shared shader assembly.*) · `src/cap_count.wgsl` (*Cap crossings use the identical record declaration.*) · `src/finite_project.wgsl` (*Projection uses the same byte-compatible model and range fields.*) · `src/object_record.rs` (*Expose the shared declaration through the existing record owner.*) · `src/clipping_gpu.rs` (*Assemble every clipped raster consumer with the shared record declaration.*) · `src/finite_project_source.rs` (*Compute projection includes the same declaration before its packed geometry helper.*) · `src/object_record_tests.rs` (*Verify that projection uses the same aligned members as both raster states after consolidating the flag vector.*)
+
+Surface and cap shaders already read the same record bytes, while projection spells the equivalent fields separately. Extract the aligned declaration once and assemble each shader with that declaration. Keep every offset and resource binding unchanged. This avoids repeating the schema before the projection and cap consumers connect to shared records.
+
+> **Self-Check Question:** *Why centralize the declaration before connecting more consumers?*  
+> **Answer:** A duplicated layout can drift even when the buffers are shared. One declaration keeps model, flags, normal transform, presentation and range offsets consistent.
+
+- **What You Should See:** Surface, cap and projection shaders use one object schema with unchanged rendering and picking.
+- **Hands-On Lab Experiment:** Inspect the single declaration, then repeat ordinary and copied-object picks, clipping and Arctic restoration. Compare the existing exact byte and pixel fixtures.
+
 <details>
 <summary>Implementation 96zzzz-share-the-object-record-shader-schema: Share the object record shader schema</summary>
 
@@ -2710,6 +2882,20 @@ Update the existing block with this supplied code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-96zzzza-prepare-shared-record-triangle-projection"></a>
+
+### Step 9 of 16 · Prepare shared record triangle projection (`96zzzza-prepare-shared-record-triangle-projection`)
+
+- **Goal:** Prepare the compute shader to select the same current object row.
+- **Data Flow Trace:** `Current packed-record match → object row → prepared projection shader lookup`
+- **Files You Touch:** `src/instance_gpu.rs` (*Use one packed-record match guard for raster and compute consumers.*) · `src/finite_project.wgsl` (*Use the shared object shader adaptation without duplicating the projection algorithm.*) · `src/finite_project_source.rs` (*Prepare the storage compute source through the existing record owner.*)
+
+Projection needs the same model and arena range as color and picks. Expose the existing current-record lookup once, then let the projection shader select an object through the same shader adapter. Its interval already contains two spare unsigned words; reserve the third for the object row. This lesson prepares the storage compute source while ordinary projection keeps its existing uniform binding.
+
+> **Self-Check Question:** *Why share the current-record lookup with projection?*  
+> **Answer:** A changed mesh packet must use current placement and range information. Reusing the same guard prevents the compute pass from projecting a stale record.
+
+- **What You Should See:** Projection has validated uniform and shared-record shader sources; the storage compute path is not connected yet.
+- **Hands-On Lab Experiment:** Inspect both supplied shader-interface checks, then repeat placed-object clipping and original face picks. Projection still uses its earlier uniform resource at this checkpoint.
 
 <details>
 <summary>Implementation 96zzzza-prepare-shared-record-triangle-projection: Prepare shared record triangle projection</summary>
@@ -3075,6 +3261,20 @@ After that block, append this supplied code:
 </details>
 
 <a id="checkpoint-96zzzzb-project-triangles-through-shared-records"></a>
+
+### Step 10 of 16 · Project triangles through shared records (`96zzzzb-project-triangles-through-shared-records`)
+
+- **Goal:** Connect finite triangle projection to the current shared object table.
+- **Data Flow Trace:** `Current object row and arena interval → existing triangle projection → unchanged finite visibility`
+- **Files You Touch:** `src/tile_pipelines.rs` (*Own a shared projection binding state beside the earlier fallback.*) · `src/tile_gpu.rs` (*Observe source arena offsets and stable row selectors as well as model and buffer identity.*) · `src/renderer.rs` (*Refresh projection after the object table, so its row selectors and replacement buffers are current.*) · `src/global_outline_tests.rs` (*Supply exact storage-versus-uniform projected bytes and color comparisons while retaining the original range, owner and release assertions.*)
+
+The projection interval now names an object row in the same table used by color, picks and ambient properties. Select a storage compute state for current records and retain the earlier uniform state otherwise. Build both states from one layout recipe. Track arena offsets and row selectors in the existing projection witness, then refresh bindings after the object table updates.
+
+> **Self-Check Question:** *Why must projection observe arena offsets and record row selectors?*  
+> **Answer:** The same buffers can contain a newly placed range or a reused object row. Buffer identity alone cannot identify the correct source interval or record.
+
+- **What You Should See:** Finite triangle projection consumes current shared records and retains exact earlier projected bytes and pixels.
+- **Hands-On Lab Experiment:** Move and copy originals, select and restore them, then clip the scene. Inspect the exact uniform/storage projected-buffer comparison and original sparse-range checks.
 
 <details>
 <summary>Implementation 96zzzzb-project-triangles-through-shared-records: Project triangles through shared records</summary>
@@ -3991,6 +4191,20 @@ Update the existing block with this supplied code; keep unchanged lines:
 
 <a id="checkpoint-96zzzzc-prepare-shared-record-cap-counting"></a>
 
+### Step 11 of 16 · Prepare shared record cap counting (`96zzzzc-prepare-shared-record-cap-counting`)
+
+- **Goal:** Separate cap crossing geometry from the object resource and vertex format.
+- **Data Flow Trace:** `Selected object and plane → existing crossing function → unchanged cap color and owner`
+- **Files You Touch:** `src/cap_count.wgsl` (*Use the existing object shader adapter for cap crossing entries.*) · `src/cap_pipeline.rs` (*Reuse the existing pipeline descriptor with an explicit vertex-buffer format.*)
+
+Cap color and cap picking use the same closed-solid crossing function. Pass the selected object into that function and reuse the existing shader adapter. Keep one render-pipeline descriptor while allowing each consumer to specify its vertex format. Ordinary crossings retain their earlier object and plane behavior; the shared entry connects in the following lessons.
+
+> **Self-Check Question:** *Why separate the vertex format from the cap count depth policy?*  
+> **Answer:** A pulled shared-record entry uses different vertex inputs, but its crossing target still follows the same count pass. Keeping those choices separate avoids another pipeline descriptor.
+
+- **What You Should See:** Ordinary cap counting retains its earlier behavior with shared object selection and pipeline inputs prepared.
+- **Hands-On Lab Experiment:** Clip an ordinary and copied solid, pick its cap, then select and restore it. Inspect the original multi-plane, mirrored and cropped-owner GPU fixtures.
+
 <details>
 <summary>Implementation 96zzzzc-prepare-shared-record-cap-counting: Prepare shared record cap counting</summary>
 
@@ -4265,6 +4479,20 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-96zzzzd-prepare-cap-plane-and-arena-bindings"></a>
 
+### Step 12 of 16 · Prepare cap plane and arena bindings (`96zzzzd-prepare-cap-plane-and-arena-bindings`)
+
+- **Goal:** Prepare explicit plane parameters with current immutable arena bindings.
+- **Data Flow Trace:** `Explicit plane plus current arena buffers → reusable cap geometry group`
+- **Files You Touch:** `src/cap_geometry.rs` (*Keep explicit plane parameters and arena binding replacement in one resource owner.*) · `src/lib.rs` (*Declare the resource without connecting it to drawing yet.*)
+
+A shared object slot selects a surface; the cap count also needs a plane. Keep those two inputs independent. Prepare a sixteen-byte plane parameter and a geometry group that reads the current arena buffers. Cache groups while those buffers remain identical, replace them after arena growth, and release the cache when inactive. This resource connects to cap color in the next lesson.
+
+> **Self-Check Question:** *Why keep the plane independent of the slot instance index?*  
+> **Answer:** The slot attribute selects the object record. Reusing its instance index for a plane would fetch a different slot. An explicit plane parameter preserves both identities.
+
+- **What You Should See:** Plane parameters and arena groups are prepared; cap drawing still uses its earlier path.
+- **Hands-On Lab Experiment:** Inspect the mapped plane, retained binding, grown arena and release fixture. Repeat existing cap clipping and picking in the browser; the new group is not connected yet.
+
 <details>
 <summary>Implementation 96zzzzd-prepare-cap-plane-and-arena-bindings: Prepare cap plane and arena bindings</summary>
 
@@ -4362,6 +4590,20 @@ After that block, append this supplied code:
 </details>
 
 <a id="checkpoint-96zzzze-count-cap-color-through-shared-records"></a>
+
+### Step 13 of 16 · Count cap color through shared records (`96zzzze-count-cap-color-through-shared-records`)
+
+- **Goal:** Connect cap crossing color to current object records and explicit planes.
+- **Data Flow Trace:** `Current object row plus explicit plane → original crossing count → unchanged cap color and depth`
+- **Files You Touch:** `src/cap_count.wgsl` (*Pull the current arena range and keep explicit plane selection independent of the object slot.*) · `src/cap_pipeline.rs` (*Own the shared crossing state with the existing cap color pipeline.*) · `src/caps_gpu.rs` (*Let the existing crossing target own its plane parameters and cached geometry groups.*) · `src/renderer.rs` (*Pass the existing device to cap count resource preparation.*) · `src/cap_gpu_tests.rs` (*Include the one actual sixteen-byte plane parameter in exact cap ownership accounting.*)
+
+Bind the current object record and slot, pull its arena positions, and read the plane from the parameter just prepared. Draw one instance so the object slot is independent of plane numbering. Keep the same crossing function, additive target and final cap color/depth pass. Changed records retain the earlier exact uniform path.
+
+> **Self-Check Question:** *Why does a shared cap crossing draw use one instance?*  
+> **Answer:** Its slot fetch selects one object. The explicit parameter selects the plane, so advancing the instance index must not advance to another object slot.
+
+- **What You Should See:** Cap color crossings consume shared records while retaining original clipping, selection and fill pixels.
+- **Hands-On Lab Experiment:** Clip a copied closed solid with two planes. Select and restore it, then compare cap pixels and original picks. Inspect the retained mirrored, nested and release fixtures.
 
 <details>
 <summary>Implementation 96zzzze-count-cap-color-through-shared-records: Count cap color through shared records</summary>
@@ -5301,6 +5543,20 @@ Update the existing block with this supplied code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-96zzzzf-prepare-shared-record-cap-picks"></a>
+
+### Step 14 of 16 · Prepare shared record cap picks (`96zzzzf-prepare-shared-record-cap-picks`)
+
+- **Goal:** Prepare both cap pick crossing states without changing original ownership.
+- **Data Flow Trace:** `Existing pick resources plus explicit arena range → shared vertex entry → unchanged crossing fragments`
+- **Files You Touch:** `src/cap_count.wgsl` (*Retain the original atomic, crop and frame bindings while adding pulled geometry to the shared pick vertex entry.*) · `src/cap_pick_pipeline.rs` (*Own both shared crossing passes beside the original fallback.*) · `src/current_inventory.json` (*Copy the dated current runtime-input inventory after kernel/wood changes. This supplied data refresh preserves the historical inventory and every viewer source hash; it does not replace implementation work.*)
+
+Cap color already pulls current records. Picking also needs atomic crossings, crop and frame resources in its fourth bind group. Extend that group with arena positions, indices and an explicit plane while retaining the existing entries. Prepare both crossing states using the same fragment algorithms. The next lesson connects the resource owner and draws.
+
+> **Self-Check Question:** *Why retain the original first three pick bindings?*  
+> **Answer:** They hold atomic crossing storage, the crop and frame. Replacing them with the color group would lose picking semantics.
+
+- **What You Should See:** Both shared cap pick pipeline states compile; drawing still follows the existing uniform path.
+- **Hands-On Lab Experiment:** Inspect the six group entries, then clip and pick the same original solid. Behavior remains unchanged at this preparatory checkpoint.
 
 <details>
 <summary>Implementation 96zzzzf-prepare-shared-record-cap-picks: Prepare shared record cap picks</summary>
@@ -8446,6 +8702,20 @@ Update the existing block with this supplied code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-96zzzzg-own-shared-record-cap-pick-resources"></a>
+
+### Step 15 of 16 · Own shared record cap pick resources (`96zzzzg-own-shared-record-cap-pick-resources`)
+
+- **Goal:** Reuse explicit plane and arena bindings under the existing pick lifetime.
+- **Data Flow Trace:** `Pick preparation → bounded plane values and current bindings → existing pick lifetime`
+- **Files You Touch:** `src/cap_geometry.rs` (*Reuse the same plane and arena resource owner for groups with retained pick bindings.*) · `src/cap_pick_gpu.rs` (*Keep cap-pick plane parameters and geometry groups under the existing pick lifetime.*) · `src/current_inventory.json` (*Copy the supplied checkpoint inventory after regeneration of Session protocol documentation comments. This records current inputs without changing the strict inventory check or historical evidence.*)
+
+Let the cap geometry owner append its bindings after the existing pick resources. Each pick preparation invalidates immutable groups because crossing buffers or the crop can change. Retain bounded plane parameters under the existing pick owner and account their bytes once. The next lesson connects both crossing draws.
+
+> **Self-Check Question:** *Why invalidate cached groups at pick preparation?*  
+> **Answer:** A resized crossing buffer or changed crop requires a fresh immutable group, even when the arena buffers remain unchanged.
+
+- **What You Should See:** Cap picking owns bounded shared geometry resources; the original uniform draws remain active.
+- **Hands-On Lab Experiment:** Repeat a small pick, resize the viewport and pick again. Clear the scene and inspect released cap resources.
 
 <details>
 <summary>Implementation 96zzzzg-own-shared-record-cap-pick-resources: Own shared record cap pick resources</summary>
@@ -11666,6 +11936,20 @@ Update the existing block with this supplied code; keep unchanged lines:
 
 <a id="checkpoint-96zzzzh-pick-caps-through-shared-records"></a>
 
+### Step 16 of 16 · Pick caps through shared records (`96zzzzh-pick-caps-through-shared-records`)
+
+- **Goal:** Connect both cap crossing passes to current records and retain original owners.
+- **Data Flow Trace:** `Current record and explicit plane → atomic crossings → original integer cap owner`
+- **Files You Touch:** `src/cap_pick_gpu.rs` (*Prepare immutable current arena groups before encoding either crossing pass.*) · `src/caps_gpu.rs` (*Thread the same optional object owner through cap picking.*) · `src/pick_encode.rs` (*Share object records with first picks, source faces and cap picks in the existing submission.*) · `src/cap_pick_tests.rs` (*Supply full-u32 shared/fallback owner comparison and restoration before a color frame, retaining all original geometry assertions.*)
+
+Prepare each eligible object and plane group once. Both counting and nearest-owner passes pull current arena positions through the object slot, with an explicit plane independent of instance numbering. Keep the atomic crossing algorithms and final integer-owner pass. Changed packed records use the existing uniform fallback.
+
+> **Self-Check Question:** *Why share geometry groups between both crossing passes?*  
+> **Answer:** They read the same object and plane during one pick; only the fragment operation changes.
+
+- **What You Should See:** Cap picking consumes shared object records and retains original full integer identities, clipping and crop behavior.
+- **Hands-On Lab Experiment:** Pick a cap before drawing a color frame, then pick the corner shared by two clipping planes. Repeat after selection and scene replacement.
+
 <details>
 <summary>Implementation 96zzzzh-pick-caps-through-shared-records: Pick caps through shared records</summary>
 
@@ -11914,9 +12198,11 @@ Update the existing block with this supplied code; keep unchanged lines:
 
 </details>
 
-## Run, Check, and Save
+---
 
-From `session_viewer`:
+## 5. Build, Verify, and Save Your Checkpoint
+
+Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 96zzzzh-pick-caps-through-shared-records
@@ -11927,12 +12213,12 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. Use [checkpoint recovery](../../recovery.md) to restore any saved checkpoint.
+Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
 
-## Expected Visual Result & Experiment
+## 6. Lesson Summary & Expected Visual Result
 
 Cap picking consumes shared object records and retains original full integer identities, clipping and crop behavior.
 
-- **Try this:** Pick a cap before drawing a color frame, then pick the corner shared by two clipping planes. Repeat after selection and scene replacement.
+- **Final Lesson Experiment:** Pick a cap before drawing a color frame, then pick the corner shared by two clipping planes. Repeat after selection and scene replacement.
 
-Continue with [Retained allocation, live lookup and safe reclamation](96zzzzi-adapt-incremental-slots-to-pulled-draws.md).
+Continue with [Retained allocation, live lookup and safe reclamation](../../consolidation/96zzzzi-adapt-incremental-slots-to-pulled-draws.md).

@@ -1,91 +1,152 @@
 # 10.3 · A shared glyph atlas and lazy text drawing
 
-**Section 6: CAD B-Rep Topology, World Text Atlases, Outlines, and Point Clouds** · **Lesson 10.3** (Redraft `6.8`) · **5 checkpoints (`61-atlas` → `61d-glyphs`)**
+**Section 6: CAD B-Rep Topology, World Text Atlases, Outlines, and Point Clouds** · **Lesson 10.3** (Redraft `6.8`) · **5 checkpoints (`61-atlas` → `61d-glyphs`)** · **Study time: 2.5–5 h**
 
-> **Learning Goal:** Own glyph coverage in a shared GPU atlas.
+> **What You Will Learn & Build:** Own glyph coverage in a shared GPU atlas. By the final checkpoint (`61d-glyphs`), you will draw the specimen and prove real coverage reuse.
 
-## Visual WebGPU & Architecture Schematic
+## 1. Visual Pipeline & WebGPU Architecture (Black & White Schematics)
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1px solid #cbd5e1;border-radius:10px;background:#f8fafc;">
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
+<svg viewBox="0 0 840 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <rect x="4" y="4" width="832" height="212" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Lesson 10.3 Execution Flow: A shared glyph atlas and lazy text drawing</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">Concrete data pipeline you build in this lesson (5 Checkpoints: 61-atlas → 61d-glyphs)</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
+  
+    
+    <rect x="18" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="89" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
+    <line x1="28" y1="92" x2="151" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">explicit shaped</text>
+    <text x="89" y="124" text-anchor="middle" font-size="11" fill="#111111">fonts</text>
+    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="183" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="254" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
+    <line x1="193" y1="92" x2="316" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">shared GPU cache</text>
+    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="348" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="419" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
+    <line x1="358" y1="92" x2="481" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">glyph coverage</text>
+    <text x="419" y="124" text-anchor="middle" font-size="11" fill="#111111">atlas</text>
+    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="513" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="584" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
+    <line x1="523" y1="92" x2="646" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">text renderer</text>
+    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="678" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="749" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
+    <line x1="688" y1="92" x2="811" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">Example Text</text>
+    
+    <rect x="18" y="162" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="32" y="181" font-size="11" font-weight="700" fill="#111111">Files You Edit in Lesson 10.3:</text>
+    <text x="215" y="181" font-size="11" fill="#111111">src/text_atlas.rs  ·  src/lib.rs  ·  src/text_example.rs  ·  src/renderer.rs  ·  src/commands.rs  ·  src/browser.rs</text>
+    <text x="32" y="198" font-size="10.5" fill="#111111">5 Checkpoints: 61-atlas → 61d-glyphs — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
+  
+</svg>
+</div>
+
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
 <svg viewBox="0 0 840 240" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#475569"/>
-    </marker>
-    <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#2563eb"/>
-    </marker>
-    <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#059669"/>
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
     </marker>
   </defs>
-  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
-  <text x="20" y="28" font-size="14" font-weight="700" fill="#0f172a">Chapter 10 WebGPU Text & Shared Arena Pipeline: Glyph Atlas Packing, World/Billboard Text & Matrix Shader</text>
-  <text x="20" y="46" font-size="11.5" fill="#475569">How crisp typography (text_plane.wgsl / text.wgsl) and procedural cell digits (matrix.wgsl) render in 3D world space.</text>
-  <line x1="16" y1="54" x2="824" y2="54" stroke="#e2e8f0" stroke-width="1"/>
+  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Chapter 10 WebGPU Text & Shared Arena Pipeline: Glyph Atlas Packing, World/Billboard Text & Matrix Shader</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">How crisp typography (text_plane.wgsl / text.wgsl) and procedural cell digits (matrix.wgsl) render in 3D world space.</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
   
-    <rect x="18" y="68" width="235" height="145" rx="6" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
-    <text x="135" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1e40af">1. Shelf-Packed Glyph Atlas</text>
-    <text x="28" y="108" font-size="10.5" fill="#1e3a8a">• Rasterize needed Unicode codepoints</text>
-    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#1d4ed8">• Pack into R8Unorm GPU Atlas Texture</text>
-    <text x="28" y="142" font-size="10" fill="#1e3a8a">  with 1px padding (no bilinear bleed!)</text>
-    <text x="28" y="160" font-size="10.5" fill="#1e3a8a">• queue.write_texture dirty rects only</text>
-    <text x="28" y="178" font-size="10.5" fill="#1e3a8a">• Layout baseline, kerning &amp; line</text>
-    <text x="28" y="193" font-size="10.5" fill="#1e3a8a">  wraps into instanced glyph quads</text>
+    <rect x="18" y="68" width="235" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="135" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">1. Shelf-Packed Glyph Atlas</text>
+    <text x="28" y="108" font-size="10.5" fill="#111111">• Rasterize needed Unicode codepoints</text>
+    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#111111">• Pack into R8Unorm GPU Atlas Texture</text>
+    <text x="28" y="142" font-size="10" fill="#111111">  with 1px padding (no bilinear bleed!)</text>
+    <text x="28" y="160" font-size="10.5" fill="#111111">• queue.write_texture dirty rects only</text>
+    <text x="28" y="178" font-size="10.5" fill="#111111">• Layout baseline, kerning &amp; line</text>
+    <text x="28" y="193" font-size="10.5" fill="#111111">  wraps into instanced glyph quads</text>
 
-    <line x1="253" y1="138" x2="283" y2="138" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
+    <line x1="253" y1="138" x2="283" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="285" y="68" width="265" height="145" rx="6" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5"/>
-    <text x="417" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#9a3412">2. World-Plane vs Screen Billboard</text>
-    <text x="297" y="108" font-size="10.5" font-weight="600" fill="#c2410c">• text_plane.wgsl (3D World Text):</text>
-    <text x="297" y="123" font-size="10" fill="#7c2d12">  q_world = origin + u*plane_x + v*plane_y</text>
-    <text x="297" y="138" font-size="10" fill="#7c2d12">  Foreshortens naturally with 3D perspective</text>
-    <text x="297" y="158" font-size="10.5" font-weight="600" fill="#c2410c">• text.wgsl (Screen-Aligned Label):</text>
-    <text x="297" y="173" font-size="10" fill="#7c2d12">  Expands along camera Right/Up vectors;</text>
-    <text x="297" y="188" font-size="10" fill="#7c2d12">  optional background plate + 3D leader line</text>
+    <rect x="285" y="68" width="265" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="417" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">2. World-Plane vs Screen Billboard</text>
+    <text x="297" y="108" font-size="10.5" font-weight="600" fill="#111111">• text_plane.wgsl (3D World Text):</text>
+    <text x="297" y="123" font-size="10" fill="#111111">  q_world = origin + u*plane_x + v*plane_y</text>
+    <text x="297" y="138" font-size="10" fill="#111111">  Foreshortens naturally with 3D perspective</text>
+    <text x="297" y="158" font-size="10.5" font-weight="600" fill="#111111">• text.wgsl (Screen-Aligned Label):</text>
+    <text x="297" y="173" font-size="10" fill="#111111">  Expands along camera Right/Up vectors;</text>
+    <text x="297" y="188" font-size="10" fill="#111111">  optional background plate + 3D leader line</text>
 
-    <line x1="550" y1="138" x2="580" y2="138" stroke="#059669" stroke-width="2" marker-end="url(#arrow-green)"/>
+    <line x1="550" y1="138" x2="580" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="582" y="68" width="238" height="145" rx="6" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1.5"/>
-    <text x="701" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#065f46">3. Whole-Text Pick &amp; Matrix (Sec 10)</text>
-    <text x="594" y="108" font-size="10.5" fill="#064e3b">• Clicking any glyph or plate writes</text>
-    <text x="594" y="124" font-size="10.5" font-weight="600" fill="#047857">  the parent Text owner_id to Rg32Uint</text>
-    <text x="594" y="144" font-size="10.5" fill="#064e3b">• Later in Sec 10 (matrix.wgsl):</text>
-    <text x="594" y="160" font-size="10" fill="#064e3b">  16-word header + 3 words/cell renders</text>
-    <text x="594" y="175" font-size="10" fill="#064e3b">  procedural 3-decimal digits (0 blank)</text>
-    <text x="594" y="190" font-size="10" fill="#064e3b">  + plate-less world title &amp; yellow select</text>
+    <rect x="582" y="68" width="238" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="701" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">3. Whole-Text Pick &amp; Matrix (Sec 10)</text>
+    <text x="594" y="108" font-size="10.5" fill="#111111">• Clicking any glyph or plate writes</text>
+    <text x="594" y="124" font-size="10.5" font-weight="600" fill="#111111">  the parent Text owner_id to Rg32Uint</text>
+    <text x="594" y="144" font-size="10.5" fill="#111111">• Later in Sec 10 (matrix.wgsl):</text>
+    <text x="594" y="160" font-size="10" fill="#111111">  16-word header + 3 words/cell renders</text>
+    <text x="594" y="175" font-size="10" fill="#111111">  procedural 3-decimal digits (0 blank)</text>
+    <text x="594" y="190" font-size="10" fill="#111111">  + plate-less world title &amp; yellow select</text>
     
 </svg>
 </div>
 
-### Lesson Data Flow (`Rust` → `WebGPU` → `WGSL`)
+## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
 
-```
-explicit shaped fonts → shared GPU cache → glyph coverage atlas → text renderer.
-original specimen words → explicit CSS metrics → fractional position → real glyph coverage.
-Example Text → real glyph pixels → unchanged shaping → unchanged original scene.
-```
+Before writing code, review how the three layers in this chapter talk to each other:
 
-- Own glyph coverage in a shared GPU atlas.
-- Supply a real-font CAD text specimen.
-- Draw the specimen and prove real coverage reuse.
-- **Why it works (Must every repeated glyph get another texture allocation?):** No. Glyph coverage belongs in a shared atlas. Positioned glyph instances can reuse that coverage while changing placement or colour. The lane is created only when labels exist.
-
-### Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `Browser`)
-
-| Layer | Construct | First-Year Student Explanation |
+| Layer | Construct | Plain-English Explanation for Students |
 | :--- | :--- | :--- |
 | **Rust / WebGPU** | Shelf-Packed `R8Unorm` Glyph Atlas + 1px Padding | Rasterizes Unicode glyphs on demand into a single-channel GPU texture with a 1-pixel transparent gutter so bilinear filtering never bleeds neighbor glyphs. |
 | **WGSL (`text_plane.wgsl` / `text.wgsl`)** | World-Plane Quad vs. Screen-Aligned Billboard Quad | `text_plane.wgsl` expands glyph quads along 3D plane axes `(plane_x, plane_y)` that foreshorten in perspective; `text.wgsl` expands along camera `(Right, Up)` vectors. |
 | **WGSL (`matrix.wgsl`)** | Procedural Matrix Cell Digits (16-word Header + 3 words/cell) | Draws heatmap cells and procedural 3-decimal digits directly in the fragment shader (leaving `0` cells blank), with a plate-less world title and yellow selection border. |
 
-**Production source (`session_viewer/src`):** [engine/text.rs](../../../src/engine/text.rs), [engine/gpu/text.rs](../../../src/engine/gpu/text.rs), [engine/gpu/text_plane.rs](../../../src/engine/gpu/text_plane.rs), [engine/gpu/text_plate.rs](../../../src/engine/gpu/text_plate.rs), [app/scene_text.rs](../../../src/app/scene_text.rs), [app/fonts.rs](../../../src/app/fonts.rs).
+**Authoritative production source (`session_viewer/src`):** [engine/text.rs](../../../src/engine/text.rs), [engine/gpu/text.rs](../../../src/engine/gpu/text.rs), [engine/gpu/text_plane.rs](../../../src/engine/gpu/text_plane.rs), [engine/gpu/text_plate.rs](../../../src/engine/gpu/text_plate.rs), [app/scene_text.rs](../../../src/app/scene_text.rs), [app/fonts.rs](../../../src/app/fonts.rs)
 
-## Implementation Checkpoints
+## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
 
-Apply these checkpoints in order inside `workspace/journey`. Expand each block to view the Rust/WGSL/HTML edits:
+| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
+| ---: | :--- | :--- | :--- | :--- |
+| **1** | [`61-atlas`](#checkpoint-61-atlas) | Own glyph coverage in a shared GPU atlas. | `src/text_atlas.rs`, `src/lib.rs` | `explicit shaped fonts → shared GPU cache → glyph coverage atlas → text renderer` |
+| **2** | [`61a-coverage`](#checkpoint-61a-coverage) | Prepare DPI-scaled glyph bounds and cache unchanged frames. | `src/text_atlas.rs` | `CSS placement and clipping → physical pixel bounds → glyph preparation → unchanged-frame reuse` |
+| **3** | [`61b-specimen`](#checkpoint-61b-specimen) | Supply a real-font CAD text specimen. | `src/text_example.rs`, `src/lib.rs` | `original specimen words → explicit CSS metrics → fractional position → real glyph coverage` |
+| **4** | [`61c-renderer`](#checkpoint-61c-renderer) | Draw lazy text coverage after the scene. | `src/renderer.rs` | `scene and handles → lazy glyph lane → colour load pass → unchanged geometry and picks` |
+| **5** | [`61d-glyphs`](#checkpoint-61d-glyphs) | Draw the specimen and prove real coverage reuse. | `src/commands.rs`, `src/browser.rs`, `src/text_atlas_tests.rs`, `src/lib.rs` | `Example Text → real glyph pixels → unchanged shaping → unchanged original scene` |
+
+---
+
+## 4. Step-by-Step Coding Notebook (Concept + Implementation)
+
+Work through each notebook cell below in order inside `workspace/journey`. Read the **Concept Walkthrough** and **Self-Check Q&A** first, then expand the **Implementation** block to type and verify the code.
 
 <a id="checkpoint-61-atlas"></a>
+
+### Step 1 of 5 · Own glyph coverage in a shared GPU atlas (`61-atlas`)
+
+- **Goal:** Own glyph coverage in a shared GPU atlas.
+- **Data Flow Trace:** `explicit shaped fonts → shared GPU cache → glyph coverage atlas → text renderer`
+- **Files You Touch:** `src/text_atlas.rs` (*Own the current accurate-colour atlas and cache with separate frame/source revisions.*) · `src/lib.rs` (*Register the source component.*)
+
+Create the current Glyphon cache, accurate-colour atlas, viewport, rasteriser and text renderer. Keep this lane lazy so scenes without labels allocate no extra text atlas.
+
+> **Self-Check Question:** *Must every repeated glyph get another texture allocation?*  
+> **Answer:** No. Glyph coverage belongs in a shared atlas. Positioned glyph instances can reuse that coverage while changing placement or colour. The lane is created only when labels exist.
+
+- **What You Should See:** The blue CAD bore remains visible. Connect the glyph lane and draw Example Text at the final checkpoint of 61.
+- **Hands-On Lab Experiment:** Inspect the lane owners and compare an empty scene with the first label. Keep the colour target and sample count compatible with the surrounding renderer.
 
 <details>
 <summary>Implementation 61-atlas: Own glyph coverage in a shared GPU atlas</summary>
@@ -128,6 +189,19 @@ After that block, type:
 
 <a id="checkpoint-61a-coverage"></a>
 
+### Step 2 of 5 · Prepare DPI-scaled glyph bounds and cache unchanged frames (`61a-coverage`)
+
+- **Goal:** Prepare DPI-scaled glyph bounds and cache unchanged frames.
+- **Data Flow Trace:** `CSS placement and clipping → physical pixel bounds → glyph preparation → unchanged-frame reuse`
+- **Files You Touch:** `src/text_atlas.rs` (*Prepare real glyph coverage, pixel clips, revision resets and truthful CPU raster-cache counts.*)
+
+Convert CSS placement and clip bounds to physical pixels, prepare actual glyph coverage and reuse an unchanged document/font/viewport/density frame. Accepted font replacement resets stale atlas state.
+
+> **Self-Check Question:** *Should a density change double the label’s CSS size?*  
+> **Answer:** No. Physical glyph pixels and bounds scale with density while the label keeps its CSS size. The changed density requires preparation and new coverage where needed, not new source words.
+
+- **Hands-On Lab Experiment:** Compare density 1 and 2: actual ink occupies the same CSS rectangle. Clip the label, move it and verify shaping stays unchanged; replace fonts and reset the atlas only after valid adoption.
+
 <details>
 <summary>Implementation 61a-coverage: Prepare DPI-scaled glyph bounds and cache unchanged frames</summary>
 
@@ -159,6 +233,19 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-61b-specimen"></a>
+
+### Step 3 of 5 · Supply a real-font CAD text specimen (`61b-specimen`)
+
+- **Goal:** Supply a real-font CAD text specimen.
+- **Data Flow Trace:** `original specimen words → explicit CSS metrics → fractional position → real glyph coverage`
+- **Files You Touch:** `src/text_example.rs` (*Provide a current-font specimen that exercises real glyph coverage.*) · `src/lib.rs` (*Register the source component.*)
+
+Use an explicit fractional CSS position, fixed metrics and viewer-supported ligatures, accents and symbols. This specimen is a presentation overlay and creates no scene geometry row.
+
+> **Self-Check Question:** *Does this screen specimen become a saved CAD object?*  
+> **Answer:** No. It demonstrates the glyph lane as a presentation overlay. Source-owned scene labels and their placements connect in 62. Its words still shape through the actual bundled fonts.
+
+- **Hands-On Lab Experiment:** Compare office ffi, Ė, the degree sign and the keyboard symbol in the specimen. Inspect clusters and actual rendered coverage at fractional CSS coordinates.
 
 <details>
 <summary>Implementation 61b-specimen: Supply a real-font CAD text specimen</summary>
@@ -200,6 +287,19 @@ After that block, type:
 </details>
 
 <a id="checkpoint-61c-renderer"></a>
+
+### Step 4 of 5 · Draw lazy text coverage after the scene (`61c-renderer`)
+
+- **Goal:** Draw lazy text coverage after the scene.
+- **Data Flow Trace:** `scene and handles → lazy glyph lane → colour load pass → unchanged geometry and picks`
+- **Files You Touch:** `src/renderer.rs` (*Draw a lazy glyph lane independently from primary geometry and expose preparation errors.*)
+
+Create the atlas only for a nonempty label set, render its coverage in a separate load pass and preserve primary geometry/picking. Retain text preparation/draw errors in diagnostics instead of silently dropping them.
+
+> **Self-Check Question:** *Should enabling the screen text reupload the CAD mesh?*  
+> **Answer:** No. It adds glyph presentation after the existing scene. Original CAD geometry, source ownership and integer pick tables remain unchanged. An empty label set releases the text lane.
+
+- **Hands-On Lab Experiment:** Enable the specimen, compare primary GPU allocations and pick the underlying mesh. Clear it and compare the original rendered image and zero text-lane counters.
 
 <details>
 <summary>Implementation 61c-renderer: Draw lazy text coverage after the scene</summary>
@@ -743,6 +843,20 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-61d-glyphs"></a>
+
+### Step 5 of 5 · Draw the specimen and prove real coverage reuse (`61d-glyphs`)
+
+- **Goal:** Draw the specimen and prove real coverage reuse.
+- **Data Flow Trace:** `Example Text → real glyph pixels → unchanged shaping → unchanged original scene`
+- **Files You Touch:** `src/commands.rs` (*Connect the presentation specimen, current text diagnostics and explicit Close cleanup.*) · `src/browser.rs` (*Connect the presentation specimen, current text diagnostics and explicit Close cleanup.*) · `src/text_atlas_tests.rs` (*Copy actual anti-aliased coverage, CSS density, clipping, placement reuse and accepted/failed font replacement GPU checks.*) · `src/lib.rs` (*Register the source component.*) · `src/pick_gpu_tests.rs` (*Copy the actual scene-text overlay readback, source/GPU reuse and absence from scene picking.*)
+
+Connect Example Text through the command dock and copy actual texture readback checks. Test DPI, clipping, presentation reuse, accepted font reset, overlay picking and Close cleanup.
+
+> **Self-Check Question:** *Does Glyphon 0.11 retain each uploaded raster in the CPU image cache?*  
+> **Answer:** No. It rasterises temporary images for atlas upload. Actual CPU image-cache counts remain zero here; the checks prove rendered pixels, atlas reuse and font-revision reset without inventing retained CPU bytes.
+
+- **What You Should See:** Type Close, Example CAD, Fit and View Isometric, then Example Text. The real Noto specimen appears at the top left. Orbit and zoom: its CSS size stays fixed while the CAD scene moves. Type Close to release the specimen. This presentation text remains outside scene picking and document history.
+- **Hands-On Lab Experiment:** Type Example Text over the CAD bore, then orbit and zoom. Confirm the words stay screen-sized and cannot become a CAD pick target. Type Close and verify the text lane is released. Run the actual texture checks at both densities.
 
 <details>
 <summary>Implementation 61d-glyphs: Draw the specimen and prove real coverage reuse</summary>
@@ -1910,9 +2024,11 @@ After that block, append this supplied code:
 
 </details>
 
-## Run, Check, and Save
+---
 
-From `session_viewer`:
+## 5. Build, Verify, and Save Your Checkpoint
+
+Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 61d-glyphs
@@ -1923,12 +2039,12 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. Use [checkpoint recovery](../recovery.md) to restore any saved checkpoint.
+Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../recovery.md) to save or restore any checkpoint ID.
 
-## Expected Visual Result & Experiment
+## 6. Lesson Summary & Expected Visual Result
 
 Type Close, Example CAD, Fit and View Isometric, then Example Text. The real Noto specimen appears at the top left. Orbit and zoom: its CSS size stays fixed while the CAD scene moves. Type Close to release the specimen. This presentation text remains outside scene picking and document history.
 
-- **Try this:** Type Example Text over the CAD bore, then orbit and zoom. Confirm the words stay screen-sized and cannot become a CAD pick target. Type Close and verify the text lane is released. Run the actual texture checks at both densities.
+- **Final Lesson Experiment:** Type Example Text over the CAD bore, then orbit and zoom. Confirm the words stay screen-sized and cannot become a CAD pick target. Type Close and verify the text lane is released. Run the actual texture checks at both densities.
 
 Continue with [Original world labels, plates and integer picks](62-source.md).

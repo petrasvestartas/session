@@ -1,92 +1,158 @@
 # 3.1 · Kernel geometry and a single editor owner
 
-**Section 3: Scene Documents, Transactions, and Browser GPU Lifetime** · **Lesson 3.1** (Redraft `3.1`) · **5 checkpoints (`17-solid` → `19-actions`)**
+**Section 3: Scene Documents, Transactions, and Browser GPU Lifetime** · **Lesson 3.1** (Redraft `3.1`) · **5 checkpoints (`17-solid` → `19-actions`)** · **Study time: 6.5–10.75 h**
 
-> **Learning Goal:** Create a kernel box, convert it to display data, and add it as one undoable scene object.
+> **What You Will Learn & Build:** Create a kernel box, convert it to display data, and add it as one undoable scene object. By the final checkpoint (`19-actions`), you will move document actions into a browser-independent editor while keeping picking, undo and drawing working.
 
-## Visual WebGPU & Architecture Schematic
+## 1. Visual Pipeline & WebGPU Architecture (Black & White Schematics)
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1px solid #cbd5e1;border-radius:10px;background:#f8fafc;">
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
+<svg viewBox="0 0 840 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <rect x="4" y="4" width="832" height="212" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Lesson 3.1 Execution Flow: Kernel geometry and a single editor owner</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">Concrete data pipeline you build in this lesson (5 Checkpoints: 17-solid → 19-actions)</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
+  
+    
+    <rect x="18" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="89" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
+    <line x1="28" y1="92" x2="151" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">Kernel box</text>
+    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="183" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="254" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
+    <line x1="193" y1="92" x2="316" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">triangle extraction</text>
+    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="348" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="419" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
+    <line x1="358" y1="92" x2="481" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">document</text>
+    <text x="419" y="124" text-anchor="middle" font-size="11" fill="#111111">transaction</text>
+    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="513" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="584" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
+    <line x1="523" y1="92" x2="646" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">GPU upload</text>
+    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="678" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="749" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
+    <line x1="688" y1="92" x2="811" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">visible solid</text>
+    
+    <rect x="18" y="162" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="32" y="181" font-size="11" font-weight="700" fill="#111111">Files You Edit in Lesson 3.1:</text>
+    <text x="215" y="181" font-size="11" fill="#111111">src/mesh.rs  ·  src/scene.rs  ·  src/history.rs  ·  src/browser.rs  ·  src/triangle.wgsl  ·  src/editor.rs</text>
+    <text x="32" y="198" font-size="10.5" fill="#111111">5 Checkpoints: 17-solid → 19-actions — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
+  
+</svg>
+</div>
+
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
 <svg viewBox="0 0 840 240" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#475569"/>
-    </marker>
-    <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#2563eb"/>
-    </marker>
-    <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#059669"/>
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
     </marker>
   </defs>
-  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
-  <text x="20" y="28" font-size="14" font-weight="700" fill="#0f172a">Chapter 3 Architecture: Transactional Protobuf (.pb) Decode, World Placements & Incremental GPU Sync</text>
-  <text x="20" y="46" font-size="11.5" fill="#475569">Separating exact session_rust kernel geometry from GPU display buffers so view changes never re-upload unchanged meshes.</text>
-  <line x1="16" y1="54" x2="824" y2="54" stroke="#e2e8f0" stroke-width="1"/>
+  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Chapter 3 Architecture: Transactional Protobuf (.pb) Decode, World Placements & Incremental GPU Sync</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">Separating exact session_rust kernel geometry from GPU display buffers so view changes never re-upload unchanged meshes.</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
   
-    <rect x="18" y="68" width="185" height="145" rx="6" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
-    <text x="110" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1e40af">1. Async .pb File / URL I/O</text>
-    <text x="28" y="108" font-size="10.5" fill="#1e3a8a">• Ticket #N (cancels #N-1)</text>
-    <text x="28" y="126" font-size="10.5" fill="#1e3a8a">• Bounded Protobuf decode</text>
-    <text x="28" y="144" font-size="10.5" font-weight="600" fill="#1d4ed8">• Topological validation</text>
-    <text x="28" y="162" font-size="10.5" fill="#1e3a8a">• Corrupt file? Reject with</text>
-    <text x="28" y="177" font-size="10.5" fill="#1e3a8a">  ZERO partial scene mutation</text>
+    <rect x="18" y="68" width="185" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="110" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">1. Async .pb File / URL I/O</text>
+    <text x="28" y="108" font-size="10.5" fill="#111111">• Ticket #N (cancels #N-1)</text>
+    <text x="28" y="126" font-size="10.5" fill="#111111">• Bounded Protobuf decode</text>
+    <text x="28" y="144" font-size="10.5" font-weight="600" fill="#111111">• Topological validation</text>
+    <text x="28" y="162" font-size="10.5" fill="#111111">• Corrupt file? Reject with</text>
+    <text x="28" y="177" font-size="10.5" fill="#111111">  ZERO partial scene mutation</text>
 
-    <line x1="203" y1="138" x2="233" y2="138" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
+    <line x1="203" y1="138" x2="233" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="235" y="68" width="275" height="145" rx="6" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5"/>
-    <text x="372" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#9a3412">2. Editor Owner (Browser-Independent)</text>
-    <text x="247" y="108" font-size="10.5" fill="#7c2d12">• Kernel Mesh (local-space f64 coordinates)</text>
-    <text x="247" y="126" font-size="10.5" fill="#7c2d12">• Placement 4x4 Matrix (world transform)</text>
-    <text x="247" y="144" font-size="10.5" font-weight="600" fill="#c2410c">• Releasable Source Ownership:</text>
-    <text x="247" y="160" font-size="10" fill="#7c2d12">  Drop cold CPU source after GPU upload;</text>
-    <text x="247" y="175" font-size="10" fill="#7c2d12">  re-fetch exact SHA/revision on edit!</text>
-    <text x="247" y="195" font-size="10.5" fill="#7c2d12">• Emits Change { sync_scene, redraw }</text>
+    <rect x="235" y="68" width="275" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="372" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">2. Editor Owner (Browser-Independent)</text>
+    <text x="247" y="108" font-size="10.5" fill="#111111">• Kernel Mesh (local-space f64 coordinates)</text>
+    <text x="247" y="126" font-size="10.5" fill="#111111">• Placement 4x4 Matrix (world transform)</text>
+    <text x="247" y="144" font-size="10.5" font-weight="600" fill="#111111">• Releasable Source Ownership:</text>
+    <text x="247" y="160" font-size="10" fill="#111111">  Drop cold CPU source after GPU upload;</text>
+    <text x="247" y="175" font-size="10" fill="#111111">  re-fetch exact SHA/revision on edit!</text>
+    <text x="247" y="195" font-size="10.5" fill="#111111">• Emits Change { sync_scene, redraw }</text>
 
-    <line x1="510" y1="115" x2="542" y2="115" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>
-    <line x1="510" y1="175" x2="542" y2="175" stroke="#059669" stroke-width="2" marker-end="url(#arrow-green)"/>
+    <line x1="510" y1="115" x2="542" y2="115" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
+    <line x1="510" y1="175" x2="542" y2="175" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="544" y="68" width="276" height="68" rx="6" fill="#fdf2f8" stroke="#f472b6" stroke-width="1.5"/>
-    <text x="556" y="86" font-size="11" font-weight="700" fill="#9d174d">3A. Geometry Changed (sync_scene = true)</text>
-    <text x="556" y="104" font-size="10.5" fill="#831843">• Upload changed mesh vertex/index buffers</text>
-    <text x="556" y="120" font-size="10.5" fill="#831843">• Retain unchanged object GPU allocations</text>
+    <rect x="544" y="68" width="276" height="68" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="556" y="86" font-size="11" font-weight="700" fill="#111111">3A. Geometry Changed (sync_scene = true)</text>
+    <text x="556" y="104" font-size="10.5" fill="#111111">• Upload changed mesh vertex/index buffers</text>
+    <text x="556" y="120" font-size="10.5" fill="#111111">• Retain unchanged object GPU allocations</text>
 
-    <rect x="544" y="145" width="276" height="68" rx="6" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1.5"/>
-    <text x="556" y="163" font-size="11" font-weight="700" fill="#065f46">3B. View / Camera Only (sync_scene = false)</text>
-    <text x="556" y="181" font-size="10.5" fill="#064e3b">• queue.write_buffer(camera_uniform) ONLY</text>
-    <text x="556" y="197" font-size="10.5" fill="#064e3b">• Zero geometry re-uploads during Orbit/Fit!</text>
+    <rect x="544" y="145" width="276" height="68" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="556" y="163" font-size="11" font-weight="700" fill="#111111">3B. View / Camera Only (sync_scene = false)</text>
+    <text x="556" y="181" font-size="10.5" fill="#111111">• queue.write_buffer(camera_uniform) ONLY</text>
+    <text x="556" y="197" font-size="10.5" fill="#111111">• Zero geometry re-uploads during Orbit/Fit!</text>
     
 </svg>
 </div>
 
-### Lesson Data Flow (`Rust` → `WebGPU` → `WGSL`)
+## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
 
-```
-Kernel box → triangle extraction → validated display Mesh → document transaction → GPU upload → visible solid.
-Editor owns scene and history beside camera, background and selection.
-Typed command or canvas click → Action → Editor::apply → Change → scene upload when required → draw.
-```
+Before writing code, review how the three layers in this chapter talk to each other:
 
-- Create a kernel box, convert it to display data, and add it as one undoable scene object.
-- Own scene, selection, camera, background and history in one browser-independent value.
-- Move document actions into a browser-independent editor while keeping picking, undo and drawing working.
-- **Why it works (Why does a failed mesh conversion belong outside the GPU draw loop?):** Conversion establishes the display data contract before an object enters the scene. A failure should leave the document and history unchanged. The draw loop should read already valid GPU resources; it cannot repair an invalid index or decide whether a failed document edit should be kept.
-
-### Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `Browser`)
-
-| Layer | Construct | First-Year Student Explanation |
+| Layer | Construct | Plain-English Explanation for Students |
 | :--- | :--- | :--- |
 | **Protobuf (`.pb`)** | `session_proto` Binary Wire Format | Compact binary serialization for `Session` models; decoded with strict byte/count limits and topological validation before touching the live scene. |
 | **Rust (`session_rust`)** | Kernel `Mesh` + World Placement `4x4` Matrix | Separates exact `f64` kernel geometry from placed world instances; cold CPU source bytes can be released after GPU upload and re-fetched on edit. |
 | **Rust (`wgpu`)** | `Change { sync_scene, redraw }` | Incremental dirty-flag contract: camera orbit/fit sets `sync_scene = false` (updating only the 64-byte camera uniform), while geometry edits upload only changed buffers. |
 
-**Production source (`session_viewer/src`):** `session_viewer/src`
+**Authoritative production source (`session_viewer/src`):** `session_viewer/src`
 
-## Implementation Checkpoints
+## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
 
-Apply these checkpoints in order inside `workspace/journey`. Expand each block to view the Rust/WGSL/HTML edits:
+| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
+| ---: | :--- | :--- | :--- | :--- |
+| **1** | [`17-solid`](#checkpoint-17-solid) | Create a kernel box, convert it to display data, and add it as one undoable scene object. | `src/mesh.rs`, `src/scene.rs`, `src/history.rs`, `src/browser.rs` | `Kernel box → triangle extraction → validated display Mesh → document transaction → GPU upload → visible solid` |
+| **2** | [`18-light`](#checkpoint-18-light) | Shade the box faces according to their direction, using the same mesh and renderer. | `src/triangle.wgsl`, `src/browser.rs` | `World position → neighbouring surface directions → normal → light alignment → fragment colour` |
+| **3** | [`18a-editor`](#checkpoint-18a-editor) | Own scene, selection, camera, background and history in one browser-independent value. | `src/editor.rs`, `src/lib.rs` | `Editor owns scene and history beside camera, background and selection` |
+| **4** | [`18b-actions`](#checkpoint-18b-actions) | Apply actions through one editor while preserving view settings during history and reset. | `src/editor.rs` | `Action → Editor::apply → History for document edits → Change::Scene or Change::View` |
+| **5** | [`19-actions`](#checkpoint-19-actions) | Move document actions into a browser-independent editor while keeping picking, undo and drawing working. | `src/editor.rs`, `src/browser.rs` | `Typed command or canvas click → Action → Editor::apply → Change → scene upload when required → draw` |
+
+---
+
+## 4. Step-by-Step Coding Notebook (Concept + Implementation)
+
+Work through each notebook cell below in order inside `workspace/journey`. Read the **Concept Walkthrough** and **Self-Check Q&A** first, then expand the **Implementation** block to type and verify the code.
 
 <a id="checkpoint-17-solid"></a>
+
+### Step 1 of 5 · Bring a solid into the scene (`17-solid`)
+
+- **Goal:** Create a kernel box, convert it to display data, and add it as one undoable scene object.
+- **Data Flow Trace:** `Kernel box → triangle extraction → validated display Mesh → document transaction → GPU upload → visible solid`
+- **Files You Touch:** `src/mesh.rs` (*Adapt kernel triangle data to the current vertex and index layout with a checked narrowing conversion.*) · `src/scene.rs` (*Construct and place a box, then insert it only after its display mesh is valid.*) · `src/history.rs` (*Make transaction recording depend on success. The existing edit wrapper remains convenient for actions that cannot return an error.*) · `src/browser.rs` (*Add Example Box to the vocabulary.*)
+
+Create a grey box with the geometry kernel and adapt it to our validated display mesh. `to_render` supplies float vertices and triangle indices; the adapter selects position and colour for our six-float vertex layout.
+
+The box has eight geometric corners, six quad faces and twelve triangles. This example handles its convex faces; imported concave faces need later topology work.
+
+Convert kernel `u32` indices with `u16::try_from`. Return an error for an index that cannot fit rather than connecting the wrong corners.
+
+Add `History::try_edit`: commit and clear redo only on success; restore the previous scene on error. A test deliberately mutates then fails. The box is unlit here; the next shader change reveals its face directions.
+
+> **Self-Check Question:** *Why does a failed mesh conversion belong outside the GPU draw loop?*  
+> **Answer:** Conversion establishes the display data contract before an object enters the scene. A failure should leave the document and history unchanged. The draw loop should read already valid GPU resources; it cannot repair an invalid index or decide whether a failed document edit should be kept.
+
+- **What You Should See:** Type `Example Box`, then `View Isometric`. A solid box appears. `Undo` removes that one object; `Redo` restores it.
+- **Hands-On Lab Experiment:** Add a box and undo. In the rollback test, predict whether a failed new edit should erase the available redo. Run the test: it should not. Then redo the successful box addition. Separate three questions in your notes: did creation succeed, did the document change, and was the change uploaded?
 
 <details>
 <summary>Implementation 17-solid: Bring a solid into the scene</summary>
@@ -845,6 +911,26 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-18-light"></a>
 
+### Step 2 of 5 · Read the shape through light (`18-light`)
+
+- **Goal:** Shade the box faces according to their direction, using the same mesh and renderer.
+- **Data Flow Trace:** `World position → neighbouring surface directions → normal → light alignment → fragment colour`
+- **Files You Touch:** `src/triangle.wgsl` (*Pass world positions through the pipeline and turn face direction into brightness.*) · `src/browser.rs` (*Report that lighting changes brightness without changing geometry.*)
+
+Shade the grey box according to surface direction. Pass world positions from the vertex shader to the fragment shader.
+
+`dpdx` and `dpdy` estimate horizontal and vertical position changes. Their cross product gives the triangle normal; normalisation makes it unit length. Dot it with the unit world-space light direction to measure alignment.
+
+Use `abs` for this display's two-sided lighting and retain a minimum brightness of 0.3. Multiply RGB before the existing sRGB output conversion.
+
+Only shader logic changes. Mesh still supplies positions and colours, Camera positions the view, and Renderer submits the triangles. Adjoining box faces now have visibly different brightness.
+
+> **Self-Check Question:** *Why should orbiting the camera leave the brightness of a particular box face unchanged?*  
+> **Answer:** Both the normal and the light direction are expressed in world coordinates. Orbit changes where we look from, not the face direction or the light. A different face may become visible, but the same face keeps the same brightness. Mixing a camera-space normal with a world-space light would break that relationship.
+
+- **What You Should See:** Type `Example Box` and `View Isometric`. Faces pointing in different directions should have different brightness, making the box’s shape easier to read.
+- **Hands-On Lab Experiment:** Change the light to vec3<f32>(0.0, 0.0, 1.0). Predict the box first: the top should be bright and both vertical sides equally dark. Try it, then restore the original light. Explain why this changes colour without moving a single vertex.
+
 <details>
 <summary>Implementation 18-light: Read the shape through light</summary>
 
@@ -917,6 +1003,22 @@ Edit the existing block to match this code; keep unchanged lines:
 
 <a id="checkpoint-18a-editor"></a>
 
+### Step 3 of 5 · Give application state one owner (`18a-editor`)
+
+- **Goal:** Own scene, selection, camera, background and history in one browser-independent value.
+- **Data Flow Trace:** `Editor owns scene and history beside camera, background and selection`
+- **Files You Touch:** `src/editor.rs` (*Declare the action names, change kinds and application owner. Check a camera change keeps document identity.*) · `src/lib.rs` (*Make the editor available to both the browser and native checks.*)
+
+Editor owns application state. Action names an input; Change tells drawing whether scene data or only the view changed.
+
+Keep History private so document edits follow one path. Default constructs an editor with the existing demonstration scene.
+
+> **Self-Check Question:** *Why put these values in one struct?*  
+> **Answer:** An input handler can borrow one editor rather than manage separate captured scene, camera, selection and history values.
+
+- **What You Should See:** Inspect the supplied state fixtures. Zooming the owned camera preserves the document IDs and empty selection.
+- **Hands-On Lab Experiment:** Change the ownership test to pan the camera. Its scene IDs should still match; restore the original zoom check.
+
 <details>
 <summary>Implementation 18a-editor: Give application state one owner</summary>
 
@@ -962,6 +1064,22 @@ Edit the existing block to match this code; keep unchanged lines:
 
 <a id="checkpoint-18b-actions"></a>
 
+### Step 4 of 5 · Apply document and view actions in Rust (`18b-actions`)
+
+- **Goal:** Apply actions through one editor while preserving view settings during history and reset.
+- **Data Flow Trace:** `Action → Editor::apply → History for document edits → Change::Scene or Change::View`
+- **Files You Touch:** `src/editor.rs` (*Implement the action route and check history preserves the view. Keep the current aspect when resetting the camera.*)
+
+Editor::apply handles an Action and returns the kind of drawing change. Document edits use History; camera and background changes stay outside it.
+
+Result propagates a failed add operation. After deletion or history travel, retain selection only if its ID still exists. View Reset keeps the current window aspect.
+
+> **Self-Check Question:** *Why return Change rather than redraw here?*  
+> **Answer:** The editor owns application values, not GPU objects. Its caller decides when to upload scene data and draw.
+
+- **What You Should See:** Inspect the supplied state fixtures. Undo removes the added box while keeping zoom and background; View Reset preserves the current aspect.
+- **Hands-On Lab Experiment:** Set camera aspect to 2.0 in the reset test. Reset distance and orientation should change while that aspect stays 2.0.
+
 <details>
 <summary>Implementation 18b-actions: Apply document and view actions in Rust</summary>
 
@@ -1004,6 +1122,22 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-19-actions"></a>
+
+### Step 5 of 5 · Route browser input through the editor (`19-actions`)
+
+- **Goal:** Move document actions into a browser-independent editor while keeping picking, undo and drawing working.
+- **Data Flow Trace:** `Typed command or canvas click → Action → Editor::apply → Change → scene upload when required → draw`
+- **Files You Touch:** `src/editor.rs` (*Check selection repair, redo preservation and picking through the editor’s current camera.*) · `src/browser.rs` (*Import the editor action types.*)
+
+Convert submitted commands and canvas clicks to Action values. Apply them through Editor, upload only when Change is Scene, then redraw from the editor camera and background.
+
+The closure captures one mutable editor. The GPU renderer keeps its derived representation separate from the document owner.
+
+> **Self-Check Question:** *Why does Change::View skip set_scene?*  
+> **Answer:** The scene data did not change. Redrawing with the editor camera or background is sufficient.
+
+- **What You Should See:** Type Example Box, then Undo and Redo. The box disappears and returns through the editor route.
+- **Hands-On Lab Experiment:** Pan Right, delete a selected object and Undo. The document returns while the camera stays where you put it.
 
 <details>
 <summary>Implementation 19-actions: Route browser input through the editor</summary>
@@ -1593,9 +1727,11 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 </details>
 
-## Run, Check, and Save
+---
 
-From `session_viewer`:
+## 5. Build, Verify, and Save Your Checkpoint
+
+Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 19-actions
@@ -1606,12 +1742,12 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. Use [checkpoint recovery](../../recovery.md) to restore any saved checkpoint.
+Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
 
-## Expected Visual Result & Experiment
+## 6. Lesson Summary & Expected Visual Result
 
 Type Example Box, then Undo and Redo. The box disappears and returns through the editor route.
 
-- **Try this:** Pan Right, delete a selected object and Undo. The document returns while the camera stays where you put it.
+- **Final Lesson Experiment:** Pan Right, delete a selected object and Undo. The document returns while the camera stays where you put it.
 
-Continue with [One drawing size and one captured gesture](19a-viewport.md).
+Continue with [One drawing size and one captured gesture](../../consolidation/19a-viewport.md).

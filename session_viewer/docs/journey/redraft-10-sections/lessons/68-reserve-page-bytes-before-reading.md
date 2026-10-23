@@ -1,89 +1,174 @@
 # 12.4 · Charged residency and current streamed pages
 
-**Section 7: Out-of-Core HTTP Range Streaming, Shared Instances, and Drawing Sheets** · **Lesson 12.4** (Redraft `7.4`) · **31 checkpoints (`68-reserve-page-bytes-before-reading` → `68ac-connect-current-pages-to-the-browser-renderer`)**
+**Section 7: Out-of-Core HTTP Range Streaming, Shared Instances, and Drawing Sheets** · **Lesson 12.4** (Redraft `7.4`) · **31 checkpoints (`68-reserve-page-bytes-before-reading` → `68ac-connect-current-pages-to-the-browser-renderer`)** · **Study time: 15.5–31 h**
 
-> **Learning Goal:** Reserve page bytes before reading.
+> **What You Will Learn & Build:** Reserve page bytes before reading. By the final checkpoint (`68ac-connect-current-pages-to-the-browser-renderer`), you will connect current pages to the browser renderer.
 
-## Visual WebGPU & Architecture Schematic
+## 1. Visual Pipeline & WebGPU Architecture (Black & White Schematics)
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1px solid #cbd5e1;border-radius:10px;background:#f8fafc;">
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
+<svg viewBox="0 0 840 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <rect x="4" y="4" width="832" height="212" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Lesson 12.4 Execution Flow: Charged residency and current streamed pages</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">Concrete data pipeline you build in this lesson (31 Checkpoints: 68-reserve-page-bytes-before-reading → 68ac-connect-current-pages-to-the-browser-renderer)</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
+  
+    
+    <rect x="18" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="89" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
+    <line x1="28" y1="92" x2="151" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">byte budget</text>
+    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="183" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="254" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
+    <line x1="193" y1="92" x2="316" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">reserved charge</text>
+    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="348" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="419" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
+    <line x1="358" y1="92" x2="481" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">allocation</text>
+    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="513" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="584" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
+    <line x1="523" y1="92" x2="646" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">automatic release</text>
+    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="678" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="749" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
+    <line x1="688" y1="92" x2="811" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">adopted original</text>
+    
+    <rect x="18" y="162" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="32" y="181" font-size="11" font-weight="700" fill="#111111">Files You Edit in Lesson 12.4:</text>
+    <text x="215" y="181" font-size="11" fill="#111111">src/page_cache.rs  ·  src/lib.rs  ·  src/stream_generation.rs  ·  src/stream_budget.rs  ·  src/stream_properties.rs  ·  src/stream.rs</text>
+    <text x="32" y="198" font-size="10.5" fill="#111111">31 Checkpoints: 68-reserve-page-bytes-before-reading → 68ac-connect-current-pages-to-the-browser-renderer — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
+  
+</svg>
+</div>
+
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
 <svg viewBox="0 0 840 240" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#475569"/>
-    </marker>
-    <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#2563eb"/>
-    </marker>
-    <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#059669"/>
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
     </marker>
   </defs>
-  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
-  <text x="20" y="28" font-size="14" font-weight="700" fill="#0f172a">Section 7 WebGPU Streaming & Instancing: HTTP Range Requests, Shared Source Meshes & 2D Drawing Sheets</text>
-  <text x="20" y="46" font-size="11.5" fill="#475569">How massive multi-gigabyte scenes stream out-of-core via HTTP 206 Partial Content and draw 1,000+ placements from 1 GPU buffer.</text>
-  <line x1="16" y1="54" x2="824" y2="54" stroke="#e2e8f0" stroke-width="1"/>
+  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Section 7 WebGPU Streaming & Instancing: HTTP Range Requests, Shared Source Meshes & 2D Drawing Sheets</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">How massive multi-gigabyte scenes stream out-of-core via HTTP 206 Partial Content and draw 1,000+ placements from 1 GPU buffer.</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
   
-    <rect x="18" y="68" width="245" height="145" rx="6" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
-    <text x="140" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1e40af">1. HTTP 206 Range Streaming (Ch 12)</text>
-    <text x="28" y="108" font-size="10.5" fill="#1e3a8a">• Fetch compact Manifest + World Bounds</text>
-    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#1d4ed8">• Prioritize visible frustum chunks</text>
-    <text x="28" y="144" font-size="10.5" fill="#1e3a8a">• Range: bytes=start-end (bounded memory)</text>
-    <text x="28" y="162" font-size="10.5" fill="#1e3a8a">• Evict cold off-screen chunks under</text>
-    <text x="28" y="178" font-size="10.5" fill="#1e3a8a">  memory budget without losing metadata</text>
+    <rect x="18" y="68" width="245" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="140" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">1. HTTP 206 Range Streaming (Ch 12)</text>
+    <text x="28" y="108" font-size="10.5" fill="#111111">• Fetch compact Manifest + World Bounds</text>
+    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#111111">• Prioritize visible frustum chunks</text>
+    <text x="28" y="144" font-size="10.5" fill="#111111">• Range: bytes=start-end (bounded memory)</text>
+    <text x="28" y="162" font-size="10.5" fill="#111111">• Evict cold off-screen chunks under</text>
+    <text x="28" y="178" font-size="10.5" fill="#111111">  memory budget without losing metadata</text>
 
-    <line x1="263" y1="138" x2="293" y2="138" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
+    <line x1="263" y1="138" x2="293" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="295" y="68" width="265" height="145" rx="6" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5"/>
-    <text x="427" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#9a3412">2. GPU Hardware Instancing (Ch 13)</text>
-    <text x="307" y="108" font-size="10.5" fill="#7c2d12">• 1 Shared Definition Buffer (e.g. Bolt)</text>
-    <text x="307" y="126" font-size="10.5" font-weight="600" fill="#c2410c">• N Instance Rows (@builtin(instance_index)):</text>
-    <text x="307" y="142" font-size="10" fill="#7c2d12">  Per-instance mat4x4 transform, tint,</text>
-    <text x="307" y="157" font-size="10" fill="#7c2d12">  and distinct instance_owner_id</text>
-    <text x="307" y="176" font-size="10.5" fill="#7c2d12">• draw_indexed(0..idx_cnt, 0, 0..N_inst)</text>
+    <rect x="295" y="68" width="265" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="427" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">2. GPU Hardware Instancing (Ch 13)</text>
+    <text x="307" y="108" font-size="10.5" fill="#111111">• 1 Shared Definition Buffer (e.g. Bolt)</text>
+    <text x="307" y="126" font-size="10.5" font-weight="600" fill="#111111">• N Instance Rows (@builtin(instance_index)):</text>
+    <text x="307" y="142" font-size="10" fill="#111111">  Per-instance mat4x4 transform, tint,</text>
+    <text x="307" y="157" font-size="10" fill="#111111">  and distinct instance_owner_id</text>
+    <text x="307" y="176" font-size="10.5" fill="#111111">• draw_indexed(0..idx_cnt, 0, 0..N_inst)</text>
 
-    <line x1="560" y1="138" x2="590" y2="138" stroke="#059669" stroke-width="2" marker-end="url(#arrow-green)"/>
+    <line x1="560" y1="138" x2="590" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="592" y="68" width="228" height="145" rx="6" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1.5"/>
-    <text x="706" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#065f46">3. 2D Drawing Sheets &amp; Blocks</text>
-    <text x="604" y="108" font-size="10.5" fill="#064e3b">• Paper-space Sheet frames &amp; title</text>
-    <text x="604" y="124" font-size="10.5" fill="#064e3b">  blocks (`SheetInit / SheetRows`)</text>
-    <text x="604" y="144" font-size="10.5" font-weight="600" fill="#047857">• Calibrated mm/inch pen widths</text>
-    <text x="604" y="162" font-size="10.5" fill="#064e3b">• Switch smoothly between 3D Model</text>
-    <text x="604" y="178" font-size="10.5" fill="#064e3b">  view and 2D Sheet layouts</text>
+    <rect x="592" y="68" width="228" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="706" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">3. 2D Drawing Sheets &amp; Blocks</text>
+    <text x="604" y="108" font-size="10.5" fill="#111111">• Paper-space Sheet frames &amp; title</text>
+    <text x="604" y="124" font-size="10.5" fill="#111111">  blocks (SheetInit / SheetRows)</text>
+    <text x="604" y="144" font-size="10.5" font-weight="600" fill="#111111">• Calibrated mm/inch pen widths</text>
+    <text x="604" y="162" font-size="10.5" fill="#111111">• Switch smoothly between 3D Model</text>
+    <text x="604" y="178" font-size="10.5" fill="#111111">  view and 2D Sheet layouts</text>
     
 </svg>
 </div>
 
-### Lesson Data Flow (`Rust` → `WebGPU` → `WGSL`)
+## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
 
-```
-byte budget → reserved charge → allocation → automatic release.
-GPU page address → source page → original ID → f64 world position.
-adopted original → current page delivery → cancelled old pick → GPU refresh → source diagnostics.
-```
+Before writing code, review how the three layers in this chapter talk to each other:
 
-- Reserve page bytes before reading.
-- Resolve compact picks to original point IDs.
-- Connect current pages to the browser renderer.
-- **Why it works (Does removing a cache entry necessarily release its memory?):** No. A renderer or reader may still own that page. Its charge lasts until the final shared owner is dropped.
-
-### Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `Browser`)
-
-| Layer | Construct | First-Year Student Explanation |
+| Layer | Construct | Plain-English Explanation for Students |
 | :--- | :--- | :--- |
 | **HTTP / Fetch** | `Range: bytes=start-end` -> `206 Partial Content` | Fetches only the exact byte slice of an octree node or sheet column needed for the current camera view. |
 | **Protobuf Wire** | Varint tag + length prefix scanner | Skips over multi-megabyte coordinate arrays by reading their byte range offsets without allocating their contents. |
 | **Rust (Residency)** | `budget.reserve(bytes)?` -> LRU eviction | Guarantees resident + in-flight pages never exceed the memory cap; coarse root pages stay pinned so the scene is never blank. |
 | **GPU Instancing** | Shared definition buffer + per-instance record | Draws N placed copies of a complex CAD component using 1 shared vertex/index allocation and N compact instance records. |
 
-**Production source (`session_viewer/src`):** [app/manifest.rs](../../../../src/app/manifest.rs), [app/session_io.rs](../../../../src/app/session_io.rs), [app/stream.rs](../../../../src/app/stream.rs), [app/range_gate.rs](../../../../src/app/range_gate.rs), [app/fetch.rs](../../../../src/app/fetch.rs), [app/loader.rs](../../../../src/app/loader.rs), [app/live.rs](../../../../src/app/live.rs).
+**Authoritative production source (`session_viewer/src`):** [app/manifest.rs](../../../../src/app/manifest.rs), [app/session_io.rs](../../../../src/app/session_io.rs), [app/stream.rs](../../../../src/app/stream.rs), [app/range_gate.rs](../../../../src/app/range_gate.rs), [app/fetch.rs](../../../../src/app/fetch.rs), [app/loader.rs](../../../../src/app/loader.rs), [app/live.rs](../../../../src/app/live.rs).
 
-## Implementation Checkpoints
+## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
 
-Apply these checkpoints in order inside `workspace/journey`. Expand each block to view the Rust/WGSL/HTML edits:
+| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
+| ---: | :--- | :--- | :--- | :--- |
+| **1** | [`68-reserve-page-bytes-before-reading`](#checkpoint-68-reserve-page-bytes-before-reading) | Reserve page bytes before reading. | `src/page_cache.rs`, `src/lib.rs` | `byte budget → reserved charge → allocation → automatic release` |
+| **2** | [`68a-keep-shared-pages-alive-during-eviction`](#checkpoint-68a-keep-shared-pages-alive-during-eviction) | Keep shared pages alive during eviction. | `src/page_cache.rs` | `shared page → access order → removed entry → retained external owner` |
+| **3** | [`68b-evict-unpinned-pages-in-access-order`](#checkpoint-68b-evict-unpinned-pages-in-access-order) | Evict unpinned pages in access order. | `src/page_cache.rs` | `required bytes → unpinned old pages → sufficient room → reserved read` |
+| **4** | [`68c-reject-late-source-generations`](#checkpoint-68c-reject-late-source-generations) | Reject late source generations. | `src/stream_generation.rs`, `src/lib.rs` | `source generation → request ticket → current completion → one adoption` |
+| **5** | [`68d-bound-source-prefixes-and-decode-work`](#checkpoint-68d-bound-source-prefixes-and-decode-work) | Bound source prefixes and decode work. | `src/stream_budget.rs`, `src/lib.rs` | `source count → point ceiling → checked temporary bytes → bounded page` |
+| **6** | [`68e-validate-original-streamed-presentation`](#checkpoint-68e-validate-original-streamed-presentation) | Validate original streamed presentation. | `src/stream_properties.rs`, `src/lib.rs` | `original style fields → checked values → source properties` |
+| **7** | [`68f-reuse-a-checked-source-probe`](#checkpoint-68f-reuse-a-checked-source-probe) | Reuse a checked source probe. | `src/stream.rs`, `src/range_source.rs` | `source probe → bounded metadata → original properties → source descriptor` |
+| **8** | [`68fa-validate-complete-source-metadata`](#checkpoint-68fa-validate-complete-source-metadata) | Refuse mixed or placed originals before choosing sampled range display. | `src/range_shape.rs`, `src/lib.rs`, `src/range_source.rs` | `source header → one original cloud → bounded root metadata → safe range display` |
+| **9** | [`68g-slice-original-pages-without-losing-attributes`](#checkpoint-68g-slice-original-pages-without-losing-attributes) | Slice original pages without losing attributes. | `src/range_page.rs` | `original page → checked slice → original identities → retained byte charge` |
+| **10** | [`68h-prepare-shared-remote-source-owners`](#checkpoint-68h-prepare-shared-remote-source-owners) | Prepare shared remote source owners. | `src/range_cloud.rs`, `src/lib.rs` | `original descriptor → checked octree → precise bounds → shared owner` |
+| **11** | [`68i-keep-independent-streamed-placements`](#checkpoint-68i-keep-independent-streamed-placements) | Keep independent streamed placements. | `src/range_cloud.rs` | `shared original → independent row → f64 model → placed bounds` |
+| **12** | [`68j-pin-coarse-pages-and-adopt-checked-ranges`](#checkpoint-68j-pin-coarse-pages-and-adopt-checked-ranges) | Pin coarse pages and adopt checked ranges. | `src/range_cloud.rs` | `coarse pin → checked source page → shared cached value → independent eviction` |
+| **13** | [`68k-supply-coarse-and-detailed-page-specimens`](#checkpoint-68k-supply-coarse-and-detailed-page-specimens) | Supply coarse and detailed page specimens. | `src/range_example.rs`, `src/lib.rs` | `original source specimen → pinned coarse page → retained detailed page` |
+| **14** | [`68l-insert-streamed-rows-on-the-current-layer`](#checkpoint-68l-insert-streamed-rows-on-the-current-layer) | Insert streamed rows on the current layer. | `src/scene.rs` | `validated source placement → stable row → original flags → current layer` |
+| **15** | [`68m-carry-source-placement-through-scene-operations`](#checkpoint-68m-carry-source-placement-through-scene-operations) | Carry source placement through scene operations. | `src/scene.rs`, `src/hierarchy.rs` | `source row → model operation → shared source → independent owner identity` |
+| **16** | [`68n-resolve-compact-picks-to-original-point-ids`](#checkpoint-68n-resolve-compact-picks-to-original-point-ids) | Resolve compact picks to original point IDs. | `src/cloud_pick.rs`, `src/pick_sources.rs`, `src/editor.rs`, `src/scene_archive.rs` | `GPU page address → source page → original ID → f64 world position` |
+| **17** | [`68o-account-for-original-and-retained-source-data`](#checkpoint-68o-account-for-original-and-retained-source-data) | Account for original and retained source data. | `src/memory.rs`, `src/stream_row_tests.rs`, `src/lib.rs` | `scene snapshots → shared original owners → retained pages → independent counts` |
+| **18** | [`68p-keep-original-attributes-in-ranged-pages`](#checkpoint-68p-keep-original-attributes-in-ranged-pages) | Keep original attributes in ranged pages. | `src/stream.rs`, `src/range_source.rs` | `coordinate and ID range → matching attributes → checked original page` |
+| **19** | [`68q-retain-page-owners-beside-gpu-buffers`](#checkpoint-68q-retain-page-owners-beside-gpu-buffers) | Retain page owners beside GPU buffers. | `src/cloud_gpu.rs` | `charged original page → derived GPU columns → retained pick identity` |
+| **20** | [`68r-describe-resident-and-streamed-draw-rows`](#checkpoint-68r-describe-resident-and-streamed-draw-rows) | Describe resident and streamed draw rows. | `src/cloud_gpu.rs` | `source owner → shared node table → placed draw row → compact page address` |
+| **21** | [`68s-draw-shared-source-pages-at-independent-placements`](#checkpoint-68s-draw-shared-source-pages-at-independent-placements) | Draw shared source pages at independent placements. | `src/cloud_gpu.rs`, `src/cloud_points.wgsl`, `src/renderer.rs`, `src/pick_gpu_tests.rs` | `shared page columns → independent placement records → clipped LOD range → visible pixels` |
+| **22** | [`68t-validate-encoded-source-metadata`](#checkpoint-68t-validate-encoded-source-metadata) | Validate encoded source metadata. | `src/source_encoding.rs`, `src/lib.rs` | `manifest encoding → supported codec → declared decoded limit` |
+| **23** | [`68u-decode-bounded-cancellable-source-streams`](#checkpoint-68u-decode-bounded-cancellable-source-streams) | Decode bounded cancellable source streams. | `Cargo.toml`, `src/source_unpack.rs`, `src/lib.rs` | `packed source → decompression stream → bounded chunks → exact original bytes` |
+| **24** | [`68v-refuse-conflicting-source-encoding-revisions`](#checkpoint-68v-refuse-conflicting-source-encoding-revisions) | Refuse conflicting source encoding revisions. | `src/publication_index.rs` | `new manifest → checked repeated formats → original inventory → atomic replacement` |
+| **25** | [`68w-adopt-remote-original-revisions-independently`](#checkpoint-68w-adopt-remote-original-revisions-independently) | Adopt remote original revisions independently. | `src/publication_index.rs` | `remote validator → prepared original → manifest placements → independent viewer rows` |
+| **26** | [`68x-prepare-a-coarse-pin-and-bounded-prefix`](#checkpoint-68x-prepare-a-coarse-pin-and-bounded-prefix) | Prepare a coarse pin and bounded prefix. | `src/stream_load.rs`, `src/lib.rs` | `source metadata → coarse pin → bounded prefix → initial source owner` |
+| **27** | [`68y-redraw-before-reusing-evicted-page-addresses`](#checkpoint-68y-redraw-before-reusing-evicted-page-addresses) | Redraw before reusing evicted page addresses. | `src/stream_load.rs` | `explicit eviction → cancelled pick → renderer release → reserved page` |
+| **28** | [`68z-continue-pages-only-for-current-source-owners`](#checkpoint-68z-continue-pages-only-for-current-source-owners) | Continue pages only for current source owners. | `src/stream_load.rs` | `current owner → reserved page → revision-bound read → checked completion → redraw` |
+| **29** | [`68aa-own-cancellation-for-each-published-source`](#checkpoint-68aa-own-cancellation-for-each-published-source) | Own cancellation for each published source. | `src/range_fetch.rs`, `src/browser_publication.rs` | `publication owner → weak source membership → closed generation → aborted ranges` |
+| **30** | [`68ab-choose-bounded-range-loading-for-large-originals`](#checkpoint-68ab-choose-bounded-range-loading-for-large-originals) | Choose bounded range loading for large originals. | `src/browser_publication.rs` | `manifest source → range probe → original descriptor → bounded prefix → staged replacement` |
+| **31** | [`68ac-connect-current-pages-to-the-browser-renderer`](#checkpoint-68ac-connect-current-pages-to-the-browser-renderer) | Connect current pages to the browser renderer. | `src/browser_publication.rs`, `src/browser.rs` | `adopted original → current page delivery → cancelled old pick → GPU refresh → source diagnostics` |
+
+---
+
+## 4. Step-by-Step Coding Notebook (Concept + Implementation)
+
+Work through each notebook cell below in order inside `workspace/journey`. Read the **Concept Walkthrough** and **Self-Check Q&A** first, then expand the **Implementation** block to type and verify the code.
 
 <a id="checkpoint-68-reserve-page-bytes-before-reading"></a>
+
+### Step 1 of 31 · Reserve page bytes before reading (`68-reserve-page-bytes-before-reading`)
+
+- **Goal:** Reserve page bytes before reading.
+- **Data Flow Trace:** `byte budget → reserved charge → allocation → automatic release`
+- **Files You Touch:** `src/page_cache.rs` (*Reserve bytes before allocation and release them with the owning charge.*) · `src/lib.rs` (*Register the source component.*)
+
+Account for retained and pending payload before allocating a page. A dropped charge releases its reservation.
+
+> **Self-Check Question:** *Does removing a cache entry necessarily release its memory?*  
+> **Answer:** No. A renderer or reader may still own that page. Its charge lasts until the final shared owner is dropped.
+
+- **What You Should See:** The mixed original CAD and surface scene remains visible. The final cache checkpoint draws actual coarse and detailed source pages; URL streaming connects after its owners and renderer are ready.
+- **Hands-On Lab Experiment:** Reserve10bytes from12, refuse13, shrink to6 and release the charge.
 
 <details>
 <summary>Implementation 68-reserve-page-bytes-before-reading: Reserve page bytes before reading</summary>
@@ -126,6 +211,19 @@ After that block, type:
 
 <a id="checkpoint-68a-keep-shared-pages-alive-during-eviction"></a>
 
+### Step 2 of 31 · Keep shared pages alive during eviction (`68a-keep-shared-pages-alive-during-eviction`)
+
+- **Goal:** Keep shared pages alive during eviction.
+- **Data Flow Trace:** `shared page → access order → removed entry → retained external owner`
+- **Files You Touch:** `src/page_cache.rs` (*Keep page values and their accounting alive across cache removal.*)
+
+Wrap each page with its charge and record access order. Removing an entry leaves external owners usable.
+
+> **Self-Check Question:** *What prevents an evicted page from becoming dangling data?*  
+> **Answer:** Its shared owner retains the value and charge until every renderer and pending reader releases it.
+
+- **Hands-On Lab Experiment:** Trace one externally held page through cache removal and inspect its unchanged bytes.
+
 <details>
 <summary>Implementation 68a-keep-shared-pages-alive-during-eviction: Keep shared pages alive during eviction</summary>
 
@@ -155,6 +253,19 @@ After that block, type:
 </details>
 
 <a id="checkpoint-68b-evict-unpinned-pages-in-access-order"></a>
+
+### Step 3 of 31 · Evict unpinned pages in access order (`68b-evict-unpinned-pages-in-access-order`)
+
+- **Goal:** Evict unpinned pages in access order.
+- **Data Flow Trace:** `required bytes → unpinned old pages → sufficient room → reserved read`
+- **Files You Touch:** `src/page_cache.rs` (*Reclaim sufficient unpinned payload before reserving a new page.*)
+
+Choose enough old unpinned entries before changing the cache. Failed reservation preserves current entries.
+
+> **Self-Check Question:** *May a failed reservation remove half the drawing?*  
+> **Answer:** No. The reservation first proves enough reclaimable room. Explicit visible eviction later redraws and cancels picks before reuse.
+
+- **Hands-On Lab Experiment:** Inspect eviction, pinned failure, foreign-budget refusal and retained-owner release tests.
 
 <details>
 <summary>Implementation 68b-evict-unpinned-pages-in-access-order: Evict unpinned pages in access order</summary>
@@ -215,6 +326,19 @@ After that block, append this supplied code:
 </details>
 
 <a id="checkpoint-68c-reject-late-source-generations"></a>
+
+### Step 4 of 31 · Reject late source generations (`68c-reject-late-source-generations`)
+
+- **Goal:** Reject late source generations.
+- **Data Flow Trace:** `source generation → request ticket → current completion → one adoption`
+- **Files You Touch:** `src/stream_generation.rs` (*Check source generation and exactly one completion per request.*) · `src/lib.rs` (*Register the source component.*)
+
+Give concurrent reads distinct tickets. Close invalidates every outstanding ticket without wrapping counters.
+
+> **Self-Check Question:** *Can an old read finish into a reopened source?*  
+> **Answer:** No. Reopening changes the generation; completion must still belong to the active generation and pending request.
+
+- **Hands-On Lab Experiment:** Complete concurrent reads out of order, close, reopen and refuse old tickets or exhausted counters.
 
 <details>
 <summary>Implementation 68c-reject-late-source-generations: Reject late source generations</summary>
@@ -285,6 +409,19 @@ After that block, append this supplied code:
 
 <a id="checkpoint-68d-bound-source-prefixes-and-decode-work"></a>
 
+### Step 5 of 31 · Bound source prefixes and decode work (`68d-bound-source-prefixes-and-decode-work`)
+
+- **Goal:** Bound source prefixes and decode work.
+- **Data Flow Trace:** `source count → point ceiling → checked temporary bytes → bounded page`
+- **Files You Touch:** `src/stream_budget.rs` (*Limit point ranges and reserve checked decode work.*) · `src/lib.rs` (*Register the source component.*)
+
+Use explicit point ceilings and reserve temporary original/derived decode work before reading arrays.
+
+> **Self-Check Question:** *Does the page budget measure all browser memory?*  
+> **Answer:** No. It bounds charged CPU page work. GPU allocations, metadata, old/new staged scenes and browser overhead require separate measurement.
+
+- **Hands-On Lab Experiment:** Compare a2m page estimate with the256MiB budget and reduce the read before allocation.
+
 <details>
 <summary>Implementation 68d-bound-source-prefixes-and-decode-work: Bound source prefixes and decode work</summary>
 
@@ -353,6 +490,19 @@ After that block, append this supplied code:
 
 <a id="checkpoint-68e-validate-original-streamed-presentation"></a>
 
+### Step 6 of 31 · Validate original streamed presentation (`68e-validate-original-streamed-presentation`)
+
+- **Goal:** Validate original streamed presentation.
+- **Data Flow Trace:** `original style fields → checked values → source properties`
+- **Files You Touch:** `src/stream_properties.rs` (*Retain and validate original presentation fields.*) · `src/lib.rs` (*Register the source component.*)
+
+Read source point size and visibility/lock fields independently of cached display pages.
+
+> **Self-Check Question:** *May an invalid point size silently become a default?*  
+> **Answer:** No. Refuse nonfinite or nonpositive original size and malformed or repeated presentation fields.
+
+- **Hands-On Lab Experiment:** Check default source properties and malformed original scalar fields.
+
 <details>
 <summary>Implementation 68e-validate-original-streamed-presentation: Validate original streamed presentation</summary>
 
@@ -420,6 +570,19 @@ After that block, append this supplied code:
 </details>
 
 <a id="checkpoint-68f-reuse-a-checked-source-probe"></a>
+
+### Step 7 of 31 · Reuse a checked source probe (`68f-reuse-a-checked-source-probe`)
+
+- **Goal:** Reuse a checked source probe.
+- **Data Flow Trace:** `source probe → bounded metadata → original properties → source descriptor`
+- **Files You Touch:** `src/stream.rs` (*Read checked original style fields through bounded metadata windows.*) · `src/range_source.rs` (*Reuse the probe and retain original source properties.*)
+
+Read metadata from bounded windows and reuse the initial revision-bound probe.
+
+> **Self-Check Question:** *Why retain the original point size beside a placement override?*  
+> **Answer:** The source value stays unchanged while each placed owner may choose its own display size.
+
+- **Hands-On Lab Experiment:** Trace source identity, ETag, array offsets, style fields and octree without downloading coordinates.
 
 <details>
 <summary>Implementation 68f-reuse-a-checked-source-probe: Reuse a checked source probe</summary>
@@ -575,6 +738,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-68fa-validate-complete-source-metadata"></a>
+
+### Step 8 of 31 · Validate complete source metadata (`68fa-validate-complete-source-metadata`)
+
+- **Goal:** Refuse mixed or placed originals before choosing sampled range display.
+- **Data Flow Trace:** `source header → one original cloud → bounded root metadata → safe range display`
+- **Files You Touch:** `src/range_shape.rs` (*Validate single-cloud layout and complete original metadata before sampling.*) · `src/lib.rs` (*Register complete original metadata validation.*) · `src/range_source.rs` (*Refuse unapplied original metadata and mixed source geometry before range adoption.*)
+
+Validate the complete source envelope before adopting range pages. Unapplied placements and extended originals require complete document loading.
+
+> **Self-Check Question:** *Can a source point or placement be silently skipped by a cloud range reader?*  
+> **Answer:** No. Require one original cloud, validate its trailing metadata and refuse unapplied placements, extra objects, definitions or interactions.
+
+- **Hands-On Lab Experiment:** Compare a single cloud with a tiny point preceding it; refuse a precise source placement instead of displaying it in the wrong frame.
 
 <details>
 <summary>Implementation 68fa-validate-complete-source-metadata: Validate complete source metadata</summary>
@@ -783,6 +959,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-68g-slice-original-pages-without-losing-attributes"></a>
 
+### Step 9 of 31 · Slice original pages without losing attributes (`68g-slice-original-pages-without-losing-attributes`)
+
+- **Goal:** Slice original pages without losing attributes.
+- **Data Flow Trace:** `original page → checked slice → original identities → retained byte charge`
+- **Files You Touch:** `src/range_page.rs` (*Keep original attributes and slices with checked page lengths.*)
+
+Retain exact original coordinates, IDs, colours and packed normals for a checked source interval.
+
+> **Self-Check Question:** *Does slicing a page renumber its original points?*  
+> **Answer:** No. The slice preserves the original source row interval and ID column.
+
+- **Hands-On Lab Experiment:** Slice the second point, compare exact colour/normal words and reject incomplete attribute columns.
+
 <details>
 <summary>Implementation 68g-slice-original-pages-without-losing-attributes: Slice original pages without losing attributes</summary>
 
@@ -953,6 +1142,19 @@ After that block, append this supplied code:
 
 <a id="checkpoint-68h-prepare-shared-remote-source-owners"></a>
 
+### Step 10 of 31 · Prepare shared remote source owners (`68h-prepare-shared-remote-source-owners`)
+
+- **Goal:** Prepare shared remote source owners.
+- **Data Flow Trace:** `original descriptor → checked octree → precise bounds → shared owner`
+- **Files You Touch:** `src/range_cloud.rs` (*Own the complete remote descriptor and precise original bounds.*) · `src/lib.rs` (*Register the source component.*)
+
+Keep original source identity, full octree bounds and charged cached pages in one shared owner.
+
+> **Self-Check Question:** *Does a sampled page define the complete source bounds?*  
+> **Answer:** No. The checked original octree retains the source extent even when detailed pages are absent.
+
+- **Hands-On Lab Experiment:** Reject an unversioned mutable source and compare original f64 bounds with derived node floats.
+
 <details>
 <summary>Implementation 68h-prepare-shared-remote-source-owners: Prepare shared remote source owners</summary>
 
@@ -994,6 +1196,19 @@ After that block, type:
 
 <a id="checkpoint-68i-keep-independent-streamed-placements"></a>
 
+### Step 11 of 31 · Keep independent streamed placements (`68i-keep-independent-streamed-placements`)
+
+- **Goal:** Keep independent streamed placements.
+- **Data Flow Trace:** `shared original → independent row → f64 model → placed bounds`
+- **Files You Touch:** `src/range_cloud.rs` (*Keep independent owner placements and precise world bounds.*)
+
+Give placed owners distinct viewer identities, models and point-size overrides while sharing their source.
+
+> **Self-Check Question:** *May one placement rewrite the shared source coordinates?*  
+> **Answer:** No. Its model transforms the world bounds while the original descriptor and pages remain shared.
+
+- **Hands-On Lab Experiment:** Translate one owner and compare the original bounds with all eight transformed corners.
+
 <details>
 <summary>Implementation 68i-keep-independent-streamed-placements: Keep independent streamed placements</summary>
 
@@ -1024,6 +1239,19 @@ After that block, type:
 </details>
 
 <a id="checkpoint-68j-pin-coarse-pages-and-adopt-checked-ranges"></a>
+
+### Step 12 of 31 · Pin coarse pages and adopt checked ranges (`68j-pin-coarse-pages-and-adopt-checked-ranges`)
+
+- **Goal:** Pin coarse pages and adopt checked ranges.
+- **Data Flow Trace:** `coarse pin → checked source page → shared cached value → independent eviction`
+- **Files You Touch:** `src/range_cloud.rs` (*Adopt checked original pages and retain a coarse fallback.*)
+
+Keep a coarse source page available after detailed eviction. Refuse overlapping retained ranges and repeated original IDs.
+
+> **Self-Check Question:** *Can eviction make the complete source disappear?*  
+> **Answer:** The pinned coarse page remains available. Detailed pages may leave the cache while external owners retain their charges.
+
+- **Hands-On Lab Experiment:** Inspect original ID/precision, overlap refusal, unversioned source and retained-charge cleanup fixtures.
 
 <details>
 <summary>Implementation 68j-pin-coarse-pages-and-adopt-checked-ranges: Pin coarse pages and adopt checked ranges</summary>
@@ -1085,6 +1313,19 @@ After that block, append this supplied code:
 
 <a id="checkpoint-68k-supply-coarse-and-detailed-page-specimens"></a>
 
+### Step 13 of 31 · Supply coarse and detailed page specimens (`68k-supply-coarse-and-detailed-page-specimens`)
+
+- **Goal:** Supply coarse and detailed page specimens.
+- **Data Flow Trace:** `original source specimen → pinned coarse page → retained detailed page`
+- **Files You Touch:** `src/range_example.rs` (*Copy source-page rendering and ownership specimens.*) · `src/lib.rs` (*Register the source component.*)
+
+Copy original page specimens with exact coordinates, colour words and full-u32 point identities.
+
+> **Self-Check Question:** *Are these specimens evidence of browser network reads?*  
+> **Answer:** No. They isolate original page ownership and rendering. Actual HTTP ranges are exercised by the later browser contract.
+
+- **Hands-On Lab Experiment:** Compare original IDs10,11,4294967295 and16777217 across their two page ranges.
+
 <details>
 <summary>Implementation 68k-supply-coarse-and-detailed-page-specimens: Supply coarse and detailed page specimens</summary>
 
@@ -1132,6 +1373,19 @@ After that block, type:
 </details>
 
 <a id="checkpoint-68l-insert-streamed-rows-on-the-current-layer"></a>
+
+### Step 14 of 31 · Insert streamed rows on the current layer (`68l-insert-streamed-rows-on-the-current-layer`)
+
+- **Goal:** Insert streamed rows on the current layer.
+- **Data Flow Trace:** `validated source placement → stable row → original flags → current layer`
+- **Files You Touch:** `src/scene.rs` (*Insert validated streamed rows and release them with the scene.*)
+
+Validate placement and point size before allocating the row. Attach its original visibility and lock state.
+
+> **Self-Check Question:** *Can a refused placement consume a visible row identity?*  
+> **Answer:** No. Validate its world bounds and display range before allocating the independent owner.
+
+- **Hands-On Lab Experiment:** Insert two owners of one source and inspect independent identities and point sizes.
 
 <details>
 <summary>Implementation 68l-insert-streamed-rows-on-the-current-layer: Insert streamed rows on the current layer</summary>
@@ -2018,6 +2272,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-68m-carry-source-placement-through-scene-operations"></a>
+
+### Step 15 of 31 · Carry source placement through scene operations (`68m-carry-source-placement-through-scene-operations`)
+
+- **Goal:** Carry source placement through scene operations.
+- **Data Flow Trace:** `source row → model operation → shared source → independent owner identity`
+- **Files You Touch:** `src/scene.rs` (*Carry streamed owners through scene identity and placement operations.*) · `src/hierarchy.rs` (*Name streamed source rows in the original hierarchy.*)
+
+Include streamed owners in bounds, copying, manifest placement and monotonic row traversal.
+
+> **Self-Check Question:** *Does Copy duplicate every streamed coordinate page?*  
+> **Answer:** No. It shares the immutable source owner and gives the copy a new row GUID, ID and model.
+
+- **Hands-On Lab Experiment:** Move, copy, Fit, traverse and remove streamed owners without changing original coordinates.
 
 <details>
 <summary>Implementation 68m-carry-source-placement-through-scene-operations: Carry source placement through scene operations</summary>
@@ -3084,6 +3351,19 @@ Edit the existing block to match this code; keep unchanged lines:
 
 <a id="checkpoint-68n-resolve-compact-picks-to-original-point-ids"></a>
 
+### Step 16 of 31 · Resolve compact picks to original point IDs (`68n-resolve-compact-picks-to-original-point-ids`)
+
+- **Goal:** Resolve compact picks to original point IDs.
+- **Data Flow Trace:** `GPU page address → source page → original ID → f64 world position`
+- **Files You Touch:** `src/cloud_pick.rs` (*Connect streamed selection and original identities while refusing incomplete editable Save.*) · `src/pick_sources.rs` (*Connect streamed selection and original identities while refusing incomplete editable Save.*) · `src/editor.rs` (*Connect streamed selection and original identities while refusing incomplete editable Save.*) · `src/scene_archive.rs` (*Connect streamed selection and original identities while refusing incomplete editable Save.*)
+
+Map compact retained-page addresses back to full original point IDs and precise world coordinates.
+
+> **Self-Check Question:** *May a full-u32 source ID be packed into a tagged GPU address?*  
+> **Answer:** No. Compact GPU addresses identify retained columns. The original ID remains in the source page and may use every u32 bit.
+
+- **Hands-On Lab Experiment:** Resolve the detailed page first and the coarse fallback second; preserve the original ID4294967295.
+
 <details>
 <summary>Implementation 68n-resolve-compact-picks-to-original-point-ids: Resolve compact picks to original point IDs</summary>
 
@@ -4141,6 +4421,19 @@ Edit the existing block to match this code; keep unchanged lines:
 
 <a id="checkpoint-68o-account-for-original-and-retained-source-data"></a>
 
+### Step 17 of 31 · Account for original and retained source data (`68o-account-for-original-and-retained-source-data`)
+
+- **Goal:** Account for original and retained source data.
+- **Data Flow Trace:** `scene snapshots → shared original owners → retained pages → independent counts`
+- **Files You Touch:** `src/memory.rs` (*Count shared streamed sources and retained payload separately.*) · `src/stream_row_tests.rs` (*Copy streamed identity, placement, accounting and lifetime regressions.*) · `src/lib.rs` (*Register the source component.*)
+
+Count shared originals once and distinguish full source point count from charged retained page payload.
+
+> **Self-Check Question:** *Does the retained page count equal the complete original point count?*  
+> **Answer:** Only when every point is retained. The full original count survives eviction and shared snapshots do not duplicate payload accounting.
+
+- **Hands-On Lab Experiment:** Inspect shared row, original ID, coarse fallback, incomplete Save, Select All and Close fixtures.
+
 <details>
 <summary>Implementation 68o-account-for-original-and-retained-source-data: Account for original and retained source data</summary>
 
@@ -4236,6 +4529,19 @@ Update the existing block with this supplied code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-68p-keep-original-attributes-in-ranged-pages"></a>
+
+### Step 18 of 31 · Keep original attributes in ranged pages (`68p-keep-original-attributes-in-ranged-pages`)
+
+- **Goal:** Keep original attributes in ranged pages.
+- **Data Flow Trace:** `coordinate and ID range → matching attributes → checked original page`
+- **Files You Touch:** `src/stream.rs` (*Validate present colour and normal columns before decoding.*) · `src/range_source.rs` (*Read matching original attributes for each source page.*)
+
+Read original colour and normal columns under the same source revision. Refuse malformed present attributes.
+
+> **Self-Check Question:** *May malformed original colours be silently truncated to bytes?*  
+> **Answer:** No. Reject an out-of-range channel or invalid normal column before adopting that page.
+
+- **Hands-On Lab Experiment:** Compare matching point rows and colour cursors; a missing column differs from an incomplete present column.
 
 <details>
 <summary>Implementation 68p-keep-original-attributes-in-ranged-pages: Keep original attributes in ranged pages</summary>
@@ -5568,6 +5874,19 @@ Edit the existing block to match this code; keep unchanged lines:
 
 <a id="checkpoint-68q-retain-page-owners-beside-gpu-buffers"></a>
 
+### Step 19 of 31 · Retain page owners beside GPU buffers (`68q-retain-page-owners-beside-gpu-buffers`)
+
+- **Goal:** Retain page owners beside GPU buffers.
+- **Data Flow Trace:** `charged original page → derived GPU columns → retained pick identity`
+- **Files You Touch:** `src/cloud_gpu.rs` (*Retain charged original page owners with their derived GPU columns.*)
+
+Upload derived positions and original colour/normal words. Retain precise page identity while the GPU still uses it.
+
+> **Self-Check Question:** *Can evicting a CPU cache entry invalidate an active GPU address?*  
+> **Answer:** The GPU columns retain the original page. Redrawing drops old column owners and cancels picks before compact addresses are reused.
+
+- **Hands-On Lab Experiment:** Trace the page owner across cache removal, renderer synchronization and final release.
+
 <details>
 <summary>Implementation 68q-retain-page-owners-beside-gpu-buffers: Retain page owners beside GPU buffers</summary>
 
@@ -6284,6 +6603,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-68r-describe-resident-and-streamed-draw-rows"></a>
 
+### Step 20 of 31 · Describe resident and streamed draw rows (`68r-describe-resident-and-streamed-draw-rows`)
+
+- **Goal:** Describe resident and streamed draw rows.
+- **Data Flow Trace:** `source owner → shared node table → placed draw row → compact page address`
+- **Files You Touch:** `src/cloud_gpu.rs` (*Describe source ownership and compact retained-page addresses independently.*)
+
+Represent either original source family with one draw descriptor while keeping row models and source ownership separate.
+
+> **Self-Check Question:** *Must the original full source row index fit the GPU sub-object tag?*  
+> **Answer:** No. Each retained page has a compact base address. Resolve it through the original page ID column.
+
+- **Hands-On Lab Experiment:** Compare resident row0 with a later streamed source interval and its independent compact base.
+
 <details>
 <summary>Implementation 68r-describe-resident-and-streamed-draw-rows: Describe resident and streamed draw rows</summary>
 
@@ -6316,6 +6648,19 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-68s-draw-shared-source-pages-at-independent-placements"></a>
+
+### Step 21 of 31 · Draw shared source pages at independent placements (`68s-draw-shared-source-pages-at-independent-placements`)
+
+- **Goal:** Draw shared source pages at independent placements.
+- **Data Flow Trace:** `shared page columns → independent placement records → clipped LOD range → visible pixels`
+- **Files You Touch:** `src/cloud_gpu.rs` (*Connect resident and streamed original columns to compact bounded draw records.*) · `src/cloud_points.wgsl` (*Connect resident and streamed original columns to compact bounded draw records.*) · `src/renderer.rs` (*Connect resident and streamed original columns to compact bounded draw records.*) · `src/pick_gpu_tests.rs` (*Copy actual GPU source ID, page ownership, colour, reuse, eviction and cleanup fixtures.*)
+
+Reuse uploads for the same source/page interval and build bounded draw records for each placed owner.
+
+> **Self-Check Question:** *Does moving a row require uploading its original page again?*  
+> **Answer:** No. Shared columns remain unchanged; placement and ownership live in the draw record.
+
+- **Hands-On Lab Experiment:** Inspect actual GPU point IDs, colours, shared uploads, locked occlusion, retained-page eviction and Close tests.
 
 <details>
 <summary>Implementation 68s-draw-shared-source-pages-at-independent-placements: Draw shared source pages at independent placements</summary>
@@ -7279,6 +7624,19 @@ After that block, append this supplied code:
 
 <a id="checkpoint-68t-validate-encoded-source-metadata"></a>
 
+### Step 22 of 31 · Validate encoded source metadata (`68t-validate-encoded-source-metadata`)
+
+- **Goal:** Validate encoded source metadata.
+- **Data Flow Trace:** `manifest encoding → supported codec → declared decoded limit`
+- **Files You Touch:** `src/source_encoding.rs` (*Validate supported source encodings and exact decoded size.*) · `src/lib.rs` (*Register the source component.*)
+
+Require a supported codec and bounded declared decoded size before reading an encoded source.
+
+> **Self-Check Question:** *Can an encoded source omit its decoded byte limit?*  
+> **Answer:** No. Require a positive bounded size and match the decoded byte count exactly.
+
+- **Hands-On Lab Experiment:** Refuse an unsupported codec, zero or oversized limit and mismatched decoded length.
+
 <details>
 <summary>Implementation 68t-validate-encoded-source-metadata: Validate encoded source metadata</summary>
 
@@ -7347,6 +7705,19 @@ After that block, append this supplied code:
 </details>
 
 <a id="checkpoint-68u-decode-bounded-cancellable-source-streams"></a>
+
+### Step 23 of 31 · Decode bounded cancellable source streams (`68u-decode-bounded-cancellable-source-streams`)
+
+- **Goal:** Decode bounded cancellable source streams.
+- **Data Flow Trace:** `packed source → decompression stream → bounded chunks → exact original bytes`
+- **Files You Touch:** `Cargo.toml` (*Copy the pinned browser stream dependency configuration.*) · `src/source_unpack.rs` (*Decode bounded cancellable original source streams.*) · `src/lib.rs` (*Register the source component.*)
+
+Read decompressed chunks under the declared byte limit. Cancel the reader and release its lock on failed work.
+
+> **Self-Check Question:** *Does array_buffer keep decompressed reads bounded?*  
+> **Answer:** No. Consume chunks under the declared limit so excess output is refused before building a whole oversized buffer.
+
+- **Hands-On Lab Experiment:** Trace explicit cancellation, gzip magic, HTTP-decoded gzip and exact final byte validation.
 
 <details>
 <summary>Implementation 68u-decode-bounded-cancellable-source-streams: Decode bounded cancellable source streams</summary>
@@ -7449,6 +7820,19 @@ After that block, type:
 </details>
 
 <a id="checkpoint-68v-refuse-conflicting-source-encoding-revisions"></a>
+
+### Step 24 of 31 · Refuse conflicting source encoding revisions (`68v-refuse-conflicting-source-encoding-revisions`)
+
+- **Goal:** Refuse conflicting source encoding revisions.
+- **Data Flow Trace:** `new manifest → checked repeated formats → original inventory → atomic replacement`
+- **Files You Touch:** `src/publication_index.rs` (*Validate manifest source formats before changing the original inventory.*)
+
+Validate source formats before adopting a changed manifest. Failed metadata keeps the previous valid source inventory.
+
+> **Self-Check Question:** *May a repeated source declare two different decoded sizes?*  
+> **Answer:** No. Every placement of the same URL must agree on its source encoding and decoded size.
+
+- **Hands-On Lab Experiment:** Refuse conflicting formats, keep old original sources and retry a valid manifest after the failure.
 
 <details>
 <summary>Implementation 68v-refuse-conflicting-source-encoding-revisions: Refuse conflicting source encoding revisions</summary>
@@ -7623,6 +8007,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-68w-adopt-remote-original-revisions-independently"></a>
 
+### Step 25 of 31 · Adopt remote original revisions independently (`68w-adopt-remote-original-revisions-independently`)
+
+- **Goal:** Adopt remote original revisions independently.
+- **Data Flow Trace:** `remote validator → prepared original → manifest placements → independent viewer rows`
+- **Files You Touch:** `src/publication_index.rs` (*Adopt versioned remote originals while retaining complete-source byte identity for whole documents.*)
+
+Keep versioned remote sources separate from whole-file byte hashes. Repeated placements share the same prepared original.
+
+> **Self-Check Question:** *Do sampled bytes prove whole-file byte equality?*  
+> **Answer:** No. Ranged originals use their revision validator. A changed validator prepares a new remote original even if retained samples happen to match.
+
+- **Hands-On Lab Experiment:** Inspect repeated placement, unchanged validator and changed revision fixtures while retaining the prior displayed scene.
+
 <details>
 <summary>Implementation 68w-adopt-remote-original-revisions-independently: Adopt remote original revisions independently</summary>
 
@@ -7684,6 +8081,19 @@ After that block, append this supplied code:
 
 <a id="checkpoint-68x-prepare-a-coarse-pin-and-bounded-prefix"></a>
 
+### Step 26 of 31 · Prepare a coarse pin and bounded prefix (`68x-prepare-a-coarse-pin-and-bounded-prefix`)
+
+- **Goal:** Prepare a coarse pin and bounded prefix.
+- **Data Flow Trace:** `source metadata → coarse pin → bounded prefix → initial source owner`
+- **Files You Touch:** `src/stream_load.rs` (*Prepare a pinned original coarse page and a budgeted initial prefix.*) · `src/lib.rs` (*Register the source component.*)
+
+Read the original coarse node and an initial prefix after reserving checked temporary memory.
+
+> **Self-Check Question:** *May a huge coarse node bypass the initial read limit?*  
+> **Answer:** No. Refuse a coarse node that exceeds the initial page or memory limit instead of downloading the complete source.
+
+- **Hands-On Lab Experiment:** Trace prefix reduction before allocation and inspect original IDs and colour cursors in the returned owner.
+
 <details>
 <summary>Implementation 68x-prepare-a-coarse-pin-and-bounded-prefix: Prepare a coarse pin and bounded prefix</summary>
 
@@ -7725,6 +8135,19 @@ After that block, type:
 
 <a id="checkpoint-68y-redraw-before-reusing-evicted-page-addresses"></a>
 
+### Step 27 of 31 · Redraw before reusing evicted page addresses (`68y-redraw-before-reusing-evicted-page-addresses`)
+
+- **Goal:** Redraw before reusing evicted page addresses.
+- **Data Flow Trace:** `explicit eviction → cancelled pick → renderer release → reserved page`
+- **Files You Touch:** `src/stream_load.rs` (*Synchronize visible eviction before reusing released page memory.*)
+
+Remove an old cache entry, then cancel picks and rebuild columns before reserving its released payload.
+
+> **Self-Check Question:** *What keeps eviction safe while a GPU page is still owned?*  
+> **Answer:** The removed page remains charged until its GPU owner drops. Synchronize the renderer before reusing compact addresses.
+
+- **Hands-On Lab Experiment:** Hold a page externally, evict its cache entry and verify its charge persists until final release.
+
 <details>
 <summary>Implementation 68y-redraw-before-reusing-evicted-page-addresses: Redraw before reusing evicted page addresses</summary>
 
@@ -7757,6 +8180,19 @@ After that block, type:
 
 <a id="checkpoint-68z-continue-pages-only-for-current-source-owners"></a>
 
+### Step 28 of 31 · Continue pages only for current source owners (`68z-continue-pages-only-for-current-source-owners`)
+
+- **Goal:** Continue pages only for current source owners.
+- **Data Flow Trace:** `current owner → reserved page → revision-bound read → checked completion → redraw`
+- **Files You Touch:** `src/stream_load.rs` (*Continue checked source pages only while their scene/runtime owner remains current.*)
+
+Read sequential bounded pages under source tickets, runtime membership and cancellation. A stopped source cannot adopt late work.
+
+> **Self-Check Question:** *Does background page delivery create a modelling Undo entry?*  
+> **Answer:** No. It completes derived display work for an existing original source. Modelling history retains source placements independently.
+
+- **Hands-On Lab Experiment:** Trace closed source, failed range, late ticket and point ceiling paths without adopting partial original data.
+
 <details>
 <summary>Implementation 68z-continue-pages-only-for-current-source-owners: Continue pages only for current source owners</summary>
 
@@ -7787,6 +8223,19 @@ After that block, type:
 </details>
 
 <a id="checkpoint-68aa-own-cancellation-for-each-published-source"></a>
+
+### Step 29 of 31 · Own cancellation for each published source (`68aa-own-cancellation-for-each-published-source`)
+
+- **Goal:** Own cancellation for each published source.
+- **Data Flow Trace:** `publication owner → weak source membership → closed generation → aborted ranges`
+- **Files You Touch:** `src/range_fetch.rs` (*Cancel active range reads belonging to replaced source URLs.*) · `src/browser_publication.rs` (*Own pending source cursors and close every source reader with its publication.*)
+
+Track pending page cursors and weak source owners. Runtime closure cancels active ranges and releases pending work.
+
+> **Self-Check Question:** *Must a replaced source keep reading until its timeout?*  
+> **Answer:** No. Abort its URL reads after preparing the replacement and invalidate the old source generation.
+
+- **Hands-On Lab Experiment:** Trace live source replacement and Close without retaining old page readers or revival tickets.
 
 <details>
 <summary>Implementation 68aa-own-cancellation-for-each-published-source: Own cancellation for each published source</summary>
@@ -8246,6 +8695,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-68ab-choose-bounded-range-loading-for-large-originals"></a>
 
+### Step 30 of 31 · Choose bounded range loading for large originals (`68ab-choose-bounded-range-loading-for-large-originals`)
+
+- **Goal:** Choose bounded range loading for large originals.
+- **Data Flow Trace:** `manifest source → range probe → original descriptor → bounded prefix → staged replacement`
+- **Files You Touch:** `src/browser_publication.rs` (*Stage original ranged prefixes and keep failed revisions off the current scene.*)
+
+Probe unencoded single-cloud sources and stage their checked prefix. Small, mixed or encoded documents retain whole-original loading.
+
+> **Self-Check Question:** *Can a failed large source range fall back to an unbounded whole decode?*  
+> **Answer:** No. Once the large range-readable original is identified, refuse failed ranges while retaining the prior displayed scene.
+
+- **Hands-On Lab Experiment:** Compare large cloud, small/mixed original document, encoded source, missing range support and failed source revision routes.
+
 <details>
 <summary>Implementation 68ab-choose-bounded-range-loading-for-large-originals: Choose bounded range loading for large originals</summary>
 
@@ -8488,6 +8950,20 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-68ac-connect-current-pages-to-the-browser-renderer"></a>
+
+### Step 31 of 31 · Connect current pages to the browser renderer (`68ac-connect-current-pages-to-the-browser-renderer`)
+
+- **Goal:** Connect current pages to the browser renderer.
+- **Data Flow Trace:** `adopted original → current page delivery → cancelled old pick → GPU refresh → source diagnostics`
+- **Files You Touch:** `src/browser_publication.rs` (*Connect current streamed page delivery, original source diagnostics and bounded runtime ownership.*) · `src/browser.rs` (*Connect current streamed page delivery, original source diagnostics and bounded runtime ownership.*)
+
+Begin retained page work after source adoption. Refresh display without history and report original/retained counts separately.
+
+> **Self-Check Question:** *May Close be undone by a late page event?*  
+> **Answer:** No. The publication owner, source ticket and current scene membership must all remain valid before adopting a page.
+
+- **What You Should See:** The browser reference separates the original CAD bore and NURBS roof so the hole stays open. Two placed instances of the same 2,000,064-point original source display actual colored range pages. The separate four-point native fixture shows red coarse samples, blue detailed samples and the yellow marker for original point 4294967295; its colors and point count are different test data.
+- **Hands-On Lab Experiment:** Compare the two placed cloud instances: source identity stays shared while placements and display point sizes differ. In the supplied browser acceptance scene, inspect the open CAD bore, the separate roof, ranged source counts and zero retained owners after Close. Do not expect the four-point native fixture and the large browser source to have the same colors or density.
 
 <details>
 <summary>Implementation 68ac-connect-current-pages-to-the-browser-renderer: Connect current pages to the browser renderer</summary>
@@ -9446,9 +9922,11 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 </details>
 
-## Run, Check, and Save
+---
 
-From `session_viewer`:
+## 5. Build, Verify, and Save Your Checkpoint
+
+Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 68ac-connect-current-pages-to-the-browser-renderer
@@ -9459,10 +9937,10 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. Use [checkpoint recovery](../../recovery.md) to restore any saved checkpoint.
+Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
 
-## Expected Visual Result & Experiment
+## 6. Lesson Summary & Expected Visual Result
 
 The browser reference separates the original CAD bore and NURBS roof so the hole stays open. Two placed instances of the same 2,000,064-point original source display actual colored range pages. The separate four-point native fixture shows red coarse samples, blue detailed samples and the yellow marker for original point 4294967295; its colors and point count are different test data.
 
-- **Try this:** Compare the two placed cloud instances: source identity stays shared while placements and display point sizes differ. In the supplied browser acceptance scene, inspect the open CAD bore, the separate roof, ranged source counts and zero retained owners after Close. Do not expect the four-point native fixture and the large browser source to have the same colors or density.
+- **Final Lesson Experiment:** Compare the two placed cloud instances: source identity stays shared while placements and display point sizes differ. In the supplied browser acceptance scene, inspect the open CAD bore, the separate roof, ranged source counts and zero retained owners after Close. Do not expect the four-point native fixture and the large browser source to have the same colors or density.

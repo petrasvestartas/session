@@ -1,89 +1,158 @@
 # 4.4 · Heartbeat suspension and revocable startup
 
-**Section 3: Scene Documents, Transactions, and Browser GPU Lifetime** · **Lesson 4.4** (Redraft `3.11`) · **8 checkpoints (`34g-heartbeat` → `34gbca-startup`)**
+**Section 3: Scene Documents, Transactions, and Browser GPU Lifetime** · **Lesson 4.4** (Redraft `3.11`) · **8 checkpoints (`34g-heartbeat` → `34gbca-startup`)** · **Study time: 6.75–12.75 h**
 
-> **Learning Goal:** Refresh actual last-seen metadata independently of first failure, event history and GPU ownership.
+> **What You Will Learn & Build:** Refresh actual last-seen metadata independently of first failure, event history and GPU ownership. By the final checkpoint (`34gbca-startup`), you will stop delayed adapter or device delivery from installing a renderer after final exit.
 
-## Visual WebGPU & Architecture Schematic
+## 1. Visual Pipeline & WebGPU Architecture (Black & White Schematics)
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1px solid #cbd5e1;border-radius:10px;background:#f8fafc;">
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
+<svg viewBox="0 0 840 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <rect x="4" y="4" width="832" height="212" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Lesson 4.4 Execution Flow: Heartbeat suspension and revocable startup</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">Concrete data pipeline you build in this lesson (8 Checkpoints: 34g-heartbeat → 34gbca-startup)</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
+  
+    
+    <rect x="18" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="89" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
+    <line x1="28" y1="92" x2="151" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">real UTC/context</text>
+    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="183" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="254" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
+    <line x1="193" y1="92" x2="316" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">bounded heartbeat</text>
+    <text x="254" y="124" text-anchor="middle" font-size="11" fill="#111111">update</text>
+    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="348" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="419" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
+    <line x1="358" y1="92" x2="481" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">release report</text>
+    <text x="419" y="124" text-anchor="middle" font-size="11" fill="#111111">borrow</text>
+    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="513" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="584" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
+    <line x1="523" y1="92" x2="646" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">bounded metadata</text>
+    <text x="584" y="124" text-anchor="middle" font-size="11" fill="#111111">persistence</text>
+    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="678" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="749" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
+    <line x1="688" y1="92" x2="811" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">final exit</text>
+    
+    <rect x="18" y="162" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="32" y="181" font-size="11" font-weight="700" fill="#111111">Files You Edit in Lesson 4.4:</text>
+    <text x="215" y="181" font-size="11" fill="#111111">src/diagnostic.rs  ·  src/heartbeat_tests.rs  ·  src/lib.rs  ·  src/browser_report.rs  ·  src/timer.rs  ·  src/close_report_tests.rs</text>
+    <text x="32" y="198" font-size="10.5" fill="#111111">8 Checkpoints: 34g-heartbeat → 34gbca-startup — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
+  
+</svg>
+</div>
+
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
 <svg viewBox="0 0 840 240" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#475569"/>
-    </marker>
-    <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#2563eb"/>
-    </marker>
-    <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#059669"/>
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
     </marker>
   </defs>
-  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
-  <text x="20" y="28" font-size="14" font-weight="700" fill="#0f172a">Chapter 4 Browser & WebGPU Lifetime: Rc/Drop Listener Guards, Fault Ring-Buffer & Device Recovery</text>
-  <text x="20" y="46" font-size="11.5" fill="#475569">How a production WASM viewer survives tab backgrounding, DOM teardown, and WebGPU device-lost faults without leaking or crashing.</text>
-  <line x1="16" y1="54" x2="824" y2="54" stroke="#e2e8f0" stroke-width="1"/>
+  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Chapter 4 Browser & WebGPU Lifetime: Rc/Drop Listener Guards, Fault Ring-Buffer & Device Recovery</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">How a production WASM viewer survives tab backgrounding, DOM teardown, and WebGPU device-lost faults without leaking or crashing.</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
   
-    <rect x="18" y="68" width="190" height="145" rx="6" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
-    <text x="113" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1e40af">1. Active Runtime Owner</text>
-    <text x="28" y="108" font-size="10.5" fill="#1e3a8a">• Rc&lt;RefCell&lt;Runtime&gt;&gt;</text>
-    <text x="28" y="126" font-size="10.5" fill="#1e3a8a">• Closure::wrap listener table</text>
-    <text x="28" y="144" font-size="10.5" font-weight="600" fill="#1d4ed8">• Drop removes EventListeners</text>
-    <text x="28" y="162" font-size="10.5" fill="#1e3a8a">• Late callbacks after dispose</text>
-    <text x="28" y="177" font-size="10.5" fill="#1e3a8a">  become safe no-ops</text>
+    <rect x="18" y="68" width="190" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="113" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">1. Active Runtime Owner</text>
+    <text x="28" y="108" font-size="10.5" fill="#111111">• Rc&lt;RefCell&lt;Runtime&gt;&gt;</text>
+    <text x="28" y="126" font-size="10.5" fill="#111111">• Closure::wrap listener table</text>
+    <text x="28" y="144" font-size="10.5" font-weight="600" fill="#111111">• Drop removes EventListeners</text>
+    <text x="28" y="162" font-size="10.5" fill="#111111">• Late callbacks after dispose</text>
+    <text x="28" y="177" font-size="10.5" fill="#111111">  become safe no-ops</text>
 
-    <line x1="208" y1="138" x2="238" y2="138" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
+    <line x1="208" y1="138" x2="238" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="240" y="68" width="265" height="145" rx="6" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5"/>
-    <text x="372" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#9a3412">2. Lifecycle &amp; Fault Telemetry</text>
-    <text x="252" y="108" font-size="10.5" fill="#7c2d12">• visibilitychange / pagehide (bfcache):</text>
-    <text x="252" y="123" font-size="10" fill="#7c2d12">  Pause heartbeat timers &amp; animation frame</text>
-    <text x="252" y="143" font-size="10.5" font-weight="600" fill="#c2410c">• device.on_uncaptured_error:</text>
-    <text x="252" y="158" font-size="10" fill="#7c2d12">  Record into bounded ring-buffer (schema v1)</text>
-    <text x="252" y="175" font-size="10" fill="#7c2d12">• Exportable Diagnostic JSON Report</text>
-    <text x="252" y="193" font-size="10" fill="#7c2d12">• pageshow: resume cleanly</text>
+    <rect x="240" y="68" width="265" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="372" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">2. Lifecycle &amp; Fault Telemetry</text>
+    <text x="252" y="108" font-size="10.5" fill="#111111">• visibilitychange / pagehide (bfcache):</text>
+    <text x="252" y="123" font-size="10" fill="#111111">  Pause heartbeat timers &amp; animation frame</text>
+    <text x="252" y="143" font-size="10.5" font-weight="600" fill="#111111">• device.on_uncaptured_error:</text>
+    <text x="252" y="158" font-size="10" fill="#111111">  Record into bounded ring-buffer (schema v1)</text>
+    <text x="252" y="175" font-size="10" fill="#111111">• Exportable Diagnostic JSON Report</text>
+    <text x="252" y="193" font-size="10" fill="#111111">• pageshow: resume cleanly</text>
 
-    <line x1="505" y1="138" x2="535" y2="138" stroke="#059669" stroke-width="2" marker-end="url(#arrow-green)"/>
+    <line x1="505" y1="138" x2="535" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="537" y="68" width="283" height="145" rx="6" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1.5"/>
-    <text x="678" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#065f46">3. Conservative GPU Device Recovery</text>
-    <text x="549" y="108" font-size="10.5" fill="#064e3b">• Detect GPUDevice lost / surface outdated</text>
-    <text x="549" y="126" font-size="10.5" font-weight="600" fill="#047857">• Request fresh Adapter &amp; Device at safe</text>
-    <text x="549" y="142" font-size="10.5" font-weight="600" fill="#047857">  1x sample count &amp; conservative density</text>
-    <text x="549" y="160" font-size="10.5" fill="#064e3b">• Rebuild pipelines &amp; re-upload retained</text>
-    <text x="549" y="176" font-size="10.5" fill="#064e3b">  Editor scene without losing user edits!</text>
+    <rect x="537" y="68" width="283" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="678" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">3. Conservative GPU Device Recovery</text>
+    <text x="549" y="108" font-size="10.5" fill="#111111">• Detect GPUDevice lost / surface outdated</text>
+    <text x="549" y="126" font-size="10.5" font-weight="600" fill="#111111">• Request fresh Adapter &amp; Device at safe</text>
+    <text x="549" y="142" font-size="10.5" font-weight="600" fill="#111111">  1x sample count &amp; conservative density</text>
+    <text x="549" y="160" font-size="10.5" fill="#111111">• Rebuild pipelines &amp; re-upload retained</text>
+    <text x="549" y="176" font-size="10.5" fill="#111111">  Editor scene without losing user edits!</text>
     
 </svg>
 </div>
 
-### Lesson Data Flow (`Rust` → `WebGPU` → `WGSL`)
+## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
 
-```
-real UTC/context → bounded heartbeat update → release report borrow → bounded metadata persistence.
-hidden + frozen + cached + final closure → one scheduling decision.
-final exit → revoke ticket → adapter/device resolves → refuse renderer installation.
-```
+Before writing code, review how the three layers in this chapter talk to each other:
 
-- Refresh actual last-seen metadata independently of first failure, event history and GPU ownership.
-- Check that clearing one pause reason cannot resume a still-suspended heartbeat.
-- Stop delayed adapter or device delivery from installing a renderer after final exit.
-- **Why it works (Why must a heartbeat not append a fatal event or rewrite the first failure time?):** A heartbeat proves recent observation of a page, not a new failure. Rewriting failure time would recreate the stale-warning bug, while synthetic heartbeat events would rotate meaningful observations out of the recent window.
-
-### Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `Browser`)
-
-| Layer | Construct | First-Year Student Explanation |
+| Layer | Construct | Plain-English Explanation for Students |
 | :--- | :--- | :--- |
 | **Rust / WASM (`wasm_bindgen`)** | `Rc<RefCell<Runtime>>` + `Drop` Listener Table | Explicitly unregisters DOM `EventListener` closures on teardown so re-mounting or disposing the viewer never leaks memory or panics on late events. |
 | **Browser DOM** | `visibilitychange` / `pagehide` / `pageshow` | Pauses frame timers and GPU work when the tab hides or enters `bfcache`, and resumes cleanly on return. |
 | **WebGPU (`wgpu`)** | Uncaptured Fault Ring-Buffer & Device Recovery | Captures validation/out-of-memory faults into a versioned JSON ring-buffer and rebuilds GPU pipelines at conservative `1x` settings after device loss. |
 
-**Production source (`session_viewer/src`):** `session_viewer/src`
+**Authoritative production source (`session_viewer/src`):** `session_viewer/src`
 
-## Implementation Checkpoints
+## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
 
-Apply these checkpoints in order inside `workspace/journey`. Expand each block to view the Rust/WGSL/HTML edits:
+| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
+| ---: | :--- | :--- | :--- | :--- |
+| **1** | [`34g-heartbeat`](#checkpoint-34g-heartbeat) | Refresh actual last-seen metadata independently of first failure, event history and GPU ownership. | `src/diagnostic.rs`, `src/heartbeat_tests.rs`, `src/lib.rs`, `src/browser_report.rs` | `real UTC/context → bounded heartbeat update → release report borrow → bounded metadata persistence` |
+| **2** | [`34ga-timer`](#checkpoint-34ga-timer) | Schedule a real 15-second metadata heartbeat independently of GPU lifetime and cancel its callback through an owner. | `src/timer.rs`, `src/lib.rs`, `src/browser_report.rs` | `metadata startup → Timer owns native handle and Closure → heartbeat persists metadata → clear interval before callback release` |
+| **3** | [`34gb-close`](#checkpoint-34gb-close) | Persist a healthy final exit as closed while preserving first-failure evidence and every observation. | `src/diagnostic.rs`, `src/close_report_tests.rs`, `src/lib.rs`, `src/browser_report.rs` | `real UTC/context → close healthy outcome or retain failure → release borrow → metadata-only persistence` |
+| **4** | [`34gba-lifecycle`](#checkpoint-34gba-lifecycle) | Connect real pagehide/pageshow to independent diagnostics, cached suspension and safe final callback cleanup. | `src/report_lifecycle.rs`, `src/lib.rs`, `src/browser_report.rs` | `owned metadata listeners → cached pause or final close → deferred matching-owner disposal → cached pageshow resumes one timer` |
+| **5** | [`34gbb-suspension`](#checkpoint-34gbb-suspension) | Check that clearing one pause reason cannot resume a still-suspended heartbeat. | `src/suspension.rs`, `src/suspension_tests.rs`, `src/lib.rs` | `hidden + frozen + cached + final closure → one scheduling decision` |
+| **6** | [`34gbba-browser`](#checkpoint-34gbba-browser) | Pause the actual diagnostic timer while any browser suspension reason remains. | `src/report_lifecycle.rs`, `src/browser_report.rs` | `Document and Window events → independent pause reasons → stop or retain one heartbeat timer` |
+| **7** | [`34gbc-authority`](#checkpoint-34gbc-authority) | Prevent a waiting task from regaining startup permission after closure. | `src/startup.rs`, `src/startup_tests.rs`, `src/lib.rs` | `task ticket + close ticket → shared flag → delayed result refused after closure` |
+| **8** | [`34gbca-startup`](#checkpoint-34gbca-startup) | Stop delayed adapter or device delivery from installing a renderer after final exit. | `src/browser_startup.rs`, `src/lib.rs`, `src/browser.rs` | `final exit → revoke ticket → adapter/device resolves → refuse renderer installation` |
+
+---
+
+## 4. Step-by-Step Coding Notebook (Concept + Implementation)
+
+Work through each notebook cell below in order inside `workspace/journey`. Read the **Concept Walkthrough** and **Self-Check Q&A** first, then expand the **Implementation** block to type and verify the code.
 
 <a id="checkpoint-34g-heartbeat"></a>
+
+### Step 1 of 8 · Refresh heartbeat without rewriting failure evidence (`34g-heartbeat`)
+
+- **Goal:** Refresh actual last-seen metadata independently of first failure, event history and GPU ownership.
+- **Data Flow Trace:** `real UTC/context → bounded heartbeat update → release report borrow → bounded metadata persistence`
+- **Files You Touch:** `src/diagnostic.rs` (*Advance heartbeat independently of observations, outcome and the first fatal timestamp; invalid timestamp text leaves the report unchanged.*) · `src/heartbeat_tests.rs` (*Optional authoring fixture. Verify all run outcomes, first-failure/event retention and atomic timestamp-text bounds without a browser clock dependency.*) · `src/lib.rs` (*Include native heartbeat state proofs.*) · `src/browser_report.rs` (*Refresh actual browser context and UTC heartbeat, release its borrow, then persist metadata without invoking renderer or recording synthetic observations.*)
+
+Refresh lastSeen without recording an event. A periodic heartbeat would otherwise fill the 24-event window and push out useful observations.
+
+`Report::heartbeat` validates timestamp text before updating that single field. Running, Ready, Closed and Failed keep their outcome, events and first fatal reason.
+
+The browser wrapper supplies current UTC/context and persists after ending the report borrow. It receives no renderer or document. This lesson supplies the operation; the next owns its timer.
+
+> **Self-Check Question:** *Why must a heartbeat not append a fatal event or rewrite the first failure time?*  
+> **Answer:** A heartbeat proves recent observation of a page, not a new failure. Rewriting failure time would recreate the stale-warning bug, while synthetic heartbeat events would rotate meaningful observations out of the recent window.
+
+- **What You Should See:** In the debug console, call `window.wasmBindings.heartbeat()`. Download `Report`: lastSeen advances, while outcome, events and the first failure stay unchanged.
+- **Hands-On Lab Experiment:** Implement heartbeat through record("fatal", ...), then predict which failure/outcome assertion fails. Implement it as a recent observation instead and explain why frequent beats would evict useful events.
 
 <details>
 <summary>Implementation 34g-heartbeat: Refresh heartbeat without rewriting failure evidence</summary>
@@ -218,6 +287,24 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-34ga-timer"></a>
+
+### Step 2 of 8 · Own the periodic diagnostic heartbeat (`34ga-timer`)
+
+- **Goal:** Schedule a real 15-second metadata heartbeat independently of GPU lifetime and cancel its callback through an owner.
+- **Data Flow Trace:** `metadata startup → Timer owns native handle and Closure → heartbeat persists metadata → clear interval before callback release`
+- **Files You Touch:** `src/timer.rs` (*Own the actual interval and callback together; clear its native timer before Rust releases the closure.*) · `src/lib.rs` (*Keep browser interval ownership out of the native editor model.*) · `src/browser_report.rs` (*Retain metadata scheduling independently of the GPU runtime lifetime.*)
+
+Own the browser interval and its Rust closure together. `Timer` stores the Window, native handle and Closure. Drop clears the interval before releasing the callback environment.
+
+Keep one timer outside the GPU runtime and schedule a metadata heartbeat every 15000 milliseconds. Its callback captures no renderer or document, so diagnostics can continue after device loss.
+
+Stop takes the owner out of the `RefCell` before dropping it. Replacement stops the old timer first; failed registration leaves no old timer running. Never dispose the timer from inside its active callback. Browser suspension/final-exit handling follows.
+
+> **Self-Check Question:** *Why must clearing the interval happen before dropping its Rust Closure?*  
+> **Answer:** JavaScript holds the callback function while the interval is registered. Dropping the Rust environment first could leave a callback that invokes released state. The owner clears the native interval in Drop before field cleanup releases the closure.
+
+- **What You Should See:** Download `Report`, wait at least 15 seconds, then download it again. lastSeen should advance without adding an event. The timer updates metadata only.
+- **Hands-On Lab Experiment:** Call start_periodic twice and inspect the cleared handles. Make registration throw and explain why the previous owner must not remain running. Never drop the owner from inside its own active callback.
 
 <details>
 <summary>Implementation 34ga-timer: Own the periodic diagnostic heartbeat</summary>
@@ -511,6 +598,24 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-34gb-close"></a>
 
+### Step 3 of 8 · Mark a final healthy run closed (`34gb-close`)
+
+- **Goal:** Persist a healthy final exit as closed while preserving first-failure evidence and every observation.
+- **Data Flow Trace:** `real UTC/context → close healthy outcome or retain failure → release borrow → metadata-only persistence`
+- **Files You Touch:** `src/diagnostic.rs` (*Mark a healthy final exit closed without erasing a failure or appending synthetic observations.*) · `src/close_report_tests.rs` (*Optional authoring fixture. Prove healthy/failed final outcomes, repeatability and atomic refusal separately from browser suspension.*) · `src/lib.rs` (*Include native final-close policy proofs.*) · `src/browser_report.rs` (*Refresh real context/time, release the report borrow and persist the final outcome without accessing GPU state.*)
+
+Mark a healthy run Closed when it finally ends. Keep Failed and its original fatal reason. A cached page has not ended and must not call this operation.
+
+`close` first validates its timestamp through heartbeat, then changes the healthy outcome. Invalid text leaves the whole value untouched. Guard the ready milestone too: a delayed success must not reopen a Closed report.
+
+The browser wrapper refreshes UTC/context and persists after ending its short metadata borrow. It does no GPU work. Automatic page-exit hooks come next; closing metadata does not cancel an outstanding GPU request.
+
+> **Self-Check Question:** *Why must a failed run remain failed when its page later closes?*  
+> **Answer:** Closing the page says the lifetime ended. It does not repair the error. Keeping Failed and its original fatal timestamp preserves useful evidence and prevents a later close from making the run look healthy.
+
+- **What You Should See:** Run the close checks below. Closing a healthy report marks it Closed; closing a Failed report preserves its first fatal reason. A late ready milestone must not reopen Closed.
+- **Hands-On Lab Experiment:** Compare closing a Ready report and a Failed report. Explain why a persisted pagehide must not call this operation.
+
 <details>
 <summary>Implementation 34gb-close: Mark a final healthy run closed</summary>
 
@@ -707,6 +812,26 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-34gba-lifecycle"></a>
 
+### Step 4 of 8 · Own diagnostic page transitions (`34gba-lifecycle`)
+
+- **Goal:** Connect real pagehide/pageshow to independent diagnostics, cached suspension and safe final callback cleanup.
+- **Data Flow Trace:** `owned metadata listeners → cached pause or final close → deferred matching-owner disposal → cached pageshow resumes one timer`
+- **Files You Touch:** `src/report_lifecycle.rs` (*Own two metadata callbacks independently of GPU; retain cached outcomes, defer final callback destruction, and guard cleanup by allocation identity.*) · `src/lib.rs` (*Keep page transition ownership in the browser layer.*) · `src/browser_report.rs` (*Install metadata lifecycle ownership before scheduling heartbeat; denied listener registration leaves drawing and current downloads available.*)
+
+Own diagnostic page events independently of the GPU. Two Window listeners and an `Rc` token keep metadata active after drawing/input cleanup. They retain no renderer or document.
+
+On cached `pagehide`, record the transition and stop the heartbeat, retaining the outcome and listeners. On `pageshow`, record the return and resume one timer.
+
+On final `pagehide`, close metadata immediately, then detach listeners on the next microtask. The active Rust callback must return before its Closure drops. Compare the captured token with the current owner so old cleanup cannot stop a replacement. Take the owner out of its `RefCell` before dropping it.
+
+A partial registration failure drops its registered bindings and records unavailable lifecycle support; current drawing/downloads remain usable. Visibility/freeze events and cancellation of pending GPU startup are still subsequent work.
+
+> **Self-Check Question:** *Why does deferred final cleanup compare allocation identity before stopping metadata?*  
+> **Answer:** An earlier pagehide may have queued cleanup before a replacement installs its listeners and timer. The old allocation token must not match the replacement; otherwise the old task could stop the new diagnostic lifetime.
+
+- **What You Should See:** In the debug console, run `window.dispatchEvent(new PageTransitionEvent("pagehide", {persisted: true}))`, then the same for `"pageshow"`. Download `Report`: the transitions are recorded and the healthy outcome stays Ready.
+- **Hands-On Lab Experiment:** Dispatch persisted pagehide/pageshow and compare them with a final pagehide. Replace metadata ownership before queued cleanup and explain why the earlier token cannot stop it.
+
 <details>
 <summary>Implementation 34gba-lifecycle: Own diagnostic page transitions</summary>
 
@@ -790,6 +915,22 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-34gbb-suspension"></a>
 
+### Step 5 of 8 · Keep each heartbeat pause reason separate (`34gbb-suspension`)
+
+- **Goal:** Check that clearing one pause reason cannot resume a still-suspended heartbeat.
+- **Data Flow Trace:** `hidden + frozen + cached + final closure → one scheduling decision`
+- **Files You Touch:** `src/suspension.rs` (*Keep hidden, frozen and cached reasons independent; final closure permanently refuses scheduling.*) · `src/suspension_tests.rs` (*Optional authoring fixture. Check overlapping reasons, initial hidden state, duplicate delivery and final closure that cannot resume.*) · `src/lib.rs` (*Register the pure policy and its native checks.*)
+
+Give heartbeat scheduling three independent reasons to pause: hidden, frozen and cached. Clearing one reason must leave the others intact. Final closure permanently prevents resumption.
+
+The policy is ordinary Rust, without browser or GPU ownership. Native checks exercise overlapping reasons and different release orders. Browser event delivery is connected in the next step.
+
+> **Self-Check Question:** *Why does becoming visible not always allow the heartbeat to resume?*  
+> **Answer:** Visibility clears only the hidden reason. A freeze or cached-page reason can still prohibit scheduling; final closure never resumes.
+
+- **What You Should See:** Inspect the supplied state fixtures. Every remaining pause reason prevents resumption, and clearing all reasons permits it. A closed policy stays closed.
+- **Hands-On Lab Experiment:** Change the first test to clear Frozen last. Predict which earlier clear remains paused, then run the checks.
+
 <details>
 <summary>Implementation 34gbb-suspension: Keep each heartbeat pause reason separate</summary>
 
@@ -859,6 +1000,22 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-34gbba-browser"></a>
+
+### Step 6 of 8 · Connect visibility and freezing to heartbeat scheduling (`34gbba-browser`)
+
+- **Goal:** Pause the actual diagnostic timer while any browser suspension reason remains.
+- **Data Flow Trace:** `Document and Window events → independent pause reasons → stop or retain one heartbeat timer`
+- **Files You Touch:** `src/report_lifecycle.rs` (*Use the scheduling policy in the existing metadata owner.*) · `src/browser_report.rs` (*Refuse suspended scheduling and retain an existing timer, so repeated resume events cannot restart or duplicate it.*)
+
+Connect visibilitychange, freeze and resume on Document. Keep pagehide and pageshow on Window. Each event changes its own pause reason before synchronizing the heartbeat.
+
+Read Document.hidden at startup and on return. Start one timer only when the policy permits it. Repeated resume events retain the existing timer. Final closure prevents restart before deferred listener cleanup.
+
+> **Self-Check Question:** *Why does timer synchronization happen after updating the event’s reasons?*  
+> **Answer:** The scheduling decision must include both the changed reason and current visibility. It must not resume between clearing cached state and discovering the document is still hidden.
+
+- **What You Should See:** Switch away from the viewer tab, then return and type Report. Its lifecycle entries show hidden and visible, while the healthy outcome remains Ready.
+- **Hands-On Lab Experiment:** In the debug console, dispatch Document freeze, cached Window pagehide, then Document resume. The cached reason still blocks scheduling until pageshow.
 
 <details>
 <summary>Implementation 34gbba-browser: Connect visibility and freezing to heartbeat scheduling</summary>
@@ -1084,6 +1241,22 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-34gbc-authority"></a>
 
+### Step 7 of 8 · Give pending startup a revocable ticket (`34gbc-authority`)
+
+- **Goal:** Prevent a waiting task from regaining startup permission after closure.
+- **Data Flow Trace:** `task ticket + close ticket → shared flag → delayed result refused after closure`
+- **Files You Touch:** `src/startup.rs` (*Share startup permission between the waiting task and its close callback.*) · `src/startup_tests.rs` (*Optional authoring fixture. Check delayed tickets, repeated closure and an independent replacement owner.*) · `src/lib.rs` (*Register startup authority and its native checks.*)
+
+Give pending startup a shared permission flag. The task and close callback hold cloned tickets; revoking either ticket refuses every later result.
+
+A replacement gets a separate allocation. This step checks the policy natively; the next step connects it to actual GPU requests.
+
+> **Self-Check Question:** *Why clone the ticket instead of copying its boolean value?*  
+> **Answer:** A copied boolean would keep its old value. Rc shares the Cell, so the waiting task sees the close callback’s revocation.
+
+- **What You Should See:** Inspect the supplied state fixtures. Revocation reaches every waiting ticket, repeated closure stays revoked, and an independent replacement remains allowed.
+- **Hands-On Lab Experiment:** Revoke the device ticket instead of the owner in the first test. Predict whether the adapter ticket still permits startup, then run the checks.
+
 <details>
 <summary>Implementation 34gbc-authority: Give pending startup a revocable ticket</summary>
 
@@ -1153,6 +1326,22 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-34gbca-startup"></a>
+
+### Step 8 of 8 · Refuse GPU results after final page exit (`34gbca-startup`)
+
+- **Goal:** Stop delayed adapter or device delivery from installing a renderer after final exit.
+- **Data Flow Trace:** `final exit → revoke ticket → adapter/device resolves → refuse renderer installation`
+- **Files You Touch:** `src/browser_startup.rs` (*Own one temporary page-exit binding across GPU awaits, independent of optional diagnostic listeners.*) · `src/lib.rs` (*Register the browser startup guard.*) · `src/browser.rs` (*Keep the guard alive from startup until the runtime owns the drawing callbacks.*)
+
+Keep one temporary pagehide listener while startup awaits the GPU. Final exit revokes its shared ticket; cached transitions retain permission.
+
+Check authority after each await, before interpreting errors or using the result. Destroy a device delivered after revocation. Returning successfully preserves the closed report instead of recording a new fatal error. The listener is released when startup returns.
+
+> **Self-Check Question:** *Why check permission before turning a rejected GPU request into an error?*  
+> **Answer:** The page may have closed while the request was pending. That obsolete rejection must not overwrite Closed with a new failure; an active startup still reports genuine errors.
+
+- **What You Should See:** Reload and type `Report`. Startup reaches `ready` with a geometry-on-screen event.
+- **Hands-On Lab Experiment:** In the debug build, compare the guard’s one temporary binding with the five metadata bindings. After Ready, only metadata and runtime bindings remain.
 
 <details>
 <summary>Implementation 34gbca-startup: Refuse GPU results after final page exit</summary>
@@ -1889,9 +2078,11 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 </details>
 
-## Run, Check, and Save
+---
 
-From `session_viewer`:
+## 5. Build, Verify, and Save Your Checkpoint
+
+Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 34gbca-startup
@@ -1902,12 +2093,12 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. Use [checkpoint recovery](../../recovery.md) to restore any saved checkpoint.
+Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
 
-## Expected Visual Result & Experiment
+## 6. Lesson Summary & Expected Visual Result
 
 Reload and type `Report`. Startup reaches `ready` with a geometry-on-screen event.
 
-- **Try this:** In the debug build, compare the guard’s one temporary binding with the five metadata bindings. After Ready, only metadata and runtime bindings remain.
+- **Final Lesson Experiment:** In the debug build, compare the guard’s one temporary binding with the five metadata bindings. After Ready, only metadata and runtime bindings remain.
 
-Continue with [Measured phases and conservative GPU recovery](34gc-messages.md).
+Continue with [Measured phases and conservative GPU recovery](../../consolidation/34gc-messages.md).

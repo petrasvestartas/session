@@ -1,93 +1,156 @@
 # 11.2 · Validated original cloud columns and placed owners
 
-**Section 6: CAD B-Rep Topology, World Text Atlases, Outlines, and Point Clouds** · **Lesson 11.2** (Redraft `6.11`) · **6 checkpoints (`64-nodes` → `64e-identity`)**
+**Section 6: CAD B-Rep Topology, World Text Atlases, Outlines, and Point Clouds** · **Lesson 11.2** (Redraft `6.11`) · **6 checkpoints (`64-nodes` → `64e-identity`)** · **Study time: 3–6 h**
 
-> **Learning Goal:** Check cloud cubes against their original point rows.
+> **What You Will Learn & Build:** Check cloud cubes against their original point rows. By the final checkpoint (`64e-identity`), you will include clouds in whole selection history and rectangle checks.
 
-## Visual WebGPU & Architecture Schematic
+## 1. Visual Pipeline & WebGPU Architecture (Black & White Schematics)
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1px solid #cbd5e1;border-radius:10px;background:#f8fafc;">
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
+<svg viewBox="0 0 840 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <rect x="4" y="4" width="832" height="212" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Lesson 11.2 Execution Flow: Validated original cloud columns and placed owners</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">Concrete data pipeline you build in this lesson (6 Checkpoints: 64-nodes → 64e-identity)</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
+  
+    
+    <rect x="18" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="89" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
+    <line x1="28" y1="92" x2="151" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">original point</text>
+    <text x="89" y="124" text-anchor="middle" font-size="11" fill="#111111">columns</text>
+    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="183" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="254" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
+    <line x1="193" y1="92" x2="316" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">checked source</text>
+    <text x="254" y="124" text-anchor="middle" font-size="11" fill="#111111">ranges</text>
+    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="348" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="419" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
+    <line x1="358" y1="92" x2="481" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">contained node</text>
+    <text x="419" y="124" text-anchor="middle" font-size="11" fill="#111111">cubes</text>
+    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="513" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="584" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
+    <line x1="523" y1="92" x2="646" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">derived descriptors</text>
+    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="678" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="749" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
+    <line x1="688" y1="92" x2="811" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">original owner</text>
+    
+    <rect x="18" y="162" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="32" y="181" font-size="11" font-weight="700" fill="#111111">Files You Edit in Lesson 11.2:</text>
+    <text x="215" y="181" font-size="11" fill="#111111">src/cloud.rs  ·  src/lib.rs  ·  src/scene.rs  ·  src/hierarchy.rs  ·  src/rect_select.rs  ·  src/document.rs</text>
+    <text x="32" y="198" font-size="10.5" fill="#111111">6 Checkpoints: 64-nodes → 64e-identity — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
+  
+</svg>
+</div>
+
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
 <svg viewBox="0 0 840 240" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#475569"/>
-    </marker>
-    <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#2563eb"/>
-    </marker>
-    <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#059669"/>
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
     </marker>
   </defs>
-  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
-  <text x="20" y="28" font-size="14" font-weight="700" fill="#0f172a">Chapter 9 CAD B-Rep Pipeline: Topological Loops/Trims, Crease Normals & Analytical Boundary Wires</text>
-  <text x="20" y="46" font-size="11.5" fill="#475569">How exact Boundary Representations (B-Rep) combine shaded trimmed surface meshes with crisp analytical boundary & isoline curves.</text>
-  <line x1="16" y1="54" x2="824" y2="54" stroke="#e2e8f0" stroke-width="1"/>
+  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Chapter 9 CAD B-Rep Pipeline: Topological Loops/Trims, Crease Normals & Analytical Boundary Wires</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">How exact Boundary Representations (B-Rep) combine shaded trimmed surface meshes with crisp analytical boundary & isoline curves.</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
   
-    <rect x="18" y="68" width="245" height="145" rx="6" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
-    <text x="140" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1e40af">1. B-Rep Topological Validation</text>
-    <text x="28" y="108" font-size="10.5" fill="#1e3a8a">• Solid -&gt; Faces -&gt; Loops (Outer + Holes)</text>
-    <text x="28" y="126" font-size="10.5" fill="#1e3a8a">• Trim curves in 2D (u, v) domain</text>
-    <text x="28" y="144" font-size="10.5" font-weight="600" fill="#1d4ed8">• Validate orientation, loop closure,</text>
-    <text x="28" y="160" font-size="10.5" font-weight="600" fill="#1d4ed8">  and manifold edge adjacency</text>
-    <text x="28" y="180" font-size="10.5" fill="#1e3a8a">• Preserve exact NURBS surface source</text>
+    <rect x="18" y="68" width="245" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="140" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">1. B-Rep Topological Validation</text>
+    <text x="28" y="108" font-size="10.5" fill="#111111">• Solid -&gt; Faces -&gt; Loops (Outer + Holes)</text>
+    <text x="28" y="126" font-size="10.5" fill="#111111">• Trim curves in 2D (u, v) domain</text>
+    <text x="28" y="144" font-size="10.5" font-weight="600" fill="#111111">• Validate orientation, loop closure,</text>
+    <text x="28" y="160" font-size="10.5" font-weight="600" fill="#111111">  and manifold edge adjacency</text>
+    <text x="28" y="180" font-size="10.5" fill="#111111">• Preserve exact NURBS surface source</text>
 
-    <line x1="263" y1="112" x2="295" y2="112" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
-    <line x1="263" y1="175" x2="295" y2="175" stroke="#059669" stroke-width="2" marker-end="url(#arrow-green)"/>
+    <line x1="263" y1="112" x2="295" y2="112" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
+    <line x1="263" y1="175" x2="295" y2="175" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="297" y="68" width="275" height="68" rx="6" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5"/>
-    <text x="309" y="86" font-size="11" font-weight="700" fill="#9a3412">2A. Shaded Trimmed Faces (Surface Lane)</text>
-    <text x="309" y="104" font-size="10.5" fill="#7c2d12">• Tessellate within (u,v) trim loops</text>
-    <text x="309" y="120" font-size="10.5" fill="#7c2d12">• Smooth normals across G1; split at creases!</text>
+    <rect x="297" y="68" width="275" height="68" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="309" y="86" font-size="11" font-weight="700" fill="#111111">2A. Shaded Trimmed Faces (Surface Lane)</text>
+    <text x="309" y="104" font-size="10.5" fill="#111111">• Tessellate within (u,v) trim loops</text>
+    <text x="309" y="120" font-size="10.5" fill="#111111">• Smooth normals across G1; split at creases!</text>
 
-    <rect x="297" y="145" width="275" height="68" rx="6" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1.5"/>
-    <text x="309" y="163" font-size="11" font-weight="700" fill="#065f46">2B. Boundary Wires &amp; Isolines (Ribbon Lane)</text>
-    <text x="309" y="181" font-size="10.5" fill="#064e3b">• Extract 3D topological edges + UV isolines</text>
-    <text x="309" y="197" font-size="10.5" fill="#064e3b">• Render via ribbon.wgsl with depth bias</text>
+    <rect x="297" y="145" width="275" height="68" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="309" y="163" font-size="11" font-weight="700" fill="#111111">2B. Boundary Wires &amp; Isolines (Ribbon Lane)</text>
+    <text x="309" y="181" font-size="10.5" fill="#111111">• Extract 3D topological edges + UV isolines</text>
+    <text x="309" y="197" font-size="10.5" fill="#111111">• Render via ribbon.wgsl with depth bias</text>
 
-    <line x1="572" y1="138" x2="602" y2="138" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>
+    <line x1="572" y1="138" x2="602" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="604" y="68" width="216" height="145" rx="6" fill="#fdf2f8" stroke="#f472b6" stroke-width="1.5"/>
-    <text x="712" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#9d174d">3. Unified B-Rep Sub-Picking</text>
-    <text x="616" y="108" font-size="10.5" fill="#831843">• Every triangle &amp; wire carries</text>
-    <text x="616" y="124" font-size="10.5" font-weight="600" fill="#9d174d">  [brep_owner_id, sub_id]</text>
-    <text x="616" y="144" font-size="10" fill="#831843">• Click selects whole B-Rep solid</text>
-    <text x="616" y="159" font-size="10" fill="#831843">  or drills into Face #i / Edge #j</text>
-    <text x="616" y="178" font-size="10.5" fill="#831843">• Outlines &amp; Point Clouds (Sec 6)</text>
-    <text x="616" y="193" font-size="10" fill="#831843">  share the same owner ID contract</text>
+    <rect x="604" y="68" width="216" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="712" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">3. Unified B-Rep Sub-Picking</text>
+    <text x="616" y="108" font-size="10.5" fill="#111111">• Every triangle &amp; wire carries</text>
+    <text x="616" y="124" font-size="10.5" font-weight="600" fill="#111111">  [brep_owner_id, sub_id]</text>
+    <text x="616" y="144" font-size="10" fill="#111111">• Click selects whole B-Rep solid</text>
+    <text x="616" y="159" font-size="10" fill="#111111">  or drills into Face #i / Edge #j</text>
+    <text x="616" y="178" font-size="10.5" fill="#111111">• Outlines &amp; Point Clouds (Sec 6)</text>
+    <text x="616" y="193" font-size="10" fill="#111111">  share the same owner ID contract</text>
     
 </svg>
 </div>
 
-### Lesson Data Flow (`Rust` → `WebGPU` → `WGSL`)
+## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
 
-```
-original point columns → checked source ranges → contained node cubes → derived descriptors.
-shared original cloud → independent instance model → placed corners → world bounds.
-original owner → eligible whole selection → one history edit → shared source restoration.
-```
+Before writing code, review how the three layers in this chapter talk to each other:
 
-- Check cloud cubes against their original point rows.
-- Place the cloud through an independent f64 instance model.
-- Include clouds in whole selection history and rectangle checks.
-- **Why it works (Does an octree range identify a new editable point?):** No. It names a run in the original stored point columns. Stable point IDs remain independent of storage order; a cube must contain its own points before the view can trust its spacing.
-
-### Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `Browser`)
-
-| Layer | Construct | First-Year Student Explanation |
+| Layer | Construct | Plain-English Explanation for Students |
 | :--- | :--- | :--- |
 | **CAD Topology** | `EdgeUse { edge_index, reversed, pcurve_2d }` | Connects two adjacent curved faces along one shared 3D `Edge` while giving each face its own oriented `(u, v)` trim curve. |
 | **WGSL (`splat.wgsl`)** | `let dist2 = dot(pixel_offset, pixel_offset); if dist2 > r2 { discard; }` | Turns each point quad into a crisp circular disc around an integer pixel center and discards corner fragments. |
 | **WGSL (`splat_resolve`)** | `exp(-edl_sum * 75.0 * strength)` | Computes Eye-Dome Lighting from neighbor depth discontinuities so unlit point clouds show 3D surface relief. |
 | **WGSL (`surface_outline`)** | Conservative mask dilation -> single composite | Detects silhouette and selection boundaries in screen space without duplicating 3D wire geometry. |
 
-**Production source (`session_viewer/src`):** [engine/gpu/surface_outline.rs](../../../../src/engine/gpu/surface_outline.rs), [engine/gpu/cloud.rs](../../../../src/engine/gpu/cloud.rs), [engine/gpu/lod.rs](../../../../src/engine/gpu/lod.rs), [engine/gpu/splat.rs](../../../../src/engine/gpu/splat.rs), [shaders/splat.wgsl](../../../../src/shaders/splat.wgsl), [shaders/splat_resolve.wgsl](../../../../src/shaders/splat_resolve.wgsl), [app/cloud_query.rs](../../../../src/app/cloud_query.rs).
+**Authoritative production source (`session_viewer/src`):** [engine/gpu/surface_outline.rs](../../../../src/engine/gpu/surface_outline.rs), [engine/gpu/cloud.rs](../../../../src/engine/gpu/cloud.rs), [engine/gpu/lod.rs](../../../../src/engine/gpu/lod.rs), [engine/gpu/splat.rs](../../../../src/engine/gpu/splat.rs), [shaders/splat.wgsl](../../../../src/shaders/splat.wgsl), [shaders/splat_resolve.wgsl](../../../../src/shaders/splat_resolve.wgsl), [app/cloud_query.rs](../../../../src/app/cloud_query.rs).
 
-## Implementation Checkpoints
+## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
 
-Apply these checkpoints in order inside `workspace/journey`. Expand each block to view the Rust/WGSL/HTML edits:
+| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
+| ---: | :--- | :--- | :--- | :--- |
+| **1** | [`64-nodes`](#checkpoint-64-nodes) | Check cloud cubes against their original point rows. | `src/cloud.rs`, `src/lib.rs` | `original point columns → checked source ranges → contained node cubes → derived descriptors` |
+| **2** | [`64a-tree`](#checkpoint-64a-tree) | Validate one rooted tree and disjoint original ranges. | `src/cloud.rs` | `column lengths → child ownership → rooted levels → complete disjoint ranges` |
+| **3** | [`64b-source`](#checkpoint-64b-source) | Prepare bounds and spacing without replacing source words. | `src/cloud.rs` | `checked original columns → source bounds and spacing → shared prepared owner → resident descriptor` |
+| **4** | [`64c-placements`](#checkpoint-64c-placements) | Place the cloud through an independent f64 instance model. | `src/cloud.rs` | `shared original cloud → independent instance model → placed corners → world bounds` |
+| **5** | [`64d-scene`](#checkpoint-64d-scene) | Insert a checked cloud on the current layer. | `src/scene.rs` | `validated source → stable scene row → current layer → checked placement` |
+| **6** | [`64e-identity`](#checkpoint-64e-identity) | Include clouds in whole selection history and rectangle checks. | `src/scene.rs`, `src/hierarchy.rs`, `src/rect_select.rs`, `src/document.rs` | `original owner → eligible whole selection → one history edit → shared source restoration` |
+
+---
+
+## 4. Step-by-Step Coding Notebook (Concept + Implementation)
+
+Work through each notebook cell below in order inside `workspace/journey`. Read the **Concept Walkthrough** and **Self-Check Q&A** first, then expand the **Implementation** block to type and verify the code.
 
 <a id="checkpoint-64-nodes"></a>
+
+### Step 1 of 6 · Check cloud cubes against their original point rows (`64-nodes`)
+
+- **Goal:** Check cloud cubes against their original point rows.
+- **Data Flow Trace:** `original point columns → checked source ranges → contained node cubes → derived descriptors`
+- **Files You Touch:** `src/cloud.rs` (*Own original cloud sources and validate each derived node against its source ranges and parent cube.*) · `src/lib.rs` (*Register the source component.*)
+
+Keep immutable original f64 coordinates and stable point IDs beside derived node descriptors. Reject invalid ranges, nonfinite cubes and children outside their parent.
+
+> **Self-Check Question:** *Does an octree range identify a new editable point?*  
+> **Answer:** No. It names a run in the original stored point columns. Stable point IDs remain independent of storage order; a cube must contain its own points before the view can trust its spacing.
+
+- **What You Should See:** The selected CAD bore and its black silhouette remain visible. These preparations add the original cloud lane; the final checkpoint connects its interactive examples.
+- **Hands-On Lab Experiment:** Compare a source point ID with its current storage index. Try an out-of-range child, a negative count and a cube shifted away from its source points.
 
 <details>
 <summary>Implementation 64-nodes: Check cloud cubes against their original point rows</summary>
@@ -130,6 +193,19 @@ After that block, type:
 
 <a id="checkpoint-64a-tree"></a>
 
+### Step 2 of 6 · Validate one rooted tree and disjoint original ranges (`64a-tree`)
+
+- **Goal:** Validate one rooted tree and disjoint original ranges.
+- **Data Flow Trace:** `column lengths → child ownership → rooted levels → complete disjoint ranges`
+- **Files You Touch:** `src/cloud.rs` (*Validate complete octree columns, rooted ownership and source-row coverage before traversal.*)
+
+Check every octree column length before indexing. Require one parent per child, increasing levels and nonoverlapping ranges that cover the complete original point storage.
+
+> **Self-Check Question:** *Can a cyclic or disconnected octree reach the view walk?*  
+> **Answer:** No. Its levels and unique rooted ownership are validated before adoption. Point ranges must cover the original storage once, so neither duplicated rows nor omitted source rows become display detail.
+
+- **Hands-On Lab Experiment:** Corrupt one child index or repeat one owner. Compare an empty node table with a malformed partial table and verify rejection happens before scene ID allocation.
+
 <details>
 <summary>Implementation 64a-tree: Validate one rooted tree and disjoint original ranges</summary>
 
@@ -161,6 +237,19 @@ After that block, type:
 </details>
 
 <a id="checkpoint-64b-source"></a>
+
+### Step 3 of 6 · Prepare bounds and spacing without replacing source words (`64b-source`)
+
+- **Goal:** Prepare bounds and spacing without replacing source words.
+- **Data Flow Trace:** `checked original columns → source bounds and spacing → shared prepared owner → resident descriptor`
+- **Files You Touch:** `src/cloud.rs` (*Keep original source columns and measured bounds separate from derived node descriptors.*)
+
+Validate coordinates, colours, normals, size and stable IDs. Measure original f64 bounds and retain the original PointCloud beside shared derived node descriptors.
+
+> **Self-Check Question:** *Are accessible payload bytes the complete reserved source capacity?*  
+> **Answer:** No. Public slices expose their used bytes, not private vector capacity. Diagnostics keep logical original payload separate from actual derived and GPU allocations.
+
+- **Hands-On Lab Experiment:** Inspect f64 coordinates before any GPU float conversion. Reject duplicate explicit IDs, mismatched colour/normal columns and nonfinite point size; initialize the lazy source GUID before comparing serialized invariants.
 
 <details>
 <summary>Implementation 64b-source: Prepare bounds and spacing without replacing source words</summary>
@@ -194,6 +283,19 @@ After that block, type:
 
 <a id="checkpoint-64c-placements"></a>
 
+### Step 4 of 6 · Place the cloud through an independent f64 instance model (`64c-placements`)
+
+- **Goal:** Place the cloud through an independent f64 instance model.
+- **Data Flow Trace:** `shared original cloud → independent instance model → placed corners → world bounds`
+- **Files You Touch:** `src/cloud.rs` (*Preserve original cloud ownership and derive world bounds from a separate f64 model.*)
+
+Give every cloud row its own viewer ID, GUID and f64 model while sharing the original PointCloud and its derived nodes. Transform all eight bound corners for Fit.
+
+> **Self-Check Question:** *Should moving a cloud rewrite every original coordinate?*  
+> **Answer:** No. Move changes the instance model. Copies can share original columns and derived nodes while retaining their own identities and placements.
+
+- **Hands-On Lab Experiment:** Compare the same source under two placements. Translate by 1,000,000,000.125 and inspect the exact model and unchanged original coordinates; GPU rebasing connects in the precision subject.
+
 <details>
 <summary>Implementation 64c-placements: Place the cloud through an independent f64 instance model</summary>
 
@@ -226,6 +328,19 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-64d-scene"></a>
+
+### Step 5 of 6 · Insert a checked cloud on the current layer (`64d-scene`)
+
+- **Goal:** Insert a checked cloud on the current layer.
+- **Data Flow Trace:** `validated source → stable scene row → current layer → checked placement`
+- **Files You Touch:** `src/scene.rs` (*Insert validated cloud rows, route current-layer ownership and release them with the scene.*)
+
+Allocate one stable viewer ID after source validation. Attach the cloud to the current layer and reject invalid or out-of-display-range placement before changing its row.
+
+> **Self-Check Question:** *Can a failed placement consume a new cloud ID?*  
+> **Answer:** No. Source validation precedes insertion, and placement checks a candidate row before adoption. Current-layer attachment uses the same source/node identity rules as other geometry lanes.
+
+- **Hands-On Lab Experiment:** Insert two rows sharing a source, then try a singular or nonfinite placement. Compare their independent viewer IDs with the shared original source GUID.
 
 <details>
 <summary>Implementation 64d-scene: Insert a checked cloud on the current layer</summary>
@@ -1007,6 +1122,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-64e-identity"></a>
+
+### Step 6 of 6 · Include clouds in whole selection history and rectangle checks (`64e-identity`)
+
+- **Goal:** Include clouds in whole selection history and rectangle checks.
+- **Data Flow Trace:** `original owner → eligible whole selection → one history edit → shared source restoration`
+- **Files You Touch:** `src/scene.rs` (*Connect cloud owners to existing placement, bounds, copy, next selection and deletion paths.*) · `src/hierarchy.rs` (*Include original cloud rows in the existing hierarchy/rectangle routes and reject incomplete mixed saves.*) · `src/rect_select.rs` (*Include original cloud rows in the existing hierarchy/rectangle routes and reject incomplete mixed saves.*) · `src/document.rs` (*Include original cloud rows in the existing hierarchy/rectangle routes and reject incomplete mixed saves.*) · `src/editor.rs` (*Make whole Select All include eligible original cloud owners.*)
+
+Connect cloud bounds, original row IDs, copy, layers, Select All, Move, Delete and Undo/Redo. Rectangle checks inspect original projected point centers and preserve eligibility.
+
+> **Self-Check Question:** *Can Delete erase only the displayed LOD subset?*  
+> **Answer:** No. Whole Delete removes the original cloud row as one reversible edit. The displayed runs are derived data. Saving clouds is explicitly guarded until mixed persistence connects.
+
+- **Hands-On Lab Experiment:** Hide or lock a cloud before Select All. Copy, move and delete it, then Undo. Compare source sharing and original IDs; use a crossing rectangle on point centers rather than accepting an empty bounding-box gap.
 
 <details>
 <summary>Implementation 64e-identity: Include clouds in whole selection history and rectangle checks</summary>
@@ -2008,9 +2136,11 @@ Edit the existing block to match this code; keep unchanged lines:
 
 </details>
 
-## Run, Check, and Save
+---
 
-From `session_viewer`:
+## 5. Build, Verify, and Save Your Checkpoint
+
+Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 64e-identity
@@ -2021,10 +2151,10 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. Use [checkpoint recovery](../../recovery.md) to restore any saved checkpoint.
+Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
 
-## Expected Visual Result & Experiment
+## 6. Lesson Summary & Expected Visual Result
 
-- **Try this:** Hide or lock a cloud before Select All. Copy, move and delete it, then Undo. Compare source sharing and original IDs; use a crossing rectangle on point centers rather than accepting an empty bounding-box gap.
+- **Final Lesson Experiment:** Hide or lock a cloud before Select All. Copy, move and delete it, then Undo. Compare source sharing and original IDs; use a crossing rectangle on point centers rather than accepting an empty bounding-box gap.
 
-Continue with [View-dependent LOD and cached point splats](64f-projection.md).
+Continue with [View-dependent LOD and cached point splats](../../consolidation/64f-projection.md).

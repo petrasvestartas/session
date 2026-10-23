@@ -1,91 +1,160 @@
 # 19.2 · Original Element ancestry and derived feature trees
 
-**Section 10: Shared GPU Arenas, Floating-Origin Precision, Multisampling, and Production Parity** · **Lesson 19.2** (Redraft `10.2`) · **10 checkpoints (`96i-separate-own-and-hosted-element-features` → `96r-preserve-exact-command-completions`)**
+**Section 10: Shared GPU Arenas, Floating-Origin Precision, Multisampling, and Production Parity** · **Lesson 19.2** (Redraft `10.2`) · **10 checkpoints (`96i-separate-own-and-hosted-element-features` → `96r-preserve-exact-command-completions`)** · **Study time: 5–10 h**
 
-> **Learning Goal:** Identify own attributes and interaction features by original feature type. Check readable names and face labels without changing any geometry.
+> **What You Will Learn & Build:** Identify own attributes and interaction features by original feature type. Check readable names and face labels without changing any geometry. By the final checkpoint (`96r-preserve-exact-command-completions`), you will share the existing dictionary wrapper with the real widget regression and browser typing proof.
 
-## Visual WebGPU & Architecture Schematic
+## 1. Visual Pipeline & WebGPU Architecture (Black & White Schematics)
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1px solid #cbd5e1;border-radius:10px;background:#f8fafc;">
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
+<svg viewBox="0 0 840 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <rect x="4" y="4" width="832" height="212" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Lesson 19.2 Execution Flow: Original Element ancestry and derived feature trees</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">Concrete data pipeline you build in this lesson (10 Checkpoints: 96i-separate-own-and-hosted-element-features → 96r-preserve-exact-command-completions)</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
+  
+    
+    <rect x="18" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="89" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
+    <line x1="28" y1="92" x2="151" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">original source</text>
+    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="183" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="254" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
+    <line x1="193" y1="92" x2="316" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">bounded feature</text>
+    <text x="254" y="124" text-anchor="middle" font-size="11" fill="#111111">plan</text>
+    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="348" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="419" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
+    <line x1="358" y1="92" x2="481" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">derived display</text>
+    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="513" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="584" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
+    <line x1="523" y1="92" x2="646" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">source-preserving</text>
+    <text x="584" y="124" text-anchor="middle" font-size="11" fill="#111111">archive</text>
+    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="678" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="749" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
+    <line x1="688" y1="92" x2="811" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">typed characters</text>
+    
+    <rect x="18" y="162" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="32" y="181" font-size="11" font-weight="700" fill="#111111">Files You Edit in Lesson 19.2:</text>
+    <text x="215" y="181" font-size="11" fill="#111111">src/feature_plan.rs  ·  src/lib.rs  ·  src/hierarchy.rs  ·  src/layer_edit.rs  ·  src/scene_archive.rs  ·  src/feature_display.rs</text>
+    <text x="32" y="198" font-size="10.5" fill="#111111">10 Checkpoints: 96i-separate-own-and-hosted-element-features → 96r-preserve-exact-command-completions — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
+  
+</svg>
+</div>
+
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
 <svg viewBox="0 0 840 240" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#475569"/>
-    </marker>
-    <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#2563eb"/>
-    </marker>
-    <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#059669"/>
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
     </marker>
   </defs>
-  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
-  <text x="20" y="28" font-size="14" font-weight="700" fill="#0f172a">Section 10 Production Architecture: Shared GPU Storage Arena, f64 Floating Origin, Reversed-Z, 4x MSAA & Matrix Shader</text>
-  <text x="20" y="46" font-size="11.5" fill="#475569">How the maintained viewer pulls vertices from one growable GPU arena, eliminates jitter at 10^12 units, and renders procedural Matrices.</text>
-  <line x1="16" y1="54" x2="824" y2="54" stroke="#e2e8f0" stroke-width="1"/>
+  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Section 10 Production Architecture: Shared GPU Storage Arena, f64 Floating Origin, Reversed-Z, 4x MSAA & Matrix Shader</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">How the maintained viewer pulls vertices from one growable GPU arena, eliminates jitter at 10^12 units, and renders procedural Matrices.</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
   
-    <rect x="18" y="68" width="250" height="145" rx="6" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
-    <text x="143" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1e40af">1. Shared GPU Arena (Ch 19–20)</text>
-    <text x="28" y="108" font-size="10.5" fill="#1e3a8a">• 1 Growable Storage Buffer Arena</text>
-    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#1d4ed8">• Vertex Pulling (@builtin(vertex_index))</text>
-    <text x="28" y="144" font-size="10.5" fill="#1e3a8a">• 8-byte Draw Slots -&gt; ObjectRecord</text>
-    <text x="28" y="162" font-size="10.5" fill="#1e3a8a">• slot_table.wgsl maps Rg32Uint</text>
-    <text x="28" y="178" font-size="10.5" fill="#1e3a8a">  primitive IDs to Element/Face owners</text>
-    <text x="28" y="194" font-size="10" fill="#1e3a8a">• Free-list span reuse after GPU lease</text>
+    <rect x="18" y="68" width="250" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="143" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">1. Shared GPU Arena (Ch 19–20)</text>
+    <text x="28" y="108" font-size="10.5" fill="#111111">• 1 Growable Storage Buffer Arena</text>
+    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#111111">• Vertex Pulling (@builtin(vertex_index))</text>
+    <text x="28" y="144" font-size="10.5" fill="#111111">• 8-byte Draw Slots -&gt; ObjectRecord</text>
+    <text x="28" y="162" font-size="10.5" fill="#111111">• slot_table.wgsl maps Rg32Uint</text>
+    <text x="28" y="178" font-size="10.5" fill="#111111">  primitive IDs to Element/Face owners</text>
+    <text x="28" y="194" font-size="10" fill="#111111">• Free-list span reuse after GPU lease</text>
 
-    <line x1="268" y1="138" x2="298" y2="138" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
+    <line x1="268" y1="138" x2="298" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="300" y="68" width="265" height="145" rx="6" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5"/>
-    <text x="432" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#9a3412">2. f64 Floating Origin &amp; Reversed-Z (Ch 21)</text>
-    <text x="312" y="108" font-size="10.5" font-weight="600" fill="#c2410c">• rel_f32 = (world_f64 - anchor_f64) as f32</text>
-    <text x="312" y="125" font-size="10" fill="#7c2d12">  Zero vertex/grid jitter even at 10^12 m!</text>
-    <text x="312" y="144" font-size="10.5" font-weight="600" fill="#c2410c">• Reversed-Z Depth (GreaterEqual):</text>
-    <text x="312" y="160" font-size="10" fill="#7c2d12">  Near plane = 1.0, Far plane = 0.0</text>
-    <text x="312" y="178" font-size="10.5" fill="#7c2d12">• Held world base grid &amp; preserved</text>
-    <text x="312" y="193" font-size="10.5" fill="#7c2d12">  live camera during Session reload</text>
+    <rect x="300" y="68" width="265" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="432" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">2. f64 Floating Origin &amp; Reversed-Z (Ch 21)</text>
+    <text x="312" y="108" font-size="10.5" font-weight="600" fill="#111111">• rel_f32 = (world_f64 - anchor_f64) as f32</text>
+    <text x="312" y="125" font-size="10" fill="#111111">  Zero vertex/grid jitter even at 10^12 m!</text>
+    <text x="312" y="144" font-size="10.5" font-weight="600" fill="#111111">• Reversed-Z Depth (GreaterEqual):</text>
+    <text x="312" y="160" font-size="10" fill="#111111">  Near plane = 1.0, Far plane = 0.0</text>
+    <text x="312" y="178" font-size="10.5" fill="#111111">• Held world base grid &amp; preserved</text>
+    <text x="312" y="193" font-size="10.5" fill="#111111">  live camera during Session reload</text>
 
-    <line x1="565" y1="138" x2="595" y2="138" stroke="#059669" stroke-width="2" marker-end="url(#arrow-green)"/>
+    <line x1="565" y1="138" x2="595" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="597" y="68" width="223" height="145" rx="6" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1.5"/>
-    <text x="708" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#065f46">3. 4x MSAA &amp; Matrix Shader (Ch 22)</text>
-    <text x="609" y="108" font-size="10.5" fill="#064e3b">• Coherent 1x/4x MSAA sample targets</text>
-    <text x="609" y="126" font-size="10.5" font-weight="600" fill="#047857">• matrix.wgsl (16w header + 3w/cell):</text>
-    <text x="609" y="142" font-size="10" fill="#064e3b">  Heatmap + procedural 3-decimal digits</text>
-    <text x="609" y="157" font-size="10" fill="#064e3b">  (0 cell blank; plate-less title; yellow</text>
-    <text x="609" y="172" font-size="10" fill="#064e3b">  selected border; Rg32Uint whole pick)</text>
-    <text x="609" y="190" font-size="10" fill="#064e3b">• Coalesced single-flight frame scheduler</text>
+    <rect x="597" y="68" width="223" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="708" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">3. 4x MSAA &amp; Matrix Shader (Ch 22)</text>
+    <text x="609" y="108" font-size="10.5" fill="#111111">• Coherent 1x/4x MSAA sample targets</text>
+    <text x="609" y="126" font-size="10.5" font-weight="600" fill="#111111">• matrix.wgsl (16w header + 3w/cell):</text>
+    <text x="609" y="142" font-size="10" fill="#111111">  Heatmap + procedural 3-decimal digits</text>
+    <text x="609" y="157" font-size="10" fill="#111111">  (0 cell blank; plate-less title; yellow</text>
+    <text x="609" y="172" font-size="10" fill="#111111">  selected border; Rg32Uint whole pick)</text>
+    <text x="609" y="190" font-size="10" fill="#111111">• Coalesced single-flight frame scheduler</text>
     
 </svg>
 </div>
 
-### Lesson Data Flow (`Rust` → `WebGPU` → `WGSL`)
+## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
 
-```
-original source → bounded feature plan → derived display → source-preserving archive.
-typed characters → command vocabulary → exact match first → egui submission.
-```
+Before writing code, review how the three layers in this chapter talk to each other:
 
-- Identify own attributes and interaction features by original feature type. Check readable names and face labels without changing any geometry.
-- Import a document atomically, classify its editable child Elements, then attach feature projections from its original graph and retained Element payloads.
-- Share the existing dictionary wrapper with the real widget regression and browser typing proof.
-- **Why it works (Why return feature indices instead of cloned geometry?):** Indices keep the grouping plan tied to the original Element. Display preparation can later borrow exactly those records, without treating a label or a display path as source data.
-
-### Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `Browser`)
-
-| Layer | Construct | First-Year Student Explanation |
+| Layer | Construct | Plain-English Explanation for Students |
 | :--- | :--- | :--- |
 | **WGSL (Vertex Pull)** | `@group(0) @binding(b) var<storage, read> arena_verts: array<u32>;` | Fetches packed vertex positions, normals, and colors directly from a single growable storage buffer using `@builtin(vertex_index)`. |
 | **Rust/WGSL (`f64`->`f32`)** | `let rel: Vec3 = (world_f64 - anchor_f64).as_vec3();` | Subtracts the camera-area `f64` anchor on the CPU before converting to `f32`, preventing 32-bit float mantissa exhaustion far from `(0,0,0)`. |
 | **WGSL (`matrix.wgsl`)** | 16-word header + 3 words/cell procedural digits | Renders matrix heatmaps and 3-decimal numeric digits procedurally inside the fragment shader with zero texture uploads per cell. |
 | **Rust (`ink_ranges.rs`)** | Merged contiguous `Range<u32>` instance draws | Toggles point/line/edge/CAD-wire family visibility without rebuilding GPU buffers or invalidating original owner indices. |
 
-**Production source (`session_viewer/src`):** [app/session_io.rs](../../../../src/app/session_io.rs), [app/command/mod.rs](../../../../src/app/command/mod.rs), [app/hierarchy.rs](../../../../src/app/hierarchy.rs), [app/scene.rs](../../../../src/app/scene.rs), [app/selection.rs](../../../../src/app/selection.rs), [app/deform.rs](../../../../src/app/deform.rs), [app/walk/mod.rs](../../../../src/app/walk/mod.rs), [build.rs](../../../../build.rs).
+**Authoritative production source (`session_viewer/src`):** [app/session_io.rs](../../../../src/app/session_io.rs), [app/command/mod.rs](../../../../src/app/command/mod.rs), [app/hierarchy.rs](../../../../src/app/hierarchy.rs), [app/scene.rs](../../../../src/app/scene.rs), [app/selection.rs](../../../../src/app/selection.rs), [app/deform.rs](../../../../src/app/deform.rs), [app/walk/mod.rs](../../../../src/app/walk/mod.rs), [build.rs](../../../../build.rs).
 
-## Implementation Checkpoints
+## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
 
-Apply these checkpoints in order inside `workspace/journey`. Expand each block to view the Rust/WGSL/HTML edits:
+| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
+| ---: | :--- | :--- | :--- | :--- |
+| **1** | [`96i-separate-own-and-hosted-element-features`](#checkpoint-96i-separate-own-and-hosted-element-features) | Identify own attributes and interaction features by original feature type. Check readable names and face labels without changing any geometry. | `src/feature_plan.rs`, `src/lib.rs` | `original source → bounded feature plan → derived display → source-preserving archive` |
+| **2** | [`96j-group-features-by-original-interaction`](#checkpoint-96j-group-features-by-original-interaction) | Walk graph edges in their original order. Group contact and joint pieces under the full interaction type, using the relation name or source Element name, and retain unmatched features. | `src/feature_plan.rs` | `original source → bounded feature plan → derived display → source-preserving archive` |
+| **3** | [`96k-separate-derived-rows-from-editable-elements`](#checkpoint-96k-separate-derived-rows-from-editable-elements) | Mark generated display rows separately from original objects. Nested child Elements remain editable even inside attributes, and saved documents omit derived geometry. | `src/hierarchy.rs`, `src/layer_edit.rs`, `src/scene_archive.rs` | `original source → bounded feature plan → derived display → source-preserving archive` |
+| **4** | [`96l-attach-a-bounded-derived-feature-tree`](#checkpoint-96l-attach-a-bounded-derived-feature-tree) | Build read-only attributes, interaction and piece rows under the owning Element. Validate the complete tree before replacing its saved structure. | `src/layer_edit.rs` | `original source → bounded feature plan → derived display → source-preserving archive` |
+| **5** | [`96m-project-original-feature-outlines`](#checkpoint-96m-project-original-feature-outlines) | Create black display paths from original feature outlines, apply the host placement once, and keep attributes Off and interactions On by default. | `src/feature_display.rs`, `src/lib.rs` | `original source → bounded feature plan → derived display → source-preserving archive` |
+| **6** | [`96n-connect-imported-interaction-hierarchies`](#checkpoint-96n-connect-imported-interaction-hierarchies) | Import a document atomically, classify its editable child Elements, then attach feature projections from its original graph and retained Element payloads. | `src/scene_document.rs` | `original source → bounded feature plan → derived display → source-preserving archive` |
+| **7** | [`96o-reuse-projections-for-created-elements`](#checkpoint-96o-reuse-projections-for-created-elements) | Created Elements and imported Elements now share feature display ownership. Visibility commands stop at independent child Elements and collect each feature piece once. | `src/element_adopt.rs` | `original source → bounded feature plan → derived display → source-preserving archive` |
+| **8** | [`96p-build-an-imported-interaction-specimen`](#checkpoint-96p-build-an-imported-interaction-specimen) | Build a small original document with a host, an editable nested child, and a connector. Its contact, unnamed joint and orphan feature make the hierarchy inspectable without a large floor model. | `src/interaction_example.rs`, `src/lib.rs`, `examples/sample.rs` | `original source → bounded feature plan → derived display → source-preserving archive` |
+| **9** | [`96q-prove-imported-feature-ownership-and-roundtrips`](#checkpoint-96q-prove-imported-feature-ownership-and-roundtrips) | Verify that feature projections follow their owner once, preserve original payloads, survive Delete/Undo, and rebuild after Save/Open without serializing display copies. Reject invalid outlines without changing the current document. | `src/interaction_bridge_tests.rs`, `src/lib.rs` | `original source → bounded feature plan → derived display → source-preserving archive` |
+| **10** | [`96r-preserve-exact-command-completions`](#checkpoint-96r-preserve-exact-command-completions) | Share the existing dictionary wrapper with the real widget regression and browser typing proof. | `src/command_vocabulary.rs`, `src/panel.rs` | `typed characters → command vocabulary → exact match first → egui submission` |
+
+---
+
+## 4. Step-by-Step Coding Notebook (Concept + Implementation)
+
+Work through each notebook cell below in order inside `workspace/journey`. Read the **Concept Walkthrough** and **Self-Check Q&A** first, then expand the **Implementation** block to type and verify the code.
 
 <a id="checkpoint-96i-separate-own-and-hosted-element-features"></a>
+
+### Step 1 of 10 · Separate own attributes from hosted features (`96i-separate-own-and-hosted-element-features`)
+
+- **Goal:** Identify own attributes and interaction features by original feature type. Check readable names and face labels without changing any geometry.
+- **Data Flow Trace:** `original source → bounded feature plan → derived display → source-preserving archive`
+- **Files You Touch:** `src/feature_plan.rs` (*Give this operation its own small owner.*) · `src/lib.rs` (*Register the new owner without changing the browser entry point.*)
+
+An Element stores both its own attributes and features produced by its relationships.
+
+Start with a small classifier over the original feature records. Contact, joint, cut and drill features belong to interactions; other types remain own attributes. Names and face indices become labels, while the original outlines remain untouched.
+
+> **Self-Check Question:** *Why return feature indices instead of cloned geometry?*  
+> **Answer:** Indices keep the grouping plan tied to the original Element. Display preparation can later borrow exactly those records, without treating a label or a display path as source data.
+
+- **What You Should See:** Feature classification retains each original type, readable name and source label without mutating its geometry.
+- **Hands-On Lab Experiment:** Try an empty feature name, a name equal to its type, and face index −1. Explain which text the label should omit.
 
 <details>
 <summary>Implementation 96i-separate-own-and-hosted-element-features: Separate own attributes from hosted features</summary>
@@ -142,6 +211,22 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-96j-group-features-by-original-interaction"></a>
 
+### Step 2 of 10 · Group pieces by their original interaction (`96j-group-features-by-original-interaction`)
+
+- **Goal:** Walk graph edges in their original order. Group contact and joint pieces under the full interaction type, using the relation name or source Element name, and retain unmatched features.
+- **Data Flow Trace:** `original source → bounded feature plan → derived display → source-preserving archive`
+- **Files You Touch:** `src/feature_plan.rs` (*Claim each feature once in graph order; retain unknown and orphaned interaction features.*)
+
+The graph determines who contributed a feature.
+
+Visit incident edges by their recorded index, then each interaction in stored order. Exact feature/relation GUIDs identify contacts; InteractionFeature relations also claim source-prefixed feature GUIDs. Claim each feature once. Use the full interaction type and either its name or the source Element name, then retain unmatched features as explicit groups. Check has_guid before reading a feature GUID: guid() lazily assigns an ID and must not change an original merely to display it.
+
+> **Self-Check Question:** *What happens to a feature with no matching relation?*  
+> **Answer:** It remains visible in an unclaimed group using its own type, name and face label. Display grouping does not invent an interaction or assign a missing source GUID.
+
+- **What You Should See:** Each claimed feature contributes to one ordered interaction group; unmatched features retain their own group.
+- **Hands-On Lab Experiment:** Add two relations that could claim the same feature. Confirm that original edge/relation order chooses one group and that the feature is not duplicated.
+
 <details>
 <summary>Implementation 96j-group-features-by-original-interaction: Group pieces by their original interaction</summary>
 
@@ -172,6 +257,22 @@ After that block, type:
 </details>
 
 <a id="checkpoint-96k-separate-derived-rows-from-editable-elements"></a>
+
+### Step 3 of 10 · Keep nested Elements editable and projections unsaved (`96k-separate-derived-rows-from-editable-elements`)
+
+- **Goal:** Mark generated display rows separately from original objects. Nested child Elements remain editable even inside attributes, and saved documents omit derived geometry.
+- **Data Flow Trace:** `original source → bounded feature plan → derived display → source-preserving archive`
+- **Files You Touch:** `src/hierarchy.rs` (*Record display provenance explicitly on each tree node.*) · `src/layer_edit.rs` (*Keep user-created groups and source objects in the saved tree.*) · `src/scene_archive.rs` (*Only original tree objects enter each archive namespace.*)
+
+A generated path can look like an ordinary polyline while belonging entirely to its host Element.
+
+Add an explicit derived flag to hierarchy nodes. Original nodes remain serializable; generated subtrees are omitted from both the saved tree and the archive object inventory. When classifying an Element subtree, restart editability at each independent child Element, including a child nested beneath an attributes group.
+
+> **Self-Check Question:** *Why filter both the hierarchy and loose-object inventory?*  
+> **Answer:** Filtering only the tree would leave generated paths unassigned. The archive fallback would then save them as loose source objects and duplicate them on the next Open.
+
+- **What You Should See:** The archive retains editable child Elements and excludes their generated display rows.
+- **Hands-On Lab Experiment:** Trace a child Element beneath attributes. Its own object must remain editable, while its feature descendants remain read-only.
 
 <details>
 <summary>Implementation 96k-separate-derived-rows-from-editable-elements: Keep nested Elements editable and projections unsaved</summary>
@@ -1079,6 +1180,22 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-96l-attach-a-bounded-derived-feature-tree"></a>
 
+### Step 4 of 10 · Attach a bounded feature tree to its host (`96l-attach-a-bounded-derived-feature-tree`)
+
+- **Goal:** Build read-only attributes, interaction and piece rows under the owning Element. Validate the complete tree before replacing its saved structure.
+- **Data Flow Trace:** `original source → bounded feature plan → derived display → source-preserving archive`
+- **Files You Touch:** `src/layer_edit.rs` (*Reuse the existing branch transaction and node/depth limits for feature rows.*)
+
+Convert the feature plan into temporary branches beneath the owning Element.
+
+Groups contain groups or pieces; every new node carries derived and read-only provenance. Merge into an existing attributes/interactions group when one exists, preserving its original children. Flatten and check the complete node count and depth before replacing the document hierarchy.
+
+> **Self-Check Question:** *Why preserve an existing attributes group?*  
+> **Answer:** It may contain original geometry or independent child Elements. Only the new projected descendants are disposable; replacing the whole group would destroy source structure.
+
+- **What You Should See:** The validated hierarchy adds read-only feature groups beneath their owning original Element.
+- **Hands-On Lab Experiment:** Compare the original attributes group before and after projection. Its identity and child Element should remain, with the new feature group appended.
+
 <details>
 <summary>Implementation 96l-attach-a-bounded-derived-feature-tree: Attach a bounded feature tree to its host</summary>
 
@@ -1109,6 +1226,22 @@ After that block, type:
 </details>
 
 <a id="checkpoint-96m-project-original-feature-outlines"></a>
+
+### Step 5 of 10 · Project original outlines without changing their coordinates (`96m-project-original-feature-outlines`)
+
+- **Goal:** Create black display paths from original feature outlines, apply the host placement once, and keep attributes Off and interactions On by default.
+- **Data Flow Trace:** `original source → bounded feature plan → derived display → source-preserving archive`
+- **Files You Touch:** `src/feature_display.rs` (*Give this operation its own small owner.*) · `src/lib.rs` (*Register the new owner without changing the browser entry point.*)
+
+Display preparation clones each original outline, gives the display copy its own identity, and prepares a black path.
+
+Apply the host placement once after preparation. Temporarily detach the hierarchy/current-layer routing while allocating pieces so these paths cannot be inserted into a user layer as independent originals. Restore routing before attaching the bounded feature tree. Import and editor history provide the surrounding rollback transaction.
+
+> **Self-Check Question:** *Which transform belongs on a generated piece?*  
+> **Answer:** The already resolved host placement. Original outline coordinates stay local, and applying an additional parent placement would move nested features twice.
+
+- **What You Should See:** Placed original outlines produce derived black paths with independent attribute and interaction visibility defaults.
+- **Hands-On Lab Experiment:** Use a translated parent and a translated child Element. Compare each feature path’s placement with its own host, then repeat at a large world coordinate.
 
 <details>
 <summary>Implementation 96m-project-original-feature-outlines: Project original outlines without changing their coordinates</summary>
@@ -1165,6 +1298,22 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-96n-connect-imported-interaction-hierarchies"></a>
 
+### Step 6 of 10 · Connect imported Elements to their feature hierarchy (`96n-connect-imported-interaction-hierarchies`)
+
+- **Goal:** Import a document atomically, classify its editable child Elements, then attach feature projections from its original graph and retained Element payloads.
+- **Data Flow Trace:** `original source → bounded feature plan → derived display → source-preserving archive`
+- **Files You Touch:** `src/scene_document.rs` (*Connect projections only after original tree placement and source retention are ready.*)
+
+Connect projection only after the candidate import has retained its original header, built its hierarchy and resolved original placements.
+
+Identify original Element owners, classify their editable child boundaries, then append each Element’s feature display using the source Session graph. A failure aborts the candidate; the open scene remains intact.
+
+> **Self-Check Question:** *Why append features to the import candidate?*  
+> **Answer:** The original import is already atomic. Invalid outline data or a hierarchy-limit failure can discard the candidate without leaving partially created paths in the user’s drawing.
+
+- **What You Should See:** Accepted imports retain editable children and attach the validated original interaction hierarchy atomically.
+- **Hands-On Lab Experiment:** Corrupt one feature outline with a non-finite coordinate. Verify that import returns an error and preserves the existing scene and its paths.
+
 <details>
 <summary>Implementation 96n-connect-imported-interaction-hierarchies: Connect imported Elements to their feature hierarchy</summary>
 
@@ -1215,6 +1364,22 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-96o-reuse-projections-for-created-elements"></a>
+
+### Step 7 of 10 · Use the same projection path for created Elements (`96o-reuse-projections-for-created-elements`)
+
+- **Goal:** Created Elements and imported Elements now share feature display ownership. Visibility commands stop at independent child Elements and collect each feature piece once.
+- **Data Flow Trace:** `original source → bounded feature plan → derived display → source-preserving archive`
+- **Files You Touch:** `src/element_adopt.rs` (*Replace serialized display copies with the shared feature projection and preserve independent child owners.*)
+
+Use the same feature projection for newly created Elements.
+
+Keep original base-plane attributes as source nodes, then add generated feature pieces through the shared adapter. Visibility collection stops at independent editable child Elements and gathers each read-only piece once, so a parent’s Attributes command cannot hide a child’s geometry.
+
+> **Self-Check Question:** *Why stop visibility traversal at an editable child?*  
+> **Answer:** That child owns its geometry and its own attribute/interactions groups. The parent’s attribute switch must not become a second visibility owner for the child object.
+
+- **What You Should See:** Created Elements use the existing projection owner, with independent child visibility preserved.
+- **Hands-On Lab Experiment:** Toggle Attributes and Interactions separately on a document with a nested child Element. Confirm that the child remains visible and editable.
 
 <details>
 <summary>Implementation 96o-reuse-projections-for-created-elements: Use the same projection path for created Elements</summary>
@@ -1283,6 +1448,22 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-96p-build-an-imported-interaction-specimen"></a>
+
+### Step 8 of 10 · Build an original interaction specimen (`96p-build-an-imported-interaction-specimen`)
+
+- **Goal:** Build a small original document with a host, an editable nested child, and a connector. Its contact, unnamed joint and orphan feature make the hierarchy inspectable without a large floor model.
+- **Data Flow Trace:** `original source → bounded feature plan → derived display → source-preserving archive`
+- **Files You Touch:** `src/interaction_example.rs` (*Author the original geometry, graph and feature associations used by the exercise.*) · `src/lib.rs` (*Expose the specimen to native examples and tests.*) · `examples/sample.rs` (*Supply this optional course-author fixture generator; browser exercises use the linked data files or recorded comparison.*)
+
+Build a small original Session that exercises the complete bridge: a named contact, an unnamed feature-producing relation, an unmatched cut, and a nested editable child Element.
+
+The sample keeps unknown interaction payloads and original feature GUIDs. Its Open example uses these exact serialized originals; generated display paths are created only by the viewer.
+
+> **Self-Check Question:** *Why include an unmatched cut and a child inside attributes?*  
+> **Answer:** They expose two common shortcuts: silently dropping features that lack graph matches, and marking every descendant of attributes read-only.
+
+- **What You Should See:** Download the [supplied interaction sample.pb](../../fixtures/interaction-96p.pb). Type Open in the browser and choose it. Expand the host: inspect the InteractionContactFace seam, InteractionFeatureSolid connector and unclaimed cut. Keep the child selectable and compare Element Attributes On with Element Interactions Off.
+- **Hands-On Lab Experiment:** Open sample.pb, expand Layers All, and follow host → interactions → full relation type/name → feature → piece. Locate the independently editable child under attributes.
 
 <details>
 <summary>Implementation 96p-build-an-imported-interaction-specimen: Build an original interaction specimen</summary>
@@ -1367,6 +1548,22 @@ Update the existing block with this supplied code; keep unchanged lines:
 
 <a id="checkpoint-96q-prove-imported-feature-ownership-and-roundtrips"></a>
 
+### Step 9 of 10 · Prove imported feature ownership and round trips (`96q-prove-imported-feature-ownership-and-roundtrips`)
+
+- **Goal:** Verify that feature projections follow their owner once, preserve original payloads, survive Delete/Undo, and rebuild after Save/Open without serializing display copies. Reject invalid outlines without changing the current document.
+- **Data Flow Trace:** `original source → bounded feature plan → derived display → source-preserving archive`
+- **Files You Touch:** `src/interaction_bridge_tests.rs` (*Run supplied regression fixtures against original source payloads and the connected import path.*) · `src/lib.rs` (*Include the ownership and archive proofs in the native suite.*)
+
+Exercise the connected import through original source comparisons, hierarchy ownership, independent visibility, nested transforms, Delete/Undo, and repeated archives.
+
+Decode Mesh messages before comparing their fields because protobuf map serialization order is not stable. Compare the remaining Element payload exactly, including empty feature GUIDs and original outlines. Generated paths must remain six after every Save/Open and must never appear as saved original polylines.
+
+> **Self-Check Question:** *What makes a successful round-trip stronger than equal object counts?*  
+> **Answer:** The saved document must retain the original Element fields and opaque interactions, omit generated source geometry, restore editable child ownership, and regenerate exactly one set of feature pieces.
+
+- **What You Should See:** Inspect the four imported-feature regression tests, then repeat the Open sample.pb exercise from the preceding checkpoint. Keep the contact and child Element visible while switching the independent display controls.
+- **Hands-On Lab Experiment:** In Chrome, toggle both Element controls, delete/undo the child, and Save/Close/Open twice. Confirm the same hierarchy without accumulated pieces.
+
 <details>
 <summary>Implementation 96q-prove-imported-feature-ownership-and-roundtrips: Prove imported feature ownership and round trips</summary>
 
@@ -1429,6 +1626,22 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-96r-preserve-exact-command-completions"></a>
+
+### Step 10 of 10 · Prove exact commands across the expanded vocabulary (`96r-preserve-exact-command-completions`)
+
+- **Goal:** Share the existing dictionary wrapper with the real widget regression and browser typing proof.
+- **Data Flow Trace:** `typed characters → command vocabulary → exact match first → egui submission`
+- **Files You Touch:** `src/command_vocabulary.rs` (*Move the already-typed private Commands wrapper from panel.rs into this shared module; retain its existing methods.*) · `src/panel.rs` (*Use the exact-first vocabulary in the actual browser panel.*)
+
+The first vocabulary lesson already preserves exact words.
+
+Move the current Commands wrapper into the shared module unchanged, so the native widget fixture and the browser use the same dictionary. Inspect the supplied character-by-character and Enter regression for the expanded CAD command list. No second completion algorithm is introduced.
+
+> **Self-Check Question:** *Does a larger command registry justify changing a fully typed command?*  
+> **Answer:** No. Reuse the exact-word ranking written at03cd, and verify that both inline typing and Enter preserve the expanded command vocabulary.
+
+- **What You Should See:** Type View Isometric and press Enter. The history must contain that exact command. Then type View Isometric Back and verify that the longer command remains available.
+- **Hands-On Lab Experiment:** Try Line beside its longer command names, and View Isometric beside View Isometric Back. Check both the fully typed field and the submitted history entry. Check Select Object beside Selection: a space after Select must continue the intended command.
 
 <details>
 <summary>Implementation 96r-preserve-exact-command-completions: Prove exact commands across the expanded vocabulary</summary>
@@ -1570,9 +1783,11 @@ After that block, append this supplied code:
 
 </details>
 
-## Run, Check, and Save
+---
 
-From `session_viewer`:
+## 5. Build, Verify, and Save Your Checkpoint
+
+Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 96r-preserve-exact-command-completions
@@ -1583,12 +1798,12 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. Use [checkpoint recovery](../../recovery.md) to restore any saved checkpoint.
+Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
 
-## Expected Visual Result & Experiment
+## 6. Lesson Summary & Expected Visual Result
 
 Type View Isometric and press Enter. The history must contain that exact command. Then type View Isometric Back and verify that the longer command remains available.
 
-- **Try this:** Try Line beside its longer command names, and View Isometric beside View Isometric Back. Check both the fully typed field and the submitted history entry. Check Select Object beside Selection: a space after Select must continue the intended command.
+- **Final Lesson Experiment:** Try Line beside its longer command names, and View Isometric beside View Isometric Back. Check both the fully typed field and the submitted history entry. Check Select Object beside Selection: a space after Select must continue the intended command.
 
-Continue with [Original owners across selection, copying and display](96s-resolve-feature-rows-to-original-element-owners.md).
+Continue with [Original owners across selection, copying and display](../../consolidation/96s-resolve-feature-rows-to-original-element-owners.md).

@@ -1,93 +1,169 @@
 # 11.3 · View-dependent LOD and cached point splats
 
-**Section 6: CAD B-Rep Topology, World Text Atlases, Outlines, and Point Clouds** · **Lesson 11.3** (Redraft `6.12`) · **19 checkpoints (`64f-projection` → `64t-clouds`)**
+**Section 6: CAD B-Rep Topology, World Text Atlases, Outlines, and Point Clouds** · **Lesson 11.3** (Redraft `6.12`) · **19 checkpoints (`64f-projection` → `64t-clouds`)** · **Study time: 9.5–19 h**
 
-> **Learning Goal:** Measure point spacing in the current projection.
+> **What You Will Learn & Build:** Measure point spacing in the current projection. By the final checkpoint (`64t-clouds`), you will exercise original clouds and real view-dependent detail.
 
-## Visual WebGPU & Architecture Schematic
+## 1. Visual Pipeline & WebGPU Architecture (Black & White Schematics)
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1px solid #cbd5e1;border-radius:10px;background:#f8fafc;">
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
+<svg viewBox="0 0 840 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <rect x="4" y="4" width="832" height="212" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Lesson 11.3 Execution Flow: View-dependent LOD and cached point splats</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">Concrete data pipeline you build in this lesson (19 Checkpoints: 64f-projection → 64t-clouds)</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
+  
+    
+    <rect x="18" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="89" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
+    <line x1="28" y1="92" x2="151" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">source spacing and</text>
+    <text x="89" y="124" text-anchor="middle" font-size="11" fill="#111111">model</text>
+    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="183" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="254" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
+    <line x1="193" y1="92" x2="316" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">camera distance or</text>
+    <text x="254" y="124" text-anchor="middle" font-size="11" fill="#111111">half-height</text>
+    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="348" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="419" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
+    <line x1="358" y1="92" x2="481" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">physical pixel</text>
+    <text x="419" y="124" text-anchor="middle" font-size="11" fill="#111111">spacing</text>
+    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="513" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="584" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
+    <line x1="523" y1="92" x2="646" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">split decision</text>
+    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="678" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="749" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
+    <line x1="688" y1="92" x2="811" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">original cloud</text>
+    <text x="749" y="124" text-anchor="middle" font-size="11" fill="#111111">fixture</text>
+    
+    <rect x="18" y="162" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="32" y="181" font-size="11" font-weight="700" fill="#111111">Files You Edit in Lesson 11.3:</text>
+    <text x="215" y="181" font-size="11" fill="#111111">src/cloud_lod.rs  ·  src/lib.rs  ·  src/cloud_tests.rs  ·  src/cloud_points.wgsl  ·  src/cloud_normals.rs  ·  src/cloud_resolve.wgsl</text>
+    <text x="32" y="198" font-size="10.5" fill="#111111">19 Checkpoints: 64f-projection → 64t-clouds — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
+  
+</svg>
+</div>
+
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
 <svg viewBox="0 0 840 240" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#475569"/>
-    </marker>
-    <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#2563eb"/>
-    </marker>
-    <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#059669"/>
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
     </marker>
   </defs>
-  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
-  <text x="20" y="28" font-size="14" font-weight="700" fill="#0f172a">Chapter 9 CAD B-Rep Pipeline: Topological Loops/Trims, Crease Normals & Analytical Boundary Wires</text>
-  <text x="20" y="46" font-size="11.5" fill="#475569">How exact Boundary Representations (B-Rep) combine shaded trimmed surface meshes with crisp analytical boundary & isoline curves.</text>
-  <line x1="16" y1="54" x2="824" y2="54" stroke="#e2e8f0" stroke-width="1"/>
+  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Chapter 9 CAD B-Rep Pipeline: Topological Loops/Trims, Crease Normals & Analytical Boundary Wires</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">How exact Boundary Representations (B-Rep) combine shaded trimmed surface meshes with crisp analytical boundary & isoline curves.</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
   
-    <rect x="18" y="68" width="245" height="145" rx="6" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
-    <text x="140" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1e40af">1. B-Rep Topological Validation</text>
-    <text x="28" y="108" font-size="10.5" fill="#1e3a8a">• Solid -&gt; Faces -&gt; Loops (Outer + Holes)</text>
-    <text x="28" y="126" font-size="10.5" fill="#1e3a8a">• Trim curves in 2D (u, v) domain</text>
-    <text x="28" y="144" font-size="10.5" font-weight="600" fill="#1d4ed8">• Validate orientation, loop closure,</text>
-    <text x="28" y="160" font-size="10.5" font-weight="600" fill="#1d4ed8">  and manifold edge adjacency</text>
-    <text x="28" y="180" font-size="10.5" fill="#1e3a8a">• Preserve exact NURBS surface source</text>
+    <rect x="18" y="68" width="245" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="140" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">1. B-Rep Topological Validation</text>
+    <text x="28" y="108" font-size="10.5" fill="#111111">• Solid -&gt; Faces -&gt; Loops (Outer + Holes)</text>
+    <text x="28" y="126" font-size="10.5" fill="#111111">• Trim curves in 2D (u, v) domain</text>
+    <text x="28" y="144" font-size="10.5" font-weight="600" fill="#111111">• Validate orientation, loop closure,</text>
+    <text x="28" y="160" font-size="10.5" font-weight="600" fill="#111111">  and manifold edge adjacency</text>
+    <text x="28" y="180" font-size="10.5" fill="#111111">• Preserve exact NURBS surface source</text>
 
-    <line x1="263" y1="112" x2="295" y2="112" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
-    <line x1="263" y1="175" x2="295" y2="175" stroke="#059669" stroke-width="2" marker-end="url(#arrow-green)"/>
+    <line x1="263" y1="112" x2="295" y2="112" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
+    <line x1="263" y1="175" x2="295" y2="175" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="297" y="68" width="275" height="68" rx="6" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5"/>
-    <text x="309" y="86" font-size="11" font-weight="700" fill="#9a3412">2A. Shaded Trimmed Faces (Surface Lane)</text>
-    <text x="309" y="104" font-size="10.5" fill="#7c2d12">• Tessellate within (u,v) trim loops</text>
-    <text x="309" y="120" font-size="10.5" fill="#7c2d12">• Smooth normals across G1; split at creases!</text>
+    <rect x="297" y="68" width="275" height="68" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="309" y="86" font-size="11" font-weight="700" fill="#111111">2A. Shaded Trimmed Faces (Surface Lane)</text>
+    <text x="309" y="104" font-size="10.5" fill="#111111">• Tessellate within (u,v) trim loops</text>
+    <text x="309" y="120" font-size="10.5" fill="#111111">• Smooth normals across G1; split at creases!</text>
 
-    <rect x="297" y="145" width="275" height="68" rx="6" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1.5"/>
-    <text x="309" y="163" font-size="11" font-weight="700" fill="#065f46">2B. Boundary Wires &amp; Isolines (Ribbon Lane)</text>
-    <text x="309" y="181" font-size="10.5" fill="#064e3b">• Extract 3D topological edges + UV isolines</text>
-    <text x="309" y="197" font-size="10.5" fill="#064e3b">• Render via ribbon.wgsl with depth bias</text>
+    <rect x="297" y="145" width="275" height="68" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="309" y="163" font-size="11" font-weight="700" fill="#111111">2B. Boundary Wires &amp; Isolines (Ribbon Lane)</text>
+    <text x="309" y="181" font-size="10.5" fill="#111111">• Extract 3D topological edges + UV isolines</text>
+    <text x="309" y="197" font-size="10.5" fill="#111111">• Render via ribbon.wgsl with depth bias</text>
 
-    <line x1="572" y1="138" x2="602" y2="138" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>
+    <line x1="572" y1="138" x2="602" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="604" y="68" width="216" height="145" rx="6" fill="#fdf2f8" stroke="#f472b6" stroke-width="1.5"/>
-    <text x="712" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#9d174d">3. Unified B-Rep Sub-Picking</text>
-    <text x="616" y="108" font-size="10.5" fill="#831843">• Every triangle &amp; wire carries</text>
-    <text x="616" y="124" font-size="10.5" font-weight="600" fill="#9d174d">  [brep_owner_id, sub_id]</text>
-    <text x="616" y="144" font-size="10" fill="#831843">• Click selects whole B-Rep solid</text>
-    <text x="616" y="159" font-size="10" fill="#831843">  or drills into Face #i / Edge #j</text>
-    <text x="616" y="178" font-size="10.5" fill="#831843">• Outlines &amp; Point Clouds (Sec 6)</text>
-    <text x="616" y="193" font-size="10" fill="#831843">  share the same owner ID contract</text>
+    <rect x="604" y="68" width="216" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="712" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">3. Unified B-Rep Sub-Picking</text>
+    <text x="616" y="108" font-size="10.5" fill="#111111">• Every triangle &amp; wire carries</text>
+    <text x="616" y="124" font-size="10.5" font-weight="600" fill="#111111">  [brep_owner_id, sub_id]</text>
+    <text x="616" y="144" font-size="10" fill="#111111">• Click selects whole B-Rep solid</text>
+    <text x="616" y="159" font-size="10" fill="#111111">  or drills into Face #i / Edge #j</text>
+    <text x="616" y="178" font-size="10.5" fill="#111111">• Outlines &amp; Point Clouds (Sec 6)</text>
+    <text x="616" y="193" font-size="10" fill="#111111">  share the same owner ID contract</text>
     
 </svg>
 </div>
 
-### Lesson Data Flow (`Rust` → `WebGPU` → `WGSL`)
+## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
 
-```
-source spacing and model → camera distance or half-height → physical pixel spacing → split decision.
-source storage layouts → point pipeline → cached pixel layouts → scene-depth comparison.
-original cloud fixture → current-view detail → shared source uploads → reversible row edits.
-```
+Before writing code, review how the three layers in this chapter talk to each other:
 
-- Measure point spacing in the current projection.
-- Bind source storage and cached pixels explicitly.
-- Exercise original clouds and real view-dependent detail.
-- **Why it works (Does the node cube size alone decide whether to refine?):** No. Its point spacing and the camera projection decide the screen gap. Physical viewport height and object scale affect that gap; perspective also depends on distance from the eye.
-
-### Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `Browser`)
-
-| Layer | Construct | First-Year Student Explanation |
+| Layer | Construct | Plain-English Explanation for Students |
 | :--- | :--- | :--- |
 | **CAD Topology** | `EdgeUse { edge_index, reversed, pcurve_2d }` | Connects two adjacent curved faces along one shared 3D `Edge` while giving each face its own oriented `(u, v)` trim curve. |
 | **WGSL (`splat.wgsl`)** | `let dist2 = dot(pixel_offset, pixel_offset); if dist2 > r2 { discard; }` | Turns each point quad into a crisp circular disc around an integer pixel center and discards corner fragments. |
 | **WGSL (`splat_resolve`)** | `exp(-edl_sum * 75.0 * strength)` | Computes Eye-Dome Lighting from neighbor depth discontinuities so unlit point clouds show 3D surface relief. |
 | **WGSL (`surface_outline`)** | Conservative mask dilation -> single composite | Detects silhouette and selection boundaries in screen space without duplicating 3D wire geometry. |
 
-**Production source (`session_viewer/src`):** [engine/gpu/surface_outline.rs](../../../../src/engine/gpu/surface_outline.rs), [engine/gpu/cloud.rs](../../../../src/engine/gpu/cloud.rs), [engine/gpu/lod.rs](../../../../src/engine/gpu/lod.rs), [engine/gpu/splat.rs](../../../../src/engine/gpu/splat.rs), [shaders/splat.wgsl](../../../../src/shaders/splat.wgsl), [shaders/splat_resolve.wgsl](../../../../src/shaders/splat_resolve.wgsl), [app/cloud_query.rs](../../../../src/app/cloud_query.rs).
+**Authoritative production source (`session_viewer/src`):** [engine/gpu/surface_outline.rs](../../../../src/engine/gpu/surface_outline.rs), [engine/gpu/cloud.rs](../../../../src/engine/gpu/cloud.rs), [engine/gpu/lod.rs](../../../../src/engine/gpu/lod.rs), [engine/gpu/splat.rs](../../../../src/engine/gpu/splat.rs), [shaders/splat.wgsl](../../../../src/shaders/splat.wgsl), [shaders/splat_resolve.wgsl](../../../../src/shaders/splat_resolve.wgsl), [app/cloud_query.rs](../../../../src/app/cloud_query.rs).
 
-## Implementation Checkpoints
+## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
 
-Apply these checkpoints in order inside `workspace/journey`. Expand each block to view the Rust/WGSL/HTML edits:
+| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
+| ---: | :--- | :--- | :--- | :--- |
+| **1** | [`64f-projection`](#checkpoint-64f-projection) | Measure point spacing in the current projection. | `src/cloud_lod.rs`, `src/lib.rs` | `source spacing and model → camera distance or half-height → physical pixel spacing → split decision` |
+| **2** | [`64g-detail`](#checkpoint-64g-detail) | Walk only detail whose screen spacing needs refinement. | `src/cloud_lod.rs`, `src/cloud_tests.rs`, `src/lib.rs` | `root run → screen-spacing decision → chosen children → bounded source runs` |
+| **3** | [`64h-shaders`](#checkpoint-64h-shaders) | Match the existing forty-word row layout and decode packed normals with a guarded inverse-transpose transform. | `src/cloud_points.wgsl` | `declare point-cloud records and decode source normals` |
+| **4** | [`64ha-project-original-cloud-rows-to-bounded-point-splats`](#checkpoint-64ha-project-original-cloud-rows-to-bounded-point-splats) | Find the owning row by its original point interval and project one source position to a bounded screen disc. | `src/cloud_points.wgsl` | `project original cloud rows to bounded point splats` |
+| **5** | [`64hb-rasterize-source-point-discs-with-integer-ownership`](#checkpoint-64hb-rasterize-source-point-discs-with-integer-ownership) | Expand each projected point into a bounded quad, reject fragments outside its disc and preserve original owner addresses. | `src/cloud_points.wgsl` | `rasterize source point discs with integer ownership` |
+| **6** | [`64hc-encode-original-cloud-normals-and-resolve-point-targets`](#checkpoint-64hc-encode-original-cloud-normals-and-resolve-point-targets) | Pack source normals once and resolve color, depth and original owner IDs with one pixel convention. | `src/cloud_normals.rs`, `src/lib.rs`, `src/cloud_resolve.wgsl` | `encode original cloud normals and resolve point targets` |
+| **7** | [`64hd-check-cloud-shaders-on-the-actual-browser-device`](#checkpoint-64hd-check-cloud-shaders-on-the-actual-browser-device) | Await real shader compilation info before connecting the point passes. | `src/shader_check.rs`, `src/lib.rs`, `Cargo.toml`, `src/renderer.rs` | `check cloud shaders on the actual browser device` |
+| **8** | [`64i-columns`](#checkpoint-64i-columns) | Upload original point columns once per shared source. | `src/cloud_gpu.rs`, `src/lib.rs` | `immutable original columns → checked GPU buffers → shared upload → independent instance frame` |
+| **9** | [`64j-targets`](#checkpoint-64j-targets) | Own the cached cloud images and frame identity. | `src/cloud_gpu.rs` | `source draw owners → cached images → full frame key → truthful allocation counts` |
+| **10** | [`64k-layouts`](#checkpoint-64k-layouts) | Bind source storage and cached pixels explicitly. | `src/cloud_gpu.rs` | `source storage layouts → point pipeline → cached pixel layouts → scene-depth comparison` |
+| **11** | [`64l-pipelines`](#checkpoint-64l-pipelines) | Create a lazy cloud lane with reusable pipelines. | `src/cloud_gpu.rs` | `current shaders → reusable pipelines → shared settings → consistent radius units` |
+| **12** | [`64m-cache`](#checkpoint-64m-cache) | Share column uploads across placed cloud rows. | `src/cloud_gpu.rs` | `source pointer identity → shared columns → independent row records → pruned owners` |
+| **13** | [`64n-records`](#checkpoint-64n-records) | Encode each source run in the exact 160-byte layout. | `src/cloud_gpu.rs` | `chosen original run → cumulative count → 40 exact words → original source lookup` |
+| **14** | [`64o-runs`](#checkpoint-64o-runs) | Keep one shared record budget for the whole view. | `src/cloud_gpu.rs` | `current view → chosen runs → shared record budget → capacity-bounded upload` |
+| **15** | [`64p-frame`](#checkpoint-64p-frame) | Cache the nearest point frame until its inputs change. | `src/cloud_gpu.rs` | `changed frame facts → chosen source records → cached nearest points → shared colour and pick resolve` |
+| **16** | [`64q-owner`](#checkpoint-64q-owner) | Create and release the cloud renderer only when needed. | `src/renderer.rs` | `scene cloud rows → lazy lane → reused source owners → immediate Close cleanup` |
+| **17** | [`64r-draw`](#checkpoint-64r-draw) | Use the cached cloud depth in colour and integer passes. | `src/renderer.rs`, `src/pick_gpu.rs`, `src/pick_encode.rs` | `prepared cached points → scene depth → bounded original whole owner → existing selection` |
+| **18** | [`64s-diagnostics`](#checkpoint-64s-diagnostics) | Expose cloud source payload detail and actual GPU resources. | `src/memory.rs`, `src/browser.rs` | `current camera facts → chosen detail → source and GPU diagnostics → visible preparation errors` |
+| **19** | [`64t-clouds`](#checkpoint-64t-clouds) | Exercise original clouds and real view-dependent detail. | `src/cloud.rs`, `src/editor.rs`, `src/commands.rs`, `src/cloud_tests.rs` | `original cloud fixture → current-view detail → shared source uploads → reversible row edits` |
+
+---
+
+## 4. Step-by-Step Coding Notebook (Concept + Implementation)
+
+Work through each notebook cell below in order inside `workspace/journey`. Read the **Concept Walkthrough** and **Self-Check Q&A** first, then expand the **Implementation** block to type and verify the code.
 
 <a id="checkpoint-64f-projection"></a>
+
+### Step 1 of 19 · Measure point spacing in the current projection (`64f-projection`)
+
+- **Goal:** Measure point spacing in the current projection.
+- **Data Flow Trace:** `source spacing and model → camera distance or half-height → physical pixel spacing → split decision`
+- **Files You Touch:** `src/cloud_lod.rs` (*Measure current production projected spacing and radius factors from explicit camera facts.*) · `src/lib.rs` (*Register the source component.*)
+
+Carry camera eye, orthographic half-height, physical viewport height and a pixel split threshold. Project node spacing after applying the instance scale.
+
+> **Self-Check Question:** *Does the node cube size alone decide whether to refine?*  
+> **Answer:** No. Its point spacing and the camera projection decide the screen gap. Physical viewport height and object scale affect that gap; perspective also depends on distance from the eye.
+
+- **Hands-On Lab Experiment:** Compare one node at two orthographic half-heights and two perspective distances. Trace the metre conversion in both spacing and distance; the ratio stays independent of that shared unit scale.
 
 <details>
 <summary>Implementation 64f-projection: Measure point spacing in the current projection</summary>
@@ -129,6 +205,19 @@ After that block, type:
 </details>
 
 <a id="checkpoint-64g-detail"></a>
+
+### Step 2 of 19 · Walk only detail whose screen spacing needs refinement (`64g-detail`)
+
+- **Goal:** Walk only detail whose screen spacing needs refinement.
+- **Data Flow Trace:** `root run → screen-spacing decision → chosen children → bounded source runs`
+- **Files You Touch:** `src/cloud_lod.rs` (*Use the current production reusable LOD walk without inventing source points.*) · `src/cloud_tests.rs` (*Copy original-ID, malformed-tree, view-run, radius and source/history/close regressions.*) · `src/lib.rs` (*Register the source component.*)
+
+Reuse stack and visit lists. Keep the coarse node points and visit children while their spacing exceeds the threshold; pass finer spacing back to the visited parents.
+
+> **Self-Check Question:** *Does zooming in discard the original coarse point IDs?*  
+> **Answer:** No. Coarse points remain part of the chosen runs, with their original stored indices. Small clouds below two million points and clouds without an octree draw their complete resident prefix.
+
+- **Hands-On Lab Experiment:** Inspect the supplied walk checks for coarse, fine and partially resident cases. The final large fixture contains 2,000,064 real points so zoom changes actual drawn detail.
 
 <details>
 <summary>Implementation 64g-detail: Walk only detail whose screen spacing needs refinement</summary>
@@ -206,6 +295,22 @@ After that block, append this supplied code:
 
 <a id="checkpoint-64h-shaders"></a>
 
+### Step 3 of 19 · Declare point-cloud records and decode source normals (`64h-shaders`)
+
+- **Goal:** Match the existing forty-word row layout and decode packed normals with a guarded inverse-transpose transform.
+- **Data Flow Trace:** `declare point-cloud records and decode source normals`
+- **Files You Touch:** `src/cloud_points.wgsl` (*Match the existing forty-word row layout and decode packed normals with a guarded inverse-transpose transform.*)
+
+Match the existing forty-word row layout and decode packed normals with a guarded inverse-transpose transform.
+
+Use the original point columns and the existing forty-word placement table. The shader decodes the stored normal formats instead of expanding every source normal into another GPU column. Its guarded cofactor transform handles singular and reflected placements. The new cloud shader is developed in this same browser application.
+
+> **Self-Check Question:** *Why does a reflected model need the determinant sign when transforming a normal?*  
+> **Answer:** The inverse transpose changes orientation under reflection. Keeping the determinant sign preserves the source normal’s facing after the cofactor transform.
+
+- **What You Should See:** This cloud section is written; its runtime passes are connected by the following buffer and pipeline lessons.
+- **Hands-On Lab Experiment:** Trace one original point through this section. Why does a reflected model need the determinant sign when transforming a normal? Predict its values before the later real cloud pass connection.
+
 <details>
 <summary>Implementation 64h-shaders: Declare point-cloud records and decode source normals</summary>
 
@@ -224,6 +329,21 @@ Create the file and type:
 </details>
 
 <a id="checkpoint-64ha-project-original-cloud-rows-to-bounded-point-splats"></a>
+
+### Step 4 of 19 · Project original cloud rows to bounded point splats (`64ha-project-original-cloud-rows-to-bounded-point-splats`)
+
+- **Goal:** Find the owning row by its original point interval and project one source position to a bounded screen disc.
+- **Data Flow Trace:** `project original cloud rows to bounded point splats`
+- **Files You Touch:** `src/cloud_points.wgsl` (*Find the owning row by its original point interval and project one source position to a bounded screen disc.*)
+
+Find the owning row by its original point interval and project one source position to a bounded screen disc.
+
+A global vertex index can span many original clouds and placements. Use the existing cumulative point intervals to find its owner, read the original column offsets, and project that source point. Bounds and validity checks keep rejected points out of the draw without changing source geometry.
+
+> **Self-Check Question:** *Why search point intervals before reading its position and normal columns?*  
+> **Answer:** The global draw index spans several original source rows. Its interval gives the correct column offsets, placement and source owner without duplicating those source columns.
+
+- **Hands-On Lab Experiment:** Trace one original point through this section. Why search point intervals before reading its position and normal columns? Predict its values before the later real cloud pass connection.
 
 <details>
 <summary>Implementation 64ha-project-original-cloud-rows-to-bounded-point-splats: Project original cloud rows to bounded point splats</summary>
@@ -378,6 +498,21 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-64hb-rasterize-source-point-discs-with-integer-ownership"></a>
 
+### Step 5 of 19 · Rasterize source point discs with integer ownership (`64hb-rasterize-source-point-discs-with-integer-ownership`)
+
+- **Goal:** Expand each projected point into a bounded quad, reject fragments outside its disc and preserve original owner addresses.
+- **Data Flow Trace:** `rasterize source point discs with integer ownership`
+- **Files You Touch:** `src/cloud_points.wgsl` (*Expand each projected point into a bounded quad, reject fragments outside its disc and preserve original owner addresses.*)
+
+Expand each projected point into a bounded quad, reject fragments outside its disc and preserve original owner addresses.
+
+Generate six vertices around one projected source point, then apply one disc predicate in the fragment stage. Color and integer owner outputs share that coverage, so visible point pixels and picks agree. The following resolve shader places both outputs back into the main scene.
+
+> **Self-Check Question:** *Why does the fragment stage reject pixels outside the disc even though the vertex stage drew a quad?*  
+> **Answer:** The quad bounds the work. The circular coverage predicate chooses the actual point shape and ensures its color and integer ownership occupy the same pixels.
+
+- **Hands-On Lab Experiment:** Trace one original point through this section. Why does the fragment stage reject pixels outside the disc even though the vertex stage drew a quad? Predict its values before the later real cloud pass connection.
+
 <details>
 <summary>Implementation 64hb-rasterize-source-point-discs-with-integer-ownership: Rasterize source point discs with integer ownership</summary>
 
@@ -476,6 +611,21 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-64hc-encode-original-cloud-normals-and-resolve-point-targets"></a>
 
+### Step 6 of 19 · Encode original cloud normals and resolve point targets (`64hc-encode-original-cloud-normals-and-resolve-point-targets`)
+
+- **Goal:** Pack source normals once and resolve color, depth and original owner IDs with one pixel convention.
+- **Data Flow Trace:** `encode original cloud normals and resolve point targets`
+- **Files You Touch:** `src/cloud_normals.rs` (*Copy current production oct-normal packing.*) · `src/lib.rs` (*Register the source component.*) · `src/cloud_resolve.wgsl` (*Resolve cached forward depth and original whole-owner IDs through a bounded pick-window origin.*)
+
+Encode source normals into the sixteen-bit octahedral format expected by the shader. Preserve the absent-normal case instead of normalizing a zero vector. This adapter uploads original data; it does not replace or mutate the source cloud.
+
+The resolve shader reads the private point depth, color and owner attachments. A forward-depth clear is empty; valid point depth is written into the main depth attachment. Apply the crop origin for picks and return the original object owner only in object mode. Keep both resolves on the same source pixels.
+
+> **Self-Check Question:** *Why does the integer resolve add its crop origin while the color resolve does not?*  
+> **Answer:** The color pass covers the whole target. The pick pass renders a cropped window, so its local fragment coordinate must be translated back to the source point target.
+
+- **Hands-On Lab Experiment:** Trace a zero normal, a reflected normal and a pick at crop origin(40,20). Predict the packed normal, empty-depth behavior and source pixel address. After connection, compare a point pixel and its picked original owner.
+
 <details>
 <summary>Implementation 64hc-encode-original-cloud-normals-and-resolve-point-targets: Encode original cloud normals and resolve point targets</summary>
 
@@ -526,6 +676,22 @@ Create the file and type:
 </details>
 
 <a id="checkpoint-64hd-check-cloud-shaders-on-the-actual-browser-device"></a>
+
+### Step 7 of 19 · Check cloud shaders on the actual browser device (`64hd-check-cloud-shaders-on-the-actual-browser-device`)
+
+- **Goal:** Await real shader compilation info before connecting the point passes.
+- **Data Flow Trace:** `check cloud shaders on the actual browser device`
+- **Files You Touch:** `src/shader_check.rs` (*Await one real browser GPU compilation report without blocking input.*) · `src/lib.rs` (*Share the completed-source GPU check with later shader owners.*) · `Cargo.toml` (*Enable browser developer-console compilation reports in the existing web-sys dependency.*) · `src/renderer.rs` (*Check both completed cloud modules on the actual device before their pipeline connection.*) · `src/cloud_shader_contract.rs` (*Supply an independent completed-source shader interface witness.*)
+
+The WGSL sections are complete. Check them with the actual browser GPU, then inspect compilation info in the developer console. A Rust build alone does not prove that a shader is valid.
+
+Write one shared shader-check helper. Later finite-ink lessons reuse it; they do not introduce another checker. The optional supplied native fixture provides additional authoring evidence, while the learner runs the browser and reads the actual GPU report.
+
+> **Self-Check Question:** *Why does the shader check run asynchronously in the browser?*  
+> **Answer:** Shader compilation info arrives through the browser GPU task queue. Await it without blocking drawing or input, then inspect its errors and source locations.
+
+- **What You Should See:** Both completed cloud modules compile on the actual browser GPU; the developer console reports shader errors before pass connection.
+- **Hands-On Lab Experiment:** Run the browser and read the Cloud points and Cloud resolve reports. Temporarily change a WGSL return type, inspect the compiler message and location, then restore it and reload. The source cloud and visible mesh remain unchanged while this pass is not connected.
 
 <details>
 <summary>Implementation 64hd-check-cloud-shaders-on-the-actual-browser-device: Check cloud shaders on the actual browser device</summary>
@@ -688,6 +854,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-64i-columns"></a>
 
+### Step 8 of 19 · Upload original point columns once per shared source (`64i-columns`)
+
+- **Goal:** Upload original point columns once per shared source.
+- **Data Flow Trace:** `immutable original columns → checked GPU buffers → shared upload → independent instance frame`
+- **Files You Touch:** `src/cloud_gpu.rs` (*Create checked original column uploads and explicit view facts.*) · `src/lib.rs` (*Register the source component.*)
+
+Keep positions, packed colours and packed normals in separate source buffers. Check the device storage binding limit before allocating; instance models stay outside those columns.
+
+> **Self-Check Question:** *Does copying one cloud require uploading all its points again?*  
+> **Answer:** No. Copies share the original prepared source and its GPU columns. Only their placements and small draw records differ; normals retain their original source values beside the packed display words.
+
+- **Hands-On Lab Experiment:** Compare original f64 coordinates with uploaded f32 positions. Inspect black fallback colours and the no-normal sentinel; verify no cloud source exceeds this device’s storage binding limit.
+
 <details>
 <summary>Implementation 64i-columns: Upload original point columns once per shared source</summary>
 
@@ -729,6 +908,19 @@ After that block, type:
 
 <a id="checkpoint-64j-targets"></a>
 
+### Step 9 of 19 · Own the cached cloud images and frame identity (`64j-targets`)
+
+- **Goal:** Own the cached cloud images and frame identity.
+- **Data Flow Trace:** `source draw owners → cached images → full frame key → truthful allocation counts`
+- **Files You Touch:** `src/cloud_gpu.rs` (*Own cached colour/depth/IDs, per-instance draw records and complete frame identity.*)
+
+Keep cached point colour, nearest depth and owner/index textures alongside a reuse key. Count live source columns, record buffers and exact target allocations separately.
+
+> **Self-Check Question:** *Does an unchanged point count make cached pixels reusable?*  
+> **Answer:** No. Camera, viewport, density, LOD facts, visibility, placement and selection can change while point count stays constant. Their key and explicit scene revision govern reuse.
+
+- **Hands-On Lab Experiment:** List every input in the key. Compare a full-size 4-byte colour, 4-byte depth and 8-byte owner/index image; dropping the image owner destroys its GPU texture.
+
 <details>
 <summary>Implementation 64j-targets: Own the cached cloud images and frame identity</summary>
 
@@ -759,6 +951,19 @@ After that block, type:
 </details>
 
 <a id="checkpoint-64k-layouts"></a>
+
+### Step 10 of 19 · Bind source storage and cached pixels explicitly (`64k-layouts`)
+
+- **Goal:** Bind source storage and cached pixels explicitly.
+- **Data Flow Trace:** `source storage layouts → point pipeline → cached pixel layouts → scene-depth comparison`
+- **Files You Touch:** `src/cloud_gpu.rs` (*Define compatible explicit storage, texture and forward-depth pipeline layouts.*)
+
+Create separate layouts for point records/source columns and cached textures. Point draws write nearest forward depth; cached resolve compares that depth with the existing scene.
+
+> **Self-Check Question:** *Should a cloud resolve overwrite a solid in front of it?*  
+> **Answer:** No. It writes the point’s actual nearest depth and compares against the scene. A locked visible cloud keeps colour/depth but writes zero ownership, so occluded geometry stays unavailable.
+
+- **Hands-On Lab Experiment:** Check the storage binding count, 48-byte cloud settings and 16-byte pick origin. Compare the point colour/ID targets with the final scene colour and bounded integer targets.
 
 <details>
 <summary>Implementation 64k-layouts: Bind source storage and cached pixels explicitly</summary>
@@ -1152,6 +1357,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-64l-pipelines"></a>
+
+### Step 11 of 19 · Create a lazy cloud lane with reusable pipelines (`64l-pipelines`)
+
+- **Goal:** Create a lazy cloud lane with reusable pipelines.
+- **Data Flow Trace:** `current shaders → reusable pipelines → shared settings → consistent radius units`
+- **Files You Touch:** `src/cloud_gpu.rs` (*Construct reusable current cloud pipelines and adapt perspective units explicitly.*)
+
+Create the point and two cached-resolve pipelines once. Convert production perspective radius factors to this cumulative viewer’s world-unit clip distance.
+
+> **Self-Check Question:** *Why does the perspective radius adapter multiply by 1000 here?*  
+> **Answer:** Production supplies metre-based clip distance, while this cumulative camera still supplies its original world units. The adapter cancels that difference; orthographic ratios already cancel the common unit scale.
+
+- **Hands-On Lab Experiment:** Compare the supplied orthographic and perspective radius checks for equivalent projected heights. Keep the original production radius function unchanged and adapt only the frame convention.
 
 <details>
 <summary>Implementation 64l-pipelines: Create a lazy cloud lane with reusable pipelines</summary>
@@ -1610,6 +1828,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-64m-cache"></a>
 
+### Step 12 of 19 · Share column uploads across placed cloud rows (`64m-cache`)
+
+- **Goal:** Share column uploads across placed cloud rows.
+- **Data Flow Trace:** `source pointer identity → shared columns → independent row records → pruned owners`
+- **Files You Touch:** `src/cloud_gpu.rs` (*Reuse original GPU columns across row placements and count actual shared allocations.*)
+
+Reuse one column owner for repeated original sources. Each instance keeps its own bounded record buffer and model; scene updates prune obsolete display owners.
+
+> **Self-Check Question:** *Should hiding a cloud change its original visibility field?*  
+> **Answer:** No. Existing viewer/layer flags decide current presentation and eligibility. The original source fields remain intact, and shared column buffers can be reused when a hidden cloud is shown again.
+
+- **Hands-On Lab Experiment:** Copy a cloud and inspect the upload counter before and after. Change selection or layer colour; its records change while original column uploads remain shared.
+
 <details>
 <summary>Implementation 64m-cache: Share column uploads across placed cloud rows</summary>
 
@@ -1642,6 +1873,19 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-64n-records"></a>
+
+### Step 13 of 19 · Encode each source run in the exact 160-byte layout (`64n-records`)
+
+- **Goal:** Encode each source run in the exact 160-byte layout.
+- **Data Flow Trace:** `chosen original run → cumulative count → 40 exact words → original source lookup`
+- **Files You Touch:** `src/cloud_gpu.rs` (*Encode exact current source-run records without rewriting original IDs or coordinates.*)
+
+Keep the original run start/count beside cumulative drawn counts, placement, normal transform, radius, flags and original owner. Encode integers as integer words.
+
+> **Self-Check Question:** *Is a cumulative drawn point number an original point ID?*  
+> **Answer:** No. It chooses a record; that record maps the offset back to the original stored run. Source IDs remain in the PointCloud and can differ from both numbers.
+
+- **Hands-On Lab Experiment:** Trace one point through record binary search and original run offset. Check the radius adapter, no-normal sentinel, original owner address and layer/selection flags.
 
 <details>
 <summary>Implementation 64n-records: Encode each source run in the exact 160-byte layout</summary>
@@ -2261,6 +2505,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-64o-runs"></a>
 
+### Step 14 of 19 · Keep one shared record budget for the whole view (`64o-runs`)
+
+- **Goal:** Keep one shared record budget for the whole view.
+- **Data Flow Trace:** `current view → chosen runs → shared record budget → capacity-bounded upload`
+- **Files You Touch:** `src/cloud_gpu.rs` (*Select bounded view runs and grow record storage only to used capacity.*)
+
+Choose original runs for each visible instance and enforce one 4096-record limit across all clouds. Grow each record buffer only to used capacity and reject overflowing vertex counts.
+
+> **Self-Check Question:** *Is 4096 records allowed separately for every cloud?*  
+> **Answer:** No. It is the whole-view budget. Repeated clouds share original columns, and record buffers reserve only their needed bounded capacity. A failed preparation cannot expose stale cached picks.
+
+- **Hands-On Lab Experiment:** Compare one small cloud with many placements. Inspect live record counts versus reserved bytes and the checked six-vertices-per-point draw limit.
+
 <details>
 <summary>Implementation 64o-runs: Keep one shared record budget for the whole view</summary>
 
@@ -2293,6 +2550,19 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-64p-frame"></a>
+
+### Step 15 of 19 · Cache the nearest point frame until its inputs change (`64p-frame`)
+
+- **Goal:** Cache the nearest point frame until its inputs change.
+- **Data Flow Trace:** `changed frame facts → chosen source records → cached nearest points → shared colour and pick resolve`
+- **Files You Touch:** `src/cloud_gpu.rs` (*Prepare and reuse actual nearest-point targets, resolve depth/whole IDs and drop stale targets after failure.*)
+
+Render chosen point runs into cached colour/depth/IDs only after key changes. Repeat frames reuse those targets; colour and bounded picking resolve the same cached point coverage.
+
+> **Self-Check Question:** *Can a failed preparation reuse yesterday’s point IDs?*  
+> **Answer:** No. Drop stale cached targets and expose the error while keeping the CAD scene usable. Successful repeat frames preserve both pixels and original source uploads.
+
+- **Hands-On Lab Experiment:** Repeat an unchanged frame and inspect the skip counter. Change viewport, camera or density; compare a rebuilt cached point frame with unchanged source upload counts.
 
 <details>
 <summary>Implementation 64p-frame: Cache the nearest point frame until its inputs change</summary>
@@ -3134,6 +3404,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-64q-owner"></a>
 
+### Step 16 of 19 · Create and release the cloud renderer only when needed (`64q-owner`)
+
+- **Goal:** Create and release the cloud renderer only when needed.
+- **Data Flow Trace:** `scene cloud rows → lazy lane → reused source owners → immediate Close cleanup`
+- **Files You Touch:** `src/renderer.rs` (*Connect lazy cloud scene owners, explicit source sharing, counters and immediate cleanup.*)
+
+Keep the cloud lane lazy. Scene updates preserve shared uploads; empty scenes drop the entire owner immediately, including cached images, settings and column buffers.
+
+> **Self-Check Question:** *Does clearing the source list alone release GPU columns?*  
+> **Answer:** No. Drop the renderer owner too, and clear document history on Close. The native lifetime checks verify that original and derived owners can actually disappear.
+
+- **Hands-On Lab Experiment:** Compare a CAD-only scene with a scene containing clouds. Close after copying/deleting/undoing a cloud and inspect source owner counts and exact GPU bytes.
+
 <details>
 <summary>Implementation 64q-owner: Create and release the cloud renderer only when needed</summary>
 
@@ -3748,6 +4031,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-64r-draw"></a>
+
+### Step 17 of 19 · Use the cached cloud depth in colour and integer passes (`64r-draw`)
+
+- **Goal:** Use the cached cloud depth in colour and integer passes.
+- **Data Flow Trace:** `prepared cached points → scene depth → bounded original whole owner → existing selection`
+- **Files You Touch:** `src/renderer.rs` (*Prepare current cloud pixels and resolve their actual depth in both colour and bounded whole-owner picking.*) · `src/pick_gpu.rs` (*Resolve cached cloud IDs and depth through the existing bounded readback window.*) · `src/pick_encode.rs` (*Resolve cached cloud IDs and depth through the existing bounded readback window.*)
+
+Prepare cloud pixels before colour and bounded integer readback. Resolve real point depth into the scene, preserving zero-ID occlusion for locked clouds. Draw selection ink after the cloud so a point sprite cannot cover its selected marker.
+
+> **Self-Check Question:** *Can a locked point occlude the colour image but vanish from pick depth?*  
+> **Answer:** No. The same cached depth participates in integer picking, with zero ownership. Click tolerance can still reach visibly exposed geometry outside the point disc; it cannot pick geometry occluded within that disc.
+
+- **Hands-On Lab Experiment:** Place a point in front of a triangle, lock it and inspect the depth/zero-ID regression. Compare two densities without changing original source colours or coordinates.
 
 <details>
 <summary>Implementation 64r-draw: Use the cached cloud depth in colour and integer passes</summary>
@@ -4611,6 +4907,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-64s-diagnostics"></a>
+
+### Step 18 of 19 · Expose cloud source payload detail and actual GPU resources (`64s-diagnostics`)
+
+- **Goal:** Expose cloud source payload detail and actual GPU resources.
+- **Data Flow Trace:** `current camera facts → chosen detail → source and GPU diagnostics → visible preparation errors`
+- **Files You Touch:** `src/memory.rs` (*Expose current cloud source/payload, derived capacity, exact GPU allocation and preparation errors.*) · `src/browser.rs` (*Expose current cloud source/payload, derived capacity, exact GPU allocation and preparation errors.*)
+
+Deliver current camera facts before rendering. Expose original source/instance IDs, logical source payload, derived node capacity, chosen point count, actual GPU bytes and visible errors.
+
+> **Self-Check Question:** *Does the drawn-point count equal the original cloud size?*  
+> **Answer:** Only when all source runs are chosen. LOD can draw fewer points while original data remains retained. This count names points submitted in selected runs, not the number of coloured framebuffer pixels.
+
+- **Hands-On Lab Experiment:** Compare source points with chosen draw points and cached-frame counters. Keep used original payload bytes separate from private reserved capacity, and verify Close clears all cloud diagnostics.
 
 <details>
 <summary>Implementation 64s-diagnostics: Expose cloud source payload detail and actual GPU resources</summary>
@@ -5546,6 +5855,20 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-64t-clouds"></a>
+
+### Step 19 of 19 · Exercise original clouds and real view-dependent detail (`64t-clouds`)
+
+- **Goal:** Exercise original clouds and real view-dependent detail.
+- **Data Flow Trace:** `original cloud fixture → current-view detail → shared source uploads → reversible row edits`
+- **Files You Touch:** `src/cloud.rs` (*Copy the small curved and real two-million-point original-cloud fixtures.*) · `src/editor.rs` (*Connect supplied original cloud fixtures through the actual command dock and one history transaction.*) · `src/commands.rs` (*Connect supplied original cloud fixtures through the actual command dock and one history transaction.*) · `src/cloud_tests.rs` (*Copy the equivalent-projection radius-unit regression.*) · `src/pick_gpu_tests.rs` (*Copy actual original colour/normal/depth/ID, two-density/cache/sharing/cleanup and real two-million-point coarse/fine/coarse GPU checks.*)
+
+Connect a small curved cloud and a supplied 2,000,064-point octree fixture. Copy actual source/GPU checks and inspect coarse/fine detail without reallocating original point columns.
+
+> **Self-Check Question:** *Does the large-cloud fixture establish Lenovo floor performance?*  
+> **Answer:** No. It proves real LOD selection, rendering and upload reuse on the available software GPU. Fresh browser checks and same-hardware full-floor and dome measurements remain required.
+
+- **What You Should See:** Type Close, Example Cloud, Fit and View Isometric. The curved coloured cloud retains original source IDs and f64 columns. Move, Undo, Delete and Undo act on its whole row. Example Cloud LOD supplies 2,000,064 real points; zoom changes chosen detail while the original source upload stays shared. Close drops all cloud owners. Mixed Save stays guarded until 66.
+- **Hands-On Lab Experiment:** Type Close, Example Cloud, Fit and View Isometric. Move, Undo, Delete and Undo. Then Close, Example Cloud LOD and Fit; zoom out and back in and compare the chosen-point counter with 2,000,064 original points.
 
 <details>
 <summary>Implementation 64t-clouds: Exercise original clouds and real view-dependent detail</summary>
@@ -6511,9 +6834,11 @@ After that block, append this supplied code:
 
 </details>
 
-## Run, Check, and Save
+---
 
-From `session_viewer`:
+## 5. Build, Verify, and Save Your Checkpoint
+
+Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 64t-clouds
@@ -6524,12 +6849,12 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. Use [checkpoint recovery](../../recovery.md) to restore any saved checkpoint.
+Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
 
-## Expected Visual Result & Experiment
+## 6. Lesson Summary & Expected Visual Result
 
 Type Close, Example Cloud, Fit and View Isometric. The curved coloured cloud retains original source IDs and f64 columns. Move, Undo, Delete and Undo act on its whole row. Example Cloud LOD supplies 2,000,064 real points; zoom changes chosen detail while the original source upload stays shared. Close drops all cloud owners. Mixed Save stays guarded until 66.
 
-- **Try this:** Type Close, Example Cloud, Fit and View Isometric. Move, Undo, Delete and Undo. Then Close, Example Cloud LOD and Fit; zoom out and back in and compare the chosen-point counter with 2,000,064 original points.
+- **Final Lesson Experiment:** Type Close, Example Cloud, Fit and View Isometric. Move, Undo, Delete and Undo. Then Close, Example Cloud LOD and Fit; zoom out and back in and compare the chosen-point counter with 2,000,064 original points.
 
-Continue with [Original point identity and manifest source records](65-originals.md).
+Continue with [Original point identity and manifest source records](../../consolidation/65-originals.md).

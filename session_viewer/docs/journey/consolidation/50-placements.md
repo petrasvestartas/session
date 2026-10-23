@@ -1,91 +1,153 @@
 # 7.5 · Temporary transforms with a fixed baseline
 
-**Section 5: Interactive Drawing, Snapping, Gumball Handles, and Scene Hierarchy** · **Lesson 7.5** (Redraft `5.5`) · **5 checkpoints (`50-placements` → `50d-ownership`)**
+**Section 5: Interactive Drawing, Snapping, Gumball Handles, and Scene Hierarchy** · **Lesson 7.5** (Redraft `5.5`) · **5 checkpoints (`50-placements` → `50d-ownership`)** · **Study time: 2.5–5 h**
 
-> **Learning Goal:** Address placements across original geometry lanes.
+> **What You Will Learn & Build:** Address placements across original geometry lanes. By the final checkpoint (`50d-ownership`), you will cancel previews without consuming document history.
 
-## Visual WebGPU & Architecture Schematic
+## 1. Visual Pipeline & WebGPU Architecture (Black & White Schematics)
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1px solid #cbd5e1;border-radius:10px;background:#f8fafc;">
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
+<svg viewBox="0 0 840 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <rect x="4" y="4" width="832" height="212" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Lesson 7.5 Execution Flow: Temporary transforms with a fixed baseline</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">Concrete data pipeline you build in this lesson (5 Checkpoints: 50-placements → 50d-ownership)</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
+  
+    
+    <rect x="18" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="89" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
+    <line x1="28" y1="92" x2="151" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">original owner ID</text>
+    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="183" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="254" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
+    <line x1="193" y1="92" x2="316" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">current row</text>
+    <text x="254" y="124" text-anchor="middle" font-size="11" fill="#111111">placement</text>
+    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="348" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="419" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
+    <line x1="358" y1="92" x2="481" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">checked replacement</text>
+    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="513" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="584" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
+    <line x1="523" y1="92" x2="646" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">same original</text>
+    <text x="584" y="124" text-anchor="middle" font-size="11" fill="#111111">geometry</text>
+    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="678" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="749" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
+    <line x1="688" y1="92" x2="811" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">temporary</text>
+    <text x="749" y="124" text-anchor="middle" font-size="11" fill="#111111">presentation</text>
+    
+    <rect x="18" y="162" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="32" y="181" font-size="11" font-weight="700" fill="#111111">Files You Edit in Lesson 7.5:</text>
+    <text x="215" y="181" font-size="11" fill="#111111">src/scene.rs  ·  src/edit_preview.rs  ·  src/lib.rs  ·  src/snap_index.rs  ·  src/editor.rs  ·  src/browser.rs</text>
+    <text x="32" y="198" font-size="10.5" fill="#111111">5 Checkpoints: 50-placements → 50d-ownership — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
+  
+</svg>
+</div>
+
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
 <svg viewBox="0 0 840 240" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#475569"/>
-    </marker>
-    <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#2563eb"/>
-    </marker>
-    <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#059669"/>
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
     </marker>
   </defs>
-  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
-  <text x="20" y="28" font-size="14" font-weight="700" fill="#0f172a">Chapter 7 Interactive CAD Manipulation: Construction-Plane Ray Hit, Snap Priority & 3D Gumball (widget.wgsl)</text>
-  <text x="20" y="46" font-size="11.5" fill="#475569">How 2D mouse drags become exact 3D CAD coordinates via construction planes, geometric snapping, and constant-screen-size Gumball handles.</text>
-  <line x1="16" y1="54" x2="824" y2="54" stroke="#e2e8f0" stroke-width="1"/>
+  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Chapter 7 Interactive CAD Manipulation: Construction-Plane Ray Hit, Snap Priority & 3D Gumball (widget.wgsl)</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">How 2D mouse drags become exact 3D CAD coordinates via construction planes, geometric snapping, and constant-screen-size Gumball handles.</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
   
-    <rect x="18" y="68" width="240" height="145" rx="6" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
-    <text x="138" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1e40af">1. Construction Plane &amp; Snapping</text>
-    <text x="28" y="108" font-size="10.5" fill="#1e3a8a">• Ray R(t) = O + t·D intersects Plane(P0, N):</text>
-    <text x="28" y="124" font-size="10.5" font-weight="700" fill="#1d4ed8">  t = dot(P0 - O, N) / dot(D, N)</text>
-    <text x="28" y="144" font-size="10.5" font-weight="600" fill="#1e40af">• Snap Priority within pixel radius:</text>
-    <text x="28" y="160" font-size="10" fill="#1e3a8a">  1. Endpoint / Vertex   2. Midpoint</text>
-    <text x="28" y="175" font-size="10" fill="#1e3a8a">  3. Curve Nearest       4. Grid Step</text>
-    <text x="28" y="193" font-size="10" fill="#1e3a8a">• Typed "x,y,z" overrides cursor ray</text>
+    <rect x="18" y="68" width="240" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="138" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">1. Construction Plane &amp; Snapping</text>
+    <text x="28" y="108" font-size="10.5" fill="#111111">• Ray R(t) = O + t·D intersects Plane(P0, N):</text>
+    <text x="28" y="124" font-size="10.5" font-weight="700" fill="#111111">  t = dot(P0 - O, N) / dot(D, N)</text>
+    <text x="28" y="144" font-size="10.5" font-weight="600" fill="#111111">• Snap Priority within pixel radius:</text>
+    <text x="28" y="160" font-size="10" fill="#111111">  1. Endpoint / Vertex   2. Midpoint</text>
+    <text x="28" y="175" font-size="10" fill="#111111">  3. Curve Nearest       4. Grid Step</text>
+    <text x="28" y="193" font-size="10" fill="#111111">• Typed "x,y,z" overrides cursor ray</text>
 
-    <line x1="258" y1="138" x2="288" y2="138" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
+    <line x1="258" y1="138" x2="288" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="290" y="68" width="250" height="145" rx="6" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5"/>
-    <text x="415" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#9a3412">2. Tool State &amp; Preview Overlay</text>
-    <text x="302" y="108" font-size="10.5" fill="#7c2d12">• Active Tool (Line / Polyline / Point)</text>
-    <text x="302" y="126" font-size="10.5" font-weight="600" fill="#c2410c">• Rubber-band preview buffer:</text>
-    <text x="302" y="142" font-size="10" fill="#7c2d12">  Updates every pointermove without</text>
-    <text x="302" y="157" font-size="10" fill="#7c2d12">  polluting Undo history stack</text>
-    <text x="302" y="176" font-size="10.5" fill="#7c2d12">• Enter / Final Click -&gt; 1 atomic Undo</text>
-    <text x="302" y="192" font-size="10.5" fill="#7c2d12">• Escape -&gt; cancel &amp; clear preview</text>
+    <rect x="290" y="68" width="250" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="415" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">2. Tool State &amp; Preview Overlay</text>
+    <text x="302" y="108" font-size="10.5" fill="#111111">• Active Tool (Line / Polyline / Point)</text>
+    <text x="302" y="126" font-size="10.5" font-weight="600" fill="#111111">• Rubber-band preview buffer:</text>
+    <text x="302" y="142" font-size="10" fill="#111111">  Updates every pointermove without</text>
+    <text x="302" y="157" font-size="10" fill="#111111">  polluting Undo history stack</text>
+    <text x="302" y="176" font-size="10.5" fill="#111111">• Enter / Final Click -&gt; 1 atomic Undo</text>
+    <text x="302" y="192" font-size="10.5" fill="#111111">• Escape -&gt; cancel &amp; clear preview</text>
 
-    <line x1="540" y1="138" x2="570" y2="138" stroke="#059669" stroke-width="2" marker-end="url(#arrow-green)"/>
+    <line x1="540" y1="138" x2="570" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="572" y="68" width="248" height="145" rx="6" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1.5"/>
-    <text x="696" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#065f46">3. 3D Gumball Widget (widget.wgsl)</text>
-    <text x="584" y="108" font-size="10.5" fill="#064e3b">• Placed at selection bounding center</text>
-    <text x="584" y="126" font-size="10.5" font-weight="600" fill="#047857">• Scaled by camera distance w so</text>
-    <text x="584" y="142" font-size="10.5" font-weight="600" fill="#047857">  handles stay constant pixel size!</text>
-    <text x="584" y="160" font-size="10" fill="#064e3b">• Axis arrows (Translate X/Y/Z)</text>
-    <text x="584" y="175" font-size="10" fill="#064e3b">• Arc rings (Rotate) + Boxes (Scale)</text>
-    <text x="584" y="192" font-size="10" fill="#064e3b">• Picked via Rg32Uint widget sub_id</text>
+    <rect x="572" y="68" width="248" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="696" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">3. 3D Gumball Widget (widget.wgsl)</text>
+    <text x="584" y="108" font-size="10.5" fill="#111111">• Placed at selection bounding center</text>
+    <text x="584" y="126" font-size="10.5" font-weight="600" fill="#111111">• Scaled by camera distance w so</text>
+    <text x="584" y="142" font-size="10.5" font-weight="600" fill="#111111">  handles stay constant pixel size!</text>
+    <text x="584" y="160" font-size="10" fill="#111111">• Axis arrows (Translate X/Y/Z)</text>
+    <text x="584" y="175" font-size="10" fill="#111111">• Arc rings (Rotate) + Boxes (Scale)</text>
+    <text x="584" y="192" font-size="10" fill="#111111">• Picked via Rg32Uint widget sub_id</text>
     
 </svg>
 </div>
 
-### Lesson Data Flow (`Rust` → `WebGPU` → `WGSL`)
+## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
 
-```
-original owner ID → current row placement → checked replacement → same original geometry.
-saved scene or preview rows → display scene → shared geometry buffers and row settings.
-temporary presentation → valid commit or cancellation → original saved scene → preserved or one changed history entry.
-```
+Before writing code, review how the three layers in this chapter talk to each other:
 
-- Address placements across original geometry lanes.
-- Present temporary edits through a separate scene view.
-- Cancel previews without consuming document history.
-- **Why it works (Does changing placement rewrite the source coordinates?):** No. A row matrix positions the shared original geometry. Saving includes that placement; temporary edits can use a different row matrix without copying its vertices.
-
-### Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `Browser`)
-
-| Layer | Construct | First-Year Student Explanation |
+| Layer | Construct | Plain-English Explanation for Students |
 | :--- | :--- | :--- |
 | **Rust (CAD Math)** | Ray–Plane Intersection `t = dot(P0 - O, N) / dot(D, N)` | Projects a 2D mouse ray onto the active 3D construction plane (`Plane`), with priority snapping (`Endpoint > Midpoint > Curve > Grid`). |
 | **Rust (Editor)** | Preview Overlay vs. Atomic Undo Commit | Rubber-band preview geometry updates on every `pointermove` without touching the Undo stack; `Enter` or final click commits one atomic kernel transaction. |
 | **WGSL (`widget.wgsl`)** | Perspective-Compensated 3D Gumball Handles | Scales axis arrows, rotation arcs, and scale boxes by camera depth `w` so the 3D Gumball gizmo stays a constant clickable pixel size at any zoom. |
 
-**Production source (`session_viewer/src`):** [app/command/mod.rs](../../../src/app/command/mod.rs), [app/command/tool.rs](../../../src/app/command/tool.rs), [app/cplane.rs](../../../src/app/cplane.rs), [app/snap.rs](../../../src/app/snap.rs), [app/gizmo.rs](../../../src/app/gizmo.rs), [engine/gpu/widget.rs](../../../src/engine/gpu/widget.rs), [app/deform.rs](../../../src/app/deform.rs).
+**Authoritative production source (`session_viewer/src`):** [app/command/mod.rs](../../../src/app/command/mod.rs), [app/command/tool.rs](../../../src/app/command/tool.rs), [app/cplane.rs](../../../src/app/cplane.rs), [app/snap.rs](../../../src/app/snap.rs), [app/gizmo.rs](../../../src/app/gizmo.rs), [engine/gpu/widget.rs](../../../src/engine/gpu/widget.rs), [app/deform.rs](../../../src/app/deform.rs)
 
-## Implementation Checkpoints
+## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
 
-Apply these checkpoints in order inside `workspace/journey`. Expand each block to view the Rust/WGSL/HTML edits:
+| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
+| ---: | :--- | :--- | :--- | :--- |
+| **1** | [`50-placements`](#checkpoint-50-placements) | Address placements across original geometry lanes. | `src/scene.rs` | `original owner ID → current row placement → checked replacement → same original geometry` |
+| **2** | [`50a-preview`](#checkpoint-50a-preview) | Keep temporary placements outside the document. | `src/edit_preview.rs`, `src/lib.rs` | `eligible owners and baseline → derived placement rows → cancel or one history commit` |
+| **3** | [`50b-display`](#checkpoint-50b-display) | Present temporary edits through a separate scene view. | `src/snap_index.rs`, `src/editor.rs`, `src/browser.rs` | `saved scene or preview rows → display scene → shared geometry buffers and row settings` |
+| **4** | [`50c-move`](#checkpoint-50c-move) | Preview Move from a base point to a target. | `src/tool.rs`, `src/editor.rs`, `src/commands.rs`, `src/commands_tests.rs` | `selected original owners → base point → snapped target and temporary placement → one Move commit` |
+| **5** | [`50d-ownership`](#checkpoint-50d-ownership) | Cancel previews without consuming document history. | `src/editor.rs`, `src/edit_preview_tests.rs`, `src/lib.rs` | `temporary presentation → valid commit or cancellation → original saved scene → preserved or one changed history entry` |
+
+---
+
+## 4. Step-by-Step Coding Notebook (Concept + Implementation)
+
+Work through each notebook cell below in order inside `workspace/journey`. Read the **Concept Walkthrough** and **Self-Check Q&A** first, then expand the **Implementation** block to type and verify the code.
 
 <a id="checkpoint-50-placements"></a>
+
+### Step 1 of 5 · Address placements across original geometry lanes (`50-placements`)
+
+- **Goal:** Address placements across original geometry lanes.
+- **Data Flow Trace:** `original owner ID → current row placement → checked replacement → same original geometry`
+- **Files You Touch:** `src/scene.rs` (*Read and replace checked placements across all supported original geometry lanes.*)
+
+Read or replace an owner’s placement through one scene interface. Mesh, line, path and point rows retain their original geometry while checked matrices position their display.
+
+> **Self-Check Question:** *Does changing placement rewrite the source coordinates?*  
+> **Answer:** No. A row matrix positions the shared original geometry. Saving includes that placement; temporary edits can use a different row matrix without copying its vertices.
+
+- **What You Should See:** Continue the snapping exercise. These shared placement methods are used by the next preview model.
+- **Hands-On Lab Experiment:** Compare mesh and line placement validation. Both must reject a nonfinite or projective matrix while preserving the row’s previous placement.
 
 <details>
 <summary>Implementation 50-placements: Address placements across original geometry lanes</summary>
@@ -121,6 +183,20 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-50a-preview"></a>
+
+### Step 2 of 5 · Keep temporary placements outside the document (`50a-preview`)
+
+- **Goal:** Keep temporary placements outside the document.
+- **Data Flow Trace:** `eligible owners and baseline → derived placement rows → cancel or one history commit`
+- **Files You Touch:** `src/edit_preview.rs` (*Capture eligible original owners, derive temporary placements and commit their group atomically.*) · `src/lib.rs` (*Register the placement preview and supplied checks.*)
+
+A preview captures eligible owners and their starting placements. Each update derives a fresh presentation from that baseline; commit groups every changed owner in one history transaction.
+
+> **Self-Check Question:** *Why derive each update from the baseline?*  
+> **Answer:** Applying each cursor delta to the previous preview accumulates movement. The same cursor position must produce the same placement regardless of intervening pointer events.
+
+- **What You Should See:** Continue the snapping exercise. The preview model is adopted by the editor and browser next.
+- **Hands-On Lab Experiment:** Update a preview several times and then commit or discard it. Original source owners stay shared; a zero transform must preserve redo.
 
 <details>
 <summary>Implementation 50a-preview: Keep temporary placements outside the document</summary>
@@ -163,6 +239,20 @@ After that block, type:
 </details>
 
 <a id="checkpoint-50b-display"></a>
+
+### Step 3 of 5 · Present temporary edits through a separate scene view (`50b-display`)
+
+- **Goal:** Present temporary edits through a separate scene view.
+- **Data Flow Trace:** `saved scene or preview rows → display scene → shared geometry buffers and row settings`
+- **Files You Touch:** `src/snap_index.rs` (*Exclude the moving owners when querying destination snap targets.*) · `src/editor.rs` (*Own temporary edit presentation and derive displayed rows without modifying the saved scene.*) · `src/browser.rs` (*Present temporary row settings and keep saved source inspection separate.*)
+
+The editor exposes saved and displayed scenes separately. The browser presents preview placements while Save and document inspection continue reading the original scene.
+
+> **Self-Check Question:** *Which scene should Save read during a preview?*  
+> **Answer:** The saved scene. Displayed placements are temporary until commit; exporting the presentation would silently turn pointer motion into a document edit.
+
+- **What You Should See:** Continue the snapped-line exercise. The browser can now present edit previews; actual Move input follows next.
+- **Hands-On Lab Experiment:** Compare saved source placement inspection with displayed row settings. Presenting a preview must reuse original mesh buffers and preserve the source document.
 
 <details>
 <summary>Implementation 50b-display: Present temporary edits through a separate scene view</summary>
@@ -1677,6 +1767,20 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-50c-move"></a>
 
+### Step 4 of 5 · Preview Move from a base point to a target (`50c-move`)
+
+- **Goal:** Preview Move from a base point to a target.
+- **Data Flow Trace:** `selected original owners → base point → snapped target and temporary placement → one Move commit`
+- **Files You Touch:** `src/tool.rs` (*Preview a selected-owner Move, exclude its own snap targets and commit the chosen target once.*) · `src/editor.rs` (*Preview a selected-owner Move, exclude its own snap targets and commit the chosen target once.*) · `src/commands.rs` (*Preview a selected-owner Move, exclude its own snap targets and commit the chosen target once.*) · `src/commands_tests.rs` (*Copy updated parser checks: bare Move starts a tool while invalid positional forms still fail.*)
+
+Bare Move asks for two points on the selected owners. Hovering previews their displacement; a valid target commits the mixed selection once. Snap targets exclude the moving owners after the base point.
+
+> **Self-Check Question:** *Why exclude moving owners from target snapping?*  
+> **Answer:** Their captured positions are the movement’s inputs. Reusing those positions as destination targets can pull the cursor back onto the geometry being moved.
+
+- **What You Should See:** Close; Example Box; Select All; Snap Off; Grid Snap Off; Move; 0,0,0. Hover elsewhere: the box moves temporarily. Type 0.5,0.25,0 to commit, then Undo restores its whole placement.
+- **Hands-On Lab Experiment:** Select a box and line together, then Move from one base point to one target. One Undo must restore both owners. Move 1,2,3 retains its immediate positional form.
+
 <details>
 <summary>Implementation 50c-move: Preview Move from a base point to a target</summary>
 
@@ -2818,6 +2922,20 @@ Update the existing block with this supplied code; keep unchanged lines:
 
 <a id="checkpoint-50d-ownership"></a>
 
+### Step 5 of 5 · Cancel previews without consuming document history (`50d-ownership`)
+
+- **Goal:** Cancel previews without consuming document history.
+- **Data Flow Trace:** `temporary presentation → valid commit or cancellation → original saved scene → preserved or one changed history entry`
+- **Files You Touch:** `src/editor.rs` (*Clear previews after successful document changes, preserve them on errors and fit the displayed scene.*) · `src/edit_preview_tests.rs` (*Copy mixed-owner Undo, original-source sharing, saved protobuf, invalid input, zero-move and cancellation checks.*) · `src/lib.rs` (*Register the placement preview and supplied checks.*)
+
+Cancel, empty Enter and interrupted hover restore the saved presentation. Successful document commands clear stale previews; invalid commands preserve the last valid draft. Commit and zero movement retain correct Undo/Redo grouping.
+
+> **Self-Check Question:** *Should an invalid Move command cancel a valid preview?*  
+> **Answer:** No. Validate first. An error must leave its accepted base, last valid presentation and redo available for correction or cancellation.
+
+- **What You Should See:** Use Move with a selected box, accept 0,0,0 and hover. Cancel or press Escape: the saved box returns. Repeat and commit 0.5,0,0; one Undo restores it. Try an invalid coordinate before cancelling.
+- **Hands-On Lab Experiment:** Undo an earlier Move, then start and cancel another preview. Redo must still restore the earlier edit. A zero-distance Move must also preserve that redo branch.
+
 <details>
 <summary>Implementation 50d-ownership: Cancel previews without consuming document history</summary>
 
@@ -3622,9 +3740,11 @@ After that block, type:
 
 </details>
 
-## Run, Check, and Save
+---
 
-From `session_viewer`:
+## 5. Build, Verify, and Save Your Checkpoint
+
+Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 50d-ownership
@@ -3635,12 +3755,12 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. Use [checkpoint recovery](../recovery.md) to restore any saved checkpoint.
+Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../recovery.md) to save or restore any checkpoint ID.
 
-## Expected Visual Result & Experiment
+## 6. Lesson Summary & Expected Visual Result
 
 Use Move with a selected box, accept 0,0,0 and hover. Cancel or press Escape: the saved box returns. Repeat and commit 0.5,0,0; one Undo restores it. Try an invalid coordinate before cancelling.
 
-- **Try this:** Undo an earlier Move, then start and cancel another preview. Redo must still restore the earlier edit. A zero-distance Move must also preserve that redo branch.
+- **Final Lesson Experiment:** Undo an earlier Move, then start and cancel another preview. Redo must still restore the earlier edit. A zero-distance Move must also preserve that redo branch.
 
 Continue with [Handles, numeric edits and source-part deformation](51-handles.md).

@@ -1,88 +1,197 @@
 # 15.1 · Original transforms, part edits and solid recipes
 
-**Section 8: Precision Coordinate Frames, Solid Primitives, Surfacing, and CAD Editing** · **Lesson 15.1** (Redraft `8.7`) · **49 checkpoints (`77-copy-current-transformation-and-source-edit-algorithms` → `77zzo-revolve-original-profiles-around-an-axis`)**
+**Section 8: Precision Coordinate Frames, Solid Primitives, Surfacing, and CAD Editing** · **Lesson 15.1** (Redraft `8.7`) · **49 checkpoints (`77-copy-current-transformation-and-source-edit-algorithms` → `77zzo-revolve-original-profiles-around-an-axis`)** · **Study time: 29.00000000000001–49 h**
 
-> **Learning Goal:** Build directional scale transforms.
+> **What You Will Learn & Build:** Build directional scale transforms. By the final checkpoint (`77zzo-revolve-original-profiles-around-an-axis`), you will turn original curves into exact kernel surfaces around a chosen axis.
 
-## Visual WebGPU & Architecture Schematic
+## 1. Visual Pipeline & WebGPU Architecture (Black & White Schematics)
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1px solid #cbd5e1;border-radius:10px;background:#f8fafc;">
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
+<svg viewBox="0 0 840 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <rect x="4" y="4" width="832" height="212" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Lesson 15.1 Execution Flow: Original transforms, part edits and solid recipes</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">Concrete data pipeline you build in this lesson (49 Checkpoints: 77-copy-current-transformation-and-source-edit-algorithms → 77zzo-revolve-original-profiles-around-an-axis)</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
+  
+    
+    <rect x="18" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="89" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
+    <line x1="28" y1="92" x2="151" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">original f64 CAD</text>
+    <text x="89" y="124" text-anchor="middle" font-size="11" fill="#111111">source</text>
+    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="183" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="254" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
+    <line x1="193" y1="92" x2="316" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">pure transform or</text>
+    <text x="254" y="124" text-anchor="middle" font-size="11" fill="#111111">original control</text>
+    <text x="254" y="140" text-anchor="middle" font-size="11" fill="#111111">addresses</text>
+    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="348" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="419" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
+    <line x1="358" y1="92" x2="481" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">later edit preview</text>
+    <text x="419" y="124" text-anchor="middle" font-size="11" fill="#111111">and GPU display</text>
+    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="513" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="584" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
+    <line x1="523" y1="92" x2="646" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">original profile</text>
+    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="678" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="749" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
+    <line x1="688" y1="92" x2="811" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">axis and angle</text>
+    
+    <rect x="18" y="162" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="32" y="181" font-size="11" font-weight="700" fill="#111111">Files You Edit in Lesson 15.1:</text>
+    <text x="215" y="181" font-size="11" fill="#111111">src/transform_scale.rs  ·  src/lib.rs  ·  src/transform_rotate.rs  ·  src/source_controls.rs  ·  src/source_deform.rs  ·  src/source_topology_colour.rs</text>
+    <text x="32" y="198" font-size="10.5" fill="#111111">49 Checkpoints: 77-copy-current-transformation-and-source-edit-algorithms → 77zzo-revolve-original-profiles-around-an-axis — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
+  
+</svg>
+</div>
+
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
 <svg viewBox="0 0 840 240" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#475569"/>
-    </marker>
-    <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#2563eb"/>
-    </marker>
-    <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#059669"/>
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
     </marker>
   </defs>
-  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
-  <text x="20" y="28" font-size="14" font-weight="700" fill="#0f172a">Section 8 Precision CAD Frames, Solid Primitives, Surfacing & Sub-Object Deformation (Chapters 14–16)</text>
-  <text x="20" y="46" font-size="11.5" fill="#475569">How double-precision coordinate frames (Plane), parametric solids, Loft/Sweep/Extrude surfaces, and Gumball control edits work.</text>
-  <line x1="16" y1="54" x2="824" y2="54" stroke="#e2e8f0" stroke-width="1"/>
+  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Section 8 Precision CAD Frames, Solid Primitives, Surfacing & Sub-Object Deformation (Chapters 14–16)</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">How double-precision coordinate frames (Plane), parametric solids, Loft/Sweep/Extrude surfaces, and Gumball control edits work.</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
   
-    <rect x="18" y="68" width="245" height="145" rx="6" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
-    <text x="140" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1e40af">1. Orthonormal Frames (Ch 14)</text>
-    <text x="28" y="108" font-size="10.5" fill="#1e3a8a">• Plane { origin: Vec3d, x, y, z }</text>
-    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#1d4ed8">• Rejects non-finite / collinear axes</text>
-    <text x="28" y="144" font-size="10.5" fill="#1e3a8a">• Basis change: World &lt;-&gt; Local Plane</text>
-    <text x="28" y="162" font-size="10.5" fill="#1e3a8a">• Exact Mirror, Rotate3D, Orient,</text>
-    <text x="28" y="178" font-size="10.5" fill="#1e3a8a">  and Align frame transformations</text>
+    <rect x="18" y="68" width="245" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="140" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">1. Orthonormal Frames (Ch 14)</text>
+    <text x="28" y="108" font-size="10.5" fill="#111111">• Plane { origin: Vec3d, x, y, z }</text>
+    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#111111">• Rejects non-finite / collinear axes</text>
+    <text x="28" y="144" font-size="10.5" fill="#111111">• Basis change: World &lt;-&gt; Local Plane</text>
+    <text x="28" y="162" font-size="10.5" fill="#111111">• Exact Mirror, Rotate3D, Orient,</text>
+    <text x="28" y="178" font-size="10.5" fill="#111111">  and Align frame transformations</text>
 
-    <line x1="263" y1="138" x2="293" y2="138" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
+    <line x1="263" y1="138" x2="293" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="295" y="68" width="265" height="145" rx="6" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5"/>
-    <text x="427" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#9a3412">2. Solids &amp; Surfacing (Ch 15–16)</text>
-    <text x="307" y="108" font-size="10.5" fill="#7c2d12">• Parametric Box, Cylinder, Sphere, Cone</text>
-    <text x="307" y="126" font-size="10.5" font-weight="600" fill="#c2410c">• Extrude, Revolve, Loft, Sweep, Planar</text>
-    <text x="307" y="144" font-size="10.5" fill="#7c2d12">• Curve Split, Trim, Extend, Join, Fillet</text>
-    <text x="307" y="162" font-size="10.5" fill="#7c2d12">• Every operation commits an atomic</text>
-    <text x="307" y="178" font-size="10.5" fill="#7c2d12">  session_rust kernel transaction</text>
+    <rect x="295" y="68" width="265" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="427" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">2. Solids &amp; Surfacing (Ch 15–16)</text>
+    <text x="307" y="108" font-size="10.5" fill="#111111">• Parametric Box, Cylinder, Sphere, Cone</text>
+    <text x="307" y="126" font-size="10.5" font-weight="600" fill="#111111">• Extrude, Revolve, Loft, Sweep, Planar</text>
+    <text x="307" y="144" font-size="10.5" fill="#111111">• Curve Split, Trim, Extend, Join, Fillet</text>
+    <text x="307" y="162" font-size="10.5" fill="#111111">• Every operation commits an atomic</text>
+    <text x="307" y="178" font-size="10.5" fill="#111112">  session_rust kernel transaction</text>
 
-    <line x1="560" y1="138" x2="590" y2="138" stroke="#059669" stroke-width="2" marker-end="url(#arrow-green)"/>
+    <line x1="560" y1="138" x2="590" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="592" y="68" width="228" height="145" rx="6" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1.5"/>
-    <text x="706" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#065f46">3. Rational Control-Point Deform</text>
-    <text x="604" y="108" font-size="10.5" fill="#064e3b">• Pick NURBS control point or vertex</text>
-    <text x="604" y="126" font-size="10.5" font-weight="600" fill="#047857">• Preserve homogeneous weight w</text>
-    <text x="604" y="142" font-size="10.5" font-weight="600" fill="#047857">  on rational curve control drags!</text>
-    <text x="604" y="162" font-size="10.5" fill="#064e3b">• Rebuild derived GPU tessellation</text>
-    <text x="604" y="178" font-size="10.5" fill="#064e3b">  in-place while keeping Object ID</text>
+    <rect x="592" y="68" width="228" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="706" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">3. Rational Control-Point Deform</text>
+    <text x="604" y="108" font-size="10.5" fill="#111111">• Pick NURBS control point or vertex</text>
+    <text x="604" y="126" font-size="10.5" font-weight="600" fill="#111111">• Preserve homogeneous weight w</text>
+    <text x="604" y="142" font-size="10.5" font-weight="600" fill="#111111">  on rational curve control drags!</text>
+    <text x="604" y="162" font-size="10.5" fill="#111111">• Rebuild derived GPU tessellation</text>
+    <text x="604" y="178" font-size="10.5" fill="#111111">  in-place while keeping Object ID</text>
     
 </svg>
 </div>
 
-### Lesson Data Flow (`Rust` → `WebGPU` → `WGSL`)
+## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
 
-```
-original f64 CAD source → pure transform or original control addresses → later edit preview and GPU display.
-owned event or typed input → current transform question → preview or cancellation.
-original profile → axis and angle → kernel surface → one result.
-```
+Before writing code, review how the three layers in this chapter talk to each other:
 
-- Build directional scale transforms.
-- Copy original rows beside their existing parents.
-- Turn original curves into exact kernel surfaces around a chosen axis.
-- **Why it works (How does directional scale preserve the other directions?):** Add (k−1) times each chosen axis outer product to the identity matrix.
-
-### Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `Browser`)
-
-| Layer | Construct | First-Year Student Explanation |
+| Layer | Construct | Plain-English Explanation for Students |
 | :--- | :--- | :--- |
 | **CAD Coords** | `w10,20,0` vs `@5,0,0` vs `10<30` | `w` forces absolute World coordinates; `@` measures relative to the last accepted point; `<` uses polar distance and angle in the active Construction Plane. |
 | **Rational NURBS** | Homogeneous control point `(w*x, w*y, w*z, w)` | Represents circles, ellipses, and conic arcs with zero approximation error using non-uniform weights `w`. |
 | **B-Rep Split/Trim** | Plane/Cutter intersection -> Face loop classification | Splits or trims B-Rep and mesh faces along cutting planes/curves while keeping retained topology tables valid. |
 
-**Production source (`session_viewer/src`):** [app/deform.rs](../../../../src/app/deform.rs), [state/edit.rs](../../../../src/state/edit.rs), [app/command/tool/gather.rs](../../../../src/app/command/tool/gather.rs), [app/command/tool/surfacing.rs](../../../../src/app/command/tool/surfacing.rs), [app/walk/mesh.rs](../../../../src/app/walk/mesh.rs), [app/walk/brep.rs](../../../../src/app/walk/brep.rs), [build.rs](../../../../build.rs).
+**Authoritative production source (`session_viewer/src`):** [app/deform.rs](../../../../src/app/deform.rs), [state/edit.rs](../../../../src/state/edit.rs), [app/command/tool/gather.rs](../../../../src/app/command/tool/gather.rs), [app/command/tool/surfacing.rs](../../../../src/app/command/tool/surfacing.rs), [app/walk/mesh.rs](../../../../src/app/walk/mesh.rs), [app/walk/brep.rs](../../../../src/app/walk/brep.rs), [build.rs](../../../../build.rs).
 
-## Implementation Checkpoints
+## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
 
-Apply these checkpoints in order inside `workspace/journey`. Expand each block to view the Rust/WGSL/HTML edits:
+| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
+| ---: | :--- | :--- | :--- | :--- |
+| **1** | [`77-copy-current-transformation-and-source-edit-algorithms`](#checkpoint-77-copy-current-transformation-and-source-edit-algorithms) | Build directional scale transforms. | `src/transform_scale.rs`, `src/lib.rs` | `original f64 CAD source → pure transform or original control addresses → later edit preview and GPU display` |
+| **2** | [`77sa-compute-signed-construction-plane-rotation`](#checkpoint-77sa-compute-signed-construction-plane-rotation) | Compute signed construction-plane rotation. | `src/transform_rotate.rs`, `src/lib.rs` | `original f64 CAD source → pure transform or original control addresses → later edit preview and GPU display` |
+| **3** | [`77sb-address-original-controls-and-exclusive-part-selections`](#checkpoint-77sb-address-original-controls-and-exclusive-part-selections) | Address original controls and exclusive part selections. | `src/source_controls.rs`, `src/lib.rs` | `original f64 CAD source → pure transform or original control addresses → later edit preview and GPU display` |
+| **4** | [`77sc-collect-finite-original-controls-and-mesh-vertices`](#checkpoint-77sc-collect-finite-original-controls-and-mesh-vertices) | Collect finite original controls and mesh vertices. | `src/source_controls.rs` | `original f64 CAD source → pure transform or original control addresses → later edit preview and GPU display` |
+| **5** | [`77sd-connect-curve-polygons-and-surface-control-nets`](#checkpoint-77sd-connect-curve-polygons-and-surface-control-nets) | Connect curve polygons and surface control nets. | `src/source_controls.rs` | `original f64 CAD source → pure transform or original control addresses → later edit preview and GPU display` |
+| **6** | [`77se-reuse-control-collectors-across-original-geometry-families`](#checkpoint-77se-reuse-control-collectors-across-original-geometry-families) | Reuse control collectors across original geometry families. | `src/source_controls.rs` | `original f64 CAD source → pure transform or original control addresses → later edit preview and GPU display` |
+| **7** | [`77sf-represent-original-geometry-edit-targets`](#checkpoint-77sf-represent-original-geometry-edit-targets) | Represent original geometry edit targets. | `src/source_deform.rs`, `src/lib.rs` | `original f64 CAD source → pure transform or original control addresses → later edit preview and GPU display` |
+| **8** | [`77sg-resolve-original-mesh-vertices-for-part-edits`](#checkpoint-77sg-resolve-original-mesh-vertices-for-part-edits) | Resolve original mesh vertices for part edits. | `src/source_deform.rs` | `original f64 CAD source → pure transform or original control addresses → later edit preview and GPU display` |
+| **9** | [`77sh-resolve-surface-grids-and-individual-source-controls`](#checkpoint-77sh-resolve-surface-grids-and-individual-source-controls) | Resolve surface grids and individual source controls. | `src/source_deform.rs` | `original f64 CAD source → pure transform or original control addresses → later edit preview and GPU display` |
+| **10** | [`77si-collect-affected-points-across-cad-geometry-families`](#checkpoint-77si-collect-affected-points-across-cad-geometry-families) | Collect affected points across CAD geometry families. | `src/source_deform.rs` | `original f64 CAD source → pure transform or original control addresses → later edit preview and GPU display` |
+| **11** | [`77sj-preserve-rational-weights-and-validate-brep-boundaries`](#checkpoint-77sj-preserve-rational-weights-and-validate-brep-boundaries) | Preserve rational weights and validate BRep boundaries. | `src/source_deform.rs` | `original f64 CAD source → pure transform or original control addresses → later edit preview and GPU display` |
+| **12** | [`77sk-transform-original-mesh-and-surface-controls`](#checkpoint-77sk-transform-original-mesh-and-surface-controls) | Transform original mesh and surface controls. | `src/source_deform.rs` | `original f64 CAD source → pure transform or original control addresses → later edit preview and GPU display` |
+| **13** | [`77sl-transform-original-line-polyline-point-and-curve-controls`](#checkpoint-77sl-transform-original-line-polyline-point-and-curve-controls) | Transform original line polyline point and curve controls. | `src/source_deform.rs` | `original f64 CAD source → pure transform or original control addresses → later edit preview and GPU display` |
+| **14** | [`77sm-transform-shared-brep-boundary-positions-coherently`](#checkpoint-77sm-transform-shared-brep-boundary-positions-coherently) | Transform shared BRep boundary positions coherently. | `src/source_deform.rs` | `original f64 CAD source → pure transform or original control addresses → later edit preview and GPU display` |
+| **15** | [`77sn-dispatch-original-part-edits-and-retain-element-ownership`](#checkpoint-77sn-dispatch-original-part-edits-and-retain-element-ownership) | Dispatch original part edits and retain Element ownership. | `src/source_deform.rs` | `original f64 CAD source → pure transform or original control addresses → later edit preview and GPU display` |
+| **16** | [`77so-map-sparse-original-vertex-keys-to-display-slots`](#checkpoint-77so-map-sparse-original-vertex-keys-to-display-slots) | Map sparse original vertex keys to display slots. | `src/source_topology_colour.rs`, `src/source_mesh_topology.rs`, `src/lib.rs` | `original f64 CAD source → pure transform or original control addresses → later edit preview and GPU display` |
+| **17** | [`77sp-compute-polygon-normals-from-original-boundaries`](#checkpoint-77sp-compute-polygon-normals-from-original-boundaries) | Compute polygon normals from original boundaries. | `src/source_mesh_topology.rs` | `original f64 CAD source → pure transform or original control addresses → later edit preview and GPU display` |
+| **18** | [`77sq-build-one-original-edge-table-and-record-incident-faces`](#checkpoint-77sq-build-one-original-edge-table-and-record-incident-faces) | Build one original edge table and record incident faces. | `src/source_mesh_topology.rs` | `original f64 CAD source → pure transform or original control addresses → later edit preview and GPU display` |
+| **19** | [`77sr-preserve-hole-winding-and-complete-original-mesh-topology`](#checkpoint-77sr-preserve-hole-winding-and-complete-original-mesh-topology) | Preserve hole winding and complete original mesh topology. | `src/source_mesh_topology.rs`, `src/source_deform.rs` | `original f64 CAD source → pure transform or original control addresses → later edit preview and GPU display` |
+| **20** | [`77a-own-transformation-questions-and-the-selected-original-targets`](#checkpoint-77a-own-transformation-questions-and-the-selected-original-targets) | Own transformation questions and the selected original targets. | `src/transform_draft.rs`, `src/lib.rs` | `current selection and plane → frozen targets → pending transform questions` |
+| **21** | [`77b-validate-point-and-number-transformation-answers`](#checkpoint-77b-validate-point-and-number-transformation-answers) | Validate point and number transformation answers. | `src/transform_draft.rs` | `point or number answer → checked references → current original transform` |
+| **22** | [`77c-resolve-typed-batches-and-temporary-transformation-previews`](#checkpoint-77c-resolve-typed-batches-and-temporary-transformation-previews) | Resolve typed batches and temporary transformation previews. | `src/transform_draft.rs` | `typed batch → candidate owner → checked transforms or temporary preview` |
+| **23** | [`77d-resolve-original-cad-parts-and-complete-selected-bounds`](#checkpoint-77d-resolve-original-cad-parts-and-complete-selected-bounds) | Resolve original CAD parts and complete selected bounds. | `src/source_part.rs`, `src/lib.rs`, `src/scene.rs` | `selected original part or owner → source geometry and world bounds → checked target` |
+| **24** | [`77e-rebuild-an-edited-original-cad-source-before-adoption`](#checkpoint-77e-rebuild-an-edited-original-cad-source-before-adoption) | Rebuild an edited original CAD source before adoption. | `src/scene.rs`, `src/part_preview.rs` | `world edit → local original deformation → validated source → derived display` |
+| **25** | [`77f-copy-original-rows-beside-their-existing-parents`](#checkpoint-77f-copy-original-rows-beside-their-existing-parents) | Copy original rows beside their existing parents. | `src/layer_edit.rs` | `selected original rows → checked copy plan → new identities and world placement` |
+| **26** | [`77g-carry-transformation-state-through-the-existing-drawing-owner`](#checkpoint-77g-carry-transformation-state-through-the-existing-drawing-owner) | Carry transformation state through the existing drawing owner. | `src/tool.rs`, `src/editor.rs` | `current Draft → frozen transform owner → temporary scene and resource accounting` |
+| **27** | [`77h-validate-selected-originals-before-beginning-or-committing-a-transform`](#checkpoint-77h-validate-selected-originals-before-beginning-or-committing-a-transform) | Validate selected originals before beginning or committing a transform. | `src/editor.rs` | `selected original targets → checked preview → current tool or one commit` |
+| **28** | [`77i-adopt-validated-outcomes-and-preserve-repeat-copy-transactions`](#checkpoint-77i-adopt-validated-outcomes-and-preserve-repeat-copy-transactions) | Adopt validated outcomes and preserve repeat copy transactions. | `src/editor.rs` | `complete candidate batch → checked temporary scene → individual Copy transactions` |
+| **29** | [`77j-route-transform-input-cancellation-and-current-plane-changes`](#checkpoint-77j-route-transform-input-cancellation-and-current-plane-changes) | Route transform input cancellation and current plane changes. | `src/editor.rs` | `owned event or typed input → current transform question → preview or cancellation` |
+| **30** | [`77k-connect-transformation-lifecycle-and-part-move-dispatch`](#checkpoint-77k-connect-transformation-lifecycle-and-part-move-dispatch) | Connect transformation lifecycle and part Move dispatch. | `src/editor.rs`, `src/selection_tests.rs`, `src/edit_preview_tests.rs` | `transform lifecycle action → current plane and selected part → checked original preview` |
+| **31** | [`77l-register-copy-scale-rotate-and-their-current-aliases`](#checkpoint-77l-register-copy-scale-rotate-and-their-current-aliases) | Register Copy Scale Rotate and their current aliases. | `src/transform_commands.rs`, `src/lib.rs`, `src/commands.rs`, `src/editor.rs` | `current verb or alias → checked parameter parser → Editor action` |
+| **32** | [`77m-apply-direct-scale-and-rotate-about-the-current-selection-center`](#checkpoint-77m-apply-direct-scale-and-rotate-about-the-current-selection-center) | Apply direct Scale and Rotate about the current selection center. | `src/editor.rs` | `typed current factor or world axis → selection center → original transform` |
+| **33** | [`77n-retain-earlier-selection-checks-with-source-part-support`](#checkpoint-77n-retain-earlier-selection-checks-with-source-part-support) | Retain earlier selection checks with source part support. | `src/edit_preview_tests.rs` | `current selection → validated source-part preview → unchanged history on cancel` |
+| **34** | [`77o-exercise-original-copy-transforms-history-and-exact-persistence`](#checkpoint-77o-exercise-original-copy-transforms-history-and-exact-persistence) | Exercise original copy transforms history and exact persistence. | `src/transform_tests.rs`, `src/lib.rs` | `original selection → current Copy Scale Rotate → history → original Save/Open` |
+| **35** | [`77zza-describe-curve-gathering-answers`](#checkpoint-77zza-describe-curve-gathering-answers) | Describe ordered curve questions and typed answers. | `src/gather_input.rs`, `src/lib.rs` | `original curve picks → ordered answers → Session kernel recipe` |
+| **36** | [`77zzb-read-curve-gathering-values`](#checkpoint-77zzb-read-curve-gathering-values) | Read finite numbers, absolute points and distance vectors through the existing coordinate reader. | `src/gather_input.rs` | `original curve picks → ordered answers → Session kernel recipe` |
+| **37** | [`77zzc-connect-gathering-recipes`](#checkpoint-77zzc-connect-gathering-recipes) | Connect typed input to a recipe, its questions and kernel builder. | `src/gather_input.rs` | `original curve picks → ordered answers → Session kernel recipe` |
+| **38** | [`77zzd-parse-gathering-command-words`](#checkpoint-77zzd-parse-gathering-command-words) | Read options anywhere in a command and consume other answers in order. | `src/gather_input.rs` | `original curve picks → ordered answers → Session kernel recipe` |
+| **39** | [`77zze-track-ordered-curve-picks`](#checkpoint-77zze-track-ordered-curve-picks) | Track preselected curve rows and skip answers already typed. | `src/gather_input.rs` | `original curve picks → ordered answers → Session kernel recipe` |
+| **40** | [`77zzf-advance-and-cancel-curve-picks`](#checkpoint-77zzf-advance-and-cancel-curve-picks) | Toggle a picked curve, reject duplicates across groups, and advance on a full group or Enter. | `src/gather_input.rs` | `original curve picks → ordered answers → Session kernel recipe` |
+| **41** | [`77zzg-prepare-placed-kernel-curves`](#checkpoint-77zzg-prepare-placed-kernel-curves) | Convert lines, polylines and NURBS curves to placed kernel curves. | `src/gather_input.rs` | `original curve picks → ordered answers → Session kernel recipe` |
+| **42** | [`77zzh-check-original-loops-and-surface-controls`](#checkpoint-77zzh-check-original-loops-and-surface-controls) | Find a loop’s unit normal and scale-aware planarity tolerance. | `src/surfacing.rs`, `src/lib.rs` | `original curves → consistent section frames → validated kernel surface` |
+| **43** | [`77zzi-align-original-sections-and-loft-through-them`](#checkpoint-77zzi-align-original-sections-and-loft-through-them) | Align open curve directions and closed curve seams before asking the Session kernel for a loft. | `src/surfacing.rs` | `original curves → consistent section frames → validated kernel surface` |
+| **44** | [`77zzj-find-extrusion-axes-and-cap-eligibility`](#checkpoint-77zzj-find-extrusion-axes-and-cap-eligibility) | Reuse the original loop normal and planarity helpers to choose an extrusion axis. | `src/extrude_geometry.rs`, `src/lib.rs` | `original curves → offset and cap rules → shared BRep topology` |
+| **45** | [`77zzk-map-cap-curves-to-surface-parameters`](#checkpoint-77zzk-map-cap-curves-to-surface-parameters) | Build a planar cap patch around the original control points. | `src/extrude_geometry.rs` | `original curves → offset and cap rules → shared BRep topology` |
+| **46** | [`77zzl-build-closed-curved-extrusion-topology`](#checkpoint-77zzl-build-closed-curved-extrusion-topology) | Build the side surface from an oriented original curve. | `src/extrude_geometry.rs` | `original curves → offset and cap rules → shared BRep topology` |
+| **47** | [`77zzm-extrude-original-corners-and-curves`](#checkpoint-77zzm-extrude-original-corners-and-curves) | Dispatch original corner chains and curved sections through the shared extrusion helpers. | `src/extrude_geometry.rs` | `original curves → offset and cap rules → shared BRep topology` |
+| **48** | [`77zzn-connect-the-original-extrusion-recipe`](#checkpoint-77zzn-connect-the-original-extrusion-recipe) | Complete the original recipe with curve selection, signed distance and cap choices. | `src/extrude_geometry.rs` | `original curves → offset and cap rules → shared BRep topology` |
+| **49** | [`77zzo-revolve-original-profiles-around-an-axis`](#checkpoint-77zzo-revolve-original-profiles-around-an-axis) | Turn original curves into exact kernel surfaces around a chosen axis. | `src/revolve_geometry.rs`, `src/lib.rs` | `original profile → axis and angle → kernel surface → one result` |
+
+---
+
+## 4. Step-by-Step Coding Notebook (Concept + Implementation)
+
+Work through each notebook cell below in order inside `workspace/journey`. Read the **Concept Walkthrough** and **Self-Check Q&A** first, then expand the **Implementation** block to type and verify the code.
 
 <a id="checkpoint-77-copy-current-transformation-and-source-edit-algorithms"></a>
+
+### Step 1 of 49 · Build directional scale transforms (`77-copy-current-transformation-and-source-edit-algorithms`)
+
+- **Goal:** Build directional scale transforms.
+- **Data Flow Trace:** `original f64 CAD source → pure transform or original control addresses → later edit preview and GPU display`
+- **Files You Touch:** `src/transform_scale.rs` (*Build directional scale transforms.*) · `src/lib.rs` (*Register the source transformation component.*)
+
+Measure scale reach in space, in the construction plane or along one chosen axis.
+
+factor rejects a degenerate reference or nonpositive result. stretch writes a column-major transform as I+(k−1)Σaaᵀ, then chooses translation so the fixed origin maps to itself. Reuse the Session Xform owner; later Scale tools connect these pure calculations to previews and history.
+
+> **Self-Check Question:** *How does directional scale preserve the other directions?*  
+> **Answer:** Add (k−1) times each chosen axis outer product to the identity matrix.
+
+- **What You Should See:** This preparation compiles in the cumulative browser application and preserves the current drawing. Its transforms and control views connect to the later editing tools.
+- **Hands-On Lab Experiment:** For k=2 along the x axis, predict the images of [1,0,0] and [0,1,0]. Repeat about origin [5,0,0]; explain the translation term.
 
 <details>
 <summary>Implementation 77-copy-current-transformation-and-source-edit-algorithms: Build directional scale transforms</summary>
@@ -170,6 +279,21 @@ After that block, append this supplied code:
 
 <a id="checkpoint-77sa-compute-signed-construction-plane-rotation"></a>
 
+### Step 2 of 49 · Compute signed construction-plane rotation (`77sa-compute-signed-construction-plane-rotation`)
+
+- **Goal:** Compute signed construction-plane rotation.
+- **Data Flow Trace:** `original f64 CAD source → pure transform or original control addresses → later edit preview and GPU display`
+- **Files You Touch:** `src/transform_rotate.rs` (*Compute signed construction-plane rotation.*) · `src/lib.rs` (*Register the source transformation component.*)
+
+Project the two reference vectors onto the construction plane axes.
+
+The 2D cross and dot products give a signed angle; a point on the centre has no defined angle. Compose translation to the centre, rotation about the plane normal and translation back. The rightmost transform acts first. This remains f64 CAD math; the renderer converts final display placements for the GPU.
+
+> **Self-Check Question:** *Why use atan2 of the planar cross and dot products?*  
+> **Answer:** It preserves the rotation sign and quadrant without dividing by a potentially zero dot product.
+
+- **Hands-On Lab Experiment:** Predict the signed angle from the plane x axis to its y axis and in the reverse direction. Verify that rotating about [5,5,0] keeps that centre fixed.
+
 <details>
 <summary>Implementation 77sa-compute-signed-construction-plane-rotation: Compute signed construction-plane rotation</summary>
 
@@ -251,6 +375,21 @@ After that block, append this supplied code:
 
 <a id="checkpoint-77sb-address-original-controls-and-exclusive-part-selections"></a>
 
+### Step 3 of 49 · Address original controls and exclusive part selections (`77sb-address-original-controls-and-exclusive-part-selections`)
+
+- **Goal:** Address original controls and exclusive part selections.
+- **Data Flow Trace:** `original f64 CAD source → pure transform or original control addresses → later edit preview and GPU display`
+- **Files You Touch:** `src/source_controls.rs` (*Address original controls and exclusive part selections.*) · `src/lib.rs` (*Register the source transformation component.*)
+
+Define stable source addresses for vertices, curve controls, surface controls and cloud points.
+
+SelectionMode owns one original parent and one exclusive part mode; changing parents replaces the specialized state. Escape returns the parent while leaving part mode. SelectionTool describes what the next click should pick, separately from what is already selected.
+
+> **Self-Check Question:** *Why does a control ID contain both a surface and two grid indices?*  
+> **Answer:** It identifies an original control within one source surface rather than a displayed tessellation vertex.
+
+- **Hands-On Lab Experiment:** Trace Object → Edge on parent4 → Controls on parent4 → Edge on parent9 → Escape. Predict the retained parent at each transition.
+
 <details>
 <summary>Implementation 77sb-address-original-controls-and-exclusive-part-selections: Address original controls and exclusive part selections</summary>
 
@@ -291,6 +430,21 @@ After that block, type:
 </details>
 
 <a id="checkpoint-77sc-collect-finite-original-controls-and-mesh-vertices"></a>
+
+### Step 4 of 49 · Collect finite original controls and mesh vertices (`77sc-collect-finite-original-controls-and-mesh-vertices`)
+
+- **Goal:** Collect finite original controls and mesh vertices.
+- **Data Flow Trace:** `original f64 CAD source → pure transform or original control addresses → later edit preview and GPU display`
+- **Files You Touch:** `src/source_controls.rs` (*Collect finite original controls and mesh vertices.*)
+
+A control keeps its original address and f64 position.
+
+push rejects non-finite positions before assigning a contiguous display index. Mesh controls come from original vertex keys, without inventing addresses from tessellation triangles. Cloud control display stays on the existing GPU cloud owner rather than copying every source point into this CPU vector.
+
+> **Self-Check Question:** *Why return the inserted display index separately from the original vertex key?*  
+> **Answer:** A sparse original key identifies the source; contiguous display indices connect the control net.
+
+- **Hands-On Lab Experiment:** Predict the display indices for valid source keys2 and100 with an invalid position between them. Explain why neither display index may replace the original key.
 
 <details>
 <summary>Implementation 77sc-collect-finite-original-controls-and-mesh-vertices: Collect finite original controls and mesh vertices</summary>
@@ -404,6 +558,21 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-77sd-connect-curve-polygons-and-surface-control-nets"></a>
+
+### Step 5 of 49 · Connect curve polygons and surface control nets (`77sd-connect-curve-polygons-and-surface-control-nets`)
+
+- **Goal:** Connect curve polygons and surface control nets.
+- **Data Flow Trace:** `original f64 CAD source → pure transform or original control addresses → later edit preview and GPU display`
+- **Files You Touch:** `src/source_controls.rs` (*Connect curve polygons and surface control nets.*)
+
+Reuse push for finite positions and original addresses.
+
+A curve links successive accepted controls. A surface keeps one previous index per v column plus the previous point in the current u row, producing both grid directions with bounded temporary storage. Missing controls clear the corresponding continuation; links use contiguous display indices while edits retain source u/v addresses.
+
+> **Self-Check Question:** *Should a control net connect across a missing or invalid control?*  
+> **Answer:** No. Clearing the previous index at that point breaks the link rather than bridging a gap.
+
+- **Hands-On Lab Experiment:** Draw the links of a2×3 control grid. Remove its middle control and predict which horizontal and vertical links disappear.
 
 <details>
 <summary>Implementation 77sd-connect-curve-polygons-and-surface-control-nets: Connect curve polygons and surface control nets</summary>
@@ -524,6 +693,21 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-77se-reuse-control-collectors-across-original-geometry-families"></a>
+
+### Step 6 of 49 · Reuse control collectors across original geometry families (`77se-reuse-control-collectors-across-original-geometry-families`)
+
+- **Goal:** Reuse control collectors across original geometry families.
+- **Data Flow Trace:** `original f64 CAD source → pure transform or original control addresses → later edit preview and GPU display`
+- **Files You Touch:** `src/source_controls.rs` (*Reuse control collectors across original geometry families.*)
+
+BRep controls retain vertex, curve and surface addresses.
+
+Geometry dispatch reuses those collectors for Element source payloads and handles original line, polyline and point controls directly. A point cloud enables its GPU control mode; Plane and OBB have no controls here. from_geometry builds one fresh control view without mutating the original Session geometry.
+
+> **Self-Check Question:** *Does an Element need a second mesh control algorithm?*  
+> **Answer:** No. Dispatch its original Mesh or BRep to the collectors already written.
+
+- **Hands-On Lab Experiment:** Compare a Mesh with an Element containing that same Mesh. Their control positions and vertex addresses should agree; a line should supply exactly two controls and one link.
 
 <details>
 <summary>Implementation 77se-reuse-control-collectors-across-original-geometry-families: Reuse control collectors across original geometry families</summary>
@@ -691,6 +875,21 @@ After that block, append this supplied code:
 
 <a id="checkpoint-77sf-represent-original-geometry-edit-targets"></a>
 
+### Step 7 of 49 · Represent original geometry edit targets (`77sf-represent-original-geometry-edit-targets`)
+
+- **Goal:** Represent original geometry edit targets.
+- **Data Flow Trace:** `original f64 CAD source → pure transform or original control addresses → later edit preview and GPU display`
+- **Files You Touch:** `src/source_deform.rs` (*Represent original geometry edit targets.*) · `src/lib.rs` (*Register the source transformation component.*)
+
+Target translates the exclusive selection mode into a source edit request.
+
+Keep the original control IDs from the preceding collector lessons. A whole-object selection has no part target; its placement is edited through the existing scene transform path. The following helpers resolve the source points affected by each part request.
+
+> **Self-Check Question:** *Does a displayed triangle identify an editable source face?*  
+> **Answer:** No. Edits use original vertex, edge, face or control addresses.
+
+- **Hands-On Lab Experiment:** Trace a surface-control selection and a whole-object selection into Target::selected.
+
 <details>
 <summary>Implementation 77sf-represent-original-geometry-edit-targets: Represent original geometry edit targets</summary>
 
@@ -731,6 +930,19 @@ After that block, type:
 </details>
 
 <a id="checkpoint-77sg-resolve-original-mesh-vertices-for-part-edits"></a>
+
+### Step 8 of 49 · Resolve original mesh vertices for part edits (`77sg-resolve-original-mesh-vertices-for-part-edits`)
+
+- **Goal:** Resolve original mesh vertices for part edits.
+- **Data Flow Trace:** `original f64 CAD source → pure transform or original control addresses → later edit preview and GPU display`
+- **Files You Touch:** `src/source_deform.rs` (*Resolve original mesh vertices for part edits.*)
+
+Resolve a selected vertex directly by key. A face collects its outer and hole vertices, then sorts and deduplicates them. Mesh edge numbering follows first appearance of an unordered vertex pair across original faces. This reproduces the source edge convention instead of numbering tessellation edges.
+
+> **Self-Check Question:** *Should a face edit leave its hole rim behind?*  
+> **Answer:** No. Include the original hole vertices with the outer face boundary.
+
+- **Hands-On Lab Experiment:** Draw two faces sharing one edge. Predict the first-appearance edge numbers and the vertex keys affected by moving either face.
 
 <details>
 <summary>Implementation 77sg-resolve-original-mesh-vertices-for-part-edits: Resolve original mesh vertices for part edits</summary>
@@ -830,6 +1042,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-77sh-resolve-surface-grids-and-individual-source-controls"></a>
 
+### Step 9 of 49 · Resolve surface grids and individual source controls (`77sh-resolve-surface-grids-and-individual-source-controls`)
+
+- **Goal:** Resolve surface grids and individual source controls.
+- **Data Flow Trace:** `original f64 CAD source → pure transform or original control addresses → later edit preview and GPU display`
+- **Files You Touch:** `src/source_deform.rs` (*Resolve surface grids and individual source controls.*)
+
+A surface control uses its original u/v address. Face0 selects the complete control grid; edges0–3 choose its four sides. For other geometry families, control_point reuses Controls::from_geometry and its stable IDs. There is one control collector, so picking and source editing agree about the addressed point.
+
+> **Self-Check Question:** *What does a surface boundary edit select?*  
+> **Answer:** One side of the original u/v control grid, not a chain of sampled display vertices.
+
+- **Hands-On Lab Experiment:** For a3×2 control grid, list the u/v pairs affected by each boundary and by its complete face.
+
 <details>
 <summary>Implementation 77sh-resolve-surface-grids-and-individual-source-controls: Resolve surface grids and individual source controls</summary>
 
@@ -920,6 +1145,21 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-77si-collect-affected-points-across-cad-geometry-families"></a>
+
+### Step 10 of 49 · Collect affected points across CAD geometry families (`77si-collect-affected-points-across-cad-geometry-families`)
+
+- **Goal:** Collect affected points across CAD geometry families.
+- **Data Flow Trace:** `original f64 CAD source → pure transform or original control addresses → later edit preview and GPU display`
+- **Files You Touch:** `src/source_deform.rs` (*Collect affected points across CAD geometry families.*)
+
+Dispatch the selected target to the existing source key and control helpers.
+
+A BRep face uses its incident surface controls and an edge uses its original3D curve controls. Element payloads reuse the same Mesh/BRep resolvers. This collects edit anchors without changing source geometry or display placement.
+
+> **Self-Check Question:** *Does editing an Element require flattening its source payload?*  
+> **Answer:** No. Reuse the Mesh or BRep point resolver while retaining the original Element wrapper.
+
+- **Hands-On Lab Experiment:** Compare points returned for a Mesh and an Element containing that Mesh. Predict the rejection for a face request on an original Line.
 
 <details>
 <summary>Implementation 77si-collect-affected-points-across-cad-geometry-families: Collect affected points across CAD geometry families</summary>
@@ -1027,6 +1267,21 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-77sj-preserve-rational-weights-and-validate-brep-boundaries"></a>
+
+### Step 11 of 49 · Preserve rational weights and validate BRep boundaries (`77sj-preserve-rational-weights-and-validate-brep-boundaries`)
+
+- **Goal:** Preserve rational weights and validate BRep boundaries.
+- **Data Flow Trace:** `original f64 CAD source → pure transform or original control addresses → later edit preview and GPU display`
+- **Files You Touch:** `src/source_deform.rs` (*Preserve rational weights and validate BRep boundaries.*)
+
+For rational curves, store the moved Euclidean point multiplied by its unchanged weight.
+
+Before committing a BRep edit, validate topology and sample changed incident3D edges against their2D trim curves on the adjacent surfaces. Reject an edit that requires trim rebuilding; the caller can then retain the original solid atomically. This bounded check is not a general trim reconstruction algorithm.
+
+> **Self-Check Question:** *Why preserve a rational control weight when moving its point?*  
+> **Answer:** The Euclidean point changes, while its original rational weighting remains part of the curve definition.
+
+- **Hands-On Lab Experiment:** Explain why translating one boundary curve without its adjacent surface may be rejected. Predict the homogeneous coordinates for point[2,3,4] with weight2.
 
 <details>
 <summary>Implementation 77sj-preserve-rational-weights-and-validate-brep-boundaries: Preserve rational weights and validate BRep boundaries</summary>
@@ -1146,6 +1401,21 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-77sk-transform-original-mesh-and-surface-controls"></a>
 
+### Step 12 of 49 · Transform original mesh and surface controls (`77sk-transform-original-mesh-and-surface-controls`)
+
+- **Goal:** Transform original mesh and surface controls.
+- **Data Flow Trace:** `original f64 CAD source → pure transform or original control addresses → later edit preview and GPU display`
+- **Files You Touch:** `src/source_deform.rs` (*Transform original mesh and surface controls.*)
+
+Clone the original source before changing addressed points.
+
+Mesh edits update only resolved vertex keys and clear the triangle BVH. Surface edits update original controls and drop the cached mesh. The original source object remains available for rollback and Undo; later display preparation regenerates geometry from the edited source.
+
+> **Self-Check Question:** *Why clear derived acceleration and tessellation caches after source controls move?*  
+> **Answer:** Those caches describe the previous source positions and must be regenerated.
+
+- **Hands-On Lab Experiment:** Move one face of two adjacent mesh faces. List the shared vertices that change and the untouched vertices that remain identical.
+
 <details>
 <summary>Implementation 77sk-transform-original-mesh-and-surface-controls: Transform original mesh and surface controls</summary>
 
@@ -1235,6 +1505,21 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-77sl-transform-original-line-polyline-point-and-curve-controls"></a>
+
+### Step 13 of 49 · Transform original line polyline point and curve controls (`77sl-transform-original-line-polyline-point-and-curve-controls`)
+
+- **Goal:** Transform original line polyline point and curve controls.
+- **Data Flow Trace:** `original f64 CAD source → pure transform or original control addresses → later edit preview and GPU display`
+- **Files You Touch:** `src/source_deform.rs` (*Transform original line polyline point and curve controls.*)
+
+Use each original control address to move one point in a cloned source.
+
+Reuse the rational curve setter from the preceding lesson. Rebuilding a Line from its two endpoints must restore its original identity and display metadata; changing its shape does not create a new object. Point and polyline edits retain their corresponding source owners.
+
+> **Self-Check Question:** *Which Line metadata must survive an endpoint edit?*  
+> **Answer:** Its original GUID, name, width, dash, colour and arrowhead remain unchanged.
+
+- **Hands-On Lab Experiment:** Predict the changed endpoint and unchanged metadata when only Line vertex1 moves. Compare a rational curve edit with a polyline vertex edit.
 
 <details>
 <summary>Implementation 77sl-transform-original-line-polyline-point-and-curve-controls: Transform original line polyline point and curve controls</summary>
@@ -1345,6 +1630,21 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-77sm-transform-shared-brep-boundary-positions-coherently"></a>
 
+### Step 14 of 49 · Transform shared BRep boundary positions coherently (`77sm-transform-shared-brep-boundary-positions-coherently`)
+
+- **Goal:** Transform shared BRep boundary positions coherently.
+- **Data Flow Trace:** `original f64 CAD source → pure transform or original control addresses → later edit preview and GPU display`
+- **Files You Touch:** `src/source_deform.rs` (*Transform shared BRep boundary positions coherently.*)
+
+Collect the selected source positions and clone the BRep.
+
+Move coincident vertex, curve and surface controls within the source tolerance; record touched curves and surfaces, and invalidate changed surface meshes. Validate affected boundaries before returning the new solid. A failed validation returns an error and leaves the original geometry available to the transaction.
+
+> **Self-Check Question:** *Why move coincident BRep vertices curve controls and surface controls together?*  
+> **Answer:** They describe connected parts of the same original boundary, so moving only one representation can break consistency.
+
+- **Hands-On Lab Experiment:** Trace a boundary point present in a vertex, curve and surface. Predict which caches and incident-boundary checks must run when it moves.
+
 <details>
 <summary>Implementation 77sm-transform-shared-brep-boundary-positions-coherently: Transform shared BRep boundary positions coherently</summary>
 
@@ -1451,6 +1751,21 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-77sn-dispatch-original-part-edits-and-retain-element-ownership"></a>
 
+### Step 15 of 49 · Dispatch original part edits and retain Element ownership (`77sn-dispatch-original-part-edits-and-retain-element-ownership`)
+
+- **Goal:** Dispatch original part edits and retain Element ownership.
+- **Data Flow Trace:** `original f64 CAD source → pure transform or original control addresses → later edit preview and GPU display`
+- **Files You Touch:** `src/source_deform.rs` (*Dispatch original part edits and retain Element ownership.*)
+
+Validate the requested transform once, then dispatch to the source helpers written in the preceding lessons.
+
+Element editing recursively reuses Mesh/BRep transformations and retains the Element wrapper and original feature payload. The independent regressions are registered after the original mesh-topology helpers are complete, because their hole/winding checks depend on that module. These helpers connect to the existing preview and history tools afterward.
+
+> **Self-Check Question:** *Does moving an Element control create a separate editable display mesh?*  
+> **Answer:** No. Update its original Mesh/BRep payload inside the cloned Element.
+
+- **Hands-On Lab Experiment:** Predict the before/after owner identity when one Element mesh control moves. Trace an invalid transform through the dispatcher without mutating the source.
+
 <details>
 <summary>Implementation 77sn-dispatch-original-part-edits-and-retain-element-ownership: Dispatch original part edits and retain Element ownership</summary>
 
@@ -1551,6 +1866,21 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-77so-map-sparse-original-vertex-keys-to-display-slots"></a>
 
+### Step 16 of 49 · Map sparse original vertex keys to display slots (`77so-map-sparse-original-vertex-keys-to-display-slots`)
+
+- **Goal:** Map sparse original vertex keys to display slots.
+- **Data Flow Trace:** `original f64 CAD source → pure transform or original control addresses → later edit preview and GPU display`
+- **Files You Touch:** `src/source_topology_colour.rs` (*Pack original edge pen colours into the existing RGBA word convention.*) · `src/source_mesh_topology.rs` (*Map sparse original vertex keys to display slots.*) · `src/lib.rs` (*Register the shared source colour helper and original edge topology owner.*)
+
+Choose a dense slot lookup only when sorted original keys are close enough together; otherwise use a sparse map.
+
+The lookup maps original identity to contiguous display storage without changing the source keys. Pack source pen colours once with the small shared RGBA helper; edge topology will reuse that packed format.
+
+> **Self-Check Question:** *Why not allocate a GPU slot array up to the largest original vertex key?*  
+> **Answer:** Sparse original keys can be enormous even when the mesh has few vertices.
+
+- **Hands-On Lab Experiment:** Compare original keys[0,1,2] with[2,1000000]. Predict which lookup stores each mesh and which GPU slot belongs to its last original vertex.
+
 <details>
 <summary>Implementation 77so-map-sparse-original-vertex-keys-to-display-slots: Map sparse original vertex keys to display slots</summary>
 
@@ -1601,6 +1931,21 @@ After that block, type:
 </details>
 
 <a id="checkpoint-77sp-compute-polygon-normals-from-original-boundaries"></a>
+
+### Step 17 of 49 · Compute polygon normals from original boundaries (`77sp-compute-polygon-normals-from-original-boundaries`)
+
+- **Goal:** Compute polygon normals from original boundaries.
+- **Data Flow Trace:** `original f64 CAD source → pure transform or original control addresses → later edit preview and GPU display`
+- **Files You Touch:** `src/source_mesh_topology.rs` (*Compute polygon normals from original boundaries.*)
+
+MeshTopo separates original edges, their incident face slots, winding agreement, face normals and closure.
+
+Newell normals use all polygon boundary positions through the original-key slot lookup. Reject a degenerate normal instead of dividing by zero. Sorting face keys gives stable face slots for edge incidence and later GPU ownership.
+
+> **Self-Check Question:** *Why sum every polygon edge instead of using its first triangle?*  
+> **Answer:** The polygon may have collinear initial vertices; the complete Newell sum uses the original boundary.
+
+- **Hands-On Lab Experiment:** Draw a planar polygon whose first three vertices are collinear. Predict why the full boundary still gives a usable normal.
 
 <details>
 <summary>Implementation 77sp-compute-polygon-normals-from-original-boundaries: Compute polygon normals from original boundaries</summary>
@@ -1704,6 +2049,21 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-77sq-build-one-original-edge-table-and-record-incident-faces"></a>
+
+### Step 18 of 49 · Build one original edge table and record incident faces (`77sq-build-one-original-edge-table-and-record-incident-faces`)
+
+- **Goal:** Build one original edge table and record incident faces.
+- **Data Flow Trace:** `original f64 CAD source → pure transform or original control addresses → later edit preview and GPU display`
+- **Files You Touch:** `src/source_mesh_topology.rs` (*Build one original edge table and record incident faces.*)
+
+Each low-vertex slot owns a linked list of edge indices.
+
+Insert a new unordered edge once, using its first-appearance colour index. Record at most two distinct incident face slots and whether their traversal directions oppose. The sentinel u32::MAX marks an absent list link or incident face. This preserves original edge ordering for display and picking.
+
+> **Self-Check Question:** *How do adjacent faces reuse the same original edge?*  
+> **Answer:** Search the linked edge list at the lower vertex slot for the same upper key.
+
+- **Hands-On Lab Experiment:** Walk two adjacent faces across the same edge in opposite directions. Predict one stored edge, two incident faces and its opposed flag.
 
 <details>
 <summary>Implementation 77sq-build-one-original-edge-table-and-record-incident-faces: Build one original edge table and record incident faces</summary>
@@ -1815,6 +2175,21 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-77sr-preserve-hole-winding-and-complete-original-mesh-topology"></a>
+
+### Step 19 of 49 · Preserve hole winding and complete original mesh topology (`77sr-preserve-hole-winding-and-complete-original-mesh-topology`)
+
+- **Goal:** Preserve hole winding and complete original mesh topology.
+- **Data Flow Trace:** `original f64 CAD source → pure transform or original control addresses → later edit preview and GPU display`
+- **Files You Touch:** `src/source_mesh_topology.rs` (*Preserve hole winding and complete original mesh topology.*) · `src/source_deform.rs` (*Supply independent original-source and fixed-origin regressions.*)
+
+Collect sorted original faces and their normals.
+
+Visit outer rings first, then hole rings; normalize hole traversal against the face normal before recording edge direction. Reuse EdgeTable::add for both passes. Closure requires a nonempty source mesh and a second incident face on every edge. The supplied regressions cover holes, winding, sparse keys and source pen ordering before part picking is connected.
+
+> **Self-Check Question:** *Why visit outer borders before hole rings?*  
+> **Answer:** It keeps the kernel’s existing outer-edge order for source colours widths and picking IDs.
+
+- **Hands-On Lab Experiment:** Compare a closed box with a face removed. Then add a hole rim and predict its direction relative to the outer border.
 
 <details>
 <summary>Implementation 77sr-preserve-hole-winding-and-complete-original-mesh-topology: Preserve hole winding and complete original mesh topology</summary>
@@ -2018,6 +2393,20 @@ After that block, append this supplied code:
 
 <a id="checkpoint-77a-own-transformation-questions-and-the-selected-original-targets"></a>
 
+### Step 20 of 49 · Own transformation questions and the selected original targets (`77a-own-transformation-questions-and-the-selected-original-targets`)
+
+- **Goal:** Own transformation questions and the selected original targets.
+- **Data Flow Trace:** `current selection and plane → frozen targets → pending transform questions`
+- **Files You Touch:** `src/transform_draft.rs` (*Own current transformation questions, modes, accepted points and original targets.*) · `src/lib.rs` (*Register the source transformation component.*)
+
+Keep the tool kind, scale mode, accepted points, current plane and frozen original targets in one owner.
+
+> **Self-Check Question:** *Can hover become saved placement?*  
+> **Answer:** No. The question owner and temporary preview remain separate from scene placement and its history.
+
+- **What You Should See:** The five original curve families remain visible while source transformations connect. The final exercise copies and independently scales and rotates original boxes.
+- **Hands-On Lab Experiment:** Compare Copy target prompts, Scale1D reference prompts and Rotate center/angle prompts.
+
 <details>
 <summary>Implementation 77a-own-transformation-questions-and-the-selected-original-targets: Own transformation questions and the selected original targets</summary>
 
@@ -2059,6 +2448,19 @@ After that block, type:
 
 <a id="checkpoint-77b-validate-point-and-number-transformation-answers"></a>
 
+### Step 21 of 49 · Validate point and number transformation answers (`77b-validate-point-and-number-transformation-answers`)
+
+- **Goal:** Validate point and number transformation answers.
+- **Data Flow Trace:** `point or number answer → checked references → current original transform`
+- **Files You Touch:** `src/transform_draft.rs` (*Validate current transform points and numbers without adopting an invalid reference.*)
+
+Resolve a valid factor, reference reach or signed plane angle before adopting the candidate points.
+
+> **Self-Check Question:** *Can Scale1D take a factor before its direction?*  
+> **Answer:** No. Its first reference point determines the direction. Scale 2D and3D can take a factor after the origin.
+
+- **Hands-On Lab Experiment:** Try a repeated reference point, a nonpositive factor and valid1D reference/new-length input.
+
 <details>
 <summary>Implementation 77b-validate-point-and-number-transformation-answers: Validate point and number transformation answers</summary>
 
@@ -2091,6 +2493,19 @@ Edit the existing block to match this code; keep unchanged lines:
 
 <a id="checkpoint-77c-resolve-typed-batches-and-temporary-transformation-previews"></a>
 
+### Step 22 of 49 · Resolve typed batches and temporary transformation previews (`77c-resolve-typed-batches-and-temporary-transformation-previews`)
+
+- **Goal:** Resolve typed batches and temporary transformation previews.
+- **Data Flow Trace:** `typed batch → candidate owner → checked transforms or temporary preview`
+- **Files You Touch:** `src/transform_draft.rs` (*Resolve current options and atomic batches, temporary preview matrices and tool buttons.*)
+
+Validate all typed words before replacing the owner. Copy repeats after a target; other transforms finish after their result.
+
+> **Self-Check Question:** *Does extra input after Scale completion create a partial edit?*  
+> **Answer:** No. Reject the entire typed batch before adopting any transform or answer.
+
+- **Hands-On Lab Experiment:** Try Scale with origin, factor and an extra word. Compare Copy with two targets and Enter with the same tool cancelled by Escape.
+
 <details>
 <summary>Implementation 77c-resolve-typed-batches-and-temporary-transformation-previews: Resolve typed batches and temporary transformation previews</summary>
 
@@ -2122,6 +2537,19 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-77d-resolve-original-cad-parts-and-complete-selected-bounds"></a>
+
+### Step 23 of 49 · Resolve original CAD parts and complete selected bounds (`77d-resolve-original-cad-parts-and-complete-selected-bounds`)
+
+- **Goal:** Resolve original CAD parts and complete selected bounds.
+- **Data Flow Trace:** `selected original part or owner → source geometry and world bounds → checked target`
+- **Files You Touch:** `src/source_part.rs` (*Resolve existing CAD face and boundary targets against original kernel geometry.*) · `src/lib.rs` (*Register the source transformation component.*) · `src/scene.rs` (*Connect current transformation behavior to the existing input and history owner.*)
+
+Map displayed CAD face/boundary identities back to original geometry. Include Line, Point and Curve in precise selected bounds.
+
+> **Self-Check Question:** *Why does direct rotation need selected line bounds?*  
+> **Answer:** Its gizmo center comes from the selected bounds. Without them a line incorrectly rotates about the world origin.
+
+- **Hands-On Lab Experiment:** Select a line from 1,0,0 to2,0,0; its center is1.5,0,0. Compare that with a selected surface boundary’s original points.
 
 <details>
 <summary>Implementation 77d-resolve-original-cad-parts-and-complete-selected-bounds: Resolve original CAD parts and complete selected bounds</summary>
@@ -2185,6 +2613,19 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-77e-rebuild-an-edited-original-cad-source-before-adoption"></a>
+
+### Step 24 of 49 · Rebuild an edited original CAD source before adoption (`77e-rebuild-an-edited-original-cad-source-before-adoption`)
+
+- **Goal:** Rebuild an edited original CAD source before adoption.
+- **Data Flow Trace:** `world edit → local original deformation → validated source → derived display`
+- **Files You Touch:** `src/scene.rs` (*Connect current transformation behavior to the existing input and history owner.*) · `src/part_preview.rs` (*Connect current transformation behavior to the existing input and history owner.*)
+
+Apply the world delta in the original local frame, validate adjacent trims, and prepare the edited source before changing the row.
+
+> **Self-Check Question:** *What happens if an edit breaks incident trims?*  
+> **Answer:** Refuse the result and keep the original source, row placement and history unchanged.
+
+- **Hands-On Lab Experiment:** Move a box face, Undo, then inspect original source identity and face boundaries after Save/Open.
 
 <details>
 <summary>Implementation 77e-rebuild-an-edited-original-cad-source-before-adoption: Rebuild an edited original CAD source before adoption</summary>
@@ -2380,6 +2821,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-77f-copy-original-rows-beside-their-existing-parents"></a>
 
+### Step 25 of 49 · Copy original rows beside their existing parents (`77f-copy-original-rows-beside-their-existing-parents`)
+
+- **Goal:** Copy original rows beside their existing parents.
+- **Data Flow Trace:** `selected original rows → checked copy plan → new identities and world placement`
+- **Files You Touch:** `src/layer_edit.rs` (*Copy checked original rows under their existing parent with current attributes, new identities and placed source sharing.*)
+
+Stage checked copies with new row and tree identities, retain names/colours and copy attached attributes under the same parent.
+
+> **Self-Check Question:** *Does copying a selected parent also copy every ordinary child?*  
+> **Answer:** Only the explicit selected objects are copied; attached attributes follow their owner. Ordinary child objects keep their existing original parent.
+
+- **Hands-On Lab Experiment:** Compare Copy under duplicate named groups, copied row GUIDs, retained source allocation and inverse-derived saved local placement.
+
 <details>
 <summary>Implementation 77f-copy-original-rows-beside-their-existing-parents: Copy original rows beside their existing parents</summary>
 
@@ -2410,6 +2864,19 @@ After that block, type:
 </details>
 
 <a id="checkpoint-77g-carry-transformation-state-through-the-existing-drawing-owner"></a>
+
+### Step 26 of 49 · Carry transformation state through the existing drawing owner (`77g-carry-transformation-state-through-the-existing-drawing-owner`)
+
+- **Goal:** Carry transformation state through the existing drawing owner.
+- **Data Flow Trace:** `current Draft → frozen transform owner → temporary scene and resource accounting`
+- **Files You Touch:** `src/tool.rs` (*Carry current transform question owners and buttons through the existing Draft.*) · `src/editor.rs` (*Own temporary original-part and whole-placement transformation previews.*)
+
+Keep transformation questions beside the current Draft and include their temporary scene owners in display and memory reporting.
+
+> **Self-Check Question:** *Can a temporary transformed scene outlive cancellation?*  
+> **Answer:** Cancellation drops its owner. The saved scene and history still retain only their original placements and sources.
+
+- **Hands-On Lab Experiment:** Compare display_scene with scene during a rotation preview, and inspect presentation_scenes before and after Escape.
 
 <details>
 <summary>Implementation 77g-carry-transformation-state-through-the-existing-drawing-owner: Carry transformation state through the existing drawing owner</summary>
@@ -3750,6 +4217,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-77h-validate-selected-originals-before-beginning-or-committing-a-transform"></a>
 
+### Step 27 of 49 · Validate selected originals before beginning or committing a transform (`77h-validate-selected-originals-before-beginning-or-committing-a-transform`)
+
+- **Goal:** Validate selected originals before beginning or committing a transform.
+- **Data Flow Trace:** `selected original targets → checked preview → current tool or one commit`
+- **Files You Touch:** `src/editor.rs` (*Connect checked original transformations to the current Editor transaction boundary.*)
+
+Freeze the selected targets and prepare their original preview before replacing any active input owner.
+
+> **Self-Check Question:** *Can Copy on a control point replace a valid unfinished tool?*  
+> **Answer:** No. Copy requires whole objects and validates them before adopting its owner.
+
+- **Hands-On Lab Experiment:** Try Copy on a curve control, an unavailable source and a locked row. Compare direct source-part Move with whole-object placement.
+
 <details>
 <summary>Implementation 77h-validate-selected-originals-before-beginning-or-committing-a-transform: Validate selected originals before beginning or committing a transform</summary>
 
@@ -3783,6 +4263,19 @@ Edit the existing block to match this code; keep unchanged lines:
 
 <a id="checkpoint-77i-adopt-validated-outcomes-and-preserve-repeat-copy-transactions"></a>
 
+### Step 28 of 49 · Adopt validated outcomes and preserve repeat copy transactions (`77i-adopt-validated-outcomes-and-preserve-repeat-copy-transactions`)
+
+- **Goal:** Adopt validated outcomes and preserve repeat copy transactions.
+- **Data Flow Trace:** `complete candidate batch → checked temporary scene → individual Copy transactions`
+- **Files You Touch:** `src/editor.rs` (*Connect checked original transformations to the current Editor transaction boundary.*)
+
+Preflight the full typed batch against a temporary scene, then record each Copy target as one transaction.
+
+> **Self-Check Question:** *Does Escape undo completed Copy targets?*  
+> **Answer:** No. It ends the unfinished tool; Undo removes each completed target copy in reverse order.
+
+- **Hands-On Lab Experiment:** Enter a Copy base and two targets, finish, then Undo twice and Redo twice. Cancel another unfinished target and verify Redo remains.
+
 <details>
 <summary>Implementation 77i-adopt-validated-outcomes-and-preserve-repeat-copy-transactions: Adopt validated outcomes and preserve repeat copy transactions</summary>
 
@@ -3815,6 +4308,19 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-77j-route-transform-input-cancellation-and-current-plane-changes"></a>
+
+### Step 29 of 49 · Route transform input cancellation and current plane changes (`77j-route-transform-input-cancellation-and-current-plane-changes`)
+
+- **Goal:** Route transform input cancellation and current plane changes.
+- **Data Flow Trace:** `owned event or typed input → current transform question → preview or cancellation`
+- **Files You Touch:** `src/editor.rs` (*Connect current transformation behavior to the existing input and history owner.*)
+
+Connect clicked and typed answers, current-plane changes and cancellation while keeping Polyline Close separate from transformation completion.
+
+> **Self-Check Question:** *Can a transform click close a Polyline collector?*  
+> **Answer:** No. Only the open point collector owns start-point closure. Transform questions determine their own completion.
+
+- **Hands-On Lab Experiment:** Hover Scale and Rotate, change CPlane, type an invalid answer, cancel, and verify saved originals remain unchanged.
 
 <details>
 <summary>Implementation 77j-route-transform-input-cancellation-and-current-plane-changes: Route transform input cancellation and current plane changes</summary>
@@ -4917,6 +5423,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-77k-connect-transformation-lifecycle-and-part-move-dispatch"></a>
+
+### Step 30 of 49 · Connect transformation lifecycle and part Move dispatch (`77k-connect-transformation-lifecycle-and-part-move-dispatch`)
+
+- **Goal:** Connect transformation lifecycle and part Move dispatch.
+- **Data Flow Trace:** `transform lifecycle action → current plane and selected part → checked original preview`
+- **Files You Touch:** `src/editor.rs` (*Register transform lifecycle actions before connecting current input dispatch.*) · `src/selection_tests.rs` (*Keep invalid Move and parent-deletion guards when source-part Move becomes available.*) · `src/edit_preview_tests.rs` (*Allow part Move previews and cancellation while retaining locked, cold and stale target guards.*)
+
+Connect current plane updates and successful cancellation while routing part Move through its original source preview.
+
+> **Self-Check Question:** *Does changing CPlane rewrite the accepted world points?*  
+> **Answer:** No. Keep accepted points in the world and use the new plane for subsequent reference measurements.
+
+- **Hands-On Lab Experiment:** Begin a part Move, accept a base point, change CPlane, preview a target and cancel. Compare saved source and placement before and after.
 
 <details>
 <summary>Implementation 77k-connect-transformation-lifecycle-and-part-move-dispatch: Connect transformation lifecycle and part Move dispatch</summary>
@@ -6206,6 +6725,19 @@ Update the existing block with this supplied code; keep unchanged lines:
 
 <a id="checkpoint-77l-register-copy-scale-rotate-and-their-current-aliases"></a>
 
+### Step 31 of 49 · Register Copy Scale Rotate and their current aliases (`77l-register-copy-scale-rotate-and-their-current-aliases`)
+
+- **Goal:** Register Copy Scale Rotate and their current aliases.
+- **Data Flow Trace:** `current verb or alias → checked parameter parser → Editor action`
+- **Files You Touch:** `src/transform_commands.rs` (*Parse current direct and interactive transform names, options and aliases.*) · `src/lib.rs` (*Register the source transformation component.*) · `src/commands.rs` (*Register current transforms and preserve longest-name matching and typed aliases.*) · `src/editor.rs` (*Carry typed scale factors and world-axis rotation angles to the existing Editor.*)
+
+Expose current transformation names, world-axis Rotate options and typed aliases through the same longest-name command registry.
+
+> **Self-Check Question:** *Does the typed alias s mean the canvas shortcut S?*  
+> **Answer:** Typed s invokes Scale. When the canvas owns the key, S runs Show; focused text input owns its own letters.
+
+- **Hands-On Lab Experiment:** Try Copy 1,0,0, Scale 2, Rotate z 45, m 1,0,0, s 2 and rot z 45, with spaces separating the verb and parameters.
+
 <details>
 <summary>Implementation 77l-register-copy-scale-rotate-and-their-current-aliases: Register Copy Scale Rotate and their current aliases</summary>
 
@@ -6544,6 +7076,19 @@ Edit the existing block to match this code; keep unchanged lines:
 
 <a id="checkpoint-77m-apply-direct-scale-and-rotate-about-the-current-selection-center"></a>
 
+### Step 32 of 49 · Apply direct Scale and Rotate about the current selection center (`77m-apply-direct-scale-and-rotate-about-the-current-selection-center`)
+
+- **Goal:** Apply direct Scale and Rotate about the current selection center.
+- **Data Flow Trace:** `typed current factor or world axis → selection center → original transform`
+- **Files You Touch:** `src/editor.rs` (*Apply direct current Scale and Rotate about the selection gizmo center.*)
+
+Validate the direct factor or world-axis angle and apply it about the current gizmo center, falling back to the world origin when absent.
+
+> **Self-Check Question:** *Does Rotate z90 use the construction plane normal?*  
+> **Answer:** The explicit z form uses the world Z axis. Interactive Rotate uses the current construction plane normal.
+
+- **Hands-On Lab Experiment:** Rotate a selected line about its center, then compare an interactive XZ reference turn and Undo each independently.
+
 <details>
 <summary>Implementation 77m-apply-direct-scale-and-rotate-about-the-current-selection-center: Apply direct Scale and Rotate about the current selection center</summary>
 
@@ -6576,6 +7121,19 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-77n-retain-earlier-selection-checks-with-source-part-support"></a>
+
+### Step 33 of 49 · Retain earlier selection checks with source part support (`77n-retain-earlier-selection-checks-with-source-part-support`)
+
+- **Goal:** Retain earlier selection checks with source part support.
+- **Data Flow Trace:** `current selection → validated source-part preview → unchanged history on cancel`
+- **Files You Touch:** `src/edit_preview_tests.rs` (*Copy retained selection/preview fixtures with current source-part Move support.*)
+
+Strengthen the earlier part-preview check: cancellation must restore the original placements. The selection and parent-deletion guards now change in 77k, alongside part Move.
+
+> **Self-Check Question:** *Does enabling part Move allow Delete to remove its parent implicitly?*  
+> **Answer:** No. Delete still requires whole-object selection. Invalid edits and cancelled previews leave selection history unchanged.
+
+- **Hands-On Lab Experiment:** Select an original part, start Move and cancel with Escape. Confirm its placement is restored, then select its parent and compare Delete/Undo. Read the retained cold, locked and stale-owner cases as optional boundary validation.
 
 <details>
 <summary>Implementation 77n-retain-earlier-selection-checks-with-source-part-support: Retain earlier selection checks with source part support</summary>
@@ -6622,6 +7180,20 @@ Update the existing block with this supplied code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-77o-exercise-original-copy-transforms-history-and-exact-persistence"></a>
+
+### Step 34 of 49 · Exercise original copy transforms history and exact persistence (`77o-exercise-original-copy-transforms-history-and-exact-persistence`)
+
+- **Goal:** Exercise original copy transforms history and exact persistence.
+- **Data Flow Trace:** `original selection → current Copy Scale Rotate → history → original Save/Open`
+- **Files You Touch:** `src/transform_tests.rs` (*Copy integrated current copy/transform/original-edit/history/nested SaveOpen fixtures.*) · `src/lib.rs` (*Register the source transformation component.*)
+
+Copy the current integrated creation, preview, source edit and nested placement fixtures, then use the registered commands to create the rendered exercise.
+
+> **Self-Check Question:** *What survives a whole-object Copy and rotation?*  
+> **Answer:** Keep the original geometry allocation and its source data. The new row has a distinct identity and placement; its parent, name and colours remain.
+
+- **What You Should See:** Three original boxes retain their shared source and independent placements. Copy repeats with separate target transactions; Scale modes and Rotate references preserve original geometry. Source-part edits retain rational weights, knots and validated CAD boundaries. Undo/Redo and Save/Open preserve original identity and nested placement.
+- **Hands-On Lab Experiment:** Type Close, CPlane XY, Box w0,0,0 1 1 1, Select All, Copy 2,0,0, Scale 0.8, Rotate z 30, Copy -2,0,0, View Isometric, Select None and Fit, with spaces after Copy, Scale and Rotate. Try repeated Copy targets, Scale1D/2D/3D, a failed input, Escape and Undo/Redo. Save and reopen.
 
 <details>
 <summary>Implementation 77o-exercise-original-copy-transforms-history-and-exact-persistence: Exercise original copy transforms history and exact persistence</summary>
@@ -6678,6 +7250,19 @@ After that block, append this supplied code:
 
 <a id="checkpoint-77zza-describe-curve-gathering-answers"></a>
 
+### Step 35 of 49 · Describe curve gathering answers (`77zza-describe-curve-gathering-answers`)
+
+- **Goal:** Describe ordered curve questions and typed answers.
+- **Data Flow Trace:** `original curve picks → ordered answers → Session kernel recipe`
+- **Files You Touch:** `src/gather_input.rs` (*Type the shared curve-gathering declarations.*) · `src/lib.rs` (*Register these helpers for the later kernel surfacing recipes.*)
+
+Describe ordered curve questions and typed answers. Keep original curves and their placed corner data separate from command progress.
+
+> **Self-Check Question:** *Why preserve both a NURBS curve and optional corners?*  
+> **Answer:** Kernel builders use the curve; line and polyline previews can retain their exact corners.
+
+- **Hands-On Lab Experiment:** Trace a curve-pick step followed by two point answers. Identify which values belong to original geometry.
+
 <details>
 <summary>Implementation 77zza-describe-curve-gathering-answers: Describe curve gathering answers</summary>
 
@@ -6718,6 +7303,19 @@ After that block, type:
 </details>
 
 <a id="checkpoint-77zzb-read-curve-gathering-values"></a>
+
+### Step 36 of 49 · Read curve gathering values (`77zzb-read-curve-gathering-values`)
+
+- **Goal:** Read finite numbers, absolute points and distance vectors through the existing coordinate reader.
+- **Data Flow Trace:** `original curve picks → ordered answers → Session kernel recipe`
+- **Files You Touch:** `src/gather_input.rs` (*Insert the next gathering behavior after its existing declarations.*)
+
+Read finite numbers, absolute points and distance vectors through the existing coordinate reader. Reject curve picks supplied as words.
+
+> **Self-Check Question:** *Why does a distance accept either a number or a vector?*  
+> **Answer:** A number follows the recipe axis; a vector states the displacement directly.
+
+- **Hands-On Lab Experiment:** Try a finite angle, an out-of-range angle and a distance vector. Predict the accepted answer variants.
 
 <details>
 <summary>Implementation 77zzb-read-curve-gathering-values: Read curve gathering values</summary>
@@ -6802,6 +7400,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-77zzc-connect-gathering-recipes"></a>
+
+### Step 37 of 49 · Connect gathering recipes (`77zzc-connect-gathering-recipes`)
+
+- **Goal:** Connect typed input to a recipe, its questions and kernel builder.
+- **Data Flow Trace:** `original curve picks → ordered answers → Session kernel recipe`
+- **Files You Touch:** `src/gather_input.rs` (*Insert the next gathering behavior after its existing declarations.*)
+
+Connect typed input to a recipe, its questions and kernel builder. Reuse the existing option matcher and expose typed point, number and axis helpers.
+
+> **Self-Check Question:** *Why reuse the option matcher?*  
+> **Answer:** Solid and gathering commands use the same labels and case-insensitive multiword matching rules.
+
+- **Hands-On Lab Experiment:** Trace a numeric distance along an axis and compare it with an explicit vector.
 
 <details>
 <summary>Implementation 77zzc-connect-gathering-recipes: Connect gathering recipes</summary>
@@ -6909,6 +7520,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-77zzd-parse-gathering-command-words"></a>
 
+### Step 38 of 49 · Parse gathering command words (`77zzd-parse-gathering-command-words`)
+
+- **Goal:** Read options anywhere in a command and consume other answers in order.
+- **Data Flow Trace:** `original curve picks → ordered answers → Session kernel recipe`
+- **Files You Touch:** `src/gather_input.rs` (*Insert the next gathering behavior after its existing declarations.*)
+
+Read options anywhere in a command and consume other answers in order. Apply remaining numeric defaults only when the typed prefix permits it.
+
+> **Self-Check Question:** *Why cannot an omitted point receive a numeric default?*  
+> **Answer:** The remaining sequence must consist entirely of number questions before default completion is valid.
+
+- **Hands-On Lab Experiment:** Compare a partially typed revolve command with a missing axis point. Explain which can complete from defaults.
+
 <details>
 <summary>Implementation 77zzd-parse-gathering-command-words: Parse gathering command words</summary>
 
@@ -6998,6 +7622,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-77zze-track-ordered-curve-picks"></a>
 
+### Step 39 of 49 · Track ordered curve picks (`77zze-track-ordered-curve-picks`)
+
+- **Goal:** Track preselected curve rows and skip answers already typed.
+- **Data Flow Trace:** `original curve picks → ordered answers → Session kernel recipe`
+- **Files You Touch:** `src/gather_input.rs` (*Add the next gathering behavior to the existing helpers.*)
+
+Track preselected curve rows and skip answers already typed. Keep curve-pick order while advancing only after the required minimum.
+
+> **Self-Check Question:** *Why retain a separate count of typed answers?*  
+> **Answer:** Curve picks and other answers occupy different sequences; the count lets progress skip already supplied values.
+
+- **Hands-On Lab Experiment:** Trace two preselected rows through separate rail and profile steps. Identify where progress waits.
+
 <details>
 <summary>Implementation 77zze-track-ordered-curve-picks: Track ordered curve picks</summary>
 
@@ -7031,6 +7668,19 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-77zzf-advance-and-cancel-curve-picks"></a>
+
+### Step 40 of 49 · Advance and cancel curve picks (`77zzf-advance-and-cancel-curve-picks`)
+
+- **Goal:** Toggle a picked curve, reject duplicates across groups, and advance on a full group or Enter.
+- **Data Flow Trace:** `original curve picks → ordered answers → Session kernel recipe`
+- **Files You Touch:** `src/gather_input.rs` (*Insert the next gathering behavior after its existing declarations.*)
+
+Toggle a picked curve, reject duplicates across groups, and advance on a full group or Enter. Accept defaults and typed answers through one progress state.
+
+> **Self-Check Question:** *Why truncate answers before adding a new one?*  
+> **Answer:** The current progress position defines the accepted prefix; a replacement must discard later stale answers.
+
+- **Hands-On Lab Experiment:** Trace picking the same row twice, picking it in another group and pressing Enter below the minimum.
 
 <details>
 <summary>Implementation 77zzf-advance-and-cancel-curve-picks: Advance and cancel curve picks</summary>
@@ -7134,6 +7784,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-77zzg-prepare-placed-kernel-curves"></a>
 
+### Step 41 of 49 · Prepare placed kernel curves (`77zzg-prepare-placed-kernel-curves`)
+
+- **Goal:** Convert lines, polylines and NURBS curves to placed kernel curves.
+- **Data Flow Trace:** `original curve picks → ordered answers → Session kernel recipe`
+- **Files You Touch:** `src/gather_input.rs` (*Add the next gathering behavior to the existing helpers.*)
+
+Convert lines, polylines and NURBS curves to placed kernel curves. Remove repeated polyline corners, clamp periodic input and normalize the domain for shared surfacing recipes.
+
+> **Self-Check Question:** *Why normalize every gathered curve to the same domain?*  
+> **Answer:** Loft and sweep need compatible input conventions even when the original curves use different parameter ranges.
+
+- **Hands-On Lab Experiment:** Compare a placed polyline with a periodic NURBS curve. Trace their distinct preparation paths and shared validity checks.
+
 <details>
 <summary>Implementation 77zzg-prepare-placed-kernel-curves: Prepare placed kernel curves</summary>
 
@@ -7198,6 +7861,19 @@ After that block, append this supplied code:
 
 <a id="checkpoint-77zzh-check-original-loops-and-surface-controls"></a>
 
+### Step 42 of 49 · Check original loops and surface controls (`77zzh-check-original-loops-and-surface-controls`)
+
+- **Goal:** Find a loop’s unit normal and scale-aware planarity tolerance.
+- **Data Flow Trace:** `original curves → consistent section frames → validated kernel surface`
+- **Files You Touch:** `src/surfacing.rs` (*Type loop geometry, planarity and finite surface validation.*) · `src/lib.rs` (*Compile the shared surfacing owner while its recipes are prepared.*)
+
+Find a loop’s unit normal and scale-aware planarity tolerance. Check that a resulting surface is valid and has finite control points before wrapping it as original geometry. Reuse the curve collector instead of another sampling path.
+
+> **Self-Check Question:** *Why scale the planarity tolerance by the loop bounds?*  
+> **Answer:** A fixed tolerance would behave differently for small and large CAD outlines.
+
+- **Hands-On Lab Experiment:** Trace a planar loop, a collapsed loop and a surface with a non-finite control point through their separate checks.
+
 <details>
 <summary>Implementation 77zzh-check-original-loops-and-surface-controls: Check original loops and surface controls</summary>
 
@@ -7255,6 +7931,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-77zzi-align-original-sections-and-loft-through-them"></a>
+
+### Step 43 of 49 · Align original sections and loft through them (`77zzi-align-original-sections-and-loft-through-them`)
+
+- **Goal:** Align open curve directions and closed curve seams before asking the Session kernel for a loft.
+- **Data Flow Trace:** `original curves → consistent section frames → validated kernel surface`
+- **Files You Touch:** `src/surfacing.rs` (*Add section alignment and lofting before the existing result validator.*)
+
+Align open curve directions and closed curve seams before asking the Session kernel for a loft. Keep section count and degree rules in the same helper. Supply the original validation fixtures separately; the construction recipes connect this owner next.
+
+> **Self-Check Question:** *Why align sections before building the loft?*  
+> **Answer:** Opposite directions or mismatched closed seams can twist the surface between otherwise valid original curves.
+
+- **Hands-On Lab Experiment:** Trace two open sections with opposite directions, then a closed section with a shifted seam. The existing browser drawing remains unchanged until the following recipe connection.
 
 <details>
 <summary>Implementation 77zzi-align-original-sections-and-loft-through-them: Align original sections and loft through them</summary>
@@ -7339,6 +8028,19 @@ After that block, append this supplied code:
 
 <a id="checkpoint-77zzj-find-extrusion-axes-and-cap-eligibility"></a>
 
+### Step 44 of 49 · Find extrusion axes and cap eligibility (`77zzj-find-extrusion-axes-and-cap-eligibility`)
+
+- **Goal:** Reuse the original loop normal and planarity helpers to choose an extrusion axis.
+- **Data Flow Trace:** `original curves → offset and cap rules → shared BRep topology`
+- **Files You Touch:** `src/extrude_geometry.rs` (*Type the shared extrusion axis, orientations and cap eligibility.*) · `src/lib.rs` (*Compile the original extrusion helpers before their command registration.*)
+
+Reuse the original loop normal and planarity helpers to choose an extrusion axis. Orient that axis with the construction plane. Classify open, bent and flat outlines before building a cap, keeping the reason separate from geometry construction.
+
+> **Self-Check Question:** *Why retain the reason an outline cannot be capped?*  
+> **Answer:** An open extrusion may still be valid. The command can report the missing cap without discarding its side geometry.
+
+- **Hands-On Lab Experiment:** Trace an open curve, a bent loop and an offset parallel to the outline plane.
+
 <details>
 <summary>Implementation 77zzj-find-extrusion-axes-and-cap-eligibility: Find extrusion axes and cap eligibility</summary>
 
@@ -7398,6 +8100,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-77zzk-map-cap-curves-to-surface-parameters"></a>
+
+### Step 45 of 49 · Map cap curves to surface parameters (`77zzk-map-cap-curves-to-surface-parameters`)
+
+- **Goal:** Build a planar cap patch around the original control points.
+- **Data Flow Trace:** `original curves → offset and cap rules → shared BRep topology`
+- **Files You Touch:** `src/extrude_geometry.rs` (*Extend this original owner with the day’s whole extrusion helpers.*)
+
+Build a planar cap patch around the original control points. Map its boundary into surface parameters, determine its winding and attach the boundary’s pcurve to the existing BRep edge. Reuse that edge when creating the cap face.
+
+> **Self-Check Question:** *Why reuse the existing boundary edge?*  
+> **Answer:** The side and cap must share one topological boundary. Two coincident edges would leave separate faces rather than a connected shell.
+
+- **Hands-On Lab Experiment:** Sketch one shared edge and its two surface-parameter curves. Trace the cap orientation through its winding.
 
 <details>
 <summary>Implementation 77zzk-map-cap-curves-to-surface-parameters: Map cap curves to surface parameters</summary>
@@ -7528,6 +8243,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-77zzl-build-closed-curved-extrusion-topology"></a>
 
+### Step 46 of 49 · Build closed curved extrusion topology (`77zzl-build-closed-curved-extrusion-topology`)
+
+- **Goal:** Build the side surface from an oriented original curve.
+- **Data Flow Trace:** `original curves → offset and cap rules → shared BRep topology`
+- **Files You Touch:** `src/extrude_geometry.rs` (*Extend this original owner with the day’s whole extrusion helpers.*)
+
+Build the side surface from an oriented original curve. Share the lower, upper and seam edges, attach their surface-parameter curves, and join the side and both caps into one solid. Preserve the original curve precision throughout.
+
+> **Self-Check Question:** *Why does the seam edge need two parameter curves?*  
+> **Answer:** The periodic side meets the same three-dimensional seam at both ends of its surface domain. Each side of that seam needs its own parameter location.
+
+- **Hands-On Lab Experiment:** Trace the seam through the side wire twice, once forward and once reversed. These helpers remain preparatory until the recipe connects.
+
 <details>
 <summary>Implementation 77zzl-build-closed-curved-extrusion-topology: Build closed curved extrusion topology</summary>
 
@@ -7642,6 +8370,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-77zzm-extrude-original-corners-and-curves"></a>
 
+### Step 47 of 49 · Extrude original corners and curves (`77zzm-extrude-original-corners-and-curves`)
+
+- **Goal:** Dispatch original corner chains and curved sections through the shared extrusion helpers.
+- **Data Flow Trace:** `original curves → offset and cap rules → shared BRep topology`
+- **Files You Touch:** `src/extrude_geometry.rs` (*Extend this original owner with the day’s whole extrusion helpers.*)
+
+Dispatch original corner chains and curved sections through the shared extrusion helpers. Build polygon sides from their original points, add eligible caps and validate the resulting BRep. Curved inputs use the kernel surface or the closed topology builder.
+
+> **Self-Check Question:** *Why preserve the original curve when building a curved extrusion?*  
+> **Answer:** Sampling it into a polygon would change the source geometry and its later editable control points.
+
+- **Hands-On Lab Experiment:** Compare a polygon outline with a curved outline and trace Cap On and Cap Off through each branch.
+
 <details>
 <summary>Implementation 77zzm-extrude-original-corners-and-curves: Extrude original corners and curves</summary>
 
@@ -7743,6 +8484,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-77zzn-connect-the-original-extrusion-recipe"></a>
+
+### Step 48 of 49 · Connect the original extrusion recipe (`77zzn-connect-the-original-extrusion-recipe`)
+
+- **Goal:** Complete the original recipe with curve selection, signed distance and cap choices.
+- **Data Flow Trace:** `original curves → offset and cap rules → shared BRep topology`
+- **Files You Touch:** `src/extrude_geometry.rs` (*Extend this original owner with the day’s whole extrusion helpers.*)
+
+Complete the original recipe with curve selection, signed distance and cap choices. Validate the offset before building every selected original as one result. Keep omitted-cap messages and the full output in the same undo transaction.
+
+> **Self-Check Question:** *Why validate the offset before building any selected curve?*  
+> **Answer:** A non-finite or zero offset must reject the whole candidate before any partial result can be published.
+
+- **Hands-On Lab Experiment:** Trace two selected curves through one extrusion result and one Undo. The existing command registry connects this prepared recipe in the following checkpoint.
 
 <details>
 <summary>Implementation 77zzn-connect-the-original-extrusion-recipe: Connect the original extrusion recipe</summary>
@@ -7958,6 +8712,19 @@ After that block, append this supplied code:
 
 <a id="checkpoint-77zzo-revolve-original-profiles-around-an-axis"></a>
 
+### Step 49 of 49 · Revolve original profiles around an axis (`77zzo-revolve-original-profiles-around-an-axis`)
+
+- **Goal:** Turn original curves into exact kernel surfaces around a chosen axis.
+- **Data Flow Trace:** `original profile → axis and angle → kernel surface → one result`
+- **Files You Touch:** `src/revolve_geometry.rs` (*Type the original axis validation, exact revolution and complete recipe result.*) · `src/lib.rs` (*Compile the prepared original revolution recipe.*)
+
+Describe one shared recipe for profile selection, two axis points and a bounded angle. Reject a zero-length axis before calling the kernel. Convert degrees to radians once, validate every resulting surface, and return all selected profiles in one undo transaction.
+
+> **Self-Check Question:** *Why revolve the original curve instead of its display polyline?*  
+> **Answer:** The kernel retains its exact rational surface and editable source geometry. The display polyline is only a tessellation for drawing.
+
+- **Hands-On Lab Experiment:** Trace a 90-degree turn and a complete turn of a straight profile. Compare the surface seam and radius. The following registry checkpoint connects this prepared recipe to the browser command.
+
 <details>
 <summary>Implementation 77zzo-revolve-original-profiles-around-an-axis: Revolve original profiles around an axis</summary>
 
@@ -8111,9 +8878,11 @@ After that block, append this supplied code:
 
 </details>
 
-## Run, Check, and Save
+---
 
-From `session_viewer`:
+## 5. Build, Verify, and Save Your Checkpoint
+
+Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 77zzo-revolve-original-profiles-around-an-axis
@@ -8124,10 +8893,10 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. Use [checkpoint recovery](../../recovery.md) to restore any saved checkpoint.
+Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
 
-## Expected Visual Result & Experiment
+## 6. Lesson Summary & Expected Visual Result
 
-- **Try this:** Trace a 90-degree turn and a complete turn of a straight profile. Compare the surface seam and radius. The following registry checkpoint connects this prepared recipe to the browser command.
+- **Final Lesson Experiment:** Trace a 90-degree turn and a complete turn of a straight profile. Compare the surface seam and radius. The following registry checkpoint connects this prepared recipe to the browser command.
 
-Continue with [Profile collection and one surfacing transaction](78-copy-current-curve-collection-and-surfacing-recipes.md).
+Continue with [Profile collection and one surfacing transaction](../../consolidation/78-copy-current-curve-collection-and-surfacing-recipes.md).

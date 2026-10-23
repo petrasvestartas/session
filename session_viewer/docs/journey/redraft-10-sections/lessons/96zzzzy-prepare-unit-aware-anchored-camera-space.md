@@ -1,92 +1,158 @@
 # 21.1 · Units and one precise render origin
 
-**Section 10: Shared GPU Arenas, Floating-Origin Precision, Multisampling, and Production Parity** · **Lesson 21.1** (Redraft `10.11`) · **11 checkpoints (`96zzzzy-prepare-unit-aware-anchored-camera-space` → `96zzzzzi-share-one-camera-and-measurement-unit`)**
+**Section 10: Shared GPU Arenas, Floating-Origin Precision, Multisampling, and Production Parity** · **Lesson 21.1** (Redraft `10.11`) · **11 checkpoints (`96zzzzy-prepare-unit-aware-anchored-camera-space` → `96zzzzzi-share-one-camera-and-measurement-unit`)** · **Study time: 8.1–10.25 h**
 
-> **Learning Goal:** Keep scene coordinates precise while expressing the camera projection in physical metres.
+> **What You Will Learn & Build:** Keep scene coordinates precise while expressing the camera projection in physical metres. By the final checkpoint (`96zzzzzi-share-one-camera-and-measurement-unit`), you will check that measurement, projection and original history use the shared camera unit.
 
-## Visual WebGPU & Architecture Schematic
+## 1. Visual Pipeline & WebGPU Architecture (Black & White Schematics)
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1px solid #cbd5e1;border-radius:10px;background:#f8fafc;">
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
+<svg viewBox="0 0 840 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <rect x="4" y="4" width="832" height="212" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Lesson 21.1 Execution Flow: Units and one precise render origin</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">Concrete data pipeline you build in this lesson (11 Checkpoints: 96zzzzy-prepare-unit-aware-anchored-camera-space → 96zzzzzi-share-one-camera-and-measurement-unit)</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
+  
+    
+    <rect x="18" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="89" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
+    <line x1="28" y1="92" x2="151" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">Scene coordinate −</text>
+    <text x="89" y="124" text-anchor="middle" font-size="11" fill="#111111">scene anchor</text>
+    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="183" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="254" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
+    <line x1="193" y1="92" x2="316" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">physical metres</text>
+    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="348" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="419" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
+    <line x1="358" y1="92" x2="481" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">camera view</text>
+    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="513" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="584" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
+    <line x1="523" y1="92" x2="646" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">clip coordinate</text>
+    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="678" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="749" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
+    <line x1="688" y1="92" x2="811" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">Shared camera unit</text>
+    
+    <rect x="18" y="162" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="32" y="181" font-size="11" font-weight="700" fill="#111111">Files You Edit in Lesson 21.1:</text>
+    <text x="215" y="181" font-size="11" fill="#111111">src/camera.rs  ·  src/measure_mark.rs  ·  src/lib.rs  ·  src/camera_space_tests.rs  ·  src/editor.rs  ·  src/measure_tests.rs</text>
+    <text x="32" y="198" font-size="10.5" fill="#111111">11 Checkpoints: 96zzzzy-prepare-unit-aware-anchored-camera-space → 96zzzzzi-share-one-camera-and-measurement-unit — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
+  
+</svg>
+</div>
+
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
 <svg viewBox="0 0 840 240" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#475569"/>
-    </marker>
-    <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#2563eb"/>
-    </marker>
-    <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#059669"/>
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
     </marker>
   </defs>
-  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
-  <text x="20" y="28" font-size="14" font-weight="700" fill="#0f172a">Section 10 Production Architecture: Shared GPU Storage Arena, f64 Floating Origin, Reversed-Z, 4x MSAA & Matrix Shader</text>
-  <text x="20" y="46" font-size="11.5" fill="#475569">How the maintained viewer pulls vertices from one growable GPU arena, eliminates jitter at 10^12 units, and renders procedural Matrices.</text>
-  <line x1="16" y1="54" x2="824" y2="54" stroke="#e2e8f0" stroke-width="1"/>
+  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Section 10 Production Architecture: Shared GPU Storage Arena, f64 Floating Origin, Reversed-Z, 4x MSAA & Matrix Shader</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">How the maintained viewer pulls vertices from one growable GPU arena, eliminates jitter at 10^12 units, and renders procedural Matrices.</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
   
-    <rect x="18" y="68" width="250" height="145" rx="6" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
-    <text x="143" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1e40af">1. Shared GPU Arena (Ch 19–20)</text>
-    <text x="28" y="108" font-size="10.5" fill="#1e3a8a">• 1 Growable Storage Buffer Arena</text>
-    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#1d4ed8">• Vertex Pulling (@builtin(vertex_index))</text>
-    <text x="28" y="144" font-size="10.5" fill="#1e3a8a">• 8-byte Draw Slots -&gt; ObjectRecord</text>
-    <text x="28" y="162" font-size="10.5" fill="#1e3a8a">• slot_table.wgsl maps Rg32Uint</text>
-    <text x="28" y="178" font-size="10.5" fill="#1e3a8a">  primitive IDs to Element/Face owners</text>
-    <text x="28" y="194" font-size="10" fill="#1e3a8a">• Free-list span reuse after GPU lease</text>
+    <rect x="18" y="68" width="250" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="143" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">1. Shared GPU Arena (Ch 19–20)</text>
+    <text x="28" y="108" font-size="10.5" fill="#111111">• 1 Growable Storage Buffer Arena</text>
+    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#111111">• Vertex Pulling (@builtin(vertex_index))</text>
+    <text x="28" y="144" font-size="10.5" fill="#111111">• 8-byte Draw Slots -&gt; ObjectRecord</text>
+    <text x="28" y="162" font-size="10.5" fill="#111111">• slot_table.wgsl maps Rg32Uint</text>
+    <text x="28" y="178" font-size="10.5" fill="#111111">  primitive IDs to Element/Face owners</text>
+    <text x="28" y="194" font-size="10" fill="#111111">• Free-list span reuse after GPU lease</text>
 
-    <line x1="268" y1="138" x2="298" y2="138" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
+    <line x1="268" y1="138" x2="298" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="300" y="68" width="265" height="145" rx="6" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5"/>
-    <text x="432" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#9a3412">2. f64 Floating Origin &amp; Reversed-Z (Ch 21)</text>
-    <text x="312" y="108" font-size="10.5" font-weight="600" fill="#c2410c">• rel_f32 = (world_f64 - anchor_f64) as f32</text>
-    <text x="312" y="125" font-size="10" fill="#7c2d12">  Zero vertex/grid jitter even at 10^12 m!</text>
-    <text x="312" y="144" font-size="10.5" font-weight="600" fill="#c2410c">• Reversed-Z Depth (GreaterEqual):</text>
-    <text x="312" y="160" font-size="10" fill="#7c2d12">  Near plane = 1.0, Far plane = 0.0</text>
-    <text x="312" y="178" font-size="10.5" fill="#7c2d12">• Held world base grid &amp; preserved</text>
-    <text x="312" y="193" font-size="10.5" fill="#7c2d12">  live camera during Session reload</text>
+    <rect x="300" y="68" width="265" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="432" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">2. f64 Floating Origin &amp; Reversed-Z (Ch 21)</text>
+    <text x="312" y="108" font-size="10.5" font-weight="600" fill="#111111">• rel_f32 = (world_f64 - anchor_f64) as f32</text>
+    <text x="312" y="125" font-size="10" fill="#111111">  Zero vertex/grid jitter even at 10^12 m!</text>
+    <text x="312" y="144" font-size="10.5" font-weight="600" fill="#111111">• Reversed-Z Depth (GreaterEqual):</text>
+    <text x="312" y="160" font-size="10" fill="#111111">  Near plane = 1.0, Far plane = 0.0</text>
+    <text x="312" y="178" font-size="10.5" fill="#111111">• Held world base grid &amp; preserved</text>
+    <text x="312" y="193" font-size="10.5" fill="#111111">  live camera during Session reload</text>
 
-    <line x1="565" y1="138" x2="595" y2="138" stroke="#059669" stroke-width="2" marker-end="url(#arrow-green)"/>
+    <line x1="565" y1="138" x2="595" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="597" y="68" width="223" height="145" rx="6" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1.5"/>
-    <text x="708" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#065f46">3. 4x MSAA &amp; Matrix Shader (Ch 22)</text>
-    <text x="609" y="108" font-size="10.5" fill="#064e3b">• Coherent 1x/4x MSAA sample targets</text>
-    <text x="609" y="126" font-size="10.5" font-weight="600" fill="#047857">• matrix.wgsl (16w header + 3w/cell):</text>
-    <text x="609" y="142" font-size="10" fill="#064e3b">  Heatmap + procedural 3-decimal digits</text>
-    <text x="609" y="157" font-size="10" fill="#064e3b">  (0 cell blank; plate-less title; yellow</text>
-    <text x="609" y="172" font-size="10" fill="#064e3b">  selected border; Rg32Uint whole pick)</text>
-    <text x="609" y="190" font-size="10" fill="#064e3b">• Coalesced single-flight frame scheduler</text>
+    <rect x="597" y="68" width="223" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="708" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">3. 4x MSAA &amp; Matrix Shader (Ch 22)</text>
+    <text x="609" y="108" font-size="10.5" fill="#111111">• Coherent 1x/4x MSAA sample targets</text>
+    <text x="609" y="126" font-size="10.5" font-weight="600" fill="#111111">• matrix.wgsl (16w header + 3w/cell):</text>
+    <text x="609" y="142" font-size="10" fill="#111111">  Heatmap + procedural 3-decimal digits</text>
+    <text x="609" y="157" font-size="10" fill="#111111">  (0 cell blank; plate-less title; yellow</text>
+    <text x="609" y="172" font-size="10" fill="#111111">  selected border; Rg32Uint whole pick)</text>
+    <text x="609" y="190" font-size="10" fill="#111111">• Coalesced single-flight frame scheduler</text>
     
 </svg>
 </div>
 
-### Lesson Data Flow (`Rust` → `WebGPU` → `WGSL`)
+## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
 
-```
-Scene coordinate − scene anchor → physical metres → camera view → clip coordinate.
-Precise temporary input → shared origin subtraction → existing ink lane; world label → existing text frame.
-Shared camera unit → measurements and projection → original history.
-```
+Before writing code, review how the three layers in this chapter talk to each other:
 
-- Keep scene coordinates precise while expressing the camera projection in physical metres.
-- Keep temporary ink and cached measurement positions precise across origin changes.
-- Check that measurement, projection and original history use the shared camera unit.
-- **Why it works (Why subtract the anchor before converting the position to f32?):** Narrowing a large coordinate first can erase a small displacement permanently. Subtracting in double precision keeps the local displacement available to the GPU.
-
-### Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `Browser`)
-
-| Layer | Construct | First-Year Student Explanation |
+| Layer | Construct | Plain-English Explanation for Students |
 | :--- | :--- | :--- |
 | **WGSL (Vertex Pull)** | `@group(0) @binding(b) var<storage, read> arena_verts: array<u32>;` | Fetches packed vertex positions, normals, and colors directly from a single growable storage buffer using `@builtin(vertex_index)`. |
 | **Rust/WGSL (`f64`->`f32`)** | `let rel: Vec3 = (world_f64 - anchor_f64).as_vec3();` | Subtracts the camera-area `f64` anchor on the CPU before converting to `f32`, preventing 32-bit float mantissa exhaustion far from `(0,0,0)`. |
 | **WGSL (`matrix.wgsl`)** | 16-word header + 3 words/cell procedural digits | Renders matrix heatmaps and 3-decimal numeric digits procedurally inside the fragment shader with zero texture uploads per cell. |
 | **Rust (`ink_ranges.rs`)** | Merged contiguous `Range<u32>` instance draws | Toggles point/line/edge/CAD-wire family visibility without rebuilding GPU buffers or invalidating original owner indices. |
 
-**Production source (`session_viewer/src`):** [camera.rs](../../../../src/camera.rs), [state.rs](../../../../src/state.rs), [engine/gpu/objects.rs](../../../../src/engine/gpu/objects.rs), [engine/gpu/frame.rs](../../../../src/engine/gpu/frame.rs), [engine/gpu/targets.rs](../../../../src/engine/gpu/targets.rs), [shaders/grid.wgsl](../../../../src/shaders/grid.wgsl), [shaders/ribbon.wgsl](../../../../src/shaders/ribbon.wgsl), [app/cplane.rs](../../../../src/app/cplane.rs), [build.rs](../../../../build.rs).
+**Authoritative production source (`session_viewer/src`):** [camera.rs](../../../../src/camera.rs), [state.rs](../../../../src/state.rs), [engine/gpu/objects.rs](../../../../src/engine/gpu/objects.rs), [engine/gpu/frame.rs](../../../../src/engine/gpu/frame.rs), [engine/gpu/targets.rs](../../../../src/engine/gpu/targets.rs), [shaders/grid.wgsl](../../../../src/shaders/grid.wgsl), [shaders/ribbon.wgsl](../../../../src/shaders/ribbon.wgsl), [app/cplane.rs](../../../../src/app/cplane.rs), [build.rs](../../../../build.rs).
 
-## Implementation Checkpoints
+## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
 
-Apply these checkpoints in order inside `workspace/journey`. Expand each block to view the Rust/WGSL/HTML edits:
+| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
+| ---: | :--- | :--- | :--- | :--- |
+| **1** | [`96zzzzy-prepare-unit-aware-anchored-camera-space`](#checkpoint-96zzzzy-prepare-unit-aware-anchored-camera-space) | Keep scene coordinates precise while expressing the camera projection in physical metres. | `src/camera.rs`, `src/measure_mark.rs`, `src/lib.rs`, `src/camera_space_tests.rs` | `Scene coordinate − scene anchor → physical metres → camera view → clip coordinate` |
+| **2** | [`96zzzzz-prepare-precise-anchor-relative-object-records`](#checkpoint-96zzzzz-prepare-precise-anchor-relative-object-records) | Retain precise placements while updating only their GPU translation. | `src/render_space.rs`, `src/lib.rs`, `src/gpu_mesh.rs`, `src/global_outline_tests.rs` | `Original f64 placement → subtract shared f64 anchor → twelve GPU translation bytes → existing object record consumers` |
+| **3** | [`96zzzzza-prepare-anchor-relative-original-ink`](#checkpoint-96zzzzza-prepare-anchor-relative-original-ink) | Pack original ink positions only after subtracting the shared scene origin. | `src/scene.rs`, `src/lib.rs`, `src/scene_origin_tests.rs`, `src/pick_sources.rs` | `Retained original/sample → original f64 placement → subtract scene anchor → existing packed ink record` |
+| **4** | [`96zzzzzb-prepare-shared-origin-frame-inputs`](#checkpoint-96zzzzzb-prepare-shared-origin-frame-inputs) | Keep derived rendering inputs consistent with one precise scene origin. | `src/render_space.rs`, `src/renderer.rs`, `src/clipping_gpu.rs`, `src/ambient_rows.rs` | `One renderer origin → local GPU clipping + precise text placement + relative ambient ground` |
+| **5** | [`96zzzzzc-prepare-cloud-and-sheet-frame-placements`](#checkpoint-96zzzzzc-prepare-cloud-and-sheet-frame-placements) | Preserve cached cloud and sheet sources while their frame origin changes. | `src/render_space.rs`, `src/gpu_mesh.rs`, `src/cloud_gpu.rs`, `src/sheet_gpu.rs` | `Original f64 placement − shared anchor → local model/eye → existing LOD, records and sheet uniforms` |
+| **6** | [`96zzzzzd-prepare-local-temporary-overlays`](#checkpoint-96zzzzzd-prepare-local-temporary-overlays) | Keep temporary ink and cached measurement positions precise across origin changes. | `src/tool_preview.rs`, `src/guide_gpu.rs`, `src/editor.rs`, `src/trim_draft.rs` | `Precise temporary input → shared origin subtraction → existing ink lane; world label → existing text frame` |
+| **7** | [`96zzzzze-preserve-local-precision-before-source-placement`](#checkpoint-96zzzzze-preserve-local-precision-before-source-placement) | Avoid a large world-coordinate intermediate when packing placed source data. | `src/scene.rs`, `src/pick_sources.rs`, `src/cloud_pick.rs`, `src/scene_origin_tests.rs` | `Original placement − scene anchor → transform original local point → narrow once` |
+| **8** | [`96zzzzzf-prepare-precise-construction-grid-origins`](#checkpoint-96zzzzzf-prepare-precise-construction-grid-origins) | Pack a construction grid in the same precise local frame as original geometry. | `src/cplane.rs`, `src/grid.rs`, `src/renderer.rs`, `src/scene_origin_tests.rs` | `Construction plane − scene origin → local grid vertices → GPU cache witness` |
+| **9** | [`96zzzzzg-initialize-object-records-in-the-local-frame`](#checkpoint-96zzzzzg-initialize-object-records-in-the-local-frame) | Create precise records before their first GPU draw. | `src/gpu_mesh.rs`, `src/global_outline_tests.rs` | `Original placement + current origin → existing record encoder → first draw` |
+| **10** | [`96zzzzzh-prepare-anchor-relative-original-highlights`](#checkpoint-96zzzzzh-prepare-anchor-relative-original-highlights) | Keep original face, edge, curve and control highlights aligned after rebasing. | `src/highlight.rs`, `src/renderer.rs`, `src/global_outline_tests.rs` | `Original selection → existing local source accessors → derived highlight lanes` |
+| **11** | [`96zzzzzi-share-one-camera-and-measurement-unit`](#checkpoint-96zzzzzi-share-one-camera-and-measurement-unit) | Check that measurement, projection and original history use the shared camera unit. | `src/measure_tests.rs` | `Shared camera unit → measurements and projection → original history` |
+
+---
+
+## 4. Step-by-Step Coding Notebook (Concept + Implementation)
+
+Work through each notebook cell below in order inside `workspace/journey`. Read the **Concept Walkthrough** and **Self-Check Q&A** first, then expand the **Implementation** block to type and verify the code.
 
 <a id="checkpoint-96zzzzy-prepare-unit-aware-anchored-camera-space"></a>
+
+### Step 1 of 11 · Prepare unit-aware anchored camera space (`96zzzzy-prepare-unit-aware-anchored-camera-space`)
+
+- **Goal:** Keep scene coordinates precise while expressing the camera projection in physical metres.
+- **Data Flow Trace:** `Scene coordinate − scene anchor → physical metres → camera view → clip coordinate`
+- **Files You Touch:** `src/camera.rs` (*Move the existing measurement Unit and suffix method to the camera; this body was already typed.*) · `src/measure_mark.rs` (*Keep the existing measurement name as an alias to the shared unit.*) · `src/lib.rs` (*Keep the optional coordinate fixtures outside required coding.*) · `src/camera_space_tests.rs` (*Supply equivalent physical mm/metre projection/rays and distant submillimetre detail after f32 camera upload.*) · `src/editor.rs` (*Remove the independent editor unit value.*) · `src/measure_tests.rs` (*Retain all existing area, volume, original-face and open-shape assertions under the shared unit owner.*)
+
+Move the unit already introduced for [measurement labels](../../84d-own-temporary-measurement-labels-without-scene-identities.md) to the camera. One camera value now drives measurement suffixes and projection. The document owns its coordinates and file unit. Convert scene distances to metres only while building the camera matrix. For a distant drawing, subtract the shared scene anchor in double precision before multiplying by the unit scale. Multiplying all clip components by one nonzero factor leaves their divided coordinates unchanged. Divide the perspective matrix by the unit scale so inverse consumers keep their numeric range. CPU rays invert around the precise target, form their direction locally and restore the world origin afterward. The ordinary matrix uses a zero anchor; later GPU consumers will adopt the same anchor together. Depth remains forward at this checkpoint.
+
+> **Self-Check Question:** *Why subtract the anchor before converting the position to f32?*  
+> **Answer:** Narrowing a large coordinate first can erase a small displacement permanently. Subtracting in double precision keeps the local displacement available to the GPU.
+
+- **What You Should See:** The camera prepares equivalent mm/metre and anchor-relative projections without changing document ownership.
+- **Hands-On Lab Experiment:** Run Fit, Pan Right, Fit, View Perspective and View Orthographic, and verify that navigation and original picking still work. In the typed code, compare physically equivalent mm/metre camera inputs and predict a distant anchor-relative fractional displacement. GPU anchor adoption follows later.
 
 <details>
 <summary>Implementation 96zzzzy-prepare-unit-aware-anchored-camera-space: Prepare unit-aware anchored camera space</summary>
@@ -2543,6 +2609,20 @@ Update the existing block with this supplied code; keep unchanged lines:
 
 <a id="checkpoint-96zzzzz-prepare-precise-anchor-relative-object-records"></a>
 
+### Step 2 of 11 · Prepare precise anchor-relative object records (`96zzzzz-prepare-precise-anchor-relative-object-records`)
+
+- **Goal:** Retain precise placements while updating only their GPU translation.
+- **Data Flow Trace:** `Original f64 placement → subtract shared f64 anchor → twelve GPU translation bytes → existing object record consumers`
+- **Files You Touch:** `src/render_space.rs` (*Share double-precision anchor subtraction before GPU narrowing.*) · `src/lib.rs` (*Keep anchor-relative GPU conversion under one coordinate owner.*) · `src/gpu_mesh.rs` (*Retain precise placement translation and the anchor used by its GPU mirror.*) · `src/global_outline_tests.rs` (*Supply actual distant/local pixel equality, exact mapped object records, unchanged geometry uploads, original picks and selection, repeated-anchor zero writes and precise placement edits. Derived ink is omitted explicitly in this isolated surface fixture.*)
+
+The object record already owns the model matrix. Keep its translation in double precision beside the GPU mirror and subtract the current scene anchor before narrowing. An explicit rebase updates twelve translation bytes; ordinary selection and placement updates use the same helper and anchor. One origin policy moves after a quarter-view-distance drift clamped to 1,000–100,000 scene units, throttles moves for 200 ms and reports pending work. The original object and shared geometry remain unchanged. The application still uses the zero anchor until every consumer can adopt a common frame.
+
+> **Self-Check Question:** *Why keep the original translation after uploading a model matrix?*  
+> **Answer:** A later anchor change must recompute from the precise placement. Subtracting a new anchor from an already rounded GPU translation cannot recover the original displacement.
+
+- **What You Should See:** Object records can rebase precise placements without uploading geometry or changing original identities.
+- **Hands-On Lab Experiment:** Select an original mesh, run Move 0.25,0,0 and Undo, and confirm its selection and original identity remain. Inspect the typed rebase operation and predict its twelve translation bytes at a chosen anchor; repeat the same anchor to predict zero writes. Application-wide browser rebasing follows later.
+
 <details>
 <summary>Implementation 96zzzzz-prepare-precise-anchor-relative-object-records: Prepare precise anchor-relative object records</summary>
 
@@ -3233,6 +3313,20 @@ After that block, append this supplied code:
 </details>
 
 <a id="checkpoint-96zzzzza-prepare-anchor-relative-original-ink"></a>
+
+### Step 3 of 11 · Prepare anchor-relative original ink (`96zzzzza-prepare-anchor-relative-original-ink`)
+
+- **Goal:** Pack original ink positions only after subtracting the shared scene origin.
+- **Data Flow Trace:** `Retained original/sample → original f64 placement → subtract scene anchor → existing packed ink record`
+- **Files You Touch:** `src/scene.rs` (*Retain the existing line API while making its packing origin explicit.*) · `src/lib.rs` (*Keep optional precise source-packing fixtures outside required learner coding.*) · `src/scene_origin_tests.rs` (*Supply actual original line/path/point placement, fractional bytes, chain neighbours, parent/control IDs, net styles and retained original/cache pointers at a large coordinate.*) · `src/pick_sources.rs` (*Reuse the original source-table owner in the same coordinate frame as its packed ink.*)
+
+Lines, paths, points and controls already retain precise source coordinates. Apply the original placement in double precision, subtract the anchor, then narrow the local position. Paths reuse their retained samples and form neighbours after local duplicate filtering. Keep the earlier zero-anchor methods as delegates so live drawing remains consistent until all consumers adopt the shared frame. Reuse the existing source table with that same anchor before filtering path duplicates, so drawn segments and compact pick addresses remain paired with original keys.
+
+> **Self-Check Question:** *Why must path duplicate filtering happen after subtracting the anchor?*  
+> **Answer:** Distinct nearby world points may collapse when large coordinates are narrowed first. Filtering local positions preserves representable segments and their neighbours.
+
+- **What You Should See:** Original ink and pick tables prepare one precise frame while preserving source, edge and control ownership.
+- **Hands-On Lab Experiment:** Create a line, polyline and point, move them together, enable their available Controls and Undo. Confirm that the connected zero-anchor view still restores their originals. Inspect the new packing methods to predict local positions at a distant anchor; shared browser adoption follows later.
 
 <details>
 <summary>Implementation 96zzzzza-prepare-anchor-relative-original-ink: Prepare anchor-relative original ink</summary>
@@ -4672,6 +4766,20 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-96zzzzzb-prepare-shared-origin-frame-inputs"></a>
+
+### Step 4 of 11 · Prepare shared-origin frame inputs (`96zzzzzb-prepare-shared-origin-frame-inputs`)
+
+- **Goal:** Keep derived rendering inputs consistent with one precise scene origin.
+- **Data Flow Trace:** `One renderer origin → local GPU clipping + precise text placement + relative ambient ground`
+- **Files You Touch:** `src/render_space.rs` (*Expose the current origin once, using the existing zero frame before its first update.*) · `src/renderer.rs` (*Keep one origin policy under the renderer owner.*) · `src/clipping_gpu.rs` (*Reuse one clipping conversion with an explicit anchor while retaining zero-origin callers.*) · `src/ambient_rows.rs` (*Retain precise world floor height with the ambient source owner.*) · `src/global_outline_tests.rs` (*Supply actual local/distant clipped cap pixels, shared object records, world-space text predicates, exact relative ground height, unchanged source uploads and repeated-uniform reuse.*)
+
+Give the renderer one origin-policy owner. Pass its anchor into GPU clipping and text placement, and retain ambient floor height in double precision until relative packing. Text tests its original world anchor against world planes before subtracting the render origin, so keep that CPU predicate in world space. Reuse the existing clipping conversion and text engine; live browser origin changes remain deferred until every consumer is ready.
+
+> **Self-Check Question:** *Why must the text frame retain world clipping planes?*  
+> **Answer:** Its CPU visibility predicate receives the original world anchor before subtracting the rendering origin. GPU clipping separately receives anchor-relative planes through the existing clipping uniform.
+
+- **What You Should See:** Clipping, text placement and ambient ground prepare consistent origin-aware frame inputs.
+- **Hands-On Lab Experiment:** Run Example CAD, Clipping Plane XY 0,0,0, Clipping Plane Solid and Fit. Toggle Arctic and Undo a placement change to confirm the connected zero-origin renderer still restores its original picture. Inspect how one chosen anchor changes the derived inputs; shared browser origin adoption follows later.
 
 <details>
 <summary>Implementation 96zzzzzb-prepare-shared-origin-frame-inputs: Prepare shared-origin frame inputs</summary>
@@ -6509,6 +6617,20 @@ After that block, append this supplied code:
 </details>
 
 <a id="checkpoint-96zzzzzc-prepare-cloud-and-sheet-frame-placements"></a>
+
+### Step 5 of 11 · Prepare cloud and sheet frame placements (`96zzzzzc-prepare-cloud-and-sheet-frame-placements`)
+
+- **Goal:** Preserve cached cloud and sheet sources while their frame origin changes.
+- **Data Flow Trace:** `Original f64 placement − shared anchor → local model/eye → existing LOD, records and sheet uniforms`
+- **Files You Touch:** `src/render_space.rs` (*Subtract the origin in double precision before GPU narrowing or matrix composition.*) · `src/gpu_mesh.rs` (*Reuse the same precise model conversion for existing object records.*) · `src/cloud_gpu.rs` (*Carry the declared origin with cloud view inputs.*) · `src/sheet_gpu.rs` (*Reuse sheet geometry/cache ownership with an explicit placement origin.*) · `src/renderer.rs` (*Capture the renderer origin before mutable lane updates.*) · `src/cap_gpu_tests.rs` (*Reuse the existing optional GPU readback fixture with an explicit matrix; retain every earlier cap pixel assertion.*) · `src/global_outline_tests.rs` (*Supply actual local/distant cloud and sheet pixels, unchanged uploads, equal-matrix camera pan/rebase cache invalidation, exact restoration, original picks and empty release while sources remain retained.*)
+
+Extract precise anchor-relative model placement once and reuse it for object records, cloud projection and sheet uniforms. Cloud distance selection and its GPU eye must use that same local frame. Include the exact origin in the cloud cache witness: panning the camera and rebasing together can leave the local matrix and eye unchanged while original world data must move on screen. Reuse cached cloud columns and sheet geometry; update only their view and placement inputs.
+
+> **Self-Check Question:** *Why can a new anchor require cloud work when the local matrix is unchanged?*  
+> **Answer:** The camera target and anchor may move together, keeping their relative matrix identical. Original cloud world placements did not move, so their newly relative records must be rebuilt.
+
+- **What You Should See:** Cloud and sheet placements prepare precise shared-frame inputs with correct cache invalidation and retained source uploads.
+- **Hands-On Lab Experiment:** Run Example Cloud, Example Sheet and Fit. Select and move an original, then Undo and confirm exact restoration and source ownership in the connected zero-origin view. Inspect the cache witness to predict why an equal-matrix anchor change must refresh cloud records. Shared browser origin adoption follows later.
 
 <details>
 <summary>Implementation 96zzzzzc-prepare-cloud-and-sheet-frame-placements: Prepare cloud and sheet frame placements</summary>
@@ -8902,6 +9024,20 @@ After that block, append this supplied code:
 </details>
 
 <a id="checkpoint-96zzzzzd-prepare-local-temporary-overlays"></a>
+
+### Step 6 of 11 · Prepare local temporary overlays (`96zzzzzd-prepare-local-temporary-overlays`)
+
+- **Goal:** Keep temporary ink and cached measurement positions precise across origin changes.
+- **Data Flow Trace:** `Precise temporary input → shared origin subtraction → existing ink lane; world label → existing text frame`
+- **Files You Touch:** `src/tool_preview.rs` (*Reuse the draft preview collector with an explicit frame origin.*) · `src/guide_gpu.rs` (*Retain the collector origin as part of guide cache identity.*) · `src/editor.rs` (*Keep the legacy collector and expose the shared frame to guide producers.*) · `src/trim_draft.rs` (*Preserve one trim overlay algorithm while making its local origin explicit.*) · `src/measure_gpu.rs` (*Keep the packing origin beside the retained precise measurement.*) · `src/renderer.rs` (*Use the renderer origin for temporary draft geometry.*) · `src/browser.rs` (*Collect browser guide coordinates using the renderer’s current origin.*) · `src/global_outline_tests.rs` (*Supply actual local/distant temporary ink and glyph pixels, origin-only invalidation of unchanged measurements, exact restoration, no invented pick ownership and complete temporary GPU release.*)
+
+Subtract the render origin while collecting precise draft, guide and measurement coordinates. Keep labels in world space for the existing text frame. Include the origin in measurement cache decisions even when their source values are unchanged. Trim and extension guides share the same collector; zero-origin entry points retain the earlier behavior until the complete browser frame adopts rebasing.
+
+> **Self-Check Question:** *Why is comparing only the measurement source insufficient?*  
+> **Answer:** The same world source needs different local GPU positions after an origin move. Its cache must observe the origin as well as source values.
+
+- **What You Should See:** Temporary ink, labels and measurements prepare consistent local positions and cache invalidation.
+- **Hands-On Lab Experiment:** Start a Line draft, hover its next point and cancel it. Add a distance measurement; confirm that their visible ink has no document pick owner. Inspect the prepared origin-sensitive caches. Complete browser origin adoption follows later.
 
 <details>
 <summary>Implementation 96zzzzzd-prepare-local-temporary-overlays: Prepare local temporary overlays</summary>
@@ -11587,6 +11723,20 @@ After that block, append this supplied code:
 
 <a id="checkpoint-96zzzzze-preserve-local-precision-before-source-placement"></a>
 
+### Step 7 of 11 · Preserve local precision before source placement (`96zzzzze-preserve-local-precision-before-source-placement`)
+
+- **Goal:** Avoid a large world-coordinate intermediate when packing placed source data.
+- **Data Flow Trace:** `Original placement − scene anchor → transform original local point → narrow once`
+- **Files You Touch:** `src/scene.rs` (*Retain world endpoints and expose one precise local endpoint path.*) · `src/pick_sources.rs` (*Use one precise local placement for each original boundary owner.*) · `src/cloud_pick.rs` (*Retain original world control positions and prepare an explicit local lookup.*) · `src/scene_origin_tests.rs` (*Supply exact nonbinary local line/path/point/control/cloud and pick-table data through large original placements without changing source IDs.*)
+
+Keep local source coordinates separate from their placement until the scene anchor has been subtracted. Reuse the precise local model for line endpoints, path samples, points, controls and pick boundaries. World-coordinate accessors remain zero-origin delegates.
+
+> **Self-Check Question:** *Why can subtracting the anchor after a world-point transform still lose detail?*  
+> **Answer:** Adding a small local value to a large translation can round it in double precision. Subtracting the anchor from the placement first keeps that local value separate until GPU conversion.
+
+- **What You Should See:** Placed source ink and pick positions prepare one precise local transform without changing originals.
+- **Hands-On Lab Experiment:** Place a line, polyline and point, enable Controls, then Undo. Confirm their connected zero-origin behavior. Compare a nonbinary local coordinate such as 0.1 under a large placement in the typed code; shared browser origin adoption follows later.
+
 <details>
 <summary>Implementation 96zzzzze-preserve-local-precision-before-source-placement: Preserve local precision before source placement</summary>
 
@@ -13140,6 +13290,20 @@ After that block, append this supplied code:
 
 <a id="checkpoint-96zzzzzf-prepare-precise-construction-grid-origins"></a>
 
+### Step 8 of 11 · Prepare precise construction-grid origins (`96zzzzzf-prepare-precise-construction-grid-origins`)
+
+- **Goal:** Pack a construction grid in the same precise local frame as original geometry.
+- **Data Flow Trace:** `Construction plane − scene origin → local grid vertices → GPU cache witness`
+- **Files You Touch:** `src/cplane.rs` (*Retain one construction-plane matrix recipe in double precision; existing GPU callers narrow at their boundary.*) · `src/grid.rs` (*Reuse grid generation in a precise declared frame.*) · `src/renderer.rs` (*Retain the origin used by grid vertices.*) · `src/scene_origin_tests.rs` (*Supply an exact nonbinary grid comparison under a large independently placed construction plane.*) · `src/global_outline_tests.rs` (*Supply actual grid/surface pixels, unchanged source geometry uploads, origin-only cache invalidation under an identical local matrix, exact restoration, original picks and empty release.*)
+
+Reuse one double-precision construction-plane matrix. Subtract the scene origin from that placement before transforming grid-local coordinates. Include the origin in the grid cache so a rebase rebuilds vertices even when settings and the world plane stay fixed.
+
+> **Self-Check Question:** *Why must the grid cache observe the scene origin?*  
+> **Answer:** Unchanged world settings can require different local vertices after a rebase. The camera matrix can remain identical while those vertices move.
+
+- **What You Should See:** The prepared grid uses precise placement and invalidates cached vertices when its local frame changes.
+- **Hands-On Lab Experiment:** Enable the construction grid, change its plane and spacing, then restore them. Confirm the existing browser behavior. Read the anchor-relative packing path; nonzero browser origin adoption follows after the remaining frame consumers.
+
 <details>
 <summary>Implementation 96zzzzzf-prepare-precise-construction-grid-origins: Prepare precise construction-grid origins</summary>
 
@@ -14424,6 +14588,20 @@ After that block, append this supplied code:
 
 <a id="checkpoint-96zzzzzg-initialize-object-records-in-the-local-frame"></a>
 
+### Step 9 of 11 · Initialize object records in the local frame (`96zzzzzg-initialize-object-records-in-the-local-frame`)
+
+- **Goal:** Create precise records before their first GPU draw.
+- **Data Flow Trace:** `Original placement + current origin → existing record encoder → first draw`
+- **Files You Touch:** `src/gpu_mesh.rs` (*Initialize derived geometry records in their actual frame; retain zero-origin callers.*) · `src/global_outline_tests.rs` (*Supply actual initial local/distant records and pixels, subsequent exact settings writes, shared geometry identity and unchanged sources.*)
+
+Reuse the existing settings encoder when creating object records. Expose the scene origin at initialization and retain it for later settings updates. Existing callers delegate with zero origin; derived highlight faces can then initialize precisely without a second write.
+
+> **Self-Check Question:** *Why retain the origin after initialization?*  
+> **Answer:** A later color or selection update must encode the same local placement. Forgetting the origin would restore a large world translation into the record.
+
+- **What You Should See:** New and reused geometry can initialize object settings in an explicit local frame.
+- **Hands-On Lab Experiment:** Change object color and selection, then restore them. Confirm the current zero-origin behavior. Trace initialization and update through the same settings encoder; highlight adoption follows in the next lesson.
+
 <details>
 <summary>Implementation 96zzzzzg-initialize-object-records-in-the-local-frame: Initialize object records in the local frame</summary>
 
@@ -14994,6 +15172,20 @@ After that block, append this supplied code:
 </details>
 
 <a id="checkpoint-96zzzzzh-prepare-anchor-relative-original-highlights"></a>
+
+### Step 10 of 11 · Prepare original highlights in the shared local frame (`96zzzzzh-prepare-anchor-relative-original-highlights`)
+
+- **Goal:** Keep original face, edge, curve and control highlights aligned after rebasing.
+- **Data Flow Trace:** `Original selection → existing local source accessors → derived highlight lanes`
+- **Files You Touch:** `src/highlight.rs` (*Expose the origin once at highlight preparation.*) · `src/renderer.rs` (*Prepare original part selection in the renderer frame.*) · `src/global_outline_tests.rs` (*Supply actual local/distant face/edge/curve/control/high-bit cloud and object-highlight pixel comparisons with exact clearing and unchanged sources.*)
+
+Initialize derived face records with the precise scene origin. Reuse local placement and original-source accessors for selected boundaries, curves, controls and cloud points. Pass the same origin through whole-object ink selection.
+
+> **Self-Check Question:** *Does a highlight need to change original source coordinates?*  
+> **Answer:** No. It derives temporary presentation from the original source using the current local frame. Source geometry and original selection identities stay owned by the document.
+
+- **What You Should See:** All prepared highlight paths use one explicit scene origin.
+- **Hands-On Lab Experiment:** Select a face, an edge, a curve and its controls; clear selection and Undo. Confirm their existing zero-origin alignment. Shared browser rebasing follows after CPU queries and asynchronous pick snapshots are prepared.
 
 <details>
 <summary>Implementation 96zzzzzh-prepare-anchor-relative-original-highlights: Prepare original highlights in the shared local frame</summary>
@@ -16255,6 +16447,20 @@ After that block, append this supplied code:
 
 <a id="checkpoint-96zzzzzi-share-one-camera-and-measurement-unit"></a>
 
+### Step 11 of 11 · Verify the shared unit through original history (`96zzzzzi-share-one-camera-and-measurement-unit`)
+
+- **Goal:** Check that measurement, projection and original history use the shared camera unit.
+- **Data Flow Trace:** `Shared camera unit → measurements and projection → original history`
+- **Files You Touch:** `src/measure_tests.rs` (*Supply one unit/measurement/camera-inverse/original-source and exact Undo/Redo fixture while retaining earlier measurement assertions.*)
+
+Use the [shared camera unit](../../96zzzzy-prepare-unit-aware-anchored-camera-space.md) already established with unit-aware projection. This checkpoint supplies an optional original-history fixture; it introduces no second unit definition or application implementation.
+
+> **Self-Check Question:** *Which unit does a measurement use after Undo or Redo?*  
+> **Answer:** The existing camera unit. Document history restores original geometry without adding a separate editor unit.
+
+- **What You Should See:** The application retains its shared unit; the supplied fixture covers labels, camera inversion and original history.
+- **Hands-On Lab Experiment:** Draw Line w0,0,0 w3,4,0 and use Measure Distance w0,0,0 w3,4,0 to read 5 mm. Move the selected original, Undo and remeasure its restored endpoints. The optional fixture checks metre labels and camera-unit changes directly; this exercise does not require a unit-switch command.
+
 <details>
 <summary>Implementation 96zzzzzi-share-one-camera-and-measurement-unit: Verify the shared unit through original history</summary>
 
@@ -16515,9 +16721,11 @@ After that block, append this supplied code:
 
 </details>
 
-## Run, Check, and Save
+---
 
-From `session_viewer`:
+## 5. Build, Verify, and Save Your Checkpoint
+
+Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 96zzzzzi-share-one-camera-and-measurement-unit
@@ -16528,12 +16736,12 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. Use [checkpoint recovery](../../recovery.md) to restore any saved checkpoint.
+Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
 
-## Expected Visual Result & Experiment
+## 6. Lesson Summary & Expected Visual Result
 
 The application retains its shared unit; the supplied fixture covers labels, camera inversion and original history.
 
-- **Try this:** Draw Line w0,0,0 w3,4,0 and use Measure Distance w0,0,0 w3,4,0 to read 5 mm. Move the selected original, Undo and remeasure its restored endpoints. The optional fixture checks metre labels and camera-unit changes directly; this exercise does not require a unit-switch command.
+- **Final Lesson Experiment:** Draw Line w0,0,0 w3,4,0 and use Measure Distance w0,0,0 w3,4,0 to read 5 mm. Move the selected original, Undo and remeasure its restored endpoints. The optional fixture checks metre labels and camera-unit changes directly; this exercise does not require a unit-switch command.
 
-Continue with [Precise CPU queries and origin-stamped picks](96zzzzzj-project-cpu-queries-around-the-precise-target.md).
+Continue with [Precise CPU queries and origin-stamped picks](../../consolidation/96zzzzzj-project-cpu-queries-around-the-precise-target.md).

@@ -1,89 +1,163 @@
 # 17.4 · Verified closed sections and exact cap picks
 
-**Section 9: Compute Tile Visibility, Clipping Half-Spaces, Section Caps, and Ambient Occlusion** · **Lesson 17.4** (Redraft `9.4`) · **32 checkpoints (`88-copy-original-closedness-and-winding` → `88ad-exercise-original-sections-bores-and-ink`)**
+**Section 9: Compute Tile Visibility, Clipping Half-Spaces, Section Caps, and Ambient Occlusion** · **Lesson 17.4** (Redraft `9.4`) · **32 checkpoints (`88-copy-original-closedness-and-winding` → `88ad-exercise-original-sections-bores-and-ink`)** · **Study time: 16–32 h**
 
-> **Learning Goal:** Pair each original mesh edge with the opposite face direction to detect a closed shell.
+> **What You Will Learn & Build:** Pair each original mesh edge with the opposite face direction to detect a closed shell. By the final checkpoint (`88ad-exercise-original-sections-bores-and-ink`), you will exercise original sections bores and ink.
 
-## Visual WebGPU & Architecture Schematic
+## 1. Visual Pipeline & WebGPU Architecture (Black & White Schematics)
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1px solid #cbd5e1;border-radius:10px;background:#f8fafc;">
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
+<svg viewBox="0 0 840 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <rect x="4" y="4" width="832" height="212" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Lesson 17.4 Execution Flow: Verified closed sections and exact cap picks</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">Concrete data pipeline you build in this lesson (32 Checkpoints: 88-copy-original-closedness-and-winding → 88ad-exercise-original-sections-bores-and-ink)</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
+  
+    
+    <rect x="18" y="68" width="253" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="144" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
+    <line x1="28" y1="92" x2="261" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="144" y="108" text-anchor="middle" font-size="11" fill="#111111">original closed source</text>
+    <line x1="271" y1="108" x2="291" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="293" y="68" width="253" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="419" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
+    <line x1="303" y1="92" x2="536" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">derived section</text>
+    <line x1="546" y1="108" x2="566" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="568" y="68" width="253" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="694" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
+    <line x1="578" y1="92" x2="811" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="694" y="108" text-anchor="middle" font-size="11" fill="#111111">original color and integer owner</text>
+    
+    <rect x="18" y="162" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="32" y="181" font-size="11" font-weight="700" fill="#111111">Files You Edit in Lesson 17.4:</text>
+    <text x="215" y="181" font-size="11" fill="#111111">src/solid_orientation.rs  ·  src/lib.rs  ·  src/solid_cache.rs  ·  src/cap_bounds.rs  ·  src/cap_source_bounds.rs  ·  src/gpu_mesh.rs</text>
+    <text x="32" y="198" font-size="10.5" fill="#111111">32 Checkpoints: 88-copy-original-closedness-and-winding → 88ad-exercise-original-sections-bores-and-ink — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
+  
+</svg>
+</div>
+
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
 <svg viewBox="0 0 840 240" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#475569"/>
-    </marker>
-    <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#2563eb"/>
-    </marker>
-    <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#059669"/>
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
     </marker>
   </defs>
-  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
-  <text x="20" y="28" font-size="14" font-weight="700" fill="#0f172a">Section 9 Compute Tile Visibility, Clipping Half-Spaces, Winding Section Caps & Horizon GTAO (Ch 17–18)</text>
-  <text x="20" y="46" font-size="11.5" fill="#475569">How @compute shaders bin triangles into screen tiles for hidden-line removal, clip solids with winding caps, and shade crevices.</text>
-  <line x1="16" y1="54" x2="824" y2="54" stroke="#e2e8f0" stroke-width="1"/>
+  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Section 9 Compute Tile Visibility, Clipping Half-Spaces, Winding Section Caps & Horizon GTAO (Ch 17–18)</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">How @compute shaders bin triangles into screen tiles for hidden-line removal, clip solids with winding caps, and shade crevices.</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
   
-    <rect x="18" y="68" width="250" height="145" rx="6" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
-    <text x="143" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1e40af">1. @compute Tile Visibility (Ch 17)</text>
-    <text x="28" y="108" font-size="10.5" fill="#1e3a8a">• projected_triangle.wgsl projects tris</text>
-    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#1d4ed8">• atomicAdd tile counts + prefix-sum CSR</text>
-    <text x="28" y="144" font-size="10.5" fill="#1e3a8a">• ink_visibility.wgsl tests center-line</text>
-    <text x="28" y="160" font-size="10.5" fill="#1e3a8a">  against covering triangles in tile</text>
-    <text x="28" y="178" font-size="10.5" fill="#1e3a8a">• Hidden lines dashed/faded cleanly!</text>
+    <rect x="18" y="68" width="250" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="143" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">1. @compute Tile Visibility (Ch 17)</text>
+    <text x="28" y="108" font-size="10.5" fill="#111111">• projected_triangle.wgsl projects tris</text>
+    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#111111">• atomicAdd tile counts + prefix-sum CSR</text>
+    <text x="28" y="144" font-size="10.5" fill="#111111">• ink_visibility.wgsl tests center-line</text>
+    <text x="28" y="160" font-size="10.5" fill="#111111">  against covering triangles in tile</text>
+    <text x="28" y="178" font-size="10.5" fill="#111111">• Hidden lines dashed/faded cleanly!</text>
 
-    <line x1="268" y1="138" x2="298" y2="138" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
+    <line x1="268" y1="138" x2="298" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="300" y="68" width="265" height="145" rx="6" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5"/>
-    <text x="432" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#9a3412">2. Clipping &amp; Winding Caps (Ch 17)</text>
-    <text x="312" y="108" font-size="10.5" fill="#7c2d12">• Half-space: dot(pos_world, plane) &lt; 0</text>
-    <text x="312" y="126" font-size="10.5" font-weight="600" fill="#c2410c">• Signed front/back crossing count</text>
-    <text x="312" y="142" font-size="10" fill="#7c2d12">  at clip plane depth (cap.wgsl):</text>
-    <text x="312" y="158" font-size="10" fill="#7c2d12">  Fills closed solid interiors while</text>
-    <text x="312" y="173" font-size="10" fill="#7c2d12">  leaving internal bores hollow!</text>
-    <text x="312" y="191" font-size="10.5" fill="#7c2d12">• Cap picks resolve to solid owner_id</text>
+    <rect x="300" y="68" width="265" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="432" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">2. Clipping &amp; Winding Caps (Ch 17)</text>
+    <text x="312" y="108" font-size="10.5" fill="#111111">• Half-space: dot(pos_world, plane) &lt; 0</text>
+    <text x="312" y="126" font-size="10.5" font-weight="600" fill="#111111">• Signed front/back crossing count</text>
+    <text x="312" y="142" font-size="10" fill="#111111">  at clip plane depth (cap.wgsl):</text>
+    <text x="312" y="158" font-size="10" fill="#111111">  Fills closed solid interiors while</text>
+    <text x="312" y="173" font-size="10" fill="#111111">  leaving internal bores hollow!</text>
+    <text x="312" y="191" font-size="10.5" fill="#111111">• Cap picks resolve to solid owner_id</text>
 
-    <line x1="565" y1="138" x2="595" y2="138" stroke="#059669" stroke-width="2" marker-end="url(#arrow-green)"/>
+    <line x1="565" y1="138" x2="595" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="597" y="68" width="223" height="145" rx="6" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1.5"/>
-    <text x="708" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#065f46">3. Horizon GTAO &amp; X-Ray (Ch 18)</text>
-    <text x="609" y="108" font-size="10.5" fill="#064e3b">• ambient_depth.wgsl -&gt; 6-mip pyramid</text>
-    <text x="609" y="126" font-size="10.5" font-weight="600" fill="#047857">• ssao.wgsl + bilateral blur +</text>
-    <text x="609" y="142" font-size="10.5" font-weight="600" fill="#047857">  ambient_composite.wgsl (Arctic)</text>
-    <text x="609" y="160" font-size="10" fill="#064e3b">• Glass / X-Ray translucent shells</text>
-    <text x="609" y="175" font-size="10" fill="#064e3b">  allow picking interior Wood joints</text>
+    <rect x="597" y="68" width="223" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="708" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">3. Horizon GTAO &amp; X-Ray (Ch 18)</text>
+    <text x="609" y="108" font-size="10.5" fill="#111111">• ambient_depth.wgsl -&gt; 6-mip pyramid</text>
+    <text x="609" y="126" font-size="10.5" font-weight="600" fill="#111111">• ssao.wgsl + bilateral blur +</text>
+    <text x="609" y="142" font-size="10.5" font-weight="600" fill="#111111">  ambient_composite.wgsl (Arctic)</text>
+    <text x="609" y="160" font-size="10" fill="#111111">• Glass / X-Ray translucent shells</text>
+    <text x="609" y="175" font-size="10" fill="#111111">  allow picking interior Wood joints</text>
     
 </svg>
 </div>
 
-### Lesson Data Flow (`Rust` → `WebGPU` → `WGSL`)
+## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
 
-```
-original closed source → derived section → original color and integer owner.
-original clipping plane → anchor-relative projection → shared pixel and sample coverage.
-```
+Before writing code, review how the three layers in this chapter talk to each other:
 
-- Pair each original mesh edge with the opposite face direction to detect a closed shell.
-- Own bounded cap pick storage.
-- Exercise original sections bores and ink.
-- **Why it works (Does a display triangle soup prove a solid is closed?):** No. Verify the original topology and its winding; derived boundaries alone cannot decide which sections should fill.
-
-### Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `Browser`)
-
-| Layer | Construct | First-Year Student Explanation |
+| Layer | Construct | Plain-English Explanation for Students |
 | :--- | :--- | :--- |
 | **WGSL (`@compute`)** | `@compute @workgroup_size(64) fn main(@builtin(global_invocation_id) id: vec3<u32>)` | Runs general-purpose parallel GPU threads (outside vertex/fragment rasterization) to project triangles and prefix-sum tile counts. |
 | **WGSL (Atomics)** | `atomicAdd(&tile_counts[tile_id], 1u)` | Safely increments shared GPU buffer counters when multiple triangles overlap the same screen tile concurrently. |
 | **Math (Winding Cap)** | `signed_crossings != 0` at clip plane depth | Fills only the solid interior of a clipped B-Rep/mesh while leaving interior bores and open shells hollow. |
 | **WGSL (`ssao.wgsl`)** | Multi-level depth pyramid horizon integration | Samples 6 mip levels of linear depth and per-object contact radius to shade crevices and ground contact. |
 
-**Production source (`session_viewer/src`):** [engine/gpu/triangle_tiles.rs](../../../../src/engine/gpu/triangle_tiles.rs), [shaders/project_triangles.wgsl](../../../../src/shaders/project_triangles.wgsl), [shaders/ink_visibility.wgsl](../../../../src/shaders/ink_visibility.wgsl), [shaders/ribbon.wgsl](../../../../src/shaders/ribbon.wgsl), [shaders/vector.wgsl](../../../../src/shaders/vector.wgsl), [engine/gpu/clip.rs](../../../../src/engine/gpu/clip.rs), [shaders/cap.wgsl](../../../../src/shaders/cap.wgsl), [engine/gpu/render.rs](../../../../src/engine/gpu/render.rs), [engine/gpu/pass.rs](../../../../src/engine/gpu/pass.rs), [build.rs](../../../../build.rs).
+**Authoritative production source (`session_viewer/src`):** [engine/gpu/triangle_tiles.rs](../../../../src/engine/gpu/triangle_tiles.rs), [shaders/project_triangles.wgsl](../../../../src/shaders/project_triangles.wgsl), [shaders/ink_visibility.wgsl](../../../../src/shaders/ink_visibility.wgsl), [shaders/ribbon.wgsl](../../../../src/shaders/ribbon.wgsl), [shaders/vector.wgsl](../../../../src/shaders/vector.wgsl), [engine/gpu/clip.rs](../../../../src/engine/gpu/clip.rs), [shaders/cap.wgsl](../../../../src/shaders/cap.wgsl), [engine/gpu/render.rs](../../../../src/engine/gpu/render.rs), [engine/gpu/pass.rs](../../../../src/engine/gpu/pass.rs), [build.rs](../../../../build.rs).
 
-## Implementation Checkpoints
+## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
 
-Apply these checkpoints in order inside `workspace/journey`. Expand each block to view the Rust/WGSL/HTML edits:
+| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
+| ---: | :--- | :--- | :--- | :--- |
+| **1** | [`88-copy-original-closedness-and-winding`](#checkpoint-88-copy-original-closedness-and-winding) | Pair each original mesh edge with the opposite face direction to detect a closed shell. | `src/solid_orientation.rs`, `src/lib.rs` | `original closed source → derived section → original color and integer owner` |
+| **2** | [`88a-cache-verified-original-solids-weakly`](#checkpoint-88a-cache-verified-original-solids-weakly) | Cache verified original solids weakly. | `src/solid_cache.rs`, `src/lib.rs` | `original closed source → derived section → original color and integer owner` |
+| **3** | [`88b-copy-conservative-plane-crossing-bounds`](#checkpoint-88b-copy-conservative-plane-crossing-bounds) | Project the original box half-extents onto the clipping-plane normal to bound its reach. | `src/cap_bounds.rs`, `src/lib.rs` | `original closed source → derived section → original color and integer owner` |
+| **4** | [`88c-cache-local-bounds-and-apply-placement-once`](#checkpoint-88c-cache-local-bounds-and-apply-placement-once) | Cache local bounds and apply placement once. | `src/cap_source_bounds.rs`, `src/lib.rs` | `original closed source → derived section → original color and integer owner` |
+| **5** | [`88d-carry-closedness-and-dense-cap-addresses`](#checkpoint-88d-carry-closedness-and-dense-cap-addresses) | Carry closedness and dense cap addresses. | `src/gpu_mesh.rs` | `original closed source → derived section → original color and integer owner` |
+| **6** | [`88e-count-original-closed-solid-crossings`](#checkpoint-88e-count-original-closed-solid-crossings) | Count original closed-solid crossings. | `src/cap_count.wgsl` | `original closed source → derived section → original color and integer owner` |
+| **7** | [`88f-count-exact-original-cap-pick-candidates`](#checkpoint-88f-count-exact-original-cap-pick-candidates) | Count exact original cap pick candidates. | `src/cap_count.wgsl` | `original closed source → derived section → original color and integer owner` |
+| **8** | [`88g-copy-section-coverage-and-hatch-filtering`](#checkpoint-88g-copy-section-coverage-and-hatch-filtering) | Write a fullscreen section vertex and integrate a line band over the pixel square. | `src/cap_color.wgsl` | `original clipping plane → anchor-relative projection → shared pixel and sample coverage` |
+| **9** | [`88ga-fade-hatch-detail-and-detect-section-boundaries`](#checkpoint-88ga-fade-hatch-detail-and-detect-section-boundaries) | Use power-of-two hatch spacing and the existing solid crossing samples. | `src/cap_color.wgsl` | `original clipping plane → anchor-relative projection → shared pixel and sample coverage` |
+| **10** | [`88gb-shade-sections-with-shared-original-depth-and-sample-ownership`](#checkpoint-88gb-shade-sections-with-shared-original-depth-and-sample-ownership) | Intersect cap samples with other planes and return color, primitive, depth and coverage together. | `src/cap_color.wgsl` | `original clipping plane → anchor-relative projection → shared pixel and sample coverage` |
+| **11** | [`88h-adapt-color-sections-to-forward-depth`](#checkpoint-88h-adapt-color-sections-to-forward-depth) | Adapt color sections to forward depth. | `src/cap_color.wgsl` | `original closed source → derived section → original color and integer owner` |
+| **12** | [`88i-return-original-integer-section-owners`](#checkpoint-88i-return-original-integer-section-owners) | Return original integer section owners. | `src/cap_pick.wgsl` | `original closed source → derived section → original color and integer owner` |
+| **13** | [`88j-own-lazy-section-images`](#checkpoint-88j-own-lazy-section-images) | Own lazy section images. | `src/cap_image.rs`, `src/lib.rs` | `original closed source → derived section → original color and integer owner` |
+| **14** | [`88k-build-compatible-section-render-pipelines`](#checkpoint-88k-build-compatible-section-render-pipelines) | Build compatible section render pipelines. | `src/cap_pipeline.rs`, `src/lib.rs` | `original closed source → derived section → original color and integer owner` |
+| **15** | [`88l-add-signed-counts-and-grey-hatch-color`](#checkpoint-88l-add-signed-counts-and-grey-hatch-color) | Add signed counts and grey hatch color. | `src/cap_pipeline.rs` | `original closed source → derived section → original color and integer owner` |
+| **16** | [`88m-build-bounded-integer-section-pipelines`](#checkpoint-88m-build-bounded-integer-section-pipelines) | Build bounded integer section pipelines. | `src/cap_pick_pipeline.rs`, `src/lib.rs` | `original closed source → derived section → original color and integer owner` |
+| **17** | [`88n-own-bounded-cap-pick-storage`](#checkpoint-88n-own-bounded-cap-pick-storage) | Own bounded cap pick storage. | `src/cap_pick_gpu.rs`, `src/lib.rs` | `original closed source → derived section → original color and integer owner` |
+| **18** | [`88o-prepare-exact-cap-crop-and-owners`](#checkpoint-88o-prepare-exact-cap-crop-and-owners) | Prepare exact cap crop and owners. | `src/cap_pick_gpu.rs`, `src/pick_image.rs`, `src/pick_gpu.rs`, `src/pick_gpu_tests.rs` | `original closed source → derived section → original color and integer owner` |
+| **19** | [`88p-draw-cap-count-nearest-owner-and-integer-id`](#checkpoint-88p-draw-cap-count-nearest-owner-and-integer-id) | Draw cap count nearest owner and integer ID. | `src/cap_pick_gpu.rs` | `original closed source → derived section → original color and integer owner` |
+| **20** | [`88q-own-section-caches-and-placeholders`](#checkpoint-88q-own-section-caches-and-placeholders) | Own section caches and placeholders. | `src/caps_gpu.rs`, `src/lib.rs` | `original closed source → derived section → original color and integer owner` |
+| **21** | [`88r-gather-crossing-original-owners`](#checkpoint-88r-gather-crossing-original-owners) | Gather crossing original owners. | `src/caps_gpu.rs` | `original closed source → derived section → original color and integer owner` |
+| **22** | [`88s-prepare-active-section-images`](#checkpoint-88s-prepare-active-section-images) | Prepare active section images. | `src/caps_gpu.rs` | `original closed source → derived section → original color and integer owner` |
+| **23** | [`88t-draw-the-closed-union-and-section-depth`](#checkpoint-88t-draw-the-closed-union-and-section-depth) | Draw the closed union and section depth. | `src/caps_gpu.rs` | `original closed source → derived section → original color and integer owner` |
+| **24** | [`88u-route-exact-original-cap-picks-and-allocation`](#checkpoint-88u-route-exact-original-cap-picks-and-allocation) | Route exact original cap picks and allocation. | `src/caps_gpu.rs` | `original closed source → derived section → original color and integer owner` |
+| **25** | [`88v-connect-sections-after-opaque-originals`](#checkpoint-88v-connect-sections-after-opaque-originals) | Connect sections after opaque originals. | `src/renderer.rs` | `original closed source → derived section → original color and integer owner` |
+| **26** | [`88x-expose-section-data-to-finite-ink-tables`](#checkpoint-88x-expose-section-data-to-finite-ink-tables) | Expose section data to finite ink tables. | `src/finite_ink.rs`, `src/renderer.rs` | `original closed source → derived section → original color and integer owner` |
+| **27** | [`88y-cache-finite-section-bindings`](#checkpoint-88y-cache-finite-section-bindings) | Cache finite section bindings. | `src/finite_ink.rs` | `original closed source → derived section → original color and integer owner` |
+| **28** | [`88z-retain-ink-exactly-on-sloping-sections`](#checkpoint-88z-retain-ink-exactly-on-sloping-sections) | Retain ink exactly on sloping sections. | `src/clip.wgsl` | `original closed source → derived section → original color and integer owner` |
+| **29** | [`88aa-hide-original-ink-behind-visible-caps`](#checkpoint-88aa-hide-original-ink-behind-visible-caps) | Hide original ink behind visible caps. | `src/finite_visibility.wgsl` | `original closed source → derived section → original color and integer owner` |
+| **30** | [`88ab-pick-sections-before-any-color-frame`](#checkpoint-88ab-pick-sections-before-any-color-frame) | Pick sections before any color frame. | `src/pick_gpu.rs`, `src/pick_encode.rs`, `src/renderer.rs` | `original closed source → derived section → original color and integer owner` |
+| **31** | [`88ac-observe-actual-section-owners-and-errors`](#checkpoint-88ac-observe-actual-section-owners-and-errors) | Observe actual section owners and errors. | `src/browser.rs` | `original closed source → derived section → original color and integer owner` |
+| **32** | [`88ad-exercise-original-sections-bores-and-ink`](#checkpoint-88ad-exercise-original-sections-bores-and-ink) | Exercise original sections bores and ink. | `src/cap_gpu_tests.rs`, `src/lib.rs`, `src/cap_pick_tests.rs`, `src/scene.rs` | `original closed source → derived section → original color and integer owner` |
+
+---
+
+## 4. Step-by-Step Coding Notebook (Concept + Implementation)
+
+Work through each notebook cell below in order inside `workspace/journey`. Read the **Concept Walkthrough** and **Self-Check Q&A** first, then expand the **Implementation** block to type and verify the code.
 
 <a id="checkpoint-88-copy-original-closedness-and-winding"></a>
+
+### Step 1 of 32 · Classify original closedness and winding (`88-copy-original-closedness-and-winding`)
+
+- **Goal:** Pair each original mesh edge with the opposite face direction to detect a closed shell.
+- **Data Flow Trace:** `original closed source → derived section → original color and integer owner`
+- **Files You Touch:** `src/solid_orientation.rs` (*Type the complete original geometry query and reuse its current consumer.*) · `src/lib.rs` (*Register the completed section component.*)
+
+Pair each original mesh edge with the opposite face direction to detect a closed shell. Reuse the existing clipping dot and cross helpers to determine its signed volume and inward winding. Defer hole rings and oversized edge keys to the kernel, then encode the existing cap flags.
+
+> **Self-Check Question:** *Does a display triangle soup prove a solid is closed?*  
+> **Answer:** No. Verify the original topology and its winding; derived boundaries alone cannot decide which sections should fill.
+
+- **Hands-On Lab Experiment:** Inspect outward, inward, open and mixed-winding fixtures. Compare closedness flags with the unchanged original faces.
 
 <details>
 <summary>Implementation 88-copy-original-closedness-and-winding: Classify original closedness and winding</summary>
@@ -222,6 +296,19 @@ After that block, type:
 
 <a id="checkpoint-88a-cache-verified-original-solids-weakly"></a>
 
+### Step 2 of 32 · Cache verified original solids weakly (`88a-cache-verified-original-solids-weakly`)
+
+- **Goal:** Cache verified original solids weakly.
+- **Data Flow Trace:** `original closed source → derived section → original color and integer owner`
+- **Files You Touch:** `src/solid_cache.rs` (*Cache original closedness without retaining the document.*) · `src/lib.rs` (*Register the completed section component.*)
+
+Cache verified original solids weakly.
+
+> **Self-Check Question:** *Can the cache keep a closed document alive?*  
+> **Answer:** No. Weak references witness original mesh or BRep identity; released originals are pruned. A BRep uses its own solid topology.
+
+- **Hands-On Lab Experiment:** Compare shared originals, direct insert_cad ownership, lazy verification and empty-cache release.
+
 <details>
 <summary>Implementation 88a-cache-verified-original-solids-weakly: Cache verified original solids weakly</summary>
 
@@ -262,6 +349,19 @@ After that block, type:
 </details>
 
 <a id="checkpoint-88b-copy-conservative-plane-crossing-bounds"></a>
+
+### Step 3 of 32 · Bound conservative plane crossings (`88b-copy-conservative-plane-crossing-bounds`)
+
+- **Goal:** Project the original box half-extents onto the clipping-plane normal to bound its reach.
+- **Data Flow Trace:** `original closed source → derived section → original color and integer owner`
+- **Files You Touch:** `src/cap_bounds.rs` (*Type the complete original geometry query and reuse its current consumer.*) · `src/lib.rs` (*Register the completed section component.*)
+
+Project the original box half-extents onto the clipping-plane normal to bound its reach. Compare the center distance with that reach and the existing rounding allowance. Keep the check conservative so a face near the plane is not incorrectly skipped.
+
+> **Self-Check Question:** *Must every closed element be drawn into every section count?*  
+> **Answer:** No. A conservative plane/AABB test rejects solids the plane cannot cross while retaining touching and rounded bounds.
+
+- **Hands-On Lab Experiment:** Inspect maintained crossing, touching and large-coordinate f32-rounding fixtures.
 
 <details>
 <summary>Implementation 88b-copy-conservative-plane-crossing-bounds: Bound conservative plane crossings</summary>
@@ -345,6 +445,19 @@ After that block, type:
 
 <a id="checkpoint-88c-cache-local-bounds-and-apply-placement-once"></a>
 
+### Step 4 of 32 · Cache local bounds and apply placement once (`88c-cache-local-bounds-and-apply-placement-once`)
+
+- **Goal:** Cache local bounds and apply placement once.
+- **Data Flow Trace:** `original closed source → derived section → original color and integer owner`
+- **Files You Touch:** `src/cap_source_bounds.rs` (*Own weak immutable bounds and derive placed crossing candidates.*) · `src/lib.rs` (*Register the completed section component.*)
+
+Cache local bounds and apply placement once.
+
+> **Self-Check Question:** *Should orbit rescan every source vertex?*  
+> **Answer:** No. Cache immutable local display bounds, then transform their eight corners by the original f64 model.
+
+- **Hands-On Lab Experiment:** Trace two placements sharing one display mesh and ensure empty source caches release.
+
 <details>
 <summary>Implementation 88c-cache-local-bounds-and-apply-placement-once: Cache local bounds and apply placement once</summary>
 
@@ -385,6 +498,19 @@ After that block, type:
 </details>
 
 <a id="checkpoint-88d-carry-closedness-and-dense-cap-addresses"></a>
+
+### Step 5 of 32 · Carry closedness and dense cap addresses (`88d-carry-closedness-and-dense-cap-addresses`)
+
+- **Goal:** Carry closedness and dense cap addresses.
+- **Data Flow Trace:** `original closed source → derived section → original color and integer owner`
+- **Files You Touch:** `src/gpu_mesh.rs` (*Carry derived cap flags and addresses without changing original geometry.*)
+
+Carry closedness and dense cap addresses.
+
+> **Self-Check Question:** *Are dense cap addresses saved element IDs?*  
+> **Answer:** No. They index a temporary owner table. The table retains exact original u32 IDs and independent pick eligibility.
+
+- **Hands-On Lab Experiment:** Compare model bytes72–80, mirrored/inward flags and unchanged original source IDs.
 
 <details>
 <summary>Implementation 88d-carry-closedness-and-dense-cap-addresses: Carry closedness and dense cap addresses</summary>
@@ -616,6 +742,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-88e-count-original-closed-solid-crossings"></a>
 
+### Step 6 of 32 · Count original closed-solid crossings (`88e-count-original-closed-solid-crossings`)
+
+- **Goal:** Count original closed-solid crossings.
+- **Data Flow Trace:** `original closed source → derived section → original color and integer owner`
+- **Files You Touch:** `src/cap_count.wgsl` (*Adapt the original crossing recipe to the earlier view/model layouts.*)
+
+Count original closed-solid crossings.
+
+> **Self-Check Question:** *Why count back and front crossings?*  
+> **Answer:** Their signed sum distinguishes a closed interior from empty space. Mirroring and inward winding reverse the sign convention.
+
+- **Hands-On Lab Experiment:** Trace closedness rejection, model determinant, selected weight64 and the retained side of the plane.
+
 <details>
 <summary>Implementation 88e-count-original-closed-solid-crossings: Count original closed-solid crossings</summary>
 
@@ -636,6 +775,19 @@ Create the file and type:
 </details>
 
 <a id="checkpoint-88f-count-exact-original-cap-pick-candidates"></a>
+
+### Step 7 of 32 · Count exact original cap pick candidates (`88f-count-exact-original-cap-pick-candidates`)
+
+- **Goal:** Count exact original cap pick candidates.
+- **Data Flow Trace:** `original closed source → derived section → original color and integer owner`
+- **Files You Touch:** `src/cap_count.wgsl` (*Adapt integer crossing and nearest-owner recipes to the earlier cropped picker.*)
+
+Count exact original cap pick candidates.
+
+> **Self-Check Question:** *Can a float carry every original element ID?*  
+> **Answer:** No. Atomic integer records use a dense token, then recover the original u32 owner through an integer table.
+
+- **Hands-On Lab Experiment:** Inspect signed count/token sums, nearest-exit depth, crop coordinates and the separate nearest-owner pass.
 
 <details>
 <summary>Implementation 88f-count-exact-original-cap-pick-candidates: Count exact original cap pick candidates</summary>
@@ -668,6 +820,21 @@ After that block, type:
 
 <a id="checkpoint-88g-copy-section-coverage-and-hatch-filtering"></a>
 
+### Step 8 of 32 · Filter section bands over a pixel footprint (`88g-copy-section-coverage-and-hatch-filtering`)
+
+- **Goal:** Write a fullscreen section vertex and integrate a line band over the pixel square.
+- **Data Flow Trace:** `original clipping plane → anchor-relative projection → shared pixel and sample coverage`
+- **Files You Touch:** `src/cap_color.wgsl` (*Write a fullscreen section vertex and integrate a line band over the pixel square.*)
+
+Generate one fullscreen triangle from vertex_index; instance_index chooses the clipping plane.
+
+Declare color, primitive, depth and sample-mask outputs without changing the original solid. A signed-distance threshold covers only part of a pixel. Integrate the projected square with box_cdf, then subtract its two tails to obtain exact band area. Clamp small denominators for axis-aligned bands.
+
+> **Self-Check Question:** *Why integrate a band instead of testing its center?*  
+> **Answer:** A center test flickers as a thin band moves between pixels. Area coverage changes smoothly with the fraction of the pixel that the band covers.
+
+- **Hands-On Lab Experiment:** Predict the area of an axis-aligned band through the pixel center, then move it towards a corner.
+
 <details>
 <summary>Implementation 88g-copy-section-coverage-and-hatch-filtering: Filter section bands over a pixel footprint</summary>
 
@@ -688,6 +855,21 @@ Create the file and type:
 </details>
 
 <a id="checkpoint-88ga-fade-hatch-detail-and-detect-section-boundaries"></a>
+
+### Step 9 of 32 · Fade hatch detail and detect section boundaries (`88ga-fade-hatch-detail-and-detect-section-boundaries`)
+
+- **Goal:** Use power-of-two hatch spacing and the existing solid crossing samples.
+- **Data Flow Trace:** `original clipping plane → anchor-relative projection → shared pixel and sample coverage`
+- **Files You Touch:** `src/cap_color.wgsl` (*Use power-of-two hatch spacing and the existing solid crossing samples.*)
+
+Choose hatch spacing from the screen derivative so the apparent period stays near the existing eight-CSS-pixel setting.
+
+Fade alternate lines over half an octave instead of abruptly switching density. Read the section union from the crossing samples, including holes. Sample its surrounding coverage for an outline; out-of-target positions count as covered so the viewport edge does not become a false CAD boundary.
+
+> **Self-Check Question:** *Why fade only alternate hatch lines?*  
+> **Answer:** Doubling the period keeps every second line in place. Fading the other lines makes that transition continuous.
+
+- **Hands-On Lab Experiment:** Trace spacing across one octave of zoom. Predict the lines that survive and the coverage beside a hole.
 
 <details>
 <summary>Implementation 88ga-fade-hatch-detail-and-detect-section-boundaries: Fade hatch detail and detect section boundaries</summary>
@@ -782,6 +964,21 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-88gb-shade-sections-with-shared-original-depth-and-sample-ownership"></a>
+
+### Step 10 of 32 · Shade sections with shared original depth and sample ownership (`88gb-shade-sections-with-shared-original-depth-and-sample-ownership`)
+
+- **Goal:** Intersect cap samples with other planes and return color, primitive, depth and coverage together.
+- **Data Flow Trace:** `original clipping plane → anchor-relative projection → shared pixel and sample coverage`
+- **Files You Touch:** `src/cap_color.wgsl` (*Intersect cap samples with other planes and return color, primitive, depth and coverage together.*)
+
+Recover the plane depth and perspective hatch coordinate at this fragment.
+
+Evaluate hatch derivatives before any discard. Intersect the other planes sample by sample, then retain samples whose crossing count places them inside the closed solid. Selection comes from the existing weighted crossing count. Produce hatch or solid fill, a black boundary, the reserved primitive marker and plane depth in one fragment result. The following adapter connects this code to the earlier forward-depth teaching renderer.
+
+> **Self-Check Question:** *Why skip this plane when intersecting the other clipping masks?*  
+> **Answer:** The cap lies on this plane. Its own boundary belongs to the section; only the other planes cut its visible area.
+
+- **Hands-On Lab Experiment:** Predict mask, depth and primitive marker for a selected solid at a two-plane corner. After connection, compare its visible section and picked original owner.
 
 <details>
 <summary>Implementation 88gb-shade-sections-with-shared-original-depth-and-sample-ownership: Shade sections with shared original depth and sample ownership</summary>
@@ -885,6 +1082,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-88h-adapt-color-sections-to-forward-depth"></a>
+
+### Step 11 of 32 · Adapt color sections to forward depth (`88h-adapt-color-sections-to-forward-depth`)
+
+- **Goal:** Adapt color sections to forward depth.
+- **Data Flow Trace:** `original closed source → derived section → original color and integer owner`
+- **Files You Touch:** `src/cap_color.wgsl` (*Adapt borrowed frame/count bindings and the explicit section-data output.*)
+
+Adapt color sections to forward depth.
+
+> **Self-Check Question:** *What does the extra section target store?*  
+> **Answer:** Visible section depth and plane address. Finite ink uses that plane to compare its original centerline analytically.
+
+- **Hands-On Lab Experiment:** Compare grey, hatch and selected yellow outputs with the forward-depth attachment and plane marker.
 
 <details>
 <summary>Implementation 88h-adapt-color-sections-to-forward-depth: Adapt color sections to forward depth</summary>
@@ -1178,6 +1388,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-88i-return-original-integer-section-owners"></a>
 
+### Step 12 of 32 · Return original integer section owners (`88i-return-original-integer-section-owners`)
+
+- **Goal:** Return original integer section owners.
+- **Data Flow Trace:** `original closed source → derived section → original color and integer owner`
+- **Files You Touch:** `src/cap_pick.wgsl` (*Adapt the maintained section integer recipe to exact original owner rows.*)
+
+Return original integer section owners.
+
+> **Self-Check Question:** *Does a cap invent a new face or edge ID?*  
+> **Answer:** No. A whole-element pick returns its original u32 owner and part0. A locked cap writes depth with owner0.
+
+- **Hands-On Lab Experiment:** Compare a single interior token, overlapping nearest exits and original pick eligibility.
+
 <details>
 <summary>Implementation 88i-return-original-integer-section-owners: Return original integer section owners</summary>
 
@@ -1198,6 +1421,19 @@ Create the file and type:
 </details>
 
 <a id="checkpoint-88j-own-lazy-section-images"></a>
+
+### Step 13 of 32 · Own lazy section images (`88j-own-lazy-section-images`)
+
+- **Goal:** Own lazy section images.
+- **Data Flow Trace:** `original closed source → derived section → original color and integer owner`
+- **Files You Touch:** `src/cap_image.rs` (*Own actual section image allocation and sampled/render views.*) · `src/lib.rs` (*Register the completed section component.*)
+
+Own lazy section images.
+
+> **Self-Check Question:** *Do empty scenes need a full-canvas section image?*  
+> **Answer:** No. An inactive owner retains a one-pixel placeholder; active frames allocate their exact format and size.
+
+- **Hands-On Lab Experiment:** Calculate RG32Float eight bytes per pixel and R16Float two bytes per pixel.
 
 <details>
 <summary>Implementation 88j-own-lazy-section-images: Own lazy section images</summary>
@@ -1240,6 +1476,19 @@ After that block, type:
 
 <a id="checkpoint-88k-build-compatible-section-render-pipelines"></a>
 
+### Step 14 of 32 · Build compatible section render pipelines (`88k-build-compatible-section-render-pipelines`)
+
+- **Goal:** Build compatible section render pipelines.
+- **Data Flow Trace:** `original closed source → derived section → original color and integer owner`
+- **Files You Touch:** `src/cap_pipeline.rs` (*Build a compatible section render pipeline.*) · `src/lib.rs` (*Register the completed section component.*)
+
+Build compatible section render pipelines.
+
+> **Self-Check Question:** *Can integer and color passes share incompatible targets?*  
+> **Answer:** No. Build explicit layouts and matching targets while preserving the earlier opaque depth comparison.
+
+- **Hands-On Lab Experiment:** Inspect the original24-byte vertex layout, fullscreen pass and explicit surface depth writer.
+
 <details>
 <summary>Implementation 88k-build-compatible-section-render-pipelines: Build compatible section render pipelines</summary>
 
@@ -1281,6 +1530,19 @@ After that block, type:
 
 <a id="checkpoint-88l-add-signed-counts-and-grey-hatch-color"></a>
 
+### Step 15 of 32 · Add signed counts and grey hatch color (`88l-add-signed-counts-and-grey-hatch-color`)
+
+- **Goal:** Add signed counts and grey hatch color.
+- **Data Flow Trace:** `original closed source → derived section → original color and integer owner`
+- **Files You Touch:** `src/cap_pipeline.rs` (*Build the explicit count and section-color pipelines.*)
+
+Add signed counts and grey hatch color.
+
+> **Self-Check Question:** *Why use additive counts before color?*  
+> **Answer:** Each solid contributes signed crossings; the fullscreen pass colors only pixels inside the resulting union.
+
+- **Hands-On Lab Experiment:** Compare additive R16Float counts, RGBA color and RG32Float section data.
+
 <details>
 <summary>Implementation 88l-add-signed-counts-and-grey-hatch-color: Add signed counts and grey hatch color</summary>
 
@@ -1311,6 +1573,19 @@ After that block, type:
 </details>
 
 <a id="checkpoint-88m-build-bounded-integer-section-pipelines"></a>
+
+### Step 16 of 32 · Build bounded integer section pipelines (`88m-build-bounded-integer-section-pipelines`)
+
+- **Goal:** Build bounded integer section pipelines.
+- **Data Flow Trace:** `original closed source → derived section → original color and integer owner`
+- **Files You Touch:** `src/cap_pick_pipeline.rs` (*Build count, nearest-owner and original integer pipelines.*) · `src/lib.rs` (*Register the completed section component.*)
+
+Build bounded integer section pipelines.
+
+> **Self-Check Question:** *Will a fifth bind group fit the browser limit?*  
+> **Answer:** No. Count/crop/record bindings fit four groups, and the final original-owner lookup fits three.
+
+- **Hands-On Lab Experiment:** Inspect atomic storage, owner rows and exact RG32Uint targets.
 
 <details>
 <summary>Implementation 88m-build-bounded-integer-section-pipelines: Build bounded integer section pipelines</summary>
@@ -1353,6 +1628,19 @@ After that block, type:
 
 <a id="checkpoint-88n-own-bounded-cap-pick-storage"></a>
 
+### Step 17 of 32 · Own bounded cap pick storage (`88n-own-bounded-cap-pick-storage`)
+
+- **Goal:** Own bounded cap pick storage.
+- **Data Flow Trace:** `original closed source → derived section → original color and integer owner`
+- **Files You Touch:** `src/cap_pick_gpu.rs` (*Connect the bounded original section picker.*) · `src/lib.rs` (*Register the completed section component.*)
+
+Own bounded cap pick storage.
+
+> **Self-Check Question:** *Can cap records exceed the device binding limit?*  
+> **Answer:** No. Check multiplication and binding limits before allocation; retain an explicit error instead of submitting an invalid buffer.
+
+- **Hands-On Lab Experiment:** Inspect sixteen bytes per plane/pixel and eight bytes per original owner.
+
 <details>
 <summary>Implementation 88n-own-bounded-cap-pick-storage: Own bounded cap pick storage</summary>
 
@@ -1393,6 +1681,19 @@ After that block, type:
 </details>
 
 <a id="checkpoint-88o-prepare-exact-cap-crop-and-owners"></a>
+
+### Step 18 of 32 · Prepare exact cap crop and owners (`88o-prepare-exact-cap-crop-and-owners`)
+
+- **Goal:** Prepare exact cap crop and owners.
+- **Data Flow Trace:** `original closed source → derived section → original color and integer owner`
+- **Files You Touch:** `src/cap_pick_gpu.rs` (*Connect the bounded original section picker.*) · `src/pick_image.rs` (*Own actual cropped RG32Float section data.*) · `src/pick_gpu.rs` (*Charge the real twenty-byte cropped integer/depth/section images.*) · `src/pick_gpu_tests.rs` (*Copy the actual bounded crop-allocation fixture with its section attachment.*)
+
+Prepare exact cap crop and owners.
+
+> **Self-Check Question:** *Does the small pick crop change original coordinates?*  
+> **Answer:** No. Its integer full size and origin describe the draw window; source placement stays in the original model.
+
+- **Hands-On Lab Experiment:** Trace owner upload, crop buffer borrowing, bounded allocation and physical target resizing.
 
 <details>
 <summary>Implementation 88o-prepare-exact-cap-crop-and-owners: Prepare exact cap crop and owners</summary>
@@ -1565,6 +1866,19 @@ Update the existing block with this supplied code; keep unchanged lines:
 
 <a id="checkpoint-88p-draw-cap-count-nearest-owner-and-integer-id"></a>
 
+### Step 19 of 32 · Draw cap count nearest owner and integer ID (`88p-draw-cap-count-nearest-owner-and-integer-id`)
+
+- **Goal:** Draw cap count nearest owner and integer ID.
+- **Data Flow Trace:** `original closed source → derived section → original color and integer owner`
+- **Files You Touch:** `src/cap_pick_gpu.rs` (*Connect the bounded original section picker.*)
+
+Draw cap count nearest owner and integer ID.
+
+> **Self-Check Question:** *Why separate nearest-owner resolution?*  
+> **Answer:** The atomic maximum finds exit depth first. A second pass names the exact original reaching that depth.
+
+- **Hands-On Lab Experiment:** Compare count, nearest and final ID passes, source mesh crossing masks and actual allocation.
+
 <details>
 <summary>Implementation 88p-draw-cap-count-nearest-owner-and-integer-id: Draw cap count nearest owner and integer ID</summary>
 
@@ -1598,6 +1912,19 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-88q-own-section-caches-and-placeholders"></a>
+
+### Step 20 of 32 · Own section caches and placeholders (`88q-own-section-caches-and-placeholders`)
+
+- **Goal:** Own section caches and placeholders.
+- **Data Flow Trace:** `original closed source → derived section → original color and integer owner`
+- **Files You Touch:** `src/caps_gpu.rs` (*Connect the current original section owner.*) · `src/lib.rs` (*Register the completed section component.*)
+
+Own section caches and placeholders.
+
+> **Self-Check Question:** *When should section pipelines be created?*  
+> **Answer:** Lazily, when a clipping plane crosses a verified solid. Empty scenes retain only their small placeholder resources.
+
+- **Hands-On Lab Experiment:** Inspect weak source/bounds caches, original owner rows and the initial24-byte image/frame allocation.
 
 <details>
 <summary>Implementation 88q-own-section-caches-and-placeholders: Own section caches and placeholders</summary>
@@ -1640,6 +1967,19 @@ After that block, type:
 
 <a id="checkpoint-88r-gather-crossing-original-owners"></a>
 
+### Step 21 of 32 · Gather crossing original owners (`88r-gather-crossing-original-owners`)
+
+- **Goal:** Gather crossing original owners.
+- **Data Flow Trace:** `original closed source → derived section → original color and integer owner`
+- **Files You Touch:** `src/caps_gpu.rs` (*Connect the current original section owner.*)
+
+Gather crossing original owners.
+
+> **Self-Check Question:** *Does selection require repeating topology verification?*  
+> **Answer:** No. Shared original identity reuses verified flags; crossing masks and pick eligibility derive from the current scene.
+
+- **Hands-On Lab Experiment:** Compare hidden and locked originals, six plane bits, exact original IDs and cached verification counts.
+
 <details>
 <summary>Implementation 88r-gather-crossing-original-owners: Gather crossing original owners</summary>
 
@@ -1670,6 +2010,19 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-88s-prepare-active-section-images"></a>
+
+### Step 22 of 32 · Prepare active section images (`88s-prepare-active-section-images`)
+
+- **Goal:** Prepare active section images.
+- **Data Flow Trace:** `original closed source → derived section → original color and integer owner`
+- **Files You Touch:** `src/caps_gpu.rs` (*Connect the current original section owner.*)
+
+Prepare active section images.
+
+> **Self-Check Question:** *Does disabling clipping retain large section images?*  
+> **Answer:** No. Release crossing images and replace section depth with the one-pixel placeholder.
+
+- **Hands-On Lab Experiment:** Compare canvas resize, lazy pipeline creation and exact image allocation.
 
 <details>
 <summary>Implementation 88s-prepare-active-section-images: Prepare active section images</summary>
@@ -1702,6 +2055,19 @@ Edit the existing block to match this code; keep unchanged lines:
 
 <a id="checkpoint-88t-draw-the-closed-union-and-section-depth"></a>
 
+### Step 23 of 32 · Draw the closed union and section depth (`88t-draw-the-closed-union-and-section-depth`)
+
+- **Goal:** Draw the closed union and section depth.
+- **Data Flow Trace:** `original closed source → derived section → original color and integer owner`
+- **Files You Touch:** `src/caps_gpu.rs` (*Connect the current original section owner.*)
+
+Draw the closed union and section depth.
+
+> **Self-Check Question:** *Can one plane clear another visible cap?*  
+> **Answer:** Only the first plane clears section data. Later caps load it and compete through actual opaque depth.
+
+- **Hands-On Lab Experiment:** Trace counts per candidate mesh and color/depth per plane, including two-plane corners.
+
 <details>
 <summary>Implementation 88t-draw-the-closed-union-and-section-depth: Draw the closed union and section depth</summary>
 
@@ -1732,6 +2098,19 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-88u-route-exact-original-cap-picks-and-allocation"></a>
+
+### Step 24 of 32 · Route exact original cap picks and allocation (`88u-route-exact-original-cap-picks-and-allocation`)
+
+- **Goal:** Route exact original cap picks and allocation.
+- **Data Flow Trace:** `original closed source → derived section → original color and integer owner`
+- **Files You Touch:** `src/caps_gpu.rs` (*Connect the current original section owner.*)
+
+Route exact original cap picks and allocation.
+
+> **Self-Check Question:** *What happens when pick storage cannot fit?*  
+> **Answer:** Keep an explicit error and drop that derived pick owner. Original source geometry and history remain intact.
+
+- **Hands-On Lab Experiment:** Inspect locked occluders, empty release, exact allocation and color/pick pass counters.
 
 <details>
 <summary>Implementation 88u-route-exact-original-cap-picks-and-allocation: Route exact original cap picks and allocation</summary>
@@ -1767,6 +2146,19 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-88v-connect-sections-after-opaque-originals"></a>
+
+### Step 25 of 32 · Connect sections after opaque originals (`88v-connect-sections-after-opaque-originals`)
+
+- **Goal:** Connect sections after opaque originals.
+- **Data Flow Trace:** `original closed source → derived section → original color and integer owner`
+- **Files You Touch:** `src/renderer.rs` (*Own and draw sections beside the current clipping owner.*)
+
+Connect sections after opaque originals.
+
+> **Self-Check Question:** *Where does section color belong?*  
+> **Answer:** After opaque surfaces and before cloud composition and finite ink. Caps write the depth both later passes must respect.
+
+- **Hands-On Lab Experiment:** Compare frame preparation, scene invalidation, On/Off and unchanged original mesh uploads.
 
 <details>
 <summary>Implementation 88v-connect-sections-after-opaque-originals: Connect sections after opaque originals</summary>
@@ -2480,6 +2872,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-88x-expose-section-data-to-finite-ink-tables"></a>
 
+### Step 26 of 32 · Expose section data to finite ink tables (`88x-expose-section-data-to-finite-ink-tables`)
+
+- **Goal:** Expose section data to finite ink tables.
+- **Data Flow Trace:** `original closed source → derived section → original color and integer owner`
+- **Files You Touch:** `src/finite_ink.rs` (*Borrow the current section view in finite coverage tables.*) · `src/renderer.rs` (*Pass the current section image to color and provisional pick tables.*)
+
+Expose section data to finite ink tables.
+
+> **Self-Check Question:** *Does binding section data upload original ink again?*  
+> **Answer:** No. Tables borrow the current image view; only changed allocation changes its binding witness.
+
+- **Hands-On Lab Experiment:** Compare full-canvas section views and retained original projected triangles.
+
 <details>
 <summary>Implementation 88x-expose-section-data-to-finite-ink-tables: Expose section data to finite ink tables</summary>
 
@@ -3093,6 +3498,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-88y-cache-finite-section-bindings"></a>
 
+### Step 27 of 32 · Cache finite section bindings (`88y-cache-finite-section-bindings`)
+
+- **Goal:** Cache finite section bindings.
+- **Data Flow Trace:** `original closed source → derived section → original color and integer owner`
+- **Files You Touch:** `src/finite_ink.rs` (*Bind section coverage beside existing finite and opaque-depth data.*)
+
+Cache finite section bindings.
+
+> **Self-Check Question:** *Does a content update require a new bind group?*  
+> **Answer:** No. Compare projected buffers, opaque depth and section-view identity; changing contents preserves their bindings.
+
+- **Hands-On Lab Experiment:** Inspect the sampled RG32Float layout and cached witness before drawing original ink.
+
 <details>
 <summary>Implementation 88y-cache-finite-section-bindings: Cache finite section bindings</summary>
 
@@ -3184,6 +3602,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-88z-retain-ink-exactly-on-sloping-sections"></a>
 
+### Step 28 of 32 · Retain ink exactly on sloping sections (`88z-retain-ink-exactly-on-sloping-sections`)
+
+- **Goal:** Retain ink exactly on sloping sections.
+- **Data Flow Trace:** `original closed source → derived section → original color and integer owner`
+- **Files You Touch:** `src/clip.wgsl` (*Add a separate centerline rounding predicate without changing surface cuts.*)
+
+Retain ink exactly on sloping sections.
+
+> **Self-Check Question:** *Can projection rounding remove coplanar ink?*  
+> **Answer:** Yes. Use a bounded rounding allowance for projected centerlines while retaining the maintained surface cut predicate.
+
+- **Hands-On Lab Experiment:** Compare unchanged source points with horizontal and sloping section lines.
+
 <details>
 <summary>Implementation 88z-retain-ink-exactly-on-sloping-sections: Retain ink exactly on sloping sections</summary>
 
@@ -3214,6 +3645,19 @@ After that block, type:
 </details>
 
 <a id="checkpoint-88aa-hide-original-ink-behind-visible-caps"></a>
+
+### Step 29 of 32 · Hide original ink behind visible caps (`88aa-hide-original-ink-behind-visible-caps`)
+
+- **Goal:** Hide original ink behind visible caps.
+- **Data Flow Trace:** `original closed source → derived section → original color and integer owner`
+- **Files You Touch:** `src/finite_visibility.wgsl` (*Apply section visibility at the original finite centerline.*)
+
+Hide original ink behind visible caps.
+
+> **Self-Check Question:** *Should a sloping section compare a rounded neighboring pixel depth?*  
+> **Answer:** No. Recover the visible plane address and evaluate its analytic depth at the original centerline point.
+
+- **Hands-On Lab Experiment:** Compare hidden lines/points and full-width coplanar ink, including the cropped pick origin.
 
 <details>
 <summary>Implementation 88aa-hide-original-ink-behind-visible-caps: Hide original ink behind visible caps</summary>
@@ -3308,6 +3752,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-88ab-pick-sections-before-any-color-frame"></a>
+
+### Step 30 of 32 · Pick sections before any color frame (`88ab-pick-sections-before-any-color-frame`)
+
+- **Goal:** Pick sections before any color frame.
+- **Data Flow Trace:** `original closed source → derived section → original color and integer owner`
+- **Files You Touch:** `src/pick_gpu.rs` (*Connect bounded original section picking before finite ink.*) · `src/pick_encode.rs` (*Connect bounded original section picking before finite ink.*) · `src/renderer.rs` (*Connect bounded original section picking before finite ink.*)
+
+Pick sections before any color frame.
+
+> **Self-Check Question:** *Must the first cap pick wait for color rendering?*  
+> **Answer:** No. Prepare and clear its own cropped section data, resolve original cap IDs, then apply the same finite-ink predicate.
+
+- **Hands-On Lab Experiment:** Compare high original IDs, locked occluders, moved crops and color/pick consistency.
 
 <details>
 <summary>Implementation 88ab-pick-sections-before-any-color-frame: Pick sections before any color frame</summary>
@@ -3640,6 +4097,19 @@ Edit the existing block to match this code; keep unchanged lines:
 
 <a id="checkpoint-88ac-observe-actual-section-owners-and-errors"></a>
 
+### Step 31 of 32 · Observe actual section owners and errors (`88ac-observe-actual-section-owners-and-errors`)
+
+- **Goal:** Observe actual section owners and errors.
+- **Data Flow Trace:** `original closed source → derived section → original color and integer owner`
+- **Files You Touch:** `src/browser.rs` (*Expose actual current section diagnostics.*)
+
+Observe actual section owners and errors.
+
+> **Self-Check Question:** *Do pass counts prove Lenovo speed?*  
+> **Answer:** No. They expose section allocation and original owner state; hardware rotation and zoom need measured timings.
+
+- **Hands-On Lab Experiment:** Compare On/Off, cache checks, release and bounded-pick failures.
+
 <details>
 <summary>Implementation 88ac-observe-actual-section-owners-and-errors: Observe actual section owners and errors</summary>
 
@@ -3673,6 +4143,20 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-88ad-exercise-original-sections-bores-and-ink"></a>
+
+### Step 32 of 32 · Exercise original sections bores and ink (`88ad-exercise-original-sections-bores-and-ink`)
+
+- **Goal:** Exercise original sections bores and ink.
+- **Data Flow Trace:** `original closed source → derived section → original color and integer owner`
+- **Files You Touch:** `src/cap_gpu_tests.rs` (*Copy supplied actual native section fixtures.*) · `src/lib.rs` (*Register the completed section component.*) · `src/cap_pick_tests.rs` (*Copy actual original-owner section fixtures inside the Scene test module.*) · `src/scene.rs` (*Register the supplied Scene-private ID fixtures.*)
+
+Exercise original sections bores and ink.
+
+> **Self-Check Question:** *What proves a section is attached to its original element?*  
+> **Answer:** Actual integer readback returns that element before color. Pixel checks preserve bores and hide retained ink behind locked caps.
+
+- **What You Should See:** A grey section through the original red closed solid retains a circular bore and black boundaries.
+- **Hands-On Lab Experiment:** Run closed/open, mirrored/inward, nested/high-ID, two-plane, bore, horizontal/sloping width and empty-release fixtures.
 
 <details>
 <summary>Implementation 88ad-exercise-original-sections-bores-and-ink: Exercise original sections bores and ink</summary>
@@ -3765,9 +4249,11 @@ After that block, type:
 
 </details>
 
-## Run, Check, and Save
+---
 
-From `session_viewer`:
+## 5. Build, Verify, and Save Your Checkpoint
+
+Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 88ad-exercise-original-sections-bores-and-ink
@@ -3778,10 +4264,10 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. Use [checkpoint recovery](../../recovery.md) to restore any saved checkpoint.
+Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
 
-## Expected Visual Result & Experiment
+## 6. Lesson Summary & Expected Visual Result
 
 A grey section through the original red closed solid retains a circular bore and black boundaries.
 
-- **Try this:** Run closed/open, mirrored/inward, nested/high-ID, two-plane, bore, horizontal/sloping width and empty-release fixtures.
+- **Final Lesson Experiment:** Run closed/open, mirrored/inward, nested/high-ID, two-plane, bore, horizontal/sloping width and empty-release fixtures.

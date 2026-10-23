@@ -1,89 +1,161 @@
 # 12.3 · Bounded scheduling, exact replies and cancellation
 
-**Section 7: Out-of-Core HTTP Range Streaming, Shared Instances, and Drawing Sheets** · **Lesson 12.3** (Redraft `7.3`) · **17 checkpoints (`66za-own-original-range-read-permits` → `67m-cancel-range-work-when-its-runtime-closes`)**
+**Section 7: Out-of-Core HTTP Range Streaming, Shared Instances, and Drawing Sheets** · **Lesson 12.3** (Redraft `7.3`) · **17 checkpoints (`66za-own-original-range-read-permits` → `67m-cancel-range-work-when-its-runtime-closes`)** · **Study time: 8.5–17 h**
 
-> **Learning Goal:** Write the per-scene gate, queued turn, waiting-read and permit types.
+> **What You Will Learn & Build:** Write the per-scene gate, queued turn, waiting-read and permit types. By the final checkpoint (`67m-cancel-range-work-when-its-runtime-closes`), you will cancel range work when its runtime closes.
 
-## Visual WebGPU & Architecture Schematic
+## 1. Visual Pipeline & WebGPU Architecture (Black & White Schematics)
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1px solid #cbd5e1;border-radius:10px;background:#f8fafc;">
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
+<svg viewBox="0 0 840 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <rect x="4" y="4" width="832" height="212" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Lesson 12.3 Execution Flow: Bounded scheduling, exact replies and cancellation</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">Concrete data pipeline you build in this lesson (17 Checkpoints: 66za-own-original-range-read-permits → 67m-cancel-range-work-when-its-runtime-closes)</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
+  
+    
+    <rect x="18" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="89" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
+    <line x1="28" y1="92" x2="151" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">queued range read</text>
+    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="183" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="254" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
+    <line x1="193" y1="92" x2="316" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">permit</text>
+    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="348" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="419" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
+    <line x1="358" y1="92" x2="481" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">browser request</text>
+    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="513" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="584" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
+    <line x1="523" y1="92" x2="646" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">release</text>
+    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="678" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="749" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
+    <line x1="688" y1="92" x2="811" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">Close or device</text>
+    <text x="749" y="124" text-anchor="middle" font-size="11" fill="#111111">disposal</text>
+    
+    <rect x="18" y="162" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="32" y="181" font-size="11" font-weight="700" fill="#111111">Files You Edit in Lesson 12.3:</text>
+    <text x="215" y="181" font-size="11" fill="#111111">src/range_gate.rs  ·  src/lib.rs  ·  src/range_rules.rs  ·  src/range_page.rs  ·  Cargo.toml  ·  src/range_fetch.rs</text>
+    <text x="32" y="198" font-size="10.5" fill="#111111">17 Checkpoints: 66za-own-original-range-read-permits → 67m-cancel-range-work-when-its-runtime-closes — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
+  
+</svg>
+</div>
+
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
 <svg viewBox="0 0 840 240" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#475569"/>
-    </marker>
-    <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#2563eb"/>
-    </marker>
-    <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#059669"/>
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
     </marker>
   </defs>
-  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
-  <text x="20" y="28" font-size="14" font-weight="700" fill="#0f172a">Section 7 WebGPU Streaming & Instancing: HTTP Range Requests, Shared Source Meshes & 2D Drawing Sheets</text>
-  <text x="20" y="46" font-size="11.5" fill="#475569">How massive multi-gigabyte scenes stream out-of-core via HTTP 206 Partial Content and draw 1,000+ placements from 1 GPU buffer.</text>
-  <line x1="16" y1="54" x2="824" y2="54" stroke="#e2e8f0" stroke-width="1"/>
+  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Section 7 WebGPU Streaming & Instancing: HTTP Range Requests, Shared Source Meshes & 2D Drawing Sheets</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">How massive multi-gigabyte scenes stream out-of-core via HTTP 206 Partial Content and draw 1,000+ placements from 1 GPU buffer.</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
   
-    <rect x="18" y="68" width="245" height="145" rx="6" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
-    <text x="140" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1e40af">1. HTTP 206 Range Streaming (Ch 12)</text>
-    <text x="28" y="108" font-size="10.5" fill="#1e3a8a">• Fetch compact Manifest + World Bounds</text>
-    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#1d4ed8">• Prioritize visible frustum chunks</text>
-    <text x="28" y="144" font-size="10.5" fill="#1e3a8a">• Range: bytes=start-end (bounded memory)</text>
-    <text x="28" y="162" font-size="10.5" fill="#1e3a8a">• Evict cold off-screen chunks under</text>
-    <text x="28" y="178" font-size="10.5" fill="#1e3a8a">  memory budget without losing metadata</text>
+    <rect x="18" y="68" width="245" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="140" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">1. HTTP 206 Range Streaming (Ch 12)</text>
+    <text x="28" y="108" font-size="10.5" fill="#111111">• Fetch compact Manifest + World Bounds</text>
+    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#111111">• Prioritize visible frustum chunks</text>
+    <text x="28" y="144" font-size="10.5" fill="#111111">• Range: bytes=start-end (bounded memory)</text>
+    <text x="28" y="162" font-size="10.5" fill="#111111">• Evict cold off-screen chunks under</text>
+    <text x="28" y="178" font-size="10.5" fill="#111111">  memory budget without losing metadata</text>
 
-    <line x1="263" y1="138" x2="293" y2="138" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
+    <line x1="263" y1="138" x2="293" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="295" y="68" width="265" height="145" rx="6" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5"/>
-    <text x="427" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#9a3412">2. GPU Hardware Instancing (Ch 13)</text>
-    <text x="307" y="108" font-size="10.5" fill="#7c2d12">• 1 Shared Definition Buffer (e.g. Bolt)</text>
-    <text x="307" y="126" font-size="10.5" font-weight="600" fill="#c2410c">• N Instance Rows (@builtin(instance_index)):</text>
-    <text x="307" y="142" font-size="10" fill="#7c2d12">  Per-instance mat4x4 transform, tint,</text>
-    <text x="307" y="157" font-size="10" fill="#7c2d12">  and distinct instance_owner_id</text>
-    <text x="307" y="176" font-size="10.5" fill="#7c2d12">• draw_indexed(0..idx_cnt, 0, 0..N_inst)</text>
+    <rect x="295" y="68" width="265" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="427" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">2. GPU Hardware Instancing (Ch 13)</text>
+    <text x="307" y="108" font-size="10.5" fill="#111111">• 1 Shared Definition Buffer (e.g. Bolt)</text>
+    <text x="307" y="126" font-size="10.5" font-weight="600" fill="#111111">• N Instance Rows (@builtin(instance_index)):</text>
+    <text x="307" y="142" font-size="10" fill="#111111">  Per-instance mat4x4 transform, tint,</text>
+    <text x="307" y="157" font-size="10" fill="#111111">  and distinct instance_owner_id</text>
+    <text x="307" y="176" font-size="10.5" fill="#111111">• draw_indexed(0..idx_cnt, 0, 0..N_inst)</text>
 
-    <line x1="560" y1="138" x2="590" y2="138" stroke="#059669" stroke-width="2" marker-end="url(#arrow-green)"/>
+    <line x1="560" y1="138" x2="590" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="592" y="68" width="228" height="145" rx="6" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1.5"/>
-    <text x="706" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#065f46">3. 2D Drawing Sheets &amp; Blocks</text>
-    <text x="604" y="108" font-size="10.5" fill="#064e3b">• Paper-space Sheet frames &amp; title</text>
-    <text x="604" y="124" font-size="10.5" fill="#064e3b">  blocks (`SheetInit / SheetRows`)</text>
-    <text x="604" y="144" font-size="10.5" font-weight="600" fill="#047857">• Calibrated mm/inch pen widths</text>
-    <text x="604" y="162" font-size="10.5" fill="#064e3b">• Switch smoothly between 3D Model</text>
-    <text x="604" y="178" font-size="10.5" fill="#064e3b">  view and 2D Sheet layouts</text>
+    <rect x="592" y="68" width="228" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="706" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">3. 2D Drawing Sheets &amp; Blocks</text>
+    <text x="604" y="108" font-size="10.5" fill="#111111">• Paper-space Sheet frames &amp; title</text>
+    <text x="604" y="124" font-size="10.5" fill="#111111">  blocks (SheetInit / SheetRows)</text>
+    <text x="604" y="144" font-size="10.5" font-weight="600" fill="#111111">• Calibrated mm/inch pen widths</text>
+    <text x="604" y="162" font-size="10.5" fill="#111111">• Switch smoothly between 3D Model</text>
+    <text x="604" y="178" font-size="10.5" fill="#111111">  view and 2D Sheet layouts</text>
     
 </svg>
 </div>
 
-### Lesson Data Flow (`Rust` → `WebGPU` → `WGSL`)
+## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
 
-```
-queued range read → permit → browser request → release.
-checked interval → fetch → bounded body → exact response acceptance.
-Close or device disposal → closed gate → aborted reads → released owners.
-```
+Before writing code, review how the three layers in this chapter talk to each other:
 
-- Write the per-scene gate, queued turn, waiting-read and permit types.
-- Keep range revisions and background results.
-- Cancel range work when its runtime closes.
-- **Why it works (Why does a permit own the gate?):** The permit releases its slot when dropped. Its gate must remain alive until that release, even if the caller has already discarded its scene reference.
-
-### Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `Browser`)
-
-| Layer | Construct | First-Year Student Explanation |
+| Layer | Construct | Plain-English Explanation for Students |
 | :--- | :--- | :--- |
 | **HTTP / Fetch** | `Range: bytes=start-end` -> `206 Partial Content` | Fetches only the exact byte slice of an octree node or sheet column needed for the current camera view. |
 | **Protobuf Wire** | Varint tag + length prefix scanner | Skips over multi-megabyte coordinate arrays by reading their byte range offsets without allocating their contents. |
 | **Rust (Residency)** | `budget.reserve(bytes)?` -> LRU eviction | Guarantees resident + in-flight pages never exceed the memory cap; coarse root pages stay pinned so the scene is never blank. |
 | **GPU Instancing** | Shared definition buffer + per-instance record | Draws N placed copies of a complex CAD component using 1 shared vertex/index allocation and N compact instance records. |
 
-**Production source (`session_viewer/src`):** [app/manifest.rs](../../../../src/app/manifest.rs), [app/session_io.rs](../../../../src/app/session_io.rs), [app/stream.rs](../../../../src/app/stream.rs), [app/range_gate.rs](../../../../src/app/range_gate.rs), [app/fetch.rs](../../../../src/app/fetch.rs), [app/loader.rs](../../../../src/app/loader.rs), [app/live.rs](../../../../src/app/live.rs).
+**Authoritative production source (`session_viewer/src`):** [app/manifest.rs](../../../../src/app/manifest.rs), [app/session_io.rs](../../../../src/app/session_io.rs), [app/stream.rs](../../../../src/app/stream.rs), [app/range_gate.rs](../../../../src/app/range_gate.rs), [app/fetch.rs](../../../../src/app/fetch.rs), [app/loader.rs](../../../../src/app/loader.rs), [app/live.rs](../../../../src/app/live.rs).
 
-## Implementation Checkpoints
+## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
 
-Apply these checkpoints in order inside `workspace/journey`. Expand each block to view the Rust/WGSL/HTML edits:
+| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
+| ---: | :--- | :--- | :--- | :--- |
+| **1** | [`66za-own-original-range-read-permits`](#checkpoint-66za-own-original-range-read-permits) | Write the per-scene gate, queued turn, waiting-read and permit types. | `src/range_gate.rs`, `src/lib.rs` | `queued range read → permit → browser request → release` |
+| **2** | [`67a-queue-range-reads-in-arrival-order`](#checkpoint-67a-queue-range-reads-in-arrival-order) | Complete the waiting-read Future and its Drop behavior. | `src/range_gate.rs` | `queued range read → permit → browser request → release` |
+| **3** | [`67b-validate-exact-http-range-replies`](#checkpoint-67b-validate-exact-http-range-replies) | Validate exact HTTP range replies. | `src/range_rules.rs`, `src/lib.rs` | `requested interval → HTTP206 → matching Content-Range → accepted bytes` |
+| **4** | [`67c-retain-original-point-page-values`](#checkpoint-67c-retain-original-point-page-values) | Retain original point page values. | `src/range_page.rs`, `src/lib.rs` | `original bytes → precise coordinates and IDs → separate display floats` |
+| **5** | [`67d-own-cancellable-range-requests`](#checkpoint-67d-own-cancellable-range-requests) | Own cancellable range requests. | `Cargo.toml`, `src/range_fetch.rs`, `src/lib.rs` | `request owner → retained abort handle → cancellation → request release` |
+| **6** | [`67e-time-out-stalled-source-reads`](#checkpoint-67e-time-out-stalled-source-reads) | Time out stalled source reads. | `src/range_fetch.rs` | `received chunk → fresh deadline → stall abort → timer cleanup` |
+| **7** | [`67f-bound-incoming-range-body-chunks`](#checkpoint-67f-bound-incoming-range-body-chunks) | Bound incoming range body chunks. | `src/range_fetch.rs` | `incoming chunk → remaining budget → retained original bytes` |
+| **8** | [`67g-request-and-accept-one-source-interval`](#checkpoint-67g-request-and-accept-one-source-interval) | Request and accept one source interval. | `src/range_fetch.rs` | `checked interval → fetch → bounded body → exact response acceptance` |
+| **9** | [`67h-keep-range-revisions-and-background-results`](#checkpoint-67h-keep-range-revisions-and-background-results) | Keep range revisions and background results. | `src/range_fetch.rs` | `source ETag → complete range → retained result → caller ownership` |
+| **10** | [`67hza-queue-original-source-range-reads`](#checkpoint-67hza-queue-original-source-range-reads) | Write the browser range-read owner and cached metadata-window read. | `src/stream.rs` | `bounded HTTP read → revision and layout → source-array slice → decoded points` |
+| **11** | [`67hzb-probe-original-source-array-layouts`](#checkpoint-67hzb-probe-original-source-array-layouts) | Start owned asynchronous range tasks and inspect the bounded file probe. | `src/stream.rs` | `bounded HTTP read → revision and layout → source-array slice → decoded points` |
+| **12** | [`67hzc-read-original-cloud-node-tables`](#checkpoint-67hzc-read-original-cloud-node-tables) | Read original node-table fields through the cached metadata window. | `src/stream.rs` | `bounded HTTP read → revision and layout → source-array slice → decoded points` |
+| **13** | [`67i-read-source-arrays-through-the-bounded-queue`](#checkpoint-67i-read-source-arrays-through-the-bounded-queue) | Fetch bounded source-array slices through the queue already written. | `src/stream.rs` | `bounded HTTP read → revision and layout → source-array slice → decoded points` |
+| **14** | [`67j-keep-original-ranged-source-identity`](#checkpoint-67j-keep-original-ranged-source-identity) | Keep original ranged source identity. | `src/stream.rs` | `small source header → original GUID → stable remote source identity` |
+| **15** | [`67k-prepare-a-revision-bound-remote-source`](#checkpoint-67k-prepare-a-revision-bound-remote-source) | Prepare a revision bound remote source. | `src/range_source.rs`, `src/lib.rs` | `stable URL revision → checked original layout → remote source owner` |
+| **16** | [`67l-fetch-precise-coordinates-and-original-ids`](#checkpoint-67l-fetch-precise-coordinates-and-original-ids) | Fetch precise coordinates and original IDs. | `src/range_source.rs` | `source row interval → coordinate and ID ranges → checked original page` |
+| **17** | [`67m-cancel-range-work-when-its-runtime-closes`](#checkpoint-67m-cancel-range-work-when-its-runtime-closes) | Cancel range work when its runtime closes. | `src/browser_runtime.rs`, `src/browser.rs` | `Close or device disposal → closed gate → aborted reads → released owners` |
+
+---
+
+## 4. Step-by-Step Coding Notebook (Concept + Implementation)
+
+Work through each notebook cell below in order inside `workspace/journey`. Read the **Concept Walkthrough** and **Self-Check Q&A** first, then expand the **Implementation** block to type and verify the code.
 
 <a id="checkpoint-66za-own-original-range-read-permits"></a>
+
+### Step 1 of 17 · Own original range-read permits (`66za-own-original-range-read-permits`)
+
+- **Goal:** Write the per-scene gate, queued turn, waiting-read and permit types.
+- **Data Flow Trace:** `queued range read → permit → browser request → release`
+- **Files You Touch:** `src/range_gate.rs` (*Type the whole original helpers introduced today.*) · `src/lib.rs` (*Register the original browser range-read gate.*)
+
+Write the per-scene gate, queued turn, waiting-read and permit types. Bound simultaneous reads, wake queued turns and hand a released permit to the oldest waiting read.
+
+> **Self-Check Question:** *Why does a permit own the gate?*  
+> **Answer:** The permit releases its slot when dropped. Its gate must remain alive until that release, even if the caller has already discarded its scene reference.
+
+- **What You Should See:** A retained permit describes one original range read; the existing browser scene is unchanged.
+- **Hands-On Lab Experiment:** Trace a permit release with and without an older queued turn. The waiting-read Future is completed in the next lesson before this gate is connected.
 
 <details>
 <summary>Implementation 66za-own-original-range-read-permits: Own original range-read permits</summary>
@@ -125,6 +197,20 @@ After that block, type:
 </details>
 
 <a id="checkpoint-67a-queue-range-reads-in-arrival-order"></a>
+
+### Step 2 of 17 · Poll and cancel original queued range reads (`67a-queue-range-reads-in-arrival-order`)
+
+- **Goal:** Complete the waiting-read Future and its Drop behavior.
+- **Data Flow Trace:** `queued range read → permit → browser request → release`
+- **Files You Touch:** `src/range_gate.rs` (*Extend this original owner with today’s complete helper.*)
+
+Complete the waiting-read Future and its Drop behavior. Admit free capacity without overtaking older readers, refresh each pending waker and remove cancelled turns or pass on an already granted slot.
+
+> **Self-Check Question:** *Why remove a cancelled waiting turn?*  
+> **Answer:** A cancelled read must not retain its queue position or consume a later permit. Dropping a turn already granted a slot must hand that slot onward.
+
+- **What You Should See:** The range gate queues reads in arrival order before its browser range-read connection.
+- **Hands-On Lab Experiment:** Inspect the original queue, cancellation and closed-gate fixtures. Trace cancellation before and after a slot is granted.
 
 <details>
 <summary>Implementation 67a-queue-range-reads-in-arrival-order: Poll and cancel original queued range reads</summary>
@@ -347,6 +433,19 @@ After that block, append this supplied code:
 
 <a id="checkpoint-67b-validate-exact-http-range-replies"></a>
 
+### Step 3 of 17 · Validate exact HTTP range replies (`67b-validate-exact-http-range-replies`)
+
+- **Goal:** Validate exact HTTP range replies.
+- **Data Flow Trace:** `requested interval → HTTP206 → matching Content-Range → accepted bytes`
+- **Files You Touch:** `src/range_rules.rs` (*Validate the source interval before issuing or accepting a read.*) · `src/lib.rs` (*Register the source component.*)
+
+Compute checked inclusive HTTP intervals, then match response offsets, lengths and total file size.
+
+> **Self-Check Question:** *May a server return the whole file instead of the requested range?*  
+> **Answer:** No. Refuse HTTP200 without downloading its unwanted body. Only the initial probe may stop at an earlier file end.
+
+- **Hands-On Lab Experiment:** Check wrong offsets, missing headers, incomplete chunks, invalid totals and u64 overflow.
+
 <details>
 <summary>Implementation 67b-validate-exact-http-range-replies: Validate exact HTTP range replies</summary>
 
@@ -415,6 +514,19 @@ After that block, append this supplied code:
 
 <a id="checkpoint-67c-retain-original-point-page-values"></a>
 
+### Step 4 of 17 · Retain original point page values (`67c-retain-original-point-page-values`)
+
+- **Goal:** Retain original point page values.
+- **Data Flow Trace:** `original bytes → precise coordinates and IDs → separate display floats`
+- **Files You Touch:** `src/range_page.rs` (*Retain original f64 pages and stable IDs separately from derived display values.*) · `src/lib.rs` (*Register the source component.*)
+
+Keep original doubles and IDs beside derived display floats. An absent ID column uses the source row.
+
+> **Self-Check Question:** *Can nearby original doubles become the same display float?*  
+> **Answer:** Yes. Preserve both original doubles so picking and measurements can recover the precise source values.
+
+- **Hands-On Lab Experiment:** Compare1000000000.125 and1000000000.375, original ID4294967295 and invalid source pages.
+
 <details>
 <summary>Implementation 67c-retain-original-point-page-values: Retain original point page values</summary>
 
@@ -482,6 +594,19 @@ After that block, append this supplied code:
 </details>
 
 <a id="checkpoint-67d-own-cancellable-range-requests"></a>
+
+### Step 5 of 17 · Own cancellable range requests (`67d-own-cancellable-range-requests`)
+
+- **Goal:** Own cancellable range requests.
+- **Data Flow Trace:** `request owner → retained abort handle → cancellation → request release`
+- **Files You Touch:** `Cargo.toml` (*Enable browser CORS request configuration without changing package versions.*) · `src/range_fetch.rs` (*Own active browser request handles and explicit cancellation.*) · `src/lib.rs` (*Register the source component.*)
+
+Assign each request a unique owner and retain its abort controller until completion.
+
+> **Self-Check Question:** *May Close leave active source downloads running?*  
+> **Answer:** No. Abort every retained request and let its owner remove its registry entry.
+
+- **Hands-On Lab Experiment:** Trace registry insertion, unique keys and cancellation without retaining the source scene.
 
 <details>
 <summary>Implementation 67d-own-cancellable-range-requests: Own cancellable range requests</summary>
@@ -585,6 +710,19 @@ After that block, type:
 
 <a id="checkpoint-67e-time-out-stalled-source-reads"></a>
 
+### Step 6 of 17 · Time out stalled source reads (`67e-time-out-stalled-source-reads`)
+
+- **Goal:** Time out stalled source reads.
+- **Data Flow Trace:** `received chunk → fresh deadline → stall abort → timer cleanup`
+- **Files You Touch:** `src/range_fetch.rs` (*Connect the owned stall timer, progress reset and request cleanup.*)
+
+Restart the deadline when bytes arrive. Abort and clear its timer when the read owner drops.
+
+> **Self-Check Question:** *Do queued reads consume their stall timeout?*  
+> **Answer:** No. The range gate admits a read before it creates this timer.
+
+- **Hands-On Lab Experiment:** Trace a30-second stall, network failure and intentional cancellation; only network failures are retryable.
+
 <details>
 <summary>Implementation 67e-time-out-stalled-source-reads: Time out stalled source reads</summary>
 
@@ -616,6 +754,19 @@ After that block, type:
 
 <a id="checkpoint-67f-bound-incoming-range-body-chunks"></a>
 
+### Step 7 of 17 · Bound incoming range body chunks (`67f-bound-incoming-range-body-chunks`)
+
+- **Goal:** Bound incoming range body chunks.
+- **Data Flow Trace:** `incoming chunk → remaining budget → retained original bytes`
+- **Files You Touch:** `src/range_fetch.rs` (*Read bounded body chunks while retaining the checked source request owner.*)
+
+Check every chunk against the requested byte length before allocating its copied bytes.
+
+> **Self-Check Question:** *Can Content-Length replace a chunk-by-chunk limit?*  
+> **Answer:** No. Servers may omit it, and encoded bodies can decode to more bytes.
+
+- **Hands-On Lab Experiment:** Trace reader cancellation and release when a response grows beyond its declared range.
+
 <details>
 <summary>Implementation 67f-bound-incoming-range-body-chunks: Bound incoming range body chunks</summary>
 
@@ -645,6 +796,19 @@ After that block, type:
 </details>
 
 <a id="checkpoint-67g-request-and-accept-one-source-interval"></a>
+
+### Step 8 of 17 · Request and accept one source interval (`67g-request-and-accept-one-source-interval`)
+
+- **Goal:** Request and accept one source interval.
+- **Data Flow Trace:** `checked interval → fetch → bounded body → exact response acceptance`
+- **Files You Touch:** `src/range_fetch.rs` (*Connect HTTP range headers and exact response acceptance.*)
+
+Issue the Range header and verify HTTP status, offset and length before returning original bytes.
+
+> **Self-Check Question:** *Should a changed ETag silently replace part of a page?*  
+> **Answer:** No. The higher-level source reader refuses a revision mismatch before adopting the page.
+
+- **Hands-On Lab Experiment:** Trace unwanted HTTP200, Content-Length overflow, missing Content-Range and released stream locks.
 
 <details>
 <summary>Implementation 67g-request-and-accept-one-source-interval: Request and accept one source interval</summary>
@@ -679,6 +843,19 @@ Edit the existing block to match this code; keep unchanged lines:
 
 <a id="checkpoint-67h-keep-range-revisions-and-background-results"></a>
 
+### Step 9 of 17 · Keep range revisions and background results (`67h-keep-range-revisions-and-background-results`)
+
+- **Goal:** Keep range revisions and background results.
+- **Data Flow Trace:** `source ETag → complete range → retained result → caller ownership`
+- **Files You Touch:** `src/range_fetch.rs` (*Validate source revisions and provide background range reads.*)
+
+Compare every accepted ETag with the source revision and retain a background result until its caller awaits it.
+
+> **Self-Check Question:** *Does starting a Task transfer its page into the scene?*  
+> **Answer:** No. The task owns only its result. The caller must still check the current source and runtime before adoption.
+
+- **Hands-On Lab Experiment:** Trace changed validators, failed requests and result release after a dropped caller.
+
 <details>
 <summary>Implementation 67h-keep-range-revisions-and-background-results: Keep range revisions and background results</summary>
 
@@ -709,6 +886,20 @@ After that block, type:
 </details>
 
 <a id="checkpoint-67hza-queue-original-source-range-reads"></a>
+
+### Step 10 of 17 · Queue original source range reads (`67hza-queue-original-source-range-reads`)
+
+- **Goal:** Write the browser range-read owner and cached metadata-window read.
+- **Data Flow Trace:** `bounded HTTP read → revision and layout → source-array slice → decoded points`
+- **Files You Touch:** `src/stream.rs` (*Type today’s complete browser source readers; reuse the decoding and queue helpers already written.*)
+
+Write the browser range-read owner and cached metadata-window read. Acquire a permit before starting the stall timer, retry once when allowed and close the old scene queue on reset.
+
+> **Self-Check Question:** *Why start the stall timer after acquiring a permit?*  
+> **Answer:** A queued request is waiting for capacity rather than stalled network delivery. Counting that wait would cancel healthy reads.
+
+- **What You Should See:** Original source-array reads can enter the bounded queue without changing the current drawing.
+- **Hands-On Lab Experiment:** Trace a queued read, a retryable response and a scene reset.
 
 <details>
 <summary>Implementation 67hza-queue-original-source-range-reads: Queue original source range reads</summary>
@@ -743,6 +934,20 @@ Edit the existing block to match this code; keep unchanged lines:
 
 <a id="checkpoint-67hzb-probe-original-source-array-layouts"></a>
 
+### Step 11 of 17 · Probe original source array layouts (`67hzb-probe-original-source-array-layouts`)
+
+- **Goal:** Start owned asynchronous range tasks and inspect the bounded file probe.
+- **Data Flow Trace:** `bounded HTTP read → revision and layout → source-array slice → decoded points`
+- **Files You Touch:** `src/stream.rs` (*Type today’s complete browser source readers; reuse the decoding and queue helpers already written.*)
+
+Start owned asynchronous range tasks and inspect the bounded file probe. Locate the coordinate and colour arrays while checking file bounds, point stride and response status.
+
+> **Self-Check Question:** *Why require a range response?*  
+> **Answer:** The layout parser relies on a bounded partial response rather than an unbounded whole-file transfer.
+
+- **What You Should See:** Source-array layout probes are prepared for the bounded reader.
+- **Hands-On Lab Experiment:** Trace an empty array, invalid double stride and truncated colour header.
+
 <details>
 <summary>Implementation 67hzb-probe-original-source-array-layouts: Probe original source array layouts</summary>
 
@@ -775,6 +980,20 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-67hzc-read-original-cloud-node-tables"></a>
+
+### Step 12 of 17 · Read original cloud node tables (`67hzc-read-original-cloud-node-tables`)
+
+- **Goal:** Read original node-table fields through the cached metadata window.
+- **Data Flow Trace:** `bounded HTTP read → revision and layout → source-array slice → decoded points`
+- **Files You Touch:** `src/stream.rs` (*Type today’s complete browser source readers; reuse the decoding and queue helpers already written.*)
+
+Read original node-table fields through the cached metadata window. Reject duplicate fields and oversized tables while retaining point-ID and normal ranges.
+
+> **Self-Check Question:** *Why bound the accumulated node-table bytes?*  
+> **Answer:** Many individually valid fields could otherwise require an excessive combined metadata allocation.
+
+- **What You Should See:** Original cloud node tables can be decoded; streamed drawing connects later.
+- **Hands-On Lab Experiment:** Trace a duplicate field, absent required field and table-size limit.
 
 <details>
 <summary>Implementation 67hzc-read-original-cloud-node-tables: Read original cloud node tables</summary>
@@ -809,6 +1028,20 @@ Edit the existing block to match this code; keep unchanged lines:
 
 <a id="checkpoint-67i-read-source-arrays-through-the-bounded-queue"></a>
 
+### Step 13 of 17 · Fetch original coordinates normals and colours (`67i-read-source-arrays-through-the-bounded-queue`)
+
+- **Goal:** Fetch bounded source-array slices through the queue already written.
+- **Data Flow Trace:** `bounded HTTP read → revision and layout → source-array slice → decoded points`
+- **Files You Touch:** `src/stream.rs` (*Type today’s complete browser source readers; reuse the decoding and queue helpers already written.*)
+
+Fetch bounded source-array slices through the queue already written. Convert coordinate doubles and normal records, and advance the variable-length colour cursor using its consumed bytes.
+
+> **Self-Check Question:** *Why advance colours by consumed bytes?*  
+> **Answer:** Packed varints have variable size. The fetched window can contain bytes beyond the requested colours.
+
+- **What You Should See:** The complete bounded source-array reader compiles before browser import and streaming are connected.
+- **Hands-On Lab Experiment:** Compare position and normal strides with a short varint colour slice.
+
 <details>
 <summary>Implementation 67i-read-source-arrays-through-the-bounded-queue: Fetch original coordinates normals and colours</summary>
 
@@ -842,6 +1075,19 @@ Edit the existing block to match this code; keep unchanged lines:
 
 <a id="checkpoint-67j-keep-original-ranged-source-identity"></a>
 
+### Step 14 of 17 · Keep original ranged source identity (`67j-keep-original-ranged-source-identity`)
+
+- **Goal:** Keep original ranged source identity.
+- **Data Flow Trace:** `small source header → original GUID → stable remote source identity`
+- **Files You Touch:** `src/stream.rs` (*Read original source identity independently of display pages.*)
+
+Read the original cloud GUID and name before its coordinate body. Refuse missing or repeated identity fields.
+
+> **Self-Check Question:** *Is an HTTP request ticket an original cloud GUID?*  
+> **Answer:** No. Tickets identify transient work; the GUID identifies the original geometry.
+
+- **Hands-On Lab Experiment:** Compare the parsed identity with the actual kernel protobuf and reject truncated headers.
+
 <details>
 <summary>Implementation 67j-keep-original-ranged-source-identity: Keep original ranged source identity</summary>
 
@@ -873,6 +1119,19 @@ After that block, type:
 </details>
 
 <a id="checkpoint-67k-prepare-a-revision-bound-remote-source"></a>
+
+### Step 15 of 17 · Prepare a revision bound remote source (`67k-prepare-a-revision-bound-remote-source`)
+
+- **Goal:** Prepare a revision bound remote source.
+- **Data Flow Trace:** `stable URL revision → checked original layout → remote source owner`
+- **Files You Touch:** `src/range_source.rs` (*Prepare a revision-bound original remote source descriptor.*) · `src/lib.rs` (*Register the source component.*)
+
+Prepare original array offsets and the complete checked octree before requesting point pages.
+
+> **Self-Check Question:** *Can an unversioned mutable URL safely mix independent ranges?*  
+> **Answer:** No. This reader requires an ETag or an immutable content-addressed source URL.
+
+- **Hands-On Lab Experiment:** Trace source-size checks, original GUID/name, valid octree adoption and invalid source refusal.
 
 <details>
 <summary>Implementation 67k-prepare-a-revision-bound-remote-source: Prepare a revision bound remote source</summary>
@@ -914,6 +1173,19 @@ After that block, type:
 </details>
 
 <a id="checkpoint-67l-fetch-precise-coordinates-and-original-ids"></a>
+
+### Step 16 of 17 · Fetch precise coordinates and original IDs (`67l-fetch-precise-coordinates-and-original-ids`)
+
+- **Goal:** Fetch precise coordinates and original IDs.
+- **Data Flow Trace:** `source row interval → coordinate and ID ranges → checked original page`
+- **Files You Touch:** `src/range_source.rs` (*Fetch matching original coordinate and ID pages under the source revision.*)
+
+Read coordinate and ID columns for the same source rows, then decode one complete original page.
+
+> **Self-Check Question:** *May a short ID range become implicit row identities?*  
+> **Answer:** No. Only an absent source ID column permits that fallback; a present incomplete column is refused.
+
+- **Hands-On Lab Experiment:** Compare actual kernel protobuf values and high-u32 IDs with each decoded source page.
 
 <details>
 <summary>Implementation 67l-fetch-precise-coordinates-and-original-ids: Fetch precise coordinates and original IDs</summary>
@@ -974,6 +1246,19 @@ After that block, append this supplied code:
 
 <a id="checkpoint-67m-cancel-range-work-when-its-runtime-closes"></a>
 
+### Step 17 of 17 · Cancel range work when its runtime closes (`67m-cancel-range-work-when-its-runtime-closes`)
+
+- **Goal:** Cancel range work when its runtime closes.
+- **Data Flow Trace:** `Close or device disposal → closed gate → aborted reads → released owners`
+- **Files You Touch:** `src/browser_runtime.rs` (*Cancel queued and active range work with its browser runtime.*) · `src/browser.rs` (*Cancel queued and active range work with its browser runtime.*)
+
+Connect gate replacement and active-request abortion to Close and browser runtime disposal.
+
+> **Self-Check Question:** *Can a cancelled request revive a closed source scene?*  
+> **Answer:** No. Its request is aborted; the page adoption in68 also checks the source generation and runtime owner.
+
+- **Hands-On Lab Experiment:** Close with queued and active reads; keep the mixed archive picture unchanged until streamed page display connects.
+
 <details>
 <summary>Implementation 67m-cancel-range-work-when-its-runtime-closes: Cancel range work when its runtime closes</summary>
 
@@ -1028,9 +1313,11 @@ Edit the existing block to match this code; keep unchanged lines:
 
 </details>
 
-## Run, Check, and Save
+---
 
-From `session_viewer`:
+## 5. Build, Verify, and Save Your Checkpoint
+
+Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 67m-cancel-range-work-when-its-runtime-closes
@@ -1041,10 +1328,10 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. Use [checkpoint recovery](../../recovery.md) to restore any saved checkpoint.
+Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
 
-## Expected Visual Result & Experiment
+## 6. Lesson Summary & Expected Visual Result
 
-- **Try this:** Close with queued and active reads; keep the mixed archive picture unchanged until streamed page display connects.
+- **Final Lesson Experiment:** Close with queued and active reads; keep the mixed archive picture unchanged until streamed page display connects.
 
-Continue with [Charged residency and current streamed pages](68-reserve-page-bytes-before-reading.md).
+Continue with [Charged residency and current streamed pages](../../consolidation/68-reserve-page-bytes-before-reading.md).

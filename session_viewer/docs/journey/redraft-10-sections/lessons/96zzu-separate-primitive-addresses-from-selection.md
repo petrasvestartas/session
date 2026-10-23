@@ -1,92 +1,172 @@
 # 20.4 · Slots, independent instance owners and stable record updates
 
-**Section 10: Shared GPU Arenas, Floating-Origin Precision, Multisampling, and Production Parity** · **Lesson 20.4** (Redraft `10.8`) · **24 checkpoints (`96zzu-separate-primitive-addresses-from-selection` → `96zzzr-share-transparent-instance-records`)**
+**Section 10: Shared GPU Arenas, Floating-Origin Precision, Multisampling, and Production Parity** · **Lesson 20.4** (Redraft `10.8`) · **24 checkpoints (`96zzu-separate-primitive-addresses-from-selection` → `96zzzr-share-transparent-instance-records`)** · **Study time: 19.400000000000006–24 h**
 
-> **Learning Goal:** Keep full primitive addresses in the range record while selection remains an independent flag.
+> **What You Will Learn & Build:** Keep full primitive addresses in the range record while selection remains an independent flag. By the final checkpoint (`96zzzr-share-transparent-instance-records`), you will draw transparent placements from the same shared records in scene order.
 
-## Visual WebGPU & Architecture Schematic
+## 1. Visual Pipeline & WebGPU Architecture (Black & White Schematics)
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1px solid #cbd5e1;border-radius:10px;background:#f8fafc;">
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
+<svg viewBox="0 0 840 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <rect x="4" y="4" width="832" height="212" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Lesson 20.4 Execution Flow: Slots, independent instance owners and stable record updates</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">Concrete data pipeline you build in this lesson (24 Checkpoints: 96zzu-separate-primitive-addresses-from-selection → 96zzzr-share-transparent-instance-records)</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
+  
+    
+    <rect x="18" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="89" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
+    <line x1="28" y1="92" x2="151" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">range record</text>
+    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="183" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="254" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
+    <line x1="193" y1="92" x2="316" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">ordinary shader or</text>
+    <text x="254" y="124" text-anchor="middle" font-size="11" fill="#111111">instance slot</text>
+    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="348" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="419" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
+    <line x1="358" y1="92" x2="481" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">physical primitive</text>
+    <text x="419" y="124" text-anchor="middle" font-size="11" fill="#111111">image</text>
+    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="513" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="584" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
+    <line x1="523" y1="92" x2="646" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">Original object ID</text>
+    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="678" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="749" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
+    <line x1="688" y1="92" x2="811" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">existing shared</text>
+    <text x="749" y="124" text-anchor="middle" font-size="11" fill="#111111">record and slot</text>
+    
+    <rect x="18" y="162" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="32" y="181" font-size="11" font-weight="700" fill="#111111">Files You Edit in Lesson 20.4:</text>
+    <text x="215" y="181" font-size="11" fill="#111111">src/primitive_image.rs  ·  src/gpu_mesh.rs  ·  src/triangle.wgsl  ·  src/triangle_pick.wgsl  ·  src/instance_gpu.rs  ·  src/renderer.rs</text>
+    <text x="32" y="198" font-size="10.5" fill="#111111">24 Checkpoints: 96zzu-separate-primitive-addresses-from-selection → 96zzzr-share-transparent-instance-records — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
+  
+</svg>
+</div>
+
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
 <svg viewBox="0 0 840 240" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#475569"/>
-    </marker>
-    <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#2563eb"/>
-    </marker>
-    <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#059669"/>
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
     </marker>
   </defs>
-  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
-  <text x="20" y="28" font-size="14" font-weight="700" fill="#0f172a">Section 10 Production Architecture: Shared GPU Storage Arena, f64 Floating Origin, Reversed-Z, 4x MSAA & Matrix Shader</text>
-  <text x="20" y="46" font-size="11.5" fill="#475569">How the maintained viewer pulls vertices from one growable GPU arena, eliminates jitter at 10^12 units, and renders procedural Matrices.</text>
-  <line x1="16" y1="54" x2="824" y2="54" stroke="#e2e8f0" stroke-width="1"/>
+  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Section 10 Production Architecture: Shared GPU Storage Arena, f64 Floating Origin, Reversed-Z, 4x MSAA & Matrix Shader</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">How the maintained viewer pulls vertices from one growable GPU arena, eliminates jitter at 10^12 units, and renders procedural Matrices.</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
   
-    <rect x="18" y="68" width="250" height="145" rx="6" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
-    <text x="143" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1e40af">1. Shared GPU Arena (Ch 19–20)</text>
-    <text x="28" y="108" font-size="10.5" fill="#1e3a8a">• 1 Growable Storage Buffer Arena</text>
-    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#1d4ed8">• Vertex Pulling (@builtin(vertex_index))</text>
-    <text x="28" y="144" font-size="10.5" fill="#1e3a8a">• 8-byte Draw Slots -&gt; ObjectRecord</text>
-    <text x="28" y="162" font-size="10.5" fill="#1e3a8a">• slot_table.wgsl maps Rg32Uint</text>
-    <text x="28" y="178" font-size="10.5" fill="#1e3a8a">  primitive IDs to Element/Face owners</text>
-    <text x="28" y="194" font-size="10" fill="#1e3a8a">• Free-list span reuse after GPU lease</text>
+    <rect x="18" y="68" width="250" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="143" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">1. Shared GPU Arena (Ch 19–20)</text>
+    <text x="28" y="108" font-size="10.5" fill="#111111">• 1 Growable Storage Buffer Arena</text>
+    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#111111">• Vertex Pulling (@builtin(vertex_index))</text>
+    <text x="28" y="144" font-size="10.5" fill="#111111">• 8-byte Draw Slots -&gt; ObjectRecord</text>
+    <text x="28" y="162" font-size="10.5" fill="#111111">• slot_table.wgsl maps Rg32Uint</text>
+    <text x="28" y="178" font-size="10.5" fill="#111111">  primitive IDs to Element/Face owners</text>
+    <text x="28" y="194" font-size="10" fill="#111111">• Free-list span reuse after GPU lease</text>
 
-    <line x1="268" y1="138" x2="298" y2="138" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
+    <line x1="268" y1="138" x2="298" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="300" y="68" width="265" height="145" rx="6" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5"/>
-    <text x="432" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#9a3412">2. f64 Floating Origin &amp; Reversed-Z (Ch 21)</text>
-    <text x="312" y="108" font-size="10.5" font-weight="600" fill="#c2410c">• rel_f32 = (world_f64 - anchor_f64) as f32</text>
-    <text x="312" y="125" font-size="10" fill="#7c2d12">  Zero vertex/grid jitter even at 10^12 m!</text>
-    <text x="312" y="144" font-size="10.5" font-weight="600" fill="#c2410c">• Reversed-Z Depth (GreaterEqual):</text>
-    <text x="312" y="160" font-size="10" fill="#7c2d12">  Near plane = 1.0, Far plane = 0.0</text>
-    <text x="312" y="178" font-size="10.5" fill="#7c2d12">• Held world base grid &amp; preserved</text>
-    <text x="312" y="193" font-size="10.5" fill="#7c2d12">  live camera during Session reload</text>
+    <rect x="300" y="68" width="265" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="432" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">2. f64 Floating Origin &amp; Reversed-Z (Ch 21)</text>
+    <text x="312" y="108" font-size="10.5" font-weight="600" fill="#111111">• rel_f32 = (world_f64 - anchor_f64) as f32</text>
+    <text x="312" y="125" font-size="10" fill="#111111">  Zero vertex/grid jitter even at 10^12 m!</text>
+    <text x="312" y="144" font-size="10.5" font-weight="600" fill="#111111">• Reversed-Z Depth (GreaterEqual):</text>
+    <text x="312" y="160" font-size="10" fill="#111111">  Near plane = 1.0, Far plane = 0.0</text>
+    <text x="312" y="178" font-size="10.5" fill="#111111">• Held world base grid &amp; preserved</text>
+    <text x="312" y="193" font-size="10.5" fill="#111111">  live camera during Session reload</text>
 
-    <line x1="565" y1="138" x2="595" y2="138" stroke="#059669" stroke-width="2" marker-end="url(#arrow-green)"/>
+    <line x1="565" y1="138" x2="595" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="597" y="68" width="223" height="145" rx="6" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1.5"/>
-    <text x="708" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#065f46">3. 4x MSAA &amp; Matrix Shader (Ch 22)</text>
-    <text x="609" y="108" font-size="10.5" fill="#064e3b">• Coherent 1x/4x MSAA sample targets</text>
-    <text x="609" y="126" font-size="10.5" font-weight="600" fill="#047857">• matrix.wgsl (16w header + 3w/cell):</text>
-    <text x="609" y="142" font-size="10" fill="#064e3b">  Heatmap + procedural 3-decimal digits</text>
-    <text x="609" y="157" font-size="10" fill="#064e3b">  (0 cell blank; plate-less title; yellow</text>
-    <text x="609" y="172" font-size="10" fill="#064e3b">  selected border; Rg32Uint whole pick)</text>
-    <text x="609" y="190" font-size="10" fill="#064e3b">• Coalesced single-flight frame scheduler</text>
+    <rect x="597" y="68" width="223" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="708" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">3. 4x MSAA &amp; Matrix Shader (Ch 22)</text>
+    <text x="609" y="108" font-size="10.5" fill="#111111">• Coherent 1x/4x MSAA sample targets</text>
+    <text x="609" y="126" font-size="10.5" font-weight="600" fill="#111111">• matrix.wgsl (16w header + 3w/cell):</text>
+    <text x="609" y="142" font-size="10" fill="#111111">  Heatmap + procedural 3-decimal digits</text>
+    <text x="609" y="157" font-size="10" fill="#111111">  (0 cell blank; plate-less title; yellow</text>
+    <text x="609" y="172" font-size="10" fill="#111111">  selected border; Rg32Uint whole pick)</text>
+    <text x="609" y="190" font-size="10" fill="#111111">• Coalesced single-flight frame scheduler</text>
     
 </svg>
 </div>
 
-### Lesson Data Flow (`Rust` → `WebGPU` → `WGSL`)
+## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
 
-```
-range record → ordinary shader or instance slot → physical primitive image.
-Arctic setting → existing colour attachment clear → sRGB target → stored background pixel.
-Original object ID → existing shared record and slot → one blended draw in scene order.
-```
+Before writing code, review how the three layers in this chapter talk to each other:
 
-- Keep full primitive addresses in the range record while selection remains an independent flag.
-- Use the current Arctic background without another draw or geometry upload.
-- Draw transparent placements from the same shared records in scene order.
-- **Why it works (Why check the end of the range rather than the base alone?):** Every emitted address adds the triangle index and one. The last address must remain below the reserved cap interval, including when integer addition would overflow.
-
-### Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `Browser`)
-
-| Layer | Construct | First-Year Student Explanation |
+| Layer | Construct | Plain-English Explanation for Students |
 | :--- | :--- | :--- |
 | **WGSL (Vertex Pull)** | `@group(0) @binding(b) var<storage, read> arena_verts: array<u32>;` | Fetches packed vertex positions, normals, and colors directly from a single growable storage buffer using `@builtin(vertex_index)`. |
 | **Rust/WGSL (`f64`->`f32`)** | `let rel: Vec3 = (world_f64 - anchor_f64).as_vec3();` | Subtracts the camera-area `f64` anchor on the CPU before converting to `f32`, preventing 32-bit float mantissa exhaustion far from `(0,0,0)`. |
 | **WGSL (`matrix.wgsl`)** | 16-word header + 3 words/cell procedural digits | Renders matrix heatmaps and 3-decimal numeric digits procedurally inside the fragment shader with zero texture uploads per cell. |
 | **Rust (`ink_ranges.rs`)** | Merged contiguous `Range<u32>` instance draws | Toggles point/line/edge/CAD-wire family visibility without rebuilding GPU buffers or invalidating original owner indices. |
 
-**Production source (`session_viewer/src`):** [engine/gpu/arena.rs](../../../../src/engine/gpu/arena.rs), [engine/gpu/buffers.rs](../../../../src/engine/gpu/buffers.rs), [engine/gpu/objects.rs](../../../../src/engine/gpu/objects.rs), [engine/gpu/slots.rs](../../../../src/engine/gpu/slots.rs), [engine/gpu/instanced.rs](../../../../src/engine/gpu/instanced.rs), [engine/gpu/faces.rs](../../../../src/engine/gpu/faces.rs), [engine/gpu/clip.rs](../../../../src/engine/gpu/clip.rs), [engine/gpu/triangle_tiles.rs](../../../../src/engine/gpu/triangle_tiles.rs), [app/scene_sync/tombs.rs](../../../../src/app/scene_sync/tombs.rs), [build.rs](../../../../build.rs).
+**Authoritative production source (`session_viewer/src`):** [engine/gpu/arena.rs](../../../../src/engine/gpu/arena.rs), [engine/gpu/buffers.rs](../../../../src/engine/gpu/buffers.rs), [engine/gpu/objects.rs](../../../../src/engine/gpu/objects.rs), [engine/gpu/slots.rs](../../../../src/engine/gpu/slots.rs), [engine/gpu/instanced.rs](../../../../src/engine/gpu/instanced.rs), [engine/gpu/faces.rs](../../../../src/engine/gpu/faces.rs), [engine/gpu/clip.rs](../../../../src/engine/gpu/clip.rs), [engine/gpu/triangle_tiles.rs](../../../../src/engine/gpu/triangle_tiles.rs), [app/scene_sync/tombs.rs](../../../../src/app/scene_sync/tombs.rs), [build.rs](../../../../build.rs).
 
-## Implementation Checkpoints
+## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
 
-Apply these checkpoints in order inside `workspace/journey`. Expand each block to view the Rust/WGSL/HTML edits:
+| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
+| ---: | :--- | :--- | :--- | :--- |
+| **1** | [`96zzu-separate-primitive-addresses-from-selection`](#checkpoint-96zzu-separate-primitive-addresses-from-selection) | Keep full primitive addresses in the range record while selection remains an independent flag. | `src/primitive_image.rs`, `src/gpu_mesh.rs`, `src/triangle.wgsl`, `src/triangle_pick.wgsl` | `range record → ordinary shader or instance slot → physical primitive image` |
+| **2** | [`96zzv-bind-the-own-row-slot-for-ordinary-surfaces`](#checkpoint-96zzv-bind-the-own-row-slot-for-ordinary-surfaces) | Use one integer vertex input for ordinary surfaces and placed-instance surfaces. | `src/draw_slots.rs`, `src/clipping_gpu.rs`, `src/triangle.wgsl`, `src/instance_gpu.rs` | `eight-byte draw slot → own uniform or instance row → shared surface vertex` |
+| **3** | [`96zzw-reload-scenes-through-the-existing-publication-owner`](#checkpoint-96zzw-reload-scenes-through-the-existing-publication-owner) | Expose scene replacement through the existing reader, including empty-manifest document release. | `src/publication_route.rs`, `src/browser_publication.rs`, `src/browser_runtime.rs`, `src/reload_complete_tests.rs` | `reload_scene → publication owner → validated candidate → Live adoption` |
+| **4** | [`96zzx-update-only-changed-slot-runs`](#checkpoint-96zzx-update-only-changed-slot-runs) | Patch changed instance slots without rewriting their unchanged neighbours. | `src/text_gpu_support.rs`, `src/draw_slots.rs`, `src/instance_gpu.rs`, `src/draw_slots_tests.rs` | `changed rows → contiguous runs → queue.write_buffer → unchanged draw slots` |
+| **5** | [`96zzy-share-one-slot-buffer-across-surface-draws`](#checkpoint-96zzy-share-one-slot-buffer-across-surface-draws) | Bind ordinary surfaces and every instance batch from one slot buffer. | `src/instance_gpu.rs`, `src/renderer.rs`, `src/global_outline_tests.rs` | `one slot owner → sentinel or batch range → shared surface vertex entry` |
+| **6** | [`96zzz-prepare-the-integer-primitive-slot-texture`](#checkpoint-96zzz-prepare-the-integer-primitive-slot-texture) | Store slot lookup records in an integer texture with bounded partial uploads. | `src/primitive_slot_table.rs`, `src/lib.rs`, `src/primitive_slot_table_tests.rs` | `slot index → texture row and column → four exact integer words` |
+| **7** | [`96zzza-describe-slot-and-triangle-runs`](#checkpoint-96zzza-describe-slot-and-triangle-runs) | Represent reserved slot capacity separately from occupied members and triangle IDs. | `src/slot_space.rs`, `src/lib.rs` | `definition → reserved slots and IDs → used members` |
+| **8** | [`96zzzb-read-slot-runs-and-lookup-texels`](#checkpoint-96zzzb-read-slot-runs-and-lookup-texels) | Derive GPU slot values and lookup texels from the same CPU run. | `src/slot_space.rs` | `CPU run → vertex slot and fragment lookup texel` |
+| **9** | [`96zzzc-reuse-and-merge-free-slot-ranges`](#checkpoint-96zzzc-reuse-and-merge-free-slot-ranges) | Allocate fitting holes, retain unused room and merge released neighbours. | `src/slot_space.rs` | `free range → fitting allocation → retained remainder` |
+| **10** | [`96zzzd-follow-arena-growth-with-slot-headroom`](#checkpoint-96zzzd-follow-arena-growth-with-slot-headroom) | Preserve instance IDs while arena growth remains inside reserved headroom. | `src/slot_space.rs` | `arena count → reserved headroom → header update or renumber` |
+| **11** | [`96zzze-report-only-changed-instance-slots`](#checkpoint-96zzze-report-only-changed-instance-slots) | Update touched members and growing definitions while reporting bounded dirty ranges. | `src/slot_space.rs` | `touched members → reused runs → coalesced dirty ranges` |
+| **12** | [`96zzzf-project-triangles-at-their-physical-addresses`](#checkpoint-96zzzf-project-triangles-at-their-physical-addresses) | Keep finite triangle records at the same addresses written into the primitive image. | `src/gpu_mesh.rs`, `src/tile_gpu.rs`, `src/global_outline_tests.rs` | `object primitive base → projected record interval → finite tile references` |
+| **13** | [`96zzzg-clear-the-current-arctic-background`](#checkpoint-96zzzg-clear-the-current-arctic-background) | Use the current Arctic background without another draw or geometry upload. | `src/renderer.rs`, `src/ambient_gpu_tests.rs` | `Arctic setting → existing colour attachment clear → sRGB target → stored background pixel` |
+| **14** | [`96zzzh-share-changed-record-runs`](#checkpoint-96zzzh-share-changed-record-runs) | Reuse the existing contiguous-change scan for slot and object records. | `src/draw_slots.rs` | `previous records → changed contiguous runs → existing bounded buffer writes` |
+| **15** | [`96zzzi-prepare-one-shared-object-record-table`](#checkpoint-96zzzi-prepare-one-shared-object-record-table) | Prepare one growable storage table without duplicating slot upload logic. | `src/object_rows.rs`, `src/lib.rs` | `packed object records → changed runs → growing storage buffer → current immutable binding` |
+| **16** | [`96zzzj-share-instance-object-records-across-definitions`](#checkpoint-96zzzj-share-instance-object-records-across-definitions) | Draw distinct definitions from one shared placement-record buffer. | `src/instance_gpu.rs`, `src/global_outline_tests.rs` | `original placements → shared object records → global slot row → unchanged pulled surface shader` |
+| **17** | [`96zzzk-reuse-checked-curve-control-coordinates`](#checkpoint-96zzzk-reuse-checked-curve-control-coordinates) | Use one checked rational-control decoder for sampling and control markers. | `src/controls.rs`, `src/curve.rs` | `original curve and index → shared checked control coordinate → sampling or marker display` |
+| **18** | [`96zzzl-publish-allocator-texels-through-the-integer-table`](#checkpoint-96zzzl-publish-allocator-texels-through-the-integer-table) | Connect allocator changes to the existing exact integer texture writer. | `src/primitive_slot_table.rs`, `src/primitive_slot_table_tests.rs` | `SlotSpace change → exact allocator texels → full or bounded texture write → current texture view` |
+| **19** | [`96zzzm-resolve-physical-triangles-with-integer-slots`](#checkpoint-96zzzm-resolve-physical-triangles-with-integer-slots) | Resolve a physical triangle ID back to its definition triangle and object row. | `src/primitive_slot_lookup.wgsl`, `src/primitive_slot_table_tests.rs` | `One-based physical ID → unsigned table search → definition triangle and object row` |
+| **20** | [`96zzzn-batch-shared-geometry-with-original-ownership`](#checkpoint-96zzzn-batch-shared-geometry-with-original-ownership) | Reuse instance drawing for copied originals sharing GPU geometry. | `src/renderer.rs`, `src/pick_gpu_tests.rs`, `src/instance_gpu.rs`, `src/object_rows.rs` | `Visible original rows → shared GPU geometry → object-record batch → original IDs` |
+| **21** | [`96zzzo-shrink-record-ranges-without-rewriting-live-prefixes`](#checkpoint-96zzzo-shrink-record-ranges-without-rewriting-live-prefixes) | Reuse one logical buffer truncate operation for object records and draw slots. | `src/text_gpu_support.rs`, `src/object_rows.rs`, `src/draw_slots.rs`, `src/draw_slots_tests.rs` | `Shorter live range → same allocation → changed live runs only → current draw count` |
+| **22** | [`96zzzp-share-opaque-ordinary-surface-records`](#checkpoint-96zzzp-share-opaque-ordinary-surface-records) | Draw ordinary opaque surfaces from the same object-record table as instances. | `src/instance_gpu.rs`, `src/renderer.rs`, `src/pick_gpu_tests.rs`, `src/global_outline_tests.rs` | `Ordinary visible mesh → shared packed record and draw slot → existing storage shader → original pixels and primitive IDs` |
+| **23** | [`96zzzq-blend-ordinary-surface-records`](#checkpoint-96zzzq-blend-ordinary-surface-records) | Use the shared ordinary record table at the current translucent default. | `src/instance_gpu.rs`, `src/renderer.rs`, `src/global_outline_tests.rs` | `Shared ordinary record → alpha-blended color plus unchanged integer primitive → earlier scene order` |
+| **24** | [`96zzzr-share-transparent-instance-records`](#checkpoint-96zzzr-share-transparent-instance-records) | Draw transparent placements from the same shared records in scene order. | `src/instance_gpu.rs`, `src/global_outline_tests.rs` | `Original object ID → existing shared record and slot → one blended draw in scene order` |
+
+---
+
+## 4. Step-by-Step Coding Notebook (Concept + Implementation)
+
+Work through each notebook cell below in order inside `workspace/journey`. Read the **Concept Walkthrough** and **Self-Check Q&A** first, then expand the **Implementation** block to type and verify the code.
 
 <a id="checkpoint-96zzu-separate-primitive-addresses-from-selection"></a>
+
+### Step 1 of 24 · Separate primitive addresses from selection (`96zzu-separate-primitive-addresses-from-selection`)
+
+- **Goal:** Keep full primitive addresses in the range record while selection remains an independent flag.
+- **Data Flow Trace:** `range record → ordinary shader or instance slot → physical primitive image`
+- **Files You Touch:** `src/primitive_image.rs` (*Name the beginning of the existing reserved cap interval.*) · `src/gpu_mesh.rs` (*Keep selection independent of the address.*) · `src/triangle.wgsl` (*Read the same range word in color and first picking.*) · `src/triangle_pick.wgsl` (*Read the same range word in color and first picking.*) · `src/instance_gpu.rs` (*Keep the instance shader adaptation attached to the new ordinary expression.*) · `src/renderer.rs` (*Bound cumulative visible ranges below reserved cap markers.*) · `src/global_outline_tests.rs` (*Read the independent base in the existing ownership fixture.*)
+
+Selection is presentation, not part of a triangle address. Move the primitive base into the existing range record. Both color and first-pick shaders read that word, and instance slots reuse it. Keep the reserved cap interval outside ordinary geometry.
+
+> **Self-Check Question:** *Why check the end of the range rather than the base alone?*  
+> **Answer:** Every emitted address adds the triangle index and one. The last address must remain below the reserved cap interval, including when integer addition would overflow.
+
+- **Hands-On Lab Experiment:** Select two placed copies, clear selection, hide one and pick the other. Their original identities must remain stable even when visible primitive ranges are rebuilt.
 
 <details>
 <summary>Implementation 96zzu-separate-primitive-addresses-from-selection: Separate primitive addresses from selection</summary>
@@ -658,6 +738,19 @@ After that block, append this supplied code:
 </details>
 
 <a id="checkpoint-96zzv-bind-the-own-row-slot-for-ordinary-surfaces"></a>
+
+### Step 2 of 24 · Bind the own-row slot for ordinary surfaces (`96zzv-bind-the-own-row-slot-for-ordinary-surfaces`)
+
+- **Goal:** Use one integer vertex input for ordinary surfaces and placed-instance surfaces.
+- **Data Flow Trace:** `eight-byte draw slot → own uniform or instance row → shared surface vertex`
+- **Files You Touch:** `src/draw_slots.rs` (*Generate the shader sentinel from the existing integer owner.*) · `src/clipping_gpu.rs` (*Include the same own-row sentinel in shared shader assembly.*) · `src/triangle.wgsl` (*Read the shared eight-byte vertex slot in ordinary and instance pipelines.*) · `src/instance_gpu.rs` (*Retain only record-owner adaptation; the vertex entry and slots are now shared.*) · `src/renderer.rs` (*Own one permanent default slot with the renderer pipeline resources.*) · `src/global_outline_tests.rs` (*Supply actual ordinary/instance pixels, placed-face highlights, primitive preservation, original sources and permanent sentinel checks.*)
+
+Ordinary surfaces use their own uniform record; placed instances use a storage row. Bind the reserved own-row slot for ordinary and temporary surface passes. Both pipelines now share one vertex entry and slot layout.
+
+> **Self-Check Question:** *Why bind the own-row slot again before a temporary face highlight?*  
+> **Answer:** An instance batch may have changed the vertex binding. The next pass must choose its own record and primitive base explicitly.
+
+- **Hands-On Lab Experiment:** Compare opaque instance drawing with a partly transparent view, which uses ordinary draws. Select an original face after the instance pass and check that its highlight stays on the same placed surface.
 
 <details>
 <summary>Implementation 96zzv-bind-the-own-row-slot-for-ordinary-surfaces: Bind the own-row slot for ordinary surfaces</summary>
@@ -1687,6 +1780,19 @@ After that block, append this supplied code:
 
 <a id="checkpoint-96zzw-reload-scenes-through-the-existing-publication-owner"></a>
 
+### Step 3 of 24 · Reload scenes through the existing publication owner (`96zzw-reload-scenes-through-the-existing-publication-owner`)
+
+- **Goal:** Expose scene replacement through the existing reader, including empty-manifest document release.
+- **Data Flow Trace:** `reload_scene → publication owner → validated candidate → Live adoption`
+- **Files You Touch:** `src/publication_route.rs` (*Share named-scene resolution between startup and explicit reload.*) · `src/browser_publication.rs` (*Keep one stable publication slot for browser callbacks.*) · `src/browser_runtime.rs` (*Export the current replacement entry point and start reading after the runtime borrow ends.*) · `src/reload_complete_tests.rs` (*Supply actual history, original-owner and manifest-cache release assertions.*)
+
+The reader already adopts complete live scenes and clears their history. Add the current reload_scene entry point instead of another loader. Update its stable control, cancel obsolete work and begin the existing candidate transaction. An empty manifest releases the document.
+
+> **Self-Check Question:** *Why start the read after releasing the runtime borrow?*  
+> **Answer:** The publication checks which runtime owns its device. Starting it while that runtime is mutably borrowed would reenter the same RefCell.
+
+- **Hands-On Lab Experiment:** Create `empty.yaml` containing `items: []` and temporarily add `<link data-trunk rel="copy-file" href="empty.yaml">` to `index.html`. Call `window.wasmBindings.reload_scene(new URL("empty.yaml",location.href).href)` in the browser console. Compare valid, malformed and empty manifests. Empty reload must clear the drawing and its Undo history.
+
 <details>
 <summary>Implementation 96zzw-reload-scenes-through-the-existing-publication-owner: Reload scenes through the existing publication owner</summary>
 
@@ -2181,6 +2287,19 @@ After that block, append this supplied code:
 
 <a id="checkpoint-96zzx-update-only-changed-slot-runs"></a>
 
+### Step 4 of 24 · Update only changed slot runs (`96zzx-update-only-changed-slot-runs`)
+
+- **Goal:** Patch changed instance slots without rewriting their unchanged neighbours.
+- **Data Flow Trace:** `changed rows → contiguous runs → queue.write_buffer → unchanged draw slots`
+- **Files You Touch:** `src/text_gpu_support.rs` (*Write aligned existing rows without changing capacity or the active count.*) · `src/draw_slots.rs` (*Report the bytes actually uploaded by this slot update.*) · `src/instance_gpu.rs` (*Count partial slot uploads rather than every slot in the batch.*) · `src/draw_slots_tests.rs` (*Supply real GPU readback checks for partial writes, unchanged rows, growth, shrink and bounds.*)
+
+A selection change can update one slot while its shared geometry remains untouched. Add bounded writes to the existing growing buffer. Compare slot rows, group adjacent changes and upload those runs. Keep the sentinel and reuse capacity when the active count shrinks.
+
+> **Self-Check Question:** *Why compare rows before writing the buffer?*  
+> **Answer:** An unchanged row needs no upload. Grouping adjacent changes also avoids one queue write per changed row.
+
+- **Hands-On Lab Experiment:** Select and deselect one placed object. Its drawing changes without uploading its source geometry. Repeating the same selection should add no slot writes.
+
 <details>
 <summary>Implementation 96zzx-update-only-changed-slot-runs: Update only changed slot runs</summary>
 
@@ -2393,6 +2512,19 @@ After that block, append this supplied code:
 </details>
 
 <a id="checkpoint-96zzy-share-one-slot-buffer-across-surface-draws"></a>
+
+### Step 5 of 24 · Share one slot buffer across surface draws (`96zzy-share-one-slot-buffer-across-surface-draws`)
+
+- **Goal:** Bind ordinary surfaces and every instance batch from one slot buffer.
+- **Data Flow Trace:** `one slot owner → sentinel or batch range → shared surface vertex entry`
+- **Files You Touch:** `src/instance_gpu.rs` (*Store a range start instead of another slot owner.*) · `src/renderer.rs` (*Remove the duplicate ordinary slot owner.*) · `src/global_outline_tests.rs` (*Retain the mapped sentinel and released-scene checks against the shared owner.*)
+
+Each batch currently owns another slot buffer. Move those slots into one lane owner. Keep the sentinel at row zero and record each batch’s starting row. Bind that range for placed draws and row zero for ordinary surfaces and temporary highlights.
+
+> **Self-Check Question:** *Why keep each batch’s object rows local?*  
+> **Answer:** Its storage binding still contains that batch’s records. A global slot offset chooses the draw range; the row stored in that slot chooses the local record.
+
+- **Hands-On Lab Experiment:** Draw two different shared definitions, select one placed original and switch opacity. The ordinary and instanced paths must preserve original ownership and restore the same pixels.
 
 <details>
 <summary>Implementation 96zzy-share-one-slot-buffer-across-surface-draws: Share one slot buffer across surface draws</summary>
@@ -3376,6 +3508,19 @@ After that block, append this supplied code:
 
 <a id="checkpoint-96zzz-prepare-the-integer-primitive-slot-texture"></a>
 
+### Step 6 of 24 · Prepare the integer primitive-slot texture (`96zzz-prepare-the-integer-primitive-slot-texture`)
+
+- **Goal:** Store slot lookup records in an integer texture with bounded partial uploads.
+- **Data Flow Trace:** `slot index → texture row and column → four exact integer words`
+- **Files You Touch:** `src/primitive_slot_table.rs` (*Prepare one RGBA32Uint lookup owner, full replacement and bounded row writes.*) · `src/lib.rs` (*Register the lookup resource without changing the existing draw path.*) · `src/primitive_slot_table_tests.rs` (*Supply actual integer texture readback, row-crossing, bounds and release checks.*)
+
+The vertex buffer selects placements. A lookup texture will let fragment passes find their original row and triangle interval. Prepare four integer words per texel, a fixed row width and partial writes that split at texture-row boundaries. The drawing remains unchanged until this table is connected.
+
+> **Self-Check Question:** *Why split a partial upload at each texture-row boundary?*  
+> **Answer:** A rectangular texture write cannot wrap from the end of one row to the beginning of the next. Each run must fit its destination row.
+
+- **Hands-On Lab Experiment:** Predict the columns and rows for slots 1023, 1024 and 1025 using index % WIDTH and index / WIDTH. Trace a three-texel upload starting at 1023. Keep the existing scene running: this preparatory table does not change its drawing.
+
 <details>
 <summary>Implementation 96zzz-prepare-the-integer-primitive-slot-texture: Prepare the integer primitive-slot texture</summary>
 
@@ -3470,6 +3615,19 @@ After that block, append this supplied code:
 
 <a id="checkpoint-96zzza-describe-slot-and-triangle-runs"></a>
 
+### Step 7 of 24 · Describe slot and triangle runs (`96zzza-describe-slot-and-triangle-runs`)
+
+- **Goal:** Represent reserved slot capacity separately from occupied members and triangle IDs.
+- **Data Flow Trace:** `definition → reserved slots and IDs → used members`
+- **Files You Touch:** `src/slot_space.rs` (*Describe slot and ID capacity, definitions and change reports.*) · `src/lib.rs` (*Register the preparatory allocator types.*)
+
+A definition needs slots for its placed members and IDs for their triangles. Describe both ranges in one run. Keep used length separate from capacity, and represent free room without a definition key. Reuse the existing sentinel and slot type.
+
+> **Self-Check Question:** *Why separate used length from capacity?*  
+> **Answer:** A small definition can gain members without moving its existing slots when reserved capacity remains.
+
+- **Hands-On Lab Experiment:** Sketch a run with capacity four, two occupied members and three triangles per member. Mark the occupied slots separately from their reserved triangle-ID interval. The browser draw path is unchanged.
+
 <details>
 <summary>Implementation 96zzza-describe-slot-and-triangle-runs: Describe slot and triangle runs</summary>
 
@@ -3520,6 +3678,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-96zzzb-read-slot-runs-and-lookup-texels"></a>
+
+### Step 8 of 24 · Read slot runs and lookup texels (`96zzzb-read-slot-runs-and-lookup-texels`)
+
+- **Goal:** Derive GPU slot values and lookup texels from the same CPU run.
+- **Data Flow Trace:** `CPU run → vertex slot and fragment lookup texel`
+- **Files You Touch:** `src/slot_space.rs` (*Build this day’s whole allocator methods on the preceding types.*)
+
+Read the row and triangle offset for a slot. Derive the four-word lookup texel from that same run, with zero triangles for unused room. Report draws in definition order and merge overlapping changed ranges.
+
+> **Self-Check Question:** *Why does an unused slot have zero triangles?*  
+> **Answer:** Reserved capacity is not a live member. Fragment lookup must not treat its spare triangle IDs as drawing.
+
+- **Hands-On Lab Experiment:** Reuse the [run sketch](../../96zzza-describe-slot-and-triangle-runs.md). Read one occupied slot and one spare slot, then derive their lookup texels. The spare slot must describe zero live triangles.
 
 <details>
 <summary>Implementation 96zzzb-read-slot-runs-and-lookup-texels: Read slot runs and lookup texels</summary>
@@ -3646,6 +3817,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-96zzzc-reuse-and-merge-free-slot-ranges"></a>
 
+### Step 9 of 24 · Reuse and merge free slot ranges (`96zzzc-reuse-and-merge-free-slot-ranges`)
+
+- **Goal:** Allocate fitting holes, retain unused room and merge released neighbours.
+- **Data Flow Trace:** `free range → fitting allocation → retained remainder`
+- **Files You Touch:** `src/slot_space.rs` (*Build this day’s whole allocator methods on the preceding types.*)
+
+Find the first free run with enough slots and triangle IDs. Split its unused tail instead of discarding it. Fill the occupied run from its definition, then join neighbouring free runs and remove unused room at the end.
+
+> **Self-Check Question:** *Why check both slot capacity and triangle span?*  
+> **Answer:** Equal member counts can refer to definitions with different triangle counts. A hole must fit both resources.
+
+- **Hands-On Lab Experiment:** Release two adjacent runs, merge their free intervals and allocate a smaller definition into the hole. Check both member capacity and triangle span; retain the unused remainder.
+
 <details>
 <summary>Implementation 96zzzc-reuse-and-merge-free-slot-ranges: Reuse and merge free slot ranges</summary>
 
@@ -3751,6 +3935,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-96zzzd-follow-arena-growth-with-slot-headroom"></a>
+
+### Step 10 of 24 · Follow arena growth with slot headroom (`96zzzd-follow-arena-growth-with-slot-headroom`)
+
+- **Goal:** Preserve instance IDs while arena growth remains inside reserved headroom.
+- **Data Flow Trace:** `arena count → reserved headroom → header update or renumber`
+- **Files You Touch:** `src/slot_space.rs` (*Build this day’s whole allocator methods on the preceding types.*)
+
+A load or compaction places every definition again. Later arena growth should change only the lookup header while it fits before existing instance IDs. Renumber when the arena crosses that space, and retire runs whose definition or shared faces changed.
+
+> **Self-Check Question:** *Why avoid renumbering on every arena append?*  
+> **Answer:** Changing all instance IDs would also invalidate their lookup records. Headroom keeps small growth local.
+
+- **Hands-On Lab Experiment:** Append geometry inside reserved headroom and compare every existing slot ID. Then cross the headroom boundary and trace the required growth. This preparation still leaves browser drawing unchanged.
 
 <details>
 <summary>Implementation 96zzzd-follow-arena-growth-with-slot-headroom: Follow arena growth with slot headroom</summary>
@@ -3870,6 +4067,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-96zzze-report-only-changed-instance-slots"></a>
+
+### Step 11 of 24 · Report only changed instance slots (`96zzze-report-only-changed-instance-slots`)
+
+- **Goal:** Update touched members and growing definitions while reporting bounded dirty ranges.
+- **Data Flow Trace:** `touched members → reused runs → coalesced dirty ranges`
+- **Files You Touch:** `src/slot_space.rs` (*Build this day’s whole allocator methods on the preceding types.*)
+
+Connect the allocator helpers. Retire obsolete runs, patch touched members and reuse capacity for definitions that still fit. Move full runs into new room and compact excessive spare space. Return only the slot ranges that need GPU updates.
+
+> **Self-Check Question:** *Why report changed ranges instead of every slot?*  
+> **Answer:** The GPU owner can update existing rows and texels in place. Unchanged definitions retain their allocations and uploads.
+
+- **Hands-On Lab Experiment:** Trace a member joining and leaving a definition. Identify the changed slots and any retained spare range. The existing drawing remains unchanged: the allocator is prepared here and connected to GPU ownership later.
 
 <details>
 <summary>Implementation 96zzze-report-only-changed-instance-slots: Report only changed instance slots</summary>
@@ -4043,6 +4253,19 @@ After that block, append this supplied code:
 </details>
 
 <a id="checkpoint-96zzzf-project-triangles-at-their-physical-addresses"></a>
+
+### Step 12 of 24 · Project triangles at their physical addresses (`96zzzf-project-triangles-at-their-physical-addresses`)
+
+- **Goal:** Keep finite triangle records at the same addresses written into the primitive image.
+- **Data Flow Trace:** `object primitive base → projected record interval → finite tile references`
+- **Files You Touch:** `src/gpu_mesh.rs` (*Expose the existing address owner rather than deriving another base.*) · `src/tile_gpu.rs` (*Invalidate projection when physical addresses change.*) · `src/global_outline_tests.rs` (*Supply actual mapped gap, relocated record, cache, pixel restoration and device-budget checks.*)
+
+The color pass writes each object’s primitive base, while projection still assumes dense rows. Read that same base when placing projected triangles. Bound the largest interval by the device budget, include addresses in the cache key and clear unused records before projection.
+
+> **Self-Check Question:** *Why clear records when an interval moves?*  
+> **Answer:** The buffer retains capacity. An old record in a newly unused address could otherwise keep contributing to tile lists.
+
+- **Hands-On Lab Experiment:** Keep the existing original scene running and compare its outlines before and after rebuilding. Its dense addresses still produce the same drawing; the supplied GPU fixture also checks gaps, address changes and bounded fallback.
 
 <details>
 <summary>Implementation 96zzzf-project-triangles-at-their-physical-addresses: Project triangles at their physical addresses</summary>
@@ -4278,6 +4501,20 @@ After that block, append this supplied code:
 
 <a id="checkpoint-96zzzg-clear-the-current-arctic-background"></a>
 
+### Step 13 of 24 · Clear the current Arctic background (`96zzzg-clear-the-current-arctic-background`)
+
+- **Goal:** Use the current Arctic background without another draw or geometry upload.
+- **Data Flow Trace:** `Arctic setting → existing colour attachment clear → sRGB target → stored background pixel`
+- **Files You Touch:** `src/renderer.rs` (*Use the existing colour clear; no extra fullscreen pipeline is needed.*) · `src/ambient_gpu_tests.rs` (*Keep the native UNORM contact-shadow assertion below the linear grey background, so the background itself cannot satisfy it.*)
+
+Change the existing render-pass clear to linear grey 0.94 when Arctic is enabled. Keep the ordinary background when it is disabled. The sRGB target converts that linear value when storing pixels; do not put its already encoded byte value into the clear colour.
+
+> **Self-Check Question:** *Why does a clear colour of 0.94 not store byte 240 in an sRGB target?*  
+> **Answer:** Clear values are linear. The sRGB attachment encodes them before storage, giving about byte 248. Encoding twice would give the wrong shade.
+
+- **What You Should See:** Arctic uses the current slightly grey background; ordinary display returns to its previous background.
+- **Hands-On Lab Experiment:** Toggle Arctic at both display densities. Check a background pixel, then confirm that object identities, placements and geometry uploads remain unchanged.
+
 <details>
 <summary>Implementation 96zzzg-clear-the-current-arctic-background: Clear the current Arctic background</summary>
 
@@ -4370,6 +4607,20 @@ Update the existing block with this supplied code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-96zzzh-share-changed-record-runs"></a>
+
+### Step 14 of 24 · Share changed record runs (`96zzzh-share-changed-record-runs`)
+
+- **Goal:** Reuse the existing contiguous-change scan for slot and object records.
+- **Data Flow Trace:** `previous records → changed contiguous runs → existing bounded buffer writes`
+- **Files You Touch:** `src/draw_slots.rs` (*Extract the existing comparison, retaining its order.*)
+
+Move the slot comparison into one generic helper. Keep the existing sentinel offset, tail append, shrink and release behavior. The next object table will use this same scan instead of teaching a second upload algorithm.
+
+> **Self-Check Question:** *Why stop the comparison at the shorter slice?*  
+> **Answer:** Only records present in both slices can be updated in place. Existing append and shrink paths handle the remaining records.
+
+- **What You Should See:** The browser scene is unchanged. Slot writes reuse one changed-run scan.
+- **Hands-On Lab Experiment:** Repeat the existing instance selection and Undo exercise. Selection changes only the changed slot bytes; drawing and original IDs stay the same.
 
 <details>
 <summary>Implementation 96zzzh-share-changed-record-runs: Share changed record runs</summary>
@@ -4507,6 +4758,20 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-96zzzi-prepare-one-shared-object-record-table"></a>
 
+### Step 15 of 24 · Prepare one shared object record table (`96zzzi-prepare-one-shared-object-record-table`)
+
+- **Goal:** Prepare one growable storage table without duplicating slot upload logic.
+- **Data Flow Trace:** `packed object records → changed runs → growing storage buffer → current immutable binding`
+- **Files You Touch:** `src/object_rows.rs` (*Reuse the aligned record, growing buffer and shared changed-run helper.*) · `src/lib.rs` (*Expose the preparatory owner.*)
+
+Use the existing aligned object record and growing GPU buffer. Update changed records through the shared scan, append new records, rebuild the immutable binding after buffer growth and release scene capacity when empty. Validate device limits before mutating either owner. This table is preparatory; the next lesson connects instance drawing.
+
+> **Self-Check Question:** *Why replace a bind group after buffer growth?*  
+> **Answer:** A bind group retains the buffer it was created with. Growing the owner does not change that retained resource.
+
+- **What You Should See:** The browser scene is unchanged. The growing object-record table is ready for its first drawing consumer.
+- **Hands-On Lab Experiment:** Keep the original browser scene running. This preparatory table adds no drawing or allocation until it is connected; inspect the supplied GPU readback showing retained neighbors, high-bit ID bytes and changed binding after growth.
+
 <details>
 <summary>Implementation 96zzzi-prepare-one-shared-object-record-table: Prepare one shared object record table</summary>
 
@@ -4621,6 +4886,20 @@ After that block, append this supplied code:
 </details>
 
 <a id="checkpoint-96zzzj-share-instance-object-records-across-definitions"></a>
+
+### Step 16 of 24 · Share instance object records across definitions (`96zzzj-share-instance-object-records-across-definitions`)
+
+- **Goal:** Draw distinct definitions from one shared placement-record buffer.
+- **Data Flow Trace:** `original placements → shared object records → global slot row → unchanged pulled surface shader`
+- **Files You Touch:** `src/instance_gpu.rs` (*Remove batch-specific buffer creation.*) · `src/global_outline_tests.rs` (*The second definition now addresses global row one, while the ordinary sentinel stays unchanged.*)
+
+Replace each definition batch’s storage buffer with the shared object table. Slot row numbers now address that table across all definitions. Keep geometry ownership, the ordinary sentinel and primitive bases unchanged. Check the complete table against the device storage limit before adopting a new drawing.
+
+> **Self-Check Question:** *Why must the second definition stop numbering rows from zero?*  
+> **Answer:** All definitions now bind the same array. A local zero would read the first definition’s placement, original ID and selection state.
+
+- **What You Should See:** Original placed copies retain their colours, selection and picking. Their drawing batches now share one object-record buffer.
+- **Hands-On Lab Experiment:** Open the original instance specimen, then a second original definition. Select and move one copy, Undo and change opacity. Confirm that each definition retains its own placement and original picking; empty scene adoption releases both record and slot capacity.
 
 <details>
 <summary>Implementation 96zzzj-share-instance-object-records-across-definitions: Share instance object records across definitions</summary>
@@ -4856,6 +5135,20 @@ Update the existing block with this supplied code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-96zzzk-reuse-checked-curve-control-coordinates"></a>
+
+### Step 17 of 24 · Reuse checked curve control coordinates (`96zzzk-reuse-checked-curve-control-coordinates`)
+
+- **Goal:** Use one checked rational-control decoder for sampling and control markers.
+- **Data Flow Trace:** `original curve and index → shared checked control coordinate → sampling or marker display`
+- **Files You Touch:** `src/controls.rs` (*Move the checked method already written into this module position; the next edit changes its signature. The body is reused, not a supplied new algorithm.*) · `src/curve.rs` (*Remove the second rational-coordinate decoder.*)
+
+The original curve sampler and control owner both decode the same rational coordinates. Extract the existing checked calculation into a borrowed helper. The control owner keeps its Rc; the sampler calls the helper without allocating another owner. Keep curve-domain, positive-weight and sampling guards in their existing owner.
+
+> **Self-Check Question:** *Why keep curve validation separate?*  
+> **Answer:** A valid control coordinate does not establish a valid curve domain, knot vector or display sampling policy. Each caller retains those different obligations.
+
+- **What You Should See:** Original curve samples and control markers retain their checked positions through one coordinate decoder.
+- **Hands-On Lab Experiment:** Draw a rational arc and enable its controls. Move one original control, Undo and confirm the restored arc. Inspect the retained supplied malformed-control and invalid-curve fixtures; no duplicate coordinate decoder remains.
 
 <details>
 <summary>Implementation 96zzzk-reuse-checked-curve-control-coordinates: Reuse checked curve control coordinates</summary>
@@ -5135,6 +5428,20 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-96zzzl-publish-allocator-texels-through-the-integer-table"></a>
 
+### Step 18 of 24 · Publish allocator texels through the integer table (`96zzzl-publish-allocator-texels-through-the-integer-table`)
+
+- **Goal:** Connect allocator changes to the existing exact integer texture writer.
+- **Data Flow Trace:** `SlotSpace change → exact allocator texels → full or bounded texture write → current texture view`
+- **Files You Touch:** `src/primitive_slot_table.rs` (*Share the existing texture-shape rule instead of repeating it.*) · `src/primitive_slot_table_tests.rs` (*Supply actual mapped allocator words, high-bit rows, retired slots, unchanged neighbors and zero release.*)
+
+The CPU slot allocator and GPU lookup texture are already written. Publish full texels when the texture shape changes; otherwise write only the allocator’s changed ranges. Reuse the existing texture writer and preserve its exact integer words. This connects publication helpers; fragment lookup remains a later step.
+
+> **Self-Check Question:** *Why upload every texel after replacing the texture?*  
+> **Answer:** A new texture contains no previous records. Writing only this edit’s dirty range would lose untouched live slots.
+
+- **What You Should See:** The browser scene is unchanged. Allocator changes can now publish exact words through the existing GPU texture writer.
+- **Hands-On Lab Experiment:** Keep the original browser scene running. The helper adds no drawing until connected to a consumer. Inspect the supplied GPU readback for high-bit rows, retired slots, untouched neighbors and release to one zero texel.
+
 <details>
 <summary>Implementation 96zzzl-publish-allocator-texels-through-the-integer-table: Publish allocator texels through the integer table</summary>
 
@@ -5284,6 +5591,20 @@ After that block, append this supplied code:
 
 <a id="checkpoint-96zzzm-resolve-physical-triangles-with-integer-slots"></a>
 
+### Step 19 of 24 · Resolve physical triangles with integer slots (`96zzzm-resolve-physical-triangles-with-integer-slots`)
+
+- **Goal:** Resolve a physical triangle ID back to its definition triangle and object row.
+- **Data Flow Trace:** `One-based physical ID → unsigned table search → definition triangle and object row`
+- **Files You Touch:** `src/primitive_slot_lookup.wgsl` (*Resolve one-based physical IDs with unsigned integer texels and reject unused ranges.*) · `src/primitive_slot_table_tests.rs` (*Supply an actual GPU dispatch through the taught shader; check original IDs, high-bit rows, retired holes and an empty table.*)
+
+An instance has its own physical triangle IDs while sharing geometry. Read the integer table header, keep ordinary triangles on their own rows, then find the last slot starting before the requested ID. Reject retired slots and spare ranges. Write this shader once so later GPU consumers share the same rule.
+
+> **Self-Check Question:** *Why check the slot triangle count after the binary search?*  
+> **Answer:** The search finds the preceding range, which can be a retired slot or reserved spare space. Its count determines whether this ID names a live triangle.
+
+- **What You Should See:** The browser scene is unchanged. The shared lookup shader is prepared for later projection and ambient consumers.
+- **Hands-On Lab Experiment:** Keep the original browser scene running. Inspect the supplied dispatch results for ordinary triangles, two definitions, high-bit rows, retired holes and a texture-row boundary. A table with no instances still resolves ordinary arena IDs. The visible renderer is connected in a later step.
+
 <details>
 <summary>Implementation 96zzzm-resolve-physical-triangles-with-integer-slots: Resolve physical triangles with integer slots</summary>
 
@@ -5355,6 +5676,20 @@ After that block, append this supplied code:
 </details>
 
 <a id="checkpoint-96zzzn-batch-shared-geometry-with-original-ownership"></a>
+
+### Step 20 of 24 · Batch shared geometry with original ownership (`96zzzn-batch-shared-geometry-with-original-ownership`)
+
+- **Goal:** Reuse instance drawing for copied originals sharing GPU geometry.
+- **Data Flow Trace:** `Visible original rows → shared GPU geometry → object-record batch → original IDs`
+- **Files You Touch:** `src/renderer.rs` (*Batch reused GPU geometry without turning copied originals into kernel InstanceRef owners.*) · `src/pick_gpu_tests.rs` (*Supply actual copied-original pixels, high-bit original picks, selection restoration, hide/reopen and CPU/GPU release.*) · `src/instance_gpu.rs` (*Share the existing record capacity and retain ordinary drawing when optional copied-original batches exceed it.*) · `src/object_rows.rs` (*Own the shared record-capacity calculation beside the record table.*)
+
+Copying an original can reuse its GPU geometry without becoming a saved InstanceRef. Choose the GPU drawing path from shared geometry and declared instances, while leaving source ownership, editing, archives and original pick IDs in the scene. When only one ordinary original remains visible, use the existing ordinary draw path again. Keep copied originals on the ordinary path when their optional shared batch would exceed the existing record-table capacity.
+
+> **Self-Check Question:** *Why keep GPU batching separate from source ownership?*  
+> **Answer:** Sharing a GPU allocation is a drawing decision. It must not rewrite an original CAD object as a saved kernel instance.
+
+- **What You Should See:** Copied originals share the object-record drawing buffer while keeping their original identities. A single visible ordinary original returns to ordinary drawing.
+- **Hands-On Lab Experiment:** Copy an original object, move the copy, select it and hide it. Show it again and check that both originals retain their positions and independent picks. Inspect the supplied pixel and release fixture without running native tests.
 
 <details>
 <summary>Implementation 96zzzn-batch-shared-geometry-with-original-ownership: Batch shared geometry with original ownership</summary>
@@ -6340,6 +6675,20 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-96zzzo-shrink-record-ranges-without-rewriting-live-prefixes"></a>
 
+### Step 21 of 24 · Shrink record ranges without rewriting live prefixes (`96zzzo-shrink-record-ranges-without-rewriting-live-prefixes`)
+
+- **Goal:** Reuse one logical buffer truncate operation for object records and draw slots.
+- **Data Flow Trace:** `Shorter live range → same allocation → changed live runs only → current draw count`
+- **Files You Touch:** `src/text_gpu_support.rs` (*Shorten a logical record range without replacing its allocation or rewriting the live prefix.*) · `src/object_rows.rs` (*Reuse the existing changed-run scan on shrinking tables; write only changed live records.*) · `src/draw_slots.rs` (*Keep slot zero and unchanged instance slots while shortening their logical range.*) · `src/draw_slots_tests.rs` (*Supply exact retained slot bytes and one changed high-bit slot through a second shrink.*)
+
+Removing a last record changes the live range without changing its prefix. Keep the allocation and immutable binding, shorten the logical count, and reuse the changed-run scan for records that really changed. An empty object table still follows the existing full-release path; ordinary slot zero remains available.
+
+> **Self-Check Question:** *Does logical truncation erase the reserved tail?*  
+> **Answer:** No. It changes the live count. Drawing must use that count; complete scene release still drops the old allocation through the existing release path.
+
+- **What You Should See:** The same original scene remains visible. Removing records can now preserve unchanged live bytes and current GPU bindings.
+- **Hands-On Lab Experiment:** Hide and show a copied original, restore selection and compare the scene. Inspect the supplied mapped-byte checks for zero writes on an unchanged shortened prefix and one changed high-bit record.
+
 <details>
 <summary>Implementation 96zzzo-shrink-record-ranges-without-rewriting-live-prefixes: Shrink record ranges without rewriting live prefixes</summary>
 
@@ -6508,6 +6857,20 @@ Update the existing block with this supplied code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-96zzzp-share-opaque-ordinary-surface-records"></a>
+
+### Step 22 of 24 · Share opaque ordinary surface records (`96zzzp-share-opaque-ordinary-surface-records`)
+
+- **Goal:** Draw ordinary opaque surfaces from the same object-record table as instances.
+- **Data Flow Trace:** `Ordinary visible mesh → shared packed record and draw slot → existing storage shader → original pixels and primitive IDs`
+- **Files You Touch:** `src/instance_gpu.rs` (*Keep each ordinary original’s draw slot alongside the shared record table.*) · `src/renderer.rs` (*Refresh both ordinary and instance records after scene or selection changes.*) · `src/pick_gpu_tests.rs` (*The surviving ordinary original now retains its shared record allocation; its original pick and full final release remain checked.*) · `src/global_outline_tests.rs` (*Supply mapped ordinary records and exact storage-versus-legacy pixels and primitive addresses through growth, selection, opacity restoration and release.*) · `src/object_rows.rs` (*Reuse the record table’s existing CPU snapshot; use the current ordinary uniform path after a mesh range or record changes.*)
+
+The shared record table already draws instances. Append ordinary visible mesh records when it has room and bind their draw slots in the existing scene order. Reuse the same storage shader. Keep the ordinary uniform path for transparency, temporary overlays and a table that cannot hold the optional ordinary records. A draw uses the shared record only while its packed snapshot matches the current mesh; otherwise restore slot zero and use the current uniform path.
+
+> **Self-Check Question:** *Why preserve the ordinary scene order instead of grouping every draw?*  
+> **Answer:** Changing the order can change which coincident surface wins the depth test. Sharing records does not require changing that order.
+
+- **What You Should See:** With Opacity 1, ordinary surfaces and instances read one shared object-record table. Original pixels, picks and selection remain intact.
+- **Hands-On Lab Experiment:** Use Opacity 1 on the original scene. Select an ordinary mesh, restore its appearance, then use Opacity 0.5 and return to 1. Inspect the supplied exact comparison with the earlier uniform path.
 
 <details>
 <summary>Implementation 96zzzp-share-opaque-ordinary-surface-records: Share opaque ordinary surface records</summary>
@@ -7686,6 +8049,20 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-96zzzq-blend-ordinary-surface-records"></a>
 
+### Step 23 of 24 · Blend ordinary surface records (`96zzzq-blend-ordinary-surface-records`)
+
+- **Goal:** Use the shared ordinary record table at the current translucent default.
+- **Data Flow Trace:** `Shared ordinary record → alpha-blended color plus unchanged integer primitive → earlier scene order`
+- **Files You Touch:** `src/instance_gpu.rs` (*Keep a blended ordinary pipeline beside the existing instance pipeline.*) · `src/renderer.rs` (*Ordinary storage records now work at the current translucent default as well as Opacity 1.*) · `src/global_outline_tests.rs` (*Supply exact storage-versus-uniform RGBA and primitive images at x-ray, half opacity, the current default and full opacity.*)
+
+An ordinary surface uses alpha blending in the earlier renderer. Keep that exact policy while reading its shared storage record. Build the ordinary and instance pipeline states from one descriptor and shader, then preserve the earlier ordinary draw order. Temporary overlays and capacity or changed-record fallbacks still use their current uniform path.
+
+> **Self-Check Question:** *Why share a shader but keep a distinct ordinary blend state?*  
+> **Answer:** The ordinary renderer already blends color while writing the same primitive IDs. Changing the record resource must preserve that pipeline state; the existing instance state remains separate.
+
+- **What You Should See:** Ordinary surfaces read the shared table at Opacity 0.95, 0.5 and 1, with exact earlier colors and original picks.
+- **Hands-On Lab Experiment:** Use Opacity 0.95, 0.5, 0 and 1. Select an ordinary original and restore it. Inspect the supplied exact color and primitive comparison with the earlier uniform renderer.
+
 <details>
 <summary>Implementation 96zzzq-blend-ordinary-surface-records: Blend ordinary surface records</summary>
 
@@ -7959,6 +8336,20 @@ Update the existing block with this supplied code; keep unchanged lines:
 
 <a id="checkpoint-96zzzr-share-transparent-instance-records"></a>
 
+### Step 24 of 24 · Share transparent instance records (`96zzzr-share-transparent-instance-records`)
+
+- **Goal:** Draw transparent placements from the same shared records in scene order.
+- **Data Flow Trace:** `Original object ID → existing shared record and slot → one blended draw in scene order`
+- **Files You Touch:** `src/instance_gpu.rs` (*Retain each original owner beside its packed instance record.*) · `src/global_outline_tests.rs` (*Supply exact transparent-copy color and primitive comparisons, independent selection, unchanged originals, uploads and full release.*)
+
+An opaque placement can join a geometry batch. A translucent placement must retain the earlier individual scene order. Save the original object ID beside each packed record, then reuse the existing one-object draw lookup for both ordinary surfaces and placements. This changes the resource lookup without changing CAD ownership or introducing another shader.
+
+> **Self-Check Question:** *Why retain a one-object lookup for records already used by a batch?*  
+> **Answer:** Transparency uses individual scene order. The lookup selects the same record and physical primitive base without regrouping those draws or copying another record table.
+
+- **What You Should See:** Transparent placements consume the shared object table while retaining original pixels, picks and scene order.
+- **Hands-On Lab Experiment:** Set Opacity to 0.5 and 0.95 in Example Instances. Select each placement, clear selection and restore Opacity 1. Inspect the supplied exact comparison against the earlier uniform draw path.
+
 <details>
 <summary>Implementation 96zzzr-share-transparent-instance-records: Share transparent instance records</summary>
 
@@ -8181,9 +8572,11 @@ Update the existing block with this supplied code; keep unchanged lines:
 
 </details>
 
-## Run, Check, and Save
+---
 
-From `session_viewer`:
+## 5. Build, Verify, and Save Your Checkpoint
+
+Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 96zzzr-share-transparent-instance-records
@@ -8194,12 +8587,12 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. Use [checkpoint recovery](../../recovery.md) to restore any saved checkpoint.
+Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
 
-## Expected Visual Result & Experiment
+## 6. Lesson Summary & Expected Visual Result
 
 Transparent placements consume the shared object table while retaining original pixels, picks and scene order.
 
-- **Try this:** Set Opacity to 0.5 and 0.95 in Example Instances. Select each placement, clear selection and restore Opacity 1. Inspect the supplied exact comparison against the earlier uniform draw path.
+- **Final Lesson Experiment:** Set Opacity to 0.5 and 0.95 in Example Instances. Select each placement, clear selection and restore Opacity 1. Inspect the supplied exact comparison against the earlier uniform draw path.
 
-Continue with [Original picks, ambient metadata and cap consumers](96zzzs-allocate-stable-object-record-rows.md).
+Continue with [Original picks, ambient metadata and cap consumers](../../consolidation/96zzzs-allocate-stable-object-record-rows.md).

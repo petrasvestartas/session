@@ -1,88 +1,158 @@
 # 15.3 · Lofts, rail sweeps and network foundations
 
-**Section 8: Precision Coordinate Frames, Solid Primitives, Surfacing, and CAD Editing** · **Lesson 15.3** (Redraft `8.9`) · **12 checkpoints (`79-retain-current-loft-section-order-and-degree-options` → `79zze-fit-the-original-gordon-surface`)**
+**Section 8: Precision Coordinate Frames, Solid Primitives, Surfacing, and CAD Editing** · **Lesson 15.3** (Redraft `8.9`) · **12 checkpoints (`79-retain-current-loft-section-order-and-degree-options` → `79zze-fit-the-original-gordon-surface`)** · **Study time: 6–12 h**
 
-> **Learning Goal:** Retain current loft section order and degree options.
+> **What You Will Learn & Build:** Retain current loft section order and degree options. By the final checkpoint (`79zze-fit-the-original-gordon-surface`), you will combine the two lofts minus their shared tensor.
 
-## Visual WebGPU & Architecture Schematic
+## 1. Visual Pipeline & WebGPU Architecture (Black & White Schematics)
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1px solid #cbd5e1;border-radius:10px;background:#f8fafc;">
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
+<svg viewBox="0 0 840 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <rect x="4" y="4" width="832" height="212" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Lesson 15.3 Execution Flow: Lofts, rail sweeps and network foundations</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">Concrete data pipeline you build in this lesson (12 Checkpoints: 79-retain-current-loft-section-order-and-degree-options → 79zze-fit-the-original-gordon-surface)</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
+  
+    
+    <rect x="18" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="89" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
+    <line x1="28" y1="92" x2="151" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">ordered original</text>
+    <text x="89" y="124" text-anchor="middle" font-size="11" fill="#111111">sections</text>
+    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="183" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="254" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
+    <line x1="193" y1="92" x2="316" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">Open Closed or</text>
+    <text x="254" y="124" text-anchor="middle" font-size="11" fill="#111111">Smooth Straight</text>
+    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="348" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="419" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
+    <line x1="358" y1="92" x2="481" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">original loft</text>
+    <text x="419" y="124" text-anchor="middle" font-size="11" fill="#111111">surface</text>
+    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="513" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="584" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
+    <line x1="523" y1="92" x2="646" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">original curve</text>
+    <text x="584" y="124" text-anchor="middle" font-size="11" fill="#111111">crossings</text>
+    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="678" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="749" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
+    <line x1="688" y1="92" x2="811" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">ordered stations</text>
+    
+    <rect x="18" y="162" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="32" y="181" font-size="11" font-weight="700" fill="#111111">Files You Edit in Lesson 15.3:</text>
+    <text x="215" y="181" font-size="11" fill="#111111">src/loft_geometry.rs  ·  src/lib.rs  ·  src/nurbs_loft_geometry.rs  ·  src/sweep1_geometry.rs  ·  src/sweep2_geometry.rs  ·  src/gather_registry.rs</text>
+    <text x="32" y="198" font-size="10.5" fill="#111111">12 Checkpoints: 79-retain-current-loft-section-order-and-degree-options → 79zze-fit-the-original-gordon-surface — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
+  
+</svg>
+</div>
+
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
 <svg viewBox="0 0 840 240" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#475569"/>
-    </marker>
-    <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#2563eb"/>
-    </marker>
-    <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#059669"/>
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
     </marker>
   </defs>
-  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
-  <text x="20" y="28" font-size="14" font-weight="700" fill="#0f172a">Section 8 Precision CAD Frames, Solid Primitives, Surfacing & Sub-Object Deformation (Chapters 14–16)</text>
-  <text x="20" y="46" font-size="11.5" fill="#475569">How double-precision coordinate frames (Plane), parametric solids, Loft/Sweep/Extrude surfaces, and Gumball control edits work.</text>
-  <line x1="16" y1="54" x2="824" y2="54" stroke="#e2e8f0" stroke-width="1"/>
+  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Section 8 Precision CAD Frames, Solid Primitives, Surfacing & Sub-Object Deformation (Chapters 14–16)</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">How double-precision coordinate frames (Plane), parametric solids, Loft/Sweep/Extrude surfaces, and Gumball control edits work.</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
   
-    <rect x="18" y="68" width="245" height="145" rx="6" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
-    <text x="140" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1e40af">1. Orthonormal Frames (Ch 14)</text>
-    <text x="28" y="108" font-size="10.5" fill="#1e3a8a">• Plane { origin: Vec3d, x, y, z }</text>
-    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#1d4ed8">• Rejects non-finite / collinear axes</text>
-    <text x="28" y="144" font-size="10.5" fill="#1e3a8a">• Basis change: World &lt;-&gt; Local Plane</text>
-    <text x="28" y="162" font-size="10.5" fill="#1e3a8a">• Exact Mirror, Rotate3D, Orient,</text>
-    <text x="28" y="178" font-size="10.5" fill="#1e3a8a">  and Align frame transformations</text>
+    <rect x="18" y="68" width="245" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="140" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">1. Orthonormal Frames (Ch 14)</text>
+    <text x="28" y="108" font-size="10.5" fill="#111111">• Plane { origin: Vec3d, x, y, z }</text>
+    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#111111">• Rejects non-finite / collinear axes</text>
+    <text x="28" y="144" font-size="10.5" fill="#111111">• Basis change: World &lt;-&gt; Local Plane</text>
+    <text x="28" y="162" font-size="10.5" fill="#111111">• Exact Mirror, Rotate3D, Orient,</text>
+    <text x="28" y="178" font-size="10.5" fill="#111111">  and Align frame transformations</text>
 
-    <line x1="263" y1="138" x2="293" y2="138" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
+    <line x1="263" y1="138" x2="293" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="295" y="68" width="265" height="145" rx="6" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5"/>
-    <text x="427" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#9a3412">2. Solids &amp; Surfacing (Ch 15–16)</text>
-    <text x="307" y="108" font-size="10.5" fill="#7c2d12">• Parametric Box, Cylinder, Sphere, Cone</text>
-    <text x="307" y="126" font-size="10.5" font-weight="600" fill="#c2410c">• Extrude, Revolve, Loft, Sweep, Planar</text>
-    <text x="307" y="144" font-size="10.5" fill="#7c2d12">• Curve Split, Trim, Extend, Join, Fillet</text>
-    <text x="307" y="162" font-size="10.5" fill="#7c2d12">• Every operation commits an atomic</text>
-    <text x="307" y="178" font-size="10.5" fill="#7c2d12">  session_rust kernel transaction</text>
+    <rect x="295" y="68" width="265" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="427" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">2. Solids &amp; Surfacing (Ch 15–16)</text>
+    <text x="307" y="108" font-size="10.5" fill="#111111">• Parametric Box, Cylinder, Sphere, Cone</text>
+    <text x="307" y="126" font-size="10.5" font-weight="600" fill="#111111">• Extrude, Revolve, Loft, Sweep, Planar</text>
+    <text x="307" y="144" font-size="10.5" fill="#111111">• Curve Split, Trim, Extend, Join, Fillet</text>
+    <text x="307" y="162" font-size="10.5" fill="#111111">• Every operation commits an atomic</text>
+    <text x="307" y="178" font-size="10.5" fill="#111112">  session_rust kernel transaction</text>
 
-    <line x1="560" y1="138" x2="590" y2="138" stroke="#059669" stroke-width="2" marker-end="url(#arrow-green)"/>
+    <line x1="560" y1="138" x2="590" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="592" y="68" width="228" height="145" rx="6" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1.5"/>
-    <text x="706" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#065f46">3. Rational Control-Point Deform</text>
-    <text x="604" y="108" font-size="10.5" fill="#064e3b">• Pick NURBS control point or vertex</text>
-    <text x="604" y="126" font-size="10.5" font-weight="600" fill="#047857">• Preserve homogeneous weight w</text>
-    <text x="604" y="142" font-size="10.5" font-weight="600" fill="#047857">  on rational curve control drags!</text>
-    <text x="604" y="162" font-size="10.5" fill="#064e3b">• Rebuild derived GPU tessellation</text>
-    <text x="604" y="178" font-size="10.5" fill="#064e3b">  in-place while keeping Object ID</text>
+    <rect x="592" y="68" width="228" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="706" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">3. Rational Control-Point Deform</text>
+    <text x="604" y="108" font-size="10.5" fill="#111111">• Pick NURBS control point or vertex</text>
+    <text x="604" y="126" font-size="10.5" font-weight="600" fill="#111111">• Preserve homogeneous weight w</text>
+    <text x="604" y="142" font-size="10.5" font-weight="600" fill="#111111">  on rational curve control drags!</text>
+    <text x="604" y="162" font-size="10.5" fill="#111111">• Rebuild derived GPU tessellation</text>
+    <text x="604" y="178" font-size="10.5" fill="#111111">  in-place while keeping Object ID</text>
     
 </svg>
 </div>
 
-### Lesson Data Flow (`Rust` → `WebGPU` → `WGSL`)
+## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
 
-```
-ordered original sections → Open Closed or Smooth Straight → original loft surface.
-current registered names and aliases → existing gather owner → one surfacing transaction.
-original curve crossings → ordered stations → sampled lofts → fitted surface.
-```
+Before writing code, review how the three layers in this chapter talk to each other:
 
-- Retain current loft section order and degree options.
-- Exercise original sections rail groups and exact persistence.
-- Combine the two lofts minus their shared tensor.
-- **Why it works (Why does Closed need three sections?):** It returns through the first section. Two sections cannot enclose that route; reject before adopting a surface or changing history.
-
-### Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `Browser`)
-
-| Layer | Construct | First-Year Student Explanation |
+| Layer | Construct | Plain-English Explanation for Students |
 | :--- | :--- | :--- |
 | **CAD Coords** | `w10,20,0` vs `@5,0,0` vs `10<30` | `w` forces absolute World coordinates; `@` measures relative to the last accepted point; `<` uses polar distance and angle in the active Construction Plane. |
 | **Rational NURBS** | Homogeneous control point `(w*x, w*y, w*z, w)` | Represents circles, ellipses, and conic arcs with zero approximation error using non-uniform weights `w`. |
 | **B-Rep Split/Trim** | Plane/Cutter intersection -> Face loop classification | Splits or trims B-Rep and mesh faces along cutting planes/curves while keeping retained topology tables valid. |
 
-**Production source (`session_viewer/src`):** [app/deform.rs](../../../../src/app/deform.rs), [state/edit.rs](../../../../src/state/edit.rs), [app/command/tool/gather.rs](../../../../src/app/command/tool/gather.rs), [app/command/tool/surfacing.rs](../../../../src/app/command/tool/surfacing.rs), [app/walk/mesh.rs](../../../../src/app/walk/mesh.rs), [app/walk/brep.rs](../../../../src/app/walk/brep.rs), [build.rs](../../../../build.rs).
+**Authoritative production source (`session_viewer/src`):** [app/deform.rs](../../../../src/app/deform.rs), [state/edit.rs](../../../../src/state/edit.rs), [app/command/tool/gather.rs](../../../../src/app/command/tool/gather.rs), [app/command/tool/surfacing.rs](../../../../src/app/command/tool/surfacing.rs), [app/walk/mesh.rs](../../../../src/app/walk/mesh.rs), [app/walk/brep.rs](../../../../src/app/walk/brep.rs), [build.rs](../../../../build.rs).
 
-## Implementation Checkpoints
+## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
 
-Apply these checkpoints in order inside `workspace/journey`. Expand each block to view the Rust/WGSL/HTML edits:
+| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
+| ---: | :--- | :--- | :--- | :--- |
+| **1** | [`79-retain-current-loft-section-order-and-degree-options`](#checkpoint-79-retain-current-loft-section-order-and-degree-options) | Retain current loft section order and degree options. | `src/loft_geometry.rs`, `src/lib.rs`, `src/nurbs_loft_geometry.rs` | `ordered original sections → Open Closed or Smooth Straight → original loft surface` |
+| **2** | [`79aa-frame-original-profiles-on-their-rail`](#checkpoint-79aa-frame-original-profiles-on-their-rail) | Find each profile’s station from its sampled center and the nearest rail parameter. | `src/sweep1_geometry.rs`, `src/lib.rs` | `original rail and profiles → local section frames → kernel sweep surface` |
+| **3** | [`79ab-carry-and-blend-original-profiles-along-the-rail`](#checkpoint-79ab-carry-and-blend-original-profiles-along-the-rail) | Sort original profile stations, match their control rows with a straight kernel loft, and include their stations in the sampled rail frames. | `src/sweep1_geometry.rs` | `original rail and profiles → local section frames → kernel sweep surface` |
+| **4** | [`79a-carry-original-profiles-along-one-rail`](#checkpoint-79a-carry-original-profiles-along-one-rail) | Complete the existing gather recipe with one rail and one or more profiles. | `src/sweep1_geometry.rs` | `original rail and profiles → local section frames → kernel sweep surface` |
+| **5** | [`79b-align-shape-curves-between-two-original-rails`](#checkpoint-79b-align-shape-curves-between-two-original-rails) | Align shape curves between two original rails. | `src/sweep2_geometry.rs`, `src/lib.rs` | `first rail and second rail → aligned shape copies → original swept surface` |
+| **6** | [`79c-register-loft-sweep-names-options-and-aliases`](#checkpoint-79c-register-loft-sweep-names-options-and-aliases) | Register loft sweep names options and aliases. | `src/gather_registry.rs`, `src/commands.rs` | `current registered names and aliases → existing gather owner → one surfacing transaction` |
+| **7** | [`79d-exercise-original-sections-rail-groups-and-exact-persistence`](#checkpoint-79d-exercise-original-sections-rail-groups-and-exact-persistence) | Exercise original sections rail groups and exact persistence. | `src/loft_tests.rs`, `src/lib.rs` | `original curves in order → current Loft or Sweep → one history edit → original Save/Open` |
+| **8** | [`79zza-sample-original-network-curve-stations`](#checkpoint-79zza-sample-original-network-curve-stations) | Write control bounds, tolerant crossing checks and interpolation helpers. | `src/network_geometry.rs`, `src/lib.rs` | `original curve crossings → ordered stations → sampled lofts → fitted surface` |
+| **9** | [`79zzb-classify-two-original-network-directions`](#checkpoint-79zzb-classify-two-original-network-directions) | Find original curve crossings and assign opposite directions through their graph. | `src/network_geometry.rs` | `original curve crossings → ordered stations → sampled lofts → fitted surface` |
+| **10** | [`79zzc-order-and-orient-original-network-curves`](#checkpoint-79zzc-order-and-orient-original-network-curves) | Sort each family along the other and orient its crossing parameters consistently. | `src/network_geometry.rs` | `original curve crossings → ordered stations → sampled lofts → fitted surface` |
+| **11** | [`79zzd-sample-original-network-lofts-and-tensor`](#checkpoint-79zzd-sample-original-network-lofts-and-tensor) | Sample both curve-family lofts and the tensor through their shared crossings. | `src/network_geometry.rs` | `original curve crossings → ordered stations → sampled lofts → fitted surface` |
+| **12** | [`79zze-fit-the-original-gordon-surface`](#checkpoint-79zze-fit-the-original-gordon-surface) | Combine the two lofts minus their shared tensor. | `src/network_geometry.rs` | `original curve crossings → ordered stations → sampled lofts → fitted surface` |
+
+---
+
+## 4. Step-by-Step Coding Notebook (Concept + Implementation)
+
+Work through each notebook cell below in order inside `workspace/journey`. Read the **Concept Walkthrough** and **Self-Check Q&A** first, then expand the **Implementation** block to type and verify the code.
 
 <a id="checkpoint-79-retain-current-loft-section-order-and-degree-options"></a>
+
+### Step 1 of 12 · Retain current loft section order and degree options (`79-retain-current-loft-section-order-and-degree-options`)
+
+- **Goal:** Retain current loft section order and degree options.
+- **Data Flow Trace:** `ordered original sections → Open Closed or Smooth Straight → original loft surface`
+- **Files You Touch:** `src/loft_geometry.rs` (*Type the original recipe and whole geometry helpers using the earlier shared owners.*) · `src/lib.rs` (*Register the current surfacing component.*) · `src/nurbs_loft_geometry.rs` (*Type the original recipe and whole geometry helpers using the earlier shared owners.*)
+
+Write both loft recipes on top of the section alignment already taught in 77zzi. Preserve picked order, choose open or closed sections, and select straight or smooth degree without changing the original profiles.
+
+> **Self-Check Question:** *Why does Closed need three sections?*  
+> **Answer:** It returns through the first section. Two sections cannot enclose that route; reject before adopting a surface or changing history.
+
+- **What You Should See:** The capped rectangular extrusion and exact revolved surface remain visible while loft/sweep recipes connect. The final exercise creates an original surface through three curved sections.
+- **Hands-On Lab Experiment:** Inspect the middle-section fixture, seam alignment and Straight degree1. Compare it with Smooth degree clamped to the available sections.
 
 <details>
 <summary>Implementation 79-retain-current-loft-section-order-and-degree-options: Retain current loft section order and degree options</summary>
@@ -218,6 +288,20 @@ After that block, type:
 
 <a id="checkpoint-79aa-frame-original-profiles-on-their-rail"></a>
 
+### Step 2 of 12 · Frame original profiles on their rail (`79aa-frame-original-profiles-on-their-rail`)
+
+- **Goal:** Find each profile’s station from its sampled center and the nearest rail parameter.
+- **Data Flow Trace:** `original rail and profiles → local section frames → kernel sweep surface`
+- **Files You Touch:** `src/sweep1_geometry.rs` (*Type the whole original sweep helpers using the existing kernel and gather owners.*) · `src/lib.rs` (*Compile this shared original sweep module.*)
+
+Find each profile’s station from its sampled center and the nearest rail parameter. Use the kernel’s perpendicular rail frame to prepare a local transform. Write the original four-dimensional control-point blend for the matched profiles used in the next step.
+
+> **Self-Check Question:** *Why transform a profile copy into the rail frame?*  
+> **Answer:** Its shape must be carried from that local frame to later rail frames. Keep the picked original unchanged.
+
+- **What You Should See:** Original profiles can be framed on their rail without changing the existing drawing.
+- **Hands-On Lab Experiment:** Trace a closed profile’s repeated end sample and its local frame. Compare endpoint and middle control weights in the blend.
+
 <details>
 <summary>Implementation 79aa-frame-original-profiles-on-their-rail: Frame original profiles on their rail</summary>
 
@@ -258,6 +342,20 @@ After that block, type:
 </details>
 
 <a id="checkpoint-79ab-carry-and-blend-original-profiles-along-the-rail"></a>
+
+### Step 3 of 12 · Carry and blend original profiles along the rail (`79ab-carry-and-blend-original-profiles-along-the-rail`)
+
+- **Goal:** Sort original profile stations, match their control rows with a straight kernel loft, and include their stations in the sampled rail frames.
+- **Data Flow Trace:** `original rail and profiles → local section frames → kernel sweep surface`
+- **Files You Touch:** `src/sweep1_geometry.rs` (*Extend this original owner with the day’s complete input helpers.*)
+
+Sort original profile stations, match their control rows with a straight kernel loft, and include their stations in the sampled rail frames. Blend matching local profiles between stations, transform each section into its rail frame, then validate the final cubic kernel loft.
+
+> **Self-Check Question:** *Why include every profile station among the rail samples?*  
+> **Answer:** The resulting surface must pass through the selected sections at their original rail positions. Uniform rail samples alone can miss those stations.
+
+- **What You Should See:** The sweep helpers can carry and blend the framed profiles along the original rail.
+- **Hands-On Lab Experiment:** Trace two profiles with different stations through matching, blending and the final surface.
 
 <details>
 <summary>Implementation 79ab-carry-and-blend-original-profiles-along-the-rail: Carry and blend original profiles along the rail</summary>
@@ -373,6 +471,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-79a-carry-original-profiles-along-one-rail"></a>
+
+### Step 4 of 12 · Connect original one-rail sweep inputs (`79a-carry-original-profiles-along-one-rail`)
+
+- **Goal:** Complete the existing gather recipe with one rail and one or more profiles.
+- **Data Flow Trace:** `original rail and profiles → local section frames → kernel sweep surface`
+- **Files You Touch:** `src/sweep1_geometry.rs` (*Extend this original owner with the day’s complete input helpers.*)
+
+Complete the existing gather recipe with one rail and one or more profiles. Reuse the prepared sweep builder, validate the result and return the original surface as one transaction. The following registry connects the completed sweep recipe.
+
+> **Self-Check Question:** *Why gather the rail separately from the profiles?*  
+> **Answer:** The rail defines the carrying path. The profile group defines the sections along that path; mixing them would change the geometry roles.
+
+- **Hands-On Lab Experiment:** Trace the minimum rail and profile counts, then one sweep result and one Undo.
 
 <details>
 <summary>Implementation 79a-carry-original-profiles-along-one-rail: Connect original one-rail sweep inputs</summary>
@@ -639,6 +750,19 @@ After that block, append this supplied code:
 
 <a id="checkpoint-79b-align-shape-curves-between-two-original-rails"></a>
 
+### Step 5 of 12 · Align shape curves between two original rails (`79b-align-shape-curves-between-two-original-rails`)
+
+- **Goal:** Align shape curves between two original rails.
+- **Data Flow Trace:** `first rail and second rail → aligned shape copies → original swept surface`
+- **Files You Touch:** `src/sweep2_geometry.rs` (*Type the original recipe and whole geometry helpers using the earlier shared owners.*) · `src/lib.rs` (*Register the current surfacing component.*)
+
+Orient a copy of the second rail to follow the first. Orient copies of the shape curves toward the first rail, then ask the kernel for one exact swept surface. Keep the picked originals unchanged and reuse the existing gather recipe.
+
+> **Self-Check Question:** *Does reversing rail2 change the saved source?*  
+> **Answer:** Alignment reverses a builder copy. Keep the original rail allocation and control data unchanged, including after Undo and Save/Open.
+
+- **Hands-On Lab Experiment:** Inspect the reversed-rail fixture. Compare first rail, second rail and shape group order with the generic gather maximum/minimum rules.
+
 <details>
 <summary>Implementation 79b-align-shape-curves-between-two-original-rails: Align shape curves between two original rails</summary>
 
@@ -789,6 +913,19 @@ After that block, type:
 </details>
 
 <a id="checkpoint-79c-register-loft-sweep-names-options-and-aliases"></a>
+
+### Step 6 of 12 · Register loft sweep names options and aliases (`79c-register-loft-sweep-names-options-and-aliases`)
+
+- **Goal:** Register loft sweep names options and aliases.
+- **Data Flow Trace:** `current registered names and aliases → existing gather owner → one surfacing transaction`
+- **Files You Touch:** `src/gather_registry.rs` (*Register maintained loft/sweep recipes and current aliases through shared gather input.*) · `src/commands.rs` (*Register maintained loft/sweep recipes and current aliases through shared gather input.*)
+
+Extend the shared recipe registry and canonicalize maintained aliases without duplicating the gather input owner.
+
+> **Self-Check Question:** *Does a recipe need its own command-line parser?*  
+> **Answer:** The shared gather recipe handles options and questions. The registry supplies its name and current alias before existing longest-name matching.
+
+- **Hands-On Lab Experiment:** Compare Loft Closed, Nurbs Surface Loft Straight, nurbssurface_sweep1 and nurbssurface_sweep2; inspect current prompts and group order.
 
 <details>
 <summary>Implementation 79c-register-loft-sweep-names-options-and-aliases: Register loft sweep names options and aliases</summary>
@@ -1066,6 +1203,20 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-79d-exercise-original-sections-rail-groups-and-exact-persistence"></a>
 
+### Step 7 of 12 · Exercise original sections rail groups and exact persistence (`79d-exercise-original-sections-rail-groups-and-exact-persistence`)
+
+- **Goal:** Exercise original sections rail groups and exact persistence.
+- **Data Flow Trace:** `original curves in order → current Loft or Sweep → one history edit → original Save/Open`
+- **Files You Touch:** `src/loft_tests.rs` (*Copy integrated maintained loft/sweep group/order/options/source/archive fixtures.*) · `src/lib.rs` (*Register the current surfacing component.*)
+
+Copy integrated current option and group fixtures, then build the rendered surface through three original curved sections.
+
+> **Self-Check Question:** *Can a short curve group create a partial surface?*  
+> **Answer:** No. Its minimum and builder validation must pass. Keep accepted picks and Redo when the group cannot yet build.
+
+- **What You Should See:** A smooth original NURBS surface passes through three original sections. Current Open/Closed, Smooth/Straight and one/two-rail sweep recipes share ordered original picks and one checked history transaction. Original profiles, rational source data and exact archives remain preserved.
+- **Hands-On Lab Experiment:** Type Close, Curve w-1,-1,0 w0,-1,1 w1,-1,0, Curve w-1,0,0 w0,0,1.5 w1,0,0, Curve w-1,1,0 w0,1,0.75 w1,1,0, Select All, Nurbs Surface Loft Smooth, View Isometric, Select None and Fit. Try Straight, Closed with only two sections, Sweep1 rail/profile and Sweep2 rail/rail/shape order, Escape, Undo/Redo and Save/Open.
+
 <details>
 <summary>Implementation 79d-exercise-original-sections-rail-groups-and-exact-persistence: Exercise original sections rail groups and exact persistence</summary>
 
@@ -1121,6 +1272,20 @@ After that block, append this supplied code:
 
 <a id="checkpoint-79zza-sample-original-network-curve-stations"></a>
 
+### Step 8 of 12 · Sample original network curve stations (`79zza-sample-original-network-curve-stations`)
+
+- **Goal:** Write control bounds, tolerant crossing checks and interpolation helpers.
+- **Data Flow Trace:** `original curve crossings → ordered stations → sampled lofts → fitted surface`
+- **Files You Touch:** `src/network_geometry.rs` (*Type the whole original helpers introduced today.*) · `src/lib.rs` (*Register the original network-surface owner.*)
+
+Write control bounds, tolerant crossing checks and interpolation helpers. Map evenly spaced stations to the original crossing parameters.
+
+> **Self-Check Question:** *Why retain the original parameters?*  
+> **Answer:** Equal stations describe the grid layout; original curve parameters still determine the actual surface points.
+
+- **What You Should See:** Network helpers can sample stations on the original curves; browser drawing is unchanged.
+- **Hands-On Lab Experiment:** Compare nonuniform crossing intervals and the sample-count cap.
+
 <details>
 <summary>Implementation 79zza-sample-original-network-curve-stations: Sample original network curve stations</summary>
 
@@ -1161,6 +1326,20 @@ After that block, type:
 </details>
 
 <a id="checkpoint-79zzb-classify-two-original-network-directions"></a>
+
+### Step 9 of 12 · Classify two original network directions (`79zzb-classify-two-original-network-directions`)
+
+- **Goal:** Find original curve crossings and assign opposite directions through their graph.
+- **Data Flow Trace:** `original curve crossings → ordered stations → sampled lofts → fitted surface`
+- **Files You Touch:** `src/network_geometry.rs` (*Extend this original owner with today’s complete helper.*)
+
+Find original curve crossings and assign opposite directions through their graph. Refuse disconnected, same-direction or incomplete crossing sets.
+
+> **Self-Check Question:** *Why require every opposite pair to cross?*  
+> **Answer:** The surface needs a complete grid of stations in both directions. An incomplete graph cannot define it.
+
+- **What You Should See:** The original curve network can be classified into two candidate directions.
+- **Hands-On Lab Experiment:** Trace a disconnected graph, a triangle and a complete two-direction grid.
 
 <details>
 <summary>Implementation 79zzb-classify-two-original-network-directions: Classify two original network directions</summary>
@@ -1278,6 +1457,20 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-79zzc-order-and-orient-original-network-curves"></a>
 
+### Step 10 of 12 · Order and orient original network curves (`79zzc-order-and-orient-original-network-curves`)
+
+- **Goal:** Sort each family along the other and orient its crossing parameters consistently.
+- **Data Flow Trace:** `original curve crossings → ordered stations → sampled lofts → fitted surface`
+- **Files You Touch:** `src/network_geometry.rs` (*Extend this original owner with today’s complete helper.*)
+
+Sort each family along the other and orient its crossing parameters consistently. Reverse originals only on cloned curves and update their parameter rows.
+
+> **Self-Check Question:** *Why reject mixed crossing order?*  
+> **Answer:** A folded station ordering cannot define one coherent grid direction.
+
+- **What You Should See:** Each network direction can retain a coherent original curve order and orientation.
+- **Hands-On Lab Experiment:** Trace a reversed curve through domain preservation and parameter reflection.
+
 <details>
 <summary>Implementation 79zzc-order-and-orient-original-network-curves: Order and orient original network curves</summary>
 
@@ -1364,6 +1557,20 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-79zzd-sample-original-network-lofts-and-tensor"></a>
+
+### Step 11 of 12 · Sample original network lofts and tensor (`79zzd-sample-original-network-lofts-and-tensor`)
+
+- **Goal:** Sample both curve-family lofts and the tensor through their shared crossings.
+- **Data Flow Trace:** `original curve crossings → ordered stations → sampled lofts → fitted surface`
+- **Files You Touch:** `src/network_geometry.rs` (*Extend this original owner with today’s complete helper.*)
+
+Sample both curve-family lofts and the tensor through their shared crossings. Keep their original averaging and station maps.
+
+> **Self-Check Question:** *Why sample three surfaces?*  
+> **Answer:** The two lofts each include the common crossing surface. The Gordon combination later subtracts that shared tensor once.
+
+- **What You Should See:** The prepared network samples can supply loft and tensor terms for the surface recipe.
+- **Hands-On Lab Experiment:** Trace one crossing through the two loft samples and tensor sample.
 
 <details>
 <summary>Implementation 79zzd-sample-original-network-lofts-and-tensor: Sample original network lofts and tensor</summary>
@@ -1491,6 +1698,20 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-79zze-fit-the-original-gordon-surface"></a>
 
+### Step 12 of 12 · Fit the original Gordon surface (`79zze-fit-the-original-gordon-surface`)
+
+- **Goal:** Combine the two lofts minus their shared tensor.
+- **Data Flow Trace:** `original curve crossings → ordered stations → sampled lofts → fitted surface`
+- **Files You Touch:** `src/network_geometry.rs` (*Extend this original owner with today’s complete helper.*)
+
+Combine the two lofts minus their shared tensor. Interpolate rows, then columns through their control points, and copy knots and controls into the resulting surface.
+
+> **Self-Check Question:** *Why subtract the tensor?*  
+> **Answer:** Both lofts already contain it. Subtraction leaves one copy while retaining each input family.
+
+- **What You Should See:** The Gordon fitting helper compiles before the complete network recipe is assembled.
+- **Hands-On Lab Experiment:** Trace a row sample through the fitted row and column control arrays.
+
 <details>
 <summary>Implementation 79zze-fit-the-original-gordon-surface: Fit the original Gordon surface</summary>
 
@@ -1582,9 +1803,11 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 </details>
 
-## Run, Check, and Save
+---
 
-From `session_viewer`:
+## 5. Build, Verify, and Save Your Checkpoint
+
+Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 79zze-fit-the-original-gordon-surface
@@ -1595,12 +1818,12 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. Use [checkpoint recovery](../../recovery.md) to restore any saved checkpoint.
+Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
 
-## Expected Visual Result & Experiment
+## 6. Lesson Summary & Expected Visual Result
 
 The Gordon fitting helper compiles before the complete network recipe is assembled.
 
-- **Try this:** Trace a row sample through the fitted row and column control arrays.
+- **Final Lesson Experiment:** Trace a row sample through the fitted row and column control arrays.
 
-Continue with [Two-direction networks and corner patches](80-build-a-surface-through-two-directions-of-original-curves.md).
+Continue with [Two-direction networks and corner patches](../../consolidation/80-build-a-surface-through-two-directions-of-original-curves.md).

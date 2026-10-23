@@ -1,89 +1,189 @@
 # 12.1 · Complete viewer files and published scene sources
 
-**Section 7: Out-of-Core HTTP Range Streaming, Shared Instances, and Drawing Sheets** · **Lesson 12.1** (Redraft `7.1`) · **44 checkpoints (`66-read-scene-manifests` → `66af-connect-browser-save-open-url-adoption`)**
+**Section 7: Out-of-Core HTTP Range Streaming, Shared Instances, and Drawing Sheets** · **Lesson 12.1** (Redraft `7.1`) · **44 checkpoints (`66-read-scene-manifests` → `66af-connect-browser-save-open-url-adoption`)** · **Study time: 22–44 h**
 
-> **Learning Goal:** Parse supported manifest forms, then bound bytes, record counts and text content.
+> **What You Will Learn & Build:** Parse supported manifest forms, then bound bytes, record counts and text content. By the final checkpoint (`66af-connect-browser-save-open-url-adoption`), you will connect browser save open and URL adoption.
 
-## Visual WebGPU & Architecture Schematic
+## 1. Visual Pipeline & WebGPU Architecture (Black & White Schematics)
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1px solid #cbd5e1;border-radius:10px;background:#f8fafc;">
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
+<svg viewBox="0 0 840 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <rect x="4" y="4" width="832" height="212" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Lesson 12.1 Execution Flow: Complete viewer files and published scene sources</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">Concrete data pipeline you build in this lesson (44 Checkpoints: 66-read-scene-manifests → 66af-connect-browser-save-open-url-adoption)</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
+  
+    
+    <rect x="18" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="89" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
+    <line x1="28" y1="92" x2="151" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">original family</text>
+    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="183" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="254" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
+    <line x1="193" y1="92" x2="316" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">pure calculation</text>
+    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="348" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="419" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
+    <line x1="358" y1="92" x2="481" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">result or refusal</text>
+    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="513" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="584" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
+    <line x1="523" y1="92" x2="646" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">original source</text>
+    <text x="584" y="124" text-anchor="middle" font-size="11" fill="#111111">archive</text>
+    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="678" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="749" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
+    <line x1="688" y1="92" x2="811" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">file or URL</text>
+    <text x="749" y="124" text-anchor="middle" font-size="11" fill="#111111">adoption</text>
+    
+    <rect x="18" y="162" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="32" y="181" font-size="11" font-weight="700" fill="#111111">Files You Edit in Lesson 12.1:</text>
+    <text x="215" y="181" font-size="11" fill="#111111">src/manifest.rs  ·  src/live_revision.rs  ·  src/lib.rs  ·  src/source_validate.rs  ·  src/archive.rs  ·  src/scene.rs</text>
+    <text x="32" y="198" font-size="10.5" fill="#111111">44 Checkpoints: 66-read-scene-manifests → 66af-connect-browser-save-open-url-adoption — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
+  
+</svg>
+</div>
+
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
 <svg viewBox="0 0 840 240" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#475569"/>
-    </marker>
-    <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#2563eb"/>
-    </marker>
-    <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#059669"/>
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
     </marker>
   </defs>
-  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
-  <text x="20" y="28" font-size="14" font-weight="700" fill="#0f172a">Section 7 WebGPU Streaming & Instancing: HTTP Range Requests, Shared Source Meshes & 2D Drawing Sheets</text>
-  <text x="20" y="46" font-size="11.5" fill="#475569">How massive multi-gigabyte scenes stream out-of-core via HTTP 206 Partial Content and draw 1,000+ placements from 1 GPU buffer.</text>
-  <line x1="16" y1="54" x2="824" y2="54" stroke="#e2e8f0" stroke-width="1"/>
+  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Section 7 WebGPU Streaming & Instancing: HTTP Range Requests, Shared Source Meshes & 2D Drawing Sheets</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">How massive multi-gigabyte scenes stream out-of-core via HTTP 206 Partial Content and draw 1,000+ placements from 1 GPU buffer.</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
   
-    <rect x="18" y="68" width="245" height="145" rx="6" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
-    <text x="140" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1e40af">1. HTTP 206 Range Streaming (Ch 12)</text>
-    <text x="28" y="108" font-size="10.5" fill="#1e3a8a">• Fetch compact Manifest + World Bounds</text>
-    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#1d4ed8">• Prioritize visible frustum chunks</text>
-    <text x="28" y="144" font-size="10.5" fill="#1e3a8a">• Range: bytes=start-end (bounded memory)</text>
-    <text x="28" y="162" font-size="10.5" fill="#1e3a8a">• Evict cold off-screen chunks under</text>
-    <text x="28" y="178" font-size="10.5" fill="#1e3a8a">  memory budget without losing metadata</text>
+    <rect x="18" y="68" width="245" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="140" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">1. HTTP 206 Range Streaming (Ch 12)</text>
+    <text x="28" y="108" font-size="10.5" fill="#111111">• Fetch compact Manifest + World Bounds</text>
+    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#111111">• Prioritize visible frustum chunks</text>
+    <text x="28" y="144" font-size="10.5" fill="#111111">• Range: bytes=start-end (bounded memory)</text>
+    <text x="28" y="162" font-size="10.5" fill="#111111">• Evict cold off-screen chunks under</text>
+    <text x="28" y="178" font-size="10.5" fill="#111111">  memory budget without losing metadata</text>
 
-    <line x1="263" y1="138" x2="293" y2="138" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
+    <line x1="263" y1="138" x2="293" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="295" y="68" width="265" height="145" rx="6" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5"/>
-    <text x="427" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#9a3412">2. GPU Hardware Instancing (Ch 13)</text>
-    <text x="307" y="108" font-size="10.5" fill="#7c2d12">• 1 Shared Definition Buffer (e.g. Bolt)</text>
-    <text x="307" y="126" font-size="10.5" font-weight="600" fill="#c2410c">• N Instance Rows (@builtin(instance_index)):</text>
-    <text x="307" y="142" font-size="10" fill="#7c2d12">  Per-instance mat4x4 transform, tint,</text>
-    <text x="307" y="157" font-size="10" fill="#7c2d12">  and distinct instance_owner_id</text>
-    <text x="307" y="176" font-size="10.5" fill="#7c2d12">• draw_indexed(0..idx_cnt, 0, 0..N_inst)</text>
+    <rect x="295" y="68" width="265" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="427" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">2. GPU Hardware Instancing (Ch 13)</text>
+    <text x="307" y="108" font-size="10.5" fill="#111111">• 1 Shared Definition Buffer (e.g. Bolt)</text>
+    <text x="307" y="126" font-size="10.5" font-weight="600" fill="#111111">• N Instance Rows (@builtin(instance_index)):</text>
+    <text x="307" y="142" font-size="10" fill="#111111">  Per-instance mat4x4 transform, tint,</text>
+    <text x="307" y="157" font-size="10" fill="#111111">  and distinct instance_owner_id</text>
+    <text x="307" y="176" font-size="10.5" fill="#111111">• draw_indexed(0..idx_cnt, 0, 0..N_inst)</text>
 
-    <line x1="560" y1="138" x2="590" y2="138" stroke="#059669" stroke-width="2" marker-end="url(#arrow-green)"/>
+    <line x1="560" y1="138" x2="590" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="592" y="68" width="228" height="145" rx="6" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1.5"/>
-    <text x="706" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#065f46">3. 2D Drawing Sheets &amp; Blocks</text>
-    <text x="604" y="108" font-size="10.5" fill="#064e3b">• Paper-space Sheet frames &amp; title</text>
-    <text x="604" y="124" font-size="10.5" fill="#064e3b">  blocks (`SheetInit / SheetRows`)</text>
-    <text x="604" y="144" font-size="10.5" font-weight="600" fill="#047857">• Calibrated mm/inch pen widths</text>
-    <text x="604" y="162" font-size="10.5" fill="#064e3b">• Switch smoothly between 3D Model</text>
-    <text x="604" y="178" font-size="10.5" fill="#064e3b">  view and 2D Sheet layouts</text>
+    <rect x="592" y="68" width="228" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="706" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">3. 2D Drawing Sheets &amp; Blocks</text>
+    <text x="604" y="108" font-size="10.5" fill="#111111">• Paper-space Sheet frames &amp; title</text>
+    <text x="604" y="124" font-size="10.5" fill="#111111">  blocks (SheetInit / SheetRows)</text>
+    <text x="604" y="144" font-size="10.5" font-weight="600" fill="#111111">• Calibrated mm/inch pen widths</text>
+    <text x="604" y="162" font-size="10.5" fill="#111111">• Switch smoothly between 3D Model</text>
+    <text x="604" y="178" font-size="10.5" fill="#111111">  view and 2D Sheet layouts</text>
     
 </svg>
 </div>
 
-### Lesson Data Flow (`Rust` → `WebGPU` → `WGSL`)
+## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
 
-```
-original family → pure calculation → result or refusal.
-temporary scene → complete preparation → atomic document adoption.
-original source archive → file or URL adoption → drawing and release.
-```
+Before writing code, review how the three layers in this chapter talk to each other:
 
-- Parse supported manifest forms, then bound bytes, record counts and text content.
-- Prepare original saved documents.
-- Connect browser save open and URL adoption.
-- **Why it works (Why validate the whole manifest before publishing its scene?):** A malformed late record must not leave an earlier partial scene adopted. Return checked records first; later lessons own the asynchronous loading and publication.
-
-### Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `Browser`)
-
-| Layer | Construct | First-Year Student Explanation |
+| Layer | Construct | Plain-English Explanation for Students |
 | :--- | :--- | :--- |
 | **HTTP / Fetch** | `Range: bytes=start-end` -> `206 Partial Content` | Fetches only the exact byte slice of an octree node or sheet column needed for the current camera view. |
 | **Protobuf Wire** | Varint tag + length prefix scanner | Skips over multi-megabyte coordinate arrays by reading their byte range offsets without allocating their contents. |
 | **Rust (Residency)** | `budget.reserve(bytes)?` -> LRU eviction | Guarantees resident + in-flight pages never exceed the memory cap; coarse root pages stay pinned so the scene is never blank. |
 | **GPU Instancing** | Shared definition buffer + per-instance record | Draws N placed copies of a complex CAD component using 1 shared vertex/index allocation and N compact instance records. |
 
-**Production source (`session_viewer/src`):** [app/manifest.rs](../../../../src/app/manifest.rs), [app/session_io.rs](../../../../src/app/session_io.rs), [app/stream.rs](../../../../src/app/stream.rs), [app/range_gate.rs](../../../../src/app/range_gate.rs), [app/fetch.rs](../../../../src/app/fetch.rs), [app/loader.rs](../../../../src/app/loader.rs), [app/live.rs](../../../../src/app/live.rs).
+**Authoritative production source (`session_viewer/src`):** [app/manifest.rs](../../../../src/app/manifest.rs), [app/session_io.rs](../../../../src/app/session_io.rs), [app/stream.rs](../../../../src/app/stream.rs), [app/range_gate.rs](../../../../src/app/range_gate.rs), [app/fetch.rs](../../../../src/app/fetch.rs), [app/loader.rs](../../../../src/app/loader.rs), [app/live.rs](../../../../src/app/live.rs).
 
-## Implementation Checkpoints
+## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
 
-Apply these checkpoints in order inside `workspace/journey`. Expand each block to view the Rust/WGSL/HTML edits:
+| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
+| ---: | :--- | :--- | :--- | :--- |
+| **1** | [`66-read-scene-manifests`](#checkpoint-66-read-scene-manifests) | Parse supported manifest forms, then bound bytes, record counts and text content. | `src/manifest.rs` | `original family → pure calculation → result or refusal` |
+| **2** | [`66a-compare-live-byte-revisions`](#checkpoint-66a-compare-live-byte-revisions) | Write per-URL ETag and byte-hash records. | `src/live_revision.rs`, `src/lib.rs` | `URL → HTTP validator → byte hash → changed-scene decision` |
+| **3** | [`66b-validate-source-records-before-allocation`](#checkpoint-66b-validate-source-records-before-allocation) | Guard scalar finiteness, coordinate triples and arithmetic before allocating or indexing. Decode a bounded varint without shifts past sixty-three bits. | `src/source_validate.rs`, `src/lib.rs` | `original record → bounded scalar/address contract → reusable validator → later archive loader` |
+| **4** | [`66ba-validate-one-nurbs-knot-axis`](#checkpoint-66ba-validate-one-nurbs-knot-axis) | Relate order, control count and knot count, then reject nonfinite or decreasing knots before a kernel constructor. | `src/source_validate.rs` | `original record → bounded scalar/address contract → reusable validator → later archive loader` |
+| **5** | [`66bb-read-bounded-json-count-and-knot-fields`](#checkpoint-66bb-read-bounded-json-count-and-knot-fields) | Read unsigned JSON counts with defaults and explicit caps; reuse the knot-axis contract instead of writing a second validator. | `src/source_validate.rs` | `original record → bounded scalar/address contract → reusable validator → later archive loader` |
+| **6** | [`66bc-match-json-control-layout-to-declared-counts`](#checkpoint-66bc-match-json-control-layout-to-declared-counts) | Check rational coordinate width, rows, columns and curve stride against the actual arrays before constructor allocation. | `src/source_validate.rs` | `original record → bounded scalar/address contract → reusable validator → later archive loader` |
+| **7** | [`66bd-walk-json-records-within-a-depth-limit`](#checkpoint-66bd-walk-json-records-within-a-depth-limit) | Use an explicit bounded stack to find original control records; reject excess nesting and reuse the already-written record validators. | `src/source_validate.rs`, `src/lib.rs` | `original record → bounded scalar/address contract → reusable validator → later archive loader` |
+| **8** | [`66be-validate-original-points-lines-and-placements`](#checkpoint-66be-validate-original-points-lines-and-placements) | Check original coordinate-bearing records and affine placement without changing source values or identity. | `src/source_validate.rs` | `original record → bounded scalar/address contract → reusable validator → later archive loader` |
+| **9** | [`66bf-validate-original-mesh-indices-and-vertex-attributes`](#checkpoint-66bf-validate-original-mesh-indices-and-vertex-attributes) | Check source vertex keys, finite attributes, face rings and triangulation before constructing a mesh. | `src/source_validate.rs` | `original record → bounded scalar/address contract → reusable validator → later archive loader` |
+| **10** | [`66bg-validate-curve-and-surface-control-addresses`](#checkpoint-66bg-validate-curve-and-surface-control-addresses) | Use checked stride arithmetic to locate the final addressed control and reuse the shared knot and scalar contracts. | `src/source_validate.rs` | `original record → bounded scalar/address contract → reusable validator → later archive loader` |
+| **11** | [`66bh-validate-cloud-columns-and-octree-addresses`](#checkpoint-66bh-validate-cloud-columns-and-octree-addresses) | Match optional original cloud columns and octree ranges to actual point and node counts. | `src/source_validate.rs` | `original record → bounded scalar/address contract → reusable validator → later archive loader` |
+| **12** | [`66bi-validate-brep-element-payloads-and-shared-definitions`](#checkpoint-66bi-validate-brep-element-payloads-and-shared-definitions) | Check BRep records and encoded Element geometry, then validate every shared definition without expanding instances into copied geometry. | `src/source_validate.rs` | `original record → bounded scalar/address contract → reusable validator → later archive loader` |
+| **13** | [`66bj-validate-the-complete-original-protobuf-session`](#checkpoint-66bj-validate-the-complete-original-protobuf-session) | Apply the existing per-record validators and enforce total original-object and hierarchy-depth budgets before allocation. | `src/source_validate.rs` | `original record → bounded scalar/address contract → reusable validator → later archive loader` |
+| **14** | [`66bk-connect-retained-session-validation-and-independent-witnesses`](#checkpoint-66bk-connect-retained-session-validation-and-independent-witnesses) | Reuse the protobuf validators for already-decoded original kernel objects and register independent malformed-record witnesses. | `src/source_validate.rs` | `original record → bounded scalar/address contract → reusable validator → later archive loader` |
+| **15** | [`66c-describe-the-saved-scene-metadata`](#checkpoint-66c-describe-the-saved-scene-metadata) | Describe the saved scene metadata. | `src/archive.rs`, `src/lib.rs` | `document payloads → small metadata → checked owners` |
+| **16** | [`66d-encode-decode-the-viewer-file`](#checkpoint-66d-encode-decode-the-viewer-file) | Encode decode the viewer file. | `src/archive.rs` | `file header → checked protobuf → original documents` |
+| **17** | [`66e-give-copied-lines-independent-identities`](#checkpoint-66e-give-copied-lines-independent-identities) | Give copied lines independent identities. | `src/scene.rs` | `original line → row identity → independent copy` |
+| **18** | [`66f-snapshot-geometry-types`](#checkpoint-66f-snapshot-geometry-types) | Snapshot original geometry types. | `src/geometry_snapshot.rs`, `src/lib.rs` | `original CAD curves clouds → source protobuf → independent row GUID` |
+| **19** | [`66g-retain-geometry-free-document-headers`](#checkpoint-66g-retain-geometry-free-document-headers) | Retain geometry free document headers. | `src/hierarchy.rs`, `src/layer_edit.rs`, `src/scene.rs`, `src/revision.rs` | `source header → tree namespace → source release` |
+| **20** | [`66h-inventory-saved-document-namespaces`](#checkpoint-66h-inventory-saved-document-namespaces) | Inventory saved document namespaces. | `src/scene_archive.rs`, `src/lib.rs` | `live rows → document namespaces → ordered copy owners` |
+| **21** | [`66i-map-saved-source-identities`](#checkpoint-66i-map-saved-source-identities) | Map saved source identities. | `src/archive_identity.rs`, `src/lib.rs` | `row GUID → namespace alias → source tree identity` |
+| **22** | [`66j-store-cloud-size-as-presentation`](#checkpoint-66j-store-cloud-size-as-presentation) | Store cloud size as presentation. | `src/cloud.rs`, `src/cloud_gpu.rs`, `src/scene.rs` | `original point size → instance override → physical disc` |
+| **23** | [`66k-prepare-saved-documents`](#checkpoint-66k-prepare-saved-documents) | Prepare original saved documents. | `src/archive_document.rs`, `src/lib.rs` | `source namespace → original geometry → local placement → saved tree` |
+| **24** | [`66l-save-document-display-settings`](#checkpoint-66l-save-document-display-settings) | Save document display settings. | `src/archive_presentation.rs`, `src/lib.rs` | `document owner → display overrides → portable current layer` |
+| **25** | [`66m-save-the-complete-supported-scene`](#checkpoint-66m-save-the-complete-supported-scene) | Save the complete supported scene. | `src/scene_archive.rs` | `original source snapshots → checked metadata → viewer archive` |
+| **26** | [`66n-prepare-document-sources`](#checkpoint-66n-prepare-document-sources) | Prepare original document sources. | `src/document_source.rs`, `src/lib.rs` | `source bytes → validation → original shared kernel document` |
+| **27** | [`66o-prepare-every-supported-geometry-row`](#checkpoint-66o-prepare-every-supported-geometry-row) | Prepare every supported geometry row. | `src/document_geometry.rs`, `src/lib.rs` | `original source family → prepared row → placed world geometry` |
+| **28** | [`66p-adopt-a-complete-source-document`](#checkpoint-66p-adopt-a-complete-source-document) | Adopt a complete source document. | `src/scene_document.rs`, `src/lib.rs`, `src/scene.rs` | `temporary scene → complete preparation → atomic document adoption` |
+| **29** | [`66q-restore-world-labels-layer-links`](#checkpoint-66q-restore-world-labels-layer-links) | Restore world labels and layer links. | `src/archive_restore_texts.rs`, `src/lib.rs` | `saved world label → original text row → saved layer link` |
+| **30** | [`66r-restore-scoped-presentation-settings`](#checkpoint-66r-restore-scoped-presentation-settings) | Restore scoped presentation settings. | `src/archive_restore_flags.rs`, `src/lib.rs` | `saved owner keys → new row identities → restored settings` |
+| **31** | [`66s-reopen-a-complete-viewer-file`](#checkpoint-66s-reopen-a-complete-viewer-file) | Reopen a complete viewer file. | `src/scene_document.rs` | `checked archive → temporary scene → complete metadata → one adoption` |
+| **32** | [`66t-prepare-file-adoption-live-history`](#checkpoint-66t-prepare-file-adoption-live-history) | Prepare file adoption and live history. | `src/publication.rs`, `src/lib.rs`, `src/editor.rs`, `src/edit_replay.rs` | `file candidate → editor adoption → controlled source history` |
+| **33** | [`66u-share-repeated-source-placements`](#checkpoint-66u-share-repeated-source-placements) | Share repeated source placements. | `src/scene.rs` | `cached original source → shared display → independent placement` |
+| **34** | [`66v-start-an-empty-scene-without-examples`](#checkpoint-66v-start-an-empty-scene-without-examples) | Start an empty scene without examples. | `src/scene.rs` | `empty source owner → fresh document inventory → original import` |
+| **35** | [`66w-assemble-placed-manifest-entries`](#checkpoint-66w-assemble-placed-manifest-entries) | Assemble placed manifest entries. | `src/scene_manifest.rs`, `src/lib.rs` | `manifest entries → shared source documents → placed scene labels` |
+| **36** | [`66x-resolve-scene-live-urls`](#checkpoint-66x-resolve-scene-live-urls) | Resolve scene and live URLs. | `src/publication_route.rs`, `src/lib.rs` | `scene route → source base → resolved files → live schedule` |
+| **37** | [`66y-retain-validated-live-source-revisions`](#checkpoint-66y-retain-validated-live-source-revisions) | Retain validated live source revisions. | `src/publication_index.rs`, `src/lib.rs` | `validated manifest → original source cache → complete replacement` |
+| **38** | [`66z-fetch-bounded-source-bodies`](#checkpoint-66z-fetch-bounded-source-bodies) | Fetch bounded source bodies. | `src/publication_fetch.rs`, `src/lib.rs` | `request validator → bounded stream → decoded source bytes` |
+| **39** | [`66aa-read-a-complete-url-source-revision`](#checkpoint-66aa-read-a-complete-url-source-revision) | Read a complete URL source revision. | `src/browser_publication.rs`, `src/lib.rs` | `manifest response → original files → complete source revision` |
+| **40** | [`66ab-own-cancel-the-url-loader`](#checkpoint-66ab-own-cancel-the-url-loader) | Own and cancel the URL loader. | `src/browser_publication.rs` | `runtime owner → request ticket → cancellation → source release` |
+| **41** | [`66ac-accept-only-current-url-completions`](#checkpoint-66ac-accept-only-current-url-completions) | Accept only current URL completions. | `src/browser_publication.rs` | `one request → latest ticket → valid candidate → current runtime` |
+| **42** | [`66ad-watch-published-source-changes`](#checkpoint-66ad-watch-published-source-changes) | Watch published source changes. | `src/browser_publication.rs` | `poll interval → announcement → coalesced read → shutdown` |
+| **43** | [`66ae-inspect-published-source-identities`](#checkpoint-66ae-inspect-published-source-identities) | Inspect published source identities. | `src/browser.rs` | `original source row → compact diagnostics → source assertions` |
+| **44** | [`66af-connect-browser-save-open-url-adoption`](#checkpoint-66af-connect-browser-save-open-url-adoption) | Connect browser save open and URL adoption. | `src/browser_runtime.rs`, `src/file_input.rs`, `src/browser.rs` | `original source archive → file or URL adoption → drawing and release` |
+
+---
+
+## 4. Step-by-Step Coding Notebook (Concept + Implementation)
+
+Work through each notebook cell below in order inside `workspace/journey`. Read the **Concept Walkthrough** and **Self-Check Q&A** first, then expand the **Implementation** block to type and verify the code.
 
 <a id="checkpoint-66-read-scene-manifests"></a>
+
+### Step 1 of 44 · Parse and bound original scene manifests (`66-read-scene-manifests`)
+
+- **Goal:** Parse supported manifest forms, then bound bytes, record counts and text content.
+- **Data Flow Trace:** `original family → pure calculation → result or refusal`
+- **Files You Touch:** `src/manifest.rs` (*Extend this original owner with today’s complete helper.*)
+
+Parse supported manifest forms, then bound bytes, record counts and text content. Validate source placements, decoded sizes and affine matrices before accepting any scene records.
+
+> **Self-Check Question:** *Why validate the whole manifest before publishing its scene?*  
+> **Answer:** A malformed late record must not leave an earlier partial scene adopted. Return checked records first; later lessons own the asynchronous loading and publication.
+
+- **What You Should See:** The complete manifest parser compiles. Browser fetching and atomic publication follow next.
+- **Hands-On Lab Experiment:** Inspect the original YAML/JSON fixtures and the optional TOML feature checks. Trace one invalid late item and verify that parsing returns a refusal.
 
 <details>
 <summary>Implementation 66-read-scene-manifests: Parse and bound original scene manifests</summary>
@@ -518,6 +618,20 @@ After that block, append this supplied code:
 
 <a id="checkpoint-66a-compare-live-byte-revisions"></a>
 
+### Step 2 of 44 · Compare live byte revisions (`66a-compare-live-byte-revisions`)
+
+- **Goal:** Write per-URL ETag and byte-hash records.
+- **Data Flow Trace:** `URL → HTTP validator → byte hash → changed-scene decision`
+- **Files You Touch:** `src/live_revision.rs` (*Type the whole original helpers introduced today.*) · `src/lib.rs` (*Register byte-revision tracking.*)
+
+Write per-URL ETag and byte-hash records. Preserve validator state but replace the scene only when the response bytes change.
+
+> **Self-Check Question:** *Does a new ETag always require a scene replacement?*  
+> **Answer:** No. The server validator can change while the bytes remain identical. Compare the byte hash and retain the new validator for the next request.
+
+- **What You Should See:** The existing scene remains visible while byte-revision tracking is prepared. Later browser reads use this decision before replacing the scene.
+- **Hands-On Lab Experiment:** Trace identical bytes with changed, weak and missing tags. Forget one URL and confirm another URL keeps its revision.
+
 <details>
 <summary>Implementation 66a-compare-live-byte-revisions: Compare live byte revisions</summary>
 
@@ -616,6 +730,22 @@ After that block, append this supplied code:
 
 <a id="checkpoint-66b-validate-source-records-before-allocation"></a>
 
+### Step 3 of 44 · Bound finite coordinates and packed integer reads (`66b-validate-source-records-before-allocation`)
+
+- **Goal:** Guard scalar finiteness, coordinate triples and arithmetic before allocating or indexing. Decode a bounded varint without shifts past sixty-three bits.
+- **Data Flow Trace:** `original record → bounded scalar/address contract → reusable validator → later archive loader`
+- **Files You Touch:** `src/source_validate.rs` (*Guard scalar finiteness, coordinate triples and arithmetic before allocating or indexing. Decode a bounded varint without shifts past sixty-three bits.*) · `src/lib.rs` (*Register the source component.*)
+
+Keep these checks separate from geometry construction.
+
+Finite scalars reject NaN and infinity; triples reject incomplete xyz records. The varint reader returns the consumed byte count so a later array reader can advance exactly once. Surface control addressing returns None on arithmetic overflow rather than wrapping into a small index.
+
+> **Self-Check Question:** *Why must integer decoding and control addressing use checked operations?*  
+> **Answer:** A continuation byte can require a shift outside u64, and a declared surface stride can overflow usize. Reject either condition before it becomes an address.
+
+- **What You Should See:** This validator compiles in the browser application; source loading is connected by the following archive lessons.
+- **Hands-On Lab Experiment:** Trace bytes [172,2], an unfinished continuation byte, and an overflowing tenth byte. Then calculate the last address of a two-row, three-column surface with coordinate width three. Predict which result is rejected.
+
 <details>
 <summary>Implementation 66b-validate-source-records-before-allocation: Bound finite coordinates and packed integer reads</summary>
 
@@ -656,6 +786,19 @@ After that block, type:
 </details>
 
 <a id="checkpoint-66ba-validate-one-nurbs-knot-axis"></a>
+
+### Step 4 of 44 · Validate one NURBS knot axis (`66ba-validate-one-nurbs-knot-axis`)
+
+- **Goal:** Relate order, control count and knot count, then reject nonfinite or decreasing knots before a kernel constructor.
+- **Data Flow Trace:** `original record → bounded scalar/address contract → reusable validator → later archive loader`
+- **Files You Touch:** `src/source_validate.rs` (*Relate order, control count and knot count, then reject nonfinite or decreasing knots before a kernel constructor.*)
+
+Validate order and control count before indexing knots. This kernel stores order+count−2 knots; use that convention rather than adding the two endpoint knots used by some other APIs. Reuse the finite-scalar guard, permit repeated knot values and reject a reversed pair or empty active domain.
+
+> **Self-Check Question:** *Why are nondecreasing knots still insufficient for a valid curve domain?*  
+> **Answer:** Repeated knots are allowed, but the active start must be strictly below the active end. A fully collapsed knot vector has no evaluable parameter interval.
+
+- **Hands-On Lab Experiment:** For order two and two controls, compare knots [0,1], [1,0] and [1,1]. Predict the first failed condition in each case before running the optional completed-module fixtures.
 
 <details>
 <summary>Implementation 66ba-validate-one-nurbs-knot-axis: Validate one NURBS knot axis</summary>
@@ -745,6 +888,21 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-66bb-read-bounded-json-count-and-knot-fields"></a>
+
+### Step 5 of 44 · Read bounded JSON count and knot fields (`66bb-read-bounded-json-count-and-knot-fields`)
+
+- **Goal:** Read unsigned JSON counts with defaults and explicit caps; reuse the knot-axis contract instead of writing a second validator.
+- **Data Flow Trace:** `original record → bounded scalar/address contract → reusable validator → later archive loader`
+- **Files You Touch:** `src/source_validate.rs` (*Read unsigned JSON counts with defaults and explicit caps; reuse the knot-axis contract instead of writing a second validator.*)
+
+JSON is a serialization adapter, not another geometry owner.
+
+Read counts with explicit defaults and upper bounds, reject malformed numbers and convert only accepted values. Translate a JSON knot array into the same axis validator already written, preserving one NURBS contract across both archive formats. The course already depends on serde_json, so these helpers compile with the normal browser build. The later optional JSON loader controls when they are called.
+
+> **Self-Check Question:** *Why should JSON count fields be read as unsigned integers before conversion to usize?*  
+> **Answer:** Negative, fractional and excessively large declarations must be rejected before a platform-sized count reaches an allocation.
+
+- **Hands-On Lab Experiment:** Compare a missing order field, order 2, order −1 and order 18446744073709551615. Predict the default or rejection before reading any control array.
 
 <details>
 <summary>Implementation 66bb-read-bounded-json-count-and-knot-fields: Read bounded JSON count and knot fields</summary>
@@ -854,6 +1012,21 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-66bc-match-json-control-layout-to-declared-counts"></a>
 
+### Step 6 of 44 · Match JSON control layout to declared counts (`66bc-match-json-control-layout-to-declared-counts`)
+
+- **Goal:** Check rational coordinate width, rows, columns and curve stride against the actual arrays before constructor allocation.
+- **Data Flow Trace:** `original record → bounded scalar/address contract → reusable validator → later archive loader`
+- **Files You Touch:** `src/source_validate.rs` (*Check rational coordinate width, rows, columns and curve stride against the actual arrays before constructor allocation.*)
+
+A JSON curve stores an array per control; a JSON surface stores a flat control array.
+
+Check those distinct layouts explicitly. Use bounded row and column counts, validate both knot axes for a surface, and reject a curve whose nested coordinate arrays or stride disagree with its dimension and rational flag.
+
+> **Self-Check Question:** *How does a rational control change the required storage width?*  
+> **Answer:** Its weight adds one coordinate to the declared geometric dimension. Counts and strides must match that full width.
+
+- **Hands-On Lab Experiment:** Trace two three-dimensional nonrational controls, then enable is_rational without adding weights. For a two-by-three surface, calculate the required flat coordinate count before validating the knots.
+
 <details>
 <summary>Implementation 66bc-match-json-control-layout-to-declared-counts: Match JSON control layout to declared counts</summary>
 
@@ -955,6 +1128,24 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-66bd-walk-json-records-within-a-depth-limit"></a>
+
+### Step 7 of 44 · Walk JSON records within a depth limit (`66bd-walk-json-records-within-a-depth-limit`)
+
+- **Goal:** Use an explicit bounded stack to find original control records; reject excess nesting and reuse the already-written record validators.
+- **Data Flow Trace:** `original record → bounded scalar/address contract → reusable validator → later archive loader`
+- **Files You Touch:** `src/source_validate.rs` (*Use an explicit bounded stack to find original control records; reject excess nesting and reuse the already-written record validators.*) · `src/lib.rs` (*Expose the pure original-record validator for a browser-console exercise.*)
+
+Inspect every object and array in the parsed JSON value without constructing kernel geometry.
+
+Recognize control records by their control_points and declared curve or surface counts. Delegate each recognized record to the existing control-layout validator; do not duplicate its count and knot rules in the traversal.
+
+> **Self-Check Question:** *Why walk nested JSON with an explicit depth budget?*  
+> **Answer:** An otherwise small document can nest records deeply enough to exhaust recursive processing. A bounded stack makes that limit explicit.
+
+- **What You Should See:** In the browser developer console, call window.wasmBindings.validate_source_json(text). A valid control record returns normally; an invalid record throws its validation message without changing the drawing.
+- **Hands-On Lab Experiment:** Sketch a control record nested inside two arrays. Follow stack entries and depths, then predict what happens when a child lies past depth sixty-four.
+
+In the browser console, run `window.wasmBindings.validate_source_json('{"control_points":[[0,0,0],[1,0,0]],"cv_count":2,"dimension":3,"order":2,"nurbsknots":[0,1]}')`. Change cv_count to 3 and predict the rejection. The validator does not import or modify the active drawing.
 
 <details>
 <summary>Implementation 66bd-walk-json-records-within-a-depth-limit: Walk JSON records within a depth limit</summary>
@@ -1081,6 +1272,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-66be-validate-original-points-lines-and-placements"></a>
 
+### Step 8 of 44 · Validate original points lines and placements (`66be-validate-original-points-lines-and-placements`)
+
+- **Goal:** Check original coordinate-bearing records and affine placement without changing source values or identity.
+- **Data Flow Trace:** `original record → bounded scalar/address contract → reusable validator → later archive loader`
+- **Files You Touch:** `src/source_validate.rs` (*Check original coordinate-bearing records and affine placement without changing source values or identity.*)
+
+Reuse finite and triples for points, line coordinates and polylines. Validate the sixteen-entry placement convention separately from source geometry, including indices 3,7,11,15. The generic any adapter deliberately accepts records without a coordinate contract; it does not silently replace a geometry validator.
+
+> **Self-Check Question:** *Why must placement validation check the affine last row as well as finite matrix entries?*  
+> **Answer:** A finite perspective or incomplete matrix is still not a valid object placement. Original object transforms require sixteen entries with an affine last row.
+
+- **Hands-On Lab Experiment:** Compare identity, a translated identity, a fifteen-entry matrix and a matrix with entry 15 equal to zero. Predict which are usable as object placements and why.
+
 <details>
 <summary>Implementation 66be-validate-original-points-lines-and-placements: Validate original points lines and placements</summary>
 
@@ -1183,6 +1387,21 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-66bf-validate-original-mesh-indices-and-vertex-attributes"></a>
+
+### Step 9 of 44 · Validate original mesh indices and vertex attributes (`66bf-validate-original-mesh-indices-and-vertex-attributes`)
+
+- **Goal:** Check source vertex keys, finite attributes, face rings and triangulation before constructing a mesh.
+- **Data Flow Trace:** `original record → bounded scalar/address contract → reusable validator → later archive loader`
+- **Files You Touch:** `src/source_validate.rs` (*Check source vertex keys, finite attributes, face rings and triangulation before constructing a mesh.*)
+
+Check every original vertex position and attribute for finite values and bound its key to the browser index range.
+
+Faces need at least three entries; face rings, holes and triangulation all reuse the same key lookup. A triangulation must also name an existing original face and contain complete triples.
+
+> **Self-Check Question:** *Why must mesh indices look up source vertex keys instead of comparing them with vertex count?*  
+> **Answer:** Original mesh vertices use keyed records. A small numeric key may be absent and a sparse larger key may exist.
+
+- **Hands-On Lab Experiment:** Use vertices keyed 2,7,12. Compare a face [2,7,12] with [0,1,2], then a triangulation naming an absent face. Predict the exact missing reference before construction.
 
 <details>
 <summary>Implementation 66bf-validate-original-mesh-indices-and-vertex-attributes: Validate original mesh indices and vertex attributes</summary>
@@ -1293,6 +1512,21 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-66bg-validate-curve-and-surface-control-addresses"></a>
+
+### Step 10 of 44 · Validate curve and surface control addresses (`66bg-validate-curve-and-surface-control-addresses`)
+
+- **Goal:** Use checked stride arithmetic to locate the final addressed control and reuse the shared knot and scalar contracts.
+- **Data Flow Trace:** `original record → bounded scalar/address contract → reusable validator → later archive loader`
+- **Files You Touch:** `src/source_validate.rs` (*Use checked stride arithmetic to locate the final addressed control and reuse the shared knot and scalar contracts.*)
+
+Curves validate dimension, rational width and exact control storage after the shared axis check.
+
+Surfaces validate both axes and a four-million-control budget, derive default strides only when absent, then reuse checked final-address arithmetic. Validate an optional cached mesh with the same mesh contract rather than trusting cached display data.
+
+> **Self-Check Question:** *Why is a surface storage check based on strides rather than only rows times columns?*  
+> **Answer:** Explicit row and column strides can introduce padding or a different layout. The final addressed coordinate, not just the logical count, must fit storage.
+
+- **Hands-On Lab Experiment:** For a two-by-two nonrational surface, compare default strides with stride_u 30. Calculate the minimum backing-array length in both cases and explain why the same twelve-value array cannot serve both.
 
 <details>
 <summary>Implementation 66bg-validate-curve-and-surface-control-addresses: Validate curve and surface control addresses</summary>
@@ -1408,6 +1642,21 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-66bh-validate-cloud-columns-and-octree-addresses"></a>
 
+### Step 11 of 44 · Validate cloud columns and octree addresses (`66bh-validate-cloud-columns-and-octree-addresses`)
+
+- **Goal:** Match optional original cloud columns and octree ranges to actual point and node counts.
+- **Data Flow Trace:** `original record → bounded scalar/address contract → reusable validator → later archive loader`
+- **Files You Touch:** `src/source_validate.rs` (*Match optional original cloud columns and octree ranges to actual point and node counts.*)
+
+Coordinates define the original point count.
+
+Match normal triples, four-byte colors and point IDs against that count. If octree nodes exist, check each companion column, finite bounds and sizes, point ranges and child indices. Keep these source checks separate from the later GPU and streamed-layout readers.
+
+> **Self-Check Question:** *Why are optional cloud columns allowed to be empty but never partial?*  
+> **Answer:** Empty means the source does not provide that attribute. A nonempty column must address every original point under its declared format.
+
+- **Hands-On Lab Experiment:** For two original points, calculate valid normal, color and ID lengths. Then trace a node range starting at one with count two, and a child index equal to the node count.
+
 <details>
 <summary>Implementation 66bh-validate-cloud-columns-and-octree-addresses: Validate cloud columns and octree addresses</summary>
 
@@ -1513,6 +1762,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-66bi-validate-brep-element-payloads-and-shared-definitions"></a>
+
+### Step 12 of 44 · Validate BRep Element payloads and shared definitions (`66bi-validate-brep-element-payloads-and-shared-definitions`)
+
+- **Goal:** Check BRep records and encoded Element geometry, then validate every shared definition without expanding instances into copied geometry.
+- **Data Flow Trace:** `original record → bounded scalar/address contract → reusable validator → later archive loader`
+- **Files You Touch:** `src/source_validate.rs` (*Check BRep records and encoded Element geometry, then validate every shared definition without expanding instances into copied geometry.*)
+
+Validate BRep curve, surface and vertex records using the same existing geometry contracts. Decode an Element’s embedded Mesh or BRep payload according to its declared type and preserve decoding errors. Finally traverse shared definition records and bound their count together with instance references.
+
+> **Self-Check Question:** *Why validate shared definitions without expanding their instances?*  
+> **Answer:** The source stores a definition once and separate instance references. Expanding them would change ownership and multiply work before validation.
+
+- **Hands-On Lab Experiment:** Trace an Element declaring Mesh with malformed payload bytes, then a shared BRep definition with two references. Identify the checks that run once and the count that includes the references.
 
 <details>
 <summary>Implementation 66bi-validate-brep-element-payloads-and-shared-definitions: Validate BRep Element payloads and shared definitions</summary>
@@ -1661,6 +1923,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-66bj-validate-the-complete-original-protobuf-session"></a>
 
+### Step 13 of 44 · Validate the complete original protobuf session (`66bj-validate-the-complete-original-protobuf-session`)
+
+- **Goal:** Apply the existing per-record validators and enforce total original-object and hierarchy-depth budgets before allocation.
+- **Data Flow Trace:** `original record → bounded scalar/address contract → reusable validator → later archive loader`
+- **Files You Touch:** `src/source_validate.rs` (*Apply the existing per-record validators and enforce total original-object and hierarchy-depth budgets before allocation.*)
+
+Count original geometry records and apply the already-written per-type validators. Validate every placement. Walk the original tree with an explicit depth stack, allowing depth sixty-four and rejecting a deeper child. This orchestration adds budgets and traversal, not another implementation of mesh, curve or cloud checks.
+
+> **Self-Check Question:** *Why does whole-session validation happen before kernel construction?*  
+> **Answer:** Declared records, transforms and hierarchy must pass their budgets and record checks before constructors can allocate from them.
+
+- **Hands-On Lab Experiment:** Place a valid mesh and an invalid placement in one source session. Predict whether partial geometry should appear after import. Then compare a tree reaching depth sixty-four with one additional child.
+
 <details>
 <summary>Implementation 66bj-validate-the-complete-original-protobuf-session: Validate the complete original protobuf session</summary>
 
@@ -1725,6 +2000,19 @@ After that block, type:
 </details>
 
 <a id="checkpoint-66bk-connect-retained-session-validation-and-independent-witnesses"></a>
+
+### Step 14 of 44 · Connect retained-session validation and independent witnesses (`66bk-connect-retained-session-validation-and-independent-witnesses`)
+
+- **Goal:** Reuse the protobuf validators for already-decoded original kernel objects and register independent malformed-record witnesses.
+- **Data Flow Trace:** `original record → bounded scalar/address contract → reusable validator → later archive loader`
+- **Files You Touch:** `src/source_validate.rs` (*Reuse the protobuf validators for already-decoded original kernel objects and register independent malformed-record witnesses.*)
+
+Connect the retained-session adapter for meshes, clouds, NURBS curves, surfaces and BReps. Add the supplied independent malformed-count, missing-index and JSON-layout fixtures. The following archive lessons now have one complete validation owner for original input; no geometry is copied or normalized by these checks.
+
+> **Self-Check Question:** *Why retain a validator for already-decoded kernel sessions?*  
+> **Answer:** Loaded or constructed original records may still need the same checks before being retained or archived. Reuse their protobuf representation and the existing record validators.
+
+- **Hands-On Lab Experiment:** Read each supplied malformed-record case and predict its failed contract before running the browser build. In the following archive exercise, import one invalid document and verify that the previous drawing remains intact.
 
 <details>
 <summary>Implementation 66bk-connect-retained-session-validation-and-independent-witnesses: Connect retained-session validation and independent witnesses</summary>
@@ -1864,6 +2152,19 @@ After that block, append this supplied code:
 
 <a id="checkpoint-66c-describe-the-saved-scene-metadata"></a>
 
+### Step 15 of 44 · Describe the saved scene metadata (`66c-describe-the-saved-scene-metadata`)
+
+- **Goal:** Describe the saved scene metadata.
+- **Data Flow Trace:** `document payloads → small metadata → checked owners`
+- **Files You Touch:** `src/archive.rs` (*Define original document framing and validate small presentation metadata.*) · `src/lib.rs` (*Register the source component.*)
+
+Separate original document payloads from names, placement and display settings.
+
+> **Self-Check Question:** *Are hidden and locked states part of display triangles?*  
+> **Answer:** No. Metadata addresses an original object within one document namespace.
+
+- **Hands-On Lab Experiment:** Trace two documents using one original GUID with independent hidden and locked settings.
+
 <details>
 <summary>Implementation 66c-describe-the-saved-scene-metadata: Describe the saved scene metadata</summary>
 
@@ -1904,6 +2205,19 @@ After that block, type:
 </details>
 
 <a id="checkpoint-66d-encode-decode-the-viewer-file"></a>
+
+### Step 16 of 44 · Encode decode the viewer file (`66d-encode-decode-the-viewer-file`)
+
+- **Goal:** Encode decode the viewer file.
+- **Data Flow Trace:** `file header → checked protobuf → original documents`
+- **Files You Touch:** `src/archive.rs` (*Frame original source bytes and checked metadata without replacing geometry.*)
+
+Add archive limits and source validation; copy malformed-file and metadata compatibility checks.
+
+> **Self-Check Question:** *May a missing edge-colour field erase face colours?*  
+> **Answer:** No. Older metadata uses the face-colour override as its edge-colour fallback.
+
+- **Hands-On Lab Experiment:** Check the 512 MiB envelope, bad header, document inventory and old metadata fields.
 
 <details>
 <summary>Implementation 66d-encode-decode-the-viewer-file: Encode decode the viewer file</summary>
@@ -1962,6 +2276,19 @@ After that block, append this supplied code:
 </details>
 
 <a id="checkpoint-66e-give-copied-lines-independent-identities"></a>
+
+### Step 17 of 44 · Give copied lines independent identities (`66e-give-copied-lines-independent-identities`)
+
+- **Goal:** Give copied lines independent identities.
+- **Data Flow Trace:** `original line → row identity → independent copy`
+- **Files You Touch:** `src/scene.rs` (*Separate line row identities from shared original sources.*)
+
+Give each line row its own identity while sharing the original immutable line.
+
+> **Self-Check Question:** *Should copying a line mutate its shared source GUID?*  
+> **Answer:** No. Only the copied viewer row receives a new GUID.
+
+- **Hands-On Lab Experiment:** Copy a line, compare source pointers and save two distinct editable line records.
 
 <details>
 <summary>Implementation 66e-give-copied-lines-independent-identities: Give copied lines independent identities</summary>
@@ -2753,6 +3080,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-66f-snapshot-geometry-types"></a>
 
+### Step 18 of 44 · Snapshot original geometry types (`66f-snapshot-geometry-types`)
+
+- **Goal:** Snapshot original geometry types.
+- **Data Flow Trace:** `original CAD curves clouds → source protobuf → independent row GUID`
+- **Files You Touch:** `src/geometry_snapshot.rs` (*Snapshot original sources and current flags without mutating their shared records.*) · `src/lib.rs` (*Register the source component.*)
+
+Serialize editable sources of each supported type. Derived display triangles and LOD subsets remain outside the saved geometry.
+
+> **Self-Check Question:** *Can a display mesh replace an original BRep?*  
+> **Answer:** No. Save the original BRep, surface or curve, including weights and source point IDs.
+
+- **Hands-On Lab Experiment:** Compare rational weight4, original cloud ID4294967295 and unchanged shared sources.
+
 <details>
 <summary>Implementation 66f-snapshot-geometry-types: Snapshot original geometry types</summary>
 
@@ -2820,6 +3160,19 @@ After that block, append this supplied code:
 </details>
 
 <a id="checkpoint-66g-retain-geometry-free-document-headers"></a>
+
+### Step 19 of 44 · Retain geometry free document headers (`66g-retain-geometry-free-document-headers`)
+
+- **Goal:** Retain geometry free document headers.
+- **Data Flow Trace:** `source header → tree namespace → source release`
+- **Files You Touch:** `src/hierarchy.rs` (*Retain lightweight original document metadata through layer edits.*) · `src/layer_edit.rs` (*Retain lightweight original document metadata through layer edits.*) · `src/scene.rs` (*Attach geometry-free original headers to imported namespaces.*) · `src/revision.rs` (*Include original nonmesh document revisions without owning source geometry.*) · `src/archive.rs` (*Copy mixed tree and line-identity integration checks after their source ownership is connected.*)
+
+Keep original document identity without holding its kernel object collections after release.
+
+> **Self-Check Question:** *Does the layer tree need a retained kernel Session?*  
+> **Answer:** No. Its lightweight origin header has no geometry collections.
+
+- **Hands-On Lab Experiment:** Close repeated imports and check original kernel and display owners are released.
 
 <details>
 <summary>Implementation 66g-retain-geometry-free-document-headers: Retain geometry free document headers</summary>
@@ -3169,6 +3522,19 @@ Update the existing block with this supplied code; keep unchanged lines:
 
 <a id="checkpoint-66h-inventory-saved-document-namespaces"></a>
 
+### Step 20 of 44 · Inventory saved document namespaces (`66h-inventory-saved-document-namespaces`)
+
+- **Goal:** Inventory saved document namespaces.
+- **Data Flow Trace:** `live rows → document namespaces → ordered copy owners`
+- **Files You Touch:** `src/scene_archive.rs` (*Inventory original document namespaces and deterministic owner order.*) · `src/lib.rs` (*Register the source component.*)
+
+Keep each document namespace and collect unassigned copies into a Created document.
+
+> **Self-Check Question:** *Can two imported documents use the same source GUID?*  
+> **Answer:** Yes. Their original identities are distinct through their document namespaces.
+
+- **Hands-On Lab Experiment:** Import one file twice and trace both original IDs alongside their globally distinct row IDs.
+
 <details>
 <summary>Implementation 66h-inventory-saved-document-namespaces: Inventory saved document namespaces</summary>
 
@@ -3210,6 +3576,19 @@ After that block, type:
 
 <a id="checkpoint-66i-map-saved-source-identities"></a>
 
+### Step 21 of 44 · Map saved source identities (`66i-map-saved-source-identities`)
+
+- **Goal:** Map saved source identities.
+- **Data Flow Trace:** `row GUID → namespace alias → source tree identity`
+- **Files You Touch:** `src/archive_identity.rs` (*Map original sources, tree nodes and copies inside their document namespace.*) · `src/lib.rs` (*Register the source component.*)
+
+Map row IDs back to original document GUIDs, retaining unique identities for copies moved between documents.
+
+> **Self-Check Question:** *May a moved copy overwrite an original source record?*  
+> **Answer:** No. Reserve existing row identities before selecting source aliases.
+
+- **Hands-On Lab Experiment:** Move one of two repeated imports into the first layer and verify every saved source remains distinct.
+
 <details>
 <summary>Implementation 66i-map-saved-source-identities: Map saved source identities</summary>
 
@@ -3250,6 +3629,19 @@ After that block, type:
 </details>
 
 <a id="checkpoint-66j-store-cloud-size-as-presentation"></a>
+
+### Step 22 of 44 · Store cloud size as presentation (`66j-store-cloud-size-as-presentation`)
+
+- **Goal:** Store cloud size as presentation.
+- **Data Flow Trace:** `original point size → instance override → physical disc`
+- **Files You Touch:** `src/cloud.rs` (*Keep cloud point size independent of shared original source records.*) · `src/cloud_gpu.rs` (*Derive draw radius from an instance override or the original source size.*) · `src/scene.rs` (*Allocate document keys and change cloud presentation without touching original source columns.*)
+
+Add an independent cloud point-size override and document key allocation.
+
+> **Self-Check Question:** *Should a manifest override edit original point_size?*  
+> **Answer:** No. The row carries the override; shared original cloud bytes remain unchanged.
+
+- **Hands-On Lab Experiment:** Compare two placements using4px and7px with the unchanged3px original cloud.
 
 <details>
 <summary>Implementation 66j-store-cloud-size-as-presentation: Store cloud size as presentation</summary>
@@ -4039,6 +4431,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-66k-prepare-saved-documents"></a>
 
+### Step 23 of 44 · Prepare original saved documents (`66k-prepare-saved-documents`)
+
+- **Goal:** Prepare original saved documents.
+- **Data Flow Trace:** `source namespace → original geometry → local placement → saved tree`
+- **Files You Touch:** `src/archive_document.rs` (*Prepare original document records and precise relative placements for saving.*) · `src/lib.rs` (*Register the source component.*)
+
+Preserve source headers and tree depth; derive local placements from the current world models.
+
+> **Self-Check Question:** *Should every Save add another tree wrapper?*  
+> **Answer:** No. Preserve the existing document root so repeated roundtrips keep their original depth.
+
+- **Hands-On Lab Experiment:** Save and reopen six times, retaining precise pose, original document GUID and current layer.
+
 <details>
 <summary>Implementation 66k-prepare-saved-documents: Prepare original saved documents</summary>
 
@@ -4080,6 +4485,19 @@ After that block, type:
 
 <a id="checkpoint-66l-save-document-display-settings"></a>
 
+### Step 24 of 44 · Save document display settings (`66l-save-document-display-settings`)
+
+- **Goal:** Save document display settings.
+- **Data Flow Trace:** `document owner → display overrides → portable current layer`
+- **Files You Touch:** `src/archive_presentation.rs` (*Address presentation settings by saved original document identities.*) · `src/lib.rs` (*Register the source component.*)
+
+Write independent face/edge colours, visibility, locks and the portable current layer.
+
+> **Self-Check Question:** *Which layer identity belongs in the saved file?*  
+> **Answer:** The portable node GUID, which survives reopening without the viewer document key.
+
+- **Hands-On Lab Experiment:** Hide one repeated source, lock the other and save their independent document-scoped flags.
+
 <details>
 <summary>Implementation 66l-save-document-display-settings: Save document display settings</summary>
 
@@ -4120,6 +4538,19 @@ After that block, type:
 </details>
 
 <a id="checkpoint-66m-save-the-complete-supported-scene"></a>
+
+### Step 25 of 44 · Save the complete supported scene (`66m-save-the-complete-supported-scene`)
+
+- **Goal:** Save the complete supported scene.
+- **Data Flow Trace:** `original source snapshots → checked metadata → viewer archive`
+- **Files You Touch:** `src/scene_archive.rs` (*Encode original document payloads and current presentation as one bounded archive.*)
+
+Join original documents and world label metadata within one bounded viewer file.
+
+> **Self-Check Question:** *Does saving consume a geometry Undo transaction?*  
+> **Answer:** No. Saving reads the scene and leaves its original sources and history untouched.
+
+- **Hands-On Lab Experiment:** Compare original CAD/cloud/curve bytes, copied line identities and separate original GUID namespaces.
 
 <details>
 <summary>Implementation 66m-save-the-complete-supported-scene: Save the complete supported scene</summary>
@@ -4178,6 +4609,19 @@ After that block, append this supplied code:
 
 <a id="checkpoint-66n-prepare-document-sources"></a>
 
+### Step 26 of 44 · Prepare original document sources (`66n-prepare-document-sources`)
+
+- **Goal:** Prepare original document sources.
+- **Data Flow Trace:** `source bytes → validation → original shared kernel document`
+- **Files You Touch:** `src/document_source.rs` (*Validate original source types and retain their shared kernel document.*) · `src/lib.rs` (*Register the source component.*)
+
+Decode and validate supported sources before preparing display data. Refuse later families explicitly.
+
+> **Self-Check Question:** *Should unsupported types silently disappear?*  
+> **Answer:** No. Refuse the source until its later subject supplies its display and editing paths.
+
+- **Hands-On Lab Experiment:** Reject definitions, invalid counts, duplicate GUIDs and non-finite placements before adoption.
+
 <details>
 <summary>Implementation 66n-prepare-document-sources: Prepare original document sources</summary>
 
@@ -4219,6 +4663,19 @@ After that block, type:
 
 <a id="checkpoint-66o-prepare-every-supported-geometry-row"></a>
 
+### Step 27 of 44 · Prepare every supported geometry row (`66o-prepare-every-supported-geometry-row`)
+
+- **Goal:** Prepare every supported geometry row.
+- **Data Flow Trace:** `original source family → prepared row → placed world geometry`
+- **Files You Touch:** `src/document_geometry.rs` (*Prepare each supported original source family and its independent world model.*) · `src/lib.rs` (*Register the source component.*)
+
+Prepare typed display rows while retaining their original source and precise document placement.
+
+> **Self-Check Question:** *Can a sampled curve become the saved original curve?*  
+> **Answer:** No. Keep the original NURBS source behind its derived display samples.
+
+- **Hands-On Lab Experiment:** Trace points, lines, polylines, rational curves, surfaces, BReps and original clouds.
+
 <details>
 <summary>Implementation 66o-prepare-every-supported-geometry-row: Prepare every supported geometry row</summary>
 
@@ -4259,6 +4716,19 @@ After that block, type:
 </details>
 
 <a id="checkpoint-66p-adopt-a-complete-source-document"></a>
+
+### Step 28 of 44 · Adopt a complete source document (`66p-adopt-a-complete-source-document`)
+
+- **Goal:** Adopt a complete source document.
+- **Data Flow Trace:** `temporary scene → complete preparation → atomic document adoption`
+- **Files You Touch:** `src/scene_document.rs` (*Adopt original document rows atomically and preserve the existing source namespaces.*) · `src/lib.rs` (*Register the source component.*) · `src/scene.rs` (*Prepare a source-free candidate before reopening complete documents.*)
+
+Use a temporary scene while preparing rows, then install its namespace once the entire document succeeds.
+
+> **Self-Check Question:** *May a late display error replace half the scene?*  
+> **Answer:** No. Adopt the candidate only after all source rows and placements pass.
+
+- **Hands-On Lab Experiment:** Prepare an overflowing point after valid meshes and keep the previous scene unchanged.
 
 <details>
 <summary>Implementation 66p-adopt-a-complete-source-document: Adopt a complete source document</summary>
@@ -4322,6 +4792,19 @@ After that block, type:
 
 <a id="checkpoint-66q-restore-world-labels-layer-links"></a>
 
+### Step 29 of 44 · Restore world labels and layer links (`66q-restore-world-labels-layer-links`)
+
+- **Goal:** Restore world labels and layer links.
+- **Data Flow Trace:** `saved world label → original text row → saved layer link`
+- **Files You Touch:** `src/archive_restore_texts.rs` (*Restore saved world labels without serializing derived GPU addresses.*) · `src/lib.rs` (*Register the source component.*)
+
+Restore saved world labels, then reconnect their owner rows to the existing saved tree.
+
+> **Self-Check Question:** *Does a saved label carry a GPU pick address?*  
+> **Answer:** No. Recreate its presentation address from the new row identity.
+
+- **Hands-On Lab Experiment:** Reopen a moved hidden label, compare its world placement and retain its layer ownership.
+
 <details>
 <summary>Implementation 66q-restore-world-labels-layer-links: Restore world labels and layer links</summary>
 
@@ -4363,6 +4846,19 @@ After that block, type:
 
 <a id="checkpoint-66r-restore-scoped-presentation-settings"></a>
 
+### Step 30 of 44 · Restore scoped presentation settings (`66r-restore-scoped-presentation-settings`)
+
+- **Goal:** Restore scoped presentation settings.
+- **Data Flow Trace:** `saved owner keys → new row identities → restored settings`
+- **Files You Touch:** `src/archive_restore_flags.rs` (*Restore document-scoped metadata only after resolving every saved owner.*) · `src/lib.rs` (*Register the source component.*)
+
+Resolve original owners within their document namespace before applying saved display settings.
+
+> **Self-Check Question:** *May a missing saved owner affect another document?*  
+> **Answer:** No. Refuse unresolved metadata rather than applying it to a repeated GUID elsewhere.
+
+- **Hands-On Lab Experiment:** Restore current layer, created document, hidden/locked rows and independent face/edge colours.
+
 <details>
 <summary>Implementation 66r-restore-scoped-presentation-settings: Restore scoped presentation settings</summary>
 
@@ -4403,6 +4899,19 @@ After that block, type:
 </details>
 
 <a id="checkpoint-66s-reopen-a-complete-viewer-file"></a>
+
+### Step 31 of 44 · Reopen a complete viewer file (`66s-reopen-a-complete-viewer-file`)
+
+- **Goal:** Reopen a complete viewer file.
+- **Data Flow Trace:** `checked archive → temporary scene → complete metadata → one adoption`
+- **Files You Touch:** `src/scene_document.rs` (*Reopen every original document and restore all supported scene presentation.*)
+
+Prepare all original documents, labels and settings before replacing the active scene.
+
+> **Self-Check Question:** *May invalid archive metadata clear the displayed scene?*  
+> **Answer:** No. Keep the active scene until the complete candidate passes.
+
+- **Hands-On Lab Experiment:** Run mixed source roundtrips, repeated IDs, six stable tree roundtrips and rejected-file checks.
 
 <details>
 <summary>Implementation 66s-reopen-a-complete-viewer-file: Reopen a complete viewer file</summary>
@@ -4460,6 +4969,19 @@ After that block, append this supplied code:
 </details>
 
 <a id="checkpoint-66t-prepare-file-adoption-live-history"></a>
+
+### Step 32 of 44 · Prepare file adoption and live history (`66t-prepare-file-adoption-live-history`)
+
+- **Goal:** Prepare file adoption and live history.
+- **Data Flow Trace:** `file candidate → editor adoption → controlled source history`
+- **Files You Touch:** `src/publication.rs` (*Prepare raw documents or viewer archives before applying an editor action.*) · `src/lib.rs` (*Register the source component.*) · `src/editor.rs` (*Add prepared file adoption and bounded live replacement without changing camera settings.*) · `src/edit_replay.rs` (*Save a complete viewer archive after an original source reload.*) · `src/reload_complete_tests.rs` (*Copy the earlier source-reload assertions using the complete viewer file format.*) · `src/reload_precision_tests.rs` (*Copy the earlier source-reload assertions using the complete viewer file format.*)
+
+Prepare file reads outside the editor action, then adopt with Undo. Live replacements end obsolete source history.
+
+> **Self-Check Question:** *Should live changes retain sixty-four obsolete large scenes?*  
+> **Answer:** No. A live replacement clears old document history while preserving the camera.
+
+- **Hands-On Lab Experiment:** Check Undo/Redo for file adoption, bounded live history and legacy source reload ownership.
 
 <details>
 <summary>Implementation 66t-prepare-file-adoption-live-history: Prepare file adoption and live history</summary>
@@ -5589,6 +6111,19 @@ Update the existing block with this supplied code; keep unchanged lines:
 
 <a id="checkpoint-66u-share-repeated-source-placements"></a>
 
+### Step 33 of 44 · Share repeated source placements (`66u-share-repeated-source-placements`)
+
+- **Goal:** Share repeated source placements.
+- **Data Flow Trace:** `cached original source → shared display → independent placement`
+- **Files You Touch:** `src/scene.rs` (*Share complete original document rows while assigning independent instance identities.*)
+
+Allocate independent row identities while sharing original sources and derived display buffers.
+
+> **Self-Check Question:** *Must repeated manifest entries upload separate original geometry?*  
+> **Answer:** No. Their rows share source and display allocations while keeping their own models and IDs.
+
+- **Hands-On Lab Experiment:** Trace two repeated meshes/clouds and compare shared source, node and display pointers.
+
 <details>
 <summary>Implementation 66u-share-repeated-source-placements: Share repeated source placements</summary>
 
@@ -5621,6 +6156,19 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-66v-start-an-empty-scene-without-examples"></a>
+
+### Step 34 of 44 · Start an empty scene without examples (`66v-start-an-empty-scene-without-examples`)
+
+- **Goal:** Start an empty scene without examples.
+- **Data Flow Trace:** `empty source owner → fresh document inventory → original import`
+- **Files You Touch:** `src/scene.rs` (*Create an empty original document owner without changing the demo or scene identity rules.*)
+
+Give publication a source-free starting scene while preserving the existing teaching examples.
+
+> **Self-Check Question:** *Should preparing a source construct unrelated demo meshes?*  
+> **Answer:** No. Empty scenes allocate their source inventory only when preparation inserts a row.
+
+- **Hands-On Lab Experiment:** Compare the empty inventory with the unchanged two-mesh demo and monotonic issued IDs.
 
 <details>
 <summary>Implementation 66v-start-an-empty-scene-without-examples: Start an empty scene without examples</summary>
@@ -6451,6 +6999,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-66w-assemble-placed-manifest-entries"></a>
 
+### Step 35 of 44 · Assemble placed manifest entries (`66w-assemble-placed-manifest-entries`)
+
+- **Goal:** Assemble placed manifest entries.
+- **Data Flow Trace:** `manifest entries → shared source documents → placed scene labels`
+- **Files You Touch:** `src/scene_manifest.rs` (*Assemble a checked scene from shared original source documents and placed labels.*) · `src/lib.rs` (*Register the source component.*)
+
+Build repeated file placements and world labels from the checked manifest and retained originals.
+
+> **Self-Check Question:** *Should a point-size override change shared source bytes?*  
+> **Answer:** No. Each placement gets its own size and model; the original source stays shared.
+
+- **Hands-On Lab Experiment:** Run repeated4px/7px cloud placements, exact1000000000.125 pose and original display reuse.
+
 <details>
 <summary>Implementation 66w-assemble-placed-manifest-entries: Assemble placed manifest entries</summary>
 
@@ -6518,6 +7079,19 @@ After that block, append this supplied code:
 </details>
 
 <a id="checkpoint-66x-resolve-scene-live-urls"></a>
+
+### Step 36 of 44 · Resolve scene and live URLs (`66x-resolve-scene-live-urls`)
+
+- **Goal:** Resolve scene and live URLs.
+- **Data Flow Trace:** `scene route → source base → resolved files → live schedule`
+- **Files You Touch:** `src/publication_route.rs` (*Resolve current named-scene, bucket-root, local-live and notification routes.*) · `src/lib.rs` (*Register the source component.*)
+
+Name source routes separately from their bucket-relative geometry files. Bound live polling and accept an optional announcement stream.
+
+> **Self-Check Question:** *Are bucket files relative to the manifest folder?*  
+> **Answer:** Published manifests name bucket-root files; a local live source uses its own directory.
+
+- **Hands-On Lab Experiment:** Compare named scenes, data=off, local live paths, unsafe parent traversal and poll bounds.
 
 <details>
 <summary>Implementation 66x-resolve-scene-live-urls: Resolve scene and live URLs</summary>
@@ -6587,6 +7161,19 @@ After that block, append this supplied code:
 
 <a id="checkpoint-66y-retain-validated-live-source-revisions"></a>
 
+### Step 37 of 44 · Retain validated live source revisions (`66y-retain-validated-live-source-revisions`)
+
+- **Goal:** Retain validated live source revisions.
+- **Data Flow Trace:** `validated manifest → original source cache → complete replacement`
+- **Files You Touch:** `src/publication_index.rs` (*Keep original source revisions and build only complete changed scenes.*) · `src/lib.rs` (*Register the source component.*)
+
+Cache complete original documents. Invalid or incomplete updates keep the last displayed scene and remain retryable.
+
+> **Self-Check Question:** *Should identical bytes allocate new row IDs?*  
+> **Answer:** No. Keep the current scene and shared original sources until a valid byte revision changes.
+
+- **Hands-On Lab Experiment:** Run changed/missing/weak validators, invalid updates, missing files and released obsolete cache owners.
+
 <details>
 <summary>Implementation 66y-retain-validated-live-source-revisions: Retain validated live source revisions</summary>
 
@@ -6655,6 +7242,19 @@ After that block, append this supplied code:
 
 <a id="checkpoint-66z-fetch-bounded-source-bodies"></a>
 
+### Step 38 of 44 · Fetch bounded source bodies (`66z-fetch-bounded-source-bodies`)
+
+- **Goal:** Fetch bounded source bodies.
+- **Data Flow Trace:** `request validator → bounded stream → decoded source bytes`
+- **Files You Touch:** `src/publication_fetch.rs` (*Read cancellable HTTP responses with independent manifest and source byte limits.*) · `src/lib.rs` (*Register the browser-only HTTP reader.*)
+
+Use HTTP validators and cancellable bounded response streams. Partial byte-range reads remain the next subject.
+
+> **Self-Check Question:** *May Content-Length replace a streamed byte limit?*  
+> **Answer:** No. Check each incoming chunk because length headers can be missing or describe encoded bytes.
+
+- **Hands-On Lab Experiment:** Trace304 responses, unsuccessful HTTP status, cancellation and manifest/source byte budgets.
+
 <details>
 <summary>Implementation 66z-fetch-bounded-source-bodies: Fetch bounded source bodies</summary>
 
@@ -6695,6 +7295,19 @@ After that block, type:
 </details>
 
 <a id="checkpoint-66aa-read-a-complete-url-source-revision"></a>
+
+### Step 39 of 44 · Read a complete URL source revision (`66aa-read-a-complete-url-source-revision`)
+
+- **Goal:** Read a complete URL source revision.
+- **Data Flow Trace:** `manifest response → original files → complete source revision`
+- **Files You Touch:** `src/browser_publication.rs` (*Read complete original URL sources before publishing a replacement.*) · `src/lib.rs` (*Register the browser source loader.*)
+
+Fetch manifests and deduplicated source URLs, then prepare a full revision before adopting it.
+
+> **Self-Check Question:** *May one failed source replace the current scene?*  
+> **Answer:** No. Retain the display and retry the incomplete update on the next poll.
+
+- **Hands-On Lab Experiment:** Trace immutable revision URLs, TOML404 fallback and original decoded-size checks.
 
 <details>
 <summary>Implementation 66aa-read-a-complete-url-source-revision: Read a complete URL source revision</summary>
@@ -6737,6 +7350,19 @@ After that block, type:
 
 <a id="checkpoint-66ab-own-cancel-the-url-loader"></a>
 
+### Step 40 of 44 · Own and cancel the URL loader (`66ab-own-cancel-the-url-loader`)
+
+- **Goal:** Own and cancel the URL loader.
+- **Data Flow Trace:** `runtime owner → request ticket → cancellation → source release`
+- **Files You Touch:** `src/browser_publication.rs` (*Own the URL source cache, pending adoption and complete cancellation lifecycle.*)
+
+Own request tickets, abort handles and retained source state within the current browser runtime.
+
+> **Self-Check Question:** *Can a stopped loader revive the current document?*  
+> **Answer:** No. Cancellation invalidates its ticket and releases its retained source and pending delivery.
+
+- **Hands-On Lab Experiment:** Trace Close, a newer Open, runtime disposal and weak callback owners.
+
 <details>
 <summary>Implementation 66ab-own-cancel-the-url-loader: Own and cancel the URL loader</summary>
 
@@ -6769,6 +7395,19 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-66ac-accept-only-current-url-completions"></a>
+
+### Step 41 of 44 · Accept only current URL completions (`66ac-accept-only-current-url-completions`)
+
+- **Goal:** Accept only current URL completions.
+- **Data Flow Trace:** `one request → latest ticket → valid candidate → current runtime`
+- **Files You Touch:** `src/browser_publication.rs` (*Accept only a current complete revision and coalesce announced rereads.*)
+
+Keep one read active and coalesce newer announcements. Verify ticket and runtime ownership before delivering a replacement.
+
+> **Self-Check Question:** *May an old GPU runtime accept a late fetch?*  
+> **Answer:** No. Both the ticket and current device owner must still match.
+
+- **Hands-On Lab Experiment:** Cancel a read, replace the runtime and trace the rejected late completion without source adoption.
 
 <details>
 <summary>Implementation 66ac-accept-only-current-url-completions: Accept only current URL completions</summary>
@@ -6803,6 +7442,19 @@ Edit the existing block to match this code; keep unchanged lines:
 
 <a id="checkpoint-66ad-watch-published-source-changes"></a>
 
+### Step 42 of 44 · Watch published source changes (`66ad-watch-published-source-changes`)
+
+- **Goal:** Watch published source changes.
+- **Data Flow Trace:** `poll interval → announcement → coalesced read → shutdown`
+- **Files You Touch:** `src/browser_publication.rs` (*Start source polling and notification requests with explicit runtime cleanup.*)
+
+Start bounded polling and optional announcement callbacks. Weak owners and explicit shutdown prevent retained browser resources.
+
+> **Self-Check Question:** *Do notification callbacks own the complete scene?*  
+> **Answer:** No. They hold a weak loader owner and only request a revision check.
+
+- **Hands-On Lab Experiment:** Compare poll-only loading with notify=off and a supplied notification URL; cancel the timer and event stream.
+
 <details>
 <summary>Implementation 66ad-watch-published-source-changes: Watch published source changes</summary>
 
@@ -6835,6 +7487,19 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-66ae-inspect-published-source-identities"></a>
+
+### Step 43 of 44 · Inspect published source identities (`66ae-inspect-published-source-identities`)
+
+- **Goal:** Inspect published source identities.
+- **Data Flow Trace:** `original source row → compact diagnostics → source assertions`
+- **Files You Touch:** `src/browser.rs` (*Report compact original source and presentation identities without serializing large coordinate columns.*)
+
+Expose original document, cloud size and placement diagnostics used by the browser acceptance exercise.
+
+> **Self-Check Question:** *Do diagnostics need every original cloud coordinate?*  
+> **Answer:** No. Report compact identities, counts, models and presentation values; retain the original coordinate columns in their source owner.
+
+- **Hands-On Lab Experiment:** Compare source IDs, model matrices and independent point-size overrides before and after a viewer file roundtrip.
 
 <details>
 <summary>Implementation 66ae-inspect-published-source-identities: Inspect published source identities</summary>
@@ -7719,6 +8384,20 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-66af-connect-browser-save-open-url-adoption"></a>
+
+### Step 44 of 44 · Connect browser save open and URL adoption (`66af-connect-browser-save-open-url-adoption`)
+
+- **Goal:** Connect browser save open and URL adoption.
+- **Data Flow Trace:** `original source archive → file or URL adoption → drawing and release`
+- **Files You Touch:** `src/browser_runtime.rs` (*Connect original source publication through the current browser runtime and command flow.*) · `src/file_input.rs` (*Connect original source publication through the current browser runtime and command flow.*) · `src/browser.rs` (*Connect original source publication through the current browser runtime and command flow.*)
+
+Wire complete file saving, bounded file input and owned URL replacements into the existing browser viewer.
+
+> **Self-Check Question:** *Do native tests prove browser or Lenovo acceptance?*  
+> **Answer:** No. Run the authored browser contract and measure navigation on the same Lenovo before claiming responsiveness.
+
+- **What You Should See:** Save downloads a complete editable viewer archive. Open restores its original sources, placements, world labels, layers and colours together. Named scene and explicit live URLs load checked original sources; unchanged bytes preserve the current scene. Close stops pending URL reads and releases source ownership.
+- **Hands-On Lab Experiment:** Save a mixed CAD/surface/cloud scene, reopen it, restore presentation and compare unchanged live revisions.
 
 <details>
 <summary>Implementation 66af-connect-browser-save-open-url-adoption: Connect browser save open and URL adoption</summary>
@@ -9145,9 +9824,11 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 </details>
 
-## Run, Check, and Save
+---
 
-From `session_viewer`:
+## 5. Build, Verify, and Save Your Checkpoint
+
+Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 66af-connect-browser-save-open-url-adoption
@@ -9158,12 +9839,12 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. Use [checkpoint recovery](../../recovery.md) to restore any saved checkpoint.
+Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
 
-## Expected Visual Result & Experiment
+## 6. Lesson Summary & Expected Visual Result
 
 Save downloads a complete editable viewer archive. Open restores its original sources, placements, world labels, layers and colours together. Named scene and explicit live URLs load checked original sources; unchanged bytes preserve the current scene. Close stops pending URL reads and releases source ownership.
 
-- **Try this:** Save a mixed CAD/surface/cloud scene, reopen it, restore presentation and compare unchanged live revisions.
+- **Final Lesson Experiment:** Save a mixed CAD/surface/cloud scene, reopen it, restore presentation and compare unchanged live revisions.
 
-Continue with [Locate original arrays without downloading their bodies](67-supply-checked-array-layout-readers.md).
+Continue with [Locate original arrays without downloading their bodies](../../consolidation/67-supply-checked-array-layout-readers.md).

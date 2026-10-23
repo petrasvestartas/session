@@ -1,89 +1,158 @@
 # 4.3 · Admit useful evidence and bound stored runs
 
-**Section 3: Scene Documents, Transactions, and Browser GPU Lifetime** · **Lesson 4.3** (Redraft `3.10`) · **8 checkpoints (`34e-schema` → `34fc-retention`)**
+**Section 3: Scene Documents, Transactions, and Browser GPU Lifetime** · **Lesson 4.3** (Redraft `3.10`) · **8 checkpoints (`34e-schema` → `34fc-retention`)** · **Study time: 8–16 h**
 
-> **Learning Goal:** Validate a typed report’s limits and failure/outcome invariants before the later storage decoder adopts it.
+> **What You Will Learn & Build:** Validate a typed report’s limits and failure/outcome invariants before the later storage decoder adopts it. By the final checkpoint (`34fc-retention`), you will separate trusted-report admission from raw storage retention so an older viewer cannot strip or prematurely delete newer telemetry.
 
-## Visual WebGPU & Architecture Schematic
+## 1. Visual Pipeline & WebGPU Architecture (Black & White Schematics)
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1px solid #cbd5e1;border-radius:10px;background:#f8fafc;">
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
+<svg viewBox="0 0 840 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <rect x="4" y="4" width="832" height="212" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Lesson 4.3 Execution Flow: Admit useful evidence and bound stored runs</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">Concrete data pipeline you build in this lesson (8 Checkpoints: 34e-schema → 34fc-retention)</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
+  
+    
+    <rect x="18" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="89" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
+    <line x1="28" y1="92" x2="151" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">typed report</text>
+    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="183" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="254" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
+    <line x1="193" y1="92" x2="316" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">bounded metadata</text>
+    <text x="254" y="124" text-anchor="middle" font-size="11" fill="#111111">and observations</text>
+    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="348" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="419" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
+    <line x1="358" y1="92" x2="481" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">consistent</text>
+    <text x="419" y="124" text-anchor="middle" font-size="11" fill="#111111">failure/outcome</text>
+    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="513" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="584" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
+    <line x1="523" y1="92" x2="646" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">valid shape</text>
+    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="678" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="749" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
+    <line x1="688" y1="92" x2="811" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">bounded raw JSON</text>
+    <text x="749" y="124" text-anchor="middle" font-size="11" fill="#111111">header</text>
+    
+    <rect x="18" y="162" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="32" y="181" font-size="11" font-weight="700" fill="#111111">Files You Edit in Lesson 4.3:</text>
+    <text x="215" y="181" font-size="11" fill="#111111">src/diagnostic.rs  ·  src/diagnostic_shape_tests.rs  ·  src/lib.rs  ·  src/report_store.rs  ·  src/report_store_tests.rs  ·  src/report_recency.rs</text>
+    <text x="32" y="198" font-size="10.5" fill="#111111">8 Checkpoints: 34e-schema → 34fc-retention — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
+  
+</svg>
+</div>
+
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
 <svg viewBox="0 0 840 240" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#475569"/>
-    </marker>
-    <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#2563eb"/>
-    </marker>
-    <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#059669"/>
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
     </marker>
   </defs>
-  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
-  <text x="20" y="28" font-size="14" font-weight="700" fill="#0f172a">Chapter 4 Browser & WebGPU Lifetime: Rc/Drop Listener Guards, Fault Ring-Buffer & Device Recovery</text>
-  <text x="20" y="46" font-size="11.5" fill="#475569">How a production WASM viewer survives tab backgrounding, DOM teardown, and WebGPU device-lost faults without leaking or crashing.</text>
-  <line x1="16" y1="54" x2="824" y2="54" stroke="#e2e8f0" stroke-width="1"/>
+  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Chapter 4 Browser & WebGPU Lifetime: Rc/Drop Listener Guards, Fault Ring-Buffer & Device Recovery</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">How a production WASM viewer survives tab backgrounding, DOM teardown, and WebGPU device-lost faults without leaking or crashing.</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
   
-    <rect x="18" y="68" width="190" height="145" rx="6" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
-    <text x="113" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1e40af">1. Active Runtime Owner</text>
-    <text x="28" y="108" font-size="10.5" fill="#1e3a8a">• Rc&lt;RefCell&lt;Runtime&gt;&gt;</text>
-    <text x="28" y="126" font-size="10.5" fill="#1e3a8a">• Closure::wrap listener table</text>
-    <text x="28" y="144" font-size="10.5" font-weight="600" fill="#1d4ed8">• Drop removes EventListeners</text>
-    <text x="28" y="162" font-size="10.5" fill="#1e3a8a">• Late callbacks after dispose</text>
-    <text x="28" y="177" font-size="10.5" fill="#1e3a8a">  become safe no-ops</text>
+    <rect x="18" y="68" width="190" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="113" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">1. Active Runtime Owner</text>
+    <text x="28" y="108" font-size="10.5" fill="#111111">• Rc&lt;RefCell&lt;Runtime&gt;&gt;</text>
+    <text x="28" y="126" font-size="10.5" fill="#111111">• Closure::wrap listener table</text>
+    <text x="28" y="144" font-size="10.5" font-weight="600" fill="#111111">• Drop removes EventListeners</text>
+    <text x="28" y="162" font-size="10.5" fill="#111111">• Late callbacks after dispose</text>
+    <text x="28" y="177" font-size="10.5" fill="#111111">  become safe no-ops</text>
 
-    <line x1="208" y1="138" x2="238" y2="138" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
+    <line x1="208" y1="138" x2="238" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="240" y="68" width="265" height="145" rx="6" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5"/>
-    <text x="372" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#9a3412">2. Lifecycle &amp; Fault Telemetry</text>
-    <text x="252" y="108" font-size="10.5" fill="#7c2d12">• visibilitychange / pagehide (bfcache):</text>
-    <text x="252" y="123" font-size="10" fill="#7c2d12">  Pause heartbeat timers &amp; animation frame</text>
-    <text x="252" y="143" font-size="10.5" font-weight="600" fill="#c2410c">• device.on_uncaptured_error:</text>
-    <text x="252" y="158" font-size="10" fill="#7c2d12">  Record into bounded ring-buffer (schema v1)</text>
-    <text x="252" y="175" font-size="10" fill="#7c2d12">• Exportable Diagnostic JSON Report</text>
-    <text x="252" y="193" font-size="10" fill="#7c2d12">• pageshow: resume cleanly</text>
+    <rect x="240" y="68" width="265" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="372" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">2. Lifecycle &amp; Fault Telemetry</text>
+    <text x="252" y="108" font-size="10.5" fill="#111111">• visibilitychange / pagehide (bfcache):</text>
+    <text x="252" y="123" font-size="10" fill="#111111">  Pause heartbeat timers &amp; animation frame</text>
+    <text x="252" y="143" font-size="10.5" font-weight="600" fill="#111111">• device.on_uncaptured_error:</text>
+    <text x="252" y="158" font-size="10" fill="#111111">  Record into bounded ring-buffer (schema v1)</text>
+    <text x="252" y="175" font-size="10" fill="#111111">• Exportable Diagnostic JSON Report</text>
+    <text x="252" y="193" font-size="10" fill="#111111">• pageshow: resume cleanly</text>
 
-    <line x1="505" y1="138" x2="535" y2="138" stroke="#059669" stroke-width="2" marker-end="url(#arrow-green)"/>
+    <line x1="505" y1="138" x2="535" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="537" y="68" width="283" height="145" rx="6" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1.5"/>
-    <text x="678" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#065f46">3. Conservative GPU Device Recovery</text>
-    <text x="549" y="108" font-size="10.5" fill="#064e3b">• Detect GPUDevice lost / surface outdated</text>
-    <text x="549" y="126" font-size="10.5" font-weight="600" fill="#047857">• Request fresh Adapter &amp; Device at safe</text>
-    <text x="549" y="142" font-size="10.5" font-weight="600" fill="#047857">  1x sample count &amp; conservative density</text>
-    <text x="549" y="160" font-size="10.5" fill="#064e3b">• Rebuild pipelines &amp; re-upload retained</text>
-    <text x="549" y="176" font-size="10.5" fill="#064e3b">  Editor scene without losing user edits!</text>
+    <rect x="537" y="68" width="283" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="678" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">3. Conservative GPU Device Recovery</text>
+    <text x="549" y="108" font-size="10.5" fill="#111111">• Detect GPUDevice lost / surface outdated</text>
+    <text x="549" y="126" font-size="10.5" font-weight="600" fill="#111111">• Request fresh Adapter &amp; Device at safe</text>
+    <text x="549" y="142" font-size="10.5" font-weight="600" fill="#111111">  1x sample count &amp; conservative density</text>
+    <text x="549" y="160" font-size="10.5" fill="#111111">• Rebuild pipelines &amp; re-upload retained</text>
+    <text x="549" y="176" font-size="10.5" fill="#111111">  Editor scene without losing user edits!</text>
     
 </svg>
 </div>
 
-### Lesson Data Flow (`Rust` → `WebGPU` → `WGSL`)
+## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
 
-```
-typed report → bounded metadata and observations → consistent failure/outcome → valid shape.
-sessionStorage tab → localStorage candidates → byte/schema/shape admission → Date.parse recency → latest eligible evidence.
-bounded raw JSON header → retention score → keep original stored bytes; supported schema → typed admission → candidate notice/download.
-```
+Before writing code, review how the three layers in this chapter talk to each other:
 
-- Validate a typed report’s limits and failure/outcome invariants before the later storage decoder adopts it.
-- Read admitted saved reports using stable tab identity, the real browser timestamp parser and bounded scanning.
-- Separate trusted-report admission from raw storage retention so an older viewer cannot strip or prematurely delete newer telemetry.
-- **Why it works (Why must a deserialized report satisfy our shape invariants before it can be used?):** Deserialization alone does not enforce our version, metadata limits, bounded event window or consistent first-failure/outcome state. Those checks are separate from JSON syntax and later timestamp recency.
-
-### Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `Browser`)
-
-| Layer | Construct | First-Year Student Explanation |
+| Layer | Construct | Plain-English Explanation for Students |
 | :--- | :--- | :--- |
 | **Rust / WASM (`wasm_bindgen`)** | `Rc<RefCell<Runtime>>` + `Drop` Listener Table | Explicitly unregisters DOM `EventListener` closures on teardown so re-mounting or disposing the viewer never leaks memory or panics on late events. |
 | **Browser DOM** | `visibilitychange` / `pagehide` / `pageshow` | Pauses frame timers and GPU work when the tab hides or enters `bfcache`, and resumes cleanly on return. |
 | **WebGPU (`wgpu`)** | Uncaptured Fault Ring-Buffer & Device Recovery | Captures validation/out-of-memory faults into a versioned JSON ring-buffer and rebuilds GPU pipelines at conservative `1x` settings after device loss. |
 
-**Production source (`session_viewer/src`):** `session_viewer/src`
+**Authoritative production source (`session_viewer/src`):** `session_viewer/src`
 
-## Implementation Checkpoints
+## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
 
-Apply these checkpoints in order inside `workspace/journey`. Expand each block to view the Rust/WGSL/HTML edits:
+| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
+| ---: | :--- | :--- | :--- | :--- |
+| **1** | [`34e-schema`](#checkpoint-34e-schema) | Validate a typed report’s limits and failure/outcome invariants before the later storage decoder adopts it. | `src/diagnostic.rs`, `src/diagnostic_shape_tests.rs`, `src/lib.rs` | `typed report → bounded metadata and observations → consistent failure/outcome → valid shape` |
+| **2** | [`34ea-decode`](#checkpoint-34ea-decode) | Reject oversized, malformed or unsupported saved JSON before it can become a diagnostic candidate. | `src/report_store.rs`, `src/report_store_tests.rs`, `src/lib.rs` | `raw text byte limit → JSON fields/version → typed shape validator → candidate for recency` |
+| **3** | [`34eb-recency`](#checkpoint-34eb-recency) | Select recent failed or interrupted runs using actual failure time, valid chronology and tab identity. | `src/report_recency.rs`, `src/report_recency_tests.rs`, `src/lib.rs` | `validated report → timestamp parser → ordered finite times → failure/heartbeat freshness → ranking timestamp` |
+| **4** | [`34ec-proof`](#checkpoint-34ec-proof) | Complete timestamp-policy acceptance before a stored candidate can create a notice or previous-report download. | `src/report_recency_tests.rs` | `candidate → invalid clock/healthy state/incorrect chronology → excluded without mutation` |
+| **5** | [`34f-storage`](#checkpoint-34f-storage) | Read admitted saved reports using stable tab identity, the real browser timestamp parser and bounded scanning. | `src/report_storage.rs`, `src/lib.rs`, `Cargo.toml` | `sessionStorage tab → localStorage candidates → byte/schema/shape admission → Date.parse recency → latest eligible evidence` |
+| **6** | [`34fa-retain`](#checkpoint-34fa-retain) | Write admitted report metadata to an independent run key and retain a bounded set without disturbing viewer state. | `src/report_storage.rs` | `valid matching-tab report → bounded existing namespace → current run write → two older reports → release other owned keys` |
+| **7** | [`34fb-store`](#checkpoint-34fb-store) | Persist current diagnostics independently of GPU lifetime and retrieve eligible previous evidence with a typed command. | `src/browser_report.rs`, `src/browser.rs`, `src/panel.rs` | `startup selects previous → current running/ready/fatal metadata persists → healthy reload → dock notice → Report Previous` |
+| **8** | [`34fc-retention`](#checkpoint-34fc-retention) | Separate trusted-report admission from raw storage retention so an older viewer cannot strip or prematurely delete newer telemetry. | `src/report_store.rs`, `src/report_storage.rs`, `src/report_store_tests.rs` | `bounded raw JSON header → retention score → keep original stored bytes; supported schema → typed admission → candidate notice/download` |
+
+---
+
+## 4. Step-by-Step Coding Notebook (Concept + Implementation)
+
+Work through each notebook cell below in order inside `workspace/journey`. Read the **Concept Walkthrough** and **Self-Check Q&A** first, then expand the **Implementation** block to type and verify the code.
 
 <a id="checkpoint-34e-schema"></a>
+
+### Step 1 of 8 · Check the bounded shape of a report (`34e-schema`)
+
+- **Goal:** Validate a typed report’s limits and failure/outcome invariants before the later storage decoder adopts it.
+- **Data Flow Trace:** `typed report → bounded metadata and observations → consistent failure/outcome → valid shape`
+- **Files You Touch:** `src/diagnostic.rs` (*Validate shape, limits and failure/outcome consistency before trusting a decoded stored value.*) · `src/diagnostic_shape_tests.rs` (*Optional authoring fixture. Verify typed metadata, bounded queues and consistent first-failure state.*) · `src/lib.rs` (*Include the native shape-invariant checks.*)
+
+Validate a report before trusting it. `valid` bounds identifiers, timestamp text and events; it requires sensible finite dimensions/timing and agreement between Failed and the retained first fatal event.
+
+The first fatal event may be older than the recent-event window. A recent fatal event still requires a retained failure. Validation must accept that distinction.
+
+Use `while` when trimming a deserialized queue: removing one event is insufficient if its input already exceeded the limit. Repairing that queue does not validate the rest of the report. Byte limits, raw JSON fields and timestamp interpretation follow.
+
+> **Self-Check Question:** *Why must a deserialized report satisfy our shape invariants before it can be used?*  
+> **Answer:** Deserialization alone does not enforce our version, metadata limits, bounded event window or consistent first-failure/outcome state. Those checks are separate from JSON syntax and later timestamp recency.
+
+- **What You Should See:** Run the report-policy checks below. Invalid dimensions, excess events or inconsistent fatal evidence must be rejected. A valid first failure may survive outside the rotated event window.
+- **Hands-On Lab Experiment:** Directly deserialize 25 recent events, inspect valid(), then record one new observation and inspect it again. Explain why queue repair cannot validate the rest of the stored format.
 
 <details>
 <summary>Implementation 34e-schema: Check the bounded shape of a report</summary>
@@ -322,6 +391,24 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-34ea-decode"></a>
 
+### Step 2 of 8 · Admit only supported bounded saved JSON (`34ea-decode`)
+
+- **Goal:** Reject oversized, malformed or unsupported saved JSON before it can become a diagnostic candidate.
+- **Data Flow Trace:** `raw text byte limit → JSON fields/version → typed shape validator → candidate for recency`
+- **Files You Touch:** `src/report_store.rs` (*Bound raw input and reject unsupported JSON fields before adopting a valid typed report.*) · `src/report_store_tests.rs` (*Optional authoring fixture. Prove actual stored JSON admission and byte/text/schema boundaries.*) · `src/lib.rs` (*Expose the decoder and its native acceptance checks.*)
+
+Admit saved JSON through one boundary. First reject input above one MiB. Then inspect its raw keys and version, decode it as `Report`, and run the typed shape validator.
+
+Reject unsupported fields before typed conversion. Otherwise an older reader could accept a newer report and silently strip its telemetry when exporting it.
+
+Each layer answers one question: is the input bounded, is its format supported, and is its value consistent? Timestamp parsing and age policy remain separate.
+
+> **Self-Check Question:** *Why inspect raw JSON fields before deserializing the report?*  
+> **Answer:** The typed deserializer can ignore unknown fields. Rejecting unsupported fields first prevents a later export from silently stripping newer telemetry.
+
+- **What You Should See:** Run the decoder checks below. Supported JSON at the byte limit is accepted; oversized, unknown-schema or inconsistent JSON is rejected before storage adoption.
+- **Hands-On Lab Experiment:** Remove the raw-field whitelist, add an unknown telemetry field and explain why a later typed export could lose it. Compare the exact one-MiB whitespace-padded JSON with the one-byte-larger value.
+
 <details>
 <summary>Implementation 34ea-decode: Admit only supported bounded saved JSON</summary>
 
@@ -392,6 +479,24 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-34eb-recency"></a>
+
+### Step 3 of 8 · Choose a recent failure without blaming active tabs (`34eb-recency`)
+
+- **Goal:** Select recent failed or interrupted runs using actual failure time, valid chronology and tab identity.
+- **Data Flow Trace:** `validated report → timestamp parser → ordered finite times → failure/heartbeat freshness → ranking timestamp`
+- **Files You Touch:** `src/report_recency.rs` (*Interpret a validated report’s chronology and return an eligible timestamp for ranking, using an injected clock parser.*) · `src/report_recency_tests.rs` (*Optional authoring fixture. Cover the original stale-heartbeat regression, active tabs, temporal cutoffs and failure-time ranking.*) · `src/lib.rs` (*Expose native selection policy before binding it to browser storage.*)
+
+Choose previous failure evidence by fatal time. An old failed tab may keep updating lastSeen; its heartbeat must not make the original failure recent again.
+
+Supply timestamp parsing as a function so native tests can use a fixed clock. Reject non-finite or out-of-order times. A fatal event qualifies for two hours and ranks by its own timestamp.
+
+A Running report qualifies when its heartbeat is under two hours old and belongs to this tab, or another tab inactive for more than two minutes. An active other tab, Ready run or Closed run stays quiet. Interrupted means unfinished, not proven crashed.
+
+> **Self-Check Question:** *Why does a failed report’s fresh heartbeat not prove the failure itself was recent?*  
+> **Answer:** A still-open failed tab can keep updating lastSeen for days. Failure freshness must use the first fatal timestamp; heartbeat age is used separately for interrupted running tabs.
+
+- **What You Should See:** Run the recency checks below. A fresh heartbeat must not make an old fatal event eligible. An actively running other tab must not produce an interruption notice.
+- **Hands-On Lab Experiment:** Rank failures by lastSeen instead of the first fatal timestamp. Explain why an old tab with a running heartbeat could displace a newer real failure. Then treat all running tabs as interrupted and identify the false notice.
 
 <details>
 <summary>Implementation 34eb-recency: Choose a recent failure without blaming active tabs</summary>
@@ -464,6 +569,24 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-34ec-proof"></a>
 
+### Step 4 of 8 · Prove saved-run exclusions before adopting storage (`34ec-proof`)
+
+- **Goal:** Complete timestamp-policy acceptance before a stored candidate can create a notice or previous-report download.
+- **Data Flow Trace:** `candidate → invalid clock/healthy state/incorrect chronology → excluded without mutation`
+- **Files You Touch:** `src/report_recency_tests.rs` (*Optional authoring fixture. Prove invalid clocks, healthy/closed runs, invalid failure ordering and unchanged metadata cannot become interruption evidence.*)
+
+Complete the previous-run policy with rejected examples. Use a fixed clock to test invalid timestamps, reversed start/heartbeat order, and a failure dated before its run.
+
+Ready and Closed must never produce interruption evidence. Compare the report before and after selection: eligibility reads its metadata without changing it.
+
+This step adds the boundary checks. The browser storage reader is connected next.
+
+> **Self-Check Question:** *Why test healthy and invalid-clock cases before wiring the policy to localStorage?*  
+> **Answer:** The browser will see values from other tabs and old or edited storage. A false interruption notice is visible user behavior, so exclusions need explicit acceptance before adoption.
+
+- **What You Should See:** Optional boundary cases cover invalid clocks and Ready/Closed exclusions. The browser storage reader is still prepared for the next lesson.
+- **Hands-On Lab Experiment:** Trace one Ready report, one reversed heartbeat and one earlier failure through the eligibility function. Explain the returned value for each without changing the policy. Reading these fixtures requires no native runner.
+
 <details>
 <summary>Implementation 34ec-proof: Prove saved-run exclusions before adopting storage</summary>
 
@@ -526,6 +649,24 @@ After that block, append this supplied code:
 </details>
 
 <a id="checkpoint-34f-storage"></a>
+
+### Step 5 of 8 · Read previous reports from real browser storage (`34f-storage`)
+
+- **Goal:** Read admitted saved reports using stable tab identity, the real browser timestamp parser and bounded scanning.
+- **Data Flow Trace:** `sessionStorage tab → localStorage candidates → byte/schema/shape admission → Date.parse recency → latest eligible evidence`
+- **Files You Touch:** `src/report_storage.rs` (*Read bounded validated candidates from actual browser storage and rank with the real Date parser; retain only metadata and storage handles.*) · `src/lib.rs` (*Build the storage owner only for the browser target and expose its debug acceptance probe.*) · `Cargo.toml` (*Enable the pinned browser Storage bindings without changing package versions.*)
+
+Read previous reports from browser storage. `Store` keeps a storage handle, this tab’s stable ID and the new run key. Session storage preserves the tab ID across reloads; unavailable storage uses a fresh ID without stopping startup.
+
+Scan at most 256 storage keys and 32 keys in the course namespace. Pass each candidate through bounded decoding and the recency policy. Browser `Date.parse` supplies actual timestamp interpretation.
+
+Rank failures by first fatal time and unfinished runs by heartbeat. Reading removes nothing. This lesson introduces the reader; bounded writes and the previous-report command follow.
+
+> **Self-Check Question:** *Why keep tab identity separate from the new run’s storage key?*  
+> **Answer:** The tab identity survives a reload so interruption policy can recognize its old run. A fresh storage key identifies each run independently; reusing the tab as the run key would overwrite the previous evidence.
+
+- **What You Should See:** In the debug console, run `JSON.parse(window.wasmBindings.previous_storage_probe()).tab`. Reload and run it again: the tab ID stays the same.
+- **Hands-On Lab Experiment:** Change selection to rank lastSeen, then compare the two saved failures whose heartbeat order disagrees with failure order. Explain which evidence should win and why. Deny browser storage and explain why current diagnostics must remain usable.
 
 <details>
 <summary>Implementation 34f-storage: Read previous reports from real browser storage</summary>
@@ -608,6 +749,32 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-34fa-retain"></a>
+
+### Step 6 of 8 · Retain only three diagnostic runs (`34fa-retain`)
+
+- **Goal:** Write admitted report metadata to an independent run key and retain a bounded set without disturbing viewer state.
+- **Data Flow Trace:** `valid matching-tab report → bounded existing namespace → current run write → two older reports → release other owned keys`
+- **Files You Touch:** `src/report_storage.rs` (*Admit metadata, save to this run’s key and retain at most two older valid reports; refuse unbounded namespace examination and tolerate unavailable storage.*)
+
+Keep the current run and two older reports. Validate the report and its matching tab ID before writing. Repeated writes reuse the current run key.
+
+Prepare the retention list, write the current value, then remove excess course-owned keys. Leave unrelated storage alone. Retention ranks heartbeat age; failure selection still ranks fatal time.
+
+A failed write preserves earlier values. A later deletion failure may leave the new report already stored, so return false without claiming rollback. Refuse oversized reports or namespaces before mutation. Storage denial must never stop the viewer.
+
+> **Self-Check Question:** *Why write the current run before pruning the older keys?*  
+> **Answer:** A failed write must leave existing evidence intact. Only after current metadata is saved can the owner remove older values while keeping two prior reports. Deletion failures are reported rather than claimed as successful retention.
+
+- **What You Should See:** In the debug console, run:
+
+```js
+const report = JSON.parse(window.wasmBindings.diagnostic_snapshot());
+report.tab = JSON.parse(window.wasmBindings.previous_storage_probe()).tab;
+window.wasmBindings.stored_report_probe(JSON.stringify(report));
+```
+
+Both writes return `true` and use the same storage key.
+- **Hands-On Lab Experiment:** Make setItem throw and compare all existing values before and after. Then make removal throw after a successful write; explain why returning false cannot mean the current value was rolled back.
 
 <details>
 <summary>Implementation 34fa-retain: Retain only three diagnostic runs</summary>
@@ -774,6 +941,24 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-34fb-store"></a>
+
+### Step 7 of 8 · Retrieve saved failure evidence through the command line (`34fb-store`)
+
+- **Goal:** Persist current diagnostics independently of GPU lifetime and retrieve eligible previous evidence with a typed command.
+- **Data Flow Trace:** `startup selects previous → current running/ready/fatal metadata persists → healthy reload → dock notice → Report Previous`
+- **Files You Touch:** `src/browser_report.rs` (*Keep current and previous diagnostic metadata independent of the GPU runtime and source documents.*) · `src/browser.rs` (*Expose previous-report retrieval as a named command in the actual dock.*) · `src/panel.rs` (*Expose the existing drawn status in the same diagnostic inspector so Chrome can verify the initial notice and command errors.*)
+
+Persist live diagnostics and add `Report Previous`. At startup, select earlier evidence before writing the new Running report. Cache the chosen previous metadata separately so current writes cannot erase it.
+
+After an observation, clone the report and end its `RefCell` borrow before storage or download work. Ready/fatal updates use the same bounded writer; storage errors leave current drawing and downloads available.
+
+Show eligible failure/interruption feedback in the existing dock. The previous-report command downloads the cached JSON; missing evidence gives a command error. GPU disposal leaves this metadata alive. Diagnostics do not restore unsaved document edits.
+
+> **Self-Check Question:** *Why select previous evidence before saving the new running report?*  
+> **Answer:** Selection must examine earlier runs. The new run would otherwise look like a same-tab interrupted candidate before startup finishes. Keep its metadata separate and preserve the selected previous report even after the current run becomes ready.
+
+- **What You Should See:** Type `Report`, reload, then type it again. The reports have different `started` timestamps and the same `tab` ID.
+- **Hands-On Lab Experiment:** Move previous selection after the initial current write and inspect the false same-tab interruption candidate. Then deny storage and explain why successful current downloads must remain separate from persistence.
 
 <details>
 <summary>Implementation 34fb-store: Retrieve saved failure evidence through the command line</summary>
@@ -1698,6 +1883,24 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-34fc-retention"></a>
 
+### Step 8 of 8 · Preserve unsupported telemetry while pruning (`34fc-retention`)
+
+- **Goal:** Separate trusted-report admission from raw storage retention so an older viewer cannot strip or prematurely delete newer telemetry.
+- **Data Flow Trace:** `bounded raw JSON header → retention score → keep original stored bytes; supported schema → typed admission → candidate notice/download`
+- **Files You Touch:** `src/report_store.rs` (*Read a bounded date/version header for retention without adopting, converting or rewriting unsupported telemetry.*) · `src/report_storage.rs` (*Retain raw supported or unsupported bounded JSON by header time; a failed read aborts before writing or pruning.*) · `src/report_store_tests.rs` (*Optional authoring fixture. Prove unsupported fields/versions remain dateable without admission, with unchanged input and bounded header parsing.*)
+
+Separate retaining raw evidence from adopting it. The strict reader rejects newer schemas; using that accepted list to prune storage would also delete newer telemetry.
+
+`retention_time` reads only a bounded version/date header. It returns a ranking timestamp without constructing a Report. A newer-format value can therefore occupy an older-report slot while remaining ineligible for a notice or typed download.
+
+Read and rank older values before mutation. Keep the two newest raw strings byte for byte. If a read fails, abort rather than delete uninspected evidence. Invalid JSON or unusable headers can be pruned after a successful current write.
+
+> **Self-Check Question:** *Why does refusing to adopt an unsupported report not justify treating it as malformed during pruning?*  
+> **Answer:** Its extra fields or version may belong to a newer viewer. Adoption requires our complete supported schema, but bounded retention needs only a usable version/date header. Keep its original stored bytes if it is one of the two newest older values; do not convert it through our older typed model.
+
+- **What You Should See:** Run the retention checks below. A retained newer-format report must keep its original JSON bytes, while the strict reader still refuses to adopt it.
+- **Hands-On Lab Experiment:** Replace the retention-header loop with reports() again, then inspect the saved futureTelemetry value after pruning. Explain why refusing a previous-report download and deleting its original evidence are different decisions.
+
 <details>
 <summary>Implementation 34fc-retention: Preserve unsupported telemetry while pruning</summary>
 
@@ -1843,9 +2046,11 @@ After that block, append this supplied code:
 
 </details>
 
-## Run, Check, and Save
+---
 
-From `session_viewer`:
+## 5. Build, Verify, and Save Your Checkpoint
+
+Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 34fc-retention
@@ -1856,12 +2061,12 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. Use [checkpoint recovery](../../recovery.md) to restore any saved checkpoint.
+Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
 
-## Expected Visual Result & Experiment
+## 6. Lesson Summary & Expected Visual Result
 
 Run the retention checks below. A retained newer-format report must keep its original JSON bytes, while the strict reader still refuses to adopt it.
 
-- **Try this:** Replace the retention-header loop with reports() again, then inspect the saved futureTelemetry value after pruning. Explain why refusing a previous-report download and deleting its original evidence are different decisions.
+- **Final Lesson Experiment:** Replace the retention-header loop with reports() again, then inspect the saved futureTelemetry value after pruning. Explain why refusing a previous-report download and deleting its original evidence are different decisions.
 
-Continue with [Heartbeat suspension and revocable startup](34g-heartbeat.md).
+Continue with [Heartbeat suspension and revocable startup](../../consolidation/34g-heartbeat.md).

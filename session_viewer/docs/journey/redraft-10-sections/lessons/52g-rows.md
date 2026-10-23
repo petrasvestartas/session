@@ -1,90 +1,152 @@
 # 8.2 · Tree presentation with explicit input ownership
 
-**Section 5: Interactive Drawing, Snapping, Gumball Handles, and Scene Hierarchy** · **Lesson 8.2** (Redraft `5.8`) · **5 checkpoints (`52g-rows` → `52k-tree`)**
+**Section 5: Interactive Drawing, Snapping, Gumball Handles, and Scene Hierarchy** · **Lesson 8.2** (Redraft `5.8`) · **5 checkpoints (`52g-rows` → `52k-tree`)** · **Study time: 2.5–5 h**
 
-> **Learning Goal:** Expose stable tree rows across geometry lanes.
+> **What You Will Learn & Build:** Expose stable tree rows across geometry lanes. By the final checkpoint (`52k-tree`), you will exercise nested source ownership and exact undo.
 
-## Visual WebGPU & Architecture Schematic
+## 1. Visual Pipeline & WebGPU Architecture (Black & White Schematics)
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1px solid #cbd5e1;border-radius:10px;background:#f8fafc;">
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
+<svg viewBox="0 0 840 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <rect x="4" y="4" width="832" height="212" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Lesson 8.2 Execution Flow: Tree presentation with explicit input ownership</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">Concrete data pipeline you build in this lesson (5 Checkpoints: 52g-rows → 52k-tree)</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
+  
+    
+    <rect x="18" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="89" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
+    <line x1="28" y1="92" x2="151" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">immutable node</text>
+    <text x="89" y="124" text-anchor="middle" font-size="11" fill="#111111">metadata</text>
+    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="183" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="254" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
+    <line x1="193" y1="92" x2="316" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">current source</text>
+    <text x="254" y="124" text-anchor="middle" font-size="11" fill="#111111">ownership</text>
+    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="348" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="419" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
+    <line x1="358" y1="92" x2="481" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">visible flat tree</text>
+    <text x="419" y="124" text-anchor="middle" font-size="11" fill="#111111">rows</text>
+    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="513" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="584" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
+    <line x1="523" y1="92" x2="646" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">independent</text>
+    <text x="584" y="124" text-anchor="middle" font-size="11" fill="#111111">generated rows</text>
+    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="678" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="749" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
+    <line x1="688" y1="92" x2="811" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">nested example</text>
+    
+    <rect x="18" y="162" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="32" y="181" font-size="11" font-weight="700" fill="#111111">Files You Edit in Lesson 8.2:</text>
+    <text x="215" y="181" font-size="11" fill="#111111">src/hierarchy.rs  ·  src/chain.rs  ·  src/tree_panel.rs  ·  src/lib.rs  ·  src/panel.rs  ·  src/commands.rs</text>
+    <text x="32" y="198" font-size="10.5" fill="#111111">5 Checkpoints: 52g-rows → 52k-tree — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
+  
+</svg>
+</div>
+
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
 <svg viewBox="0 0 840 240" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#475569"/>
-    </marker>
-    <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#2563eb"/>
-    </marker>
-    <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#059669"/>
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
     </marker>
   </defs>
-  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
-  <text x="20" y="28" font-size="14" font-weight="700" fill="#0f172a">Chapter 8 Scene Graph & Layer Architecture: Hierarchical Transforms, Lamp Inheritance & Inspector Focus</text>
-  <text x="20" y="46" font-size="11.5" fill="#475569">How parent-child Element trees and Layer visibility lamps compose without losing individual child visibility states.</text>
-  <line x1="16" y1="54" x2="824" y2="54" stroke="#e2e8f0" stroke-width="1"/>
+  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Chapter 8 Scene Graph & Layer Architecture: Hierarchical Transforms, Lamp Inheritance & Inspector Focus</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">How parent-child Element trees and Layer visibility lamps compose without losing individual child visibility states.</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
   
-    <rect x="18" y="68" width="250" height="145" rx="6" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
-    <text x="143" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1e40af">1. Scene Tree &amp; Matrix Composition</text>
-    <text x="28" y="108" font-size="10.5" fill="#1e3a8a">• Root Element -&gt; Child Assembly -&gt; Leaf</text>
-    <text x="28" y="126" font-size="10.5" font-weight="700" fill="#1d4ed8">• M_world(child) = M_world(parent) * M_local</text>
-    <text x="28" y="146" font-size="10.5" fill="#1e3a8a">• Tree path identity keeps duplicate</text>
-    <text x="28" y="162" font-size="10.5" fill="#1e3a8a">  group names distinct</text>
-    <text x="28" y="180" font-size="10.5" fill="#1e3a8a">• Cycle-safe parent reassignment</text>
+    <rect x="18" y="68" width="250" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="143" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">1. Scene Tree &amp; Matrix Composition</text>
+    <text x="28" y="108" font-size="10.5" fill="#111111">• Root Element -&gt; Child Assembly -&gt; Leaf</text>
+    <text x="28" y="126" font-size="10.5" font-weight="700" fill="#111111">• M_world(child) = M_world(parent) * M_local</text>
+    <text x="28" y="146" font-size="10.5" fill="#111111">• Tree path identity keeps duplicate</text>
+    <text x="28" y="162" font-size="10.5" fill="#111111">  group names distinct</text>
+    <text x="28" y="180" font-size="10.5" fill="#111111">• Cycle-safe parent reassignment</text>
 
-    <line x1="268" y1="138" x2="298" y2="138" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
+    <line x1="268" y1="138" x2="298" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="300" y="68" width="265" height="145" rx="6" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5"/>
-    <text x="432" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#9a3412">2. Layer &amp; Parent Lamp Restoration</text>
-    <text x="312" y="108" font-size="10.5" fill="#7c2d12">• Effective Visible =</text>
-    <text x="312" y="124" font-size="10.5" font-weight="600" fill="#c2410c">  layer_lamp &amp;&amp; parent_lamps &amp;&amp; own_lamp</text>
-    <text x="312" y="144" font-size="10" fill="#7c2d12">• Toggling a parent/layer lamp OFF hides</text>
-    <text x="312" y="159" font-size="10" fill="#7c2d12">  descendants without overwriting own_lamp;</text>
-    <text x="312" y="174" font-size="10" fill="#7c2d12">  toggling back ON restores prior state!</text>
-    <text x="312" y="192" font-size="10.5" fill="#7c2d12">• Hidden/Locked rows skipped in Rg32Uint pick</text>
+    <rect x="300" y="68" width="265" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="432" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">2. Layer &amp; Parent Lamp Restoration</text>
+    <text x="312" y="108" font-size="10.5" fill="#111111">• Effective Visible =</text>
+    <text x="312" y="124" font-size="10.5" font-weight="600" fill="#111111">  layer_lamp &amp;&amp; parent_lamps &amp;&amp; own_lamp</text>
+    <text x="312" y="144" font-size="10" fill="#111111">• Toggling a parent/layer lamp OFF hides</text>
+    <text x="312" y="159" font-size="10" fill="#111111">  descendants without overwriting own_lamp;</text>
+    <text x="312" y="174" font-size="10" fill="#111111">  toggling back ON restores prior state!</text>
+    <text x="312" y="192" font-size="10.5" fill="#111111">• Hidden/Locked rows skipped in Rg32Uint pick</text>
 
-    <line x1="565" y1="138" x2="595" y2="138" stroke="#059669" stroke-width="2" marker-end="url(#arrow-green)"/>
+    <line x1="565" y1="138" x2="595" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="597" y="68" width="223" height="145" rx="6" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1.5"/>
-    <text x="708" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#065f46">3. Inspector &amp; Focus Adapter</text>
-    <text x="609" y="108" font-size="10.5" fill="#064e3b">• egui Tree / Layer / Property UI</text>
-    <text x="609" y="126" font-size="10.5" font-weight="600" fill="#047857">• Layer-rename focus adapter:</text>
-    <text x="609" y="142" font-size="10" fill="#064e3b">  Suppresses Command Dock auto-focus</text>
-    <text x="609" y="157" font-size="10" fill="#064e3b">  while editing layer/object names</text>
-    <text x="609" y="176" font-size="10.5" fill="#064e3b">• Selection filter &amp; Next/Prev</text>
-    <text x="609" y="192" font-size="10.5" fill="#064e3b">  member navigation</text>
+    <rect x="597" y="68" width="223" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="708" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">3. Inspector &amp; Focus Adapter</text>
+    <text x="609" y="108" font-size="10.5" fill="#111111">• egui Tree / Layer / Property UI</text>
+    <text x="609" y="126" font-size="10.5" font-weight="600" fill="#111111">• Layer-rename focus adapter:</text>
+    <text x="609" y="142" font-size="10" fill="#111111">  Suppresses Command Dock auto-focus</text>
+    <text x="609" y="157" font-size="10" fill="#111111">  while editing layer/object names</text>
+    <text x="609" y="176" font-size="10.5" fill="#111111">• Selection filter &amp; Next/Prev</text>
+    <text x="609" y="192" font-size="10.5" fill="#111111">  member navigation</text>
     
 </svg>
 </div>
 
-### Lesson Data Flow (`Rust` → `WebGPU` → `WGSL`)
+## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
 
-```
-immutable node metadata → current source ownership → visible flat tree rows → independent generated rows.
-flat visible rows → indented controls → protected attribute buttons → pending selection action.
-nested example → real tree controls → parent transform → save and reopen → complete deletion undo.
-```
+Before writing code, review how the three layers in this chapter talk to each other:
 
-- Expose stable tree rows across geometry lanes.
-- Draw indented original-source tree controls.
-- Exercise nested source ownership and exact undo.
-- **Why it works (Can an old array position be a tree identity after Undo?):** No. Rows may be removed or restored. The panel uses stable document/node keys and source-owned object IDs rather than current vector positions.
-
-### Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `Browser`)
-
-| Layer | Construct | First-Year Student Explanation |
+| Layer | Construct | Plain-English Explanation for Students |
 | :--- | :--- | :--- |
 | **Rust (`session_rust`)** | Hierarchical `Element` Transform `M_world = M_parent * M_local` | Composes parent assembly transforms down the scene tree while keeping duplicate group names distinct via full tree-path identity. |
 | **Rust (Scene Tree)** | Effective Visibility `layer_lamp && parent_lamps && own_lamp` | Hiding a parent group or layer masks descendants without overwriting their stored child lamp states, restoring them faithfully when re-enabled. |
 | **Rust (`command_dock`)** | Layer-Rename Focus Adapter (`src/command_dock/mod.rs`) | Temporarily yields keyboard focus while renaming a layer or object in the inspector so typing does not get hijacked by the Command Dock prompt. |
 
-**Production source (`session_viewer/src`):** [app/hierarchy.rs](../../../../src/app/hierarchy.rs), [app/layers.rs](../../../../src/app/layers.rs), [app/ui/layers.rs](../../../../src/app/ui/layers.rs), [app/gesture/mod.rs](../../../../src/app/gesture/mod.rs), [state/drag.rs](../../../../src/state/drag.rs), [state/box_select.rs](../../../../src/state/box_select.rs).
+**Authoritative production source (`session_viewer/src`):** [app/hierarchy.rs](../../../../src/app/hierarchy.rs), [app/layers.rs](../../../../src/app/layers.rs), [app/ui/layers.rs](../../../../src/app/ui/layers.rs), [app/gesture/mod.rs](../../../../src/app/gesture/mod.rs), [state/drag.rs](../../../../src/state/drag.rs), [state/box_select.rs](../../../../src/state/box_select.rs)
 
-## Implementation Checkpoints
+## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
 
-Apply these checkpoints in order inside `workspace/journey`. Expand each block to view the Rust/WGSL/HTML edits:
+| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
+| ---: | :--- | :--- | :--- | :--- |
+| **1** | [`52g-rows`](#checkpoint-52g-rows) | Expose stable tree rows across geometry lanes. | `src/hierarchy.rs`, `src/chain.rs` | `immutable node metadata → current source ownership → visible flat tree rows → independent generated rows` |
+| **2** | [`52h-expansion`](#checkpoint-52h-expansion) | Keep expansion and paging as presentation state. | `src/tree_panel.rs`, `src/lib.rs` | `stable tree keys → expansion set → visible subtree traversal → bounded panel page` |
+| **3** | [`52i-panel`](#checkpoint-52i-panel) | Draw indented original-source tree controls. | `src/tree_panel.rs` | `flat visible rows → indented controls → protected attribute buttons → pending selection action` |
+| **4** | [`52j-input`](#checkpoint-52j-input) | Connect tree controls before canvas picking. | `src/panel.rs`, `src/commands.rs`, `src/browser.rs` | `command or measured panel hit → tree action → checked source selection → canvas ownership resumes outside` |
+| **5** | [`52k-tree`](#checkpoint-52k-tree) | Exercise nested source ownership and exact undo. | `src/tree_specimen.rs`, `src/lib.rs`, `src/editor.rs`, `src/commands.rs` | `nested example → real tree controls → parent transform → save and reopen → complete deletion undo` |
+
+---
+
+## 4. Step-by-Step Coding Notebook (Concept + Implementation)
+
+Work through each notebook cell below in order inside `workspace/journey`. Read the **Concept Walkthrough** and **Self-Check Q&A** first, then expand the **Implementation** block to type and verify the code.
 
 <a id="checkpoint-52g-rows"></a>
+
+### Step 1 of 5 · Expose stable tree rows across geometry lanes (`52g-rows`)
+
+- **Goal:** Expose stable tree rows across geometry lanes.
+- **Data Flow Trace:** `immutable node metadata → current source ownership → visible flat tree rows → independent generated rows`
+- **Files You Touch:** `src/hierarchy.rs` (*Resolve current nested rows without reviving deleted object subtrees.*) · `src/chain.rs` (*Expose original line, polyline and curve names for their tree rows.*)
+
+Resolve each lightweight node to current viewer rows. Removed object subtrees disappear; generated meshes, curves, lines and points remain independent rows with stable keys.
+
+> **Self-Check Question:** *Can an old array position be a tree identity after Undo?*  
+> **Answer:** No. Rows may be removed or restored. The panel uses stable document/node keys and source-owned object IDs rather than current vector positions.
+
+- **Hands-On Lab Experiment:** Compare the panel row keys before Delete and after Undo. Restored nodes should regain the same keys and source owners.
 
 <details>
 <summary>Implementation 52g-rows: Expose stable tree rows across geometry lanes</summary>
@@ -141,6 +203,19 @@ Edit the existing block to match this code; keep unchanged lines:
 
 <a id="checkpoint-52h-expansion"></a>
 
+### Step 2 of 5 · Keep expansion and paging as presentation state (`52h-expansion`)
+
+- **Goal:** Keep expansion and paging as presentation state.
+- **Data Flow Trace:** `stable tree keys → expansion set → visible subtree traversal → bounded panel page`
+- **Files You Touch:** `src/tree_panel.rs` (*Keep stable expansion keys, bounded pages and pending row selection outside saved geometry.*) · `src/lib.rs` (*Register the new source component.*)
+
+Expanded node keys survive source rebuilds and Undo. Present at most128 visible rows per page; collapsing a subtree changes only the panel, without editing document history.
+
+> **Self-Check Question:** *Does expanding a tree node belong in Undo history?*  
+> **Answer:** No. Expansion changes presentation. Geometry, source records and saved placements remain untouched, so ordinary Undo stays focused on document edits.
+
+- **Hands-On Lab Experiment:** Expand a group, delete it, undo, and compare its key. The expansion can return because the restored node retains its earlier stable identity.
+
 <details>
 <summary>Implementation 52h-expansion: Keep expansion and paging as presentation state</summary>
 
@@ -183,6 +258,19 @@ After that block, type:
 
 <a id="checkpoint-52i-panel"></a>
 
+### Step 3 of 5 · Draw indented original-source tree controls (`52i-panel`)
+
+- **Goal:** Draw indented original-source tree controls.
+- **Data Flow Trace:** `flat visible rows → indented controls → protected attribute buttons → pending selection action`
+- **Files You Touch:** `src/tree_panel.rs` (*Draw bounded source rows with actual measured control rectangles and read-only explanations.*)
+
+Draw a bounded, scrollable tree at the right using real egui controls. Attribute buttons stay disabled with a reason, while group selection and expansion own their measured pointer rectangles.
+
+> **Self-Check Question:** *Why disable an attribute’s button instead of hiding its row?*  
+> **Answer:** The learner still needs to understand which source geometry follows a parent. A visible read-only row explains that ownership without allowing an independent edit.
+
+- **Hands-On Lab Experiment:** Open Layers All and locate a nested attribute. Its indentation and disabled button should explain its parent ownership; closing the panel releases its pointer rectangle.
+
 <details>
 <summary>Implementation 52i-panel: Draw indented original-source tree controls</summary>
 
@@ -213,6 +301,19 @@ After that block, type:
 </details>
 
 <a id="checkpoint-52j-input"></a>
+
+### Step 4 of 5 · Connect tree controls before canvas picking (`52j-input`)
+
+- **Goal:** Connect tree controls before canvas picking.
+- **Data Flow Trace:** `command or measured panel hit → tree action → checked source selection → canvas ownership resumes outside`
+- **Files You Touch:** `src/panel.rs` (*Lay out tree controls and consume pointer or wheel input in the actual panel rectangle.*) · `src/commands.rs` (*Register the maintained Layers On, Off and All host commands.*) · `src/browser.rs` (*Refresh source-backed rows, route their actions first and report their current identities.*)
+
+Layers On, Off and All control the panel. Route tree clicks before handles or asynchronous canvas picks; the panel owns pointer and wheel events inside its measured rectangle.
+
+> **Self-Check Question:** *Should clicking a tree row also submit a canvas pick?*  
+> **Answer:** No. The measured panel rectangle owns that event. Its selection action cancels older pick work before the viewer redraws the selected source rows.
+
+- **Hands-On Lab Experiment:** Click a group, collapse it, then navigate outside the panel. Group selection must affect its eligible descendants, while panel scrolling must leave the camera still.
 
 <details>
 <summary>Implementation 52j-input: Connect tree controls before canvas picking</summary>
@@ -1768,6 +1869,20 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-52k-tree"></a>
 
+### Step 5 of 5 · Exercise nested source ownership and exact undo (`52k-tree`)
+
+- **Goal:** Exercise nested source ownership and exact undo.
+- **Data Flow Trace:** `nested example → real tree controls → parent transform → save and reopen → complete deletion undo`
+- **Files You Touch:** `src/tree_specimen.rs` (*Copy the source-built nested example used by both exercises and ownership checks.*) · `src/lib.rs` (*Register the new source component.*) · `src/editor.rs` (*Import the supplied nested example as one ordinary document transaction.*) · `src/commands.rs` (*Register the supplied Example Nested exercise.*) · `src/hierarchy_tests.rs` (*Copy the exact nested-source, undo, save and actual egui regressions.*)
+
+Load the supplied nested frame and inspect its actual source rows. Move its parent, verify the following attribute, save and reopen, then delete and undo the complete parent-owned subtree.
+
+> **Self-Check Question:** *Which parts of the document must remain unchanged while expanding the tree?*  
+> **Answer:** Every original source record, geometry placement and history entry. Only panel expansion and paging change until an explicit document edit is accepted.
+
+- **What You Should See:** Type Close, Example Nested, Fit, View Isometric, then Layers All. Select Posts in the tree and type Move 0.5,0,0. The parent and its read-only attribute follow once; unrelated geometry stays still. Undo restores both. Save and Open Replace preserve their nested source paths. Delete and Undo operate on the whole parent-owned subtree.
+- **Hands-On Lab Experiment:** Use Layers All, select Posts, Move 0.5,0,0, Save, Open Replace, Delete, and Undo. Inspect both the restored source identities and their exact placed coordinates.
+
 <details>
 <summary>Implementation 52k-tree: Exercise nested source ownership and exact undo</summary>
 
@@ -2629,9 +2744,11 @@ After that block, type:
 
 </details>
 
-## Run, Check, and Save
+---
 
-From `session_viewer`:
+## 5. Build, Verify, and Save Your Checkpoint
+
+Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 52k-tree
@@ -2642,12 +2759,12 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. Use [checkpoint recovery](../../recovery.md) to restore any saved checkpoint.
+Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
 
-## Expected Visual Result & Experiment
+## 6. Lesson Summary & Expected Visual Result
 
 Type Close, Example Nested, Fit, View Isometric, then Layers All. Select Posts in the tree and type Move 0.5,0,0. The parent and its read-only attribute follow once; unrelated geometry stays still. Undo restores both. Save and Open Replace preserve their nested source paths. Delete and Undo operate on the whole parent-owned subtree.
 
-- **Try this:** Use Layers All, select Posts, Move 0.5,0,0, Save, Open Replace, Delete, and Undo. Inspect both the restored source identities and their exact placed coordinates.
+- **Final Lesson Experiment:** Use Layers All, select Posts, Move 0.5,0,0, Save, Open Replace, Delete, and Undo. Inspect both the restored source identities and their exact placed coordinates.
 
-Continue with [Layers, visibility and source-preserving properties](53-flags.md).
+Continue with [Layers, visibility and source-preserving properties](../../consolidation/53-flags.md).

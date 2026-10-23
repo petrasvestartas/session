@@ -1,90 +1,151 @@
 # 19.4 · Family-aware original controls and source previews
 
-**Section 10: Shared GPU Arenas, Floating-Origin Precision, Multisampling, and Production Parity** · **Lesson 19.4** (Redraft `10.4`) · **7 checkpoints (`96za-address-original-controls-with-family-keys` → `96zg-rebuild-an-edited-element-without-replacing-its-owner`)**
+**Section 10: Shared GPU Arenas, Floating-Origin Precision, Multisampling, and Production Parity** · **Lesson 19.4** (Redraft `10.4`) · **7 checkpoints (`96za-address-original-controls-with-family-keys` → `96zg-rebuild-an-edited-element-without-replacing-its-owner`)** · **Study time: 3.5–7 h**
 
-> **Learning Goal:** Address original controls with family keys.
+> **What You Will Learn & Build:** Address original controls with family keys. By the final checkpoint (`96zg-rebuild-an-edited-element-without-replacing-its-owner`), you will replace Element display geometry while retaining its original CAD identity.
 
-## Visual WebGPU & Architecture Schematic
+## 1. Visual Pipeline & WebGPU Architecture (Black & White Schematics)
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1px solid #cbd5e1;border-radius:10px;background:#f8fafc;">
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
+<svg viewBox="0 0 840 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <rect x="4" y="4" width="832" height="212" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Lesson 19.4 Execution Flow: Family-aware original controls and source previews</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">Concrete data pipeline you build in this lesson (7 Checkpoints: 96za-address-original-controls-with-family-keys → 96zg-rebuild-an-edited-element-without-replacing-its-owner)</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
+  
+    
+    <rect x="18" y="68" width="184" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="110" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
+    <line x1="28" y1="92" x2="192" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="110" y="108" text-anchor="middle" font-size="11" fill="#111111">source feature visibility</text>
+    <line x1="202" y1="108" x2="222" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="224" y="68" width="184" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="316" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
+    <line x1="234" y1="92" x2="398" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="316" y="108" text-anchor="middle" font-size="11" fill="#111111">coincident-point</text>
+    <text x="316" y="124" text-anchor="middle" font-size="11" fill="#111111">classification</text>
+    <line x1="408" y1="108" x2="428" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="430" y="68" width="184" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="522" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
+    <line x1="440" y1="92" x2="604" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="522" y="108" text-anchor="middle" font-size="11" fill="#111111">existing marker/path</text>
+    <text x="522" y="124" text-anchor="middle" font-size="11" fill="#111111">display</text>
+    <line x1="614" y1="108" x2="634" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="636" y="68" width="184" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="728" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
+    <line x1="646" y1="92" x2="810" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="728" y="108" text-anchor="middle" font-size="11" fill="#111111">original owner</text>
+    
+    <rect x="18" y="162" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="32" y="181" font-size="11" font-weight="700" fill="#111111">Files You Edit in Lesson 19.4:</text>
+    <text x="215" y="181" font-size="11" fill="#111111">src/pick_sources.rs  ·  src/scene.rs  ·  src/selection.rs  ·  src/highlight.rs  ·  src/control_parent_tests.rs  ·  src/original_control_tests.rs</text>
+    <text x="32" y="198" font-size="10.5" fill="#111111">7 Checkpoints: 96za-address-original-controls-with-family-keys → 96zg-rebuild-an-edited-element-without-replacing-its-owner — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
+  
+</svg>
+</div>
+
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
 <svg viewBox="0 0 840 240" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#475569"/>
-    </marker>
-    <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#2563eb"/>
-    </marker>
-    <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#059669"/>
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
     </marker>
   </defs>
-  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
-  <text x="20" y="28" font-size="14" font-weight="700" fill="#0f172a">Section 10 Production Architecture: Shared GPU Storage Arena, f64 Floating Origin, Reversed-Z, 4x MSAA & Matrix Shader</text>
-  <text x="20" y="46" font-size="11.5" fill="#475569">How the maintained viewer pulls vertices from one growable GPU arena, eliminates jitter at 10^12 units, and renders procedural Matrices.</text>
-  <line x1="16" y1="54" x2="824" y2="54" stroke="#e2e8f0" stroke-width="1"/>
+  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Section 10 Production Architecture: Shared GPU Storage Arena, f64 Floating Origin, Reversed-Z, 4x MSAA & Matrix Shader</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">How the maintained viewer pulls vertices from one growable GPU arena, eliminates jitter at 10^12 units, and renders procedural Matrices.</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
   
-    <rect x="18" y="68" width="250" height="145" rx="6" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
-    <text x="143" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1e40af">1. Shared GPU Arena (Ch 19–20)</text>
-    <text x="28" y="108" font-size="10.5" fill="#1e3a8a">• 1 Growable Storage Buffer Arena</text>
-    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#1d4ed8">• Vertex Pulling (@builtin(vertex_index))</text>
-    <text x="28" y="144" font-size="10.5" fill="#1e3a8a">• 8-byte Draw Slots -&gt; ObjectRecord</text>
-    <text x="28" y="162" font-size="10.5" fill="#1e3a8a">• slot_table.wgsl maps Rg32Uint</text>
-    <text x="28" y="178" font-size="10.5" fill="#1e3a8a">  primitive IDs to Element/Face owners</text>
-    <text x="28" y="194" font-size="10" fill="#1e3a8a">• Free-list span reuse after GPU lease</text>
+    <rect x="18" y="68" width="250" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="143" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">1. Shared GPU Arena (Ch 19–20)</text>
+    <text x="28" y="108" font-size="10.5" fill="#111111">• 1 Growable Storage Buffer Arena</text>
+    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#111111">• Vertex Pulling (@builtin(vertex_index))</text>
+    <text x="28" y="144" font-size="10.5" fill="#111111">• 8-byte Draw Slots -&gt; ObjectRecord</text>
+    <text x="28" y="162" font-size="10.5" fill="#111111">• slot_table.wgsl maps Rg32Uint</text>
+    <text x="28" y="178" font-size="10.5" fill="#111111">  primitive IDs to Element/Face owners</text>
+    <text x="28" y="194" font-size="10" fill="#111111">• Free-list span reuse after GPU lease</text>
 
-    <line x1="268" y1="138" x2="298" y2="138" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
+    <line x1="268" y1="138" x2="298" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="300" y="68" width="265" height="145" rx="6" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5"/>
-    <text x="432" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#9a3412">2. f64 Floating Origin &amp; Reversed-Z (Ch 21)</text>
-    <text x="312" y="108" font-size="10.5" font-weight="600" fill="#c2410c">• rel_f32 = (world_f64 - anchor_f64) as f32</text>
-    <text x="312" y="125" font-size="10" fill="#7c2d12">  Zero vertex/grid jitter even at 10^12 m!</text>
-    <text x="312" y="144" font-size="10.5" font-weight="600" fill="#c2410c">• Reversed-Z Depth (GreaterEqual):</text>
-    <text x="312" y="160" font-size="10" fill="#7c2d12">  Near plane = 1.0, Far plane = 0.0</text>
-    <text x="312" y="178" font-size="10.5" fill="#7c2d12">• Held world base grid &amp; preserved</text>
-    <text x="312" y="193" font-size="10.5" fill="#7c2d12">  live camera during Session reload</text>
+    <rect x="300" y="68" width="265" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="432" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">2. f64 Floating Origin &amp; Reversed-Z (Ch 21)</text>
+    <text x="312" y="108" font-size="10.5" font-weight="600" fill="#111111">• rel_f32 = (world_f64 - anchor_f64) as f32</text>
+    <text x="312" y="125" font-size="10" fill="#111111">  Zero vertex/grid jitter even at 10^12 m!</text>
+    <text x="312" y="144" font-size="10.5" font-weight="600" fill="#111111">• Reversed-Z Depth (GreaterEqual):</text>
+    <text x="312" y="160" font-size="10" fill="#111111">  Near plane = 1.0, Far plane = 0.0</text>
+    <text x="312" y="178" font-size="10.5" fill="#111111">• Held world base grid &amp; preserved</text>
+    <text x="312" y="193" font-size="10.5" fill="#111111">  live camera during Session reload</text>
 
-    <line x1="565" y1="138" x2="595" y2="138" stroke="#059669" stroke-width="2" marker-end="url(#arrow-green)"/>
+    <line x1="565" y1="138" x2="595" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="597" y="68" width="223" height="145" rx="6" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1.5"/>
-    <text x="708" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#065f46">3. 4x MSAA &amp; Matrix Shader (Ch 22)</text>
-    <text x="609" y="108" font-size="10.5" fill="#064e3b">• Coherent 1x/4x MSAA sample targets</text>
-    <text x="609" y="126" font-size="10.5" font-weight="600" fill="#047857">• matrix.wgsl (16w header + 3w/cell):</text>
-    <text x="609" y="142" font-size="10" fill="#064e3b">  Heatmap + procedural 3-decimal digits</text>
-    <text x="609" y="157" font-size="10" fill="#064e3b">  (0 cell blank; plate-less title; yellow</text>
-    <text x="609" y="172" font-size="10" fill="#064e3b">  selected border; Rg32Uint whole pick)</text>
-    <text x="609" y="190" font-size="10" fill="#064e3b">• Coalesced single-flight frame scheduler</text>
+    <rect x="597" y="68" width="223" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="708" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">3. 4x MSAA &amp; Matrix Shader (Ch 22)</text>
+    <text x="609" y="108" font-size="10.5" fill="#111111">• Coherent 1x/4x MSAA sample targets</text>
+    <text x="609" y="126" font-size="10.5" font-weight="600" fill="#111111">• matrix.wgsl (16w header + 3w/cell):</text>
+    <text x="609" y="142" font-size="10" fill="#111111">  Heatmap + procedural 3-decimal digits</text>
+    <text x="609" y="157" font-size="10" fill="#111111">  (0 cell blank; plate-less title; yellow</text>
+    <text x="609" y="172" font-size="10" fill="#111111">  selected border; Rg32Uint whole pick)</text>
+    <text x="609" y="190" font-size="10" fill="#111111">• Coalesced single-flight frame scheduler</text>
     
 </svg>
 </div>
 
-### Lesson Data Flow (`Rust` → `WebGPU` → `WGSL`)
+## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
 
-```
-source feature visibility → coincident-point classification → existing marker/path display → original owner.
-```
+Before writing code, review how the three layers in this chapter talk to each other:
 
-- Address original controls with family keys.
-- Draw placed control nets through the existing stroke lane.
-- Replace Element display geometry while retaining its original CAD identity.
-- **Why it works (Does a control marker become another document object?):** No. Its parent remains the original CAD row; its Part identifies a control in that source. The GPU table is a snapshot address, not a new persistent identity.
-
-### Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `Browser`)
-
-| Layer | Construct | First-Year Student Explanation |
+| Layer | Construct | Plain-English Explanation for Students |
 | :--- | :--- | :--- |
 | **WGSL (Vertex Pull)** | `@group(0) @binding(b) var<storage, read> arena_verts: array<u32>;` | Fetches packed vertex positions, normals, and colors directly from a single growable storage buffer using `@builtin(vertex_index)`. |
 | **Rust/WGSL (`f64`->`f32`)** | `let rel: Vec3 = (world_f64 - anchor_f64).as_vec3();` | Subtracts the camera-area `f64` anchor on the CPU before converting to `f32`, preventing 32-bit float mantissa exhaustion far from `(0,0,0)`. |
 | **WGSL (`matrix.wgsl`)** | 16-word header + 3 words/cell procedural digits | Renders matrix heatmaps and 3-decimal numeric digits procedurally inside the fragment shader with zero texture uploads per cell. |
 | **Rust (`ink_ranges.rs`)** | Merged contiguous `Range<u32>` instance draws | Toggles point/line/edge/CAD-wire family visibility without rebuilding GPU buffers or invalidating original owner indices. |
 
-**Production source (`session_viewer/src`):** [app/session_io.rs](../../../../src/app/session_io.rs), [app/command/mod.rs](../../../../src/app/command/mod.rs), [app/hierarchy.rs](../../../../src/app/hierarchy.rs), [app/scene.rs](../../../../src/app/scene.rs), [app/selection.rs](../../../../src/app/selection.rs), [app/deform.rs](../../../../src/app/deform.rs), [app/walk/mod.rs](../../../../src/app/walk/mod.rs), [build.rs](../../../../build.rs).
+**Authoritative production source (`session_viewer/src`):** [app/session_io.rs](../../../../src/app/session_io.rs), [app/command/mod.rs](../../../../src/app/command/mod.rs), [app/hierarchy.rs](../../../../src/app/hierarchy.rs), [app/scene.rs](../../../../src/app/scene.rs), [app/selection.rs](../../../../src/app/selection.rs), [app/deform.rs](../../../../src/app/deform.rs), [app/walk/mod.rs](../../../../src/app/walk/mod.rs), [build.rs](../../../../build.rs).
 
-## Implementation Checkpoints
+## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
 
-Apply these checkpoints in order inside `workspace/journey`. Expand each block to view the Rust/WGSL/HTML edits:
+| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
+| ---: | :--- | :--- | :--- | :--- |
+| **1** | [`96za-address-original-controls-with-family-keys`](#checkpoint-96za-address-original-controls-with-family-keys) | Address original controls with family keys. | `src/pick_sources.rs`, `src/scene.rs`, `src/selection.rs`, `src/highlight.rs` | `source feature visibility → coincident-point classification → existing marker/path display → original owner` |
+| **2** | [`96zb-draw-and-pick-original-cad-control-points`](#checkpoint-96zb-draw-and-pick-original-cad-control-points) | Draw and pick original CAD control points. | `src/scene.rs`, `src/original_control_tests.rs`, `src/lib.rs`, `src/pick_gpu_tests.rs` | `source feature visibility → coincident-point classification → existing marker/path display → original owner` |
+| **3** | [`96zc-share-the-current-control-point-style`](#checkpoint-96zc-share-the-current-control-point-style) | Use seven CSS pixel blue controls and same-size yellow selection. | `src/scene.rs`, `src/highlight.rs`, `src/renderer.rs`, `src/pick_gpu_tests.rs` | `source feature visibility → coincident-point classification → existing marker/path display → original owner` |
+| **4** | [`96zd-reuse-world-controls-for-their-display-nets`](#checkpoint-96zd-reuse-world-controls-for-their-display-nets) | Draw placed control nets through the existing stroke lane. | `src/scene.rs`, `src/pick_sources.rs`, `src/pick_gpu_tests.rs`, `src/pick_sources_tests.rs` | `source feature visibility → coincident-point classification → existing marker/path display → original owner` |
+| **5** | [`96ze-scope-controls-to-the-selected-original`](#checkpoint-96ze-scope-controls-to-the-selected-original) | Enter original control selection without competing object handles. | `src/scene.rs`, `src/editor.rs`, `src/commands.rs`, `src/original_control_tests.rs` | `source feature visibility → coincident-point classification → existing marker/path display → original owner` |
+| **6** | [`96zf-edit-original-controls-through-the-source-preview`](#checkpoint-96zf-edit-original-controls-through-the-source-preview) | Deform original control geometry without editing GPU records. | `src/source_part.rs`, `src/part_preview.rs`, `src/scene.rs`, `src/original_control_tests.rs` | `source feature visibility → coincident-point classification → existing marker/path display → original owner` |
+| **7** | [`96zg-rebuild-an-edited-element-without-replacing-its-owner`](#checkpoint-96zg-rebuild-an-edited-element-without-replacing-its-owner) | Replace Element display geometry while retaining its original CAD identity. | `src/scene.rs`, `src/original_control_tests.rs`, `src/pick_gpu_tests.rs` | `source feature visibility → coincident-point classification → existing marker/path display → original owner` |
+
+---
+
+## 4. Step-by-Step Coding Notebook (Concept + Implementation)
+
+Work through each notebook cell below in order inside `workspace/journey`. Read the **Concept Walkthrough** and **Self-Check Q&A** first, then expand the **Implementation** block to type and verify the code.
 
 <a id="checkpoint-96za-address-original-controls-with-family-keys"></a>
+
+### Step 1 of 7 · Address original controls with family keys (`96za-address-original-controls-with-family-keys`)
+
+- **Goal:** Address original controls with family keys.
+- **Data Flow Trace:** `source feature visibility → coincident-point classification → existing marker/path display → original owner`
+- **Files You Touch:** `src/pick_sources.rs` (*Reuse the original-family control key.*) · `src/scene.rs` (*Keep the original parent and its addressed part.*) · `src/selection.rs` (*Reject a family control absent from the current visible snapshot.*) · `src/highlight.rs` (*Reuse the existing selected-control highlight for every original family.*) · `src/control_parent_tests.rs` (*Preserve the shared-source and distinct-parent fixture after markers carry addressed parts.*)
+
+A curve control index is insufficient for original CAD: a BRep owns vertices, multiple curves and multiple surfaces.
+
+Reuse the ControlId written in 77 to name a mesh vertex, a curve point or a surface (u,v) point. Give the common display marker a Part address instead of embedding one curve source. The existing curve collector still emits its established Control index; the following lesson can add other source families through the same marker buffer and integer-address table. Validate a family control against the current visible marker snapshot, so a stale or hidden address cannot select a source.
+
+> **Self-Check Question:** *Does a control marker become another document object?*  
+> **Answer:** No. Its parent remains the original CAD row; its Part identifies a control in that source. The GPU table is a snapshot address, not a new persistent identity.
+
+- **What You Should See:** The existing original CAD and feature drawing remains visible. The shared marker and integer-pick owners are reused; no new independent source rows are inserted.
+- **Hands-On Lab Experiment:** Trace an existing curve control through marker, integer tag and original parent. Then explain why surface (u,v) needs a family key.
 
 <details>
 <summary>Implementation 96za-address-original-controls-with-family-keys: Address original controls with family keys</summary>
@@ -1222,6 +1283,21 @@ Update the existing block with this supplied code; keep unchanged lines:
 
 <a id="checkpoint-96zb-draw-and-pick-original-cad-control-points"></a>
 
+### Step 2 of 7 · Draw and pick original CAD control points (`96zb-draw-and-pick-original-cad-control-points`)
+
+- **Goal:** Draw and pick original CAD control points.
+- **Data Flow Trace:** `source feature visibility → coincident-point classification → existing marker/path display → original owner`
+- **Files You Touch:** `src/scene.rs` (*Store control display ownership without modifying original geometry.*) · `src/original_control_tests.rs` (*Supply original source-sharing, family addressing, hide/off, Element ownership and release checks.*) · `src/lib.rs` (*Register supplied original-control fixtures.*) · `src/pick_gpu_tests.rs` (*Supply actual placed integer-pick checks with sparse original vertex keys at both densities.*)
+
+Connect the original-family collector from 77 to the existing GPU marker buffer.
+
+Track which original mesh, BRep, surface or Element owners show controls separately from their source data. Controls On enables these owners alongside the earlier curve controls; Controls Off clears them. Collect original f64 coordinates, apply the current source placement, and convert to f32 only at the display boundary. Reject a position that cannot be represented by the GPU. The existing marker upload and integer address table now carry these controls, so color and picking use the same six-pixel discs. Hidden originals contribute no markers. Removal and Close release the display-owner set. This checkpoint adds control-point display and source-key picking; original control nets, selected-owner command semantics and part editing follow.
+
+> **Self-Check Question:** *Why convert after placement?*  
+> **Answer:** Source control coordinates and placement remain f64. Converting before placement loses precision and may hide an overflow caused by the world transform.
+
+- **Hands-On Lab Experiment:** Run Example Box, Controls On and Select Control. Compare a control hit with an object hit. Hide the owner, show it, then Controls Off; the source geometry and row identity must remain unchanged.
+
 <details>
 <summary>Implementation 96zb-draw-and-pick-original-cad-control-points: Draw and pick original CAD control points</summary>
 
@@ -2344,6 +2420,21 @@ After that block, append this supplied code:
 </details>
 
 <a id="checkpoint-96zc-share-the-current-control-point-style"></a>
+
+### Step 3 of 7 · Share the current control-point style (`96zc-share-the-current-control-point-style`)
+
+- **Goal:** Use seven CSS pixel blue controls and same-size yellow selection.
+- **Data Flow Trace:** `source feature visibility → coincident-point classification → existing marker/path display → original owner`
+- **Files You Touch:** `src/scene.rs` (*Give both control families one CSS-sized style owner.*) · `src/highlight.rs` (*Change selected control color while retaining its CSS diameter.*) · `src/renderer.rs` (*Draw same-size yellow selection after the blue control disc.*) · `src/pick_gpu_tests.rs` (*Supply actual color, CSS coverage, selection and original integer-address checks at both densities.*)
+
+The current viewer shows blue control points with a diameter of seven CSS pixels.
+
+Selection changes them to yellow without enlarging them. Put this style in one ControlMarker constructor and reuse it for legacy curves and original CAD families. Keep world coordinates and original source keys separate from display style. The selected disc must draw after its blue base: alpha blending can otherwise overwrite yellow even though both pass the existing non-writing LessEqual depth test. Separate selected point drawing from the earlier line-highlight pass. The existing marker shader and density uniform convert CSS diameter to physical pixels; reuse that pipeline rather than adding another point shader.
+
+> **Self-Check Question:** *Should doubling device pixel ratio double the stored diameter?*  
+> **Answer:** No. Store seven CSS pixels. The shared marker pipeline applies the density when calculating physical framebuffer coverage.
+
+- **Hands-On Lab Experiment:** Enable controls on a box and select one. Compare blue and yellow disc sizes, then change browser pixel density. Camera zoom changes their world placement without changing their CSS diameter.
 
 <details>
 <summary>Implementation 96zc-share-the-current-control-point-style: Share the current control-point style</summary>
@@ -3552,6 +3643,21 @@ After that block, append this supplied code:
 
 <a id="checkpoint-96zd-reuse-world-controls-for-their-display-nets"></a>
 
+### Step 4 of 7 · Reuse world controls for their display nets (`96zd-reuse-world-controls-for-their-display-nets`)
+
+- **Goal:** Draw placed control nets through the existing stroke lane.
+- **Data Flow Trace:** `source feature visibility → coincident-point classification → existing marker/path display → original owner`
+- **Files You Touch:** `src/scene.rs` (*Project one control owner for both point discs and net links.*) · `src/pick_sources.rs` (*Reuse stroke drawing and address each net only to its original parent.*) · `src/pick_gpu_tests.rs` (*Supply real net integer-pick, endpoint, source identity and Off checks at both densities.*) · `src/pick_sources_tests.rs` (*Keep twelve original mesh edge addresses distinct from two parent-only control links.*)
+
+A curve or surface control net connects the collector’s point indices.
+
+Build one shared control-source projection: retain original family keys and legacy curve addressing, transform the copied control positions into world space in f64, and leave the original geometry untouched. Both marker and net conversion consume this projection. Reuse the existing stroke lane for thin control links with the maintained packed color 0xffcc8866. Each link belongs to its original parent and has subpart tag zero; it must not invent a CAD edge address. Original mesh controls have no extra net links. Visibility and Controls Off remove the derived presentation together.
+
+> **Self-Check Question:** *Why do control links carry an original parent but no edge tag?*  
+> **Answer:** They explain the source’s control structure. They are not original mesh edges or BRep boundaries, so object picking may find the parent while edge and control picking must not invent a new subpart.
+
+- **Hands-On Lab Experiment:** Enable controls on Example Curve and Example Surface. Compare each link endpoint with its control disc. Switch object, edge and control picking; the link can address the original object but only the discs address control keys.
+
 <details>
 <summary>Implementation 96zd-reuse-world-controls-for-their-display-nets: Reuse world controls for their display nets</summary>
 
@@ -3691,6 +3797,21 @@ Update the existing block with this supplied code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-96ze-scope-controls-to-the-selected-original"></a>
+
+### Step 5 of 7 · Scope controls to the selected original (`96ze-scope-controls-to-the-selected-original`)
+
+- **Goal:** Enter original control selection without competing object handles.
+- **Data Flow Trace:** `source feature visibility → coincident-point classification → existing marker/path display → original owner`
+- **Files You Touch:** `src/scene.rs` (*Validate the original, then atomically replace its derived control presentation.*) · `src/editor.rs` (*Give the maintained selected-owner command its own transition.*) · `src/commands.rs` (*Route bare Controls to selected-owner behavior.*) · `src/original_control_tests.rs` (*Supply original ownership, repeated control selection, Escape and unchanged history checks.*)
+
+The maintained Controls command starts from one selected object.
+
+Validate its source before changing presentation; an empty selection or an object without controls must leave the scene intact. Clear the previous presentation, collect only this parent, and switch the existing integer picker to control mode. Keep the original parent selected while hiding its object gizmo. Repeating Controls for that parent preserves its current control selection. Escape removes the presentation and returns to object selection with the parent retained. Controls On remains the earlier demonstration adapter until the final command registry bridge.
+
+> **Self-Check Question:** *Why must source validation happen before clearing the previous controls?*  
+> **Answer:** A rejected command must preserve the previous presentation and selection. Deriving valid control data first makes the transition atomic.
+
+- **Hands-On Lab Experiment:** Select one curve, enter Controls, then repeat it after picking a control. Escape should keep the parent and remove its controls. Select a different original mesh and enter Controls: the first owner must have no control discs or links.
 
 <details>
 <summary>Implementation 96ze-scope-controls-to-the-selected-original: Scope controls to the selected original</summary>
@@ -6092,6 +6213,21 @@ After that block, append this supplied code:
 
 <a id="checkpoint-96zf-edit-original-controls-through-the-source-preview"></a>
 
+### Step 6 of 7 · Edit original controls through the source preview (`96zf-edit-original-controls-through-the-source-preview`)
+
+- **Goal:** Deform original control geometry without editing GPU records.
+- **Data Flow Trace:** `source feature visibility → coincident-point classification → existing marker/path display → original owner`
+- **Files You Touch:** `src/source_part.rs` (*Resolve every supported original through the shared source owner.*) · `src/part_preview.rs` (*Find the original point before applying the owner placement.*) · `src/scene.rs` (*Allow original control keys through source deformation; keep unsupported legacy original part routes explicit.*) · `src/original_control_tests.rs` (*Supply sparse original-key, placement, preview identity, other owner, Undo, Redo and stale commit checks.*)
+
+A picked disc addresses an original family key.
+
+Resolve that key through the source deformation code already taught, then transform the affected source points through the owner placement. The preview conjugates a world transform into local coordinates and deforms a cloned source. Reuse original replacement to rebuild display data. Commit checks the original source identity and placement before adding one history entry. Undo restores the shared original; Redo restores the edit. This bridge handles ordinary mesh, BRep and surface controls. Element replacement and feature regeneration connect next; an unsupported replacement must fail without changing the original.
+
+> **Self-Check Question:** *Why compare original source identity before committing a preview?*  
+> **Answer:** The disc address belongs to a source snapshot. Replacing or editing that source during the preview makes the old edit stale; committing it would overwrite newer work.
+
+- **Hands-On Lab Experiment:** Select an ordinary original mesh, enter Controls and pick one control. Move that control with its handle. Undo and Redo should change the original vertex and derived display together while other source owners remain shared.
+
 <details>
 <summary>Implementation 96zf-edit-original-controls-through-the-source-preview: Edit original controls through the source preview</summary>
 
@@ -7316,6 +7452,21 @@ After that block, append this supplied code:
 
 <a id="checkpoint-96zg-rebuild-an-edited-element-without-replacing-its-owner"></a>
 
+### Step 7 of 7 · Rebuild an edited Element without replacing its owner (`96zg-rebuild-an-edited-element-without-replacing-its-owner`)
+
+- **Goal:** Replace Element display geometry while retaining its original CAD identity.
+- **Data Flow Trace:** `source feature visibility → coincident-point classification → existing marker/path display → original owner`
+- **Files You Touch:** `src/scene.rs` (*Prepare the edited Element first, then retain the original owner identity and presentation.*) · `src/original_control_tests.rs` (*Supply actual original Element, feature source, derived row, tree identity, placement, Undo, Redo and stale-preview checks.*) · `src/pick_gpu_tests.rs` (*Supply actual moved original-control integer pixels, removed old pixels, commit and Undo at both densities.*)
+
+Source deformation already clones the Element and edits its mesh or BRep geometry.
+
+Its geometry setter invalidates kernel caches while retaining feature source data. Reuse the Element preparation path in an isolated empty scene, validate the prepared vertices through the existing owner placement, then replace only that owner row. Keep its ID, portable row GUID, metadata and placement. The hierarchy, original feature data and existing feature presentation stay attached to that original parent. This control transition changes source geometry; it does not invent a feature-generation algorithm. The original Scene and source remain shared until commit, and one Undo restores them.
+
+> **Self-Check Question:** *Why prepare the replacement before changing the live row?*  
+> **Answer:** Invalid geometry or display coordinates must fail before publishing a new source or consuming history. Reusing the preparation path also keeps Element mesh and BRep display construction consistent.
+
+- **Hands-On Lab Experiment:** Create an Element, select a source control and move it. Its original parent and feature rows must retain their identities while the body display changes. Undo and Redo restore the geometry together with its source.
+
 <details>
 <summary>Implementation 96zg-rebuild-an-edited-element-without-replacing-its-owner: Rebuild an edited Element without replacing its owner</summary>
 
@@ -7425,9 +7576,11 @@ After that block, append this supplied code:
 
 </details>
 
-## Run, Check, and Save
+---
 
-From `session_viewer`:
+## 5. Build, Verify, and Save Your Checkpoint
+
+Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 96zg-rebuild-an-edited-element-without-replacing-its-owner
@@ -7438,8 +7591,8 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. Use [checkpoint recovery](../../recovery.md) to restore any saved checkpoint.
+Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
 
-## Expected Visual Result & Experiment
+## 6. Lesson Summary & Expected Visual Result
 
-- **Try this:** Create an Element, select a source control and move it. Its original parent and feature rows must retain their identities while the body display changes. Undo and Redo restore the geometry together with its source.
+- **Final Lesson Experiment:** Create an Element, select a source control and move it. Its original parent and feature rows must retain their identities while the body display changes. Undo and Redo restore the geometry together with its source.

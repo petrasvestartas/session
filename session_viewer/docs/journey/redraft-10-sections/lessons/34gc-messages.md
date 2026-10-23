@@ -1,89 +1,162 @@
 # 4.5 · Measured phases and conservative GPU recovery
 
-**Section 3: Scene Documents, Transactions, and Browser GPU Lifetime** · **Lesson 4.5** (Redraft `3.12`) · **15 checkpoints (`34gc-messages` → `34geb-reload`)**
+**Section 3: Scene Documents, Transactions, and Browser GPU Lifetime** · **Lesson 4.5** (Redraft `3.12`) · **15 checkpoints (`34gc-messages` → `34geb-reload`)** · **Study time: 9–15.75 h**
 
-> **Learning Goal:** Keep browser failure text readable and small enough for the existing report.
+> **What You Will Learn & Build:** Keep browser failure text readable and small enough for the existing report. By the final checkpoint (`34geb-reload`), you will save device-loss diagnostics, reload once and draw conservatively until the next ordinary reload.
 
-## Visual WebGPU & Architecture Schematic
+## 1. Visual Pipeline & WebGPU Architecture (Black & White Schematics)
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1px solid #cbd5e1;border-radius:10px;background:#f8fafc;">
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
+<svg viewBox="0 0 840 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <rect x="4" y="4" width="832" height="212" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Lesson 4.5 Execution Flow: Measured phases and conservative GPU recovery</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">Concrete data pipeline you build in this lesson (15 Checkpoints: 34gc-messages → 34geb-reload)</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
+  
+    
+    <rect x="18" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="89" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
+    <line x1="28" y1="92" x2="151" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">browser detail +</text>
+    <text x="89" y="124" text-anchor="middle" font-size="11" fill="#111111">source position</text>
+    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="183" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="254" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
+    <line x1="193" y1="92" x2="316" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">bounded Unicode</text>
+    <text x="254" y="124" text-anchor="middle" font-size="11" fill="#111111">text</text>
+    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="348" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="419" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
+    <line x1="358" y1="92" x2="481" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">diagnostic message</text>
+    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="513" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="584" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
+    <line x1="523" y1="92" x2="646" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">current device loss</text>
+    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="678" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="749" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
+    <line x1="688" y1="92" x2="811" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">saved report</text>
+    
+    <rect x="18" y="162" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="32" y="181" font-size="11" font-weight="700" fill="#111111">Files You Edit in Lesson 4.5:</text>
+    <text x="215" y="181" font-size="11" fill="#111111">src/error_message.rs  ·  src/error_message_tests.rs  ·  src/lib.rs  ·  src/browser_errors.rs  ·  Cargo.toml  ·  src/report_lifecycle.rs</text>
+    <text x="32" y="198" font-size="10.5" fill="#111111">15 Checkpoints: 34gc-messages → 34geb-reload — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
+  
+</svg>
+</div>
+
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
 <svg viewBox="0 0 840 240" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#475569"/>
-    </marker>
-    <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#2563eb"/>
-    </marker>
-    <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#059669"/>
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
     </marker>
   </defs>
-  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
-  <text x="20" y="28" font-size="14" font-weight="700" fill="#0f172a">Chapter 4 Browser & WebGPU Lifetime: Rc/Drop Listener Guards, Fault Ring-Buffer & Device Recovery</text>
-  <text x="20" y="46" font-size="11.5" fill="#475569">How a production WASM viewer survives tab backgrounding, DOM teardown, and WebGPU device-lost faults without leaking or crashing.</text>
-  <line x1="16" y1="54" x2="824" y2="54" stroke="#e2e8f0" stroke-width="1"/>
+  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Chapter 4 Browser & WebGPU Lifetime: Rc/Drop Listener Guards, Fault Ring-Buffer & Device Recovery</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">How a production WASM viewer survives tab backgrounding, DOM teardown, and WebGPU device-lost faults without leaking or crashing.</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
   
-    <rect x="18" y="68" width="190" height="145" rx="6" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
-    <text x="113" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1e40af">1. Active Runtime Owner</text>
-    <text x="28" y="108" font-size="10.5" fill="#1e3a8a">• Rc&lt;RefCell&lt;Runtime&gt;&gt;</text>
-    <text x="28" y="126" font-size="10.5" fill="#1e3a8a">• Closure::wrap listener table</text>
-    <text x="28" y="144" font-size="10.5" font-weight="600" fill="#1d4ed8">• Drop removes EventListeners</text>
-    <text x="28" y="162" font-size="10.5" fill="#1e3a8a">• Late callbacks after dispose</text>
-    <text x="28" y="177" font-size="10.5" fill="#1e3a8a">  become safe no-ops</text>
+    <rect x="18" y="68" width="190" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="113" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">1. Active Runtime Owner</text>
+    <text x="28" y="108" font-size="10.5" fill="#111111">• Rc&lt;RefCell&lt;Runtime&gt;&gt;</text>
+    <text x="28" y="126" font-size="10.5" fill="#111111">• Closure::wrap listener table</text>
+    <text x="28" y="144" font-size="10.5" font-weight="600" fill="#111111">• Drop removes EventListeners</text>
+    <text x="28" y="162" font-size="10.5" fill="#111111">• Late callbacks after dispose</text>
+    <text x="28" y="177" font-size="10.5" fill="#111111">  become safe no-ops</text>
 
-    <line x1="208" y1="138" x2="238" y2="138" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
+    <line x1="208" y1="138" x2="238" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="240" y="68" width="265" height="145" rx="6" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5"/>
-    <text x="372" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#9a3412">2. Lifecycle &amp; Fault Telemetry</text>
-    <text x="252" y="108" font-size="10.5" fill="#7c2d12">• visibilitychange / pagehide (bfcache):</text>
-    <text x="252" y="123" font-size="10" fill="#7c2d12">  Pause heartbeat timers &amp; animation frame</text>
-    <text x="252" y="143" font-size="10.5" font-weight="600" fill="#c2410c">• device.on_uncaptured_error:</text>
-    <text x="252" y="158" font-size="10" fill="#7c2d12">  Record into bounded ring-buffer (schema v1)</text>
-    <text x="252" y="175" font-size="10" fill="#7c2d12">• Exportable Diagnostic JSON Report</text>
-    <text x="252" y="193" font-size="10" fill="#7c2d12">• pageshow: resume cleanly</text>
+    <rect x="240" y="68" width="265" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="372" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">2. Lifecycle &amp; Fault Telemetry</text>
+    <text x="252" y="108" font-size="10.5" fill="#111111">• visibilitychange / pagehide (bfcache):</text>
+    <text x="252" y="123" font-size="10" fill="#111111">  Pause heartbeat timers &amp; animation frame</text>
+    <text x="252" y="143" font-size="10.5" font-weight="600" fill="#111111">• device.on_uncaptured_error:</text>
+    <text x="252" y="158" font-size="10" fill="#111111">  Record into bounded ring-buffer (schema v1)</text>
+    <text x="252" y="175" font-size="10" fill="#111111">• Exportable Diagnostic JSON Report</text>
+    <text x="252" y="193" font-size="10" fill="#111111">• pageshow: resume cleanly</text>
 
-    <line x1="505" y1="138" x2="535" y2="138" stroke="#059669" stroke-width="2" marker-end="url(#arrow-green)"/>
+    <line x1="505" y1="138" x2="535" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="537" y="68" width="283" height="145" rx="6" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1.5"/>
-    <text x="678" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#065f46">3. Conservative GPU Device Recovery</text>
-    <text x="549" y="108" font-size="10.5" fill="#064e3b">• Detect GPUDevice lost / surface outdated</text>
-    <text x="549" y="126" font-size="10.5" font-weight="600" fill="#047857">• Request fresh Adapter &amp; Device at safe</text>
-    <text x="549" y="142" font-size="10.5" font-weight="600" fill="#047857">  1x sample count &amp; conservative density</text>
-    <text x="549" y="160" font-size="10.5" fill="#064e3b">• Rebuild pipelines &amp; re-upload retained</text>
-    <text x="549" y="176" font-size="10.5" fill="#064e3b">  Editor scene without losing user edits!</text>
+    <rect x="537" y="68" width="283" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="678" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">3. Conservative GPU Device Recovery</text>
+    <text x="549" y="108" font-size="10.5" fill="#111111">• Detect GPUDevice lost / surface outdated</text>
+    <text x="549" y="126" font-size="10.5" font-weight="600" fill="#111111">• Request fresh Adapter &amp; Device at safe</text>
+    <text x="549" y="142" font-size="10.5" font-weight="600" fill="#111111">  1x sample count &amp; conservative density</text>
+    <text x="549" y="160" font-size="10.5" fill="#111111">• Rebuild pipelines &amp; re-upload retained</text>
+    <text x="549" y="176" font-size="10.5" fill="#111111">  Editor scene without losing user edits!</text>
     
 </svg>
 </div>
 
-### Lesson Data Flow (`Rust` → `WebGPU` → `WGSL`)
+## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
 
-```
-browser detail + source position → bounded Unicode text → diagnostic message.
-clock → operation result → valid duration → metadata observer → original result.
-current device loss → saved report → recovery URL → reduced drawing → clean URL → ordinary reload.
-```
+Before writing code, review how the three layers in this chapter talk to each other:
 
-- Keep browser failure text readable and small enough for the existing report.
-- Measure CPU work without changing its success or failure.
-- Save device-loss diagnostics, reload once and draw conservatively until the next ordinary reload.
-- **Why it works (Why limit the detail and source separately?):** One long source path must not consume the whole failure message. Separate budgets retain useful detail and leave space for labels and positions.
-
-### Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `Browser`)
-
-| Layer | Construct | First-Year Student Explanation |
+| Layer | Construct | Plain-English Explanation for Students |
 | :--- | :--- | :--- |
 | **Rust / WASM (`wasm_bindgen`)** | `Rc<RefCell<Runtime>>` + `Drop` Listener Table | Explicitly unregisters DOM `EventListener` closures on teardown so re-mounting or disposing the viewer never leaks memory or panics on late events. |
 | **Browser DOM** | `visibilitychange` / `pagehide` / `pageshow` | Pauses frame timers and GPU work when the tab hides or enters `bfcache`, and resumes cleanly on return. |
 | **WebGPU (`wgpu`)** | Uncaptured Fault Ring-Buffer & Device Recovery | Captures validation/out-of-memory faults into a versioned JSON ring-buffer and rebuilds GPU pipelines at conservative `1x` settings after device loss. |
 
-**Production source (`session_viewer/src`):** `session_viewer/src`
+**Authoritative production source (`session_viewer/src`):** `session_viewer/src`
 
-## Implementation Checkpoints
+## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
 
-Apply these checkpoints in order inside `workspace/journey`. Expand each block to view the Rust/WGSL/HTML edits:
+| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
+| ---: | :--- | :--- | :--- | :--- |
+| **1** | [`34gc-messages`](#checkpoint-34gc-messages) | Keep browser failure text readable and small enough for the existing report. | `src/error_message.rs`, `src/error_message_tests.rs`, `src/lib.rs` | `browser detail + source position → bounded Unicode text → diagnostic message` |
+| **2** | [`34gca-errors`](#checkpoint-34gca-errors) | Retain the first uncaught browser failure while later events remain bounded and drawing stays independently owned. | `src/browser_errors.rs`, `Cargo.toml`, `src/lib.rs`, `src/report_lifecycle.rs` | `Window failure → bounded message → first-failure report and bounded history` |
+| **3** | [`34gd-adapter`](#checkpoint-34gd-adapter) | Preserve bounded adapter identity even when recent events rotate out of the report. | `src/adapter_info.rs`, `src/diagnostic.rs`, `src/report_store.rs`, `src/adapter_info_tests.rs` | `optional adapter strings → validated report field → saved identity survives event rotation` |
+| **4** | [`34gda-browser`](#checkpoint-34gda-browser) | Retain vendor and architecture from the same adapter request used for drawing. | `src/adapter_info.js`, `src/browser_adapter.rs`, `src/browser_report.rs`, `src/browser.rs` | `viewer adapter request → native identity strings → retained report → observer released` |
+| **5** | [`34gdb-phases`](#checkpoint-34gdb-phases) | Keep measured load operations after their recent event messages rotate away. | `src/load_phase.rs`, `src/diagnostic.rs`, `src/report_store.rs`, `src/load_phase_tests.rs` | `validated phase → recent event and retained list → count and byte limits → downloadable report` |
+| **6** | [`34gdc-startup`](#checkpoint-34gdc-startup) | Download actual adapter, device, renderer and first completed frame timings. | `src/browser_phase.rs`, `src/browser_report.rs`, `src/browser_runtime.rs`, `src/browser.rs` | `actual adapter → actual device → renderer setup → submitted frame completes → ready report` |
+| **7** | [`34gdd-read`](#checkpoint-34gdd-read) | Retain the duration and byte count of the selected file’s actual read. | `src/file_input.rs` | `selected file → actual read promise → current ticket → retained phase → diagnostic download` |
+| **8** | [`34gde-measure`](#checkpoint-34gde-measure) | Measure CPU work without changing its success or failure. | `src/load_measure.rs`, `src/lib.rs`, `src/load_measure_tests.rs` | `clock → operation result → valid duration → metadata observer → original result` |
+| **9** | [`34gdea-import`](#checkpoint-34gdea-import) | Record decode, validation, kernel construction and display preparation at their actual boundaries. | `src/document.rs`, `src/browser_phase.rs`, `src/lib.rs`, `src/document_phase_tests.rs` | `protobuf bytes → decode → validation → kernel → display walk → atomic scene adoption` |
+| **10** | [`34gdf-upload`](#checkpoint-34gdf-upload) | Distinguish CPU buffer preparation from completion on the drawing queue. | `src/geometry_cache.rs`, `src/renderer.rs`, `src/browser_upload.rs`, `src/lib.rs` | `scene change → uploaded payload counter → CPU preparation → queue fence → current-device completion` |
+| **11** | [`34gdg-network`](#checkpoint-34gdg-network) | Retain real fetch and Resource Timing measurements only for the accepted reload ticket. | `Cargo.toml`, `src/browser_network.rs`, `src/lib.rs`, `src/browser_reload.rs` | `source URL → bounded body read → completed samples → accepted ticket → safe report identity` |
+| **12** | [`34gdga-revision`](#checkpoint-34gdga-revision) | Identify accepted source versions without recording rejected or stale documents. | `src/revision.rs`, `src/lib.rs`, `src/browser_phase.rs`, `src/browser.rs` | `prepared document → successful editor transaction → source hash → bounded revision event` |
+| **13** | [`34ge-owner`](#checkpoint-34ge-owner) | Give GPU runtimes shared access to a separately owned CPU document. | `src/drawing_document.rs`, `src/lib.rs`, `src/browser.rs`, `src/browser_runtime.rs` | `CPU editor owner → drawing runtime → shared event access → GPU teardown → retained document` |
+| **14** | [`34gea-policy`](#checkpoint-34gea-policy) | Allow one device-loss recovery reload and retain reduced quality until an ordinary reload. | `src/recovery.rs`, `src/lib.rs`, `src/recovery_tests.rs` | `device loss → one reload request → adopted recovery → reduced quality → next ordinary reload` |
+| **15** | [`34geb-reload`](#checkpoint-34geb-reload) | Save device-loss diagnostics, reload once and draw conservatively until the next ordinary reload. | `Cargo.toml`, `src/browser_recovery.rs`, `src/lib.rs`, `src/browser.rs` | `current device loss → saved report → recovery URL → reduced drawing → clean URL → ordinary reload` |
+
+---
+
+## 4. Step-by-Step Coding Notebook (Concept + Implementation)
+
+Work through each notebook cell below in order inside `workspace/journey`. Read the **Concept Walkthrough** and **Self-Check Q&A** first, then expand the **Implementation** block to type and verify the code.
 
 <a id="checkpoint-34gc-messages"></a>
+
+### Step 1 of 15 · Bound browser failure messages (`34gc-messages`)
+
+- **Goal:** Keep browser failure text readable and small enough for the existing report.
+- **Data Flow Trace:** `browser detail + source position → bounded Unicode text → diagnostic message`
+- **Files You Touch:** `src/error_message.rs` (*Bound message and source lengths while preserving Unicode and excluding source query strings.*) · `src/error_message_tests.rs` (*Optional authoring fixture. Check Unicode bounds, source positions, omitted query strings and missing-detail fallbacks.*) · `src/lib.rs` (*Register diagnostic message formatting and its native checks.*)
+
+Limit each failure detail to 2048 characters and its source path to 1024. Keep line and column numbers; remove source query strings and fragments.
+
+Rust character iteration preserves valid Unicode. Empty details get a readable fallback. The next step connects these messages to browser events.
+
+> **Self-Check Question:** *Why limit the detail and source separately?*  
+> **Answer:** One long source path must not consume the whole failure message. Separate budgets retain useful detail and leave space for labels and positions.
+
+- **What You Should See:** Inspect the supplied state fixtures. Long Unicode messages remain below the report limit, source positions survive, and missing details have readable labels.
+- **Hands-On Lab Experiment:** Pass an emoji message and a source URL containing both a query and fragment. Predict the retained location, then run the checks.
 
 <details>
 <summary>Implementation 34gc-messages: Bound browser failure messages</summary>
@@ -154,6 +227,22 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-34gca-errors"></a>
+
+### Step 2 of 15 · Observe uncaught browser failures (`34gca-errors`)
+
+- **Goal:** Retain the first uncaught browser failure while later events remain bounded and drawing stays independently owned.
+- **Data Flow Trace:** `Window failure → bounded message → first-failure report and bounded history`
+- **Files You Touch:** `src/browser_errors.rs` (*Read native error events and safe promise-reason values; avoid serializing objects and catch unavailable Error messages.*) · `Cargo.toml` (*Enable the two browser event interfaces without changing dependency versions.*) · `src/lib.rs` (*Register browser failure observation.*) · `src/report_lifecycle.rs` (*Record failures through the existing first-failure path; keep event defaults and heartbeat scheduling unchanged.*)
+
+Listen for Window error and unhandledrejection events in the metadata owner. Read an Error’s message safely; use a label for non-text promise reasons instead of serializing them.
+
+Reuse the existing fatal-report path: retain the first failure and attempt its download once. Later failures remain in the bounded event history. The observers keep browser defaults and do not stop drawing.
+
+> **Self-Check Question:** *Why does a browser failure not stop the GPU runtime here?*  
+> **Answer:** The event proves a script or promise failed, not that the drawing device was lost. Metadata records the failure; GPU loss still stops its own runtime.
+
+- **What You Should See:** In the browser console, run `Promise.reject(new Error("lesson check"))`. Type `Report`: its first failure reads “Unhandled rejection: lesson check”.
+- **Hands-On Lab Experiment:** In the debug console, run Promise.reject(new Error("lesson failure")), then type Report. A later failure must not replace the first one.
 
 <details>
 <summary>Implementation 34gca-errors: Observe uncaught browser failures</summary>
@@ -395,6 +484,22 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-34gd-adapter"></a>
+
+### Step 3 of 15 · Retain adapter identity in the report (`34gd-adapter`)
+
+- **Goal:** Preserve bounded adapter identity even when recent events rotate out of the report.
+- **Data Flow Trace:** `optional adapter strings → validated report field → saved identity survives event rotation`
+- **Files You Touch:** `src/adapter_info.rs` (*Keep four bounded adapter strings without retaining a GPU object.*) · `src/diagnostic.rs` (*Retain optional adapter identity separately from the recent-event queue.*) · `src/report_store.rs` (*Admit the optional adapter field through the existing strict decoder.*) · `src/adapter_info_tests.rs` (*Copy the checks for retained identity, legacy decoding, strict fields, Unicode bounds and atomic refusal.*) · `src/lib.rs` (*Register adapter identity and its native checks.*)
+
+Keep vendor, architecture, device and description in one optional report field. Later events can rotate out without losing the adapter identity.
+
+Browser vendors can leave identity strings empty. Accept those values, bound each string to 256 characters and reject unknown nested fields. Old reports omit the new field and still decode.
+
+> **Self-Check Question:** *Why is adapter identity outside the recent-event queue?*  
+> **Answer:** Loading, lifecycle and later errors can fill that queue. The same adapter identity must remain available in every subsequent report.
+
+- **What You Should See:** Inspect the supplied state fixtures. Adapter identity survives event rotation, while reports saved before this lesson still decode.
+- **Hands-On Lab Experiment:** Give a vendor string 256 emoji characters, then 257. The first is valid; the second is refused without changing the report.
 
 <details>
 <summary>Implementation 34gd-adapter: Retain adapter identity in the report</summary>
@@ -728,6 +833,22 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-34gda-browser"></a>
+
+### Step 4 of 15 · Read the viewer’s adapter identity (`34gda-browser`)
+
+- **Goal:** Retain vendor and architecture from the same adapter request used for drawing.
+- **Data Flow Trace:** `viewer adapter request → native identity strings → retained report → observer released`
+- **Files You Touch:** `src/adapter_info.js` (*Observe the same native adapter request; retain only strings and restore the original property when released.*) · `src/browser_adapter.rs` (*Own the JavaScript observation across one await and release it through Drop.*) · `src/browser_report.rs` (*Persist validated adapter identity without changing the run outcome or event history.*) · `src/browser.rs` (*Install observation immediately before the viewer requests its adapter.*) · `src/lib.rs` (*Register the browser adapter bridge.*)
+
+Observe the viewer’s native adapter request, save its four identity strings, then release the observer before requesting a device. No extra adapter is requested.
+
+The pinned wgpu browser backend exposes description but drops vendor and architecture. A small JavaScript module reads GPUAdapterInfo from that same native adapter. Rust owns the observer and report; unavailable metadata does not stop drawing.
+
+> **Self-Check Question:** *Why not request another adapter just to read its identity?*  
+> **Answer:** A second request might choose a different adapter. Observe the exact result used for this viewer, then restore the request function.
+
+- **What You Should See:** Type `Report`. Its `adapter` field contains vendor, architecture, device and description; a browser may leave individual strings empty.
+- **Hands-On Lab Experiment:** Download another report after several camera commands. The adapter identity stays unchanged while drawing continues.
 
 <details>
 <summary>Implementation 34gda-browser: Read the viewer’s adapter identity</summary>
@@ -1498,6 +1619,22 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-34gdb-phases"></a>
 
+### Step 5 of 15 · Retain measured loading phases (`34gdb-phases`)
+
+- **Goal:** Keep measured load operations after their recent event messages rotate away.
+- **Data Flow Trace:** `validated phase → recent event and retained list → count and byte limits → downloadable report`
+- **Files You Touch:** `src/load_phase.rs` (*Describe one completed load operation with duration, bytes, sanitized source and completion time.*) · `src/diagnostic.rs` (*Retain phases outside the recent events; old reports omit both optional fields.*) · `src/report_store.rs` (*Admit only the two declared phase fields through saved-report decoding.*) · `src/load_phase_tests.rs` (*Copy checks for strict decoding, Unicode limits, event rotation and escaped JSON byte retention.*) · `src/lib.rs` (*Register load phase data and its native checks.*)
+
+Keep loading durations, byte counts and source names in a separate report list. Retain up to 256 measurements while preserving the one MiB report budget.
+
+Count discarded entries so a downloaded report reveals incomplete retention. Old reports still decode. Validate durations and source names before mutation; escaped JSON bytes, rather than character counts, determine the final budget.
+
+> **Self-Check Question:** *Why check encoded bytes when strings already have character limits?*  
+> **Answer:** JSON escapes can use six bytes per character. The complete saved report must still fit its existing one MiB limit.
+
+- **What You Should See:** Inspect the supplied state fixtures. Loading phases survive event rotation, and oversized reports discard old measurements without losing the first failure.
+- **Hands-On Lab Experiment:** Use control characters in a source name. Their JSON escapes reach the byte limit before the 256-entry limit.
+
 <details>
 <summary>Implementation 34gdb-phases: Retain measured loading phases</summary>
 
@@ -2120,6 +2257,22 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-34gdc-startup"></a>
+
+### Step 6 of 15 · Measure GPU startup and the first frame (`34gdc-startup`)
+
+- **Goal:** Download actual adapter, device, renderer and first completed frame timings.
+- **Data Flow Trace:** `actual adapter → actual device → renderer setup → submitted frame completes → ready report`
+- **Files You Touch:** `src/browser_phase.rs` (*Measure completed operations with the browser clock and strip private URL suffixes.*) · `src/browser_report.rs` (*Persist measured phases without changing the run outcome.*) · `src/browser_runtime.rs` (*Let deferred frame completion verify ownership of the current GPU runtime.*) · `src/browser.rs` (*Start adapter timing before the actual request.*) · `src/lib.rs` (*Register browser phase timing.*)
+
+Measure the actual adapter request, device request and renderer setup. Mark the first frame ready after its submitted GPU work completes.
+
+Measure CPU renderer setup separately from first-frame GPU completion. A deferred completion must still belong to the active device; final exit, device loss or replacement cannot adopt its late result.
+
+> **Self-Check Question:** *Why is present() alone insufficient to time the completed GPU frame?*  
+> **Answer:** It submits work without waiting for the GPU. Queue completion includes that work and initial compilation, while ownership prevents a late callback from reviving an exited run.
+
+- **What You Should See:** Type `Report`. Its `phases` list contains adapter request, device request, renderer setup and first frame complete, each with a measured duration.
+- **Hands-On Lab Experiment:** Reload, then download another report. Timings change, while each run retains one first-frame completion measurement.
 
 <details>
 <summary>Implementation 34gdc-startup: Measure GPU startup and the first frame</summary>
@@ -3368,6 +3521,22 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-34gdd-read"></a>
 
+### Step 7 of 15 · Measure the selected file read (`34gdd-read`)
+
+- **Goal:** Retain the duration and byte count of the selected file’s actual read.
+- **Data Flow Trace:** `selected file → actual read promise → current ticket → retained phase → diagnostic download`
+- **Files You Touch:** `src/file_input.rs` (*Measure an actual completed read only after its ticket is accepted.*)
+
+Start the browser clock immediately before `File.array_buffer()`. After the await, accept the existing ticket before measuring or delivering anything.
+
+Read the returned buffer’s length on success; rejected reads record zero bytes. The phase keeps a bounded filename with query and fragment suffixes removed. Recording diagnostics leaves the existing import transaction unchanged.
+
+> **Self-Check Question:** *Why accept the read ticket before recording its duration?*  
+> **Answer:** Cancelled and superseded reads may still complete. Only the current ticket can append a measurement or deliver a file to this run.
+
+- **What You Should See:** Open a file, then type `Report`. Its phases list includes `file read`, the read duration, actual bytes and filename.
+- **Hands-On Lab Experiment:** Cancel a pending Open. Its late read must add neither a file nor a measurement.
+
 <details>
 <summary>Implementation 34gdd-read: Measure the selected file read</summary>
 
@@ -3416,6 +3585,22 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-34gde-measure"></a>
+
+### Step 8 of 15 · Measure a completed CPU operation (`34gde-measure`)
+
+- **Goal:** Measure CPU work without changing its success or failure.
+- **Data Flow Trace:** `clock → operation result → valid duration → metadata observer → original result`
+- **Files You Touch:** `src/load_measure.rs` (*Keep timing metadata separate from the operation’s owned data and result.*) · `src/lib.rs` (*Register the portable clock boundary and its tests.*) · `src/load_measure_tests.rs` (*Copy deterministic checks for the clock boundary.*)
+
+Wrap one synchronous operation with two clock samples. Pass only completed metadata to an observer and return the original result.
+
+The observer receives no document or source handle. Invalid clock values suppress diagnostics while the operation keeps its normal outcome. Native tests inject the clock; the browser uses its existing performance clock.
+
+> **Self-Check Question:** *Why return the operation result even when its clock is invalid?*  
+> **Answer:** Timing is diagnostic. A backwards or unavailable clock must never turn a successful edit into a failure.
+
+- **What You Should See:** Run the checks. Success and failure both keep their original result while valid clocks record one completed phase.
+- **Hands-On Lab Experiment:** Give the test clock a backwards pair of samples. The result stays unchanged and the observer stays quiet.
 
 <details>
 <summary>Implementation 34gde-measure: Measure a completed CPU operation</summary>
@@ -3487,6 +3672,22 @@ Copy this supplied file:
 </details>
 
 <a id="checkpoint-34gdea-import"></a>
+
+### Step 9 of 15 · Measure each document preparation phase (`34gdea-import`)
+
+- **Goal:** Record decode, validation, kernel construction and display preparation at their actual boundaries.
+- **Data Flow Trace:** `protobuf bytes → decode → validation → kernel → display walk → atomic scene adoption`
+- **Files You Touch:** `src/document.rs` (*Measure real preparation before committing any document state.*) · `src/browser_phase.rs` (*Store completed CPU samples without taking another end timestamp.*) · `src/lib.rs` (*Register document phase checks.*) · `src/document_phase_tests.rs` (*Copy checks for phase ordering, early failure and unchanged source precision.*)
+
+Measure the four operations that turn bytes into a prepared document. A failed operation records its own phase and returns before later work starts.
+
+Keep scene adoption outside preparation. The existing editor transaction still commits only a fully prepared document. Input byte counts describe the file size; they are not resident memory measurements.
+
+> **Self-Check Question:** *Why stop measuring after a failed phase?*  
+> **Answer:** The later work never ran. Recording it would invent a duration and hide where the import stopped.
+
+- **What You Should See:** Open a file and type `Report`. Four CPU phases appear after its file-read phase, in their execution order.
+- **Hands-On Lab Experiment:** Open a corrupt protobuf. Its report adds only `decode failed`; the drawing and Undo history remain unchanged.
 
 <details>
 <summary>Implementation 34gdea-import: Measure each document preparation phase</summary>
@@ -3626,6 +3827,22 @@ Copy this supplied file:
 </details>
 
 <a id="checkpoint-34gdf-upload"></a>
+
+### Step 10 of 15 · Measure upload preparation and GPU completion (`34gdf-upload`)
+
+- **Goal:** Distinguish CPU buffer preparation from completion on the drawing queue.
+- **Data Flow Trace:** `scene change → uploaded payload counter → CPU preparation → queue fence → current-device completion`
+- **Files You Touch:** `src/geometry_cache.rs` (*Count actual geometry payload, independently of resident buffer sizes.*) · `src/renderer.rs` (*Include initialized object settings and subsequent writes, excluding camera uniforms.*) · `src/browser_upload.rs` (*Fence the drawing queue and reject completion from a retired or failed device.*) · `src/lib.rs` (*Register the browser-only queue boundary.*) · `src/browser.rs` (*Measure successful scene synchronization after the editor transaction commits.*)
+
+Measure scene synchronization on the CPU, then fence the drawing queue. Append completion only while the same healthy device still owns the page.
+
+Count initialized vertex, index and object-setting bytes, plus later settings writes. Exclude allocation padding and camera uniforms. Queue completion includes prior queued work; it is not an isolated upload benchmark.
+
+> **Self-Check Question:** *Does queue completion measure only the upload?*  
+> **Answer:** No. It includes earlier queued work and callback delivery. Report it separately from CPU preparation rather than calling it an isolated transfer speed.
+
+- **What You Should See:** Open a file and type `Report`. The document phases are followed by `upload preparation` and `GPU upload ready`.
+- **Hands-On Lab Experiment:** Undo and Redo the import. Reused geometry avoids another vertex upload; only changed object settings are counted.
 
 <details>
 <summary>Implementation 34gdf-upload: Measure upload preparation and GPU completion</summary>
@@ -3836,6 +4053,22 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-34gdg-network"></a>
 
+### Step 11 of 15 · Measure accepted source fetches (`34gdg-network`)
+
+- **Goal:** Retain real fetch and Resource Timing measurements only for the accepted reload ticket.
+- **Data Flow Trace:** `source URL → bounded body read → completed samples → accepted ticket → safe report identity`
+- **Files You Touch:** `Cargo.toml` (*Enable the browser’s native network timing entry.*) · `src/browser_network.rs` (*Collect actual body and browser-network measurements without retaining source owners.*) · `src/lib.rs` (*Register network measurement and safe URL handling.*) · `src/browser_reload.rs` (*Retain measured fetch phases only after the existing ticket accepts the task.*)
+
+Time each actual source fetch, including its bounded body read. Keep the samples in the task until the reload ticket is accepted.
+
+Use the browser’s Resource Timing entry when available. Strip credentials, query and fragment from URL identities. Fetch duration includes body consumption; Resource Timing has its own network boundaries and may report zero transfer bytes.
+
+> **Self-Check Question:** *Why collect measurements locally until the reload ticket is accepted?*  
+> **Answer:** An aborted or superseded fetch can still settle. Its measurements must not enter the current report.
+
+- **What You Should See:** Open a file, type `Unload Sources`, then `Reload Sources` and `Report`. The accepted fetch adds its duration and actual body bytes.
+- **Hands-On Lab Experiment:** Cancel a pending Reload Sources. Its late response must add no fetch phase.
+
 <details>
 <summary>Implementation 34gdg-network: Measure accepted source fetches</summary>
 
@@ -3968,6 +4201,22 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-34gdga-revision"></a>
+
+### Step 12 of 15 · Record accepted file revisions (`34gdga-revision`)
+
+- **Goal:** Identify accepted source versions without recording rejected or stale documents.
+- **Data Flow Trace:** `prepared document → successful editor transaction → source hash → bounded revision event`
+- **Files You Touch:** `src/revision.rs` (*Collect only bounded hash strings from the accepted scene.*) · `src/lib.rs` (*Register accepted content identity.*) · `src/browser_phase.rs` (*Record each accepted version as a bounded event.*) · `src/browser.rs` (*Observe versions only after successful file adoption.*)
+
+Read version hashes from the adopted scene and retain one event per distinct source version. Hash strings carry no document ownership.
+
+Run this only after successful file adoption or accepted source restoration. A failed validation, cancelled ticket or stale reply adds no accepted revision. Ordinary camera and object edits are not new file versions.
+
+> **Self-Check Question:** *Why record the version after the scene transaction succeeds?*  
+> **Answer:** A readable file can still fail validation or lose its ticket. Its bytes are not an accepted document revision.
+
+- **What You Should See:** Open a file and type `Report`. Each distinct accepted file version has a SHA-256 revision event.
+- **Hands-On Lab Experiment:** Reopen identical bytes and then a corrupt file. The valid adoption reports its hash; the rejected file adds no revision.
 
 <details>
 <summary>Implementation 34gdga-revision: Record accepted file revisions</summary>
@@ -4743,6 +4992,24 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-34ge-owner"></a>
+
+### Step 13 of 15 · Keep the document outside the GPU runtime (`34ge-owner`)
+
+- **Goal:** Give GPU runtimes shared access to a separately owned CPU document.
+- **Data Flow Trace:** `CPU editor owner → drawing runtime → shared event access → GPU teardown → retained document`
+- **Files You Touch:** `src/drawing_document.rs` (*Give CPU document state an owner independent of a device or renderer.*) · `src/lib.rs` (*Register the independent document owner.*) · `src/browser.rs` (*Allow a drawing runtime to use an existing CPU document.*) · `src/browser_runtime.rs` (*Keep a CPU owner available to an authorized recovery path.*)
+
+Move the editor into a shared CPU owner before constructing the drawing runtime. Borrow it for startup and for each synchronous browser event.
+
+A renderer owns GPU resources; it does not own document authority. Recovery can later reuse this CPU owner after listeners and the failed renderer are dropped. Ordinary runtime shutdown still releases the owner when no recovery retains it.
+
+> **Self-Check Question:** *Why retain the editor rather than serialize a recovery snapshot?*  
+> **Answer:** The editor already owns exact geometry, selection, camera and Undo/Redo history. Reusing it preserves those states without lossy display reconstruction.
+
+- **What You Should See:** The viewer behaves as before. Inspect the supplied state fixtures to verify that the edited document and history remain independent of GPU ownership. Renderer teardown has a separate reference GPU check below.
+- **Hands-On Lab Experiment:** The reference GPU fixture checks that dropping a renderer releases GPU geometry while the document remains alive.
+
+From `session_viewer`, run `npm --prefix ../session_tests run course -- verify 34ge-owner` to reproduce that reference check. It reconstructs the canonical checkpoint under `target`; it does not test or change your handwritten project. Compare your source with `course -- check 34ge-owner` and run your project separately.
 
 <details>
 <summary>Implementation 34ge-owner: Keep the document outside the GPU runtime</summary>
@@ -5681,6 +5948,22 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-34gea-policy"></a>
 
+### Step 14 of 15 · Permit one conservative recovery reload (`34gea-policy`)
+
+- **Goal:** Allow one device-loss recovery reload and retain reduced quality until an ordinary reload.
+- **Data Flow Trace:** `device loss → one reload request → adopted recovery → reduced quality → next ordinary reload`
+- **Files You Touch:** `src/recovery.rs` (*Permit one recovery only for a normal run that lost its device.*) · `src/lib.rs` (*Register the one-reload policy and its tests.*) · `src/recovery_tests.rs` (*Copy normal, duplicate, recovered and fresh-run checks.*)
+
+Permit recovery only for device loss and only once. A recovered page starts with reduced quality and refuses another automatic reload.
+
+The policy contains no browser or document handles. Native checks exercise normal, pending and recovered runs. The next lesson connects this decision to the actual URL, saved diagnostic and canvas density.
+
+> **Self-Check Question:** *Why refuse another recovery when the page is already reduced?*  
+> **Answer:** Repeated losses can otherwise create an endless reload loop. A recovered run keeps its diagnostic and reports a second loss without another automatic reload.
+
+- **What You Should See:** Run the policy checks. Normal runs permit one device-loss reload; recovered runs refuse another.
+- **Hands-On Lab Experiment:** Request recovery for a validation error, then for device loss. Only the device-loss request is accepted.
+
 <details>
 <summary>Implementation 34gea-policy: Permit one conservative recovery reload</summary>
 
@@ -5751,6 +6034,22 @@ Copy this supplied file:
 </details>
 
 <a id="checkpoint-34geb-reload"></a>
+
+### Step 15 of 15 · Recover once at reduced canvas density (`34geb-reload`)
+
+- **Goal:** Save device-loss diagnostics, reload once and draw conservatively until the next ordinary reload.
+- **Data Flow Trace:** `current device loss → saved report → recovery URL → reduced drawing → clean URL → ordinary reload`
+- **Files You Touch:** `Cargo.toml` (*Enable recovery URL cleanup through the browser history API.*) · `src/browser_recovery.rs` (*Adopt one conservative reload and retain all other URL parameters.*) · `src/lib.rs` (*Register browser recovery policy and navigation.*) · `src/browser.rs` (*Persist and download the failed run before requesting its recovery reload.*)
+
+Save the current failure before navigating. Carry a bounded reason through the recovery URL, adopt reduced quality, then remove that temporary parameter.
+
+Cap the recovered canvas at device scale one. A second loss stays failed; an ordinary reload starts normal quality again. Page navigation discards unsaved edits. The URL-based scene loader introduced later reloads its published source.
+
+> **Self-Check Question:** *Why save the failure before replacing the page URL?*  
+> **Answer:** The old page cannot report after navigation. Persisting and downloading first keeps the original device-loss reason available in the recovered run.
+
+- **What You Should See:** A real device loss triggers one reload. The recovered canvas uses device scale at most one; `Report Previous` downloads the failed run.
+- **Hands-On Lab Experiment:** Lose the recovered device again. It reports failure without another reload. Reload normally to restore the original canvas density.
 
 <details>
 <summary>Implementation 34geb-reload: Recover once at reduced canvas density</summary>
@@ -6618,9 +6917,11 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 </details>
 
-## Run, Check, and Save
+---
 
-From `session_viewer`:
+## 5. Build, Verify, and Save Your Checkpoint
+
+Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 34geb-reload
@@ -6631,10 +6932,10 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. Use [checkpoint recovery](../../recovery.md) to restore any saved checkpoint.
+Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
 
-## Expected Visual Result & Experiment
+## 6. Lesson Summary & Expected Visual Result
 
 A real device loss triggers one reload. The recovered canvas uses device scale at most one; `Report Previous` downloads the failed run.
 
-- **Try this:** Lose the recovered device again. It reports failure without another reload. Reload normally to restore the original canvas density.
+- **Final Lesson Experiment:** Lose the recovered device again. It reports failure without another reload. Reload normally to restore the original canvas density.

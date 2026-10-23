@@ -1,88 +1,165 @@
 # 14.4 · Solid questions, previews and one original commit
 
-**Section 8: Precision Coordinate Frames, Solid Primitives, Surfacing, and CAD Editing** · **Lesson 14.4** (Redraft `8.4`) · **19 checkpoints (`74-copy-current-solid-geometry-and-question-definitions` → `74zb-build-original-cones-and-spheres`)**
+**Section 8: Precision Coordinate Frames, Solid Primitives, Surfacing, and CAD Editing** · **Lesson 14.4** (Redraft `8.4`) · **19 checkpoints (`74-copy-current-solid-geometry-and-question-definitions` → `74zb-build-original-cones-and-spheres`)** · **Study time: 9.8–19 h**
 
-> **Learning Goal:** Build icosahedron and dodecahedron through the shared kernel solid helpers.
+> **What You Will Learn & Build:** Build icosahedron and dodecahedron through the shared kernel solid helpers. By the final checkpoint (`74zb-build-original-cones-and-spheres`), you will reuse the cylinder’s existing center, radius and height questions for a cone.
 
-## Visual WebGPU & Architecture Schematic
+## 1. Visual Pipeline & WebGPU Architecture (Black & White Schematics)
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1px solid #cbd5e1;border-radius:10px;background:#f8fafc;">
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
+<svg viewBox="0 0 840 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <rect x="4" y="4" width="832" height="212" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Lesson 14.4 Execution Flow: Solid questions, previews and one original commit</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">Concrete data pipeline you build in this lesson (19 Checkpoints: 74-copy-current-solid-geometry-and-question-definitions → 74zb-build-original-cones-and-spheres)</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
+  
+    
+    <rect x="18" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="89" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
+    <line x1="28" y1="92" x2="151" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">kernel</text>
+    <text x="89" y="124" text-anchor="middle" font-size="11" fill="#111111">regular-solid</text>
+    <text x="89" y="140" text-anchor="middle" font-size="11" fill="#111111">constructor</text>
+    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="183" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="254" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
+    <line x1="193" y1="92" x2="316" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">shared radius</text>
+    <text x="254" y="124" text-anchor="middle" font-size="11" fill="#111111">normalization</text>
+    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="348" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="419" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
+    <line x1="358" y1="92" x2="481" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">existing frame and</text>
+    <text x="419" y="124" text-anchor="middle" font-size="11" fill="#111111">solid conversion</text>
+    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="513" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="584" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
+    <line x1="523" y1="92" x2="646" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">existing questions</text>
+    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="678" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="749" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
+    <line x1="688" y1="92" x2="811" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">checked local frame</text>
+    
+    <rect x="18" y="162" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="32" y="181" font-size="11" font-weight="700" fill="#111111">Files You Edit in Lesson 14.4:</text>
+    <text x="215" y="181" font-size="11" fill="#111111">src/primitive_icosahedron.rs  ·  src/lib.rs  ·  src/primitive_dodecahedron.rs  ·  src/primitive_draft.rs  ·  src/primitive_geometry.rs  ·  src/tool.rs</text>
+    <text x="32" y="198" font-size="10.5" fill="#111111">19 Checkpoints: 74-copy-current-solid-geometry-and-question-definitions → 74zb-build-original-cones-and-spheres — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
+  
+</svg>
+</div>
+
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
 <svg viewBox="0 0 840 240" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#475569"/>
-    </marker>
-    <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#2563eb"/>
-    </marker>
-    <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#059669"/>
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
     </marker>
   </defs>
-  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
-  <text x="20" y="28" font-size="14" font-weight="700" fill="#0f172a">Section 8 Precision CAD Frames, Solid Primitives, Surfacing & Sub-Object Deformation (Chapters 14–16)</text>
-  <text x="20" y="46" font-size="11.5" fill="#475569">How double-precision coordinate frames (Plane), parametric solids, Loft/Sweep/Extrude surfaces, and Gumball control edits work.</text>
-  <line x1="16" y1="54" x2="824" y2="54" stroke="#e2e8f0" stroke-width="1"/>
+  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Section 8 Precision CAD Frames, Solid Primitives, Surfacing & Sub-Object Deformation (Chapters 14–16)</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">How double-precision coordinate frames (Plane), parametric solids, Loft/Sweep/Extrude surfaces, and Gumball control edits work.</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
   
-    <rect x="18" y="68" width="245" height="145" rx="6" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
-    <text x="140" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1e40af">1. Orthonormal Frames (Ch 14)</text>
-    <text x="28" y="108" font-size="10.5" fill="#1e3a8a">• Plane { origin: Vec3d, x, y, z }</text>
-    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#1d4ed8">• Rejects non-finite / collinear axes</text>
-    <text x="28" y="144" font-size="10.5" fill="#1e3a8a">• Basis change: World &lt;-&gt; Local Plane</text>
-    <text x="28" y="162" font-size="10.5" fill="#1e3a8a">• Exact Mirror, Rotate3D, Orient,</text>
-    <text x="28" y="178" font-size="10.5" fill="#1e3a8a">  and Align frame transformations</text>
+    <rect x="18" y="68" width="245" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="140" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">1. Orthonormal Frames (Ch 14)</text>
+    <text x="28" y="108" font-size="10.5" fill="#111111">• Plane { origin: Vec3d, x, y, z }</text>
+    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#111111">• Rejects non-finite / collinear axes</text>
+    <text x="28" y="144" font-size="10.5" fill="#111111">• Basis change: World &lt;-&gt; Local Plane</text>
+    <text x="28" y="162" font-size="10.5" fill="#111111">• Exact Mirror, Rotate3D, Orient,</text>
+    <text x="28" y="178" font-size="10.5" fill="#111111">  and Align frame transformations</text>
 
-    <line x1="263" y1="138" x2="293" y2="138" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
+    <line x1="263" y1="138" x2="293" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="295" y="68" width="265" height="145" rx="6" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5"/>
-    <text x="427" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#9a3412">2. Solids &amp; Surfacing (Ch 15–16)</text>
-    <text x="307" y="108" font-size="10.5" fill="#7c2d12">• Parametric Box, Cylinder, Sphere, Cone</text>
-    <text x="307" y="126" font-size="10.5" font-weight="600" fill="#c2410c">• Extrude, Revolve, Loft, Sweep, Planar</text>
-    <text x="307" y="144" font-size="10.5" fill="#7c2d12">• Curve Split, Trim, Extend, Join, Fillet</text>
-    <text x="307" y="162" font-size="10.5" fill="#7c2d12">• Every operation commits an atomic</text>
-    <text x="307" y="178" font-size="10.5" fill="#7c2d12">  session_rust kernel transaction</text>
+    <rect x="295" y="68" width="265" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="427" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">2. Solids &amp; Surfacing (Ch 15–16)</text>
+    <text x="307" y="108" font-size="10.5" fill="#111111">• Parametric Box, Cylinder, Sphere, Cone</text>
+    <text x="307" y="126" font-size="10.5" font-weight="600" fill="#111111">• Extrude, Revolve, Loft, Sweep, Planar</text>
+    <text x="307" y="144" font-size="10.5" fill="#111111">• Curve Split, Trim, Extend, Join, Fillet</text>
+    <text x="307" y="162" font-size="10.5" fill="#111111">• Every operation commits an atomic</text>
+    <text x="307" y="178" font-size="10.5" fill="#111112">  session_rust kernel transaction</text>
 
-    <line x1="560" y1="138" x2="590" y2="138" stroke="#059669" stroke-width="2" marker-end="url(#arrow-green)"/>
+    <line x1="560" y1="138" x2="590" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="592" y="68" width="228" height="145" rx="6" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1.5"/>
-    <text x="706" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#065f46">3. Rational Control-Point Deform</text>
-    <text x="604" y="108" font-size="10.5" fill="#064e3b">• Pick NURBS control point or vertex</text>
-    <text x="604" y="126" font-size="10.5" font-weight="600" fill="#047857">• Preserve homogeneous weight w</text>
-    <text x="604" y="142" font-size="10.5" font-weight="600" fill="#047857">  on rational curve control drags!</text>
-    <text x="604" y="162" font-size="10.5" fill="#064e3b">• Rebuild derived GPU tessellation</text>
-    <text x="604" y="178" font-size="10.5" fill="#064e3b">  in-place while keeping Object ID</text>
+    <rect x="592" y="68" width="228" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="706" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">3. Rational Control-Point Deform</text>
+    <text x="604" y="108" font-size="10.5" fill="#111111">• Pick NURBS control point or vertex</text>
+    <text x="604" y="126" font-size="10.5" font-weight="600" fill="#111111">• Preserve homogeneous weight w</text>
+    <text x="604" y="142" font-size="10.5" font-weight="600" fill="#111111">  on rational curve control drags!</text>
+    <text x="604" y="162" font-size="10.5" fill="#111111">• Rebuild derived GPU tessellation</text>
+    <text x="604" y="178" font-size="10.5" fill="#111111">  in-place while keeping Object ID</text>
     
 </svg>
 </div>
 
-### Lesson Data Flow (`Rust` → `WebGPU` → `WGSL`)
+## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
 
-```
-kernel regular-solid constructor → shared radius normalization → existing frame and solid conversion.
-shape text → checked batch → original point list or error.
-existing questions → checked local frame → exact kernel solid.
-```
+Before writing code, review how the three layers in this chapter talk to each other:
 
-- Build icosahedron and dodecahedron through the shared kernel solid helpers.
-- Route typed shape input and preserve detailed errors.
-- Reuse the cylinder’s existing center, radius and height questions for a cone.
-- **Why it works (Which parts of the regular-solid pipeline change for a different polyhedron?):** The kernel constructor, name and cache identity change. Radius questions, normalization, placement and BRep conversion stay shared.
-
-### Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `Browser`)
-
-| Layer | Construct | First-Year Student Explanation |
+| Layer | Construct | Plain-English Explanation for Students |
 | :--- | :--- | :--- |
 | **CAD Coords** | `w10,20,0` vs `@5,0,0` vs `10<30` | `w` forces absolute World coordinates; `@` measures relative to the last accepted point; `<` uses polar distance and angle in the active Construction Plane. |
 | **Rational NURBS** | Homogeneous control point `(w*x, w*y, w*z, w)` | Represents circles, ellipses, and conic arcs with zero approximation error using non-uniform weights `w`. |
 | **B-Rep Split/Trim** | Plane/Cutter intersection -> Face loop classification | Splits or trims B-Rep and mesh faces along cutting planes/curves while keeping retained topology tables valid. |
 
-**Production source (`session_viewer/src`):** [app/walk/sheet.rs](../../../../src/app/walk/sheet.rs), [app/sheet_query.rs](../../../../src/app/sheet_query.rs), [app/stream.rs](../../../../src/app/stream.rs), [app/cplane.rs](../../../../src/app/cplane.rs), [app/coords.rs](../../../../src/app/coords.rs), [app/command/tool/shape.rs](../../../../src/app/command/tool/shape.rs), [app/command/tool/gather.rs](../../../../src/app/command/tool/gather.rs), [app/deform.rs](../../../../src/app/deform.rs).
+**Authoritative production source (`session_viewer/src`):** [app/walk/sheet.rs](../../../../src/app/walk/sheet.rs), [app/sheet_query.rs](../../../../src/app/sheet_query.rs), [app/stream.rs](../../../../src/app/stream.rs), [app/cplane.rs](../../../../src/app/cplane.rs), [app/coords.rs](../../../../src/app/coords.rs), [app/command/tool/shape.rs](../../../../src/app/command/tool/shape.rs), [app/command/tool/gather.rs](../../../../src/app/command/tool/gather.rs), [app/deform.rs](../../../../src/app/deform.rs).
 
-## Implementation Checkpoints
+## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
 
-Apply these checkpoints in order inside `workspace/journey`. Expand each block to view the Rust/WGSL/HTML edits:
+| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
+| ---: | :--- | :--- | :--- | :--- |
+| **1** | [`74-copy-current-solid-geometry-and-question-definitions`](#checkpoint-74-copy-current-solid-geometry-and-question-definitions) | Build icosahedron and dodecahedron through the shared kernel solid helpers. | `src/primitive_icosahedron.rs`, `src/lib.rs`, `src/primitive_dodecahedron.rs` | `kernel regular-solid constructor → shared radius normalization → existing frame and solid conversion` |
+| **2** | [`74a-own-current-shape-questions-and-answer-state`](#checkpoint-74a-own-current-shape-questions-and-answer-state) | Own current shape questions and answer state. | `src/primitive_draft.rs`, `src/lib.rs` | `question definition → original answers → current frame and part` |
+| **3** | [`74b-validate-a-new-answer-before-changing-its-original-state`](#checkpoint-74b-validate-a-new-answer-before-changing-its-original-state) | Validate a new answer before changing its original state. | `src/primitive_draft.rs` | `candidate answer → checked current frame → validated part` |
+| **4** | [`74c-build-only-after-the-last-shape-question`](#checkpoint-74c-build-only-after-the-last-shape-question) | Build only after the last shape question. | `src/primitive_draft.rs` | `last validated answer → original kernel geometry → accepted answer state` |
+| **5** | [`74d-answer-shape-dimensions-with-atomic-typed-batches`](#checkpoint-74d-answer-shape-dimensions-with-atomic-typed-batches) | Answer shape dimensions with atomic typed batches. | `src/primitive_draft.rs` | `typed batch → current questions → checked original answers → one result` |
+| **6** | [`74e-preview-solid-wires-and-measure-normal-axis-clicks`](#checkpoint-74e-preview-solid-wires-and-measure-normal-axis-clicks) | Preview solid wires and measure normal axis clicks. | `src/primitive_draft.rs` | `pending cursor → current part → temporary wires or normal-axis point` |
+| **7** | [`74f-adopt-original-primitive-geometry-through-existing-rows`](#checkpoint-74f-adopt-original-primitive-geometry-through-existing-rows) | Adopt original primitive geometry through existing rows. | `src/primitive_geometry.rs`, `src/lib.rs`, `src/tool.rs`, `src/editor.rs` | `original geometry result → original scene row → one transaction` |
+| **8** | [`74g-keep-primitive-answers-beside-the-existing-drawing-draft`](#checkpoint-74g-keep-primitive-answers-beside-the-existing-drawing-draft) | Keep primitive answers beside the existing drawing draft. | `src/tool.rs` | `current drawing owner → mixed primitive answers → temporary wire sets` |
+| **9** | [`74h-route-clicked-points-to-the-current-shape-question`](#checkpoint-74h-route-clicked-points-to-the-current-shape-question) | Route clicked points to the current shape question. | `src/editor.rs` | `current clicked world point → shape answer → completed original result` |
+| **10** | [`74i-route-typed-shape-input-and-preserve-detailed-errors`](#checkpoint-74i-route-typed-shape-input-and-preserve-detailed-errors) | Route typed shape input and preserve detailed errors. | `src/editor.rs` | `shape text → checked batch → original point list or error` |
+| **11** | [`74j-synchronize-shape-frames-before-accepting-plane-changes`](#checkpoint-74j-synchronize-shape-frames-before-accepting-plane-changes) | Synchronize shape frames before accepting plane changes. | `src/editor.rs` | `current Editor plane → validated shape part → active input context` |
+| **12** | [`74k-resolve-height-clicks-without-closing-an-open-shape-collector`](#checkpoint-74k-resolve-height-clicks-without-closing-an-open-shape-collector) | Resolve height clicks without closing an open shape collector. | `src/editor.rs` | `current question kind → normal-axis click → original answer` |
+| **13** | [`74l-prepare-complete-solid-commands-before-replacing-a-draft`](#checkpoint-74l-prepare-complete-solid-commands-before-replacing-a-draft) | Prepare complete solid commands before replacing a draft. | `src/editor.rs` | `solid command → validated current answers → draft adoption or original commit` |
+| **14** | [`74m-register-every-current-solid-name-and-representation`](#checkpoint-74m-register-every-current-solid-name-and-representation) | Register every current solid name and representation. | `src/primitive_registry.rs`, `src/lib.rs`, `src/commands.rs` | `registered solid name → maintained definition and choice → Editor action` |
+| **15** | [`74n-draw-temporary-solid-wire-sets-and-report-current-input-failures`](#checkpoint-74n-draw-temporary-solid-wire-sets-and-report-current-input-failures) | Draw temporary solid wire sets and report current input failures. | `src/tool_preview.rs`, `src/browser.rs` | `pending wire sets → temporary GPU strokes → current prompt and error` |
+| **16** | [`74o-keep-quick-mouse-drift-as-a-click-using-current-event-time`](#checkpoint-74o-keep-quick-mouse-drift-as-a-click-using-current-event-time) | Keep quick mouse drift as a click using current event time. | `src/gesture.rs`, `src/browser.rs` | `pointer press time → CSS motion and hold → click or owned drag` |
+| **17** | [`74p-exercise-current-solid-input-and-original-persistence`](#checkpoint-74p-exercise-current-solid-input-and-original-persistence) | Exercise current solid input and original persistence. | `src/primitive_tests.rs`, `src/lib.rs` | `current solid questions → original solid → one history transaction → exact reopening` |
+| **18** | [`74za-build-original-cylinders-with-signed-height`](#checkpoint-74za-build-original-cylinders-with-signed-height) | Build cylinders with positive or negative height using the solid frame and radius checks already taught. | `src/round_cylinder.rs`, `src/lib.rs` | `existing questions → checked local frame → exact kernel solid` |
+| **19** | [`74zb-build-original-cones-and-spheres`](#checkpoint-74zb-build-original-cones-and-spheres) | Reuse the cylinder’s existing center, radius and height questions for a cone. | `src/round_cone.rs`, `src/lib.rs`, `src/round_sphere.rs` | `existing questions → checked local frame → exact kernel solid` |
+
+---
+
+## 4. Step-by-Step Coding Notebook (Concept + Implementation)
+
+Work through each notebook cell below in order inside `workspace/journey`. Read the **Concept Walkthrough** and **Self-Check Q&A** first, then expand the **Implementation** block to type and verify the code.
 
 <a id="checkpoint-74-copy-current-solid-geometry-and-question-definitions"></a>
+
+### Step 1 of 19 · Add the remaining regular kernel solids (`74-copy-current-solid-geometry-and-question-definitions`)
+
+- **Goal:** Build icosahedron and dodecahedron through the shared kernel solid helpers.
+- **Data Flow Trace:** `kernel regular-solid constructor → shared radius normalization → existing frame and solid conversion`
+- **Files You Touch:** `src/primitive_icosahedron.rs` (*Type the regular-solid wrapper using the existing common helpers.*) · `src/lib.rs` (*Register this completed kernel solid.*) · `src/primitive_dodecahedron.rs` (*Type the regular-solid wrapper using the existing common helpers.*)
+
+Add icosahedron and dodecahedron builders using the same radius reader, unit-face cache and placement helper. Only the kernel constructors and solid names change.
+
+> **Self-Check Question:** *Which parts of the regular-solid pipeline change for a different polyhedron?*  
+> **Answer:** The kernel constructor, name and cache identity change. Radius questions, normalization, placement and BRep conversion stay shared.
+
+- **What You Should See:** The original rectangle and polygon remain visible while current solid tools connect. The completed exercise creates a Box, Pyramid and Block With Hole.
+- **Hands-On Lab Experiment:** Compare the accepted icosahedron and dodecahedron face counts. Trace their shared radius normalization without adding a second algorithm.
 
 <details>
 <summary>Implementation 74-copy-current-solid-geometry-and-question-definitions: Add the remaining regular kernel solids</summary>
@@ -213,6 +290,19 @@ After that block, append this supplied code:
 
 <a id="checkpoint-74a-own-current-shape-questions-and-answer-state"></a>
 
+### Step 2 of 19 · Own current shape questions and answer state (`74a-own-current-shape-questions-and-answer-state`)
+
+- **Goal:** Own current shape questions and answer state.
+- **Data Flow Trace:** `question definition → original answers → current frame and part`
+- **Files You Touch:** `src/primitive_draft.rs` (*Own checked current primitive questions, representation choice and original answer state.*) · `src/lib.rs` (*Register the primitive component.*)
+
+Retain Point or Number answers, the chosen representation and a checked frame beside the current question.
+
+> **Self-Check Question:** *Why distinguish a number from a point?*  
+> **Answer:** A number answers a size or signed height. A point supplies a measured location in the current frame.
+
+- **Hands-On Lab Experiment:** Compare Box base center, corner or length, width and signed height prompts.
+
 <details>
 <summary>Implementation 74a-own-current-shape-questions-and-answer-state: Own current shape questions and answer state</summary>
 
@@ -254,6 +344,19 @@ After that block, type:
 
 <a id="checkpoint-74b-validate-a-new-answer-before-changing-its-original-state"></a>
 
+### Step 3 of 19 · Validate a new answer before changing its original state (`74b-validate-a-new-answer-before-changing-its-original-state`)
+
+- **Goal:** Validate a new answer before changing its original state.
+- **Data Flow Trace:** `candidate answer → checked current frame → validated part`
+- **Files You Touch:** `src/primitive_draft.rs` (*Validate original answer candidates and changed frames without partially adopting them.*)
+
+Clone the accepted answers, derive their current frame and reject a bad dimension before adopting the candidate.
+
+> **Self-Check Question:** *Can a bad height erase accepted dimensions?*  
+> **Answer:** No. The failed candidate leaves the previous answers and original geometry unchanged.
+
+- **Hands-On Lab Experiment:** Reject NaN, zero dimensions, an axis-aligned corner and coordinates outside the accepted range.
+
 <details>
 <summary>Implementation 74b-validate-a-new-answer-before-changing-its-original-state: Validate a new answer before changing its original state</summary>
 
@@ -285,6 +388,19 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-74c-build-only-after-the-last-shape-question"></a>
+
+### Step 4 of 19 · Build only after the last shape question (`74c-build-only-after-the-last-shape-question`)
+
+- **Goal:** Build only after the last shape question.
+- **Data Flow Trace:** `last validated answer → original kernel geometry → accepted answer state`
+- **Files You Touch:** `src/primitive_draft.rs` (*Build a complete original primitive before adopting the completed answer set.*)
+
+Prepare original geometry before committing the accepted answer set; unfinished dimensions create no scene object.
+
+> **Self-Check Question:** *Does entering a width create half a box?*  
+> **Answer:** No. The current definition still asks for height. Build only after all required questions are answered.
+
+- **Hands-On Lab Experiment:** Compare an unfinished Box base with the final signed-height answer.
 
 <details>
 <summary>Implementation 74c-build-only-after-the-last-shape-question: Build only after the last shape question</summary>
@@ -318,6 +434,19 @@ Edit the existing block to match this code; keep unchanged lines:
 
 <a id="checkpoint-74d-answer-shape-dimensions-with-atomic-typed-batches"></a>
 
+### Step 5 of 19 · Answer shape dimensions with atomic typed batches (`74d-answer-shape-dimensions-with-atomic-typed-batches`)
+
+- **Goal:** Answer shape dimensions with atomic typed batches.
+- **Data Flow Trace:** `typed batch → current questions → checked original answers → one result`
+- **Files You Touch:** `src/primitive_draft.rs` (*Resolve current shape choices, numbers, coordinates and Enter defaults atomically.*)
+
+Resolve numbers, current-plane points, choices and offered Enter defaults before replacing the current answer set.
+
+> **Self-Check Question:** *Can input after completion change the created representation?*  
+> **Answer:** No. Reject extra words atomically, including a trailing option after the last dimension.
+
+- **Hands-On Lab Experiment:** Try Box0,0,0 2 3 4 extra, then typed dimensions with an offered width and height default.
+
 <details>
 <summary>Implementation 74d-answer-shape-dimensions-with-atomic-typed-batches: Answer shape dimensions with atomic typed batches</summary>
 
@@ -350,6 +479,19 @@ Edit the existing block to match this code; keep unchanged lines:
 
 <a id="checkpoint-74e-preview-solid-wires-and-measure-normal-axis-clicks"></a>
 
+### Step 6 of 19 · Preview solid wires and measure normal axis clicks (`74e-preview-solid-wires-and-measure-normal-axis-clicks`)
+
+- **Goal:** Preview solid wires and measure normal axis clicks.
+- **Data Flow Trace:** `pending cursor → current part → temporary wires or normal-axis point`
+- **Files You Touch:** `src/primitive_draft.rs` (*Derive temporary current solid wires and finite height-axis click locations.*)
+
+Derive temporary wires from the pending answer and resolve a height click along the frame’s normal.
+
+> **Self-Check Question:** *Why reject a height click from Top on an XY base?*  
+> **Answer:** The view lies along the height axis, so that click cannot determine a unique height. A typed number remains valid.
+
+- **Hands-On Lab Experiment:** Compare the base preview, a complete cuboid preview and a height-axis click from an oblique view.
+
 <details>
 <summary>Implementation 74e-preview-solid-wires-and-measure-normal-axis-clicks: Preview solid wires and measure normal axis clicks</summary>
 
@@ -381,6 +523,19 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-74f-adopt-original-primitive-geometry-through-existing-rows"></a>
+
+### Step 7 of 19 · Adopt original primitive geometry through existing rows (`74f-adopt-original-primitive-geometry-through-existing-rows`)
+
+- **Goal:** Adopt original primitive geometry through existing rows.
+- **Data Flow Trace:** `original geometry result → original scene row → one transaction`
+- **Files You Touch:** `src/primitive_geometry.rs` (*Adopt original kernel geometry through existing original-source scene rows.*) · `src/lib.rs` (*Register the primitive component.*) · `src/tool.rs` (*Carry an original completed primitive result beside existing point and placement results.*) · `src/editor.rs` (*Commit completed original primitive geometry inside the existing history transaction.*)
+
+Send original BRep, Mesh and NURBS curve results to the established scene adapters and history boundary.
+
+> **Self-Check Question:** *Does the tool save its preview mesh?*  
+> **Answer:** No. It saves the original kernel geometry; derived display and temporary wires remain separate.
+
+- **Hands-On Lab Experiment:** Inspect the original BRep owner and Mesh source before Undo and exact archive reopening.
 
 <details>
 <summary>Implementation 74f-adopt-original-primitive-geometry-through-existing-rows: Adopt original primitive geometry through existing rows</summary>
@@ -467,6 +622,19 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-74g-keep-primitive-answers-beside-the-existing-drawing-draft"></a>
+
+### Step 8 of 19 · Keep primitive answers beside the existing drawing draft (`74g-keep-primitive-answers-beside-the-existing-drawing-draft`)
+
+- **Goal:** Keep primitive answers beside the existing drawing draft.
+- **Data Flow Trace:** `current drawing owner → mixed primitive answers → temporary wire sets`
+- **Files You Touch:** `src/tool.rs` (*Own mixed original primitive answers and multiple temporary wire sets with the current draft.*)
+
+Reuse the current draft owner and preview lifecycle while retaining the shape’s mixed point and number answers.
+
+> **Self-Check Question:** *Do number answers become fabricated points?*  
+> **Answer:** No. Keep their original answer kind. Only actual point answers participate in point snapping and coordinate history.
+
+- **Hands-On Lab Experiment:** Compare shape answers with the draft’s accepted point list and temporary multiple-wire outlines.
 
 <details>
 <summary>Implementation 74g-keep-primitive-answers-beside-the-existing-drawing-draft: Keep primitive answers beside the existing drawing draft</summary>
@@ -749,6 +917,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-74h-route-clicked-points-to-the-current-shape-question"></a>
+
+### Step 9 of 19 · Route clicked points to the current shape question (`74h-route-clicked-points-to-the-current-shape-question`)
+
+- **Goal:** Route clicked points to the current shape question.
+- **Data Flow Trace:** `current clicked world point → shape answer → completed original result`
+- **Files You Touch:** `src/editor.rs` (*Connect current shape answers to the existing Editor transaction boundary.*)
+
+Validate the current Point answer and send a completed original result through the same commit function.
+
+> **Self-Check Question:** *Should a clicked height use the ground plane?*  
+> **Answer:** No. The current Height question uses its normal-axis point; ordinary point questions use the current construction plane.
+
+- **Hands-On Lab Experiment:** Answer a Box corner with a point and compare its dimensions with the typed version.
 
 <details>
 <summary>Implementation 74h-route-clicked-points-to-the-current-shape-question: Route clicked points to the current shape question</summary>
@@ -1720,6 +1901,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-74i-route-typed-shape-input-and-preserve-detailed-errors"></a>
+
+### Step 10 of 19 · Route typed shape input and preserve detailed errors (`74i-route-typed-shape-input-and-preserve-detailed-errors`)
+
+- **Goal:** Route typed shape input and preserve detailed errors.
+- **Data Flow Trace:** `shape text → checked batch → original point list or error`
+- **Files You Touch:** `src/editor.rs` (*Connect current shape answers to the existing Editor transaction boundary.*)
+
+Recognize current options and coordinates during a shape tool and keep its detailed invalid-input message.
+
+> **Self-Check Question:** *Does typing Fit answer a shape dimension?*  
+> **Answer:** No. Known navigation commands still reach the command registry; the current drawing owner retains unfinished answers.
+
+- **Hands-On Lab Experiment:** Try numeric dimensions, Mesh, Enter defaults, invalid batches, Fit and Escape in one unfinished Box.
 
 <details>
 <summary>Implementation 74i-route-typed-shape-input-and-preserve-detailed-errors: Route typed shape input and preserve detailed errors</summary>
@@ -2716,6 +2910,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-74j-synchronize-shape-frames-before-accepting-plane-changes"></a>
 
+### Step 11 of 19 · Synchronize shape frames before accepting plane changes (`74j-synchronize-shape-frames-before-accepting-plane-changes`)
+
+- **Goal:** Synchronize shape frames before accepting plane changes.
+- **Data Flow Trace:** `current Editor plane → validated shape part → active input context`
+- **Files You Touch:** `src/editor.rs` (*Synchronize validated current primitive frames with fixed construction-plane changes.*)
+
+Validate the shape’s changed frame before updating the current Editor plane and unfinished input owner.
+
+> **Self-Check Question:** *Can an invalid changed frame silently alter the current dimensions?*  
+> **Answer:** No. Refuse the change before replacing the owning Editor’s fixed plane and current part.
+
+- **Hands-On Lab Experiment:** Compare Box center/corner answers on XY and XZ, including a corner that becomes degenerate.
+
 <details>
 <summary>Implementation 74j-synchronize-shape-frames-before-accepting-plane-changes: Synchronize shape frames before accepting plane changes</summary>
 
@@ -3696,6 +3903,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-74k-resolve-height-clicks-without-closing-an-open-shape-collector"></a>
+
+### Step 12 of 19 · Resolve height clicks without closing an open shape collector (`74k-resolve-height-clicks-without-closing-an-open-shape-collector`)
+
+- **Goal:** Resolve height clicks without closing an open shape collector.
+- **Data Flow Trace:** `current question kind → normal-axis click → original answer`
+- **Files You Touch:** `src/editor.rs` (*Connect the current solid input and original geometry contract.*)
+
+Use the shape’s current Height question before ordinary snapping and exclude it from Polyline start-point closure.
+
+> **Self-Check Question:** *Does a shape tool’s zero fixed count mean Polyline Close?*  
+> **Answer:** No. Its question sequence controls completion. Polyline start-point closure belongs only to the open point collector.
+
+- **Hands-On Lab Experiment:** Compare a Box height click with a Polyline click on its own first point.
 
 <details>
 <summary>Implementation 74k-resolve-height-clicks-without-closing-an-open-shape-collector: Resolve height clicks without closing an open shape collector</summary>
@@ -4709,6 +4929,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-74l-prepare-complete-solid-commands-before-replacing-a-draft"></a>
+
+### Step 13 of 19 · Prepare complete solid commands before replacing a draft (`74l-prepare-complete-solid-commands-before-replacing-a-draft`)
+
+- **Goal:** Prepare complete solid commands before replacing a draft.
+- **Data Flow Trace:** `solid command → validated current answers → draft adoption or original commit`
+- **Files You Touch:** `src/editor.rs` (*Validate direct solid tool candidates before replacing current original input.*)
+
+Validate a current solid name, representation and full typed input before adopting its unfinished or completed tool.
+
+> **Self-Check Question:** *Can a bad direct Box command clear a valid Line draft?*  
+> **Answer:** No. Validate the complete new candidate first, then replace the current draft after success.
+
+- **Hands-On Lab Experiment:** Keep one Line point, try Box0,0,0 0 3 4, and verify the original Line draft remains.
 
 <details>
 <summary>Implementation 74l-prepare-complete-solid-commands-before-replacing-a-draft: Prepare complete solid commands before replacing a draft</summary>
@@ -5740,6 +5973,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-74m-register-every-current-solid-name-and-representation"></a>
 
+### Step 14 of 19 · Register every current solid name and representation (`74m-register-every-current-solid-name-and-representation`)
+
+- **Goal:** Register every current solid name and representation.
+- **Data Flow Trace:** `registered solid name → maintained definition and choice → Editor action`
+- **Files You Touch:** `src/primitive_registry.rs` (*Register current solid names, representation options and the existing Box alias.*) · `src/lib.rs` (*Register the primitive component.*) · `src/commands.rs` (*Route every current solid name and representation to its maintained original builder.*)
+
+Map current solid names, Brep/Mesh options and the Box alias to their maintained shape definitions.
+
+> **Self-Check Question:** *Are several solids hidden under Example Box?*  
+> **Answer:** No. Every maintained solid in this family has its own registered invocation and result.
+
+- **Hands-On Lab Experiment:** Invoke Box, Pyramid, Block With Hole and each regular polyhedron in Brep and Mesh forms; try bo.
+
 <details>
 <summary>Implementation 74m-register-every-current-solid-name-and-representation: Register every current solid name and representation</summary>
 
@@ -6017,6 +6263,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-74n-draw-temporary-solid-wire-sets-and-report-current-input-failures"></a>
 
+### Step 15 of 19 · Draw temporary solid wire sets and report current input failures (`74n-draw-temporary-solid-wire-sets-and-report-current-input-failures`)
+
+- **Goal:** Draw temporary solid wire sets and report current input failures.
+- **Data Flow Trace:** `pending wire sets → temporary GPU strokes → current prompt and error`
+- **Files You Touch:** `src/tool_preview.rs` (*Preview independent temporary solid wire sets without connecting unrelated boundaries.*) · `src/browser.rs` (*Show current detailed shape input failures without changing the existing browser command lifecycle.*)
+
+Draw each pending wire independently and deliver the original detailed shape error through the existing command UI.
+
+> **Self-Check Question:** *Should separate wires be joined into one polyline?*  
+> **Answer:** No. Their independent boundaries must not gain fabricated connector segments between the base, top and side edges.
+
+- **Hands-On Lab Experiment:** Hover a Box height and inspect both rectangles and four vertical edges before completion.
+
 <details>
 <summary>Implementation 74n-draw-temporary-solid-wire-sets-and-report-current-input-failures: Draw temporary solid wire sets and report current input failures</summary>
 
@@ -6073,6 +6332,19 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-74o-keep-quick-mouse-drift-as-a-click-using-current-event-time"></a>
+
+### Step 16 of 19 · Keep quick mouse drift as a click using current event time (`74o-keep-quick-mouse-drift-as-a-click-using-current-event-time`)
+
+- **Goal:** Keep quick mouse drift as a click using current event time.
+- **Data Flow Trace:** `pointer press time → CSS motion and hold → click or owned drag`
+- **Files You Touch:** `src/gesture.rs` (*Use current430accda quick-click drift thresholds and explicit gesture timestamps.*) · `src/browser.rs` (*Supply actual browser pointer event times to current click and drag ownership.*)
+
+Use the latest local click thresholds and actual browser event timestamps before starting a scene drag.
+
+> **Self-Check Question:** *Should a five-pixel quick wobble move geometry?*  
+> **Answer:** No. It stays a click. A move beyond10 pixels, or beyond4 pixels held200ms, starts a drag.
+
+- **Hands-On Lab Experiment:** Compare a quick5-pixel drift, a12-pixel flick, a held5-pixel move and an unrelated pointer.
 
 <details>
 <summary>Implementation 74o-keep-quick-mouse-drift-as-a-click-using-current-event-time: Keep quick mouse drift as a click using current event time</summary>
@@ -7174,6 +7446,20 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-74p-exercise-current-solid-input-and-original-persistence"></a>
 
+### Step 17 of 19 · Exercise current solid input and original persistence (`74p-exercise-current-solid-input-and-original-persistence`)
+
+- **Goal:** Exercise current solid input and original persistence.
+- **Data Flow Trace:** `current solid questions → original solid → one history transaction → exact reopening`
+- **Files You Touch:** `src/primitive_tests.rs` (*Copy current integrated solid input, original persistence, axis clicks, temporary preview and atomic error fixtures.*) · `src/lib.rs` (*Register the primitive component.*)
+
+Copy current dimension, choice, default, preview, history and exact original Save/Open fixtures.
+
+> **Self-Check Question:** *What distinguishes the tool’s answers from its saved geometry?*  
+> **Answer:** Answers and temporary wires belong to an unfinished tool. Completion saves one original kernel geometry with current source identity.
+
+- **What You Should See:** An original Box, Pyramid and Block With Hole render on white. Current solid questions support typed dimensions, clicked corners, signed heights, offered Enter defaults and Brep/Mesh options. Unfinished wires remain temporary, completion creates one history transaction, and original Save/Open preserves the result.
+- **Hands-On Lab Experiment:** Type Close, CPlane XY, Box w-1.3,0,0 0.8 0.6 0.8, Pyramid w0,0,0 0.8 1, Block With Hole w1.3,0,0 0.8 0.6 0.5 0.15, View Isometric and Fit. Try Mesh, Enter defaults, invalid dimensions, quick-click drift and Undo/Redo.
+
 <details>
 <summary>Implementation 74p-exercise-current-solid-input-and-original-persistence: Exercise current solid input and original persistence</summary>
 
@@ -7228,6 +7514,20 @@ After that block, append this supplied code:
 </details>
 
 <a id="checkpoint-74za-build-original-cylinders-with-signed-height"></a>
+
+### Step 18 of 19 · Build original cylinders with signed height (`74za-build-original-cylinders-with-signed-height`)
+
+- **Goal:** Build cylinders with positive or negative height using the solid frame and radius checks already taught.
+- **Data Flow Trace:** `existing questions → checked local frame → exact kernel solid`
+- **Files You Touch:** `src/round_cylinder.rs` (*Type the whole original solid builder using the existing frame and question helpers.*) · `src/lib.rs` (*Register this shared original solid builder.*)
+
+Reuse the checked solid frame and radius helpers already taught in 73h–74. Collect a center, radius and signed height, draw the original pending rings and side guides, then build the chosen kernel representation. Keep a negative height in the frame orientation instead of inventing a second shape.
+
+> **Self-Check Question:** *Does a negative height require a second shape definition?*  
+> **Answer:** No. Orient the existing checked frame along the signed height while keeping the original base location.
+
+- **What You Should See:** The cylinder builder retains signed height; its browser command connection follows later.
+- **Hands-On Lab Experiment:** Trace heights 2 and -2 through one cylinder definition. Keep its base location unchanged.
 
 <details>
 <summary>Implementation 74za-build-original-cylinders-with-signed-height: Build original cylinders with signed height</summary>
@@ -7367,6 +7667,20 @@ After that block, type:
 </details>
 
 <a id="checkpoint-74zb-build-original-cones-and-spheres"></a>
+
+### Step 19 of 19 · Build original cones and spheres (`74zb-build-original-cones-and-spheres`)
+
+- **Goal:** Reuse the cylinder’s existing center, radius and height questions for a cone.
+- **Data Flow Trace:** `existing questions → checked local frame → exact kernel solid`
+- **Files You Touch:** `src/round_cone.rs` (*Type the whole original solid builder using the existing frame and question helpers.*) · `src/lib.rs` (*Register this shared original solid builder.*) · `src/round_sphere.rs` (*Type the whole original solid builder using the existing frame and question helpers.*)
+
+Reuse the cylinder’s existing center, radius and height questions for a cone. Share the checked frame and preserve the cone tip and base ring. A sphere needs only its center and radius; ask the kernel for the chosen representation and validate the source geometry.
+
+> **Self-Check Question:** *Why reuse the cylinder questions for the cone?*  
+> **Answer:** They collect the same center, radius and signed height. Only the exact geometry builder and its pending outline change.
+
+- **What You Should See:** Original cone and sphere builders compile while the existing solids remain visible.
+- **Hands-On Lab Experiment:** Compare a cone and sphere at radius 0.5. Trace the shared questions and independent original output.
 
 <details>
 <summary>Implementation 74zb-build-original-cones-and-spheres: Build original cones and spheres</summary>
@@ -7561,9 +7875,11 @@ After that block, type:
 
 </details>
 
-## Run, Check, and Save
+---
 
-From `session_viewer`:
+## 5. Build, Verify, and Save Your Checkpoint
+
+Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 74zb-build-original-cones-and-spheres
@@ -7574,12 +7890,12 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. Use [checkpoint recovery](../../recovery.md) to restore any saved checkpoint.
+Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
 
-## Expected Visual Result & Experiment
+## 6. Lesson Summary & Expected Visual Result
 
 Original cone and sphere builders compile while the existing solids remain visible.
 
-- **Try this:** Compare a cone and sphere at radius 0.5. Trace the shared questions and independent original output.
+- **Final Lesson Experiment:** Compare a cone and sphere at radius 0.5. Trace the shared questions and independent original output.
 
-Continue with [Round solids and exact planar conics](75-reuse-current-round-solid-builders.md).
+Continue with [Round solids and exact planar conics](../../consolidation/75-reuse-current-round-solid-builders.md).

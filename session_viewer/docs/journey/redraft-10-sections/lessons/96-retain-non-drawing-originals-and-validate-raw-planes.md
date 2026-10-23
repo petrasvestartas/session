@@ -1,90 +1,143 @@
 # 19.1 · Complete source metadata and the actual command contract
 
-**Section 10: Shared GPU Arenas, Floating-Origin Precision, Multisampling, and Production Parity** · **Lesson 19.1** (Redraft `10.1`) · **9 checkpoints (`96-retain-non-drawing-originals-and-validate-raw-planes` → `96h-prove-current-source-grammar-and-explicit-differences`)**
+**Section 10: Shared GPU Arenas, Floating-Origin Precision, Multisampling, and Production Parity** · **Lesson 19.1** (Redraft `10.1`) · **9 checkpoints (`96-retain-non-drawing-originals-and-validate-raw-planes` → `96h-prove-current-source-grammar-and-explicit-differences`)** · **Study time: 4.5–9 h**
 
-> **Learning Goal:** Retain non drawing originals and validate raw planes.
+> **What You Will Learn & Build:** Retain non drawing originals and validate raw planes. By the final checkpoint (`96h-prove-current-source-grammar-and-explicit-differences`), you will prove current source grammar and explicit differences.
 
-## Visual WebGPU & Architecture Schematic
+## 1. Visual Pipeline & WebGPU Architecture (Black & White Schematics)
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1px solid #cbd5e1;border-radius:10px;background:#f8fafc;">
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
+<svg viewBox="0 0 840 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <rect x="4" y="4" width="832" height="212" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Lesson 19.1 Execution Flow: Complete source metadata and the actual command contract</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">Concrete data pipeline you build in this lesson (9 Checkpoints: 96-retain-non-drawing-originals-and-validate-raw-planes → 96h-prove-current-source-grammar-and-explicit-differences)</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
+  
+    
+    <rect x="18" y="68" width="253" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="144" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
+    <line x1="28" y1="92" x2="261" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="144" y="108" text-anchor="middle" font-size="11" fill="#111111">audit original records and current</text>
+    <text x="144" y="124" text-anchor="middle" font-size="11" fill="#111111">source</text>
+    <line x1="271" y1="108" x2="291" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="293" y="68" width="253" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="419" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
+    <line x1="303" y1="92" x2="536" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">preserve exact metadata</text>
+    <line x1="546" y1="108" x2="566" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="568" y="68" width="253" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="694" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
+    <line x1="578" y1="92" x2="811" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="694" y="108" text-anchor="middle" font-size="11" fill="#111111">verify real registry outcomes</text>
+    
+    <rect x="18" y="162" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="32" y="181" font-size="11" font-weight="700" fill="#111111">Files You Edit in Lesson 19.1:</text>
+    <text x="215" y="181" font-size="11" fill="#111111">src/source_metadata.rs  ·  src/lib.rs  ·  src/definition_merge.rs  ·  src/origin.rs  ·  src/document_source.rs  ·  src/source_validate.rs</text>
+    <text x="32" y="198" font-size="10.5" fill="#111111">9 Checkpoints: 96-retain-non-drawing-originals-and-validate-raw-planes → 96h-prove-current-source-grammar-and-explicit-differences — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
+  
+</svg>
+</div>
+
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
 <svg viewBox="0 0 840 240" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#475569"/>
-    </marker>
-    <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#2563eb"/>
-    </marker>
-    <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#059669"/>
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
     </marker>
   </defs>
-  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
-  <text x="20" y="28" font-size="14" font-weight="700" fill="#0f172a">Section 10 Production Architecture: Shared GPU Storage Arena, f64 Floating Origin, Reversed-Z, 4x MSAA & Matrix Shader</text>
-  <text x="20" y="46" font-size="11.5" fill="#475569">How the maintained viewer pulls vertices from one growable GPU arena, eliminates jitter at 10^12 units, and renders procedural Matrices.</text>
-  <line x1="16" y1="54" x2="824" y2="54" stroke="#e2e8f0" stroke-width="1"/>
+  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Section 10 Production Architecture: Shared GPU Storage Arena, f64 Floating Origin, Reversed-Z, 4x MSAA & Matrix Shader</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">How the maintained viewer pulls vertices from one growable GPU arena, eliminates jitter at 10^12 units, and renders procedural Matrices.</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
   
-    <rect x="18" y="68" width="250" height="145" rx="6" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
-    <text x="143" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1e40af">1. Shared GPU Arena (Ch 19–20)</text>
-    <text x="28" y="108" font-size="10.5" fill="#1e3a8a">• 1 Growable Storage Buffer Arena</text>
-    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#1d4ed8">• Vertex Pulling (@builtin(vertex_index))</text>
-    <text x="28" y="144" font-size="10.5" fill="#1e3a8a">• 8-byte Draw Slots -&gt; ObjectRecord</text>
-    <text x="28" y="162" font-size="10.5" fill="#1e3a8a">• slot_table.wgsl maps Rg32Uint</text>
-    <text x="28" y="178" font-size="10.5" fill="#1e3a8a">  primitive IDs to Element/Face owners</text>
-    <text x="28" y="194" font-size="10" fill="#1e3a8a">• Free-list span reuse after GPU lease</text>
+    <rect x="18" y="68" width="250" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="143" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">1. Shared GPU Arena (Ch 19–20)</text>
+    <text x="28" y="108" font-size="10.5" fill="#111111">• 1 Growable Storage Buffer Arena</text>
+    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#111111">• Vertex Pulling (@builtin(vertex_index))</text>
+    <text x="28" y="144" font-size="10.5" fill="#111111">• 8-byte Draw Slots -&gt; ObjectRecord</text>
+    <text x="28" y="162" font-size="10.5" fill="#111111">• slot_table.wgsl maps Rg32Uint</text>
+    <text x="28" y="178" font-size="10.5" fill="#111111">  primitive IDs to Element/Face owners</text>
+    <text x="28" y="194" font-size="10" fill="#111111">• Free-list span reuse after GPU lease</text>
 
-    <line x1="268" y1="138" x2="298" y2="138" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
+    <line x1="268" y1="138" x2="298" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="300" y="68" width="265" height="145" rx="6" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5"/>
-    <text x="432" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#9a3412">2. f64 Floating Origin &amp; Reversed-Z (Ch 21)</text>
-    <text x="312" y="108" font-size="10.5" font-weight="600" fill="#c2410c">• rel_f32 = (world_f64 - anchor_f64) as f32</text>
-    <text x="312" y="125" font-size="10" fill="#7c2d12">  Zero vertex/grid jitter even at 10^12 m!</text>
-    <text x="312" y="144" font-size="10.5" font-weight="600" fill="#c2410c">• Reversed-Z Depth (GreaterEqual):</text>
-    <text x="312" y="160" font-size="10" fill="#7c2d12">  Near plane = 1.0, Far plane = 0.0</text>
-    <text x="312" y="178" font-size="10.5" fill="#7c2d12">• Held world base grid &amp; preserved</text>
-    <text x="312" y="193" font-size="10.5" fill="#7c2d12">  live camera during Session reload</text>
+    <rect x="300" y="68" width="265" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="432" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">2. f64 Floating Origin &amp; Reversed-Z (Ch 21)</text>
+    <text x="312" y="108" font-size="10.5" font-weight="600" fill="#111111">• rel_f32 = (world_f64 - anchor_f64) as f32</text>
+    <text x="312" y="125" font-size="10" fill="#111111">  Zero vertex/grid jitter even at 10^12 m!</text>
+    <text x="312" y="144" font-size="10.5" font-weight="600" fill="#111111">• Reversed-Z Depth (GreaterEqual):</text>
+    <text x="312" y="160" font-size="10" fill="#111111">  Near plane = 1.0, Far plane = 0.0</text>
+    <text x="312" y="178" font-size="10.5" fill="#111111">• Held world base grid &amp; preserved</text>
+    <text x="312" y="193" font-size="10.5" fill="#111111">  live camera during Session reload</text>
 
-    <line x1="565" y1="138" x2="595" y2="138" stroke="#059669" stroke-width="2" marker-end="url(#arrow-green)"/>
+    <line x1="565" y1="138" x2="595" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="597" y="68" width="223" height="145" rx="6" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1.5"/>
-    <text x="708" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#065f46">3. 4x MSAA &amp; Matrix Shader (Ch 22)</text>
-    <text x="609" y="108" font-size="10.5" fill="#064e3b">• Coherent 1x/4x MSAA sample targets</text>
-    <text x="609" y="126" font-size="10.5" font-weight="600" fill="#047857">• matrix.wgsl (16w header + 3w/cell):</text>
-    <text x="609" y="142" font-size="10" fill="#064e3b">  Heatmap + procedural 3-decimal digits</text>
-    <text x="609" y="157" font-size="10" fill="#064e3b">  (0 cell blank; plate-less title; yellow</text>
-    <text x="609" y="172" font-size="10" fill="#064e3b">  selected border; Rg32Uint whole pick)</text>
-    <text x="609" y="190" font-size="10" fill="#064e3b">• Coalesced single-flight frame scheduler</text>
+    <rect x="597" y="68" width="223" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="708" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">3. 4x MSAA &amp; Matrix Shader (Ch 22)</text>
+    <text x="609" y="108" font-size="10.5" fill="#111111">• Coherent 1x/4x MSAA sample targets</text>
+    <text x="609" y="126" font-size="10.5" font-weight="600" fill="#111111">• matrix.wgsl (16w header + 3w/cell):</text>
+    <text x="609" y="142" font-size="10" fill="#111111">  Heatmap + procedural 3-decimal digits</text>
+    <text x="609" y="157" font-size="10" fill="#111111">  (0 cell blank; plate-less title; yellow</text>
+    <text x="609" y="172" font-size="10" fill="#111111">  selected border; Rg32Uint whole pick)</text>
+    <text x="609" y="190" font-size="10" fill="#111111">• Coalesced single-flight frame scheduler</text>
     
 </svg>
 </div>
 
-### Lesson Data Flow (`Rust` → `WebGPU` → `WGSL`)
+## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
 
-```
-audit original records and current source → preserve exact metadata → verify real registry outcomes.
-```
+Before writing code, review how the three layers in this chapter talk to each other:
 
-- Retain non drawing originals and validate raw planes.
-- Observe the real current registry and parser.
-- Prove current source grammar and explicit differences.
-- **Why it works (Can a non drawing record be discarded during Save?):** Its component JSON, unknown interaction state and unused definitions still belong to the document. Retain their exact original records. Validate all twelve raw plane doubles before kernel defaults can replace malformed data.
-
-### Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `Browser`)
-
-| Layer | Construct | First-Year Student Explanation |
+| Layer | Construct | Plain-English Explanation for Students |
 | :--- | :--- | :--- |
 | **WGSL (Vertex Pull)** | `@group(0) @binding(b) var<storage, read> arena_verts: array<u32>;` | Fetches packed vertex positions, normals, and colors directly from a single growable storage buffer using `@builtin(vertex_index)`. |
 | **Rust/WGSL (`f64`->`f32`)** | `let rel: Vec3 = (world_f64 - anchor_f64).as_vec3();` | Subtracts the camera-area `f64` anchor on the CPU before converting to `f32`, preventing 32-bit float mantissa exhaustion far from `(0,0,0)`. |
 | **WGSL (`matrix.wgsl`)** | 16-word header + 3 words/cell procedural digits | Renders matrix heatmaps and 3-decimal numeric digits procedurally inside the fragment shader with zero texture uploads per cell. |
 | **Rust (`ink_ranges.rs`)** | Merged contiguous `Range<u32>` instance draws | Toggles point/line/edge/CAD-wire family visibility without rebuilding GPU buffers or invalidating original owner indices. |
 
-**Production source (`session_viewer/src`):** [app/session_io.rs](../../../../src/app/session_io.rs), [app/command/mod.rs](../../../../src/app/command/mod.rs), [app/hierarchy.rs](../../../../src/app/hierarchy.rs), [app/scene.rs](../../../../src/app/scene.rs), [app/selection.rs](../../../../src/app/selection.rs), [app/deform.rs](../../../../src/app/deform.rs), [app/walk/mod.rs](../../../../src/app/walk/mod.rs), [build.rs](../../../../build.rs).
+**Authoritative production source (`session_viewer/src`):** [app/session_io.rs](../../../../src/app/session_io.rs), [app/command/mod.rs](../../../../src/app/command/mod.rs), [app/hierarchy.rs](../../../../src/app/hierarchy.rs), [app/scene.rs](../../../../src/app/scene.rs), [app/selection.rs](../../../../src/app/selection.rs), [app/deform.rs](../../../../src/app/deform.rs), [app/walk/mod.rs](../../../../src/app/walk/mod.rs), [build.rs](../../../../build.rs).
 
-## Implementation Checkpoints
+## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
 
-Apply these checkpoints in order inside `workspace/journey`. Expand each block to view the Rust/WGSL/HTML edits:
+| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
+| ---: | :--- | :--- | :--- | :--- |
+| **1** | [`96-retain-non-drawing-originals-and-validate-raw-planes`](#checkpoint-96-retain-non-drawing-originals-and-validate-raw-planes) | Retain non drawing originals and validate raw planes. | `src/source_metadata.rs`, `src/lib.rs` | `audit original records and current source → preserve exact metadata → verify real registry outcomes` |
+| **2** | [`96a-merge-unused-definitions-with-displayed-instances`](#checkpoint-96a-merge-unused-definitions-with-displayed-instances) | Merge unused definitions with displayed instances. | `src/definition_merge.rs`, `src/lib.rs` | `audit original records and current source → preserve exact metadata → verify real registry outcomes` |
+| **3** | [`96b-preserve-component-and-interaction-metadata-in-archives`](#checkpoint-96b-preserve-component-and-interaction-metadata-in-archives) | Preserve component and interaction metadata in archives. | `src/origin.rs`, `src/document_source.rs`, `src/source_validate.rs`, `src/archive_document.rs` | `audit original records and current source → preserve exact metadata → verify real registry outcomes` |
+| **4** | [`96c-keep-current-element-and-frame-definition-families`](#checkpoint-96c-keep-current-element-and-frame-definition-families) | Keep current Element and frame definition families. | `src/instance_plan.rs`, `src/instance_definition.rs`, `src/instance_snapshot.rs` | `audit original records and current source → preserve exact metadata → verify real registry outcomes` |
+| **5** | [`96d-observe-the-real-current-registry-and-parser`](#checkpoint-96d-observe-the-real-current-registry-and-parser) | Observe the real current registry and parser. | `src/registry_audit.rs`, `src/lib.rs`, `src/inventory_example.rs`, `Cargo.toml` | `audit original records and current source → preserve exact metadata → verify real registry outcomes` |
+| **6** | [`96e-verify-the-complete-declared-current-source-closure`](#checkpoint-96e-verify-the-complete-declared-current-source-closure) | Verify the complete declared current source closure. | `src/current_inventory.json`, `src/source_audit.rs`, `src/lib.rs` | `audit original records and current source → preserve exact metadata → verify real registry outcomes` |
+| **7** | [`96f-report-retained-original-metadata-in-the-real-viewer`](#checkpoint-96f-report-retained-original-metadata-in-the-real-viewer) | Report retained original metadata in the real viewer. | `src/browser.rs` | `audit original records and current source → preserve exact metadata → verify real registry outcomes` |
+| **8** | [`96g-prove-exact-metadata-and-definition-round-trips`](#checkpoint-96g-prove-exact-metadata-and-definition-round-trips) | Prove exact metadata and definition round trips. | `src/metadata_tests.rs`, `src/lib.rs` | `audit original records and current source → preserve exact metadata → verify real registry outcomes` |
+| **9** | [`96h-prove-current-source-grammar-and-explicit-differences`](#checkpoint-96h-prove-current-source-grammar-and-explicit-differences) | Prove current source grammar and explicit differences. | `src/current_registry.json`, `src/inventory_tests.rs`, `src/lib.rs` | `audit original records and current source → preserve exact metadata → verify real registry outcomes` |
+
+---
+
+## 4. Step-by-Step Coding Notebook (Concept + Implementation)
+
+Work through each notebook cell below in order inside `workspace/journey`. Read the **Concept Walkthrough** and **Self-Check Q&A** first, then expand the **Implementation** block to type and verify the code.
 
 <a id="checkpoint-96-retain-non-drawing-originals-and-validate-raw-planes"></a>
+
+### Step 1 of 9 · Retain non drawing originals and validate raw planes (`96-retain-non-drawing-originals-and-validate-raw-planes`)
+
+- **Goal:** Retain non drawing originals and validate raw planes.
+- **Data Flow Trace:** `audit original records and current source → preserve exact metadata → verify real registry outcomes`
+- **Files You Touch:** `src/source_metadata.rs` (*Own exact non drawing source metadata and pre-kernel plane validation.*) · `src/lib.rs` (*Register the completed audit owner.*)
+
+Retain non drawing originals and validate raw planes.
+
+> **Self-Check Question:** *Can a non drawing record be discarded during Save?*  
+> **Answer:** Its component JSON, unknown interaction state and unused definitions still belong to the document. Retain their exact original records. Validate all twelve raw plane doubles before kernel defaults can replace malformed data.
+
+- **Hands-On Lab Experiment:** Inspect the component-only header and unused-definition selection. Compare retained serialized metadata size with actual heap/GPU memory; they are different measurements.
 
 <details>
 <summary>Implementation 96-retain-non-drawing-originals-and-validate-raw-planes: Retain non drawing originals and validate raw planes</summary>
@@ -127,6 +180,19 @@ After that block, type:
 
 <a id="checkpoint-96a-merge-unused-definitions-with-displayed-instances"></a>
 
+### Step 2 of 9 · Merge unused definitions with displayed instances (`96a-merge-unused-definitions-with-displayed-instances`)
+
+- **Goal:** Merge unused definitions with displayed instances.
+- **Data Flow Trace:** `audit original records and current source → preserve exact metadata → verify real registry outcomes`
+- **Files You Touch:** `src/definition_merge.rs` (*Merge exact retained definitions without losing unused originals.*) · `src/lib.rs` (*Register the completed audit owner.*)
+
+Merge unused definitions with displayed instances.
+
+> **Self-Check Question:** *Does saving only displayed instance definitions preserve the whole document?*  
+> **Answer:** Keep the unused originals too. Merge by original family and GUID, sort deterministically and reject conflicting payloads instead of choosing one silently.
+
+- **Hands-On Lab Experiment:** Compare a used definition, an unused definition and two different originals sharing one GUID.
+
 <details>
 <summary>Implementation 96a-merge-unused-definitions-with-displayed-instances: Merge unused definitions with displayed instances</summary>
 
@@ -167,6 +233,19 @@ After that block, type:
 </details>
 
 <a id="checkpoint-96b-preserve-component-and-interaction-metadata-in-archives"></a>
+
+### Step 3 of 9 · Preserve component and interaction metadata in archives (`96b-preserve-component-and-interaction-metadata-in-archives`)
+
+- **Goal:** Preserve component and interaction metadata in archives.
+- **Data Flow Trace:** `audit original records and current source → preserve exact metadata → verify real registry outcomes`
+- **Files You Touch:** `src/origin.rs` (*Connect exact metadata retention, raw validation and complete archive reconstruction.*) · `src/document_source.rs` (*Connect exact metadata retention, raw validation and complete archive reconstruction.*) · `src/source_validate.rs` (*Connect exact metadata retention, raw validation and complete archive reconstruction.*) · `src/archive_document.rs` (*Connect exact metadata retention, raw validation and complete archive reconstruction.*)
+
+Preserve component and interaction metadata in archives.
+
+> **Self-Check Question:** *Must component metadata become a selectable mesh?*  
+> **Answer:** Keep it as original document metadata. Preserve its exact JSON text and interaction bytes in retained headers, then restore them beside the current drawable originals when saving.
+
+- **Hands-On Lab Experiment:** Import the supplied four-solid/component/unknown-interaction fixture, Save/Open twice and compare original metadata. Original header accounting includes the serialized retained records.
 
 <details>
 <summary>Implementation 96b-preserve-component-and-interaction-metadata-in-archives: Preserve component and interaction metadata in archives</summary>
@@ -1112,6 +1191,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-96c-keep-current-element-and-frame-definition-families"></a>
 
+### Step 4 of 9 · Keep current Element and frame definition families (`96c-keep-current-element-and-frame-definition-families`)
+
+- **Goal:** Keep current Element and frame definition families.
+- **Data Flow Trace:** `audit original records and current source → preserve exact metadata → verify real registry outcomes`
+- **Files You Touch:** `src/instance_plan.rs` (*Retain supported original definition families and per-instance feature records.*) · `src/instance_definition.rs` (*Retain supported original definition families and per-instance feature records.*) · `src/instance_snapshot.rs` (*Retain supported original definition families and per-instance feature records.*)
+
+Keep current Element and frame definition families.
+
+> **Self-Check Question:** *Can an instance of an Element be flattened into a mesh for Save?*  
+> **Answer:** Retain its typed Element definition and its own instance-feature records. Plane and box definitions retain their original families too. Derived display does not replace those records.
+
+- **Hands-On Lab Experiment:** Inspect current instance originals, shared templates, exact definition payloads and feature records. Use the maintained destination for its complete derived instance-feature display.
+
 <details>
 <summary>Implementation 96c-keep-current-element-and-frame-definition-families: Keep current Element and frame definition families</summary>
 
@@ -1299,6 +1391,19 @@ Edit the existing block to match this code; keep unchanged lines:
 
 <a id="checkpoint-96d-observe-the-real-current-registry-and-parser"></a>
 
+### Step 5 of 9 · Observe the real current registry and parser (`96d-observe-the-real-current-registry-and-parser`)
+
+- **Goal:** Observe the real current registry and parser.
+- **Data Flow Trace:** `audit original records and current source → preserve exact metadata → verify real registry outcomes`
+- **Files You Touch:** `src/registry_audit.rs` (*Observe the compiled maintained command registry directly.*) · `src/lib.rs` (*Register the completed audit owner.*) · `src/inventory_example.rs` (*Copy the supplied native registry observation example.*) · `Cargo.toml` (*Expose the maintained registry observation as a native example.*)
+
+Observe the real current registry and parser.
+
+> **Self-Check Question:** *Does a literal search find the complete runtime option list?*  
+> **Answer:** Read every real Spec and call its parser for names, static options and aliases. Record canonical spelling, prompts, arity, selection/draft flags and actual errors. A parsed action still needs a real execution context.
+
+- **Hands-On Lab Experiment:** Read the supplied runtime registry and grammar observations. Compare its 115 recorded static options with the earlier 149 literal strings, then inspect pending bare forms and Controls/Opacity differences. The authoring inventory helper is optional.
+
 <details>
 <summary>Implementation 96d-observe-the-real-current-registry-and-parser: Observe the real current registry and parser</summary>
 
@@ -1377,6 +1482,19 @@ After that block, type:
 
 <a id="checkpoint-96e-verify-the-complete-declared-current-source-closure"></a>
 
+### Step 6 of 9 · Verify the complete declared current source closure (`96e-verify-the-complete-declared-current-source-closure`)
+
+- **Goal:** Verify the complete declared current source closure.
+- **Data Flow Trace:** `audit original records and current source → preserve exact metadata → verify real registry outcomes`
+- **Files You Touch:** `src/current_inventory.json` (*Copy the supplied full current Rust source/build closure and ownership snapshot.*) · `src/source_audit.rs` (*Verify actual source bytes and the complete declared file set.*) · `src/lib.rs` (*Register the completed audit owner.*)
+
+Verify the complete declared current source closure.
+
+> **Self-Check Question:** *Can a matching Git commit prove matching source contents?*  
+> **Answer:** Hash the actual files, including uncommitted edits, and require the complete declared file set. Record the scope and local heads; do not imply that excluded C++/assets or remote commits were checked.
+
+- **Hands-On Lab Experiment:** Read the supplied 428-file inventory, follow its lesson ownership and change one scratch record hash to see the audit fail.
+
 <details>
 <summary>Implementation 96e-verify-the-complete-declared-current-source-closure: Verify the complete declared current source closure</summary>
 
@@ -1435,6 +1553,19 @@ After that block, type:
 
 <a id="checkpoint-96f-report-retained-original-metadata-in-the-real-viewer"></a>
 
+### Step 7 of 9 · Report retained original metadata in the real viewer (`96f-report-retained-original-metadata-in-the-real-viewer`)
+
+- **Goal:** Report retained original metadata in the real viewer.
+- **Data Flow Trace:** `audit original records and current source → preserve exact metadata → verify real registry outcomes`
+- **Files You Touch:** `src/browser.rs` (*Expose truthful serialized original metadata accounting in the teaching inspector.*)
+
+Report retained original metadata in the real viewer.
+
+> **Self-Check Question:** *Does a byte counter measure driver memory?*  
+> **Answer:** This counter reports unique retained origins and their serialized header size. Keep it distinct from allocated CPU/GPU bytes and process/driver memory.
+
+- **Hands-On Lab Experiment:** Import and Close the metadata fixture and inspect the actual canvas report. Compare shared source origins across snapshots without counting them twice.
+
 <details>
 <summary>Implementation 96f-report-retained-original-metadata-in-the-real-viewer: Report retained original metadata in the real viewer</summary>
 
@@ -1467,6 +1598,20 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-96g-prove-exact-metadata-and-definition-round-trips"></a>
+
+### Step 8 of 9 · Prove exact metadata and definition round trips (`96g-prove-exact-metadata-and-definition-round-trips`)
+
+- **Goal:** Prove exact metadata and definition round trips.
+- **Data Flow Trace:** `audit original records and current source → preserve exact metadata → verify real registry outcomes`
+- **Files You Touch:** `src/metadata_tests.rs` (*Copy supplied exact archive, original-family and malformed-input fixtures.*) · `src/lib.rs` (*Register supplied metadata fixtures.*)
+
+Prove exact metadata and definition round trips.
+
+> **Self-Check Question:** *What catches an apparently successful but incomplete Save?*  
+> **Answer:** Compare the original records after reopening. Include raw JSON formatting, opaque interaction bytes, unused typed definitions, instance-feature records and invalid planes.
+
+- **What You Should See:** The archive implementation is unchanged. Optional cases cover retained custom metadata, unknown interactions and unused original definitions.
+- **Hands-On Lab Experiment:** Save an imported original document, reopen it and compare its editable source families. Read the supplied archive cases to identify metadata that has no visible drawing. Do not infer preservation of invisible fields from the screenshot alone.
 
 <details>
 <summary>Implementation 96g-prove-exact-metadata-and-definition-round-trips: Prove exact metadata and definition round trips</summary>
@@ -1522,6 +1667,20 @@ After that block, append this supplied code:
 </details>
 
 <a id="checkpoint-96h-prove-current-source-grammar-and-explicit-differences"></a>
+
+### Step 9 of 9 · Prove current source grammar and explicit differences (`96h-prove-current-source-grammar-and-explicit-differences`)
+
+- **Goal:** Prove current source grammar and explicit differences.
+- **Data Flow Trace:** `audit original records and current source → preserve exact metadata → verify real registry outcomes`
+- **Files You Touch:** `src/current_registry.json` (*Copy real observed current parser outcomes, prompts, aliases and action flags.*) · `src/inventory_tests.rs` (*Copy supplied complete source/registry and explicit grammar/shortcut fixtures.*) · `src/lib.rs` (*Register supplied complete source and registry fixtures.*)
+
+Prove current source grammar and explicit differences.
+
+> **Self-Check Question:** *Does one green parser test cover the current viewer?*  
+> **Answer:** Check every recorded name, static option and alias against the compiled registry, every source hash/file against this checkout, and selected deliberate differences explicitly. Runtime browser actions remain separate acceptance.
+
+- **What You Should See:** The original comparison scene remains intact while source and registry fixtures verify the complete declared maintained Rust inventory.
+- **Hands-On Lab Experiment:** Read the dated source inventory and grammar observations beside the explicit implementation differences. Choose one listed command and execute it on an original selection in the browser. Distinguish that observed action from the optional source-hash and parser fixtures; complete viewer parity remains open.
 
 <details>
 <summary>Implementation 96h-prove-current-source-grammar-and-explicit-differences: Prove current source grammar and explicit differences</summary>
@@ -1593,9 +1752,11 @@ After that block, append this supplied code:
 
 </details>
 
-## Run, Check, and Save
+---
 
-From `session_viewer`:
+## 5. Build, Verify, and Save Your Checkpoint
+
+Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 96h-prove-current-source-grammar-and-explicit-differences
@@ -1606,12 +1767,12 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. Use [checkpoint recovery](../../recovery.md) to restore any saved checkpoint.
+Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
 
-## Expected Visual Result & Experiment
+## 6. Lesson Summary & Expected Visual Result
 
 The original comparison scene remains intact while source and registry fixtures verify the complete declared maintained Rust inventory.
 
-- **Try this:** Read the dated source inventory and grammar observations beside the explicit implementation differences. Choose one listed command and execute it on an original selection in the browser. Distinguish that observed action from the optional source-hash and parser fixtures; complete viewer parity remains open.
+- **Final Lesson Experiment:** Read the dated source inventory and grammar observations beside the explicit implementation differences. Choose one listed command and execute it on an original selection in the browser. Distinguish that observed action from the optional source-hash and parser fixtures; complete viewer parity remains open.
 
-Continue with [Original Element ancestry and derived feature trees](96i-separate-own-and-hosted-element-features.md).
+Continue with [Original Element ancestry and derived feature trees](../../consolidation/96i-separate-own-and-hosted-element-features.md).

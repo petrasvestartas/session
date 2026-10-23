@@ -1,92 +1,163 @@
 # 19.3 · Original owners across selection, copying and display
 
-**Section 10: Shared GPU Arenas, Floating-Origin Precision, Multisampling, and Production Parity** · **Lesson 19.3** (Redraft `10.3`) · **8 checkpoints (`96s-resolve-feature-rows-to-original-element-owners` → `96z-preserve-source-feature-visibility-and-pixel-styles`)**
+**Section 10: Shared GPU Arenas, Floating-Origin Precision, Multisampling, and Production Parity** · **Lesson 19.3** (Redraft `10.3`) · **8 checkpoints (`96s-resolve-feature-rows-to-original-element-owners` → `96z-preserve-source-feature-visibility-and-pixel-styles`)** · **Study time: 4–8 h**
 
-> **Learning Goal:** Trace each derived feature back to the nearest original Element without crossing an independent child Element.
+> **What You Will Learn & Build:** Trace each derived feature back to the nearest original Element without crossing an independent child Element. By the final checkpoint (`96z-preserve-source-feature-visibility-and-pixel-styles`), you will project only visible original features, with two-pixel lines and twelve-pixel point discs.
 
-## Visual WebGPU & Architecture Schematic
+## 1. Visual Pipeline & WebGPU Architecture (Black & White Schematics)
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1px solid #cbd5e1;border-radius:10px;background:#f8fafc;">
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
+<svg viewBox="0 0 840 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <rect x="4" y="4" width="832" height="212" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Lesson 19.3 Execution Flow: Original owners across selection, copying and display</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">Concrete data pipeline you build in this lesson (8 Checkpoints: 96s-resolve-feature-rows-to-original-element-owners → 96z-preserve-source-feature-visibility-and-pixel-styles)</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
+  
+    
+    <rect x="18" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="89" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
+    <line x1="28" y1="92" x2="151" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">feature row</text>
+    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="183" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="254" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
+    <line x1="193" y1="92" x2="316" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">nearest original</text>
+    <text x="254" y="124" text-anchor="middle" font-size="11" fill="#111111">Element</text>
+    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="348" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="419" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
+    <line x1="358" y1="92" x2="481" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">editing selection</text>
+    <text x="419" y="124" text-anchor="middle" font-size="11" fill="#111111">and derived</text>
+    <text x="419" y="140" text-anchor="middle" font-size="11" fill="#111111">highlight</text>
+    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="513" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="584" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
+    <line x1="523" y1="92" x2="646" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">source feature</text>
+    <text x="584" y="124" text-anchor="middle" font-size="11" fill="#111111">visibility</text>
+    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="678" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="749" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
+    <line x1="688" y1="92" x2="811" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">coincident-point</text>
+    <text x="749" y="124" text-anchor="middle" font-size="11" fill="#111111">classification</text>
+    
+    <rect x="18" y="162" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="32" y="181" font-size="11" font-weight="700" fill="#111111">Files You Edit in Lesson 19.3:</text>
+    <text x="215" y="181" font-size="11" fill="#111111">src/feature_owner.rs  ·  src/lib.rs  ·  src/tree_panel.rs  ·  src/editor.rs  ·  src/feature_owner_tests.rs  ·  src/camera.rs</text>
+    <text x="32" y="198" font-size="10.5" fill="#111111">8 Checkpoints: 96s-resolve-feature-rows-to-original-element-owners → 96z-preserve-source-feature-visibility-and-pixel-styles — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
+  
+</svg>
+</div>
+
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
 <svg viewBox="0 0 840 240" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#475569"/>
-    </marker>
-    <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#2563eb"/>
-    </marker>
-    <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#059669"/>
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
     </marker>
   </defs>
-  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
-  <text x="20" y="28" font-size="14" font-weight="700" fill="#0f172a">Section 10 Production Architecture: Shared GPU Storage Arena, f64 Floating Origin, Reversed-Z, 4x MSAA & Matrix Shader</text>
-  <text x="20" y="46" font-size="11.5" fill="#475569">How the maintained viewer pulls vertices from one growable GPU arena, eliminates jitter at 10^12 units, and renders procedural Matrices.</text>
-  <line x1="16" y1="54" x2="824" y2="54" stroke="#e2e8f0" stroke-width="1"/>
+  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Section 10 Production Architecture: Shared GPU Storage Arena, f64 Floating Origin, Reversed-Z, 4x MSAA & Matrix Shader</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">How the maintained viewer pulls vertices from one growable GPU arena, eliminates jitter at 10^12 units, and renders procedural Matrices.</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
   
-    <rect x="18" y="68" width="250" height="145" rx="6" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
-    <text x="143" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1e40af">1. Shared GPU Arena (Ch 19–20)</text>
-    <text x="28" y="108" font-size="10.5" fill="#1e3a8a">• 1 Growable Storage Buffer Arena</text>
-    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#1d4ed8">• Vertex Pulling (@builtin(vertex_index))</text>
-    <text x="28" y="144" font-size="10.5" fill="#1e3a8a">• 8-byte Draw Slots -&gt; ObjectRecord</text>
-    <text x="28" y="162" font-size="10.5" fill="#1e3a8a">• slot_table.wgsl maps Rg32Uint</text>
-    <text x="28" y="178" font-size="10.5" fill="#1e3a8a">  primitive IDs to Element/Face owners</text>
-    <text x="28" y="194" font-size="10" fill="#1e3a8a">• Free-list span reuse after GPU lease</text>
+    <rect x="18" y="68" width="250" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="143" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">1. Shared GPU Arena (Ch 19–20)</text>
+    <text x="28" y="108" font-size="10.5" fill="#111111">• 1 Growable Storage Buffer Arena</text>
+    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#111111">• Vertex Pulling (@builtin(vertex_index))</text>
+    <text x="28" y="144" font-size="10.5" fill="#111111">• 8-byte Draw Slots -&gt; ObjectRecord</text>
+    <text x="28" y="162" font-size="10.5" fill="#111111">• slot_table.wgsl maps Rg32Uint</text>
+    <text x="28" y="178" font-size="10.5" fill="#111111">  primitive IDs to Element/Face owners</text>
+    <text x="28" y="194" font-size="10" fill="#111111">• Free-list span reuse after GPU lease</text>
 
-    <line x1="268" y1="138" x2="298" y2="138" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
+    <line x1="268" y1="138" x2="298" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="300" y="68" width="265" height="145" rx="6" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5"/>
-    <text x="432" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#9a3412">2. f64 Floating Origin &amp; Reversed-Z (Ch 21)</text>
-    <text x="312" y="108" font-size="10.5" font-weight="600" fill="#c2410c">• rel_f32 = (world_f64 - anchor_f64) as f32</text>
-    <text x="312" y="125" font-size="10" fill="#7c2d12">  Zero vertex/grid jitter even at 10^12 m!</text>
-    <text x="312" y="144" font-size="10.5" font-weight="600" fill="#c2410c">• Reversed-Z Depth (GreaterEqual):</text>
-    <text x="312" y="160" font-size="10" fill="#7c2d12">  Near plane = 1.0, Far plane = 0.0</text>
-    <text x="312" y="178" font-size="10.5" fill="#7c2d12">• Held world base grid &amp; preserved</text>
-    <text x="312" y="193" font-size="10.5" fill="#7c2d12">  live camera during Session reload</text>
+    <rect x="300" y="68" width="265" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="432" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">2. f64 Floating Origin &amp; Reversed-Z (Ch 21)</text>
+    <text x="312" y="108" font-size="10.5" font-weight="600" fill="#111111">• rel_f32 = (world_f64 - anchor_f64) as f32</text>
+    <text x="312" y="125" font-size="10" fill="#111111">  Zero vertex/grid jitter even at 10^12 m!</text>
+    <text x="312" y="144" font-size="10.5" font-weight="600" fill="#111111">• Reversed-Z Depth (GreaterEqual):</text>
+    <text x="312" y="160" font-size="10" fill="#111111">  Near plane = 1.0, Far plane = 0.0</text>
+    <text x="312" y="178" font-size="10.5" fill="#111111">• Held world base grid &amp; preserved</text>
+    <text x="312" y="193" font-size="10.5" fill="#111111">  live camera during Session reload</text>
 
-    <line x1="565" y1="138" x2="595" y2="138" stroke="#059669" stroke-width="2" marker-end="url(#arrow-green)"/>
+    <line x1="565" y1="138" x2="595" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="597" y="68" width="223" height="145" rx="6" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1.5"/>
-    <text x="708" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#065f46">3. 4x MSAA &amp; Matrix Shader (Ch 22)</text>
-    <text x="609" y="108" font-size="10.5" fill="#064e3b">• Coherent 1x/4x MSAA sample targets</text>
-    <text x="609" y="126" font-size="10.5" font-weight="600" fill="#047857">• matrix.wgsl (16w header + 3w/cell):</text>
-    <text x="609" y="142" font-size="10" fill="#064e3b">  Heatmap + procedural 3-decimal digits</text>
-    <text x="609" y="157" font-size="10" fill="#064e3b">  (0 cell blank; plate-less title; yellow</text>
-    <text x="609" y="172" font-size="10" fill="#064e3b">  selected border; Rg32Uint whole pick)</text>
-    <text x="609" y="190" font-size="10" fill="#064e3b">• Coalesced single-flight frame scheduler</text>
+    <rect x="597" y="68" width="223" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="708" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">3. 4x MSAA &amp; Matrix Shader (Ch 22)</text>
+    <text x="609" y="108" font-size="10.5" fill="#111111">• Coherent 1x/4x MSAA sample targets</text>
+    <text x="609" y="126" font-size="10.5" font-weight="600" fill="#111111">• matrix.wgsl (16w header + 3w/cell):</text>
+    <text x="609" y="142" font-size="10" fill="#111111">  Heatmap + procedural 3-decimal digits</text>
+    <text x="609" y="157" font-size="10" fill="#111111">  (0 cell blank; plate-less title; yellow</text>
+    <text x="609" y="172" font-size="10" fill="#111111">  selected border; Rg32Uint whole pick)</text>
+    <text x="609" y="190" font-size="10" fill="#111111">• Coalesced single-flight frame scheduler</text>
     
 </svg>
 </div>
 
-### Lesson Data Flow (`Rust` → `WebGPU` → `WGSL`)
+## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
 
-```
-feature row → nearest original Element → editing selection and derived highlight.
-shared definition features + per-instance features → display-only projection → instance placement once → original instance selection.
-source feature visibility → coincident-point classification → existing marker/path display → original owner.
-```
+Before writing code, review how the three layers in this chapter talk to each other:
 
-- Trace each derived feature back to the nearest original Element without crossing an independent child Element.
-- Detach copied original source identity
-- Project only visible original features, with two-pixel lines and twelve-pixel point discs.
-- **Why it works (Does clicking a projected feature make the display path editable?):** No. Resolve the original Element that owns the feature. Selection, camera Fit and editing target that owner; generated paths only contribute visible highlight.
-
-### Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `Browser`)
-
-| Layer | Construct | First-Year Student Explanation |
+| Layer | Construct | Plain-English Explanation for Students |
 | :--- | :--- | :--- |
 | **WGSL (Vertex Pull)** | `@group(0) @binding(b) var<storage, read> arena_verts: array<u32>;` | Fetches packed vertex positions, normals, and colors directly from a single growable storage buffer using `@builtin(vertex_index)`. |
 | **Rust/WGSL (`f64`->`f32`)** | `let rel: Vec3 = (world_f64 - anchor_f64).as_vec3();` | Subtracts the camera-area `f64` anchor on the CPU before converting to `f32`, preventing 32-bit float mantissa exhaustion far from `(0,0,0)`. |
 | **WGSL (`matrix.wgsl`)** | 16-word header + 3 words/cell procedural digits | Renders matrix heatmaps and 3-decimal numeric digits procedurally inside the fragment shader with zero texture uploads per cell. |
 | **Rust (`ink_ranges.rs`)** | Merged contiguous `Range<u32>` instance draws | Toggles point/line/edge/CAD-wire family visibility without rebuilding GPU buffers or invalidating original owner indices. |
 
-**Production source (`session_viewer/src`):** [app/session_io.rs](../../../../src/app/session_io.rs), [app/command/mod.rs](../../../../src/app/command/mod.rs), [app/hierarchy.rs](../../../../src/app/hierarchy.rs), [app/scene.rs](../../../../src/app/scene.rs), [app/selection.rs](../../../../src/app/selection.rs), [app/deform.rs](../../../../src/app/deform.rs), [app/walk/mod.rs](../../../../src/app/walk/mod.rs), [build.rs](../../../../build.rs).
+**Authoritative production source (`session_viewer/src`):** [app/session_io.rs](../../../../src/app/session_io.rs), [app/command/mod.rs](../../../../src/app/command/mod.rs), [app/hierarchy.rs](../../../../src/app/hierarchy.rs), [app/scene.rs](../../../../src/app/scene.rs), [app/selection.rs](../../../../src/app/selection.rs), [app/deform.rs](../../../../src/app/deform.rs), [app/walk/mod.rs](../../../../src/app/walk/mod.rs), [build.rs](../../../../build.rs).
 
-## Implementation Checkpoints
+## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
 
-Apply these checkpoints in order inside `workspace/journey`. Expand each block to view the Rust/WGSL/HTML edits:
+| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
+| ---: | :--- | :--- | :--- | :--- |
+| **1** | [`96s-resolve-feature-rows-to-original-element-owners`](#checkpoint-96s-resolve-feature-rows-to-original-element-owners) | Trace each derived feature back to the nearest original Element without crossing an independent child Element. | `src/feature_owner.rs`, `src/lib.rs` | `feature row → nearest original Element → editing selection and derived highlight` |
+| **2** | [`96t-select-and-highlight-original-feature-owners`](#checkpoint-96t-select-and-highlight-original-feature-owners) | Connect feature-row clicks to original-owner selection and the existing editing/history path. | `src/tree_panel.rs`, `src/editor.rs`, `src/feature_owner_tests.rs`, `src/lib.rs` | `feature row → nearest original Element → editing selection and derived highlight` |
+| **3** | [`96u-fit-original-box-corners-to-the-free-canvas`](#checkpoint-96u-fit-original-box-corners-to-the-free-canvas) | Replace sphere fitting with the current projected-corner constraint and five-percent margin. | `src/camera.rs`, `src/projected_fit_tests.rs`, `src/lib.rs` | `original bounds → camera-axis offsets → free-rectangle constraints → distance` |
+| **4** | [`96v-project-definition-and-per-instance-features`](#checkpoint-96v-project-definition-and-per-instance-features) | Reuse feature projection while keeping shared definitions and separate instance ownership. | `src/instance_features.rs`, `src/lib.rs`, `src/scene_document.rs`, `src/feature_owner.rs` | `shared definition features + per-instance features → display-only projection → instance placement once → original instance selection` |
+| **5** | [`96w-detach-copied-original-source-identity`](#checkpoint-96w-detach-copied-original-source-identity) | Detach copied original source identity | `src/scene.rs` | `original source → fresh copy identity → original placement → regenerated display` |
+| **6** | [`96x-regenerate-display-for-copied-feature-owners`](#checkpoint-96x-regenerate-display-for-copied-feature-owners) | Regenerate display for copied feature owners | `src/layer_edit.rs`, `src/copy_feature_tests.rs`, `src/lib.rs` | `original source → fresh copy identity → original placement → regenerated display` |
+| **7** | [`96y-address-feature-pixels-to-original-cad-owners`](#checkpoint-96y-address-feature-pixels-to-original-cad-owners) | Address feature pixels to original CAD owners | `src/feature_owner.rs`, `src/pick_sources.rs`, `src/feature_pick_tests.rs`, `src/lib.rs` | `original source → fresh copy identity → original placement → regenerated display` |
+| **8** | [`96z-preserve-source-feature-visibility-and-pixel-styles`](#checkpoint-96z-preserve-source-feature-visibility-and-pixel-styles) | Project only visible original features, with two-pixel lines and twelve-pixel point discs. | `src/feature_display.rs`, `src/feature_style_tests.rs`, `src/lib.rs`, `src/pick_gpu_tests.rs` | `source feature visibility → coincident-point classification → existing marker/path display → original owner` |
+
+---
+
+## 4. Step-by-Step Coding Notebook (Concept + Implementation)
+
+Work through each notebook cell below in order inside `workspace/journey`. Read the **Concept Walkthrough** and **Self-Check Q&A** first, then expand the **Implementation** block to type and verify the code.
 
 <a id="checkpoint-96s-resolve-feature-rows-to-original-element-owners"></a>
+
+### Step 1 of 8 · Resolve feature rows to original Element owners (`96s-resolve-feature-rows-to-original-element-owners`)
+
+- **Goal:** Trace each derived feature back to the nearest original Element without crossing an independent child Element.
+- **Data Flow Trace:** `feature row → nearest original Element → editing selection and derived highlight`
+- **Files You Touch:** `src/feature_owner.rs` (*Resolve ownership through bounded hierarchy parent links and collect visible display highlights.*) · `src/lib.rs` (*Compile the owner resolver alongside the existing scene and hierarchy.*)
+
+The import now has read-only display pieces, but the maintained panel can select their owner.
+
+Walk parent links from the clicked row and stop at the first original Element. Check that owner through the ordinary editable-object predicate. A hidden or locked owner therefore cannot be reached through its feature rows.
+
+Use the same walk to collect visible derived paths for highlighting. Stop at an independent child Element, so selecting the host does not highlight that child’s own feature. Selection still contains only editable originals; the wider list is consumed only by the renderer.
+
+> **Self-Check Question:** *Does clicking a projected feature make the display path editable?*  
+> **Answer:** No. Resolve the original Element that owns the feature. Selection, camera Fit and editing target that owner; generated paths only contribute visible highlight.
+
+- **What You Should See:** Keep the imported specimen and select feature rows through their original Element owner.
+- **Hands-On Lab Experiment:** Trace a host feature and an independent child through the ownership helper. Stop at the nearest original Element. This preparation retains the previous browser selection behavior until the [input connection](../../96t-select-and-highlight-original-feature-owners.md).
 
 <details>
 <summary>Implementation 96s-resolve-feature-rows-to-original-element-owners: Resolve feature rows to original Element owners</summary>
@@ -127,6 +198,24 @@ After that block, type:
 </details>
 
 <a id="checkpoint-96t-select-and-highlight-original-feature-owners"></a>
+
+### Step 2 of 8 · Select and highlight original feature owners (`96t-select-and-highlight-original-feature-owners`)
+
+- **Goal:** Connect feature-row clicks to original-owner selection and the existing editing/history path.
+- **Data Flow Trace:** `feature row → nearest original Element → editing selection and derived highlight`
+- **Files You Touch:** `src/tree_panel.rs` (*Resolve an eligible original owner independently of the displayed feature IDs.*) · `src/editor.rs` (*Extend only renderer highlighting; retain the original editing selection.*) · `src/feature_owner_tests.rs` (*Supply original-owner, child-boundary, hidden/locked and Delete/Undo ownership regressions.*) · `src/lib.rs` (*Run the supplied regressions in the native suite.*)
+
+Keep row IDs for visibility lamps: those IDs still describe the displayed pieces. Give the panel a separate resolved owner for selection. Its selection button and selected state use that owner; clicking a regular child Element continues to use the child’s editable ID.
+
+The editor’s renderer highlight list includes visible derived paths owned by selected Elements, while selected_objects remains unchanged. Delete and Move therefore edit original owners and their descendants once. Undo restores their original identities, and Save continues to omit the generated paths.
+
+Report a preview change after selection and Fit. The browser then refreshes the original-owner selection and generated highlight buffers without recording a source edit. A view-only result would leave the newly selected owner’s GPU highlight stale.
+
+> **Self-Check Question:** *Which original does a connected feature-row click select?*  
+> **Answer:** The nearest owning Element from the [resolution helper](../../96s-resolve-feature-rows-to-original-element-owners.md). The existing selection and editing path then handles that original.
+
+- **What You Should See:** Feature-row selection highlights its original owner and uses the same editing/history path.
+- **Hands-On Lab Experiment:** Open sample.pb, enable Attributes, expand Layers, and compare clicks on a host feature and on the independent child Element. Hidden and locked owners must not become selected through a feature row.
 
 <details>
 <summary>Implementation 96t-select-and-highlight-original-feature-owners: Select and highlight original feature owners</summary>
@@ -476,6 +565,24 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-96u-fit-original-box-corners-to-the-free-canvas"></a>
 
+### Step 3 of 8 · Fit original box corners to the free canvas (`96u-fit-original-box-corners-to-the-free-canvas`)
+
+- **Goal:** Replace sphere fitting with the current projected-corner constraint and five-percent margin.
+- **Data Flow Trace:** `original bounds → camera-axis offsets → free-rectangle constraints → distance`
+- **Files You Touch:** `src/camera.rs` (*Solve the current projected box-corner distance in the existing camera.*) · `src/projected_fit_tests.rs` (*Supply independent visible-rectangle and thin-part regression witnesses.*) · `src/lib.rs` (*Run the supplied fit witnesses with the cumulative source.*)
+
+Reuse the existing camera orientation, panel rectangle and original bounds.
+
+Project each of the eight corner offsets onto right, up and forward. With forward pointing from the eye toward the target, a corner needs distance at least |x|/tx − z and |y|/ty − z. Every centered box corner has an opposite corner, so the maximum over all eight corners is unchanged when using +z. That symmetric form, followed by a five-percent margin, is the maintained Fit rule.
+
+This upgrades the earlier sphere approximation in place. It introduces no second camera and changes no source geometry. Keep radius as the depth/zoom extent. A point box can move the target without inventing a nonzero extent; invalid bounds leave the pose unchanged. Current unit conversion, reversed depth and GPU rebasing remain separate connected changes.
+
+> **Self-Check Question:** *Why can a bounding sphere leave a thin CAD part unnecessarily small?*  
+> **Answer:** Its radius fits every direction, although the current view needs only the projected box corners. Solve the horizontal and vertical corner constraints in the camera basis, including depth, and use the largest required distance.
+
+- **What You Should See:** Thin parts fill the available canvas; all box corners remain inside the rectangle left by the panels.
+- **Hands-On Lab Experiment:** Open the imported specimen, enable Layers and select a feature row. Fit its original owner, then compare Front, Top and Isometric with a thin Box. Switch projection and Fit again; preserve original dimensions and selection.
+
 <details>
 <summary>Implementation 96u-fit-original-box-corners-to-the-free-canvas: Fit original box corners to the free canvas</summary>
 
@@ -552,6 +659,26 @@ After that block, type:
 </details>
 
 <a id="checkpoint-96v-project-definition-and-per-instance-features"></a>
+
+### Step 4 of 8 · Project definition and per-instance features (`96v-project-definition-and-per-instance-features`)
+
+- **Goal:** Reuse feature projection while keeping shared definitions and separate instance ownership.
+- **Data Flow Trace:** `shared definition features + per-instance features → display-only projection → instance placement once → original instance selection`
+- **Files You Touch:** `src/instance_features.rs` (*Combine feature data in a temporary projection object; reuse the existing path and tree owner.*) · `src/lib.rs` (*Connect the instance adapter to the existing Session ownership types.*) · `src/scene_document.rs` (*Stop inherited feature read-only classification at each original instance.*) · `src/feature_owner.rs` (*Resolve generated paths to the original instance, using the same visible/unlocked pick guard.*) · `src/instance_feature_tests.rs` (*Supply original Session input and independent ownership/archive regression witnesses.*)
+
+A definition owns reusable geometry and its own features.
+
+Each InstanceRef may add features in that definition frame. Build a temporary feature-only Element with the instance GUID, append definition features first and instance features second, and pass it to the projection owner already written at96m. Do not duplicate the mesh or add another GPU display implementation.
+
+Connect this projection after the original instance rows and hierarchy exist. The existing host placement transforms every generated path once. Treat instances as independent ownership boundaries: selecting a generated feature targets the original instance, and its visibility and locking still govern editing. The temporary Element is never inserted or saved; the Session definition and InstanceRef remain the archive sources.
+
+Install the supplied binary specimen using the dependency command below, then open assets/pb/course-instance-features.pb from the learner project in the browser. It contains two placements of one Element definition, a shared axis and a distinct cut per instance. The second instance is locked. These are original Session data, not implementation code.
+
+> **Self-Check Question:** *Why must per-instance features be projected after selecting the instance placement?*  
+> **Answer:** They are authored in the definition frame but belong to one InstanceRef. Reusing the projection code places them once under that instance and preserves both shared geometry and independent original ownership.
+
+- **What You Should See:** Both instances show their interaction outlines; enabling attributes reveals the shared definition axis at each placement.
+- **Hands-On Lab Experiment:** Open the supplied instance specimen and Fit. Toggle Element Attributes and Element Interactions separately. Select the first instance’s cut row, Delete and Undo; the second placement remains. The locked second instance’s feature row must not become an editable selection. Save and reopen: each outline appears once.
 
 <details>
 <summary>Implementation 96v-project-definition-and-per-instance-features: Project definition and per-instance features</summary>
@@ -866,6 +993,22 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-96w-detach-copied-original-source-identity"></a>
+
+### Step 5 of 8 · Detach copied original source identity (`96w-detach-copied-original-source-identity`)
+
+- **Goal:** Detach copied original source identity
+- **Data Flow Trace:** `original source → fresh copy identity → original placement → regenerated display`
+- **Files You Touch:** `src/scene.rs` (*Detach copied original ownership without exposing mutable scene storage.*)
+
+The row copier already assigns a new display identity. An original Element and an InstanceRef also carry Session GUIDs. Detach only that copied source with Rc::make_mut, then give it the new row GUID. Keep an instance definition shared: changing its GUID would affect every placement.
+
+Keep this helper private inside Scene, beside copy_row. Call it after cloning the InstanceRef owner, while the new row exists. Update source metadata with the same GUID. The old source remains unchanged for Undo and archive comparison. This is a copy-on-write ownership lesson; it adds no new renderer or mesh upload.
+
+> **Self-Check Question:** *Which identity must stay shared when an InstanceRef is copied?*  
+> **Answer:** Its definition identity and geometry stay shared. The new InstanceRef and its row have a fresh identity, so saving does not merge two placements into one original.
+
+- **What You Should See:** The browser continues to display original CAD objects and their projected features.
+- **Hands-On Lab Experiment:** Copy the first instance in the supplied specimen. Save and reopen: the definition remains shared, and the two original references have different GUIDs. Predict which Rc is detached before checking the supplied fixture.
 
 <details>
 <summary>Implementation 96w-detach-copied-original-source-identity: Detach copied original source identity</summary>
@@ -1792,6 +1935,25 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-96x-regenerate-display-for-copied-feature-owners"></a>
 
+### Step 6 of 8 · Regenerate display for copied feature owners (`96x-regenerate-display-for-copied-feature-owners`)
+
+- **Goal:** Regenerate display for copied feature owners
+- **Data Flow Trace:** `original source → fresh copy identity → original placement → regenerated display`
+- **Files You Touch:** `src/layer_edit.rs` (*Select direct original attributes and reuse existing projection owners.*) · `src/copy_feature_tests.rs` (*Supply independent original-source, placement and archive witnesses.*) · `src/lib.rs` (*Register the supplied copy fixtures.*)
+
+A copied Element keeps its original feature data.
+
+Its derived paths are display objects, so copying those paths would create stale ownership and archive duplicates. Keep only direct original Geometry children in the source attributes group, matching the current viewer. Remove those children’s old tree descendants; their own original feature data remains intact. InstanceRef and Sheet attributes are outside that Geometry lookup.
+
+Copy and place the original rows using the existing tree copier, then attach the new tree. Collect its original owners before appending any generated rows. Reuse feature_display for Elements and instance_features for instances, once per owner. A fresh Element GUID has no existing relationship edges in the source document; the planner therefore labels unlinked interaction features as orphans.
+
+No second projection algorithm is introduced. Presentation defaults and current contact rendering are separate bridges; this stage checks original identities, placement and regeneration.
+
+> **Self-Check Question:** *Why collect copied owners before appending their generated display?*  
+> **Answer:** Appending changes the tree. A fixed list of original owners prevents newly generated paths from entering the traversal or being projected again.
+
+- **Hands-On Lab Experiment:** Copy the host in the imported interaction specimen, then Save and reopen three times. Its direct original child comes with it, each owner projects once, and no derived path is serialized. Compare GUID-to-world-matrix maps to detect a transform applied twice.
+
 <details>
 <summary>Implementation 96x-regenerate-display-for-copied-feature-owners: Regenerate display for copied feature owners</summary>
 
@@ -2232,6 +2394,27 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-96y-address-feature-pixels-to-original-cad-owners"></a>
 
+### Step 7 of 8 · Address feature pixels to original CAD owners (`96y-address-feature-pixels-to-original-cad-owners`)
+
+- **Goal:** Address feature pixels to original CAD owners
+- **Data Flow Trace:** `original source → fresh copy identity → original placement → regenerated display`
+- **Files You Touch:** `src/feature_owner.rs` (*Reuse the existing original-owner traversal for a displayed GPU primitive.*) · `src/pick_sources.rs` (*Write an original editing ID and suppress invented subpart tags for derived ink.*) · `src/feature_pick_tests.rs` (*Supply independent original-owner address and guard witnesses.*) · `src/lib.rs` (*Register the supplied original-owner address fixture.*) · `src/pick_gpu_tests.rs` (*Supply a real integer GPU feature-pixel readback witness.*)
+
+The integer picking pass must write original editing identities.
+
+A derived feature path is visible geometry, but it is not an editable Session object. Resolve its nearest original Element or InstanceRef with the ownership traversal already taught for tree rows. Original paths keep their existing IDs.
+
+Use this resolver when building the GPU ink-ID arrays. A generated feature gets its owner ID and a zero subpart tag: its tessellated segments are display data, not original PathEdge indices. Object mode therefore selects the original CAD owner; edge and control modes cannot invent a source subpart. Hidden and locked original owners still fail the existing eligibility guard.
+
+This change reuses the integer target, readback and stale-result handling already developed. It adds no second picking pass. The supplied GPU witness clicks a feature line away from its Element mesh and verifies the returned owner ID, then locks the original and repeats the click.
+
+The dependency command also supplies assets/pb/course-feature-pick.pb: two original Elements with feature lines away from their meshes, with the second Element locked. Open it in the browser and use object selection to check the original-owner address directly.
+
+> **Self-Check Question:** *Why is the subpart tag zero for a generated feature outline?*  
+> **Answer:** A tessellated display segment has no editable original PathEdge index. Zero identifies only the original object; it prevents the edge-mode resolver from treating generated geometry as a kernel source part.
+
+- **Hands-On Lab Experiment:** Click a visible interaction outline in object mode and Delete, then Undo. The original Element and its features disappear and return together. Try edge mode: it must not expose a generated outline segment as an original editable edge. Lock the owner and repeat.
+
 <details>
 <summary>Implementation 96y-address-feature-pixels-to-original-cad-owners: Address feature pixels to original CAD owners</summary>
 
@@ -2388,6 +2571,26 @@ Update the existing block with this supplied code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-96z-preserve-source-feature-visibility-and-pixel-styles"></a>
+
+### Step 8 of 8 · Preserve source feature visibility and pixel styles (`96z-preserve-source-feature-visibility-and-pixel-styles`)
+
+- **Goal:** Project only visible original features, with two-pixel lines and twelve-pixel point discs.
+- **Data Flow Trace:** `source feature visibility → coincident-point classification → existing marker/path display → original owner`
+- **Files You Touch:** `src/feature_display.rs` (*Respect original feature visibility before generating a display.*) · `src/feature_style_tests.rs` (*Supply original-data style, visibility, placement and ownership witnesses.*) · `src/lib.rs` (*Register the independent source-style fixture.*) · `src/pick_gpu_tests.rs` (*Supply a real GPU marker ownership and CSS-diameter witness at DPR one and two.*)
+
+A feature has source visibility as well as the owner’s Attributes or Interactions switch. Skip invisible features during projection. A global presentation switch cannot revive a source feature marked invisible. Its original Session payload remains available for saving and later regeneration.
+
+Use the existing marker pipeline for an outline whose coordinates coincide after conversion to the renderer’s f32 format. Preserve the original outline color and set a twelve-pixel diameter on the temporary display point. Other outlines use two-pixel strokes without arrowheads. Clone only display inputs: original widths, colors, arrowheads and visibility remain unchanged.
+
+Both paths and markers already resolve to their original owner through the integer picking table. Reuse that route; do not add another shader or readback. Contact polygon fills are developed separately.
+
+A feature outline is display input, not a separately editable original. Its standalone visible and locked flags do not override the feature flag or the original owner. Set those flags only on the temporary display clone; preserve them unchanged in the original payload.
+
+> **Self-Check Question:** *Why must a coincident outline become a marker before path preparation?*  
+> **Answer:** The kernel permits coincident feature endpoints to describe a point. Path preparation removes duplicate vertices and requires a segment; the existing marker pipeline represents this source point with a stable screen diameter.
+
+- **What You Should See:** Visible ordinary feature outlines retain their source colors and use the current screen-size conventions without altering original Session data.
+- **Hands-On Lab Experiment:** Import an Element with a colored axis, an invisible cut and coincident drill endpoints. Enable Attributes: the axis appears with a two-pixel stroke, the drill remains a twelve-pixel disc, and the invisible cut stays absent. Change zoom and pixel density; predict which dimensions remain fixed in CSS pixels. Save and inspect the original feature widths and arrowheads.
 
 <details>
 <summary>Implementation 96z-preserve-source-feature-visibility-and-pixel-styles: Preserve source feature visibility and pixel styles</summary>
@@ -2622,9 +2825,11 @@ Update the existing block with this supplied code; keep unchanged lines:
 
 </details>
 
-## Run, Check, and Save
+---
 
-From `session_viewer`:
+## 5. Build, Verify, and Save Your Checkpoint
+
+Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 96z-preserve-source-feature-visibility-and-pixel-styles
@@ -2635,12 +2840,12 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. Use [checkpoint recovery](../../recovery.md) to restore any saved checkpoint.
+Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
 
-## Expected Visual Result & Experiment
+## 6. Lesson Summary & Expected Visual Result
 
 Visible ordinary feature outlines retain their source colors and use the current screen-size conventions without altering original Session data.
 
-- **Try this:** Import an Element with a colored axis, an invisible cut and coincident drill endpoints. Enable Attributes: the axis appears with a two-pixel stroke, the drill remains a twelve-pixel disc, and the invisible cut stays absent. Change zoom and pixel density; predict which dimensions remain fixed in CSS pixels. Save and inspect the original feature widths and arrowheads.
+- **Final Lesson Experiment:** Import an Element with a colored axis, an invisible cut and coincident drill endpoints. Enable Attributes: the axis appears with a two-pixel stroke, the drill remains a twelve-pixel disc, and the invisible cut stays absent. Change zoom and pixel density; predict which dimensions remain fixed in CSS pixels. Save and inspect the original feature widths and arrowheads.
 
-Continue with [Family-aware original controls and source previews](96za-address-original-controls-with-family-keys.md).
+Continue with [Family-aware original controls and source previews](../../consolidation/96za-address-original-controls-with-family-keys.md).

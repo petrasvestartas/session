@@ -1,89 +1,151 @@
 # 13.3 · Feature ancestry and canonical local-to-world placement
 
-**Section 7: Out-of-Core HTTP Range Streaming, Shared Instances, and Drawing Sheets** · **Lesson 13.3** (Redraft `7.7`) · **5 checkpoints (`70-evaluate-source-ancestry-once-per-document` → `70d-exercise-rotated-and-mirrored-original-references`)**
+**Section 7: Out-of-Core HTTP Range Streaming, Shared Instances, and Drawing Sheets** · **Lesson 13.3** (Redraft `7.7`) · **5 checkpoints (`70-evaluate-source-ancestry-once-per-document` → `70d-exercise-rotated-and-mirrored-original-references`)** · **Study time: 2.5–5 h**
 
-> **Learning Goal:** Evaluate source ancestry once per document.
+> **What You Will Learn & Build:** Evaluate source ancestry once per document. By the final checkpoint (`70d-exercise-rotated-and-mirrored-original-references`), you will exercise rotated and mirrored original references.
 
-## Visual WebGPU & Architecture Schematic
+## 1. Visual Pipeline & WebGPU Architecture (Black & White Schematics)
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1px solid #cbd5e1;border-radius:10px;background:#f8fafc;">
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
+<svg viewBox="0 0 840 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <rect x="4" y="4" width="832" height="212" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Lesson 13.3 Execution Flow: Feature ancestry and canonical local-to-world placement</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">Concrete data pipeline you build in this lesson (5 Checkpoints: 70-evaluate-source-ancestry-once-per-document → 70d-exercise-rotated-and-mirrored-original-references)</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
+  
+    
+    <rect x="18" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="89" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
+    <line x1="28" y1="92" x2="151" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">canonical Session</text>
+    <text x="89" y="124" text-anchor="middle" font-size="11" fill="#111111">transforms</text>
+    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="183" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="254" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
+    <line x1="193" y1="92" x2="316" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">one ancestry walk</text>
+    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="348" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="419" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
+    <line x1="358" y1="92" x2="481" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">document model</text>
+    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="513" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="584" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
+    <line x1="523" y1="92" x2="646" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">checked owner</text>
+    <text x="584" y="124" text-anchor="middle" font-size="11" fill="#111111">lookup</text>
+    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="678" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="749" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
+    <line x1="688" y1="92" x2="811" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">nested source</text>
+    <text x="749" y="124" text-anchor="middle" font-size="11" fill="#111111">branches</text>
+    
+    <rect x="18" y="162" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="32" y="181" font-size="11" font-weight="700" fill="#111111">Files You Edit in Lesson 13.3:</text>
+    <text x="215" y="181" font-size="11" fill="#111111">src/nested_placement.rs  ·  src/lib.rs  ·  src/hierarchy.rs  ·  src/layer_edit.rs  ·  src/document_source.rs  ·  src/document_geometry.rs</text>
+    <text x="32" y="198" font-size="10.5" fill="#111111">5 Checkpoints: 70-evaluate-source-ancestry-once-per-document → 70d-exercise-rotated-and-mirrored-original-references — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
+  
+</svg>
+</div>
+
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
 <svg viewBox="0 0 840 240" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#475569"/>
-    </marker>
-    <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#2563eb"/>
-    </marker>
-    <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#059669"/>
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
     </marker>
   </defs>
-  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
-  <text x="20" y="28" font-size="14" font-weight="700" fill="#0f172a">Section 7 WebGPU Streaming & Instancing: HTTP Range Requests, Shared Source Meshes & 2D Drawing Sheets</text>
-  <text x="20" y="46" font-size="11.5" fill="#475569">How massive multi-gigabyte scenes stream out-of-core via HTTP 206 Partial Content and draw 1,000+ placements from 1 GPU buffer.</text>
-  <line x1="16" y1="54" x2="824" y2="54" stroke="#e2e8f0" stroke-width="1"/>
+  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Section 7 WebGPU Streaming & Instancing: HTTP Range Requests, Shared Source Meshes & 2D Drawing Sheets</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">How massive multi-gigabyte scenes stream out-of-core via HTTP 206 Partial Content and draw 1,000+ placements from 1 GPU buffer.</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
   
-    <rect x="18" y="68" width="245" height="145" rx="6" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
-    <text x="140" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1e40af">1. HTTP 206 Range Streaming (Ch 12)</text>
-    <text x="28" y="108" font-size="10.5" fill="#1e3a8a">• Fetch compact Manifest + World Bounds</text>
-    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#1d4ed8">• Prioritize visible frustum chunks</text>
-    <text x="28" y="144" font-size="10.5" fill="#1e3a8a">• Range: bytes=start-end (bounded memory)</text>
-    <text x="28" y="162" font-size="10.5" fill="#1e3a8a">• Evict cold off-screen chunks under</text>
-    <text x="28" y="178" font-size="10.5" fill="#1e3a8a">  memory budget without losing metadata</text>
+    <rect x="18" y="68" width="245" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="140" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">1. HTTP 206 Range Streaming (Ch 12)</text>
+    <text x="28" y="108" font-size="10.5" fill="#111111">• Fetch compact Manifest + World Bounds</text>
+    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#111111">• Prioritize visible frustum chunks</text>
+    <text x="28" y="144" font-size="10.5" fill="#111111">• Range: bytes=start-end (bounded memory)</text>
+    <text x="28" y="162" font-size="10.5" fill="#111111">• Evict cold off-screen chunks under</text>
+    <text x="28" y="178" font-size="10.5" fill="#111111">  memory budget without losing metadata</text>
 
-    <line x1="263" y1="138" x2="293" y2="138" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
+    <line x1="263" y1="138" x2="293" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="295" y="68" width="265" height="145" rx="6" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5"/>
-    <text x="427" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#9a3412">2. GPU Hardware Instancing (Ch 13)</text>
-    <text x="307" y="108" font-size="10.5" fill="#7c2d12">• 1 Shared Definition Buffer (e.g. Bolt)</text>
-    <text x="307" y="126" font-size="10.5" font-weight="600" fill="#c2410c">• N Instance Rows (@builtin(instance_index)):</text>
-    <text x="307" y="142" font-size="10" fill="#7c2d12">  Per-instance mat4x4 transform, tint,</text>
-    <text x="307" y="157" font-size="10" fill="#7c2d12">  and distinct instance_owner_id</text>
-    <text x="307" y="176" font-size="10.5" fill="#7c2d12">• draw_indexed(0..idx_cnt, 0, 0..N_inst)</text>
+    <rect x="295" y="68" width="265" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="427" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">2. GPU Hardware Instancing (Ch 13)</text>
+    <text x="307" y="108" font-size="10.5" fill="#111111">• 1 Shared Definition Buffer (e.g. Bolt)</text>
+    <text x="307" y="126" font-size="10.5" font-weight="600" fill="#111111">• N Instance Rows (@builtin(instance_index)):</text>
+    <text x="307" y="142" font-size="10" fill="#111111">  Per-instance mat4x4 transform, tint,</text>
+    <text x="307" y="157" font-size="10" fill="#111111">  and distinct instance_owner_id</text>
+    <text x="307" y="176" font-size="10.5" fill="#111111">• draw_indexed(0..idx_cnt, 0, 0..N_inst)</text>
 
-    <line x1="560" y1="138" x2="590" y2="138" stroke="#059669" stroke-width="2" marker-end="url(#arrow-green)"/>
+    <line x1="560" y1="138" x2="590" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="592" y="68" width="228" height="145" rx="6" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1.5"/>
-    <text x="706" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#065f46">3. 2D Drawing Sheets &amp; Blocks</text>
-    <text x="604" y="108" font-size="10.5" fill="#064e3b">• Paper-space Sheet frames &amp; title</text>
-    <text x="604" y="124" font-size="10.5" fill="#064e3b">  blocks (`SheetInit / SheetRows`)</text>
-    <text x="604" y="144" font-size="10.5" font-weight="600" fill="#047857">• Calibrated mm/inch pen widths</text>
-    <text x="604" y="162" font-size="10.5" fill="#064e3b">• Switch smoothly between 3D Model</text>
-    <text x="604" y="178" font-size="10.5" fill="#064e3b">  view and 2D Sheet layouts</text>
+    <rect x="592" y="68" width="228" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="706" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">3. 2D Drawing Sheets &amp; Blocks</text>
+    <text x="604" y="108" font-size="10.5" fill="#111111">• Paper-space Sheet frames &amp; title</text>
+    <text x="604" y="124" font-size="10.5" fill="#111111">  blocks (SheetInit / SheetRows)</text>
+    <text x="604" y="144" font-size="10.5" font-weight="600" fill="#111111">• Calibrated mm/inch pen widths</text>
+    <text x="604" y="162" font-size="10.5" fill="#111111">• Switch smoothly between 3D Model</text>
+    <text x="604" y="178" font-size="10.5" fill="#111111">  view and 2D Sheet layouts</text>
     
 </svg>
 </div>
 
-### Lesson Data Flow (`Rust` → `WebGPU` → `WGSL`)
+## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
 
-```
-canonical Session transforms → one ancestry walk → document model → checked owner lookup.
-prepared source world map → owner model lookup → source rows → original tree records.
-nested source branches → shared definition → independent integer owners → preserved local frames.
-```
+Before writing code, review how the three layers in this chapter talk to each other:
 
-- Evaluate source ancestry once per document.
-- Connect canonical cached models to every source owner.
-- Exercise rotated and mirrored original references.
-- **Why it works (Why avoid walking the tree for every instance?):** One cached ancestry map avoids repeated searches. The kernel has already folded legacy instance placement, so apply it once.
-
-### Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `Browser`)
-
-| Layer | Construct | First-Year Student Explanation |
+| Layer | Construct | Plain-English Explanation for Students |
 | :--- | :--- | :--- |
 | **HTTP / Fetch** | `Range: bytes=start-end` -> `206 Partial Content` | Fetches only the exact byte slice of an octree node or sheet column needed for the current camera view. |
 | **Protobuf Wire** | Varint tag + length prefix scanner | Skips over multi-megabyte coordinate arrays by reading their byte range offsets without allocating their contents. |
 | **Rust (Residency)** | `budget.reserve(bytes)?` -> LRU eviction | Guarantees resident + in-flight pages never exceed the memory cap; coarse root pages stay pinned so the scene is never blank. |
 | **GPU Instancing** | Shared definition buffer + per-instance record | Draws N placed copies of a complex CAD component using 1 shared vertex/index allocation and N compact instance records. |
 
-**Production source (`session_viewer/src`):** [app/scene_instances.rs](../../../../src/app/scene_instances.rs), [engine/gpu/instanced.rs](../../../../src/engine/gpu/instanced.rs), [engine/gpu/slots.rs](../../../../src/engine/gpu/slots.rs), [app/walk/brep_shapes.rs](../../../../src/app/walk/brep_shapes.rs), [app/hierarchy.rs](../../../../src/app/hierarchy.rs), [app/sheet_query.rs](../../../../src/app/sheet_query.rs).
+**Authoritative production source (`session_viewer/src`):** [app/scene_instances.rs](../../../../src/app/scene_instances.rs), [engine/gpu/instanced.rs](../../../../src/engine/gpu/instanced.rs), [engine/gpu/slots.rs](../../../../src/engine/gpu/slots.rs), [app/walk/brep_shapes.rs](../../../../src/app/walk/brep_shapes.rs), [app/hierarchy.rs](../../../../src/app/hierarchy.rs), [app/sheet_query.rs](../../../../src/app/sheet_query.rs).
 
-## Implementation Checkpoints
+## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
 
-Apply these checkpoints in order inside `workspace/journey`. Expand each block to view the Rust/WGSL/HTML edits:
+| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
+| ---: | :--- | :--- | :--- | :--- |
+| **1** | [`70-evaluate-source-ancestry-once-per-document`](#checkpoint-70-evaluate-source-ancestry-once-per-document) | Evaluate source ancestry once per document. | `src/nested_placement.rs`, `src/lib.rs` | `canonical Session transforms → one ancestry walk → document model → checked owner lookup` |
+| **2** | [`70a-keep-original-local-parent-and-world-matrices`](#checkpoint-70a-keep-original-local-parent-and-world-matrices) | Keep original local parent and world matrices. | `src/nested_placement.rs`, `src/hierarchy.rs`, `src/layer_edit.rs` | `source local matrix → original parent frame → original world frame → independent tree node` |
+| **3** | [`70b-connect-canonical-cached-models-to-every-source-owner`](#checkpoint-70b-connect-canonical-cached-models-to-every-source-owner) | Connect canonical cached models to every source owner. | `src/document_source.rs`, `src/document_geometry.rs`, `src/scene_document.rs` | `prepared source world map → owner model lookup → source rows → original tree records` |
+| **4** | [`70c-save-nested-local-frames-without-flattening`](#checkpoint-70c-save-nested-local-frames-without-flattening) | Save nested local frames without flattening. | `src/hierarchy.rs`, `src/nested_example.rs`, `src/lib.rs`, `src/nested_placement_tests.rs` | `current world row → original local match → changed-local inverse → nested saved tree` |
+| **5** | [`70d-exercise-rotated-and-mirrored-original-references`](#checkpoint-70d-exercise-rotated-and-mirrored-original-references) | Exercise rotated and mirrored original references. | `src/editor.rs`, `src/commands.rs`, `src/browser.rs`, `src/pick_gpu_tests.rs` | `nested source branches → shared definition → independent integer owners → preserved local frames` |
+
+---
+
+## 4. Step-by-Step Coding Notebook (Concept + Implementation)
+
+Work through each notebook cell below in order inside `workspace/journey`. Read the **Concept Walkthrough** and **Self-Check Q&A** first, then expand the **Implementation** block to type and verify the code.
 
 <a id="checkpoint-70-evaluate-source-ancestry-once-per-document"></a>
+
+### Step 1 of 5 · Evaluate source ancestry once per document (`70-evaluate-source-ancestry-once-per-document`)
+
+- **Goal:** Evaluate source ancestry once per document.
+- **Data Flow Trace:** `canonical Session transforms → one ancestry walk → document model → checked owner lookup`
+- **Files You Touch:** `src/nested_placement.rs` (*Evaluate canonical source ancestry once before deriving placed display rows.*) · `src/lib.rs` (*Register the placement component.*)
+
+Collect canonical source world transforms once and check composed document matrices before deriving display geometry.
+
+> **Self-Check Question:** *Why avoid walking the tree for every instance?*  
+> **Answer:** One cached ancestry map avoids repeated searches. The kernel has already folded legacy instance placement, so apply it once.
+
+- **What You Should See:** The earlier congruent original CAD example remains visible while cached nested placements and exact local-transform persistence connect. The final endpoint opens rotated and mirrored references under separate parent branches.
+- **Hands-On Lab Experiment:** Compare rotated and mirrored parent branches with a legacy local shift; reject composed overflow before adopting any rows.
 
 <details>
 <summary>Implementation 70-evaluate-source-ancestry-once-per-document: Evaluate source ancestry once per document</summary>
@@ -125,6 +187,19 @@ After that block, type:
 </details>
 
 <a id="checkpoint-70a-keep-original-local-parent-and-world-matrices"></a>
+
+### Step 2 of 5 · Keep original local parent and world matrices (`70a-keep-original-local-parent-and-world-matrices`)
+
+- **Goal:** Keep original local parent and world matrices.
+- **Data Flow Trace:** `source local matrix → original parent frame → original world frame → independent tree node`
+- **Files You Touch:** `src/nested_placement.rs` (*Preserve exact original local transforms and derive changed locals from the current parent.*) · `src/hierarchy.rs` (*Own original local, parent and world matrices alongside tree identities.*) · `src/layer_edit.rs` (*Give generated layer and geometry nodes explicit identity placement defaults.*)
+
+Retain original local and parent/world frames beside tree identities. New generated nodes begin with identity placement.
+
+> **Self-Check Question:** *Why retain local transforms after computing world placement?*  
+> **Answer:** Save can preserve unchanged originals exactly. Repeatedly deriving locals through matrix inversion may add rounding error or flatten the source hierarchy.
+
+- **Hands-On Lab Experiment:** Inspect exact original local matrices independently of the placed row model and generated layer defaults.
 
 <details>
 <summary>Implementation 70a-keep-original-local-parent-and-world-matrices: Keep original local parent and world matrices</summary>
@@ -639,6 +714,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-70b-connect-canonical-cached-models-to-every-source-owner"></a>
 
+### Step 3 of 5 · Connect canonical cached models to every source owner (`70b-connect-canonical-cached-models-to-every-source-owner`)
+
+- **Goal:** Connect canonical cached models to every source owner.
+- **Data Flow Trace:** `prepared source world map → owner model lookup → source rows → original tree records`
+- **Files You Touch:** `src/document_source.rs` (*Connect cached canonical models and exact original tree placement records.*) · `src/document_geometry.rs` (*Connect cached canonical models and exact original tree placement records.*) · `src/scene_document.rs` (*Connect cached canonical models and exact original tree placement records.*)
+
+Use cached composed models for ordinary geometry and original references, then retain their canonical tree placement records.
+
+> **Self-Check Question:** *Does a source without a tree lose its document placement?*  
+> **Answer:** No. Use the document model as fallback, once. Named source transforms still come from the canonical world map.
+
+- **Hands-On Lab Experiment:** Import a no-tree point under 0.25 translation and verify exactly 0.25 rather than 0.5 or zero.
+
 <details>
 <summary>Implementation 70b-connect-canonical-cached-models-to-every-source-owner: Connect canonical cached models to every source owner</summary>
 
@@ -855,6 +943,19 @@ Edit the existing block to match this code; keep unchanged lines:
 
 <a id="checkpoint-70c-save-nested-local-frames-without-flattening"></a>
 
+### Step 4 of 5 · Save nested local frames without flattening (`70c-save-nested-local-frames-without-flattening`)
+
+- **Goal:** Save nested local frames without flattening.
+- **Data Flow Trace:** `current world row → original local match → changed-local inverse → nested saved tree`
+- **Files You Touch:** `src/hierarchy.rs` (*Save exact unchanged local frames while preserving current world placement after edits.*) · `src/nested_example.rs` (*Copy precise and visible nested original-reference specimens.*) · `src/lib.rs` (*Register the placement component.*) · `src/nested_placement_tests.rs` (*Copy exact canonical ancestry, local persistence, overflow, fallback, history and release fixtures.*)
+
+Preserve unchanged group and object local transforms. Recompute a changed row relative to its current parent and refuse conflicting names.
+
+> **Self-Check Question:** *Should Save turn all parent transforms into leaf translations?*  
+> **Answer:** No. Keep group transforms and unchanged canonical locals, while edited rows receive the local matrix matching their current world placement.
+
+- **Hands-On Lab Experiment:** Run exact root/branch transforms, legacy-fold precision, Save/Open, composed overflow, parent Move and source-release fixtures.
+
 <details>
 <summary>Implementation 70c-save-nested-local-frames-without-flattening: Save nested local frames without flattening</summary>
 
@@ -973,6 +1074,20 @@ After that block, append this supplied code:
 </details>
 
 <a id="checkpoint-70d-exercise-rotated-and-mirrored-original-references"></a>
+
+### Step 5 of 5 · Exercise rotated and mirrored original references (`70d-exercise-rotated-and-mirrored-original-references`)
+
+- **Goal:** Exercise rotated and mirrored original references.
+- **Data Flow Trace:** `nested source branches → shared definition → independent integer owners → preserved local frames`
+- **Files You Touch:** `src/editor.rs` (*Connect nested original examples and exact tree/local diagnostics.*) · `src/commands.rs` (*Connect nested original examples and exact tree/local diagnostics.*) · `src/browser.rs` (*Connect nested original examples and exact tree/local diagnostics.*) · `src/pick_gpu_tests.rs` (*Copy actual high integer owner, rotated/mirrored rendering and nested Save/Open GPU fixtures.*)
+
+Connect the nested source example and inspect exact original local matrices separately from independent scene models.
+
+> **Self-Check Question:** *Does a mirrored instance need a new original definition?*  
+> **Answer:** No. Its model mirrors the shared definition. Keep its original reference and integer owner independent.
+
+- **What You Should See:** A rotated blue reference and mirrored selected yellow reference share one original definition. Their source parent/local transforms survive Save/Open while parent Move is one reversible edit.
+- **Hands-On Lab Experiment:** Type Close, Example Nested Instances, Fit and View Isometric; select the parent, Move 0.25 0 0, Undo/Redo, Save/Open and Close.
 
 <details>
 <summary>Implementation 70d-exercise-rotated-and-mirrored-original-references: Exercise rotated and mirrored original references</summary>
@@ -1895,9 +2010,11 @@ After that block, append this supplied code:
 
 </details>
 
-## Run, Check, and Save
+---
 
-From `session_viewer`:
+## 5. Build, Verify, and Save Your Checkpoint
+
+Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 70d-exercise-rotated-and-mirrored-original-references
@@ -1908,12 +2025,12 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. Use [checkpoint recovery](../../recovery.md) to restore any saved checkpoint.
+Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
 
-## Expected Visual Result & Experiment
+## 6. Lesson Summary & Expected Visual Result
 
 A rotated blue reference and mirrored selected yellow reference share one original definition. Their source parent/local transforms survive Save/Open while parent Move is one reversible edit.
 
-- **Try this:** Type Close, Example Nested Instances, Fit and View Isometric; select the parent, Move 0.25 0 0, Undo/Redo, Save/Open and Close.
+- **Final Lesson Experiment:** Type Close, Example Nested Instances, Fit and View Isometric; select the parent, Move 0.25 0 0, Undo/Redo, Save/Open and Close.
 
-Continue with [Original sheet entity metadata](70za-read-original-sheet-metadata-records.md).
+Continue with [Original sheet entity metadata](../../consolidation/70za-read-original-sheet-metadata-records.md).

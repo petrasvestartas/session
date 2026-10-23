@@ -1,88 +1,151 @@
 # 16.2 · Split original curves and joined faces
 
-**Section 8: Precision Coordinate Frames, Solid Primitives, Surfacing, and CAD Editing** · **Lesson 16.2** (Redraft `8.12`) · **8 checkpoints (`82-divide-current-original-curve-families` → `82g-exercise-curve-pieces-source-inheritance-and-one-step-undo`)**
+**Section 8: Precision Coordinate Frames, Solid Primitives, Surfacing, and CAD Editing** · **Lesson 16.2** (Redraft `8.12`) · **8 checkpoints (`82-divide-current-original-curve-families` → `82g-exercise-curve-pieces-source-inheritance-and-one-step-undo`)** · **Study time: 4–8 h**
 
-> **Learning Goal:** Bound the cutter count and dispatch original lines, polylines, curves, surfaces and selected BRep faces to the Session split algorithms.
+> **What You Will Learn & Build:** Bound the cutter count and dispatch original lines, polylines, curves, surfaces and selected BRep faces to the Session split algorithms. By the final checkpoint (`82g-exercise-curve-pieces-source-inheritance-and-one-step-undo`), you will exercise curve pieces source inheritance and one-step Undo.
 
-## Visual WebGPU & Architecture Schematic
+## 1. Visual Pipeline & WebGPU Architecture (Black & White Schematics)
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1px solid #cbd5e1;border-radius:10px;background:#f8fafc;">
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
+<svg viewBox="0 0 840 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <rect x="4" y="4" width="832" height="212" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Lesson 16.2 Execution Flow: Split original curves and joined faces</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">Concrete data pipeline you build in this lesson (8 Checkpoints: 82-divide-current-original-curve-families → 82g-exercise-curve-pieces-source-inheritance-and-one-step-undo)</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
+  
+    
+    <rect x="18" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="89" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
+    <line x1="28" y1="92" x2="151" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">original family</text>
+    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="183" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="254" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
+    <line x1="193" y1="92" x2="316" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">pure calculation</text>
+    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="348" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="419" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
+    <line x1="358" y1="92" x2="481" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">result or refusal</text>
+    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="513" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="584" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
+    <line x1="523" y1="92" x2="646" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">original curve and</text>
+    <text x="584" y="124" text-anchor="middle" font-size="11" fill="#111111">cutter</text>
+    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="678" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="749" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
+    <line x1="688" y1="92" x2="811" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">sibling originals</text>
+    
+    <rect x="18" y="162" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="32" y="181" font-size="11" font-weight="700" fill="#111111">Files You Edit in Lesson 16.2:</text>
+    <text x="215" y="181" font-size="11" fill="#111111">src/split_geometry.rs  ·  src/split_draft.rs  ·  src/lib.rs  ·  src/editor.rs  ·  src/commands.rs  ·  src/browser.rs</text>
+    <text x="32" y="198" font-size="10.5" fill="#111111">8 Checkpoints: 82-divide-current-original-curve-families → 82g-exercise-curve-pieces-source-inheritance-and-one-step-undo — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
+  
+</svg>
+</div>
+
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
 <svg viewBox="0 0 840 240" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#475569"/>
-    </marker>
-    <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#2563eb"/>
-    </marker>
-    <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#059669"/>
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
     </marker>
   </defs>
-  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
-  <text x="20" y="28" font-size="14" font-weight="700" fill="#0f172a">Section 8 Precision CAD Frames, Solid Primitives, Surfacing & Sub-Object Deformation (Chapters 14–16)</text>
-  <text x="20" y="46" font-size="11.5" fill="#475569">How double-precision coordinate frames (Plane), parametric solids, Loft/Sweep/Extrude surfaces, and Gumball control edits work.</text>
-  <line x1="16" y1="54" x2="824" y2="54" stroke="#e2e8f0" stroke-width="1"/>
+  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Section 8 Precision CAD Frames, Solid Primitives, Surfacing & Sub-Object Deformation (Chapters 14–16)</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">How double-precision coordinate frames (Plane), parametric solids, Loft/Sweep/Extrude surfaces, and Gumball control edits work.</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
   
-    <rect x="18" y="68" width="245" height="145" rx="6" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
-    <text x="140" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1e40af">1. Orthonormal Frames (Ch 14)</text>
-    <text x="28" y="108" font-size="10.5" fill="#1e3a8a">• Plane { origin: Vec3d, x, y, z }</text>
-    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#1d4ed8">• Rejects non-finite / collinear axes</text>
-    <text x="28" y="144" font-size="10.5" fill="#1e3a8a">• Basis change: World &lt;-&gt; Local Plane</text>
-    <text x="28" y="162" font-size="10.5" fill="#1e3a8a">• Exact Mirror, Rotate3D, Orient,</text>
-    <text x="28" y="178" font-size="10.5" fill="#1e3a8a">  and Align frame transformations</text>
+    <rect x="18" y="68" width="245" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="140" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">1. Orthonormal Frames (Ch 14)</text>
+    <text x="28" y="108" font-size="10.5" fill="#111111">• Plane { origin: Vec3d, x, y, z }</text>
+    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#111111">• Rejects non-finite / collinear axes</text>
+    <text x="28" y="144" font-size="10.5" fill="#111111">• Basis change: World &lt;-&gt; Local Plane</text>
+    <text x="28" y="162" font-size="10.5" fill="#111111">• Exact Mirror, Rotate3D, Orient,</text>
+    <text x="28" y="178" font-size="10.5" fill="#111111">  and Align frame transformations</text>
 
-    <line x1="263" y1="138" x2="293" y2="138" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
+    <line x1="263" y1="138" x2="293" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="295" y="68" width="265" height="145" rx="6" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5"/>
-    <text x="427" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#9a3412">2. Solids &amp; Surfacing (Ch 15–16)</text>
-    <text x="307" y="108" font-size="10.5" fill="#7c2d12">• Parametric Box, Cylinder, Sphere, Cone</text>
-    <text x="307" y="126" font-size="10.5" font-weight="600" fill="#c2410c">• Extrude, Revolve, Loft, Sweep, Planar</text>
-    <text x="307" y="144" font-size="10.5" fill="#7c2d12">• Curve Split, Trim, Extend, Join, Fillet</text>
-    <text x="307" y="162" font-size="10.5" fill="#7c2d12">• Every operation commits an atomic</text>
-    <text x="307" y="178" font-size="10.5" fill="#7c2d12">  session_rust kernel transaction</text>
+    <rect x="295" y="68" width="265" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="427" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">2. Solids &amp; Surfacing (Ch 15–16)</text>
+    <text x="307" y="108" font-size="10.5" fill="#111111">• Parametric Box, Cylinder, Sphere, Cone</text>
+    <text x="307" y="126" font-size="10.5" font-weight="600" fill="#111111">• Extrude, Revolve, Loft, Sweep, Planar</text>
+    <text x="307" y="144" font-size="10.5" fill="#111111">• Curve Split, Trim, Extend, Join, Fillet</text>
+    <text x="307" y="162" font-size="10.5" fill="#111111">• Every operation commits an atomic</text>
+    <text x="307" y="178" font-size="10.5" fill="#111112">  session_rust kernel transaction</text>
 
-    <line x1="560" y1="138" x2="590" y2="138" stroke="#059669" stroke-width="2" marker-end="url(#arrow-green)"/>
+    <line x1="560" y1="138" x2="590" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="592" y="68" width="228" height="145" rx="6" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1.5"/>
-    <text x="706" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#065f46">3. Rational Control-Point Deform</text>
-    <text x="604" y="108" font-size="10.5" fill="#064e3b">• Pick NURBS control point or vertex</text>
-    <text x="604" y="126" font-size="10.5" font-weight="600" fill="#047857">• Preserve homogeneous weight w</text>
-    <text x="604" y="142" font-size="10.5" font-weight="600" fill="#047857">  on rational curve control drags!</text>
-    <text x="604" y="162" font-size="10.5" fill="#064e3b">• Rebuild derived GPU tessellation</text>
-    <text x="604" y="178" font-size="10.5" fill="#064e3b">  in-place while keeping Object ID</text>
+    <rect x="592" y="68" width="228" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="706" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">3. Rational Control-Point Deform</text>
+    <text x="604" y="108" font-size="10.5" fill="#111111">• Pick NURBS control point or vertex</text>
+    <text x="604" y="126" font-size="10.5" font-weight="600" fill="#111111">• Preserve homogeneous weight w</text>
+    <text x="604" y="142" font-size="10.5" font-weight="600" fill="#111111">  on rational curve control drags!</text>
+    <text x="604" y="162" font-size="10.5" fill="#111111">• Rebuild derived GPU tessellation</text>
+    <text x="604" y="178" font-size="10.5" fill="#111111">  in-place while keeping Object ID</text>
     
 </svg>
 </div>
 
-### Lesson Data Flow (`Rust` → `WebGPU` → `WGSL`)
+## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
 
-```
-original family → pure calculation → result or refusal.
-pending cutter owners → prepared originals → one history transaction.
-original curve and cutter → sibling originals → one Undo → exact Save/Open.
-```
+Before writing code, review how the three layers in this chapter talk to each other:
 
-- Bound the cutter count and dispatch original lines, polylines, curves, surfaces and selected BRep faces to the Session split algorithms.
-- Connect pending split completion to one history change.
-- Exercise curve pieces source inheritance and one-step Undo.
-- **Why it works (Do the pieces come from sampled display segments?):** No. Split uses original line, polyline or rational curve geometry. Display samples render the results.
-
-### Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `Browser`)
-
-| Layer | Construct | First-Year Student Explanation |
+| Layer | Construct | Plain-English Explanation for Students |
 | :--- | :--- | :--- |
 | **CAD Coords** | `w10,20,0` vs `@5,0,0` vs `10<30` | `w` forces absolute World coordinates; `@` measures relative to the last accepted point; `<` uses polar distance and angle in the active Construction Plane. |
 | **Rational NURBS** | Homogeneous control point `(w*x, w*y, w*z, w)` | Represents circles, ellipses, and conic arcs with zero approximation error using non-uniform weights `w`. |
 | **B-Rep Split/Trim** | Plane/Cutter intersection -> Face loop classification | Splits or trims B-Rep and mesh faces along cutting planes/curves while keeping retained topology tables valid. |
 
-**Production source (`session_viewer/src`):** [app/command/verbs/project_to_plane.rs](../../../../src/app/command/verbs/project_to_plane.rs), [app/command/verbs/extend.rs](../../../../src/app/command/verbs/extend.rs), [app/splitting.rs](../../../../src/app/splitting.rs), [app/command/verbs/measure.rs](../../../../src/app/command/verbs/measure.rs), [app/command/verbs/trim/parts.rs](../../../../src/app/command/verbs/trim/parts.rs), [app/command/verbs/explode.rs](../../../../src/app/command/verbs/explode.rs), [app/walk/frames.rs](../../../../src/app/walk/frames.rs), [build.rs](../../../../build.rs).
+**Authoritative production source (`session_viewer/src`):** [app/command/verbs/project_to_plane.rs](../../../../src/app/command/verbs/project_to_plane.rs), [app/command/verbs/extend.rs](../../../../src/app/command/verbs/extend.rs), [app/splitting.rs](../../../../src/app/splitting.rs), [app/command/verbs/measure.rs](../../../../src/app/command/verbs/measure.rs), [app/command/verbs/trim/parts.rs](../../../../src/app/command/verbs/trim/parts.rs), [app/command/verbs/explode.rs](../../../../src/app/command/verbs/explode.rs), [app/walk/frames.rs](../../../../src/app/walk/frames.rs), [build.rs](../../../../build.rs).
 
-## Implementation Checkpoints
+## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
 
-Apply these checkpoints in order inside `workspace/journey`. Expand each block to view the Rust/WGSL/HTML edits:
+| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
+| ---: | :--- | :--- | :--- | :--- |
+| **1** | [`82-divide-current-original-curve-families`](#checkpoint-82-divide-current-original-curve-families) | Bound the cutter count and dispatch original lines, polylines, curves, surfaces and selected BRep faces to the Session split algorithms. | `src/split_geometry.rs` | `original family → pure calculation → result or refusal` |
+| **2** | [`82a-own-the-split-target-and-toggle-original-cutters`](#checkpoint-82a-own-the-split-target-and-toggle-original-cutters) | Own the split target and toggle original cutters. | `src/split_draft.rs`, `src/lib.rs` | `target original → pending cutter owners → whole-owner toggles` |
+| **3** | [`82b-transform-cutters-into-the-target-frame-before-dividing`](#checkpoint-82b-transform-cutters-into-the-target-frame-before-dividing) | Transform cutters into the target frame before dividing. | `src/split_draft.rs` | `world placements → inverse target frame → local original cutters → division` |
+| **4** | [`82c-adopt-sibling-pieces-beside-the-original-target`](#checkpoint-82c-adopt-sibling-pieces-beside-the-original-target) | Adopt sibling pieces beside the original target. | `src/split_draft.rs` | `prepared pieces → target sibling identities → inherited parent and placement` |
+| **5** | [`82d-connect-pending-split-completion-to-one-history-change`](#checkpoint-82d-connect-pending-split-completion-to-one-history-change) | Connect pending split completion to one history change. | `src/editor.rs` | `pending cutter owners → prepared originals → one history transaction` |
+| **6** | [`82e-route-cutter-picks-cancellation-and-temporary-highlights`](#checkpoint-82e-route-cutter-picks-cancellation-and-temporary-highlights) | Route cutter picks cancellation and temporary highlights. | `src/editor.rs` | `whole-owner picks → temporary highlights → completion or cancellation` |
+| **7** | [`82f-register-split-and-route-mouse-touch-and-confirmation`](#checkpoint-82f-register-split-and-route-mouse-touch-and-confirmation) | Register Split and route mouse touch and confirmation. | `src/commands.rs`, `src/browser.rs` | `current Split command → whole integer pick → pending cutter facts → confirm` |
+| **8** | [`82g-exercise-curve-pieces-source-inheritance-and-one-step-undo`](#checkpoint-82g-exercise-curve-pieces-source-inheritance-and-one-step-undo) | Exercise curve pieces source inheritance and one-step Undo. | `src/split_tests.rs`, `src/lib.rs` | `original curve and cutter → sibling originals → one Undo → exact Save/Open` |
+
+---
+
+## 4. Step-by-Step Coding Notebook (Concept + Implementation)
+
+Work through each notebook cell below in order inside `workspace/journey`. Read the **Concept Walkthrough** and **Self-Check Q&A** first, then expand the **Implementation** block to type and verify the code.
 
 <a id="checkpoint-82-divide-current-original-curve-families"></a>
+
+### Step 1 of 8 · Divide original curves and joined faces (`82-divide-current-original-curve-families`)
+
+- **Goal:** Bound the cutter count and dispatch original lines, polylines, curves, surfaces and selected BRep faces to the Session split algorithms.
+- **Data Flow Trace:** `original family → pure calculation → result or refusal`
+- **Files You Touch:** `src/split_geometry.rs` (*Extend this original owner with today’s complete helper.*)
+
+Bound the cutter count and dispatch original lines, polylines, curves, surfaces and selected BRep faces to the Session split algorithms. Return derived geometry and the number of regions without editing the scene.
+
+> **Self-Check Question:** *Do the pieces come from sampled display segments?*  
+> **Answer:** No. Split uses original line, polyline or rational curve geometry. Display samples render the results.
+
+- **What You Should See:** The extended original line and projected curve remain visible while original splitting connects.
+- **Hands-On Lab Experiment:** Compare the line, polyline and rational-curve branches. Explain why a split surface returns one BRep with several regions.
 
 <details>
 <summary>Implementation 82-divide-current-original-curve-families: Divide original curves and joined faces</summary>
@@ -199,6 +262,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-82a-own-the-split-target-and-toggle-original-cutters"></a>
 
+### Step 2 of 8 · Own the split target and toggle original cutters (`82a-own-the-split-target-and-toggle-original-cutters`)
+
+- **Goal:** Own the split target and toggle original cutters.
+- **Data Flow Trace:** `target original → pending cutter owners → whole-owner toggles`
+- **Files You Touch:** `src/split_draft.rs` (*Own the curve target and bounded original cutter toggles.*) · `src/lib.rs` (*Register the source-splitting component.*)
+
+Capture one eligible original curve target and toggle distinct eligible cutters. Keep cutter highlights separate from target selection.
+
+> **Self-Check Question:** *Can the target also be its own cutter?*  
+> **Answer:** No. Refuse it before changing the list. Hidden, locked, released and unsupported cutter rows are also rejected.
+
+- **Hands-On Lab Experiment:** Inspect the64-cutter ceiling and repeated-pick removal. Confirm the source target is a curve before accepting a pending operation.
+
 <details>
 <summary>Implementation 82a-own-the-split-target-and-toggle-original-cutters: Own the split target and toggle original cutters</summary>
 
@@ -240,6 +316,19 @@ After that block, type:
 
 <a id="checkpoint-82b-transform-cutters-into-the-target-frame-before-dividing"></a>
 
+### Step 3 of 8 · Transform cutters into the target frame before dividing (`82b-transform-cutters-into-the-target-frame-before-dividing`)
+
+- **Goal:** Transform cutters into the target frame before dividing.
+- **Data Flow Trace:** `world placements → inverse target frame → local original cutters → division`
+- **Files You Touch:** `src/split_draft.rs` (*Prepare original split pieces from fresh local-frame cutter copies.*)
+
+Validate source owners and placements, then transform each original cutter into the target’s local coordinates exactly once.
+
+> **Self-Check Question:** *What happens to a cutter’s saved placement?*  
+> **Answer:** It stays unchanged. Only a temporary curve copy is transformed for the target’s split calculation.
+
+- **Hands-On Lab Experiment:** Compare a target under nested translation with a cutter in another document. Check stale allocation/model guards before invoking the algorithm.
+
 <details>
 <summary>Implementation 82b-transform-cutters-into-the-target-frame-before-dividing: Transform cutters into the target frame before dividing</summary>
 
@@ -272,6 +361,19 @@ Edit the existing block to match this code; keep unchanged lines:
 
 <a id="checkpoint-82c-adopt-sibling-pieces-beside-the-original-target"></a>
 
+### Step 4 of 8 · Adopt sibling pieces beside the original target (`82c-adopt-sibling-pieces-beside-the-original-target`)
+
+- **Goal:** Adopt sibling pieces beside the original target.
+- **Data Flow Trace:** `prepared pieces → target sibling identities → inherited parent and placement`
+- **Files You Touch:** `src/split_draft.rs` (*Adopt named original sibling pieces with inherited source parent, placement and colours.*)
+
+Copy the target’s source row and tree parent before replacing originals. Keep the first GUID and name each piece without moving it to the current layer.
+
+> **Self-Check Question:** *Should a new current layer receive the split pieces?*  
+> **Answer:** No. Pieces belong beside the source target. Their creation follows that target’s actual tree parent and original placement.
+
+- **Hands-On Lab Experiment:** Inspect sibling GUID allocation, source replacement and tree label updates. A caller wraps all these changes in one transaction.
+
 <details>
 <summary>Implementation 82c-adopt-sibling-pieces-beside-the-original-target: Adopt sibling pieces beside the original target</summary>
 
@@ -302,6 +404,19 @@ After that block, type:
 </details>
 
 <a id="checkpoint-82d-connect-pending-split-completion-to-one-history-change"></a>
+
+### Step 5 of 8 · Connect pending split completion to one history change (`82d-connect-pending-split-completion-to-one-history-change`)
+
+- **Goal:** Connect pending split completion to one history change.
+- **Data Flow Trace:** `pending cutter owners → prepared originals → one history transaction`
+- **Files You Touch:** `src/editor.rs` (*Connect pending split actions, checked completion and one original adoption transaction.*)
+
+Expose checked Split actions after their handlers exist. Empty confirmation keeps the owner; nonempty completion consumes it and adopts all pieces once.
+
+> **Self-Check Question:** *Can a no-division result clear Redo?*  
+> **Answer:** No. Report it before opening a transaction. A real division records replacement and sibling creation together.
+
+- **Hands-On Lab Experiment:** Inspect empty confirmation, failed nonempty completion, no division and successful adoption. The original target remains selected after success.
 
 <details>
 <summary>Implementation 82d-connect-pending-split-completion-to-one-history-change: Connect pending split completion to one history change</summary>
@@ -1528,6 +1643,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-82e-route-cutter-picks-cancellation-and-temporary-highlights"></a>
+
+### Step 6 of 8 · Route cutter picks cancellation and temporary highlights (`82e-route-cutter-picks-cancellation-and-temporary-highlights`)
+
+- **Goal:** Route cutter picks cancellation and temporary highlights.
+- **Data Flow Trace:** `whole-owner picks → temporary highlights → completion or cancellation`
+- **Files You Touch:** `src/editor.rs` (*Route split input, cutter highlights, gizmo visibility and pending-owner lifecycle.*)
+
+Route tree and rectangle row picks to the pending cutter list. Hide its gizmo, preserve view controls and end pending state on scene history or another command.
+
+> **Self-Check Question:** *Does selecting a cutter replace the target selection?*  
+> **Answer:** No. It adds a temporary cutter highlight. Ending the tool removes those highlights and restores the target’s normal gizmo.
+
+- **Hands-On Lab Experiment:** Compare toggling a layer row and the same row through rectangle selection. Check Fit during Split and Escape, Undo or another drawing command afterward.
 
 <details>
 <summary>Implementation 82e-route-cutter-picks-cancellation-and-temporary-highlights: Route cutter picks cancellation and temporary highlights</summary>
@@ -2779,6 +2907,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-82f-register-split-and-route-mouse-touch-and-confirmation"></a>
+
+### Step 7 of 8 · Register Split and route mouse touch and confirmation (`82f-register-split-and-route-mouse-touch-and-confirmation`)
+
+- **Goal:** Register Split and route mouse touch and confirmation.
+- **Data Flow Trace:** `current Split command → whole integer pick → pending cutter facts → confirm`
+- **Files You Touch:** `src/commands.rs` (*Register current Split vocabulary and argument-free dispatch.*) · `src/browser.rs` (*Route whole original cutters and expose pending split facts and options.*)
+
+Register the current argument-free command and route whole-owner integer picks. Show Split/Cancel options and observe the pending target and cutters.
+
+> **Self-Check Question:** *Should a saved face-picking mode make a cutter pick select an edge?*  
+> **Answer:** No. Pending cutter selection temporarily requests whole original owners while preserving the user’s saved picking mode.
+
+- **Hands-On Lab Experiment:** Inspect mouse/touch/tree routing, pending prompts and Enter/Cancel options. The browser contract projects actual world coordinates through the current camera.
 
 <details>
 <summary>Implementation 82f-register-split-and-route-mouse-touch-and-confirmation: Register Split and route mouse touch and confirmation</summary>
@@ -4109,6 +4250,20 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-82g-exercise-curve-pieces-source-inheritance-and-one-step-undo"></a>
 
+### Step 8 of 8 · Exercise curve pieces source inheritance and one-step Undo (`82g-exercise-curve-pieces-source-inheritance-and-one-step-undo`)
+
+- **Goal:** Exercise curve pieces source inheritance and one-step Undo.
+- **Data Flow Trace:** `original curve and cutter → sibling originals → one Undo → exact Save/Open`
+- **Files You Touch:** `src/split_tests.rs` (*Copy integrated source split, tree, placement, colour, stale, history and archive fixtures.*) · `src/lib.rs` (*Register the source-splitting component.*)
+
+Copy integrated original split fixtures and display the selected first piece beside its sibling and retained cutter.
+
+> **Self-Check Question:** *What proves the whole split is one change?*  
+> **Answer:** One Undo restores the original allocation and removes every added sibling. Redo restores all named pieces while keeping the cutter.
+
+- **What You Should See:** The selected first split piece is yellow beside its original sibling and retained cutter. The split preserves source placement, layer parent and identity and undoes as one operation.
+- **Hands-On Lab Experiment:** Type Close, Line w-2,0,0 w2,0,0 and Line w0,-2,0 w0,2,0. Type View Isometric, Select None and Fit. Click the horizontal target away from the crossing, type Split, then click the vertical cutter away from the crossing. Press Enter or tap Split. Inspect the two named original pieces; the first remains selected and the cutter remains. Try Undo, Redo, empty confirmation, toggling the cutter, Escape and Save/Open.
+
 <details>
 <summary>Implementation 82g-exercise-curve-pieces-source-inheritance-and-one-step-undo: Exercise curve pieces source inheritance and one-step Undo</summary>
 
@@ -4162,9 +4317,11 @@ After that block, append this supplied code:
 
 </details>
 
-## Run, Check, and Save
+---
 
-From `session_viewer`:
+## 5. Build, Verify, and Save Your Checkpoint
+
+Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 82g-exercise-curve-pieces-source-inheritance-and-one-step-undo
@@ -4175,12 +4332,12 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. Use [checkpoint recovery](../../recovery.md) to restore any saved checkpoint.
+Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
 
-## Expected Visual Result & Experiment
+## 6. Lesson Summary & Expected Visual Result
 
 The selected first split piece is yellow beside its original sibling and retained cutter. The split preserves source placement, layer parent and identity and undoes as one operation.
 
-- **Try this:** Type Close, Line w-2,0,0 w2,0,0 and Line w0,-2,0 w0,2,0. Type View Isometric, Select None and Fit. Click the horizontal target away from the crossing, type Split, then click the vertical cutter away from the crossing. Press Enter or tap Split. Inspect the two named original pieces; the first remains selected and the cutter remains. Try Undo, Redo, empty confirmation, toggling the cutter, Escape and Save/Open.
+- **Final Lesson Experiment:** Type Close, Line w-2,0,0 w2,0,0 and Line w0,-2,0 w0,2,0. Type View Isometric, Select None and Fit. Click the horizontal target away from the crossing, type Split, then click the vertical cutter away from the crossing. Press Enter or tap Split. Inspect the two named original pieces; the first remains selected and the cutter remains. Try Undo, Redo, empty confirmation, toggling the cutter, Escape and Save/Open.
 
-Continue with [Joined-face topology and exact surface measures](83-split-original-faces-without-separating-the-solid.md).
+Continue with [Joined-face topology and exact surface measures](../../consolidation/83-split-original-faces-without-separating-the-solid.md).

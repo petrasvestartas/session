@@ -1,88 +1,196 @@
 # 16.5 · Text, Plane, Trim and integrated editing commands
 
-**Section 8: Precision Coordinate Frames, Solid Primitives, Surfacing, and CAD Editing** · **Lesson 16.5** (Redraft `8.15`) · **52 checkpoints (`85-copy-current-original-command-recipes` → `85ay-exercise-current-original-commands-together`)**
+**Section 8: Precision Coordinate Frames, Solid Primitives, Surfacing, and CAD Editing** · **Lesson 16.5** (Redraft `8.15`) · **52 checkpoints (`85-copy-current-original-command-recipes` → `85ay-exercise-current-original-commands-together`)** · **Study time: 26–52 h**
 
-> **Learning Goal:** Build world-plane labels with readable axes and the original rounded scale steps.
+> **What You Will Learn & Build:** Build world-plane labels with readable axes and the original rounded scale steps. By the final checkpoint (`85ay-exercise-current-original-commands-together`), you will exercise current original commands together.
 
-## Visual WebGPU & Architecture Schematic
+## 1. Visual Pipeline & WebGPU Architecture (Black & White Schematics)
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1px solid #cbd5e1;border-radius:10px;background:#f8fafc;">
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
+<svg viewBox="0 0 840 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <rect x="4" y="4" width="832" height="212" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Lesson 16.5 Execution Flow: Text, Plane, Trim and integrated editing commands</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">Concrete data pipeline you build in this lesson (52 Checkpoints: 85-copy-current-original-command-recipes → 85ay-exercise-current-original-commands-together)</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
+  
+    
+    <rect x="18" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="89" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
+    <line x1="28" y1="92" x2="151" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">original family</text>
+    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="183" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="254" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
+    <line x1="193" y1="92" x2="316" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">pure calculation</text>
+    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="348" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="419" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
+    <line x1="358" y1="92" x2="481" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">result or refusal</text>
+    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="513" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="584" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
+    <line x1="523" y1="92" x2="646" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">original line and</text>
+    <text x="584" y="124" text-anchor="middle" font-size="11" fill="#111111">label</text>
+    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="678" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="749" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
+    <line x1="688" y1="92" x2="811" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">headed curve and</text>
+    <text x="749" y="124" text-anchor="middle" font-size="11" fill="#111111">extension</text>
+    
+    <rect x="18" y="162" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="32" y="181" font-size="11" font-weight="700" fill="#111111">Files You Edit in Lesson 16.5:</text>
+    <text x="215" y="181" font-size="11" fill="#111111">src/lib.rs  ·  src/text_geometry.rs  ·  src/curve_heads.rs  ·  src/plane_original.rs  ·  src/source_edit.rs  ·  src/source_part.rs</text>
+    <text x="32" y="198" font-size="10.5" fill="#111111">52 Checkpoints: 85-copy-current-original-command-recipes → 85ay-exercise-current-original-commands-together — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
+  
+</svg>
+</div>
+
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
 <svg viewBox="0 0 840 240" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#475569"/>
-    </marker>
-    <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#2563eb"/>
-    </marker>
-    <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#059669"/>
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
     </marker>
   </defs>
-  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
-  <text x="20" y="28" font-size="14" font-weight="700" fill="#0f172a">Section 8 Precision CAD Frames, Solid Primitives, Surfacing & Sub-Object Deformation (Chapters 14–16)</text>
-  <text x="20" y="46" font-size="11.5" fill="#475569">How double-precision coordinate frames (Plane), parametric solids, Loft/Sweep/Extrude surfaces, and Gumball control edits work.</text>
-  <line x1="16" y1="54" x2="824" y2="54" stroke="#e2e8f0" stroke-width="1"/>
+  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Section 8 Precision CAD Frames, Solid Primitives, Surfacing & Sub-Object Deformation (Chapters 14–16)</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">How double-precision coordinate frames (Plane), parametric solids, Loft/Sweep/Extrude surfaces, and Gumball control edits work.</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
   
-    <rect x="18" y="68" width="245" height="145" rx="6" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
-    <text x="140" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1e40af">1. Orthonormal Frames (Ch 14)</text>
-    <text x="28" y="108" font-size="10.5" fill="#1e3a8a">• Plane { origin: Vec3d, x, y, z }</text>
-    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#1d4ed8">• Rejects non-finite / collinear axes</text>
-    <text x="28" y="144" font-size="10.5" fill="#1e3a8a">• Basis change: World &lt;-&gt; Local Plane</text>
-    <text x="28" y="162" font-size="10.5" fill="#1e3a8a">• Exact Mirror, Rotate3D, Orient,</text>
-    <text x="28" y="178" font-size="10.5" fill="#1e3a8a">  and Align frame transformations</text>
+    <rect x="18" y="68" width="245" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="140" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">1. Orthonormal Frames (Ch 14)</text>
+    <text x="28" y="108" font-size="10.5" fill="#111111">• Plane { origin: Vec3d, x, y, z }</text>
+    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#111111">• Rejects non-finite / collinear axes</text>
+    <text x="28" y="144" font-size="10.5" fill="#111111">• Basis change: World &lt;-&gt; Local Plane</text>
+    <text x="28" y="162" font-size="10.5" fill="#111111">• Exact Mirror, Rotate3D, Orient,</text>
+    <text x="28" y="178" font-size="10.5" fill="#111111">  and Align frame transformations</text>
 
-    <line x1="263" y1="138" x2="293" y2="138" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
+    <line x1="263" y1="138" x2="293" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="295" y="68" width="265" height="145" rx="6" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5"/>
-    <text x="427" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#9a3412">2. Solids &amp; Surfacing (Ch 15–16)</text>
-    <text x="307" y="108" font-size="10.5" fill="#7c2d12">• Parametric Box, Cylinder, Sphere, Cone</text>
-    <text x="307" y="126" font-size="10.5" font-weight="600" fill="#c2410c">• Extrude, Revolve, Loft, Sweep, Planar</text>
-    <text x="307" y="144" font-size="10.5" fill="#7c2d12">• Curve Split, Trim, Extend, Join, Fillet</text>
-    <text x="307" y="162" font-size="10.5" fill="#7c2d12">• Every operation commits an atomic</text>
-    <text x="307" y="178" font-size="10.5" fill="#7c2d12">  session_rust kernel transaction</text>
+    <rect x="295" y="68" width="265" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="427" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">2. Solids &amp; Surfacing (Ch 15–16)</text>
+    <text x="307" y="108" font-size="10.5" fill="#111111">• Parametric Box, Cylinder, Sphere, Cone</text>
+    <text x="307" y="126" font-size="10.5" font-weight="600" fill="#111111">• Extrude, Revolve, Loft, Sweep, Planar</text>
+    <text x="307" y="144" font-size="10.5" fill="#111111">• Curve Split, Trim, Extend, Join, Fillet</text>
+    <text x="307" y="162" font-size="10.5" fill="#111111">• Every operation commits an atomic</text>
+    <text x="307" y="178" font-size="10.5" fill="#111112">  session_rust kernel transaction</text>
 
-    <line x1="560" y1="138" x2="590" y2="138" stroke="#059669" stroke-width="2" marker-end="url(#arrow-green)"/>
+    <line x1="560" y1="138" x2="590" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="592" y="68" width="228" height="145" rx="6" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1.5"/>
-    <text x="706" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#065f46">3. Rational Control-Point Deform</text>
-    <text x="604" y="108" font-size="10.5" fill="#064e3b">• Pick NURBS control point or vertex</text>
-    <text x="604" y="126" font-size="10.5" font-weight="600" fill="#047857">• Preserve homogeneous weight w</text>
-    <text x="604" y="142" font-size="10.5" font-weight="600" fill="#047857">  on rational curve control drags!</text>
-    <text x="604" y="162" font-size="10.5" fill="#064e3b">• Rebuild derived GPU tessellation</text>
-    <text x="604" y="178" font-size="10.5" fill="#064e3b">  in-place while keeping Object ID</text>
+    <rect x="592" y="68" width="228" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="706" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">3. Rational Control-Point Deform</text>
+    <text x="604" y="108" font-size="10.5" fill="#111111">• Pick NURBS control point or vertex</text>
+    <text x="604" y="126" font-size="10.5" font-weight="600" fill="#111111">• Preserve homogeneous weight w</text>
+    <text x="604" y="142" font-size="10.5" font-weight="600" fill="#111111">  on rational curve control drags!</text>
+    <text x="604" y="162" font-size="10.5" fill="#111111">• Rebuild derived GPU tessellation</text>
+    <text x="604" y="178" font-size="10.5" fill="#111111">  in-place while keeping Object ID</text>
     
 </svg>
 </div>
 
-### Lesson Data Flow (`Rust` → `WebGPU` → `WGSL`)
+## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
 
-```
-original family → pure calculation → result or refusal.
-named view → orthographic frame → placed grid.
-original line and label → headed curve and extension → cached red guide.
-```
+Before writing code, review how the three layers in this chapter talk to each other:
 
-- Build world-plane labels with readable axes and the original rounded scale steps.
-- Connect cached guide and placed grid lanes.
-- Exercise current original commands together.
-- **Why it works (Do these pure calculations insert scene rows?):** No. The editor adopts accepted results later, retaining original identity and one history transaction.
-
-### Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `Browser`)
-
-| Layer | Construct | First-Year Student Explanation |
+| Layer | Construct | Plain-English Explanation for Students |
 | :--- | :--- | :--- |
 | **CAD Coords** | `w10,20,0` vs `@5,0,0` vs `10<30` | `w` forces absolute World coordinates; `@` measures relative to the last accepted point; `<` uses polar distance and angle in the active Construction Plane. |
 | **Rational NURBS** | Homogeneous control point `(w*x, w*y, w*z, w)` | Represents circles, ellipses, and conic arcs with zero approximation error using non-uniform weights `w`. |
 | **B-Rep Split/Trim** | Plane/Cutter intersection -> Face loop classification | Splits or trims B-Rep and mesh faces along cutting planes/curves while keeping retained topology tables valid. |
 
-**Production source (`session_viewer/src`):** [app/command/verbs/project_to_plane.rs](../../../../src/app/command/verbs/project_to_plane.rs), [app/command/verbs/extend.rs](../../../../src/app/command/verbs/extend.rs), [app/splitting.rs](../../../../src/app/splitting.rs), [app/command/verbs/measure.rs](../../../../src/app/command/verbs/measure.rs), [app/command/verbs/trim/parts.rs](../../../../src/app/command/verbs/trim/parts.rs), [app/command/verbs/explode.rs](../../../../src/app/command/verbs/explode.rs), [app/walk/frames.rs](../../../../src/app/walk/frames.rs), [build.rs](../../../../build.rs).
+**Authoritative production source (`session_viewer/src`):** [app/command/verbs/project_to_plane.rs](../../../../src/app/command/verbs/project_to_plane.rs), [app/command/verbs/extend.rs](../../../../src/app/command/verbs/extend.rs), [app/splitting.rs](../../../../src/app/splitting.rs), [app/command/verbs/measure.rs](../../../../src/app/command/verbs/measure.rs), [app/command/verbs/trim/parts.rs](../../../../src/app/command/verbs/trim/parts.rs), [app/command/verbs/explode.rs](../../../../src/app/command/verbs/explode.rs), [app/walk/frames.rs](../../../../src/app/walk/frames.rs), [build.rs](../../../../build.rs).
 
-## Implementation Checkpoints
+## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
 
-Apply these checkpoints in order inside `workspace/journey`. Expand each block to view the Rust/WGSL/HTML edits:
+| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
+| ---: | :--- | :--- | :--- | :--- |
+| **1** | [`85-copy-current-original-command-recipes`](#checkpoint-85-copy-current-original-command-recipes) | Build world-plane labels with readable axes and the original rounded scale steps. | `src/lib.rs`, `src/text_geometry.rs`, `src/curve_heads.rs` | `original family → pure calculation → result or refusal` |
+| **2** | [`85a-validate-original-plane-display-and-precise-bounds`](#checkpoint-85a-validate-original-plane-display-and-precise-bounds) | Validate original Plane display and precise bounds. | `src/plane_original.rs`, `src/lib.rs` | `finite original frame → wire display → precise placed bounds` |
+| **3** | [`85b-retain-original-plane-and-text-edit-eligibility`](#checkpoint-85b-retain-original-plane-and-text-edit-eligibility) | Retain original Plane and Text edit eligibility. | `src/source_edit.rs`, `src/source_part.rs` | `original family and flags → eligible source owner → checked edit` |
+| **4** | [`85c-find-eligible-objects-by-name-or-world-size`](#checkpoint-85c-find-eligible-objects-by-name-or-world-size) | Find eligible objects by name or world size. | `src/selection_query.rs`, `src/lib.rs` | `query → visible unlocked originals → unchanged selection on misses` |
+| **5** | [`85d-plan-sibling-pieces-from-original-owners`](#checkpoint-85d-plan-sibling-pieces-from-original-owners) | Plan sibling pieces from original owners. | `src/explode_edit.rs`, `src/lib.rs` | `fresh original selection → bounded pieces → sibling adoption` |
+| **6** | [`85e-own-text-height-and-words-before-placement`](#checkpoint-85e-own-text-height-and-words-before-placement) | Own Text height and words before placement. | `src/text_draft.rs`, `src/lib.rs` | `accepted words → remembered height → original plane label` |
+| **7** | [`85f-own-unpickable-cached-guide-data`](#checkpoint-85f-own-unpickable-cached-guide-data) | Own unpickable cached guide data. | `src/guide_gpu.rs`, `src/lib.rs` | `temporary wires and marks → collision-free labels → presentation` |
+| **8** | [`85g-shade-explicit-dashed-guides`](#checkpoint-85g-shade-explicit-dashed-guides) | Shade explicit dashed guides. | `src/guide.wgsl`, `src/guide_pick.wgsl` | `projected segment → CSS distance → ten-six dash coverage` |
+| **9** | [`85h-cache-guide-buffers-and-actual-allocation`](#checkpoint-85h-cache-guide-buffers-and-actual-allocation) | Cache guide buffers and actual allocation. | `src/stroke_gpu.rs` | `unchanged overlay → reused buffer → truthful byte count` |
+| **10** | [`85i-draw-cached-guides-through-the-overlay-owner`](#checkpoint-85i-draw-cached-guides-through-the-overlay-owner) | Draw cached guides through the overlay owner. | `src/guide_gpu.rs` | `unchanged overlay → reused strokes and text → color frame` |
+| **11** | [`85j-own-trim-targets-cutters-and-part-state`](#checkpoint-85j-own-trim-targets-cutters-and-part-state) | Own Trim targets cutters and part state. | `src/trim_draft.rs`, `src/lib.rs` | `fresh originals → target and cutter toggles → pending state` |
+| **12** | [`85k-prepare-local-cuts-from-world-cutters`](#checkpoint-85k-prepare-local-cuts-from-world-cutters) | Prepare local cuts from world cutters. | `src/trim_draft.rs` | `original cut parts → cached preview data → explicit next phase` |
+| **13** | [`85l-hit-remaining-trim-parts-in-canvas-pixels`](#checkpoint-85l-hit-remaining-trim-parts-in-canvas-pixels) | Hit remaining trim parts in canvas pixels. | `src/trim_draft.rs` | `original cut parts → cached preview data → explicit next phase` |
+| **14** | [`85m-preview-cuts-without-changing-originals`](#checkpoint-85m-preview-cuts-without-changing-originals) | Preview cuts without changing originals. | `src/trim_draft.rs` | `original cut parts → cached preview data → explicit next phase` |
+| **15** | [`85n-show-remaining-cuts-and-removed-part-guides`](#checkpoint-85n-show-remaining-cuts-and-removed-part-guides) | Show remaining cuts and removed-part guides. | `src/trim_draft.rs` | `original cut parts → cached preview data → explicit next phase` |
+| **16** | [`85o-sample-bounded-physical-pixel-lasso-loops`](#checkpoint-85o-sample-bounded-physical-pixel-lasso-loops) | Sample bounded physical-pixel lasso loops. | `src/lasso.rs`, `src/lib.rs` | `canvas density → bounded loop → enclosed originals` |
+| **17** | [`85p-own-document-scoped-groups-and-links`](#checkpoint-85p-own-document-scoped-groups-and-links) | Own document-scoped groups and links. | `src/scene.rs` | `document key and tree GUID → shared group markers → independent graph` |
+| **18** | [`85q-resolve-current-graph-and-group-identities`](#checkpoint-85q-resolve-current-graph-and-group-identities) | Resolve current graph and group identities. | `src/graph_edit.rs`, `src/lib.rs` | `original row GUIDs → document graph → portable archive links` |
+| **19** | [`85r-connect-two-original-owners-and-save-their-links`](#checkpoint-85r-connect-two-original-owners-and-save-their-links) | Connect two original owners and save their links. | `src/graph_edit.rs` | `original row GUIDs → document graph → portable archive links` |
+| **20** | [`85s-remap-appended-links-and-remove-deleted-owners`](#checkpoint-85s-remap-appended-links-and-remove-deleted-owners) | Remap appended links and remove deleted owners. | `src/graph_edit.rs` | `original row GUIDs → document graph → portable archive links` |
+| **21** | [`85t-plan-world-preserving-original-groups`](#checkpoint-85t-plan-world-preserving-original-groups) | Plan world-preserving original groups. | `src/group_plan.rs`, `src/lib.rs` | `eligible subtrees → deepest shared layer → checked branch` |
+| **22** | [`85u-adopt-group-branches-with-one-reversible-edit`](#checkpoint-85u-adopt-group-branches-with-one-reversible-edit) | Adopt group branches with one reversible edit. | `src/layer_edit.rs` | `prepared group → parent branch → unchanged world models` |
+| **23** | [`85v-append-namespaced-graphs-and-preserve-original-row-identities`](#checkpoint-85v-append-namespaced-graphs-and-preserve-original-row-identities) | Append namespaced graphs and preserve original row identities. | `src/scene.rs` | `original family → checked replacement → same row and world model` |
+| **24** | [`85w-replace-original-families-without-changing-world-placement`](#checkpoint-85w-replace-original-families-without-changing-world-placement) | Replace original families without changing world placement. | `src/scene.rs` | `original family → checked replacement → same row and world model` |
+| **25** | [`85x-save-group-namespaces-and-original-planes`](#checkpoint-85x-save-group-namespaces-and-original-planes) | Save group namespaces and original planes. | `src/archive_document.rs`, `src/archive_identity.rs`, `src/archive_presentation.rs`, `src/archive_restore_flags.rs` | `original identities → archive records → checked reopened owners` |
+| **26** | [`85y-keep-named-views-and-grid-on-the-drawing-plane`](#checkpoint-85y-keep-named-views-and-grid-on-the-drawing-plane) | Keep named views and grid on the drawing plane. | `src/camera.rs`, `src/grid.rs`, `src/text_geometry.rs` | `named view → orthographic frame → placed grid` |
+| **27** | [`85z-connect-cached-guide-and-placed-grid-lanes`](#checkpoint-85z-connect-cached-guide-and-placed-grid-lanes) | Connect cached guide and placed grid lanes. | `src/renderer.rs` | `precise guide and plane → cached lane → color-only overlay` |
+| **28** | [`85aa-expose-graph-links-and-the-lasso-overlay`](#checkpoint-85aa-expose-graph-links-and-the-lasso-overlay) | Expose graph links and the lasso overlay. | `src/tree_panel.rs`, `src/panel.rs`, `src/measure_mark.rs`, `src/scene_document.rs` | `document graph and CSS loop → bounded panel → unchanged sources` |
+| **29** | [`85ab-own-current-pending-command-state`](#checkpoint-85ab-own-current-pending-command-state) | Own current pending command state. | `src/editor.rs` | `typed action → independent pending owner → explicit lifecycle` |
+| **30** | [`85ac-retain-text-answers-inside-the-existing-point-draft`](#checkpoint-85ac-retain-text-answers-inside-the-existing-point-draft) | Retain Text answers inside the existing point draft. | `src/tool.rs` | `pending words and height → point draft → accepted placement` |
+| **31** | [`85ad-complete-original-text-and-headed-arrow-tools`](#checkpoint-85ad-complete-original-text-and-headed-arrow-tools) | Complete original Text and headed Arrow tools. | `src/tool.rs`, `src/editor.rs` | `accepted point or endpoint pair → original result → one Undo` |
+| **32** | [`85ae-present-cached-extension-guides-and-error-endpoints`](#checkpoint-85ae-present-cached-extension-guides-and-error-endpoints) | Present cached extension guides and error endpoints. | `src/editor.rs`, `src/tool_preview.rs` | `accepted original owner → checked plan → preview or single edit` |
+| **33** | [`85af-commit-prepared-trims-once`](#checkpoint-85af-commit-prepared-trims-once) | Commit prepared trims once. | `src/editor.rs` | `accepted original owner → checked plan → preview or single edit` |
+| **34** | [`85ag-advance-trim-through-targets-cutters-and-parts`](#checkpoint-85ag-advance-trim-through-targets-cutters-and-parts) | Advance Trim through targets cutters and parts. | `src/editor.rs` | `accepted original owner → checked plan → preview or single edit` |
+| **35** | [`85ah-adopt-original-pieces-and-arrowhead-changes-atomically`](#checkpoint-85ah-adopt-original-pieces-and-arrowhead-changes-atomically) | Adopt original pieces and arrowhead changes atomically. | `src/editor.rs` | `accepted original owner → checked plan → preview or single edit` |
+| **36** | [`85ai-dispatch-current-original-commands-through-checked-owners`](#checkpoint-85ai-dispatch-current-original-commands-through-checked-owners) | Dispatch current original commands through checked owners. | `src/editor.rs` | `typed action → original owner → explicit result` |
+| **37** | [`85aj-preserve-previews-selection-and-accepted-tool-answers`](#checkpoint-85aj-preserve-previews-selection-and-accepted-tool-answers) | Preserve previews selection and accepted tool answers. | `src/editor.rs` | `pointer or command → explicit lifetime → preserved or cancelled owner` |
+| **38** | [`85ak-keep-annotations-during-touch-navigation-and-capture-lasso-input`](#checkpoint-85ak-keep-annotations-during-touch-navigation-and-capture-lasso-input) | Keep annotations during touch navigation and capture lasso input. | `src/editor.rs` | `pointer or command → explicit lifetime → preserved or cancelled owner` |
+| **39** | [`85al-preserve-pending-originals-during-view-changes`](#checkpoint-85al-preserve-pending-originals-during-view-changes) | Preserve pending originals during view changes. | `src/editor.rs` | `pointer or command → explicit lifetime → preserved or cancelled owner` |
+| **40** | [`85am-route-named-views-and-whole-trim-picks`](#checkpoint-85am-route-named-views-and-whole-trim-picks) | Route named views and whole trim picks. | `src/editor.rs` | `pointer or command → explicit lifetime → preserved or cancelled owner` |
+| **41** | [`85an-capture-source-backed-command-arguments`](#checkpoint-85an-capture-source-backed-command-arguments) | Capture source-backed command arguments. | `src/command_request.rs`, `src/lib.rs` | `typed action → owned arguments → no retained geometry` |
+| **42** | [`85ao-restore-typed-requests-and-their-selected-owners`](#checkpoint-85ao-restore-typed-requests-and-their-selected-owners) | Restore typed requests and their selected owners. | `src/command_request.rs` | `captured request → current action → original selected IDs` |
+| **43** | [`85ap-witness-identities-and-placement-during-source-loading`](#checkpoint-85ap-witness-identities-and-placement-during-source-loading) | Witness identities and placement during source loading. | `src/command_request.rs` | `row GUID and world model → interaction epoch → replay guard` |
+| **44** | [`85aq-deduplicate-original-fetches-and-replay-safely`](#checkpoint-85aq-deduplicate-original-fetches-and-replay-safely) | Deduplicate original fetches and replay safely. | `src/command_request.rs` | `distinct source origins → hydration → guarded current edit` |
+| **45** | [`85ar-route-source-backed-edits-through-guarded-replay`](#checkpoint-85ar-route-source-backed-edits-through-guarded-replay) | Route source-backed edits through guarded replay. | `src/edit_intent.rs`, `src/edit_replay.rs`, `src/browser.rs` | `command intent → shared original reload → checked replay` |
+| **46** | [`85as-register-current-names-views-and-command-aliases`](#checkpoint-85as-register-current-names-views-and-command-aliases) | Register current names views and command aliases. | `src/commands.rs` | `typed name → canonical alias → available editor owner` |
+| **47** | [`85at-validate-current-command-words-and-options`](#checkpoint-85at-validate-current-command-words-and-options) | Validate current command words and options. | `src/commands.rs` | `canonical words → exact arity → accepted original action` |
+| **48** | [`85au-capture-lasso-pointer-ownership-in-the-browser`](#checkpoint-85au-capture-lasso-pointer-ownership-in-the-browser) | Capture lasso pointer ownership in the browser. | `src/browser.rs` | `actual pointer and density → capture → explicit release` |
+| **49** | [`85av-route-trim-and-lasso-pointer-input`](#checkpoint-85av-route-trim-and-lasso-pointer-input) | Route trim and lasso pointer input. | `src/browser.rs` | `actual input → current editor owner → observed source state` |
+| **50** | [`85aw-refresh-command-panels-source-loading-and-cached-previews`](#checkpoint-85aw-refresh-command-panels-source-loading-and-cached-previews) | Refresh command panels source loading and cached previews. | `src/browser.rs` | `actual input → current editor owner → observed source state` |
+| **51** | [`85ax-observe-current-original-command-state`](#checkpoint-85ax-observe-current-original-command-state) | Observe current original command state. | `src/browser.rs` | `actual input → current editor owner → observed source state` |
+| **52** | [`85ay-exercise-current-original-commands-together`](#checkpoint-85ay-exercise-current-original-commands-together) | Exercise current original commands together. | `src/command_inventory_tests.rs`, `src/lib.rs`, `src/command_owner_tests.rs`, `src/command_fetch_tests.rs` | `original line and label → headed curve and extension → cached red guide` |
+
+---
+
+## 4. Step-by-Step Coding Notebook (Concept + Implementation)
+
+Work through each notebook cell below in order inside `workspace/journey`. Read the **Concept Walkthrough** and **Self-Check Q&A** first, then expand the **Implementation** block to type and verify the code.
 
 <a id="checkpoint-85-copy-current-original-command-recipes"></a>
+
+### Step 1 of 52 · Write original text placement and curve heads (`85-copy-current-original-command-recipes`)
+
+- **Goal:** Build world-plane labels with readable axes and the original rounded scale steps.
+- **Data Flow Trace:** `original family → pure calculation → result or refusal`
+- **Files You Touch:** `src/lib.rs` (*Move the already compiled selection/classifier registrations beside the finished command owners.*) · `src/text_geometry.rs` (*Type the whole original helpers introduced today.*) · `src/curve_heads.rs` (*Type the whole original helpers introduced today.*)
+
+Build world-plane labels with readable axes and the original rounded scale steps. Clone supported curve sources to change arrowheads, reporting whether their display actually changed.
+
+> **Self-Check Question:** *Do these pure calculations insert scene rows?*  
+> **Answer:** No. The editor adopts accepted results later, retaining original identity and one history transaction.
+
+- **What You Should See:** The selected original bounding box and temporary measurement remain visible while the next command owners connect.
+- **Hands-On Lab Experiment:** Compare reading axes after rotating the view. Apply the same arrowhead twice and explain the unchanged result.
 
 <details>
 <summary>Implementation 85-copy-current-original-command-recipes: Write original text placement and curve heads</summary>
@@ -1101,6 +1209,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-85a-validate-original-plane-display-and-precise-bounds"></a>
 
+### Step 2 of 52 · Validate original Plane display and precise bounds (`85a-validate-original-plane-display-and-precise-bounds`)
+
+- **Goal:** Validate original Plane display and precise bounds.
+- **Data Flow Trace:** `finite original frame → wire display → precise placed bounds`
+- **Files You Touch:** `src/plane_original.rs` (*Validate original Plane display and precise bounds.*) · `src/lib.rs` (*Register this command owner.*)
+
+Validate original Plane display and precise bounds.
+
+> **Self-Check Question:** *Can a Plane be saved as its display mesh?*  
+> **Answer:** No. Retain its original plane frame and width; the wire mesh is derived display data.
+
+- **Hands-On Lab Experiment:** Compare its seven edges and zero faces, nondegenerate axes and distant f64 bounds.
+
 <details>
 <summary>Implementation 85a-validate-original-plane-display-and-precise-bounds: Validate original Plane display and precise bounds</summary>
 
@@ -1139,6 +1260,19 @@ After that block, type:
 </details>
 
 <a id="checkpoint-85b-retain-original-plane-and-text-edit-eligibility"></a>
+
+### Step 3 of 52 · Retain original Plane and Text edit eligibility (`85b-retain-original-plane-and-text-edit-eligibility`)
+
+- **Goal:** Retain original Plane and Text edit eligibility.
+- **Data Flow Trace:** `original family and flags → eligible source owner → checked edit`
+- **Files You Touch:** `src/source_edit.rs` (*Resolve original planes and eligible text owners.*) · `src/source_part.rs` (*Expose original Plane geometry to source algorithms.*)
+
+Retain original Plane and Text edit eligibility.
+
+> **Self-Check Question:** *Should Text be excluded from a group?*  
+> **Answer:** No. Text retains its original label owner and participates in eligible group and graph edits.
+
+- **Hands-On Lab Experiment:** Inspect released-source guards and original Plane resolution.
 
 <details>
 <summary>Implementation 85b-retain-original-plane-and-text-edit-eligibility: Retain original Plane and Text edit eligibility</summary>
@@ -1332,6 +1466,19 @@ Edit the existing block to match this code; keep unchanged lines:
 
 <a id="checkpoint-85c-find-eligible-objects-by-name-or-world-size"></a>
 
+### Step 4 of 52 · Find eligible objects by name or world size (`85c-find-eligible-objects-by-name-or-world-size`)
+
+- **Goal:** Find eligible objects by name or world size.
+- **Data Flow Trace:** `query → visible unlocked originals → unchanged selection on misses`
+- **Files You Touch:** `src/selection_query.rs` (*Find eligible objects by name or world size.*) · `src/lib.rs` (*Register this command owner.*)
+
+Find eligible objects by name or world size.
+
+> **Self-Check Question:** *Does Select Small depend on zoom?*  
+> **Answer:** No. It compares the world bounding-box diagonal with the requested positive length.
+
+- **Hands-On Lab Experiment:** Try a quoted Unicode name and a strict size threshold. A miss must keep the previous selection.
+
 <details>
 <summary>Implementation 85c-find-eligible-objects-by-name-or-world-size: Find eligible objects by name or world size</summary>
 
@@ -1370,6 +1517,19 @@ After that block, type:
 </details>
 
 <a id="checkpoint-85d-plan-sibling-pieces-from-original-owners"></a>
+
+### Step 5 of 52 · Plan sibling pieces from original owners (`85d-plan-sibling-pieces-from-original-owners`)
+
+- **Goal:** Plan sibling pieces from original owners.
+- **Data Flow Trace:** `fresh original selection → bounded pieces → sibling adoption`
+- **Files You Touch:** `src/explode_edit.rs` (*Plan sibling pieces from original owners.*) · `src/lib.rs` (*Register this command owner.*)
+
+Plan sibling pieces from original owners.
+
+> **Self-Check Question:** *Does Explode flatten world coordinates into the source?*  
+> **Answer:** No. Pieces retain their parent placement and original style; the plan validates all owners first.
+
+- **Hands-On Lab Experiment:** Inspect the 4096-piece limit, child refusal and mixed unsupported selection.
 
 <details>
 <summary>Implementation 85d-plan-sibling-pieces-from-original-owners: Plan sibling pieces from original owners</summary>
@@ -1410,6 +1570,19 @@ After that block, type:
 
 <a id="checkpoint-85e-own-text-height-and-words-before-placement"></a>
 
+### Step 6 of 52 · Own Text height and words before placement (`85e-own-text-height-and-words-before-placement`)
+
+- **Goal:** Own Text height and words before placement.
+- **Data Flow Trace:** `accepted words → remembered height → original plane label`
+- **Files You Touch:** `src/text_draft.rs` (*Own Text height and words before placement.*) · `src/lib.rs` (*Register this command owner.*)
+
+Own Text height and words before placement.
+
+> **Self-Check Question:** *Should invalid Height discard the words?*  
+> **Answer:** No. Keep the pending words and request a finite positive height again.
+
+- **Hands-On Lab Experiment:** Compare one to 80 Unicode words, camera-derived defaults and explicit Height before clicking.
+
 <details>
 <summary>Implementation 85e-own-text-height-and-words-before-placement: Own Text height and words before placement</summary>
 
@@ -1448,6 +1621,19 @@ After that block, type:
 </details>
 
 <a id="checkpoint-85f-own-unpickable-cached-guide-data"></a>
+
+### Step 7 of 52 · Own unpickable cached guide data (`85f-own-unpickable-cached-guide-data`)
+
+- **Goal:** Own unpickable cached guide data.
+- **Data Flow Trace:** `temporary wires and marks → collision-free labels → presentation`
+- **Files You Touch:** `src/guide_gpu.rs` (*Own unpickable cached guide data.*) · `src/lib.rs` (*Register this command owner.*)
+
+Own unpickable cached guide data.
+
+> **Self-Check Question:** *Do guides acquire original scene IDs?*  
+> **Answer:** No. Their color strokes and labels remain outside geometry ownership and picking.
+
+- **Hands-On Lab Experiment:** Inspect the 2 CSS-pixel wires and the measurement label allocator.
 
 <details>
 <summary>Implementation 85f-own-unpickable-cached-guide-data: Own unpickable cached guide data</summary>
@@ -1488,6 +1674,19 @@ After that block, type:
 
 <a id="checkpoint-85g-shade-explicit-dashed-guides"></a>
 
+### Step 8 of 52 · Shade explicit dashed guides (`85g-shade-explicit-dashed-guides`)
+
+- **Goal:** Shade explicit dashed guides.
+- **Data Flow Trace:** `projected segment → CSS distance → ten-six dash coverage`
+- **Files You Touch:** `src/guide.wgsl` (*Shade explicit dashed guides.*) · `src/guide_pick.wgsl` (*Keep temporary guide ownership zero; never submit this lane to integer picking.*)
+
+Shade explicit dashed guides.
+
+> **Self-Check Question:** *Does every line become dashed?*  
+> **Answer:** No. Each guide carries an explicit flag; ordinary geometry remains unchanged.
+
+- **Hands-On Lab Experiment:** Trace segment width and the 10-pixel ink/6-pixel gap in physical canvas coordinates.
+
 <details>
 <summary>Implementation 85g-shade-explicit-dashed-guides: Shade explicit dashed guides</summary>
 
@@ -1516,6 +1715,19 @@ Create the file and type:
 </details>
 
 <a id="checkpoint-85h-cache-guide-buffers-and-actual-allocation"></a>
+
+### Step 9 of 52 · Cache guide buffers and actual allocation (`85h-cache-guide-buffers-and-actual-allocation`)
+
+- **Goal:** Cache guide buffers and actual allocation.
+- **Data Flow Trace:** `unchanged overlay → reused buffer → truthful byte count`
+- **Files You Touch:** `src/stroke_gpu.rs` (*Prepare the explicit guide vertex layout and color-only lane.*)
+
+Cache guide buffers and actual allocation.
+
+> **Self-Check Question:** *Does orbit rebuild an unchanged guide?*  
+> **Answer:** No. Only its projected view changes; identical segments and words reuse allocation.
+
+- **Hands-On Lab Experiment:** Inspect explicit dash flags, Always depth comparison and disabled depth writes.
 
 <details>
 <summary>Implementation 85h-cache-guide-buffers-and-actual-allocation: Cache guide buffers and actual allocation</summary>
@@ -1820,6 +2032,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-85i-draw-cached-guides-through-the-overlay-owner"></a>
 
+### Step 10 of 52 · Draw cached guides through the overlay owner (`85i-draw-cached-guides-through-the-overlay-owner`)
+
+- **Goal:** Draw cached guides through the overlay owner.
+- **Data Flow Trace:** `unchanged overlay → reused strokes and text → color frame`
+- **Files You Touch:** `src/guide_gpu.rs` (*Draw cached guides through the overlay owner.*)
+
+Draw cached guides through the overlay owner.
+
+> **Self-Check Question:** *What happens when the overlay becomes empty?*  
+> **Answer:** The guide lane releases its used strokes and removes only its temporary labels.
+
+- **Hands-On Lab Experiment:** Compare actual used and allocated bytes before and after clearing the overlay.
+
 <details>
 <summary>Implementation 85i-draw-cached-guides-through-the-overlay-owner: Draw cached guides through the overlay owner</summary>
 
@@ -1848,6 +2073,19 @@ After that block, type:
 </details>
 
 <a id="checkpoint-85j-own-trim-targets-cutters-and-part-state"></a>
+
+### Step 11 of 52 · Own Trim targets cutters and part state (`85j-own-trim-targets-cutters-and-part-state`)
+
+- **Goal:** Own Trim targets cutters and part state.
+- **Data Flow Trace:** `fresh originals → target and cutter toggles → pending state`
+- **Files You Touch:** `src/trim_draft.rs` (*Own Trim targets cutters and part state.*) · `src/lib.rs` (*Register this command owner.*)
+
+Own Trim targets cutters and part state.
+
+> **Self-Check Question:** *Can a target cut itself?*  
+> **Answer:** No. Targets and cutters remain separate, and all target edits belong to one document.
+
+- **Hands-On Lab Experiment:** Inspect whole-owner capture, toggled picks and the 4096-owner guard.
 
 <details>
 <summary>Implementation 85j-own-trim-targets-cutters-and-part-state: Own Trim targets cutters and part state</summary>
@@ -1888,6 +2126,19 @@ After that block, type:
 
 <a id="checkpoint-85k-prepare-local-cuts-from-world-cutters"></a>
 
+### Step 12 of 52 · Prepare local cuts from world cutters (`85k-prepare-local-cuts-from-world-cutters`)
+
+- **Goal:** Prepare local cuts from world cutters.
+- **Data Flow Trace:** `original cut parts → cached preview data → explicit next phase`
+- **Files You Touch:** `src/trim_draft.rs` (*Prepare local cuts from world cutters.*)
+
+Prepare local cuts from world cutters.
+
+> **Self-Check Question:** *How many times is placement applied?*  
+> **Answer:** World cutter geometry is converted once through the target inverse. Original target coordinates remain local.
+
+- **Hands-On Lab Experiment:** Compare placed curves, Plane cutters and view-normal line fences.
+
 <details>
 <summary>Implementation 85k-prepare-local-cuts-from-world-cutters: Prepare local cuts from world cutters</summary>
 
@@ -1918,6 +2169,19 @@ Edit the existing block to match this code; keep unchanged lines:
 
 <a id="checkpoint-85l-hit-remaining-trim-parts-in-canvas-pixels"></a>
 
+### Step 13 of 52 · Hit remaining trim parts in canvas pixels (`85l-hit-remaining-trim-parts-in-canvas-pixels`)
+
+- **Goal:** Hit remaining trim parts in canvas pixels.
+- **Data Flow Trace:** `original cut parts → cached preview data → explicit next phase`
+- **Files You Touch:** `src/trim_draft.rs` (*Hit remaining trim parts in canvas pixels.*)
+
+Hit remaining trim parts in canvas pixels.
+
+> **Self-Check Question:** *Does zoom change the curve hit radius?*  
+> **Answer:** No. Curve hits use 12 CSS pixels; surface clicks use the original local mesh ray.
+
+- **Hands-On Lab Experiment:** Compare hover with a clicked surface and ensure removed parts cannot be hit.
+
 <details>
 <summary>Implementation 85l-hit-remaining-trim-parts-in-canvas-pixels: Hit remaining trim parts in canvas pixels</summary>
 
@@ -1946,6 +2210,19 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-85m-preview-cuts-without-changing-originals"></a>
+
+### Step 14 of 52 · Preview cuts without changing originals (`85m-preview-cuts-without-changing-originals`)
+
+- **Goal:** Preview cuts without changing originals.
+- **Data Flow Trace:** `original cut parts → cached preview data → explicit next phase`
+- **Files You Touch:** `src/trim_draft.rs` (*Preview cuts without changing originals.*)
+
+Preview cuts without changing originals.
+
+> **Self-Check Question:** *Can the last piece disappear through Trim?*  
+> **Answer:** No. At least one part stays; Delete removes the whole owner. Preview uses a disposable scene clone.
+
+- **Hands-On Lab Experiment:** Inspect source freshness, one remaining part, Escape and the prepared one-transaction edits.
 
 <details>
 <summary>Implementation 85m-preview-cuts-without-changing-originals: Preview cuts without changing originals</summary>
@@ -1982,6 +2259,19 @@ Edit the existing block to match this code; keep unchanged lines:
 
 <a id="checkpoint-85n-show-remaining-cuts-and-removed-part-guides"></a>
 
+### Step 15 of 52 · Show remaining cuts and removed-part guides (`85n-show-remaining-cuts-and-removed-part-guides`)
+
+- **Goal:** Show remaining cuts and removed-part guides.
+- **Data Flow Trace:** `original cut parts → cached preview data → explicit next phase`
+- **Files You Touch:** `src/trim_draft.rs` (*Show remaining cuts and removed-part guides.*)
+
+Show remaining cuts and removed-part guides.
+
+> **Self-Check Question:** *Do colored guides enter Undo history?*  
+> **Answer:** No. Remaining parts are blue; hovered parts are dashed red with a remove chip.
+
+- **Hands-On Lab Experiment:** Compare retained section strokes and cut points with temporary guide IDs.
+
 <details>
 <summary>Implementation 85n-show-remaining-cuts-and-removed-part-guides: Show remaining cuts and removed-part guides</summary>
 
@@ -2013,6 +2303,19 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-85o-sample-bounded-physical-pixel-lasso-loops"></a>
+
+### Step 16 of 52 · Sample bounded physical-pixel lasso loops (`85o-sample-bounded-physical-pixel-lasso-loops`)
+
+- **Goal:** Sample bounded physical-pixel lasso loops.
+- **Data Flow Trace:** `canvas density → bounded loop → enclosed originals`
+- **Files You Touch:** `src/lasso.rs` (*Sample bounded physical-pixel lasso loops.*) · `src/lib.rs` (*Register this command owner.*)
+
+Sample bounded physical-pixel lasso loops.
+
+> **Self-Check Question:** *Does display density stretch the lasso?*  
+> **Answer:** No. Sampling and projection both use physical pixels; the overlay converts back to CSS.
+
+- **Hands-On Lab Experiment:** Compare density 1 and 2,4096-point thinning, whole-object enclosure and miss retention.
 
 <details>
 <summary>Implementation 85o-sample-bounded-physical-pixel-lasso-loops: Sample bounded physical-pixel lasso loops</summary>
@@ -2079,6 +2382,19 @@ After that block, append this supplied code:
 </details>
 
 <a id="checkpoint-85p-own-document-scoped-groups-and-links"></a>
+
+### Step 17 of 52 · Own document-scoped groups and links (`85p-own-document-scoped-groups-and-links`)
+
+- **Goal:** Own document-scoped groups and links.
+- **Data Flow Trace:** `document key and tree GUID → shared group markers → independent graph`
+- **Files You Touch:** `src/scene.rs` (*Own groups and graphs beside original document state.*)
+
+Own document-scoped groups and links.
+
+> **Self-Check Question:** *Can appended documents share a group namespace?*  
+> **Answer:** No. Document keys and portable tree identities distinguish their membership.
+
+- **Hands-On Lab Experiment:** Inspect shared scene snapshots and independent graph owners.
 
 <details>
 <summary>Implementation 85p-own-document-scoped-groups-and-links: Own document-scoped groups and links</summary>
@@ -2958,6 +3274,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-85q-resolve-current-graph-and-group-identities"></a>
 
+### Step 18 of 52 · Resolve current graph and group identities (`85q-resolve-current-graph-and-group-identities`)
+
+- **Goal:** Resolve current graph and group identities.
+- **Data Flow Trace:** `original row GUIDs → document graph → portable archive links`
+- **Files You Touch:** `src/graph_edit.rs` (*Resolve current graph and group identities.*) · `src/lib.rs` (*Register this command owner.*)
+
+Resolve current graph and group identities.
+
+> **Self-Check Question:** *Are graph headers already runtime row IDs?*  
+> **Answer:** Not always. Normalize source aliases to current row GUIDs before editing.
+
+- **Hands-On Lab Experiment:** Inspect source-name aliases and group subtree expansion.
+
 <details>
 <summary>Implementation 85q-resolve-current-graph-and-group-identities: Resolve current graph and group identities</summary>
 
@@ -2997,6 +3326,19 @@ After that block, type:
 
 <a id="checkpoint-85r-connect-two-original-owners-and-save-their-links"></a>
 
+### Step 19 of 52 · Connect two original owners and save their links (`85r-connect-two-original-owners-and-save-their-links`)
+
+- **Goal:** Connect two original owners and save their links.
+- **Data Flow Trace:** `original row GUIDs → document graph → portable archive links`
+- **Files You Touch:** `src/graph_edit.rs` (*Connect two original owners and save their links.*)
+
+Connect two original owners and save their links.
+
+> **Self-Check Question:** *Can a duplicate edge erase its attribute?*  
+> **Answer:** No. Reject it before mutation; connect exactly two eligible owners in one document.
+
+- **Hands-On Lab Experiment:** Compare graph endpoints before Save and their portable archive aliases.
+
 <details>
 <summary>Implementation 85r-connect-two-original-owners-and-save-their-links: Connect two original owners and save their links</summary>
 
@@ -3030,6 +3372,19 @@ Edit the existing block to match this code; keep unchanged lines:
 
 <a id="checkpoint-85s-remap-appended-links-and-remove-deleted-owners"></a>
 
+### Step 20 of 52 · Remap appended links and remove deleted owners (`85s-remap-appended-links-and-remove-deleted-owners`)
+
+- **Goal:** Remap appended links and remove deleted owners.
+- **Data Flow Trace:** `original row GUIDs → document graph → portable archive links`
+- **Files You Touch:** `src/graph_edit.rs` (*Remap appended links and remove deleted owners.*)
+
+Remap appended links and remove deleted owners.
+
+> **Self-Check Question:** *Can deleting one document erase another graph?*  
+> **Answer:** No. Edit the graph belonging to the deleted owner and remap appended identities independently.
+
+- **Hands-On Lab Experiment:** Inspect the graph table labels, namespaced appends and Undo restoration.
+
 <details>
 <summary>Implementation 85s-remap-appended-links-and-remove-deleted-owners: Remap appended links and remove deleted owners</summary>
 
@@ -3057,6 +3412,19 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-85t-plan-world-preserving-original-groups"></a>
+
+### Step 21 of 52 · Plan world-preserving original groups (`85t-plan-world-preserving-original-groups`)
+
+- **Goal:** Plan world-preserving original groups.
+- **Data Flow Trace:** `eligible subtrees → deepest shared layer → checked branch`
+- **Files You Touch:** `src/group_plan.rs` (*Plan world-preserving original groups.*) · `src/lib.rs` (*Register this command owner.*)
+
+Plan world-preserving original groups.
+
+> **Self-Check Question:** *Does grouping move the objects?*  
+> **Answer:** No. Recompute their local placements under the shared layer while preserving their world placement.
+
+- **Hands-On Lab Experiment:** Inspect the root-first common layer, outer selected subtrees and unique group names.
 
 <details>
 <summary>Implementation 85t-plan-world-preserving-original-groups: Plan world-preserving original groups</summary>
@@ -3096,6 +3464,19 @@ After that block, type:
 </details>
 
 <a id="checkpoint-85u-adopt-group-branches-with-one-reversible-edit"></a>
+
+### Step 22 of 52 · Adopt group branches with one reversible edit (`85u-adopt-group-branches-with-one-reversible-edit`)
+
+- **Goal:** Adopt group branches with one reversible edit.
+- **Data Flow Trace:** `prepared group → parent branch → unchanged world models`
+- **Files You Touch:** `src/layer_edit.rs` (*Adopt a checked group and preserve copied group membership.*)
+
+Adopt group branches with one reversible edit.
+
+> **Self-Check Question:** *Can grouping released display proxies proceed?*  
+> **Answer:** No. Group only eligible original owners; source loading is connected later.
+
+- **Hands-On Lab Experiment:** Inspect branch GUIDs, marked duplicated groups and one scene transaction.
 
 <details>
 <summary>Implementation 85u-adopt-group-branches-with-one-reversible-edit: Adopt group branches with one reversible edit</summary>
@@ -3379,6 +3760,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-85v-append-namespaced-graphs-and-preserve-original-row-identities"></a>
+
+### Step 23 of 52 · Append namespaced graphs and preserve original row identities (`85v-append-namespaced-graphs-and-preserve-original-row-identities`)
+
+- **Goal:** Append namespaced graphs and preserve original row identities.
+- **Data Flow Trace:** `original family → checked replacement → same row and world model`
+- **Files You Touch:** `src/scene.rs` (*Preserve original families during source replacement.*)
+
+Append namespaced graphs and preserve original row identities.
+
+> **Self-Check Question:** *Why namespace an appended graph before joining it to the document?*  
+> **Answer:** Imported graph keys may collide with existing keys. Remap graph references consistently while retaining each original object's independent row identity.
+
+- **Hands-On Lab Experiment:** Append two documents whose graph keys overlap. Trace the remapped graph references and confirm that existing original row IDs remain unchanged.
 
 <details>
 <summary>Implementation 85v-append-namespaced-graphs-and-preserve-original-row-identities: Append namespaced graphs and preserve original row identities</summary>
@@ -4355,6 +4749,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-85w-replace-original-families-without-changing-world-placement"></a>
 
+### Step 24 of 52 · Replace original families without changing world placement (`85w-replace-original-families-without-changing-world-placement`)
+
+- **Goal:** Replace original families without changing world placement.
+- **Data Flow Trace:** `original family → checked replacement → same row and world model`
+- **Files You Touch:** `src/scene.rs` (*Preserve original families during source replacement.*)
+
+Replace original families without changing world placement.
+
+> **Self-Check Question:** *What must survive replacement of an original family's source?*  
+> **Answer:** The original row identity and world placement. Rebuild the appropriate derived display lane without turning that display into a different editable original.
+
+- **Hands-On Lab Experiment:** Replace an original with a headed-line source. Verify its world placement and row ID, and check that its arrowheads draw through the headed-chain lane.
+
 <details>
 <summary>Implementation 85w-replace-original-families-without-changing-world-placement: Replace original families without changing world placement</summary>
 
@@ -4393,6 +4800,19 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-85x-save-group-namespaces-and-original-planes"></a>
+
+### Step 25 of 52 · Save group namespaces and original planes (`85x-save-group-namespaces-and-original-planes`)
+
+- **Goal:** Save group namespaces and original planes.
+- **Data Flow Trace:** `original identities → archive records → checked reopened owners`
+- **Files You Touch:** `src/archive_document.rs` (*Preserve original family and document-scoped metadata.*) · `src/archive_identity.rs` (*Preserve original family and document-scoped metadata.*) · `src/archive_presentation.rs` (*Preserve original family and document-scoped metadata.*) · `src/archive_restore_flags.rs` (*Preserve original family and document-scoped metadata.*) · `src/document_geometry.rs` (*Preserve original family and document-scoped metadata.*) · `src/document_source.rs` (*Preserve original family and document-scoped metadata.*) · `src/geometry_snapshot.rs` (*Preserve original family and document-scoped metadata.*) · `src/source_validate.rs` (*Preserve original family and document-scoped metadata.*)
+
+Save group namespaces and original planes.
+
+> **Self-Check Question:** *Can Save write only the plane proxy?*  
+> **Answer:** No. Preserve its original frame and remap graph and group identities into the document archive.
+
+- **Hands-On Lab Experiment:** Inspect original Plane validation and portable group membership.
 
 <details>
 <summary>Implementation 85x-save-group-namespaces-and-original-planes: Save group namespaces and original planes</summary>
@@ -5396,6 +5816,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-85y-keep-named-views-and-grid-on-the-drawing-plane"></a>
 
+### Step 26 of 52 · Keep named views and grid on the drawing plane (`85y-keep-named-views-and-grid-on-the-drawing-plane`)
+
+- **Goal:** Keep named views and grid on the drawing plane.
+- **Data Flow Trace:** `named view → orthographic frame → placed grid`
+- **Files You Touch:** `src/camera.rs` (*Follow the current named view and precise drawing frame.*) · `src/grid.rs` (*Follow the current named view and precise drawing frame.*) · `src/text_geometry.rs` (*Copy the maintained current named-view reading-axis fixtures.*)
+
+Keep named views and grid on the drawing plane.
+
+> **Self-Check Question:** *Does a pending tool end when the view changes?*  
+> **Answer:** No. Named views preserve the tool and choose the view drawing plane unless CPlane fixes it.
+
+- **Hands-On Lab Experiment:** Compare Top, Side, Front, Back, Left, Right, Bottom and Isometric Back. Inspect the 430accda grid behavior.
+
 <details>
 <summary>Implementation 85y-keep-named-views-and-grid-on-the-drawing-plane: Keep named views and grid on the drawing plane</summary>
 
@@ -5942,6 +6375,19 @@ After that block, append this supplied code:
 </details>
 
 <a id="checkpoint-85z-connect-cached-guide-and-placed-grid-lanes"></a>
+
+### Step 27 of 52 · Connect cached guide and placed grid lanes (`85z-connect-cached-guide-and-placed-grid-lanes`)
+
+- **Goal:** Connect cached guide and placed grid lanes.
+- **Data Flow Trace:** `precise guide and plane → cached lane → color-only overlay`
+- **Files You Touch:** `src/renderer.rs` (*Connect cached guide and placed grid lanes.*)
+
+Connect cached guide and placed grid lanes.
+
+> **Self-Check Question:** *Should a guide write the scene depth?*  
+> **Answer:** No. Guides draw over the scene without changing depth or integer owners.
+
+- **Hands-On Lab Experiment:** Compare repeated frames, empty overlays and actual allocation counters.
 
 <details>
 <summary>Implementation 85z-connect-cached-guide-and-placed-grid-lanes: Connect cached guide and placed grid lanes</summary>
@@ -6666,6 +7112,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-85aa-expose-graph-links-and-the-lasso-overlay"></a>
 
+### Step 28 of 52 · Expose graph links and the lasso overlay (`85aa-expose-graph-links-and-the-lasso-overlay`)
+
+- **Goal:** Expose graph links and the lasso overlay.
+- **Data Flow Trace:** `document graph and CSS loop → bounded panel → unchanged sources`
+- **Files You Touch:** `src/tree_panel.rs` (*Present existing graph and pointer state without editing originals.*) · `src/panel.rs` (*Present existing graph and pointer state without editing originals.*) · `src/measure_mark.rs` (*Use the current finite measurement formatting condition.*) · `src/scene_document.rs` (*Retain the identical current document source.*)
+
+Expose graph links and the lasso overlay.
+
+> **Self-Check Question:** *Should a table hide its truncation?*  
+> **Answer:** No. Show the first 128 edges and the real total. The loop draws in CSS coordinates.
+
+- **Hands-On Lab Experiment:** Inspect document/from/to/attribute columns and selected ancestor expansion.
+
 <details>
 <summary>Implementation 85aa-expose-graph-links-and-the-lasso-overlay: Expose graph links and the lasso overlay</summary>
 
@@ -7319,6 +7778,19 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-85ab-own-current-pending-command-state"></a>
+
+### Step 29 of 52 · Own current pending command state (`85ab-own-current-pending-command-state`)
+
+- **Goal:** Own current pending command state.
+- **Data Flow Trace:** `typed action → independent pending owner → explicit lifecycle`
+- **Files You Touch:** `src/editor.rs` (*Declare typed actions and their independent editor state.*)
+
+Own current pending command state.
+
+> **Self-Check Question:** *Is pending Trim part of scene history?*  
+> **Answer:** No. The editor owns its preview, pointers and accepted inputs separately from original scene snapshots.
+
+- **Hands-On Lab Experiment:** Inspect pending lasso, trim, remembered Text height and the interaction epoch.
 
 <details>
 <summary>Implementation 85ab-own-current-pending-command-state: Own current pending command state</summary>
@@ -8514,6 +8986,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-85ac-retain-text-answers-inside-the-existing-point-draft"></a>
 
+### Step 30 of 52 · Retain Text answers inside the existing point draft (`85ac-retain-text-answers-inside-the-existing-point-draft`)
+
+- **Goal:** Retain Text answers inside the existing point draft.
+- **Data Flow Trace:** `pending words and height → point draft → accepted placement`
+- **Files You Touch:** `src/tool.rs` (*Retain pending Text answers without creating source rows.*)
+
+Retain Text answers inside the existing point draft.
+
+> **Self-Check Question:** *Does asking Height insert a label?*  
+> **Answer:** No. Words and height remain pending until one valid point completes the original label.
+
+- **Hands-On Lab Experiment:** Compare the draft prompt before and after accepting Height.
+
 <details>
 <summary>Implementation 85ac-retain-text-answers-inside-the-existing-point-draft: Retain Text answers inside the existing point draft</summary>
 
@@ -8551,6 +9036,19 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-85ad-complete-original-text-and-headed-arrow-tools"></a>
+
+### Step 31 of 52 · Complete original Text and headed Arrow tools (`85ad-complete-original-text-and-headed-arrow-tools`)
+
+- **Goal:** Complete original Text and headed Arrow tools.
+- **Data Flow Trace:** `accepted point or endpoint pair → original result → one Undo`
+- **Files You Touch:** `src/tool.rs` (*Build original Text and headed Arrow results.*) · `src/editor.rs` (*Adopt the original label with remembered height and one history entry.*)
+
+Complete original Text and headed Arrow tools.
+
+> **Self-Check Question:** *Does an arrow save only its sampled chain?*  
+> **Answer:** No. Its original Line carries END arrowhead style. Text saves its original words, frame and height.
+
+- **Hands-On Lab Experiment:** Compare distinct Arrow endpoints, invalid equal endpoints and Text on CPlane XZ.
 
 <details>
 <summary>Implementation 85ad-complete-original-text-and-headed-arrow-tools: Complete original Text and headed Arrow tools</summary>
@@ -9989,6 +10487,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-85ae-present-cached-extension-guides-and-error-endpoints"></a>
 
+### Step 32 of 52 · Present cached extension guides and error endpoints (`85ae-present-cached-extension-guides-and-error-endpoints`)
+
+- **Goal:** Present cached extension guides and error endpoints.
+- **Data Flow Trace:** `accepted original owner → checked plan → preview or single edit`
+- **Files You Touch:** `src/editor.rs` (*Present cached extension guides and error endpoints.*) · `src/tool_preview.rs` (*Use the explicit red guide instead of drawing an extension preview twice.*)
+
+Present cached extension guides and error endpoints.
+
+> **Self-Check Question:** *Where does an extension error chip belong?*  
+> **Answer:** At the transformed original endpoint, even when no extension preview is valid.
+
+- **Hands-On Lab Experiment:** Compare the red dashed tail, added length and a failed extension without mutating the source.
+
 <details>
 <summary>Implementation 85ae-present-cached-extension-guides-and-error-endpoints: Present cached extension guides and error endpoints</summary>
 
@@ -11188,6 +11699,19 @@ Edit the existing block to match this code; keep unchanged lines:
 
 <a id="checkpoint-85af-commit-prepared-trims-once"></a>
 
+### Step 33 of 52 · Commit prepared trims once (`85af-commit-prepared-trims-once`)
+
+- **Goal:** Commit prepared trims once.
+- **Data Flow Trace:** `accepted original owner → checked plan → preview or single edit`
+- **Files You Touch:** `src/editor.rs` (*Commit prepared trims once.*)
+
+Commit prepared trims once.
+
+> **Self-Check Question:** *Does removing several parts create several Undo steps?*  
+> **Answer:** No. The final prepared edits adopt all retained original pieces in one scene transaction.
+
+- **Hands-On Lab Experiment:** Inspect cancellation without changes and freshness checks before adopting pieces.
+
 <details>
 <summary>Implementation 85af-commit-prepared-trims-once: Commit prepared trims once</summary>
 
@@ -11218,6 +11742,19 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-85ag-advance-trim-through-targets-cutters-and-parts"></a>
+
+### Step 34 of 52 · Advance Trim through targets cutters and parts (`85ag-advance-trim-through-targets-cutters-and-parts`)
+
+- **Goal:** Advance Trim through targets cutters and parts.
+- **Data Flow Trace:** `accepted original owner → checked plan → preview or single edit`
+- **Files You Touch:** `src/editor.rs` (*Advance Trim through targets cutters and parts.*)
+
+Advance Trim through targets cutters and parts.
+
+> **Self-Check Question:** *Does hovering a part edit geometry?*  
+> **Answer:** No. Hover updates the cached guide; a click updates a disposable preview until completion.
+
+- **Hands-On Lab Experiment:** Start from whole selection, Enter after cutters, hover and remove a part, then compare Escape and final Enter.
 
 <details>
 <summary>Implementation 85ag-advance-trim-through-targets-cutters-and-parts: Advance Trim through targets cutters and parts</summary>
@@ -11254,6 +11791,19 @@ Edit the existing block to match this code; keep unchanged lines:
 
 <a id="checkpoint-85ah-adopt-original-pieces-and-arrowhead-changes-atomically"></a>
 
+### Step 35 of 52 · Adopt original pieces and arrowhead changes atomically (`85ah-adopt-original-pieces-and-arrowhead-changes-atomically`)
+
+- **Goal:** Adopt original pieces and arrowhead changes atomically.
+- **Data Flow Trace:** `accepted original owner → checked plan → preview or single edit`
+- **Files You Touch:** `src/editor.rs` (*Adopt original pieces and arrowhead changes atomically.*)
+
+Adopt original pieces and arrowhead changes atomically.
+
+> **Self-Check Question:** *Can a repeated Arrowhead command erase Redo?*  
+> **Answer:** No. An unchanged original returns without a scene edit.
+
+- **Hands-On Lab Experiment:** Compare source row identities, one Undo and unchanged source allocation on no-op.
+
 <details>
 <summary>Implementation 85ah-adopt-original-pieces-and-arrowhead-changes-atomically: Adopt original pieces and arrowhead changes atomically</summary>
 
@@ -11284,6 +11834,19 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-85ai-dispatch-current-original-commands-through-checked-owners"></a>
+
+### Step 36 of 52 · Dispatch current original commands through checked owners (`85ai-dispatch-current-original-commands-through-checked-owners`)
+
+- **Goal:** Dispatch current original commands through checked owners.
+- **Data Flow Trace:** `typed action → original owner → explicit result`
+- **Files You Touch:** `src/editor.rs` (*Dispatch complete current original command actions.*)
+
+Dispatch current original commands through checked owners.
+
+> **Self-Check Question:** *Does dispatch bypass original eligibility?*  
+> **Answer:** No. Each owner validates its current source, placement and accepted input before mutation.
+
+- **Hands-On Lab Experiment:** Compare lasso phases, grouping, graph links, Text, Explode, Trim, queries, arrowheads and Escape. Invalid input must preserve original rows and history.
 
 <details>
 <summary>Implementation 85ai-dispatch-current-original-commands-through-checked-owners: Dispatch current original commands through checked owners</summary>
@@ -11317,6 +11880,19 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-85aj-preserve-previews-selection-and-accepted-tool-answers"></a>
+
+### Step 37 of 52 · Preserve previews selection and accepted tool answers (`85aj-preserve-previews-selection-and-accepted-tool-answers`)
+
+- **Goal:** Preserve previews selection and accepted tool answers.
+- **Data Flow Trace:** `pointer or command → explicit lifetime → preserved or cancelled owner`
+- **Files You Touch:** `src/editor.rs` (*Keep view controls and pending command lifecycles.*)
+
+Preserve previews selection and accepted tool answers.
+
+> **Self-Check Question:** *Should an accepted tool answer discard unrelated selection or previews?*  
+> **Answer:** Only the state owned by the completed or cancelled operation should change. Retain unrelated original selection and prepare the current preview from its existing owner.
+
+- **Hands-On Lab Experiment:** Begin a tool preview, submit one accepted answer and inspect the remaining prompt and selection. Cancel the tool and check that only its temporary geometry disappears.
 
 <details>
 <summary>Implementation 85aj-preserve-previews-selection-and-accepted-tool-answers: Preserve previews selection and accepted tool answers</summary>
@@ -12697,6 +13273,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-85ak-keep-annotations-during-touch-navigation-and-capture-lasso-input"></a>
 
+### Step 38 of 52 · Keep annotations during touch navigation and capture lasso input (`85ak-keep-annotations-during-touch-navigation-and-capture-lasso-input`)
+
+- **Goal:** Keep annotations during touch navigation and capture lasso input.
+- **Data Flow Trace:** `pointer or command → explicit lifetime → preserved or cancelled owner`
+- **Files You Touch:** `src/editor.rs` (*Keep view controls and pending command lifecycles.*)
+
+Keep annotations during touch navigation and capture lasso input.
+
+> **Self-Check Question:** *Why dispatch touch navigation before annotation cleanup?*  
+> **Answer:** Orbit and zoom change the view without completing or cancelling the measurement. Preserve its mark, and let captured lasso input follow its own pointer lifecycle.
+
+- **Hands-On Lab Experiment:** Create a measurement, then rotate and zoom with touch; its mark remains. Start a lasso, move beyond the canvas edge and release; pointer capture must finish that gesture.
+
 <details>
 <summary>Implementation 85ak-keep-annotations-during-touch-navigation-and-capture-lasso-input: Keep annotations during touch navigation and capture lasso input</summary>
 
@@ -12733,6 +13322,19 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-85al-preserve-pending-originals-during-view-changes"></a>
+
+### Step 39 of 52 · Preserve pending originals during view changes (`85al-preserve-pending-originals-during-view-changes`)
+
+- **Goal:** Preserve pending originals during view changes.
+- **Data Flow Trace:** `pointer or command → explicit lifetime → preserved or cancelled owner`
+- **Files You Touch:** `src/editor.rs` (*Keep view controls and pending command lifecycles.*)
+
+Preserve pending originals during view changes.
+
+> **Self-Check Question:** *Does a view change invalidate a pending source operation?*  
+> **Answer:** It does not change the operation's original document intent. Preserve the source request and pending tool state unless an actual cancellation or document replacement invalidates them.
+
+- **Hands-On Lab Experiment:** Begin a pending original-source operation, change the view and inspect its retained prompt. Cancel explicitly and confirm the operation cannot later complete into the document.
 
 <details>
 <summary>Implementation 85al-preserve-pending-originals-during-view-changes: Preserve pending originals during view changes</summary>
@@ -12772,6 +13374,19 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-85am-route-named-views-and-whole-trim-picks"></a>
+
+### Step 40 of 52 · Route named views and whole trim picks (`85am-route-named-views-and-whole-trim-picks`)
+
+- **Goal:** Route named views and whole trim picks.
+- **Data Flow Trace:** `pointer or command → explicit lifetime → preserved or cancelled owner`
+- **Files You Touch:** `src/editor.rs` (*Keep view controls and pending command lifecycles.*)
+
+Route named views and whole trim picks.
+
+> **Self-Check Question:** *When does Trim need the whole original instead of a display subpart?*  
+> **Answer:** A cutter choice resolves the original cutter owner. A named view changes only the camera and must not erase that pending Trim choice.
+
+- **Hands-On Lab Experiment:** Begin Trim, change to a named view, select a whole original cutter and continue. Verify that the command retains the cutter's original ID.
 
 <details>
 <summary>Implementation 85am-route-named-views-and-whole-trim-picks: Route named views and whole trim picks</summary>
@@ -14102,6 +14717,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-85an-capture-source-backed-command-arguments"></a>
 
+### Step 41 of 52 · Capture source-backed command arguments (`85an-capture-source-backed-command-arguments`)
+
+- **Goal:** Capture source-backed command arguments.
+- **Data Flow Trace:** `typed action → owned arguments → no retained geometry`
+- **Files You Touch:** `src/command_request.rs` (*Capture source-backed command arguments.*) · `src/lib.rs` (*Register this command owner.*)
+
+Capture source-backed command arguments.
+
+> **Self-Check Question:** *Does a pending request retain source allocations?*  
+> **Answer:** No. Capture command values and IDs, with no original geometry or network owner.
+
+- **Hands-On Lab Experiment:** Inspect every supported edit, measurement and pending cutter pick.
+
 <details>
 <summary>Implementation 85an-capture-source-backed-command-arguments: Capture source-backed command arguments</summary>
 
@@ -14141,6 +14769,19 @@ After that block, type:
 
 <a id="checkpoint-85ao-restore-typed-requests-and-their-selected-owners"></a>
 
+### Step 42 of 52 · Restore typed requests and their selected owners (`85ao-restore-typed-requests-and-their-selected-owners`)
+
+- **Goal:** Restore typed requests and their selected owners.
+- **Data Flow Trace:** `captured request → current action → original selected IDs`
+- **Files You Touch:** `src/command_request.rs` (*Restore typed requests and their selected owners.*)
+
+Restore typed requests and their selected owners.
+
+> **Self-Check Question:** *Can a missing recipe silently choose another command?*  
+> **Answer:** No. A changed or missing gathering recipe returns an error.
+
+- **Hands-On Lab Experiment:** Compare whole selection, selected face and pending original cutter requests.
+
 <details>
 <summary>Implementation 85ao-restore-typed-requests-and-their-selected-owners: Restore typed requests and their selected owners</summary>
 
@@ -14173,6 +14814,19 @@ Edit the existing block to match this code; keep unchanged lines:
 
 <a id="checkpoint-85ap-witness-identities-and-placement-during-source-loading"></a>
 
+### Step 43 of 52 · Witness identities and placement during source loading (`85ap-witness-identities-and-placement-during-source-loading`)
+
+- **Goal:** Witness identities and placement during source loading.
+- **Data Flow Trace:** `row GUID and world model → interaction epoch → replay guard`
+- **Files You Touch:** `src/command_request.rs` (*Witness identities and placement during source loading.*)
+
+Witness identities and placement during source loading.
+
+> **Self-Check Question:** *Does orbit invalidate a waiting edit?*  
+> **Answer:** No. View changes preserve its epoch; changed commands or targets cancel it.
+
+- **Hands-On Lab Experiment:** Inspect exact GUID, model and eligibility witnesses before loading.
+
 <details>
 <summary>Implementation 85ap-witness-identities-and-placement-during-source-loading: Witness identities and placement during source loading</summary>
 
@@ -14201,6 +14855,19 @@ After that block, type:
 </details>
 
 <a id="checkpoint-85aq-deduplicate-original-fetches-and-replay-safely"></a>
+
+### Step 44 of 52 · Deduplicate original fetches and replay safely (`85aq-deduplicate-original-fetches-and-replay-safely`)
+
+- **Goal:** Deduplicate original fetches and replay safely.
+- **Data Flow Trace:** `distinct source origins → hydration → guarded current edit`
+- **Files You Touch:** `src/command_request.rs` (*Deduplicate original fetches and replay safely.*)
+
+Deduplicate original fetches and replay safely.
+
+> **Self-Check Question:** *Can two instances fetch the same source twice?*  
+> **Answer:** No. Deduplicate by origin identity, then restore captured IDs and selected part before replay.
+
+- **Hands-On Lab Experiment:** Compare failure restoration, source identity, one successful Undo and changed-target refusal.
 
 <details>
 <summary>Implementation 85aq-deduplicate-original-fetches-and-replay-safely: Deduplicate original fetches and replay safely</summary>
@@ -14233,6 +14900,19 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-85ar-route-source-backed-edits-through-guarded-replay"></a>
+
+### Step 45 of 52 · Route source-backed edits through guarded replay (`85ar-route-source-backed-edits-through-guarded-replay`)
+
+- **Goal:** Route source-backed edits through guarded replay.
+- **Data Flow Trace:** `command intent → shared original reload → checked replay`
+- **Files You Touch:** `src/edit_intent.rs` (*Capture and replay current commands with guarded original loading.*) · `src/edit_replay.rs` (*Capture and replay current commands with guarded original loading.*) · `src/browser.rs` (*Borrow the captured request while completing the reload reply.*)
+
+Route source-backed edits through guarded replay.
+
+> **Self-Check Question:** *Should a zero Move trigger network IO?*  
+> **Answer:** No. Reject invalid offsets and return early for zero motion before source loading.
+
+- **Hands-On Lab Experiment:** Compare multi-selection BoundingBox, selected-face Area and failed fetches.
 
 <details>
 <summary>Implementation 85ar-route-source-backed-edits-through-guarded-replay: Route source-backed edits through guarded replay</summary>
@@ -14473,6 +15153,19 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-85as-register-current-names-views-and-command-aliases"></a>
+
+### Step 46 of 52 · Register current names views and command aliases (`85as-register-current-names-views-and-command-aliases`)
+
+- **Goal:** Register current names views and command aliases.
+- **Data Flow Trace:** `typed name → canonical alias → available editor owner`
+- **Files You Touch:** `src/commands.rs` (*Register current actions and aliases before their argument parser.*)
+
+Register current names, views and aliases. Normalize aliases before parsing and update the construction-plane branch in the same checkpoint, so CPlane XY keeps working during the rename.
+
+> **Self-Check Question:** *Is CPlane still accepted?*  
+> **Answer:** Yes. Construction Plane, ConstructionPlane and CPlane resolve to the same current owner.
+
+- **Hands-On Lab Experiment:** Try Object, Face, Edge, Esc and the named views; preserve the established H/S/F and Undo/Redo shortcuts.
 
 <details>
 <summary>Implementation 85as-register-current-names-views-and-command-aliases: Register current names views and command aliases</summary>
@@ -14991,6 +15684,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-85at-validate-current-command-words-and-options"></a>
 
+### Step 47 of 52 · Validate current command words and options (`85at-validate-current-command-words-and-options`)
+
+- **Goal:** Validate current command words and options.
+- **Data Flow Trace:** `canonical words → exact arity → accepted original action`
+- **Files You Touch:** `src/commands.rs` (*Validate current command words and options.*)
+
+Validate current command words and options.
+
+> **Self-Check Question:** *Does invalid input change a pending original tool?*  
+> **Answer:** No. Validate names, positive finite sizes, arrowhead choices and domain arguments before adoption.
+
+- **Hands-On Lab Experiment:** Compare quoted names, Add Group names without slash, Text words, Trim parameters and the 64 KiB limit.
+
 <details>
 <summary>Implementation 85at-validate-current-command-words-and-options: Validate current command words and options</summary>
 
@@ -15305,6 +16011,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-85au-capture-lasso-pointer-ownership-in-the-browser"></a>
 
+### Step 48 of 52 · Capture lasso pointer ownership in the browser (`85au-capture-lasso-pointer-ownership-in-the-browser`)
+
+- **Goal:** Capture lasso pointer ownership in the browser.
+- **Data Flow Trace:** `actual pointer and density → capture → explicit release`
+- **Files You Touch:** `src/browser.rs` (*Capture lasso pointer ownership in the browser.*)
+
+Capture lasso pointer ownership in the browser.
+
+> **Self-Check Question:** *Can another pointer finish the loop?*  
+> **Answer:** No. Only the captured pointer moves or releases it; blur and resize cancel.
+
+- **Hands-On Lab Experiment:** Inspect Shift-add, Ctrl-remove, primary mouse/touch input and lost capture.
+
 <details>
 <summary>Implementation 85au-capture-lasso-pointer-ownership-in-the-browser: Capture lasso pointer ownership in the browser</summary>
 
@@ -15333,6 +16052,19 @@ After that block, type:
 </details>
 
 <a id="checkpoint-85av-route-trim-and-lasso-pointer-input"></a>
+
+### Step 49 of 52 · Route trim and lasso pointer input (`85av-route-trim-and-lasso-pointer-input`)
+
+- **Goal:** Route trim and lasso pointer input.
+- **Data Flow Trace:** `actual input → current editor owner → observed source state`
+- **Files You Touch:** `src/browser.rs` (*Route actual command input and truthful diagnostics.*)
+
+Route trim and lasso pointer input.
+
+> **Self-Check Question:** *Which owner consumes a pointer event during Trim or lasso input?*  
+> **Answer:** The active tool's pointer state consumes its own gesture before ordinary selection can reuse it. Cancellation must release that captured intent.
+
+- **Hands-On Lab Experiment:** Start Trim and choose a cutter through the canvas. Then start and cancel a lasso. Check that neither gesture also performs an unrelated ordinary pick.
 
 <details>
 <summary>Implementation 85av-route-trim-and-lasso-pointer-input: Route trim and lasso pointer input</summary>
@@ -16376,6 +17108,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-85aw-refresh-command-panels-source-loading-and-cached-previews"></a>
+
+### Step 50 of 52 · Refresh command panels source loading and cached previews (`85aw-refresh-command-panels-source-loading-and-cached-previews`)
+
+- **Goal:** Refresh command panels source loading and cached previews.
+- **Data Flow Trace:** `actual input → current editor owner → observed source state`
+- **Files You Touch:** `src/browser.rs` (*Route actual command input and truthful diagnostics.*)
+
+Refresh command panels source loading and cached previews.
+
+> **Self-Check Question:** *When should a command result refresh its panel and preview?*  
+> **Answer:** After the accepted action has updated the relevant original state. Reuse its existing source-loading and preview owners rather than retaining a second stale copy.
+
+- **Hands-On Lab Experiment:** Change a tool value and inspect both its prompt and preview. Open the group or graph panel, then load an original source and verify the panel reflects the accepted document.
 
 <details>
 <summary>Implementation 85aw-refresh-command-panels-source-loading-and-cached-previews: Refresh command panels source loading and cached previews</summary>
@@ -17470,6 +18215,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-85ax-observe-current-original-command-state"></a>
 
+### Step 51 of 52 · Observe current original command state (`85ax-observe-current-original-command-state`)
+
+- **Goal:** Observe current original command state.
+- **Data Flow Trace:** `actual input → current editor owner → observed source state`
+- **Files You Touch:** `src/browser.rs` (*Route actual command input and truthful diagnostics.*)
+
+Observe current original command state.
+
+> **Self-Check Question:** *Do browser diagnostics prove browser acceptance?*  
+> **Answer:** No. They make state inspectable; the authored browser contract still requires a real run.
+
+- **Hands-On Lab Experiment:** Run a selection or source command and compare the reported original IDs with the visible result. Treat diagnostics as observations; exercise the actual command rather than using a counter as proof of interaction.
+
 <details>
 <summary>Implementation 85ax-observe-current-original-command-state: Observe current original command state</summary>
 
@@ -18421,6 +19179,20 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-85ay-exercise-current-original-commands-together"></a>
 
+### Step 52 of 52 · Exercise current original commands together (`85ay-exercise-current-original-commands-together`)
+
+- **Goal:** Exercise current original commands together.
+- **Data Flow Trace:** `original line and label → headed curve and extension → cached red guide`
+- **Files You Touch:** `src/command_inventory_tests.rs` (*Copy the integrated original, archive, history, guide and source-fetch fixtures.*) · `src/lib.rs` (*Register this command owner.*) · `src/command_owner_tests.rs` (*Copy the integrated original, archive, history, guide and source-fetch fixtures.*) · `src/command_fetch_tests.rs` (*Copy the integrated original, archive, history, guide and source-fetch fixtures.*) · `src/lasso_geometry_tests.rs` (*Copy the integrated original, archive, history, guide and source-fetch fixtures.*)
+
+Connect current input to original owners, then inspect cached guides and archive identity.
+
+> **Self-Check Question:** *What proves the current command endpoint?*  
+> **Answer:** Its supplied native fixtures and rendered frame check real owners, history and actual pixels. Browser acceptance remains a separate required check.
+
+- **What You Should See:** An original headed line, world Text and a red dashed extension guide with a+0.800chip are visible. The guide remains outside source rows, history and integer ownership.
+- **Hands-On Lab Experiment:** Type Close, CPlane XY and Line w-1,0,0 w1,0,0. Type Select All and Arrowhead Both; Save/Open keeps the original Line family and arrowheads. Type Text timber, Height 0.25 and w0,0,0.6. Select the line, type Extend Distance 0.8 and move near its endpoint: expect a red dashed tail and +0.800 chip. Escape removes only the preview. Add Group after selecting two originals; clicking one selects the group. Add Edge creates one document-scoped graph link and opens the graph table. Select By Name "timber" finds the label; Select Small 0.5 uses world bounds. Select Lasso accepts one loop, Shift adds and Ctrl removes. Trim accepts whole targets, cutters and removable parts; Enter finishes and one Undo restores all originals. Orbit and zoom retain completed Measure Distance annotations. Compare invalid input, cancelled previews, appended-document graph links and source-backed edits after Unload Sources.
+
 <details>
 <summary>Implementation 85ay-exercise-current-original-commands-together: Exercise current original commands together</summary>
 
@@ -18606,9 +19378,11 @@ After that block, append this supplied code:
 
 </details>
 
-## Run, Check, and Save
+---
 
-From `session_viewer`:
+## 5. Build, Verify, and Save Your Checkpoint
+
+Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 85ay-exercise-current-original-commands-together
@@ -18619,10 +19393,10 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. Use [checkpoint recovery](../../recovery.md) to restore any saved checkpoint.
+Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
 
-## Expected Visual Result & Experiment
+## 6. Lesson Summary & Expected Visual Result
 
 An original headed line, world Text and a red dashed extension guide with a+0.800chip are visible. The guide remains outside source rows, history and integer ownership.
 
-- **Try this:** Type Close, CPlane XY and Line w-1,0,0 w1,0,0. Type Select All and Arrowhead Both; Save/Open keeps the original Line family and arrowheads. Type Text timber, Height 0.25 and w0,0,0.6. Select the line, type Extend Distance 0.8 and move near its endpoint: expect a red dashed tail and +0.800 chip. Escape removes only the preview. Add Group after selecting two originals; clicking one selects the group. Add Edge creates one document-scoped graph link and opens the graph table. Select By Name "timber" finds the label; Select Small 0.5 uses world bounds. Select Lasso accepts one loop, Shift adds and Ctrl removes. Trim accepts whole targets, cutters and removable parts; Enter finishes and one Undo restores all originals. Orbit and zoom retain completed Measure Distance annotations. Compare invalid input, cancelled previews, appended-document graph links and source-backed edits after Unload Sources.
+- **Final Lesson Experiment:** Type Close, CPlane XY and Line w-1,0,0 w1,0,0. Type Select All and Arrowhead Both; Save/Open keeps the original Line family and arrowheads. Type Text timber, Height 0.25 and w0,0,0.6. Select the line, type Extend Distance 0.8 and move near its endpoint: expect a red dashed tail and +0.800 chip. Escape removes only the preview. Add Group after selecting two originals; clicking one selects the group. Add Edge creates one document-scoped graph link and opens the graph table. Select By Name "timber" finds the label; Select Small 0.5 uses world bounds. Select Lasso accepts one loop, Shift adds and Ctrl removes. Trim accepts whole targets, cutters and removable parts; Enter finishes and one Undo restores all originals. Orbit and zoom retain completed Measure Distance annotations. Compare invalid input, cancelled previews, appended-document graph links and source-backed edits after Unload Sources.

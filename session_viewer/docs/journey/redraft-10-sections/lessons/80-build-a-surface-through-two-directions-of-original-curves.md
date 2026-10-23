@@ -1,88 +1,149 @@
 # 15.4 · Two-direction networks and corner patches
 
-**Section 8: Precision Coordinate Frames, Solid Primitives, Surfacing, and CAD Editing** · **Lesson 15.4** (Redraft `8.10`) · **6 checkpoints (`80-build-a-surface-through-two-directions-of-original-curves` → `80za-read-original-projection-planes`)**
+**Section 8: Precision Coordinate Frames, Solid Primitives, Surfacing, and CAD Editing** · **Lesson 15.4** (Redraft `8.10`) · **6 checkpoints (`80-build-a-surface-through-two-directions-of-original-curves` → `80za-read-original-projection-planes`)** · **Study time: 3–6 h**
 
-> **Learning Goal:** Connect the complete network helpers and retain the four-boundary Coons path.
+> **What You Will Learn & Build:** Connect the complete network helpers and retain the four-boundary Coons path. By the final checkpoint (`80za-read-original-projection-planes`), you will reuse absolute coordinate parsing for named construction planes and three-point input.
 
-## Visual WebGPU & Architecture Schematic
+## 1. Visual Pipeline & WebGPU Architecture (Black & White Schematics)
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1px solid #cbd5e1;border-radius:10px;background:#f8fafc;">
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
+<svg viewBox="0 0 840 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <rect x="4" y="4" width="832" height="212" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Lesson 15.4 Execution Flow: Two-direction networks and corner patches</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">Concrete data pipeline you build in this lesson (6 Checkpoints: 80-build-a-surface-through-two-directions-of-original-curves → 80za-read-original-projection-planes)</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
+  
+    
+    <rect x="18" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="89" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
+    <line x1="28" y1="92" x2="151" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">original curve</text>
+    <text x="89" y="124" text-anchor="middle" font-size="11" fill="#111111">crossings</text>
+    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="183" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="254" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
+    <line x1="193" y1="92" x2="316" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">ordered stations</text>
+    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="348" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="419" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
+    <line x1="358" y1="92" x2="481" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">sampled lofts</text>
+    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="513" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="584" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
+    <line x1="523" y1="92" x2="646" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">fitted surface</text>
+    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="678" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="749" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
+    <line x1="688" y1="92" x2="811" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">original family</text>
+    
+    <rect x="18" y="162" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="32" y="181" font-size="11" font-weight="700" fill="#111111">Files You Edit in Lesson 15.4:</text>
+    <text x="215" y="181" font-size="11" fill="#111111">src/network_geometry.rs  ·  src/patch_geometry.rs  ·  src/lib.rs  ·  src/gather_draft.rs  ·  src/gather_registry.rs  ·  src/commands.rs</text>
+    <text x="32" y="198" font-size="10.5" fill="#111111">6 Checkpoints: 80-build-a-surface-through-two-directions-of-original-curves → 80za-read-original-projection-planes — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
+  
+</svg>
+</div>
+
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
 <svg viewBox="0 0 840 240" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#475569"/>
-    </marker>
-    <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#2563eb"/>
-    </marker>
-    <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#059669"/>
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
     </marker>
   </defs>
-  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
-  <text x="20" y="28" font-size="14" font-weight="700" fill="#0f172a">Section 8 Precision CAD Frames, Solid Primitives, Surfacing & Sub-Object Deformation (Chapters 14–16)</text>
-  <text x="20" y="46" font-size="11.5" fill="#475569">How double-precision coordinate frames (Plane), parametric solids, Loft/Sweep/Extrude surfaces, and Gumball control edits work.</text>
-  <line x1="16" y1="54" x2="824" y2="54" stroke="#e2e8f0" stroke-width="1"/>
+  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Section 8 Precision CAD Frames, Solid Primitives, Surfacing & Sub-Object Deformation (Chapters 14–16)</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">How double-precision coordinate frames (Plane), parametric solids, Loft/Sweep/Extrude surfaces, and Gumball control edits work.</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
   
-    <rect x="18" y="68" width="245" height="145" rx="6" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
-    <text x="140" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1e40af">1. Orthonormal Frames (Ch 14)</text>
-    <text x="28" y="108" font-size="10.5" fill="#1e3a8a">• Plane { origin: Vec3d, x, y, z }</text>
-    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#1d4ed8">• Rejects non-finite / collinear axes</text>
-    <text x="28" y="144" font-size="10.5" fill="#1e3a8a">• Basis change: World &lt;-&gt; Local Plane</text>
-    <text x="28" y="162" font-size="10.5" fill="#1e3a8a">• Exact Mirror, Rotate3D, Orient,</text>
-    <text x="28" y="178" font-size="10.5" fill="#1e3a8a">  and Align frame transformations</text>
+    <rect x="18" y="68" width="245" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="140" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">1. Orthonormal Frames (Ch 14)</text>
+    <text x="28" y="108" font-size="10.5" fill="#111111">• Plane { origin: Vec3d, x, y, z }</text>
+    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#111111">• Rejects non-finite / collinear axes</text>
+    <text x="28" y="144" font-size="10.5" fill="#111111">• Basis change: World &lt;-&gt; Local Plane</text>
+    <text x="28" y="162" font-size="10.5" fill="#111111">• Exact Mirror, Rotate3D, Orient,</text>
+    <text x="28" y="178" font-size="10.5" fill="#111111">  and Align frame transformations</text>
 
-    <line x1="263" y1="138" x2="293" y2="138" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
+    <line x1="263" y1="138" x2="293" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="295" y="68" width="265" height="145" rx="6" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5"/>
-    <text x="427" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#9a3412">2. Solids &amp; Surfacing (Ch 15–16)</text>
-    <text x="307" y="108" font-size="10.5" fill="#7c2d12">• Parametric Box, Cylinder, Sphere, Cone</text>
-    <text x="307" y="126" font-size="10.5" font-weight="600" fill="#c2410c">• Extrude, Revolve, Loft, Sweep, Planar</text>
-    <text x="307" y="144" font-size="10.5" fill="#7c2d12">• Curve Split, Trim, Extend, Join, Fillet</text>
-    <text x="307" y="162" font-size="10.5" fill="#7c2d12">• Every operation commits an atomic</text>
-    <text x="307" y="178" font-size="10.5" fill="#7c2d12">  session_rust kernel transaction</text>
+    <rect x="295" y="68" width="265" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="427" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">2. Solids &amp; Surfacing (Ch 15–16)</text>
+    <text x="307" y="108" font-size="10.5" fill="#111111">• Parametric Box, Cylinder, Sphere, Cone</text>
+    <text x="307" y="126" font-size="10.5" font-weight="600" fill="#111111">• Extrude, Revolve, Loft, Sweep, Planar</text>
+    <text x="307" y="144" font-size="10.5" fill="#111111">• Curve Split, Trim, Extend, Join, Fillet</text>
+    <text x="307" y="162" font-size="10.5" fill="#111111">• Every operation commits an atomic</text>
+    <text x="307" y="178" font-size="10.5" fill="#111112">  session_rust kernel transaction</text>
 
-    <line x1="560" y1="138" x2="590" y2="138" stroke="#059669" stroke-width="2" marker-end="url(#arrow-green)"/>
+    <line x1="560" y1="138" x2="590" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="592" y="68" width="228" height="145" rx="6" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1.5"/>
-    <text x="706" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#065f46">3. Rational Control-Point Deform</text>
-    <text x="604" y="108" font-size="10.5" fill="#064e3b">• Pick NURBS control point or vertex</text>
-    <text x="604" y="126" font-size="10.5" font-weight="600" fill="#047857">• Preserve homogeneous weight w</text>
-    <text x="604" y="142" font-size="10.5" font-weight="600" fill="#047857">  on rational curve control drags!</text>
-    <text x="604" y="162" font-size="10.5" fill="#064e3b">• Rebuild derived GPU tessellation</text>
-    <text x="604" y="178" font-size="10.5" fill="#064e3b">  in-place while keeping Object ID</text>
+    <rect x="592" y="68" width="228" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="706" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">3. Rational Control-Point Deform</text>
+    <text x="604" y="108" font-size="10.5" fill="#111111">• Pick NURBS control point or vertex</text>
+    <text x="604" y="126" font-size="10.5" font-weight="600" fill="#111111">• Preserve homogeneous weight w</text>
+    <text x="604" y="142" font-size="10.5" font-weight="600" fill="#111111">  on rational curve control drags!</text>
+    <text x="604" y="162" font-size="10.5" fill="#111111">• Rebuild derived GPU tessellation</text>
+    <text x="604" y="178" font-size="10.5" fill="#111111">  in-place while keeping Object ID</text>
     
 </svg>
 </div>
 
-### Lesson Data Flow (`Rust` → `WebGPU` → `WGSL`)
+## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
 
-```
-original curve crossings → ordered stations → sampled lofts → fitted surface.
-current name or alias → initial argument validation → shared recipe owner.
-original family → pure calculation → result or refusal.
-```
+Before writing code, review how the three layers in this chapter talk to each other:
 
-- Connect the complete network helpers and retain the four-boundary Coons path.
-- Register network patch aliases and initial corner arity.
-- Reuse absolute coordinate parsing for named construction planes and three-point input.
-- **Why it works (Why keep the four-boundary path?):** The existing kernel edge constructor directly describes that supported case. Larger grids use the Gordon construction just written.
-
-### Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `Browser`)
-
-| Layer | Construct | First-Year Student Explanation |
+| Layer | Construct | Plain-English Explanation for Students |
 | :--- | :--- | :--- |
 | **CAD Coords** | `w10,20,0` vs `@5,0,0` vs `10<30` | `w` forces absolute World coordinates; `@` measures relative to the last accepted point; `<` uses polar distance and angle in the active Construction Plane. |
 | **Rational NURBS** | Homogeneous control point `(w*x, w*y, w*z, w)` | Represents circles, ellipses, and conic arcs with zero approximation error using non-uniform weights `w`. |
 | **B-Rep Split/Trim** | Plane/Cutter intersection -> Face loop classification | Splits or trims B-Rep and mesh faces along cutting planes/curves while keeping retained topology tables valid. |
 
-**Production source (`session_viewer/src`):** [app/deform.rs](../../../../src/app/deform.rs), [state/edit.rs](../../../../src/state/edit.rs), [app/command/tool/gather.rs](../../../../src/app/command/tool/gather.rs), [app/command/tool/surfacing.rs](../../../../src/app/command/tool/surfacing.rs), [app/walk/mesh.rs](../../../../src/app/walk/mesh.rs), [app/walk/brep.rs](../../../../src/app/walk/brep.rs), [build.rs](../../../../build.rs).
+**Authoritative production source (`session_viewer/src`):** [app/deform.rs](../../../../src/app/deform.rs), [state/edit.rs](../../../../src/state/edit.rs), [app/command/tool/gather.rs](../../../../src/app/command/tool/gather.rs), [app/command/tool/surfacing.rs](../../../../src/app/command/tool/surfacing.rs), [app/walk/mesh.rs](../../../../src/app/walk/mesh.rs), [app/walk/brep.rs](../../../../src/app/walk/brep.rs), [build.rs](../../../../build.rs).
 
-## Implementation Checkpoints
+## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
 
-Apply these checkpoints in order inside `workspace/journey`. Expand each block to view the Rust/WGSL/HTML edits:
+| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
+| ---: | :--- | :--- | :--- | :--- |
+| **1** | [`80-build-a-surface-through-two-directions-of-original-curves`](#checkpoint-80-build-a-surface-through-two-directions-of-original-curves) | Connect the complete network helpers and retain the four-boundary Coons path. | `src/network_geometry.rs` | `original curve crossings → ordered stations → sampled lofts → fitted surface` |
+| **2** | [`80a-construct-the-patch-through-four-ordered-corners`](#checkpoint-80a-construct-the-patch-through-four-ordered-corners) | Construct the patch through four ordered corners. | `src/patch_geometry.rs`, `src/lib.rs` | `four ordered world corners → area check → bilinear original surface` |
+| **3** | [`80b-guide-corner-questions-without-retaining-unrelated-profiles`](#checkpoint-80b-guide-corner-questions-without-retaining-unrelated-profiles) | Guide corner questions without retaining unrelated profiles. | `src/gather_draft.rs` | `accepted corner points and cursor → temporary guide → unfinished recipe` |
+| **4** | [`80c-register-network-patch-aliases-and-initial-corner-arity`](#checkpoint-80c-register-network-patch-aliases-and-initial-corner-arity) | Register network patch aliases and initial corner arity. | `src/gather_registry.rs`, `src/commands.rs` | `current name or alias → initial argument validation → shared recipe owner` |
+| **5** | [`80d-exercise-networks-corner-retries-and-exact-original-archives`](#checkpoint-80d-exercise-networks-corner-retries-and-exact-original-archives) | Exercise networks corner retries and exact original archives. | `src/network_tests.rs`, `src/lib.rs` | `original network and corners → checked surfaces → one history transaction → exact Save/Open` |
+| **6** | [`80za-read-original-projection-planes`](#checkpoint-80za-read-original-projection-planes) | Reuse absolute coordinate parsing for named construction planes and three-point input. | `src/project_geometry.rs`, `src/lib.rs` | `original family → pure calculation → result or refusal` |
+
+---
+
+## 4. Step-by-Step Coding Notebook (Concept + Implementation)
+
+Work through each notebook cell below in order inside `workspace/journey`. Read the **Concept Walkthrough** and **Self-Check Q&A** first, then expand the **Implementation** block to type and verify the code.
 
 <a id="checkpoint-80-build-a-surface-through-two-directions-of-original-curves"></a>
+
+### Step 1 of 6 · Build a surface through original curve networks (`80-build-a-surface-through-two-directions-of-original-curves`)
+
+- **Goal:** Connect the complete network helpers and retain the four-boundary Coons path.
+- **Data Flow Trace:** `original curve crossings → ordered stations → sampled lofts → fitted surface`
+- **Files You Touch:** `src/network_geometry.rs` (*Extend this original owner with today’s complete helper.*)
+
+Connect the complete network helpers and retain the four-boundary Coons path. Register the original recipe and validate the final fitted surface.
+
+> **Self-Check Question:** *Why keep the four-boundary path?*  
+> **Answer:** The existing kernel edge constructor directly describes that supported case. Larger grids use the Gordon construction just written.
+
+- **What You Should See:** The complete original network-surface recipe compiles; its editing/input connection follows later.
+- **Hands-On Lab Experiment:** Compare four boundaries, shuffled rulings and refused crossing graphs.
 
 <details>
 <summary>Implementation 80-build-a-surface-through-two-directions-of-original-curves: Build a surface through original curve networks</summary>
@@ -579,6 +640,19 @@ After that block, append this supplied code:
 
 <a id="checkpoint-80a-construct-the-patch-through-four-ordered-corners"></a>
 
+### Step 2 of 6 · Construct the patch through four ordered corners (`80a-construct-the-patch-through-four-ordered-corners`)
+
+- **Goal:** Construct the patch through four ordered corners.
+- **Data Flow Trace:** `four ordered world corners → area check → bilinear original surface`
+- **Files You Touch:** `src/patch_geometry.rs` (*Type the original recipe and whole geometry helpers using the earlier shared owners.*) · `src/lib.rs` (*Register the current surface component.*)
+
+Describe four ordered corner inputs with the existing gather recipe. Reject a degenerate area, build the exact bilinear kernel patch, and return the validated source surface as one result.
+
+> **Self-Check Question:** *What do the corner order and u v directions mean?*  
+> **Answer:** u runs from corner1 to corner2; v runs from corner1 to corner4. The patch reproduces all four corners and their mean at its center.
+
+- **Hands-On Lab Experiment:** Inspect the nonplanar corner fixture and degenerate collinear rejection. Compare source controls with the independently derived display mesh.
+
 <details>
 <summary>Implementation 80a-construct-the-patch-through-four-ordered-corners: Construct the patch through four ordered corners</summary>
 
@@ -689,6 +763,19 @@ After that block, type:
 </details>
 
 <a id="checkpoint-80b-guide-corner-questions-without-retaining-unrelated-profiles"></a>
+
+### Step 3 of 6 · Guide corner questions without retaining unrelated profiles (`80b-guide-corner-questions-without-retaining-unrelated-profiles`)
+
+- **Goal:** Guide corner questions without retaining unrelated profiles.
+- **Data Flow Trace:** `accepted corner points and cursor → temporary guide → unfinished recipe`
+- **Files You Touch:** `src/gather_draft.rs` (*Guide current point questions and retain original profile copies only for curve-gathering recipes.*)
+
+Keep accepted world points and the cursor as a temporary guide. Point-only recipes retain no unrelated selected curve input copies.
+
+> **Self-Check Question:** *Does hovering corner4 add an original surface?*  
+> **Answer:** No. The guide belongs to the pending owner. Only a checked fourth answer completes a real geometry transaction.
+
+- **Hands-On Lab Experiment:** Begin four-corner input under CPlane XZ, hover the fourth point, then cancel. Inspect unchanged scene rows and Redo.
 
 <details>
 <summary>Implementation 80b-guide-corner-questions-without-retaining-unrelated-profiles: Guide corner questions without retaining unrelated profiles</summary>
@@ -846,6 +933,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-80c-register-network-patch-aliases-and-initial-corner-arity"></a>
 
+### Step 4 of 6 · Register network patch aliases and initial corner arity (`80c-register-network-patch-aliases-and-initial-corner-arity`)
+
+- **Goal:** Register network patch aliases and initial corner arity.
+- **Data Flow Trace:** `current name or alias → initial argument validation → shared recipe owner`
+- **Files You Touch:** `src/gather_registry.rs` (*Register current network/patch names, aliases and initial four-corner argument validation.*) · `src/commands.rs` (*Register current network/patch names, aliases and initial four-corner argument validation.*)
+
+Extend the shared recipe registry and return initial arity errors before replacing the active drawing owner.
+
+> **Self-Check Question:** *May an initial four-corner command contain only three points?*  
+> **Answer:** The maintained parser accepts no initial corners or exactly four. Reject an initial partial list; interactive answers begin after the empty command.
+
+- **Hands-On Lab Experiment:** Try Nurbs Surface 4 Points with three initial corners while Curve has one accepted point. Compare current network aliases and interactive corner submission.
+
 <details>
 <summary>Implementation 80c-register-network-patch-aliases-and-initial-corner-arity: Register network patch aliases and initial corner arity</summary>
 
@@ -902,6 +1002,20 @@ Edit the existing block to match this code; keep unchanged lines:
 
 <a id="checkpoint-80d-exercise-networks-corner-retries-and-exact-original-archives"></a>
 
+### Step 5 of 6 · Exercise networks corner retries and exact original archives (`80d-exercise-networks-corner-retries-and-exact-original-archives`)
+
+- **Goal:** Exercise networks corner retries and exact original archives.
+- **Data Flow Trace:** `original network and corners → checked surfaces → one history transaction → exact Save/Open`
+- **Files You Touch:** `src/network_tests.rs` (*Copy integrated current network/patch/original-source/history/archive fixtures.*) · `src/lib.rs` (*Register the current surface component.*)
+
+Copy integrated current network/corner/history fixtures and build the rendered originals through registered commands.
+
+> **Self-Check Question:** *Can a failed group keep its earlier picks?*  
+> **Answer:** Yes. Failed completion keeps the ordered group. Add its missing crossing curves and retry; no failed result may erase Redo or the originals.
+
+- **What You Should See:** An original surface passes through six shuffled network rulings beside a four-corner patch. Current group/orientation/area checks, pending guides, original source placement, one transaction and exact archives remain checked.
+- **Hands-On Lab Experiment:** Type Close and six lines: w0,1,0 to w2,1,1; w2,0,0 to w2,2,2; w2,0,0 to w0,0,0; w1,0,0 to w1,2,1; w0,2,0 to w2,2,2; w0,0,0 to w0,2,0. Use Line before each pair. Type Select All, Nurbs Surface Network, Nurbs Surface 4 Points w3,0,0 w4,0,0 w4,1,0.3 w3,1,0, View Isometric, Select None and Fit. Try a broken group, a degenerate fourth corner, Escape, Undo/Redo and Save/Open.
+
 <details>
 <summary>Implementation 80d-exercise-networks-corner-retries-and-exact-original-archives: Exercise networks corner retries and exact original archives</summary>
 
@@ -957,6 +1071,20 @@ After that block, append this supplied code:
 
 <a id="checkpoint-80za-read-original-projection-planes"></a>
 
+### Step 6 of 6 · Read original projection planes (`80za-read-original-projection-planes`)
+
+- **Goal:** Reuse absolute coordinate parsing for named construction planes and three-point input.
+- **Data Flow Trace:** `original family → pure calculation → result or refusal`
+- **Files You Touch:** `src/project_geometry.rs` (*Type the whole original helpers introduced today.*) · `src/lib.rs` (*Register the original projection helpers.*)
+
+Reuse absolute coordinate parsing for named construction planes and three-point input. Reject unknown names, wrong point counts and collinear frame points.
+
+> **Self-Check Question:** *Why validate the three points before projecting?*  
+> **Answer:** They must define a stable plane. Collinear or repeated points cannot supply its normal.
+
+- **What You Should See:** Projection-plane parsing is prepared while the existing command behavior remains available.
+- **Hands-On Lab Experiment:** Compare XY, the current construction plane and three picked points. Trace the wrong-arity and collinearity refusals.
+
 <details>
 <summary>Implementation 80za-read-original-projection-planes: Read original projection planes</summary>
 
@@ -996,9 +1124,11 @@ After that block, type:
 
 </details>
 
-## Run, Check, and Save
+---
 
-From `session_viewer`:
+## 5. Build, Verify, and Save Your Checkpoint
+
+Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 80za-read-original-projection-planes
@@ -1009,10 +1139,10 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. Use [checkpoint recovery](../../recovery.md) to restore any saved checkpoint.
+Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
 
-## Expected Visual Result & Experiment
+## 6. Lesson Summary & Expected Visual Result
 
 Projection-plane parsing is prepared while the existing command behavior remains available.
 
-- **Try this:** Compare XY, the current construction plane and three picked points. Trace the wrong-arity and collinearity refusals.
+- **Final Lesson Experiment:** Compare XY, the current construction plane and three picked points. Trace the wrong-arity and collinearity refusals.

@@ -1,93 +1,161 @@
 # 5.3 · Original point markers and curve control identities
 
-**Section 4: Screen-Space Ink, Point Markers, NURBS Curves, and GPU Integer Picking** · **Lesson 5.3** (Redraft `4.3`) · **7 checkpoints (`37-point` → `37e-controls`)**
+**Section 4: Screen-Space Ink, Point Markers, NURBS Curves, and GPU Integer Picking** · **Lesson 5.3** (Redraft `4.3`) · **7 checkpoints (`37-point` → `37e-controls`)** · **Study time: 5.25–8.75 h**
 
-> **Learning Goal:** Retain exact kernel Point coordinates while preparing a finite 32-byte screen-marker record.
+> **What You Will Learn & Build:** Retain exact kernel Point coordinates while preparing a finite 32-byte screen-marker record. By the final checkpoint (`37e-controls`), you will refer to an original curve control by its shared curve owner and stable control index, preserving homogeneous source coordinates.
 
-## Visual WebGPU & Architecture Schematic
+## 1. Visual Pipeline & WebGPU Architecture (Black & White Schematics)
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1px solid #cbd5e1;border-radius:10px;background:#f8fafc;">
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
+<svg viewBox="0 0 840 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <rect x="4" y="4" width="832" height="212" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Lesson 5.3 Execution Flow: Original point markers and curve control identities</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">Concrete data pipeline you build in this lesson (7 Checkpoints: 37-point → 37e-controls)</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
+  
+    
+    <rect x="18" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="89" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
+    <line x1="28" y1="92" x2="151" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">original Point</text>
+    <text x="89" y="124" text-anchor="middle" font-size="11" fill="#111111">owner</text>
+    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="183" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="254" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
+    <line x1="193" y1="92" x2="316" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">checked position</text>
+    <text x="254" y="124" text-anchor="middle" font-size="11" fill="#111111">and style</text>
+    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="348" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="419" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
+    <line x1="358" y1="92" x2="481" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">explicit default</text>
+    <text x="419" y="124" text-anchor="middle" font-size="11" fill="#111111">diameter</text>
+    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="513" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="584" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
+    <line x1="523" y1="92" x2="646" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">packed marker</text>
+    <text x="584" y="124" text-anchor="middle" font-size="11" fill="#111111">record</text>
+    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="678" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="749" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
+    <line x1="688" y1="92" x2="811" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">original curve Rc</text>
+    <text x="749" y="124" text-anchor="middle" font-size="11" fill="#111111">and index</text>
+    
+    <rect x="18" y="162" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="32" y="181" font-size="11" font-weight="700" fill="#111111">Files You Edit in Lesson 5.3:</text>
+    <text x="215" y="181" font-size="11" fill="#111111">src/marker.rs  ·  src/lib.rs  ·  src/marker_tests.rs  ·  src/marker.wgsl  ·  src/stroke_gpu.rs  ·  src/scene.rs</text>
+    <text x="32" y="198" font-size="10.5" fill="#111111">7 Checkpoints: 37-point → 37e-controls — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
+  
+</svg>
+</div>
+
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
 <svg viewBox="0 0 840 240" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#475569"/>
-    </marker>
-    <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#2563eb"/>
-    </marker>
-    <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#059669"/>
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
     </marker>
   </defs>
-  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
-  <text x="20" y="28" font-size="14" font-weight="700" fill="#0f172a">Chapter 5 WebGPU Shader Geometry: Screen-Space Ribbon Extrusion (ribbon.wgsl), Joins & Point Discs</text>
-  <text x="20" y="46" font-size="11.5" fill="#475569">Why 1-pixel hardware GL_LINES fail in CAD—and how vertex shaders extrude 3D segments into crisp, constant-CSS-pixel screen quads.</text>
-  <line x1="16" y1="54" x2="824" y2="54" stroke="#e2e8f0" stroke-width="1"/>
+  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Chapter 5 WebGPU Shader Geometry: Screen-Space Ribbon Extrusion (ribbon.wgsl), Joins & Point Discs</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">Why 1-pixel hardware GL_LINES fail in CAD—and how vertex shaders extrude 3D segments into crisp, constant-CSS-pixel screen quads.</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
   
-    <rect x="18" y="68" width="215" height="145" rx="6" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
-    <text x="125" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1e40af">1. Homogeneous Near-Clip</text>
-    <text x="28" y="108" font-size="10.5" fill="#1e3a8a">• Input: 3D segment (A, B) + width</text>
-    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#1d4ed8">• Clip to w &gt; near BEFORE divide!</text>
-    <text x="28" y="143" font-size="10" fill="#1e3a8a">  (If B is behind camera, dividing</text>
-    <text x="28" y="158" font-size="10" fill="#1e3a8a">   xyz/w flips the line across screen!)</text>
-    <text x="28" y="178" font-size="10.5" fill="#1e3a8a">• Project clipped A', B' to physical</text>
-    <text x="28" y="193" font-size="10.5" fill="#1e3a8a">  viewport pixels: pA, pB</text>
+    <rect x="18" y="68" width="215" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="125" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">1. Homogeneous Near-Clip</text>
+    <text x="28" y="108" font-size="10.5" fill="#111111">• Input: 3D segment (A, B) + width</text>
+    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#111111">• Clip to w &gt; near BEFORE divide!</text>
+    <text x="28" y="143" font-size="10" fill="#111111">  (If B is behind camera, dividing</text>
+    <text x="28" y="158" font-size="10" fill="#111111">   xyz/w flips the line across screen!)</text>
+    <text x="28" y="178" font-size="10.5" fill="#111111">• Project clipped A', B' to physical</text>
+    <text x="28" y="193" font-size="10.5" fill="#111111">  viewport pixels: pA, pB</text>
 
-    <line x1="233" y1="138" x2="263" y2="138" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
+    <line x1="233" y1="138" x2="263" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="265" y="68" width="285" height="145" rx="6" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5"/>
-    <text x="407" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#9a3412">2. Screen-Space Quad Extrusion (6 Verts)</text>
+    <rect x="265" y="68" width="285" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="407" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">2. Screen-Space Quad Extrusion (6 Verts)</text>
     <!-- Mini Visual of Extruded Line Quad -->
-    <line x1="295" y1="135" x2="435" y2="115" stroke="#c2410c" stroke-width="2.5" stroke-dasharray="4,3"/>
-    <polygon points="292,120 432,100 438,130 298,150" fill="rgba(251,146,60,0.22)" stroke="#ea580c" stroke-width="1.5"/>
-    <circle cx="295" cy="135" r="3.5" fill="#9a3412"/>
-    <circle cx="435" cy="115" r="3.5" fill="#9a3412"/>
-    <text x="282" y="168" font-size="10" fill="#7c2d12">dir = normalize(pB - pA)</text>
-    <text x="282" y="183" font-size="10" font-weight="600" fill="#c2410c">perp = vec2(-dir.y, dir.x) * (half_w + AA)</text>
-    <text x="282" y="198" font-size="10" fill="#7c2d12">vector.wgsl adds miter/bevel joins &amp; arrows</text>
+    <polygon points="292,120 432,100 438,130 298,150" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <line x1="295" y1="135" x2="435" y2="115" stroke="#111111" stroke-width="2" stroke-dasharray="4,3"/>
+    <circle cx="295" cy="135" r="3.5" fill="#111111"/>
+    <circle cx="435" cy="115" r="3.5" fill="#111111"/>
+    <text x="282" y="168" font-size="10" fill="#111111">dir = normalize(pB - pA)</text>
+    <text x="282" y="183" font-size="10" font-weight="600" fill="#111111">perp = vec2(-dir.y, dir.x) * (half_w + AA)</text>
+    <text x="282" y="198" font-size="10" fill="#111111">vector.wgsl adds miter/bevel joins &amp; arrows</text>
 
-    <line x1="550" y1="138" x2="580" y2="138" stroke="#059669" stroke-width="2" marker-end="url(#arrow-green)"/>
+    <line x1="550" y1="138" x2="580" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="582" y="68" width="238" height="145" rx="6" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1.5"/>
-    <text x="701" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#065f46">3. Analytical AA &amp; Point Discs</text>
-    <text x="594" y="108" font-size="10.5" fill="#064e3b">• ribbon.wgsl: smoothstep coverage</text>
-    <text x="594" y="123" font-size="10.5" fill="#064e3b">  from signed edge distance</text>
-    <text x="594" y="143" font-size="10.5" font-weight="600" fill="#047857">• glyph.wgsl (Point Markers):</text>
-    <text x="594" y="158" font-size="10" fill="#064e3b">  Screen quad around 3D point; discard</text>
-    <text x="594" y="173" font-size="10" fill="#064e3b">  outside radius r, feather 1px rim</text>
-    <text x="594" y="193" font-size="10.5" fill="#064e3b">• NURBS: evaluate spans -&gt; polyline</text>
+    <rect x="582" y="68" width="238" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="701" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">3. Analytical AA &amp; Point Discs</text>
+    <text x="594" y="108" font-size="10.5" fill="#111111">• ribbon.wgsl: smoothstep coverage</text>
+    <text x="594" y="123" font-size="10.5" fill="#111111">  from signed edge distance</text>
+    <text x="594" y="143" font-size="10.5" font-weight="600" fill="#111111">• glyph.wgsl (Point Markers):</text>
+    <text x="594" y="158" font-size="10" fill="#111111">  Screen quad around 3D point; discard</text>
+    <text x="594" y="173" font-size="10" fill="#111111">  outside radius r, feather 1px rim</text>
+    <text x="594" y="193" font-size="10.5" fill="#111111">• NURBS: evaluate spans -&gt; polyline</text>
     
 </svg>
 </div>
 
-### Lesson Data Flow (`Rust` → `WebGPU` → `WGSL`)
+## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
 
-```
-original Point owner → checked position and style → explicit default diameter → packed marker record.
-original Point → distinct row identity/GUID → checked model → double world bounds → final marker centre → Close.
-original curve Rc and index → checked control layout → exact Euclidean control → finite screen marker.
-```
+Before writing code, review how the three layers in this chapter talk to each other:
 
-- Retain exact kernel Point coordinates while preparing a finite 32-byte screen-marker record.
-- Give original point sources checked document identities, precise placement and undoable lifetimes.
-- Refer to an original curve control by its shared curve owner and stable control index, preserving homogeneous source coordinates.
-- **Why it works (Why retain a source Point beside the display marker?):** The marker is a screen representation. Original doubles, identity and metadata remain available for saving, placing and later picking or editing.
-
-### Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `Browser`)
-
-| Layer | Construct | First-Year Student Explanation |
+| Layer | Construct | Plain-English Explanation for Students |
 | :--- | :--- | :--- |
 | **WGSL (`ribbon.wgsl`)** | Homogeneous Near-Plane Clip (`w > near`) | Clips 3D line segments in 4D clip space BEFORE dividing by `w`, preventing lines with one endpoint behind the camera from flipping across the screen. |
 | **WGSL (`ribbon.wgsl` / `vector.wgsl`)** | Screen-Space Perpendicular Quad Extrusion | Expands each 3D segment into a 6-vertex screen-space quad along `perp = vec2(-dir.y, dir.x) * (half_width + aa)` for crisp, constant-CSS-pixel CAD strokes and miter/bevel joins. |
 | **WGSL (`glyph.wgsl`)** | Analytical Signed-Distance Coverage (`smoothstep`) | Computes pixel center distance to the stroke edge or point-marker radius in the fragment shader for smooth anti-aliased edges. |
 
-**Production source (`session_viewer/src`):** [app/walk/curves.rs](../../../../src/app/walk/curves.rs), [engine/gpu/segments.rs](../../../../src/engine/gpu/segments.rs), [shaders/ribbon.wgsl](../../../../src/shaders/ribbon.wgsl), [shaders/vector.wgsl](../../../../src/shaders/vector.wgsl), [app/walk/points.rs](../../../../src/app/walk/points.rs), [shaders/glyph.wgsl](../../../../src/shaders/glyph.wgsl), [shaders/ink_visibility.wgsl](../../../../src/shaders/ink_visibility.wgsl), [shaders/triangle.wgsl](../../../../src/shaders/triangle.wgsl), [shaders/grid.wgsl](../../../../src/shaders/grid.wgsl).
+**Authoritative production source (`session_viewer/src`):** [app/walk/curves.rs](../../../../src/app/walk/curves.rs), [engine/gpu/segments.rs](../../../../src/engine/gpu/segments.rs), [shaders/ribbon.wgsl](../../../../src/shaders/ribbon.wgsl), [shaders/vector.wgsl](../../../../src/shaders/vector.wgsl), [app/walk/points.rs](../../../../src/app/walk/points.rs), [shaders/glyph.wgsl](../../../../src/shaders/glyph.wgsl), [shaders/ink_visibility.wgsl](../../../../src/shaders/ink_visibility.wgsl), [shaders/triangle.wgsl](../../../../src/shaders/triangle.wgsl), [shaders/grid.wgsl](../../../../src/shaders/grid.wgsl)
 
-## Implementation Checkpoints
+## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
 
-Apply these checkpoints in order inside `workspace/journey`. Expand each block to view the Rust/WGSL/HTML edits:
+| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
+| ---: | :--- | :--- | :--- | :--- |
+| **1** | [`37-point`](#checkpoint-37-point) | Retain exact kernel Point coordinates while preparing a finite 32-byte screen-marker record. | `src/marker.rs`, `src/lib.rs`, `src/marker_tests.rs` | `original Point owner → checked position and style → explicit default diameter → packed marker record` |
+| **2** | [`37a-disc`](#checkpoint-37a-disc) | Extrude a point into a depth-tested screen disc with analytic circular coverage. | `src/marker.wgsl`, `src/marker.rs` | `checked centre → clip rejection → physical radius → clip-w billboard → circular coverage` |
+| **3** | [`37b-lane`](#checkpoint-37b-lane) | Bind actual 32-byte marker instances and verify their projected size, alpha and lifetime on the GPU. | `src/stroke_gpu.rs` | `finite marker records → format-specific attributes → shared upload/view policy → actual disc pixels → empty release` |
+| **4** | [`37c-document`](#checkpoint-37c-document) | Give original point sources checked document identities, precise placement and undoable lifetimes. | `src/scene.rs`, `src/document.rs`, `src/lib.rs`, `src/point_document_tests.rs` | `original Point → distinct row identity/GUID → checked model → double world bounds → final marker centre → Close` |
+| **5** | [`37d-render`](#checkpoint-37d-render) | Draw placed original point rows with truthful CPU/GPU counters and complete Close release. | `src/renderer.rs`, `src/memory.rs`, `src/browser.rs` | `accepted point rows → final placed marker records → change-only lane → shared depth → source and buffer release` |
+| **6** | [`37da-input`](#checkpoint-37da-input) | Insert one original Point through actual command input and prove its screen diameter, history and resource release. | `src/editor.rs`, `src/browser.rs`, `src/lib.rs`, `src/point_input_tests.rs` | `Example Point input → original source → one undoable point row → circular pixels → view-only reuse → Close` |
+| **7** | [`37e-controls`](#checkpoint-37e-controls) | Refer to an original curve control by its shared curve owner and stable control index, preserving homogeneous source coordinates. | `src/controls.rs`, `src/lib.rs`, `src/control_tests.rs` | `original curve Rc and index → checked control layout → exact Euclidean control → finite screen marker` |
+
+---
+
+## 4. Step-by-Step Coding Notebook (Concept + Implementation)
+
+Work through each notebook cell below in order inside `workspace/journey`. Read the **Concept Walkthrough** and **Self-Check Q&A** first, then expand the **Implementation** block to type and verify the code.
 
 <a id="checkpoint-37-point"></a>
+
+### Step 1 of 7 · Prepare an original point for a screen marker (`37-point`)
+
+- **Goal:** Retain exact kernel Point coordinates while preparing a finite 32-byte screen-marker record.
+- **Data Flow Trace:** `original Point owner → checked position and style → explicit default diameter → packed marker record`
+- **Files You Touch:** `src/marker.rs` (*Retain exact point ownership and pack finite display data with the viewer’s diameter policy.*) · `src/lib.rs` (*Register point preparation and its source checks.*) · `src/marker_tests.rs` (*Copy point precision, packing, style and lifetime checks.*)
+
+Retain the original Point owner and convert only its display position. Pack centre, diameter and colour into one explicit 32-byte record.
+
+Match the current viewer’s point defaults: an unspecified/default pen draws a six-pixel diameter dot, while an explicit width changes its diameter. Invalid display coordinates or overflowing widths fail before GPU allocation.
+
+> **Self-Check Question:** *Why retain a source Point beside the display marker?*  
+> **Answer:** The marker is a screen representation. Original doubles, identity and metadata remain available for saving, placing and later picking or editing.
+
+- **What You Should See:** Run point preparation checks. The source keeps its exact coordinates while the marker uses explicit display precision and diameter.
+- **Hands-On Lab Experiment:** Use a coordinate that changes during f32 conversion. The source must remain unchanged; cloning prepared data must share its source owner.
 
 <details>
 <summary>Implementation 37-point: Prepare an original point for a screen marker</summary>
@@ -159,6 +227,22 @@ Copy this supplied file:
 
 <a id="checkpoint-37a-disc"></a>
 
+### Step 2 of 7 · Extrude a circular marker in screen pixels (`37a-disc`)
+
+- **Goal:** Extrude a point into a depth-tested screen disc with analytic circular coverage.
+- **Data Flow Trace:** `checked centre → clip rejection → physical radius → clip-w billboard → circular coverage`
+- **Files You Touch:** `src/marker.wgsl` (*Keep disc diameter in screen pixels and cover its edge analytically.*) · `src/marker.rs` (*Expose the actual marker shader source.*)
+
+Project the original point centre and reject centres outside the depth range. Offset a six-vertex billboard in physical pixels, using the current effective density.
+
+Scale the clip offset by w so zoom cannot change the screen diameter. A circular distance function gives its edge coverage; the shared depth pass will hide a marker behind nearer geometry.
+
+> **Self-Check Question:** *Why scale a marker offset by clip w?*  
+> **Answer:** Perspective divides its position by w. Multiplying the screen offset by w before that division keeps the marker’s diameter independent of distance.
+
+- **What You Should See:** The actual drawing device validates the complete marker shader. Its real instance layout and pixel checks are the next endpoint.
+- **Hands-On Lab Experiment:** Follow a diameter of six CSS pixels through effective density one and two. The marker radius becomes three or six physical pixels.
+
 <details>
 <summary>Implementation 37a-disc: Extrude a circular marker in screen pixels</summary>
 
@@ -210,6 +294,24 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-37b-lane"></a>
+
+### Step 3 of 7 · Draw markers with the shared instance lane (`37b-lane`)
+
+- **Goal:** Bind actual 32-byte marker instances and verify their projected size, alpha and lifetime on the GPU.
+- **Data Flow Trace:** `finite marker records → format-specific attributes → shared upload/view policy → actual disc pixels → empty release`
+- **Files You Touch:** `src/stroke_gpu.rs` (*Validate marker payloads before using shared change-only synchronization.*)
+
+Add the marker’s 32-byte instance layout to the existing shared lane. Validate its centre, diameter and colour before accepting any new payload.
+
+Native texture readback measures real circular area and interior alpha at both projections, zoom levels and densities. Repeated data reuses its buffer; empty data releases it.
+
+> **Self-Check Question:** *Why give markers another layout rather than another resource-management implementation?*  
+> **Answer:** Their attributes and shader differ. Changed-data reuse, uniform updates, payload accounting and buffer lifetime remain the same responsibilities.
+
+- **What You Should See:** Build and open the viewer. Existing geometry still draws, and the marker pipeline is ready. Original point rows and command input follow.
+- **Hands-On Lab Experiment:** The reference GPU fixture checks marker area and alpha across projections, zoom and DPR1/2, unchanged uploads and atomic refusal of invalid marker input.
+
+From `session_viewer`, run `npm --prefix ../session_tests run course -- verify 37b-lane` to reproduce that reference check. It reconstructs the canonical checkpoint under `target`; it does not test or change your handwritten project. Compare your source with `course -- check 37b-lane` and run your project separately.
 
 <details>
 <summary>Implementation 37b-lane: Draw markers with the shared instance lane</summary>
@@ -440,6 +542,22 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-37c-document"></a>
+
+### Step 4 of 7 · Retain original point rows and placement (`37c-document`)
+
+- **Goal:** Give original point sources checked document identities, precise placement and undoable lifetimes.
+- **Data Flow Trace:** `original Point → distinct row identity/GUID → checked model → double world bounds → final marker centre → Close`
+- **Files You Touch:** `src/scene.rs` (*Retain exact point sources and derive placed display centres independently.*) · `src/document.rs` (*Refuse unsupported point saving rather than silently omit original geometry.*) · `src/lib.rs` (*Register precise point-placement and history checks.*) · `src/point_document_tests.rs` (*Copy exact placement, source sharing, identity and complete release checks.*)
+
+Retain one original Point source for each independently placed document row. Allocate a checked object identity and distinct saved GUID before insertion.
+
+Validate the complete placed point before changing its model. World bounds include the exact centre, while screen diameter remains presentation data. History retains immutable source owners and Close releases them.
+
+> **Self-Check Question:** *Why does a placed marker derive its centre from the original source point?*  
+> **Answer:** Display coordinates already lost precision. Applying the model to the original doubles keeps world bounds and edits accurate before the final GPU conversion.
+
+- **What You Should See:** Run point-document checks. Exact placed bounds, shared history owners and complete Close remain independent of the marker’s screen diameter.
+- **Hands-On Lab Experiment:** Translate a point with a precise fractional coordinate and Undo/Redo. Its source stays unchanged, while its placed world coordinates remain double precision.
 
 <details>
 <summary>Implementation 37c-document: Retain original point rows and placement</summary>
@@ -1150,6 +1268,22 @@ Copy this supplied file:
 
 <a id="checkpoint-37d-render"></a>
 
+### Step 5 of 7 · Draw original point rows and count their resources (`37d-render`)
+
+- **Goal:** Draw placed original point rows with truthful CPU/GPU counters and complete Close release.
+- **Data Flow Trace:** `accepted point rows → final placed marker records → change-only lane → shared depth → source and buffer release`
+- **Files You Touch:** `src/renderer.rs` (*Keep one marker lane beside the other scene batches.*) · `src/memory.rs` (*Count actual point rows, unique source owners and retained row capacity.*) · `src/browser.rs` (*Inspect point resource categories independently of earlier counters.*)
+
+Synchronize original point rows through the shared marker lane after accepted document changes. Keep camera and density in the view uniform.
+
+Draw with the same depth texture as meshes and strokes. CPU counters report point rows, distinct sources and row capacity; GPU counters report actual marker instances, buffer bytes and initialized payloads.
+
+> **Self-Check Question:** *Why does the renderer retain marker bytes without the original Point owner?*  
+> **Answer:** Editing and history own the source. The GPU needs display data only, so document Close can release original sources immediately before buffer synchronization.
+
+- **What You Should See:** Inspect mixed-document GPU checks. Source points draw alongside connected paths; Close clears every live point and marker resource.
+- **Hands-On Lab Experiment:** Zoom with the marker-bearing scene. Vertex uploads remain unchanged, and complete Close expires the original source and drops the marker buffer.
+
 <details>
 <summary>Implementation 37d-render: Draw original point rows and count their resources</summary>
 
@@ -1672,6 +1806,22 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-37da-input"></a>
+
+### Step 6 of 7 · Insert original points through the real dock (`37da-input`)
+
+- **Goal:** Insert one original Point through actual command input and prove its screen diameter, history and resource release.
+- **Data Flow Trace:** `Example Point input → original source → one undoable point row → circular pixels → view-only reuse → Close`
+- **Files You Touch:** `src/editor.rs` (*Expose an original point insertion as an editor action.*) · `src/browser.rs` (*Include the point example in completion and Help.*) · `src/lib.rs` (*Register the point input ownership checks.*) · `src/point_input_tests.rs` (*Copy original identity, style, one-step history and release checks.*)
+
+Register Example Point in the existing dock and prepare its original Point before committing one history insertion.
+
+Use actual Chrome pixels to measure its diameter at both device densities, projections and zoom levels. Keep source ownership and buffer accounting visible through Undo, Redo and Close.
+
+> **Self-Check Question:** *What changes when a point marker is enlarged by zoom?*  
+> **Answer:** Its world position moves with the camera, but its diameter stays in CSS pixels. Device density changes physical coverage without changing its source or vertex payload.
+
+- **What You Should See:** Close, type Example Point, then zoom and switch projection. The marker keeps a twelve-pixel diameter.
+- **Hands-On Lab Experiment:** Undo and Redo the point. Close clears original owners, history and the actual marker buffer.
 
 <details>
 <summary>Implementation 37da-input: Insert original points through the real dock</summary>
@@ -2907,6 +3057,22 @@ Copy this supplied file:
 
 <a id="checkpoint-37e-controls"></a>
 
+### Step 7 of 7 · Identify controls on the original curve owner (`37e-controls`)
+
+- **Goal:** Refer to an original curve control by its shared curve owner and stable control index, preserving homogeneous source coordinates.
+- **Data Flow Trace:** `original curve Rc and index → checked control layout → exact Euclidean control → finite screen marker`
+- **Files You Touch:** `src/controls.rs` (*Keep an indexed control on its original curve and guard every public layout access.*) · `src/lib.rs` (*Register original control references and their refusal checks.*) · `src/control_tests.rs` (*Copy original rational precision, owner release, dimension and malicious-layout checks.*)
+
+A control reference owns the original curve and carries its control index. Resolve its position from the original homogeneous coordinates before producing a screen marker.
+
+Validate dimensions, index, stride and checked slice bounds before touching a public kernel layout. Refuse zero or nonfinite rational weights and display overflow without allocating independent Point identities.
+
+> **Self-Check Question:** *Why does a curve control marker avoid a new Point GUID?*  
+> **Answer:** It identifies a control inside the original curve. A fabricated independent Point would lose its parent, control index and rational weight when editing begins.
+
+- **What You Should See:** Inspect original-owner and rational control tests. Control references share their curve and resolve an exact indexed coordinate.
+- **Hands-On Lab Experiment:** Use rational controls whose weight is two. Display positions divide by the weight while the source homogeneous coordinates remain untouched.
+
 <details>
 <summary>Implementation 37e-controls: Identify controls on the original curve owner</summary>
 
@@ -2975,9 +3141,11 @@ Copy this supplied file:
 
 </details>
 
-## Run, Check, and Save
+---
 
-From `session_viewer`:
+## 5. Build, Verify, and Save Your Checkpoint
+
+Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 37e-controls
@@ -2988,12 +3156,12 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. Use [checkpoint recovery](../../recovery.md) to restore any saved checkpoint.
+Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
 
-## Expected Visual Result & Experiment
+## 6. Lesson Summary & Expected Visual Result
 
 Inspect original-owner and rational control tests. Control references share their curve and resolve an exact indexed coordinate.
 
-- **Try this:** Use rational controls whose weight is two. Display positions divide by the weight while the source homogeneous coordinates remain untouched.
+- **Final Lesson Experiment:** Use rational controls whose weight is two. Display positions divide by the weight while the source homogeneous coordinates remain untouched.
 
-Continue with [NURBS source ownership and derived samples](38-layout.md).
+Continue with [NURBS source ownership and derived samples](../../consolidation/38-layout.md).

@@ -1,92 +1,157 @@
 # 22.2 · Contact fills and original face queries
 
-**Section 10: Shared GPU Arenas, Floating-Origin Precision, Multisampling, and Production Parity** · **Lesson 22.2** (Redraft `10.17`) · **5 checkpoints (`96zzzzzzi-share-one-frame-across-color-and-ink` → `96zzzzzzm-query-original-faces-under-contact-overlays`)**
+**Section 10: Shared GPU Arenas, Floating-Origin Precision, Multisampling, and Production Parity** · **Lesson 22.2** (Redraft `10.17`) · **5 checkpoints (`96zzzzzzi-share-one-frame-across-color-and-ink` → `96zzzzzzm-query-original-faces-under-contact-overlays`)** · **Study time: 5–10 h**
 
-> **Learning Goal:** Remove repeated ink-frame buffers and updates while keeping one explicit surface/ink layout and independent request-specific picking.
+> **What You Will Learn & Build:** Remove repeated ink-frame buffers and updates while keeping one explicit surface/ink layout and independent request-specific picking. By the final checkpoint (`96zzzzzzm-query-original-faces-under-contact-overlays`), you will select the actual original face beneath a readonly contact, without inventing an editable face for its display polygon.
 
-## Visual WebGPU & Architecture Schematic
+## 1. Visual Pipeline & WebGPU Architecture (Black & White Schematics)
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1px solid #cbd5e1;border-radius:10px;background:#f8fafc;">
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
+<svg viewBox="0 0 840 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <rect x="4" y="4" width="832" height="212" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Lesson 22.2 Execution Flow: Contact fills and original face queries</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">Concrete data pipeline you build in this lesson (5 Checkpoints: 96zzzzzzi-share-one-frame-across-color-and-ink → 96zzzzzzm-query-original-faces-under-contact-overlays)</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
+  
+    
+    <rect x="18" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="89" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
+    <line x1="28" y1="92" x2="151" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">Existing renderer</text>
+    <text x="89" y="124" text-anchor="middle" font-size="11" fill="#111111">frame</text>
+    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="183" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="254" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
+    <line x1="193" y1="92" x2="316" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">borrowed surface</text>
+    <text x="254" y="124" text-anchor="middle" font-size="11" fill="#111111">and ink groups;</text>
+    <text x="254" y="140" text-anchor="middle" font-size="11" fill="#111111">existing…</text>
+    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="348" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="419" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
+    <line x1="358" y1="92" x2="481" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">separate borrowed</text>
+    <text x="419" y="124" text-anchor="middle" font-size="11" fill="#111111">pick group</text>
+    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="513" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="584" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
+    <line x1="523" y1="92" x2="646" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">Original versus</text>
+    <text x="584" y="124" text-anchor="middle" font-size="11" fill="#111111">derived row</text>
+    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="678" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="749" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
+    <line x1="688" y1="92" x2="811" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">existing CPU mesh</text>
+    <text x="749" y="124" text-anchor="middle" font-size="11" fill="#111111">eligibility</text>
+    
+    <rect x="18" y="162" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="32" y="181" font-size="11" font-weight="700" fill="#111111">Files You Edit in Lesson 22.2:</text>
+    <text x="215" y="181" font-size="11" fill="#111111">src/surface_view.rs  ·  src/triangle.wgsl  ·  src/renderer.rs  ·  src/pick_gpu.rs  ·  src/stroke_gpu.rs  ·  src/finite_ink.rs</text>
+    <text x="32" y="198" font-size="10.5" fill="#111111">5 Checkpoints: 96zzzzzzi-share-one-frame-across-color-and-ink → 96zzzzzzm-query-original-faces-under-contact-overlays — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
+  
+</svg>
+</div>
+
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
 <svg viewBox="0 0 840 240" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#475569"/>
-    </marker>
-    <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#2563eb"/>
-    </marker>
-    <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#059669"/>
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
     </marker>
   </defs>
-  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
-  <text x="20" y="28" font-size="14" font-weight="700" fill="#0f172a">Section 10 Production Architecture: Shared GPU Storage Arena, f64 Floating Origin, Reversed-Z, 4x MSAA & Matrix Shader</text>
-  <text x="20" y="46" font-size="11.5" fill="#475569">How the maintained viewer pulls vertices from one growable GPU arena, eliminates jitter at 10^12 units, and renders procedural Matrices.</text>
-  <line x1="16" y1="54" x2="824" y2="54" stroke="#e2e8f0" stroke-width="1"/>
+  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Section 10 Production Architecture: Shared GPU Storage Arena, f64 Floating Origin, Reversed-Z, 4x MSAA & Matrix Shader</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">How the maintained viewer pulls vertices from one growable GPU arena, eliminates jitter at 10^12 units, and renders procedural Matrices.</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
   
-    <rect x="18" y="68" width="250" height="145" rx="6" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
-    <text x="143" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1e40af">1. Shared GPU Arena (Ch 19–20)</text>
-    <text x="28" y="108" font-size="10.5" fill="#1e3a8a">• 1 Growable Storage Buffer Arena</text>
-    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#1d4ed8">• Vertex Pulling (@builtin(vertex_index))</text>
-    <text x="28" y="144" font-size="10.5" fill="#1e3a8a">• 8-byte Draw Slots -&gt; ObjectRecord</text>
-    <text x="28" y="162" font-size="10.5" fill="#1e3a8a">• slot_table.wgsl maps Rg32Uint</text>
-    <text x="28" y="178" font-size="10.5" fill="#1e3a8a">  primitive IDs to Element/Face owners</text>
-    <text x="28" y="194" font-size="10" fill="#1e3a8a">• Free-list span reuse after GPU lease</text>
+    <rect x="18" y="68" width="250" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="143" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">1. Shared GPU Arena (Ch 19–20)</text>
+    <text x="28" y="108" font-size="10.5" fill="#111111">• 1 Growable Storage Buffer Arena</text>
+    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#111111">• Vertex Pulling (@builtin(vertex_index))</text>
+    <text x="28" y="144" font-size="10.5" fill="#111111">• 8-byte Draw Slots -&gt; ObjectRecord</text>
+    <text x="28" y="162" font-size="10.5" fill="#111111">• slot_table.wgsl maps Rg32Uint</text>
+    <text x="28" y="178" font-size="10.5" fill="#111111">  primitive IDs to Element/Face owners</text>
+    <text x="28" y="194" font-size="10" fill="#111111">• Free-list span reuse after GPU lease</text>
 
-    <line x1="268" y1="138" x2="298" y2="138" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
+    <line x1="268" y1="138" x2="298" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="300" y="68" width="265" height="145" rx="6" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5"/>
-    <text x="432" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#9a3412">2. f64 Floating Origin &amp; Reversed-Z (Ch 21)</text>
-    <text x="312" y="108" font-size="10.5" font-weight="600" fill="#c2410c">• rel_f32 = (world_f64 - anchor_f64) as f32</text>
-    <text x="312" y="125" font-size="10" fill="#7c2d12">  Zero vertex/grid jitter even at 10^12 m!</text>
-    <text x="312" y="144" font-size="10.5" font-weight="600" fill="#c2410c">• Reversed-Z Depth (GreaterEqual):</text>
-    <text x="312" y="160" font-size="10" fill="#7c2d12">  Near plane = 1.0, Far plane = 0.0</text>
-    <text x="312" y="178" font-size="10.5" fill="#7c2d12">• Held world base grid &amp; preserved</text>
-    <text x="312" y="193" font-size="10.5" fill="#7c2d12">  live camera during Session reload</text>
+    <rect x="300" y="68" width="265" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="432" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">2. f64 Floating Origin &amp; Reversed-Z (Ch 21)</text>
+    <text x="312" y="108" font-size="10.5" font-weight="600" fill="#111111">• rel_f32 = (world_f64 - anchor_f64) as f32</text>
+    <text x="312" y="125" font-size="10" fill="#111111">  Zero vertex/grid jitter even at 10^12 m!</text>
+    <text x="312" y="144" font-size="10.5" font-weight="600" fill="#111111">• Reversed-Z Depth (GreaterEqual):</text>
+    <text x="312" y="160" font-size="10" fill="#111111">  Near plane = 1.0, Far plane = 0.0</text>
+    <text x="312" y="178" font-size="10.5" fill="#111111">• Held world base grid &amp; preserved</text>
+    <text x="312" y="193" font-size="10.5" fill="#111111">  live camera during Session reload</text>
 
-    <line x1="565" y1="138" x2="595" y2="138" stroke="#059669" stroke-width="2" marker-end="url(#arrow-green)"/>
+    <line x1="565" y1="138" x2="595" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="597" y="68" width="223" height="145" rx="6" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1.5"/>
-    <text x="708" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#065f46">3. 4x MSAA &amp; Matrix Shader (Ch 22)</text>
-    <text x="609" y="108" font-size="10.5" fill="#064e3b">• Coherent 1x/4x MSAA sample targets</text>
-    <text x="609" y="126" font-size="10.5" font-weight="600" fill="#047857">• matrix.wgsl (16w header + 3w/cell):</text>
-    <text x="609" y="142" font-size="10" fill="#064e3b">  Heatmap + procedural 3-decimal digits</text>
-    <text x="609" y="157" font-size="10" fill="#064e3b">  (0 cell blank; plate-less title; yellow</text>
-    <text x="609" y="172" font-size="10" fill="#064e3b">  selected border; Rg32Uint whole pick)</text>
-    <text x="609" y="190" font-size="10" fill="#064e3b">• Coalesced single-flight frame scheduler</text>
+    <rect x="597" y="68" width="223" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="708" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">3. 4x MSAA &amp; Matrix Shader (Ch 22)</text>
+    <text x="609" y="108" font-size="10.5" fill="#111111">• Coherent 1x/4x MSAA sample targets</text>
+    <text x="609" y="126" font-size="10.5" font-weight="600" fill="#111111">• matrix.wgsl (16w header + 3w/cell):</text>
+    <text x="609" y="142" font-size="10" fill="#111111">  Heatmap + procedural 3-decimal digits</text>
+    <text x="609" y="157" font-size="10" fill="#111111">  (0 cell blank; plate-less title; yellow</text>
+    <text x="609" y="172" font-size="10" fill="#111111">  selected border; Rg32Uint whole pick)</text>
+    <text x="609" y="190" font-size="10" fill="#111111">• Coalesced single-flight frame scheduler</text>
     
 </svg>
 </div>
 
-### Lesson Data Flow (`Rust` → `WebGPU` → `WGSL`)
+## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
 
-```
-Existing renderer frame → borrowed surface and ink groups; existing pick request → separate borrowed pick group.
-One existing ink lane → fixed constant or indexed metadata mode → zero or four-byte vertex stride → unchanged color and GPU IDs.
-Original versus derived row → existing CPU mesh eligibility → original depth and source-face passes → actual source key.
-```
+Before writing code, review how the three layers in this chapter talk to each other:
 
-- Remove repeated ink-frame buffers and updates while keeping one explicit surface/ink layout and independent request-specific picking.
-- Replace repeated zero clipping flags with one broadcast record in ordinary line, path and point batches.
-- Select the actual original face beneath a readonly contact, without inventing an editable face for its display polygon.
-- **Why it works (Why keep the request frame independent if all ordinary ink shares a layout?):** Layout compatibility does not make the latest color camera the owner of an asynchronous pick. The pick uses its captured full physical viewport, density and transform until its readback completes.
-
-### Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `Browser`)
-
-| Layer | Construct | First-Year Student Explanation |
+| Layer | Construct | Plain-English Explanation for Students |
 | :--- | :--- | :--- |
 | **WGSL (Vertex Pull)** | `@group(0) @binding(b) var<storage, read> arena_verts: array<u32>;` | Fetches packed vertex positions, normals, and colors directly from a single growable storage buffer using `@builtin(vertex_index)`. |
 | **Rust/WGSL (`f64`->`f32`)** | `let rel: Vec3 = (world_f64 - anchor_f64).as_vec3();` | Subtracts the camera-area `f64` anchor on the CPU before converting to `f32`, preventing 32-bit float mantissa exhaustion far from `(0,0,0)`. |
 | **WGSL (`matrix.wgsl`)** | 16-word header + 3 words/cell procedural digits | Renders matrix heatmaps and 3-decimal numeric digits procedurally inside the fragment shader with zero texture uploads per cell. |
 | **Rust (`ink_ranges.rs`)** | Merged contiguous `Range<u32>` instance draws | Toggles point/line/edge/CAD-wire family visibility without rebuilding GPU buffers or invalidating original owner indices. |
 
-**Production source (`session_viewer/src`):** [engine/gpu/render.rs](../../../../src/engine/gpu/render.rs), [engine/gpu/pass.rs](../../../../src/engine/gpu/pass.rs), [engine/gpu/targets.rs](../../../../src/engine/gpu/targets.rs), [engine/gpu/frame.rs](../../../../src/engine/gpu/frame.rs), [engine/gpu/view.rs](../../../../src/engine/gpu/view.rs), [engine/pipelines/mod.rs](../../../../src/engine/pipelines/mod.rs), [shaders/triangle.wgsl](../../../../src/shaders/triangle.wgsl), [shaders/ribbon.wgsl](../../../../src/shaders/ribbon.wgsl), [shaders/vector.wgsl](../../../../src/shaders/vector.wgsl), [shaders/ink_visibility.wgsl](../../../../src/shaders/ink_visibility.wgsl), [app/scene.rs](../../../../src/app/scene.rs), [build.rs](../../../../build.rs).
+**Authoritative production source (`session_viewer/src`):** [engine/gpu/render.rs](../../../../src/engine/gpu/render.rs), [engine/gpu/pass.rs](../../../../src/engine/gpu/pass.rs), [engine/gpu/targets.rs](../../../../src/engine/gpu/targets.rs), [engine/gpu/frame.rs](../../../../src/engine/gpu/frame.rs), [engine/gpu/view.rs](../../../../src/engine/gpu/view.rs), [engine/pipelines/mod.rs](../../../../src/engine/pipelines/mod.rs), [shaders/triangle.wgsl](../../../../src/shaders/triangle.wgsl), [shaders/ribbon.wgsl](../../../../src/shaders/ribbon.wgsl), [shaders/vector.wgsl](../../../../src/shaders/vector.wgsl), [shaders/ink_visibility.wgsl](../../../../src/shaders/ink_visibility.wgsl), [app/scene.rs](../../../../src/app/scene.rs), [build.rs](../../../../build.rs).
 
-## Implementation Checkpoints
+## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
 
-Apply these checkpoints in order inside `workspace/journey`. Expand each block to view the Rust/WGSL/HTML edits:
+| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
+| ---: | :--- | :--- | :--- | :--- |
+| **1** | [`96zzzzzzi-share-one-frame-across-color-and-ink`](#checkpoint-96zzzzzzi-share-one-frame-across-color-and-ink) | Remove repeated ink-frame buffers and updates while keeping one explicit surface/ink layout and independent request-specific picking. | `src/surface_view.rs`, `src/triangle.wgsl`, `src/renderer.rs`, `src/pick_gpu.rs` | `Existing renderer frame → borrowed surface and ink groups; existing pick request → separate borrowed pick group` |
+| **2** | [`96zzzzzzj-fill-original-contact-polygons`](#checkpoint-96zzzzzzj-fill-original-contact-polygons) | Connect original contact polygons, their existing perimeter and original object owner through one derived mesh with bounded shared surface depth. | `src/source_mesh_topology.rs`, `src/feature_display.rs`, `src/contact_feature_tests.rs`, `src/renderer.rs` | `Original Element contact → one derived polygon/perimeter → bounded color/ID surface layer → original object owner` |
+| **3** | [`96zzzzzzk-broadcast-ordinary-ink-metadata`](#checkpoint-96zzzzzzk-broadcast-ordinary-ink-metadata) | Replace repeated zero clipping flags with one broadcast record in ordinary line, path and point batches. | `src/stroke_gpu.rs`, `src/finite_ink.rs`, `src/renderer.rs`, `src/highlight.rs` | `One existing ink lane → fixed constant or indexed metadata mode → zero or four-byte vertex stride → unchanged color and GPU IDs` |
+| **4** | [`96zzzzzzl-layer-original-contact-boundaries`](#checkpoint-96zzzzzzl-layer-original-contact-boundaries) | Keep original contact borders complete at steep angles when the projection budget falls back to physical depth. | `src/stroke_gpu.rs`, `src/finite_ink.rs`, `src/finite_sources.rs`, `src/renderer.rs` | `Original contact normal → existing indexed ink metadata → shared contact layer → matching finite visibility tolerance` |
+| **5** | [`96zzzzzzm-query-original-faces-under-contact-overlays`](#checkpoint-96zzzzzzm-query-original-faces-under-contact-overlays) | Select the actual original face beneath a readonly contact, without inventing an editable face for its display polygon. | `src/gpu_mesh.rs`, `src/renderer.rs`, `src/pick_sources.rs`, `src/face_pick.rs` | `Original versus derived row → existing CPU mesh eligibility → original depth and source-face passes → actual source key` |
+
+---
+
+## 4. Step-by-Step Coding Notebook (Concept + Implementation)
+
+Work through each notebook cell below in order inside `workspace/journey`. Read the **Concept Walkthrough** and **Self-Check Q&A** first, then expand the **Implementation** block to type and verify the code.
 
 <a id="checkpoint-96zzzzzzi-share-one-frame-across-color-and-ink"></a>
+
+### Step 1 of 5 · Share one frame across color and ink (`96zzzzzzi-share-one-frame-across-color-and-ink`)
+
+- **Goal:** Remove repeated ink-frame buffers and updates while keeping one explicit surface/ink layout and independent request-specific picking.
+- **Data Flow Trace:** `Existing renderer frame → borrowed surface and ink groups; existing pick request → separate borrowed pick group`
+- **Files You Touch:** `src/surface_view.rs` (*Give existing ink shaders their unchanged viewport prefix, followed by surface settings and the existing kernel-derived eye.*) · `src/triangle.wgsl` (*Read surface settings after the shared ink prefix.*) · `src/renderer.rs` (*Encode the correct full physical viewport and density once for this frame owner.*) · `src/pick_gpu.rs` (*Encode the correct full physical viewport and density once for this frame owner.*) · `src/stroke_gpu.rs` (*Remove duplicated per-lane presentation state.*) · `src/finite_ink.rs` (*Keep finite color and integer pipelines compatible with the same frame.*) · `src/pick_encode.rs` (*Draw every ordinary ink ID with the request-owned group.*) · `src/highlight.rs` (*Remove the wrapper’s redundant frame-update traversal.*) · `src/tool_preview.rs` (*Remove the wrapper’s redundant frame-update traversal.*) · `src/measure_gpu.rs` (*Remove the wrapper’s redundant frame-update traversal.*) · `src/guide_gpu.rs` (*Remove the wrapper’s redundant frame-update traversal.*) · `src/surface_lighting_tests.rs` (*Retain the exact camera/display test and extend its actual viewport-prefix contract.*) · `src/shared_view_tests.rs` (*Supply real mixed-original color/request/pick restoration controls.*)
+
+Every ordinary ink lane currently builds and uploads another copy of the camera and viewport. These copies also belong to selection, preview, measurement and guide wrappers. Put the physical viewport, density and opacity immediately after the matrix in the shared frame. Existing ink shaders can read that eighty-byte prefix; surface display settings and the eye follow it. Use one explicit layout and pass borrowed groups into drawing. Color uses the renderer frame, and integer picking uses its existing request frame. The sheet lane has a different projection-scale field: keep that calibrated frame separate. This also makes the real viewport available for the coming contact-depth work without another camera owner.
+
+> **Self-Check Question:** *Why keep the request frame independent if all ordinary ink shares a layout?*  
+> **Answer:** Layout compatibility does not make the latest color camera the owner of an asynchronous pick. The pick uses its captured full physical viewport, density and transform until its readback completes.
+
+- **What You Should See:** Original surfaces and ink retain their actual pixels and owners while the ink lanes stop allocating and updating duplicate frame uniforms.
+- **Hands-On Lab Experiment:** Navigate the same original mixed scene, select original ink, and change opacity or display density. Compare restored pixels and source geometry. Inspect actual GPU buffer writes before and after the change; do not infer frame rate from the number of removed writes.
 
 <details>
 <summary>Implementation 96zzzzzzi-share-one-frame-across-color-and-ink: Share one frame across color and ink</summary>
@@ -2856,6 +2921,20 @@ After that block, append this supplied code:
 
 <a id="checkpoint-96zzzzzzj-fill-original-contact-polygons"></a>
 
+### Step 2 of 5 · Fill original contact polygons (`96zzzzzzj-fill-original-contact-polygons`)
+
+- **Goal:** Connect original contact polygons, their existing perimeter and original object owner through one derived mesh with bounded shared surface depth.
+- **Data Flow Trace:** `Original Element contact → one derived polygon/perimeter → bounded color/ID surface layer → original object owner`
+- **Files You Touch:** `src/source_mesh_topology.rs` (*Reuse the existing full-ring Newell sum without per-face coordinate allocations.*) · `src/feature_display.rs` (*Try actual area before the existing float-collapsed point/path fallback.*) · `src/contact_feature_tests.rs` (*Supply actual Element-source, concave perimeter, original-owner GPU and depth/occlusion controls.*) · `src/renderer.rs` (*Keep optional native GPU validation outside the browser implementation.*) · `src/gpu_mesh.rs` (*Carry the original integer owner, including zero for an unpickable display.*) · `src/global_outline_tests.rs` (*Retain every exact original record/pixel/anchor assertion with the explicit owner field.*) · `src/contact_depth.wgsl` (*Pull the contact toward the eye by the current bounded depth/slope layer, leaving screen position and source coordinates fixed.*) · `src/clipping_gpu.rs` (*Expand the shared helper only in shaders which explicitly include it.*) · `src/triangle.wgsl` (*Share contact placement between ordinary, pulled and integer surface entries.*) · `src/face_pick.wgsl` (*Supply the actual normal to the same source-face vertex function.*)
+
+A contact outline is an area on its original Element. Reuse the existing full-ring normal and kernel polygon triangulation, retaining mesh Parts so the existing source-ink collector supplies the complete black one-pixel perimeter. Keep contact preparation in the existing feature module; another retained boundary Polyline is unnecessary. Apply the contact marker explicitly to the derived display, because ordinary kernel conversion makes an opaque mesh. Surface records carry the original integer owner through the existing feature adapter. Color and integer vertex entries share the bounded camera-depth layer, leaving screen positions and original coordinates unchanged. Degenerate outlines retain their point/path fallback. Boundary depth, current ambient inputs and multisampling remain unfinished.
+
+> **Self-Check Question:** *Why keep Parts instead of building a second boundary Polyline?*  
+> **Answer:** The prepared mesh already retains its original polygon edges independently of triangulation. Existing mesh ink can draw those edges and remap their picks to the Element, avoiding duplicate boundary coordinates, display pieces and uploads.
+
+- **What You Should See:** The original concave contact has an opaque unlit red fill, its complete existing perimeter, an open notch and the original Element object owner. Coplanar host depth stays behind it and real nearer geometry still occludes it.
+- **Hands-On Lab Experiment:** Inspect the actual concave contact on its host, including the initially collinear corners and open notch. Toggle interactions, select the fill, clear selection, Move and Undo its original parent. Verify saved original features and placements; compare actual color and ID behavior at both display densities.
+
 <details>
 <summary>Implementation 96zzzzzzj-fill-original-contact-polygons: Fill original contact polygons</summary>
 
@@ -4398,6 +4477,22 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-96zzzzzzk-broadcast-ordinary-ink-metadata"></a>
 
+### Step 3 of 5 · Broadcast ordinary ink metadata (`96zzzzzzk-broadcast-ordinary-ink-metadata`)
+
+- **Goal:** Replace repeated zero clipping flags with one broadcast record in ordinary line, path and point batches.
+- **Data Flow Trace:** `One existing ink lane → fixed constant or indexed metadata mode → zero or four-byte vertex stride → unchanged color and GPU IDs`
+- **Files You Touch:** `src/stroke_gpu.rs` (*Keep one metadata mode on the existing lane.*) · `src/finite_ink.rs` (*Use one selected layout per existing pipeline.*) · `src/renderer.rs` (*Mesh borders retain source-dependent clipping flags.*) · `src/highlight.rs` (*Mixed selected clipping-plane strokes retain indexed flags.*) · `src/ink_metadata_tests.rs` (*Supply real zero-stride GPU draws/IDs,8192-instance allocations, mixed indexed flags and complete release controls.*)
+
+Ordinary ink repeats a zero clipping flag for every instance. Choose metadata addressing when creating the lane: broadcast one record for lines, paths and markers; keep indexed records for mesh borders and mixed highlights. Color, picking and source geometry stay unchanged.
+
+Every ordinary line, path segment and marker currently stores its own zero clipping flag on both CPU and GPU. The value is constant across those batches. Choose the metadata mode once when enabling a lane: zero vertex stride broadcasts one record to every instance; mesh borders and mixed highlighted strokes retain indexed records. Keep color and cropped integer layouts identical, strict count validation and empty-scene release. This reduces metadata without another pipeline per mode, new scene owner or copied source geometry. The next contact-boundary correction will extend this same explicit record only where the visual consumer needs it.
+
+> **Self-Check Question:** *Why keep indexed metadata for mesh borders and highlighted strokes?*  
+> **Answer:** A batch can contain clipping-plane borders, ordinary mesh borders and highlighted originals with different flags. Those records vary by instance. Ordinary paths and markers share a constant zero flag and can broadcast one record.
+
+- **What You Should See:** Each nonempty ordinary batch owns four metadata bytes on CPU and GPU, regardless of instance count. Indexed clipping behavior, actual original picks and all existing drawing remain intact.
+- **Hands-On Lab Experiment:** Pick points near the beginning, middle and end of each original path at both display densities. For 8,192 line, path or marker instances, each ordinary metadata batch drops from 32,768 to 4 bytes on CPU and GPU. Clear the scene and verify release.
+
 <details>
 <summary>Implementation 96zzzzzzk-broadcast-ordinary-ink-metadata: Broadcast ordinary ink metadata</summary>
 
@@ -5721,6 +5816,22 @@ After that block, append this supplied code:
 </details>
 
 <a id="checkpoint-96zzzzzzl-layer-original-contact-boundaries"></a>
+
+### Step 4 of 5 · Layer original contact boundaries (`96zzzzzzl-layer-original-contact-boundaries`)
+
+- **Goal:** Keep original contact borders complete at steep angles when the projection budget falls back to physical depth.
+- **Data Flow Trace:** `Original contact normal → existing indexed ink metadata → shared contact layer → matching finite visibility tolerance`
+- **Files You Touch:** `src/stroke_gpu.rs` (*Keep existing flag callers and flatten only indexed [flag,normal] records.*) · `src/finite_ink.rs` (*Assemble only the lane’s chosen metadata interface.*) · `src/finite_sources.rs` (*Keep the existing constant shader validation entry meaningful.*) · `src/renderer.rs` (*Move metadata to the existing lane without retaining a duplicate CPU table.*) · `src/pick_sources.rs` (*Align explicit numeric records with the existing perimeter batch.*) · `src/finite_stroke.wgsl` (*Read the existing full shared frame.*) · `src/finite_stroke_pick.wgsl` (*Keep color and integer metadata layouts identical.*) · `src/finite_visibility.wgsl` (*Expose explicit sag only to segment visibility.*) · `src/finite_chain.wgsl` (*Ordinary connected paths have no contact rise.*) · `src/finite_chain_pick.wgsl` (*Ordinary connected paths have no contact rise.*) · `src/contact_feature_tests.rs` (*Expose the unchanged original-source validation fixture.*) · `src/ink_metadata_tests.rs` (*Indexed contact-capable records now carry two words; ordinary8192-instance assertions remain exactly4bytes.*) · `src/contact_boundary_tests.rs` (*Validate actual original contact pixels, complete projected fallback, transformed normals and owner picks.*)
+
+At steep angles, the contact fill can cover its own black border. Carry the original contact normal through the existing indexed mesh-ink record, apply the same bounded depth layer, and include that rise in the existing visibility tolerance. Ordinary ink keeps its four-byte record.
+
+The original polygon, parent identity and archive remain unchanged. Reuse the existing packed normal codec, shared frame, mesh perimeter and finite visibility owner. The added normal belongs only to indexed strokes; color and cropped integer picking use the same geometry. A nearby original occluder must still hide the border.
+
+> **Self-Check Question:** *Why must the border carry depth rise into its visibility test?*  
+> **Answer:** Moving its vertices toward the eye aligns the border with the contact fill. The physical plane-fit fallback also compares the border against the original host plane. Its existing sag tolerance must include the bounded rise so the host does not reject half the border.
+
+- **What You Should See:** The real concave contact retains its perimeter in full and bounded rendering, with unchanged ordinary ink allocation and original ownership.
+- **Hands-On Lab Experiment:** Rotate the parent through steep angles. Compare both projection budgets, projections, display densities and mirrored nonuniform placement. Check the actual cropped owner picks, nearer occluder and exact Undo/source restoration.
 
 <details>
 <summary>Implementation 96zzzzzzl-layer-original-contact-boundaries: Layer original contact boundaries</summary>
@@ -7327,6 +7438,22 @@ After that block, append this supplied code:
 
 <a id="checkpoint-96zzzzzzm-query-original-faces-under-contact-overlays"></a>
 
+### Step 5 of 5 · Query original faces under contact overlays (`96zzzzzzm-query-original-faces-under-contact-overlays`)
+
+- **Goal:** Select the actual original face beneath a readonly contact, without inventing an editable face for its display polygon.
+- **Data Flow Trace:** `Original versus derived row → existing CPU mesh eligibility → original depth and source-face passes → actual source key`
+- **Files You Touch:** `src/gpu_mesh.rs` (*Retain source-query eligibility on the existing CPU mesh.*) · `src/renderer.rs` (*Instances and locked originals are not generated attribute display pieces.*) · `src/pick_sources.rs` (*Classify the source row once, then append only its actual original faces.*) · `src/face_pick.rs` (*Do not allocate generated display-face metadata; preserve one row per mesh.*) · `src/pick_encode.rs` (*Ignore derived depth only for source-face queries; keep all original occluders.*) · `src/global_outline_tests.rs` (*Preserve the unchanged original-source uniform/reference test.*) · `src/contact_feature_tests.rs` (*Reuse the unchanged original contact ring validation fixture.*) · `src/source_face_policy_tests.rs` (*Supply actual original face GPU/source/archive, locked occlusion, instance and BRep controls.*)
+
+The contact selects its original parent as an object, but its generated face address cannot resolve as an original face. Exclude derived display rows from the face query and its depth pass. Keep original locked geometry as an occluder and preserve real source keys.
+
+A contact can span several original faces or extend outside its host. Aliasing every generated polygon to parent face zero would invent source identity. Query the actual original beneath it instead. Instances retain their original face identities; selection does not grant permission to edit a readonly definition. The readonly red overlay can remain above the selected original-face highlight.
+
+> **Self-Check Question:** *Why must the original depth pass also ignore derived contact rows in Face mode?*  
+> **Answer:** The contact is layered nearer than its host. Skipping only its face-ID draw would leave that nearer generated depth blocking the original face beneath it. Original locked or missing-face-metadata geometry still retains depth and occlusion.
+
+- **What You Should See:** Face picks resolve the original Mesh or BRep face under the contact. Beyond the host and the cursor pick radius there is no original face to select. Object picking and the contact drawing are unchanged.
+- **Hands-On Lab Experiment:** Pick both wings of a contact spanning two sparse original face keys. Inspect the original-face highlight, outside-host clicks beyond the cursor pick radius, locked occlusion, shared instances, both projections/densities and exact source/archive/pixel restoration.
+
 <details>
 <summary>Implementation 96zzzzzzm-query-original-faces-under-contact-overlays: Query original faces under contact overlays</summary>
 
@@ -7827,9 +7954,11 @@ After that block, append this supplied code:
 
 </details>
 
-## Run, Check, and Save
+---
 
-From `session_viewer`:
+## 5. Build, Verify, and Save Your Checkpoint
+
+Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 96zzzzzzm-query-original-faces-under-contact-overlays
@@ -7840,12 +7969,12 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. Use [checkpoint recovery](../../recovery.md) to restore any saved checkpoint.
+Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
 
-## Expected Visual Result & Experiment
+## 6. Lesson Summary & Expected Visual Result
 
 Face picks resolve the original Mesh or BRep face under the contact. Beyond the host and the cursor pick radius there is no original face to select. Object picking and the contact drawing are unchanged.
 
-- **Try this:** Pick both wings of a contact spanning two sparse original face keys. Inspect the original-face highlight, outside-host clicks beyond the cursor pick radius, locked occlusion, shared instances, both projections/densities and exact source/archive/pixel restoration.
+- **Final Lesson Experiment:** Pick both wings of a contact spanning two sparse original face keys. Inspect the original-face highlight, outside-host clicks beyond the cursor pick radius, locked occlusion, shared instances, both projections/densities and exact source/archive/pixel restoration.
 
-Continue with [Original boundary pens, joins and vertex markers](96zzzzzzn-respect-original-boundary-pens.md).
+Continue with [Original boundary pens, joins and vertex markers](../../consolidation/96zzzzzzn-respect-original-boundary-pens.md).

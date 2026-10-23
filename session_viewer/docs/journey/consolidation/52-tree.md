@@ -1,90 +1,154 @@
 # 8.1 · Nested original sources and exact parent edits
 
-**Section 5: Interactive Drawing, Snapping, Gumball Handles, and Scene Hierarchy** · **Lesson 8.1** (Redraft `5.7`) · **7 checkpoints (`52-tree` → `52f-save`)**
+**Section 5: Interactive Drawing, Snapping, Gumball Handles, and Scene Hierarchy** · **Lesson 8.1** (Redraft `5.7`) · **7 checkpoints (`52-tree` → `52f-save`)** · **Study time: 3.5–7 h**
 
-> **Learning Goal:** Validate and place a nested source tree.
+> **What You Will Learn & Build:** Validate and place a nested source tree. By the final checkpoint (`52f-save`), you will save nested rows and their local placements.
 
-## Visual WebGPU & Architecture Schematic
+## 1. Visual Pipeline & WebGPU Architecture (Black & White Schematics)
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1px solid #cbd5e1;border-radius:10px;background:#f8fafc;">
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
+<svg viewBox="0 0 840 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <rect x="4" y="4" width="832" height="212" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Lesson 8.1 Execution Flow: Nested original sources and exact parent edits</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">Concrete data pipeline you build in this lesson (7 Checkpoints: 52-tree → 52f-save)</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
+  
+    
+    <rect x="18" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="89" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
+    <line x1="28" y1="92" x2="151" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">bounded source walk</text>
+    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="183" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="254" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
+    <line x1="193" y1="92" x2="316" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">distinct mesh</text>
+    <text x="254" y="124" text-anchor="middle" font-size="11" fill="#111111">identities</text>
+    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="348" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="419" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
+    <line x1="358" y1="92" x2="481" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">parent × local</text>
+    <text x="419" y="124" text-anchor="middle" font-size="11" fill="#111111">placement</text>
+    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="513" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="584" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
+    <line x1="523" y1="92" x2="646" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">world display</text>
+    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="678" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="749" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
+    <line x1="688" y1="92" x2="811" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">current saved</text>
+    <text x="749" y="124" text-anchor="middle" font-size="11" fill="#111111">sources</text>
+    
+    <rect x="18" y="162" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="32" y="181" font-size="11" font-weight="700" fill="#111111">Files You Edit in Lesson 8.1:</text>
+    <text x="215" y="181" font-size="11" fill="#111111">src/hierarchy.rs  ·  src/lib.rs  ·  src/scene.rs  ·  src/document.rs  ·  src/edit_preview.rs  ·  src/editor.rs</text>
+    <text x="32" y="198" font-size="10.5" fill="#111111">7 Checkpoints: 52-tree → 52f-save — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
+  
+</svg>
+</div>
+
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
 <svg viewBox="0 0 840 240" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#475569"/>
-    </marker>
-    <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#2563eb"/>
-    </marker>
-    <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#059669"/>
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
     </marker>
   </defs>
-  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
-  <text x="20" y="28" font-size="14" font-weight="700" fill="#0f172a">Chapter 8 Scene Graph & Layer Architecture: Hierarchical Transforms, Lamp Inheritance & Inspector Focus</text>
-  <text x="20" y="46" font-size="11.5" fill="#475569">How parent-child Element trees and Layer visibility lamps compose without losing individual child visibility states.</text>
-  <line x1="16" y1="54" x2="824" y2="54" stroke="#e2e8f0" stroke-width="1"/>
+  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Chapter 8 Scene Graph & Layer Architecture: Hierarchical Transforms, Lamp Inheritance & Inspector Focus</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">How parent-child Element trees and Layer visibility lamps compose without losing individual child visibility states.</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
   
-    <rect x="18" y="68" width="250" height="145" rx="6" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
-    <text x="143" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1e40af">1. Scene Tree &amp; Matrix Composition</text>
-    <text x="28" y="108" font-size="10.5" fill="#1e3a8a">• Root Element -&gt; Child Assembly -&gt; Leaf</text>
-    <text x="28" y="126" font-size="10.5" font-weight="700" fill="#1d4ed8">• M_world(child) = M_world(parent) * M_local</text>
-    <text x="28" y="146" font-size="10.5" fill="#1e3a8a">• Tree path identity keeps duplicate</text>
-    <text x="28" y="162" font-size="10.5" fill="#1e3a8a">  group names distinct</text>
-    <text x="28" y="180" font-size="10.5" fill="#1e3a8a">• Cycle-safe parent reassignment</text>
+    <rect x="18" y="68" width="250" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="143" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">1. Scene Tree &amp; Matrix Composition</text>
+    <text x="28" y="108" font-size="10.5" fill="#111111">• Root Element -&gt; Child Assembly -&gt; Leaf</text>
+    <text x="28" y="126" font-size="10.5" font-weight="700" fill="#111111">• M_world(child) = M_world(parent) * M_local</text>
+    <text x="28" y="146" font-size="10.5" fill="#111111">• Tree path identity keeps duplicate</text>
+    <text x="28" y="162" font-size="10.5" fill="#111111">  group names distinct</text>
+    <text x="28" y="180" font-size="10.5" fill="#111111">• Cycle-safe parent reassignment</text>
 
-    <line x1="268" y1="138" x2="298" y2="138" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
+    <line x1="268" y1="138" x2="298" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="300" y="68" width="265" height="145" rx="6" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5"/>
-    <text x="432" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#9a3412">2. Layer &amp; Parent Lamp Restoration</text>
-    <text x="312" y="108" font-size="10.5" fill="#7c2d12">• Effective Visible =</text>
-    <text x="312" y="124" font-size="10.5" font-weight="600" fill="#c2410c">  layer_lamp &amp;&amp; parent_lamps &amp;&amp; own_lamp</text>
-    <text x="312" y="144" font-size="10" fill="#7c2d12">• Toggling a parent/layer lamp OFF hides</text>
-    <text x="312" y="159" font-size="10" fill="#7c2d12">  descendants without overwriting own_lamp;</text>
-    <text x="312" y="174" font-size="10" fill="#7c2d12">  toggling back ON restores prior state!</text>
-    <text x="312" y="192" font-size="10.5" fill="#7c2d12">• Hidden/Locked rows skipped in Rg32Uint pick</text>
+    <rect x="300" y="68" width="265" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="432" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">2. Layer &amp; Parent Lamp Restoration</text>
+    <text x="312" y="108" font-size="10.5" fill="#111111">• Effective Visible =</text>
+    <text x="312" y="124" font-size="10.5" font-weight="600" fill="#111111">  layer_lamp &amp;&amp; parent_lamps &amp;&amp; own_lamp</text>
+    <text x="312" y="144" font-size="10" fill="#111111">• Toggling a parent/layer lamp OFF hides</text>
+    <text x="312" y="159" font-size="10" fill="#111111">  descendants without overwriting own_lamp;</text>
+    <text x="312" y="174" font-size="10" fill="#111111">  toggling back ON restores prior state!</text>
+    <text x="312" y="192" font-size="10.5" fill="#111111">• Hidden/Locked rows skipped in Rg32Uint pick</text>
 
-    <line x1="565" y1="138" x2="595" y2="138" stroke="#059669" stroke-width="2" marker-end="url(#arrow-green)"/>
+    <line x1="565" y1="138" x2="595" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="597" y="68" width="223" height="145" rx="6" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1.5"/>
-    <text x="708" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#065f46">3. Inspector &amp; Focus Adapter</text>
-    <text x="609" y="108" font-size="10.5" fill="#064e3b">• egui Tree / Layer / Property UI</text>
-    <text x="609" y="126" font-size="10.5" font-weight="600" fill="#047857">• Layer-rename focus adapter:</text>
-    <text x="609" y="142" font-size="10" fill="#064e3b">  Suppresses Command Dock auto-focus</text>
-    <text x="609" y="157" font-size="10" fill="#064e3b">  while editing layer/object names</text>
-    <text x="609" y="176" font-size="10.5" fill="#064e3b">• Selection filter &amp; Next/Prev</text>
-    <text x="609" y="192" font-size="10.5" fill="#064e3b">  member navigation</text>
+    <rect x="597" y="68" width="223" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="708" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">3. Inspector &amp; Focus Adapter</text>
+    <text x="609" y="108" font-size="10.5" fill="#111111">• egui Tree / Layer / Property UI</text>
+    <text x="609" y="126" font-size="10.5" font-weight="600" fill="#111111">• Layer-rename focus adapter:</text>
+    <text x="609" y="142" font-size="10" fill="#111111">  Suppresses Command Dock auto-focus</text>
+    <text x="609" y="157" font-size="10" fill="#111111">  while editing layer/object names</text>
+    <text x="609" y="176" font-size="10.5" fill="#111111">• Selection filter &amp; Next/Prev</text>
+    <text x="609" y="192" font-size="10.5" fill="#111111">  member navigation</text>
     
 </svg>
 </div>
 
-### Lesson Data Flow (`Rust` → `WebGPU` → `WGSL`)
+## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
 
-```
-bounded source walk → distinct mesh identities → parent × local placement → world display.
-validated protobuf → prepared original meshes → fresh viewer IDs → document-scoped nested records.
-current saved sources → retained nested nodes → inverse parent × world placement → portable local records.
-```
+Before writing code, review how the three layers in this chapter talk to each other:
 
-- Validate and place a nested source tree.
-- Import nested source identities and precise placements.
-- Save nested rows and their local placements.
-- **Why it works (Does nesting bake a parent’s placement into the child’s original mesh?):** No. Its original coordinates remain unchanged. The derived row carries the product of the parent and child placement matrices.
-
-### Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `Browser`)
-
-| Layer | Construct | First-Year Student Explanation |
+| Layer | Construct | Plain-English Explanation for Students |
 | :--- | :--- | :--- |
 | **Rust (`session_rust`)** | Hierarchical `Element` Transform `M_world = M_parent * M_local` | Composes parent assembly transforms down the scene tree while keeping duplicate group names distinct via full tree-path identity. |
 | **Rust (Scene Tree)** | Effective Visibility `layer_lamp && parent_lamps && own_lamp` | Hiding a parent group or layer masks descendants without overwriting their stored child lamp states, restoring them faithfully when re-enabled. |
 | **Rust (`command_dock`)** | Layer-Rename Focus Adapter (`src/command_dock/mod.rs`) | Temporarily yields keyboard focus while renaming a layer or object in the inspector so typing does not get hijacked by the Command Dock prompt. |
 
-**Production source (`session_viewer/src`):** [app/hierarchy.rs](../../../src/app/hierarchy.rs), [app/layers.rs](../../../src/app/layers.rs), [app/ui/layers.rs](../../../src/app/ui/layers.rs), [app/gesture/mod.rs](../../../src/app/gesture/mod.rs), [state/drag.rs](../../../src/state/drag.rs), [state/box_select.rs](../../../src/state/box_select.rs).
+**Authoritative production source (`session_viewer/src`):** [app/hierarchy.rs](../../../src/app/hierarchy.rs), [app/layers.rs](../../../src/app/layers.rs), [app/ui/layers.rs](../../../src/app/ui/layers.rs), [app/gesture/mod.rs](../../../src/app/gesture/mod.rs), [state/drag.rs](../../../src/state/drag.rs), [state/box_select.rs](../../../src/state/box_select.rs)
 
-## Implementation Checkpoints
+## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
 
-Apply these checkpoints in order inside `workspace/journey`. Expand each block to view the Rust/WGSL/HTML edits:
+| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
+| ---: | :--- | :--- | :--- | :--- |
+| **1** | [`52-tree`](#checkpoint-52-tree) | Validate and place a nested source tree. | `src/hierarchy.rs`, `src/lib.rs` | `bounded source walk → distinct mesh identities → parent × local placement → world display` |
+| **2** | [`52a-records`](#checkpoint-52a-records) | Keep lightweight tree records outside kernel ownership. | `src/hierarchy.rs`, `src/scene.rs` | `source identity → flat node metadata → parent and subtree endpoint → independent lightweight ownership` |
+| **3** | [`52b-index`](#checkpoint-52b-index) | Index descendants and read-only attribute groups. | `src/hierarchy.rs` | `document-local source nodes → stable viewer IDs → attribute ownership → unique descendant slice` |
+| **4** | [`52c-load`](#checkpoint-52c-load) | Import nested source identities and precise placements. | `src/document.rs`, `src/scene.rs` | `validated protobuf → prepared original meshes → fresh viewer IDs → document-scoped nested records` |
+| **5** | [`52d-preview`](#checkpoint-52d-preview) | Carry parent-owned descendants in one preview. | `src/scene.rs`, `src/edit_preview.rs` | `eligible selected roots → unique descendants → fixed baseline world delta → shared-source preview` |
+| **6** | [`52e-edits`](#checkpoint-52e-edits) | Commit parent moves and deletions as one transaction. | `src/editor.rs` | `validated parent action → descendant set → one history transaction → exact shared-source undo` |
+| **7** | [`52f-save`](#checkpoint-52f-save) | Save nested rows and their local placements. | `src/hierarchy.rs`, `src/document.rs` | `current saved sources → retained nested nodes → inverse parent × world placement → portable local records` |
+
+---
+
+## 4. Step-by-Step Coding Notebook (Concept + Implementation)
+
+Work through each notebook cell below in order inside `workspace/journey`. Read the **Concept Walkthrough** and **Self-Check Q&A** first, then expand the **Implementation** block to type and verify the code.
 
 <a id="checkpoint-52-tree"></a>
+
+### Step 1 of 7 · Validate and place a nested source tree (`52-tree`)
+
+- **Goal:** Validate and place a nested source tree.
+- **Data Flow Trace:** `bounded source walk → distinct mesh identities → parent × local placement → world display`
+- **Files You Touch:** `src/hierarchy.rs` (*Bound tree walks and compose precise placements along source paths.*) · `src/lib.rs` (*Register the new source component.*)
+
+Walk a source tree with explicit node and depth limits. Every mesh must occur once; compose object placements down its path without changing its original coordinates.
+
+> **Self-Check Question:** *Does nesting bake a parent’s placement into the child’s original mesh?*  
+> **Answer:** No. Its original coordinates remain unchanged. The derived row carries the product of the parent and child placement matrices.
+
+- **What You Should See:** Continue the earlier two-box handle exercise. Nested import connects at52c, descendant editing at52e, and the visible tree panel at52j.
+- **Hands-On Lab Experiment:** Compare a translated parent and locally shifted child. Reverse the multiplication order and predict which world coordinates change.
 
 <details>
 <summary>Implementation 52-tree: Validate and place a nested source tree</summary>
@@ -127,6 +191,19 @@ After that block, type:
 </details>
 
 <a id="checkpoint-52a-records"></a>
+
+### Step 2 of 7 · Keep lightweight tree records outside kernel ownership (`52a-records`)
+
+- **Goal:** Keep lightweight tree records outside kernel ownership.
+- **Data Flow Trace:** `source identity → flat node metadata → parent and subtree endpoint → independent lightweight ownership`
+- **Files You Touch:** `src/hierarchy.rs` (*Store immutable document-scoped node records shared by previews and history.*) · `src/scene.rs` (*Allow stable row identities to participate in deduplication sets.*)
+
+Each flattened node stores its source identity, parent, depth and subtree endpoint. Retain scalar metadata and original colours without keeping a mesh or kernel document alive.
+
+> **Self-Check Question:** *Why store a subtree’s endpoint?*  
+> **Answer:** All descendants occupy one contiguous slice after their parent. This avoids a fresh recursive kernel walk for every expand, select or parent-edit operation.
+
+- **Hands-On Lab Experiment:** Follow a five-level source path through its flat records. Verify that a leaf’s endpoint is exactly one position past itself.
 
 <details>
 <summary>Implementation 52a-records: Keep lightweight tree records outside kernel ownership</summary>
@@ -184,6 +261,19 @@ Edit the existing block to match this code; keep unchanged lines:
 
 <a id="checkpoint-52b-index"></a>
 
+### Step 3 of 7 · Index descendants and read-only attribute groups (`52b-index`)
+
+- **Goal:** Index descendants and read-only attribute groups.
+- **Data Flow Trace:** `document-local source nodes → stable viewer IDs → attribute ownership → unique descendant slice`
+- **Files You Touch:** `src/hierarchy.rs` (*Create stable document-scoped nodes and deduplicate parent-owned descendants.*)
+
+Flatten nested rows once per imported document. Attribute and feature groups below an object are read only; a parent edit gathers every descendant identity once.
+
+> **Self-Check Question:** *Can a displayed attribute be a separate edit target?*  
+> **Answer:** No. It follows its owning object. Display and source metadata remain available, while source picking and independent editing refuse the attribute row.
+
+- **Hands-On Lab Experiment:** Select a parent and its ordinary child together. Their descendant set must contain each object once, including attached attributes.
+
 <details>
 <summary>Implementation 52b-index: Index descendants and read-only attribute groups</summary>
 
@@ -216,6 +306,19 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-52c-load"></a>
+
+### Step 4 of 7 · Import nested source identities and precise placements (`52c-load`)
+
+- **Goal:** Import nested source identities and precise placements.
+- **Data Flow Trace:** `validated protobuf → prepared original meshes → fresh viewer IDs → document-scoped nested records`
+- **Files You Touch:** `src/document.rs` (*Capture nested tree metadata and replace flat-only validation with the bounded source walk.*) · `src/scene.rs` (*Bind imported tree nodes to fresh row IDs and release their records when the document closes.*)
+
+Capture only the source tree alongside prepared meshes. Bind its geometry GUIDs to newly allocated viewer IDs, so repeated imports preserve source identity without sharing panel keys.
+
+> **Self-Check Question:** *Do two imports of the same file share a tree key?*  
+> **Answer:** No. Their original mesh GUIDs may match, but each import owns separate viewer row IDs and a distinct document key.
+
+- **Hands-On Lab Experiment:** Import the same nested file twice, then undo one import. The surviving document’s node keys and original source owners must remain unchanged.
 
 <details>
 <summary>Implementation 52c-load: Import nested source identities and precise placements</summary>
@@ -1270,6 +1373,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-52d-preview"></a>
 
+### Step 5 of 7 · Carry parent-owned descendants in one preview (`52d-preview`)
+
+- **Goal:** Carry parent-owned descendants in one preview.
+- **Data Flow Trace:** `eligible selected roots → unique descendants → fixed baseline world delta → shared-source preview`
+- **Files You Touch:** `src/scene.rs` (*Protect independent attribute edits while exposing the checked descendant path for parent-owned transformations.*) · `src/edit_preview.rs` (*Capture selected roots separately from their unique following descendants.*)
+
+Validate selected roots, then gather their descendants once. Apply the fixed world delta to every captured original placement, including read-only attributes, without publishing a saved edit.
+
+> **Self-Check Question:** *Does a child selected with its parent move twice?*  
+> **Answer:** No. The captured identity set is deduplicated before applying the world delta. Each row receives one transform from its original placement.
+
+- **Hands-On Lab Experiment:** Compare one parent with parent-plus-child selection. The same descendant world placements should result, and cancellation should release only temporary row state.
+
 <details>
 <summary>Implementation 52d-preview: Carry parent-owned descendants in one preview</summary>
 
@@ -2099,6 +2215,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-52e-edits"></a>
+
+### Step 6 of 7 · Commit parent moves and deletions as one transaction (`52e-edits`)
+
+- **Goal:** Commit parent moves and deletions as one transaction.
+- **Data Flow Trace:** `validated parent action → descendant set → one history transaction → exact shared-source undo`
+- **Files You Touch:** `src/editor.rs` (*Route group selection and parent edits through protected source ownership and one history boundary.*)
+
+Use the same descendant set for typed Move, replayed row edits and Delete. Attribute rows remain independently protected; undo restores their original identities, source sharing and tree metadata.
+
+> **Self-Check Question:** *Should deleting a parent leave its displayed attributes behind?*  
+> **Answer:** No. Parent-owned descendants belong to that deletion transaction. Undo restores the parent and descendants together, using their earlier identities and shared sources.
+
+- **Hands-On Lab Experiment:** Delete a parent with nested attributes, undo, and redo. Check that unrelated siblings survive and one undo reverses the whole parent operation.
 
 <details>
 <summary>Implementation 52e-edits: Commit parent moves and deletions as one transaction</summary>
@@ -2988,6 +3117,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-52f-save"></a>
 
+### Step 7 of 7 · Save nested rows and their local placements (`52f-save`)
+
+- **Goal:** Save nested rows and their local placements.
+- **Data Flow Trace:** `current saved sources → retained nested nodes → inverse parent × world placement → portable local records`
+- **Files You Touch:** `src/hierarchy.rs` (*Rebuild nested portable nodes and recover local placements from the edited world scene.*) · `src/document.rs` (*Preserve nested imported trees while keeping generated objects beside them in the saved document.*)
+
+Rebuild nested source nodes with saved geometry identities. Convert each edited world placement back through its nearest object parent, preserving precise sources, group labels, colours and hierarchy.
+
+> **Self-Check Question:** *Why not write every displayed world matrix as a nested local placement?*  
+> **Answer:** Loading multiplies through the parents again. Saving an unchanged world matrix under a transformed parent would apply that parent twice.
+
+- **Hands-On Lab Experiment:** Move a nested parent, Save, and reopen. Compare every world placement and original mesh record before and after the round trip.
+
 <details>
 <summary>Implementation 52f-save: Save nested rows and their local placements</summary>
 
@@ -3052,9 +3194,11 @@ Edit the existing block to match this code; keep unchanged lines:
 
 </details>
 
-## Run, Check, and Save
+---
 
-From `session_viewer`:
+## 5. Build, Verify, and Save Your Checkpoint
+
+Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 52f-save
@@ -3065,10 +3209,10 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. Use [checkpoint recovery](../recovery.md) to restore any saved checkpoint.
+Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../recovery.md) to save or restore any checkpoint ID.
 
-## Expected Visual Result & Experiment
+## 6. Lesson Summary & Expected Visual Result
 
-- **Try this:** Move a nested parent, Save, and reopen. Compare every world placement and original mesh record before and after the round trip.
+- **Final Lesson Experiment:** Move a nested parent, Save, and reopen. Compare every world placement and original mesh record before and after the round trip.
 
 Continue with [Tree presentation with explicit input ownership](52g-rows.md).

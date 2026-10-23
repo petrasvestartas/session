@@ -1,88 +1,162 @@
 # 14.2 · Precise coordinates and original drawing drafts
 
-**Section 8: Precision Coordinate Frames, Solid Primitives, Surfacing, and CAD Editing** · **Lesson 14.2** (Redraft `8.2`) · **20 checkpoints (`72-copy-current-construction-planes-and-coordinate-forms` → `72s-exercise-current-drawing-tools-and-original-persistence`)**
+**Section 8: Precision Coordinate Frames, Solid Primitives, Surfacing, and CAD Editing** · **Lesson 14.2** (Redraft `8.2`) · **20 checkpoints (`72-copy-current-construction-planes-and-coordinate-forms` → `72s-exercise-current-drawing-tools-and-original-persistence`)** · **Study time: 10–20 h**
 
-> **Learning Goal:** Complete absolute coordinates, offsets and point placement with the original construction-plane rules.
+> **What You Will Learn & Build:** Complete absolute coordinates, offsets and point placement with the original construction-plane rules. By the final checkpoint (`72s-exercise-current-drawing-tools-and-original-persistence`), you will exercise current drawing tools and original persistence.
 
-## Visual WebGPU & Architecture Schematic
+## 1. Visual Pipeline & WebGPU Architecture (Black & White Schematics)
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1px solid #cbd5e1;border-radius:10px;background:#f8fafc;">
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
+<svg viewBox="0 0 840 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <rect x="4" y="4" width="832" height="212" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Lesson 14.2 Execution Flow: Precise coordinates and original drawing drafts</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">Concrete data pipeline you build in this lesson (20 Checkpoints: 72-copy-current-construction-planes-and-coordinate-forms → 72s-exercise-current-drawing-tools-and-original-persistence)</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
+  
+    
+    <rect x="18" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="89" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
+    <line x1="28" y1="92" x2="151" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">original frame</text>
+    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="183" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="254" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
+    <line x1="193" y1="92" x2="316" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">parsed coordinates</text>
+    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="348" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="419" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
+    <line x1="358" y1="92" x2="481" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">world drawing point</text>
+    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="513" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="584" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
+    <line x1="523" y1="92" x2="646" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">current typed tools</text>
+    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="678" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="749" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
+    <line x1="688" y1="92" x2="811" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">original drawing</text>
+    
+    <rect x="18" y="162" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="32" y="181" font-size="11" font-weight="700" fill="#111111">Files You Edit in Lesson 14.2:</text>
+    <text x="215" y="181" font-size="11" fill="#111111">src/drawing_coords.rs  ·  src/drawing_input.rs  ·  src/lib.rs  ·  src/tool.rs  ·  src/editor.rs  ·  src/commands.rs</text>
+    <text x="32" y="198" font-size="10.5" fill="#111111">20 Checkpoints: 72-copy-current-construction-planes-and-coordinate-forms → 72s-exercise-current-drawing-tools-and-original-persistence — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
+  
+</svg>
+</div>
+
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
 <svg viewBox="0 0 840 240" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#475569"/>
-    </marker>
-    <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#2563eb"/>
-    </marker>
-    <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#059669"/>
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
     </marker>
   </defs>
-  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
-  <text x="20" y="28" font-size="14" font-weight="700" fill="#0f172a">Section 8 Precision CAD Frames, Solid Primitives, Surfacing & Sub-Object Deformation (Chapters 14–16)</text>
-  <text x="20" y="46" font-size="11.5" fill="#475569">How double-precision coordinate frames (Plane), parametric solids, Loft/Sweep/Extrude surfaces, and Gumball control edits work.</text>
-  <line x1="16" y1="54" x2="824" y2="54" stroke="#e2e8f0" stroke-width="1"/>
+  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Section 8 Precision CAD Frames, Solid Primitives, Surfacing & Sub-Object Deformation (Chapters 14–16)</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">How double-precision coordinate frames (Plane), parametric solids, Loft/Sweep/Extrude surfaces, and Gumball control edits work.</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
   
-    <rect x="18" y="68" width="245" height="145" rx="6" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
-    <text x="140" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1e40af">1. Orthonormal Frames (Ch 14)</text>
-    <text x="28" y="108" font-size="10.5" fill="#1e3a8a">• Plane { origin: Vec3d, x, y, z }</text>
-    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#1d4ed8">• Rejects non-finite / collinear axes</text>
-    <text x="28" y="144" font-size="10.5" fill="#1e3a8a">• Basis change: World &lt;-&gt; Local Plane</text>
-    <text x="28" y="162" font-size="10.5" fill="#1e3a8a">• Exact Mirror, Rotate3D, Orient,</text>
-    <text x="28" y="178" font-size="10.5" fill="#1e3a8a">  and Align frame transformations</text>
+    <rect x="18" y="68" width="245" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="140" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">1. Orthonormal Frames (Ch 14)</text>
+    <text x="28" y="108" font-size="10.5" fill="#111111">• Plane { origin: Vec3d, x, y, z }</text>
+    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#111111">• Rejects non-finite / collinear axes</text>
+    <text x="28" y="144" font-size="10.5" fill="#111111">• Basis change: World &lt;-&gt; Local Plane</text>
+    <text x="28" y="162" font-size="10.5" fill="#111111">• Exact Mirror, Rotate3D, Orient,</text>
+    <text x="28" y="178" font-size="10.5" fill="#111111">  and Align frame transformations</text>
 
-    <line x1="263" y1="138" x2="293" y2="138" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
+    <line x1="263" y1="138" x2="293" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="295" y="68" width="265" height="145" rx="6" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5"/>
-    <text x="427" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#9a3412">2. Solids &amp; Surfacing (Ch 15–16)</text>
-    <text x="307" y="108" font-size="10.5" fill="#7c2d12">• Parametric Box, Cylinder, Sphere, Cone</text>
-    <text x="307" y="126" font-size="10.5" font-weight="600" fill="#c2410c">• Extrude, Revolve, Loft, Sweep, Planar</text>
-    <text x="307" y="144" font-size="10.5" fill="#7c2d12">• Curve Split, Trim, Extend, Join, Fillet</text>
-    <text x="307" y="162" font-size="10.5" fill="#7c2d12">• Every operation commits an atomic</text>
-    <text x="307" y="178" font-size="10.5" fill="#7c2d12">  session_rust kernel transaction</text>
+    <rect x="295" y="68" width="265" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="427" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">2. Solids &amp; Surfacing (Ch 15–16)</text>
+    <text x="307" y="108" font-size="10.5" fill="#111111">• Parametric Box, Cylinder, Sphere, Cone</text>
+    <text x="307" y="126" font-size="10.5" font-weight="600" fill="#111111">• Extrude, Revolve, Loft, Sweep, Planar</text>
+    <text x="307" y="144" font-size="10.5" fill="#111111">• Curve Split, Trim, Extend, Join, Fillet</text>
+    <text x="307" y="162" font-size="10.5" fill="#111111">• Every operation commits an atomic</text>
+    <text x="307" y="178" font-size="10.5" fill="#111112">  session_rust kernel transaction</text>
 
-    <line x1="560" y1="138" x2="590" y2="138" stroke="#059669" stroke-width="2" marker-end="url(#arrow-green)"/>
+    <line x1="560" y1="138" x2="590" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="592" y="68" width="228" height="145" rx="6" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1.5"/>
-    <text x="706" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#065f46">3. Rational Control-Point Deform</text>
-    <text x="604" y="108" font-size="10.5" fill="#064e3b">• Pick NURBS control point or vertex</text>
-    <text x="604" y="126" font-size="10.5" font-weight="600" fill="#047857">• Preserve homogeneous weight w</text>
-    <text x="604" y="142" font-size="10.5" font-weight="600" fill="#047857">  on rational curve control drags!</text>
-    <text x="604" y="162" font-size="10.5" fill="#064e3b">• Rebuild derived GPU tessellation</text>
-    <text x="604" y="178" font-size="10.5" fill="#064e3b">  in-place while keeping Object ID</text>
+    <rect x="592" y="68" width="228" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="706" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">3. Rational Control-Point Deform</text>
+    <text x="604" y="108" font-size="10.5" fill="#111111">• Pick NURBS control point or vertex</text>
+    <text x="604" y="126" font-size="10.5" font-weight="600" fill="#111111">• Preserve homogeneous weight w</text>
+    <text x="604" y="142" font-size="10.5" font-weight="600" fill="#111111">  on rational curve control drags!</text>
+    <text x="604" y="162" font-size="10.5" fill="#111111">• Rebuild derived GPU tessellation</text>
+    <text x="604" y="178" font-size="10.5" fill="#111111">  in-place while keeping Object ID</text>
     
 </svg>
 </div>
 
-### Lesson Data Flow (`Rust` → `WebGPU` → `WGSL`)
+## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
 
-```
-original frame → parsed coordinates → world drawing point.
-chooser → separate three points → checked fixed frame.
-current typed tools → original drawing → one history transaction → exact reopening.
-```
+Before writing code, review how the three layers in this chapter talk to each other:
 
-- Complete absolute coordinates, offsets and point placement with the original construction-plane rules.
-- Open the plane chooser and collect its frame.
-- Exercise current drawing tools and original persistence.
-- **Why it works (Why keep the world prefix local to one input?):** It changes how that coordinate is interpreted. It should not change the construction plane used by later drawing inputs.
-
-### Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `Browser`)
-
-| Layer | Construct | First-Year Student Explanation |
+| Layer | Construct | Plain-English Explanation for Students |
 | :--- | :--- | :--- |
 | **CAD Coords** | `w10,20,0` vs `@5,0,0` vs `10<30` | `w` forces absolute World coordinates; `@` measures relative to the last accepted point; `<` uses polar distance and angle in the active Construction Plane. |
 | **Rational NURBS** | Homogeneous control point `(w*x, w*y, w*z, w)` | Represents circles, ellipses, and conic arcs with zero approximation error using non-uniform weights `w`. |
 | **B-Rep Split/Trim** | Plane/Cutter intersection -> Face loop classification | Splits or trims B-Rep and mesh faces along cutting planes/curves while keeping retained topology tables valid. |
 
-**Production source (`session_viewer/src`):** [app/walk/sheet.rs](../../../../src/app/walk/sheet.rs), [app/sheet_query.rs](../../../../src/app/sheet_query.rs), [app/stream.rs](../../../../src/app/stream.rs), [app/cplane.rs](../../../../src/app/cplane.rs), [app/coords.rs](../../../../src/app/coords.rs), [app/command/tool/shape.rs](../../../../src/app/command/tool/shape.rs), [app/command/tool/gather.rs](../../../../src/app/command/tool/gather.rs), [app/deform.rs](../../../../src/app/deform.rs).
+**Authoritative production source (`session_viewer/src`):** [app/walk/sheet.rs](../../../../src/app/walk/sheet.rs), [app/sheet_query.rs](../../../../src/app/sheet_query.rs), [app/stream.rs](../../../../src/app/stream.rs), [app/cplane.rs](../../../../src/app/cplane.rs), [app/coords.rs](../../../../src/app/coords.rs), [app/command/tool/shape.rs](../../../../src/app/command/tool/shape.rs), [app/command/tool/gather.rs](../../../../src/app/command/tool/gather.rs), [app/deform.rs](../../../../src/app/deform.rs).
 
-## Implementation Checkpoints
+## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
 
-Apply these checkpoints in order inside `workspace/journey`. Expand each block to view the Rust/WGSL/HTML edits:
+| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
+| ---: | :--- | :--- | :--- | :--- |
+| **1** | [`72-copy-current-construction-planes-and-coordinate-forms`](#checkpoint-72-copy-current-construction-planes-and-coordinate-forms) | Complete absolute coordinates, offsets and point placement with the original construction-plane rules. | `src/drawing_coords.rs` | `original frame → parsed coordinates → world drawing point` |
+| **2** | [`72a-resolve-bounded-typed-batches-in-the-current-plane`](#checkpoint-72a-resolve-bounded-typed-batches-in-the-current-plane) | Resolve bounded typed batches in the current plane. | `src/drawing_input.rs`, `src/lib.rs` | `typed words → current fixed context → checked world points` |
+| **3** | [`72b-place-clicks-on-stable-construction-planes`](#checkpoint-72b-place-clicks-on-stable-construction-planes) | Place clicks on stable construction planes. | `src/drawing_input.rs` | `screen ray → stable depth → construction-plane point` |
+| **4** | [`72c-name-the-construction-plane-chooser-options`](#checkpoint-72c-name-the-construction-plane-chooser-options) | Name the construction plane chooser options. | `src/drawing_input.rs` | `choice word → plane action → prompt buttons` |
+| **5** | [`72d-add-original-polylines-to-the-point-tool`](#checkpoint-72d-add-original-polylines-to-the-point-tool) | Add original polylines to the point tool. | `src/tool.rs`, `src/drawing_input.rs`, `src/editor.rs` | `original points → original Polyline → derived chain` |
+| **6** | [`72e-keep-construction-frames-and-plane-points-in-drafts`](#checkpoint-72e-keep-construction-frames-and-plane-points-in-drafts) | Keep construction frames and plane points in drafts. | `src/tool.rs` | `draft frame → plane-point collector → original point collector` |
+| **7** | [`72f-replay-finished-drafts-with-explicit-world-prefixes`](#checkpoint-72f-replay-finished-drafts-with-explicit-world-prefixes) | Replay finished drafts with explicit world prefixes. | `src/tool.rs` | `accepted world points → explicit w command → original geometry` |
+| **8** | [`72g-own-the-fixed-construction-plane-in-the-editor`](#checkpoint-72g-own-the-fixed-construction-plane-in-the-editor) | Own the fixed construction plane in the editor. | `src/editor.rs` | `Editor plane → current parse context → draft frame` |
+| **9** | [`72h-commit-completed-original-geometry-exactly-once`](#checkpoint-72h-commit-completed-original-geometry-exactly-once) | Commit completed original geometry exactly once. | `src/editor.rs` | `validated Built → original insertion → one Undo entry` |
+| **10** | [`72i-change-fixed-planes-without-rewriting-accepted-points`](#checkpoint-72i-change-fixed-planes-without-rewriting-accepted-points) | Change fixed planes without rewriting accepted points. | `src/editor.rs` | `plane option → current Editor plane → current draft frame` |
+| **11** | [`72j-open-the-plane-chooser-and-collect-its-frame`](#checkpoint-72j-open-the-plane-chooser-and-collect-its-frame) | Open the plane chooser and collect its frame. | `src/editor.rs`, `src/drawing_input.rs` | `chooser → separate three points → checked fixed frame` |
+| **12** | [`72k-resolve-typed-input-against-the-current-draft`](#checkpoint-72k-resolve-typed-input-against-the-current-draft) | Resolve typed input against the current draft. | `src/editor.rs` | `current draft → typed batch → checked points → completed result` |
+| **13** | [`72l-finish-open-tools-with-enter-and-route-typed-forms`](#checkpoint-72l-finish-open-tools-with-enter-and-route-typed-forms) | Finish open tools with Enter and route typed forms. | `src/editor.rs` | `draft command input → coordinate action or finish → one transaction` |
+| **14** | [`72m-validate-complete-drawing-commands-before-adoption`](#checkpoint-72m-validate-complete-drawing-commands-before-adoption) | Validate complete drawing commands before adoption. | `src/editor.rs` | `direct command text → checked original points → complete or partial draft` |
+| **15** | [`72n-close-original-polylines-as-one-transaction`](#checkpoint-72n-close-original-polylines-as-one-transaction) | Close original polylines as one transaction. | `src/editor.rs`, `src/tool.rs` | `original first point → validated closing segment → one completed polyline` |
+| **16** | [`72o-snap-draft-starts-and-use-the-construction-frame-grid`](#checkpoint-72o-snap-draft-starts-and-use-the-construction-frame-grid) | Snap draft starts and use the construction frame grid. | `src/editor.rs` | `object targets or own start → current plane fallback → plane-axis grid` |
+| **17** | [`72p-register-current-drawing-commands-and-plane-choices`](#checkpoint-72p-register-current-drawing-commands-and-plane-choices) | Register current drawing commands and plane choices. | `src/commands.rs` | `command name → drawing action → checked original result` |
+| **18** | [`72q-preview-accepted-segments-without-committing-originals`](#checkpoint-72q-preview-accepted-segments-without-committing-originals) | Preview accepted segments without committing originals. | `src/tool_preview.rs`, `src/browser.rs` | `unfinished original points → temporary strokes → current prompt` |
+| **19** | [`72r-expose-original-drawing-coordinates-and-cancellation-state`](#checkpoint-72r-expose-original-drawing-coordinates-and-cancellation-state) | Expose original drawing coordinates and cancellation state. | `src/browser.rs`, `src/editor.rs` | `original coordinates → current diagnostic state → explicit draft retirement` |
+| **20** | [`72s-exercise-current-drawing-tools-and-original-persistence`](#checkpoint-72s-exercise-current-drawing-tools-and-original-persistence) | Exercise current drawing tools and original persistence. | `src/drawing_tests.rs`, `src/lib.rs` | `current typed tools → original drawing → one history transaction → exact reopening` |
+
+---
+
+## 4. Step-by-Step Coding Notebook (Concept + Implementation)
+
+Work through each notebook cell below in order inside `workspace/journey`. Read the **Concept Walkthrough** and **Self-Check Q&A** first, then expand the **Implementation** block to type and verify the code.
 
 <a id="checkpoint-72-copy-current-construction-planes-and-coordinate-forms"></a>
+
+### Step 1 of 20 · Place original coordinates in the selected plane (`72-copy-current-construction-planes-and-coordinate-forms`)
+
+- **Goal:** Complete absolute coordinates, offsets and point placement with the original construction-plane rules.
+- **Data Flow Trace:** `original frame → parsed coordinates → world drawing point`
+- **Files You Touch:** `src/drawing_coords.rs` (*Extend this original owner with the day’s complete input helpers.*)
+
+Complete absolute coordinates, offsets and point placement with the original construction-plane rules. Reuse the existing parser and resolver, transform plane axes once, and honor the world prefix without changing the selected plane. The following input bridge connects these prepared helpers.
+
+> **Self-Check Question:** *Why keep the world prefix local to one input?*  
+> **Answer:** It changes how that coordinate is interpreted. It should not change the construction plane used by later drawing inputs.
+
+- **What You Should See:** The original plan remains visible while the drawing tools gain current construction planes and typed coordinates. The completed exercise draws original points, lines and polylines.
+- **Hands-On Lab Experiment:** Compare plane coordinates with a world-prefixed input and trace a relative offset through the selected axes.
 
 <details>
 <summary>Implementation 72-copy-current-construction-planes-and-coordinate-forms: Place original coordinates in the selected plane</summary>
@@ -418,6 +492,19 @@ After that block, append this supplied code:
 
 <a id="checkpoint-72a-resolve-bounded-typed-batches-in-the-current-plane"></a>
 
+### Step 2 of 20 · Resolve bounded typed batches in the current plane (`72a-resolve-bounded-typed-batches-in-the-current-plane`)
+
+- **Goal:** Resolve bounded typed batches in the current plane.
+- **Data Flow Trace:** `typed words → current fixed context → checked world points`
+- **Files You Touch:** `src/drawing_input.rs` (*Resolve current coordinate forms atomically before changing the draft.*) · `src/lib.rs` (*Register the drawing component.*)
+
+Validate every coordinate before changing draft points; derive scalar distance from the current cursor direction.
+
+> **Self-Check Question:** *Can a later bad word leave earlier points committed?*  
+> **Answer:** No. Resolve the complete batch first, then accept it as one draft change.
+
+- **Hands-On Lab Experiment:** Try @1,0 without a previous point,5 without a cursor,NaN, and a batch exceeding4096 points.
+
 <details>
 <summary>Implementation 72a-resolve-bounded-typed-batches-in-the-current-plane: Resolve bounded typed batches in the current plane</summary>
 
@@ -459,6 +546,19 @@ After that block, type:
 
 <a id="checkpoint-72b-place-clicks-on-stable-construction-planes"></a>
 
+### Step 3 of 20 · Place clicks on stable construction planes (`72b-place-clicks-on-stable-construction-planes`)
+
+- **Goal:** Place clicks on stable construction planes.
+- **Data Flow Trace:** `screen ray → stable depth → construction-plane point`
+- **Files You Touch:** `src/drawing_input.rs` (*Resolve finite construction-plane clicks and retain their original doubles.*)
+
+Intersect the camera ray or project its view-depth point when the plane is seen edge-on.
+
+> **Self-Check Question:** *Why project an edge-on ray?*  
+> **Answer:** A nearly parallel ray gives an unstable intersection. Project its point at the view depth onto the construction plane.
+
+- **Hands-On Lab Experiment:** Compare top-plane clicks, edge-on XZ clicks, clipped rays and a plane through the previous point.
+
 <details>
 <summary>Implementation 72b-place-clicks-on-stable-construction-planes: Place clicks on stable construction planes</summary>
 
@@ -488,6 +588,19 @@ After that block, type:
 </details>
 
 <a id="checkpoint-72c-name-the-construction-plane-chooser-options"></a>
+
+### Step 4 of 20 · Name the construction plane chooser options (`72c-name-the-construction-plane-chooser-options`)
+
+- **Goal:** Name the construction plane chooser options.
+- **Data Flow Trace:** `choice word → plane action → prompt buttons`
+- **Files You Touch:** `src/drawing_input.rs` (*Describe current construction-plane options without silently changing a plane.*)
+
+Keep XY, XZ, YZ,3 Point,View and Cancel in one typed option table.
+
+> **Self-Check Question:** *Should bare CPlane silently select XY?*  
+> **Answer:** No. It opens the chooser. An explicit option sets the fixed plane or restores View mode.
+
+- **Hands-On Lab Experiment:** Inspect command strings for each option; their Editor actions connect after the draft state.
 
 <details>
 <summary>Implementation 72c-name-the-construction-plane-chooser-options: Name the construction plane chooser options</summary>
@@ -519,6 +632,19 @@ After that block, type:
 </details>
 
 <a id="checkpoint-72d-add-original-polylines-to-the-point-tool"></a>
+
+### Step 5 of 20 · Add original polylines to the point tool (`72d-add-original-polylines-to-the-point-tool`)
+
+- **Goal:** Add original polylines to the point tool.
+- **Data Flow Trace:** `original points → original Polyline → derived chain`
+- **Files You Touch:** `src/tool.rs` (*Prepare original bounded polylines beside existing point, line and Move tools.*) · `src/drawing_input.rs` (*Share the same original point cap with coordinate parsing.*) · `src/editor.rs` (*Adopt a completed original polyline through the existing history transaction.*)
+
+Reuse original point collection and prepare one kernel Polyline after enough distinct points exist.
+
+> **Self-Check Question:** *Does a polyline have a fixed point count?*  
+> **Answer:** No. Zero means an open collector; Enter or Close completes it after at least two points.
+
+- **Hands-On Lab Experiment:** Compare fixed Point and Line counts with the bounded open Polyline collector.
 
 <details>
 <summary>Implementation 72d-add-original-polylines-to-the-point-tool: Add original polylines to the point tool</summary>
@@ -723,6 +849,19 @@ Edit the existing block to match this code; keep unchanged lines:
 
 <a id="checkpoint-72e-keep-construction-frames-and-plane-points-in-drafts"></a>
 
+### Step 6 of 20 · Keep construction frames and plane points in drafts (`72e-keep-construction-frames-and-plane-points-in-drafts`)
+
+- **Goal:** Keep construction frames and plane points in drafts.
+- **Data Flow Trace:** `draft frame → plane-point collector → original point collector`
+- **Files You Touch:** `src/tool.rs` (*Own separate construction-plane points and current drawing prompts.*)
+
+Retain one frame and a separate three-point collector; neither changes original geometry during preview.
+
+> **Self-Check Question:** *Are the three plane points also polyline vertices?*  
+> **Answer:** No. They define the input frame and leave the accepted original shape points unchanged.
+
+- **Hands-On Lab Experiment:** Inspect fixed-count and open-tool prompts, cursor reset and separate plane-point progress.
+
 <details>
 <summary>Implementation 72e-keep-construction-frames-and-plane-points-in-drafts: Keep construction frames and plane points in drafts</summary>
 
@@ -762,6 +901,19 @@ Edit the existing block to match this code; keep unchanged lines:
 
 <a id="checkpoint-72f-replay-finished-drafts-with-explicit-world-prefixes"></a>
 
+### Step 7 of 20 · Replay finished drafts with explicit world prefixes (`72f-replay-finished-drafts-with-explicit-world-prefixes`)
+
+- **Goal:** Replay finished drafts with explicit world prefixes.
+- **Data Flow Trace:** `accepted world points → explicit w command → original geometry`
+- **Files You Touch:** `src/tool.rs` (*Validate bounded batches and preserve original world positions through finished-command replay.*)
+
+Write every finished original point with w before reparsing it under the active fixed plane.
+
+> **Self-Check Question:** *What happens without the world prefix?*  
+> **Answer:** A translated or tilted fixed plane transforms already placed points a second time. The latest maintained commit prevents that.
+
+- **Hands-On Lab Experiment:** Compare Line w4,5,6 w9,8,7 with unprefixed local coordinates under a translated three-point frame.
+
 <details>
 <summary>Implementation 72f-replay-finished-drafts-with-explicit-world-prefixes: Replay finished drafts with explicit world prefixes</summary>
 
@@ -800,6 +952,19 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-72g-own-the-fixed-construction-plane-in-the-editor"></a>
+
+### Step 8 of 20 · Own the fixed construction plane in the editor (`72g-own-the-fixed-construction-plane-in-the-editor`)
+
+- **Goal:** Own the fixed construction plane in the editor.
+- **Data Flow Trace:** `Editor plane → current parse context → draft frame`
+- **Files You Touch:** `src/editor.rs` (*Retain the current fixed plane and chooser with the owning Editor.*)
+
+Keep the plane chooser and standalone plane collection beside the current Editor.
+
+> **Self-Check Question:** *Can another Editor leak its plane into this one?*  
+> **Answer:** Synchronize the maintained coordinate context from the owning Editor before each parse and finished replay.
+
+- **Hands-On Lab Experiment:** Compare two Editors with different fixed planes and original point coordinates.
 
 <details>
 <summary>Implementation 72g-own-the-fixed-construction-plane-in-the-editor: Own the fixed construction plane in the editor</summary>
@@ -1662,6 +1827,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-72h-commit-completed-original-geometry-exactly-once"></a>
 
+### Step 9 of 20 · Commit completed original geometry exactly once (`72h-commit-completed-original-geometry-exactly-once`)
+
+- **Goal:** Commit completed original geometry exactly once.
+- **Data Flow Trace:** `validated Built → original insertion → one Undo entry`
+- **Files You Touch:** `src/editor.rs` (*Commit completed originals once and preserve the existing Move preview contract.*)
+
+Separate the validated tool result from its one history transaction; Move keeps its existing placement preview.
+
+> **Self-Check Question:** *Does cursor movement belong in history?*  
+> **Answer:** No. Only the completed original geometry or placement is committed. A cancelled draft preserves the existing Redo branch.
+
+- **Hands-On Lab Experiment:** Compare original point/line/polyline insertion with the existing Move placement preview.
+
 <details>
 <summary>Implementation 72h-commit-completed-original-geometry-exactly-once: Commit completed original geometry exactly once</summary>
 
@@ -1711,6 +1889,19 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-72i-change-fixed-planes-without-rewriting-accepted-points"></a>
+
+### Step 10 of 20 · Change fixed planes without rewriting accepted points (`72i-change-fixed-planes-without-rewriting-accepted-points`)
+
+- **Goal:** Change fixed planes without rewriting accepted points.
+- **Data Flow Trace:** `plane option → current Editor plane → current draft frame`
+- **Files You Touch:** `src/editor.rs` (*Set fixed or View input frames while retaining original accepted points.*)
+
+Add explicit fixed-plane and View actions; reset the hover while keeping accepted original world points.
+
+> **Self-Check Question:** *Should switching XY to XZ move accepted draft vertices?*  
+> **Answer:** No. Existing vertices are already world points. Only subsequent input uses the changed plane.
+
+- **Hands-On Lab Experiment:** Change plane midway through a Line and compare its first saved endpoint before and after.
 
 <details>
 <summary>Implementation 72i-change-fixed-planes-without-rewriting-accepted-points: Change fixed planes without rewriting accepted points</summary>
@@ -2651,6 +2842,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-72j-open-the-plane-chooser-and-collect-its-frame"></a>
+
+### Step 11 of 20 · Open the plane chooser and collect its frame (`72j-open-the-plane-chooser-and-collect-its-frame`)
+
+- **Goal:** Open the plane chooser and collect its frame.
+- **Data Flow Trace:** `chooser → separate three points → checked fixed frame`
+- **Files You Touch:** `src/editor.rs` (*Open current plane options and collect a checked frame without committing scene geometry.*) · `src/drawing_input.rs` (*Connect the shared point cap and current construction-plane actions.*)
+
+Bare CPlane opens the choices;3 Point uses separate points and can continue an existing drawing.
+
+> **Self-Check Question:** *Does defining a plane create a scene object?*  
+> **Answer:** No. It changes input state and adds no geometry or Undo transaction.
+
+- **Hands-On Lab Experiment:** Choose3 Point before drawing, then midway through a Line; reject collinear points.
 
 <details>
 <summary>Implementation 72j-open-the-plane-chooser-and-collect-its-frame: Open the plane chooser and collect its frame</summary>
@@ -3643,6 +3847,19 @@ Edit the existing block to match this code; keep unchanged lines:
 
 <a id="checkpoint-72k-resolve-typed-input-against-the-current-draft"></a>
 
+### Step 12 of 20 · Resolve typed input against the current draft (`72k-resolve-typed-input-against-the-current-draft`)
+
+- **Goal:** Resolve typed input against the current draft.
+- **Data Flow Trace:** `current draft → typed batch → checked points → completed result`
+- **Files You Touch:** `src/editor.rs` (*Resolve typed batches before mutating the current original-point collector.*)
+
+Use accepted points, hover direction and the current fixed plane to resolve one atomic coordinate batch.
+
+> **Self-Check Question:** *Can distance input infer a direction without hover?*  
+> **Answer:** No. It needs a previous point and cursor direction. Relative input needs a previous point; polar input uses the current axes.
+
+- **Hands-On Lab Experiment:** Try1,2,3, @1,0,5<90 and5 after moving the cursor, then a malformed batch.
+
 <details>
 <summary>Implementation 72k-resolve-typed-input-against-the-current-draft: Resolve typed input against the current draft</summary>
 
@@ -3674,6 +3891,19 @@ After that block, type:
 </details>
 
 <a id="checkpoint-72l-finish-open-tools-with-enter-and-route-typed-forms"></a>
+
+### Step 13 of 20 · Finish open tools with Enter and route typed forms (`72l-finish-open-tools-with-enter-and-route-typed-forms`)
+
+- **Goal:** Finish open tools with Enter and route typed forms.
+- **Data Flow Trace:** `draft command input → coordinate action or finish → one transaction`
+- **Files You Touch:** `src/editor.rs` (*Route current coordinate forms and finish only validated open drafts.*)
+
+Recognize current coordinate forms during a draft; Enter finishes an open collector and Escape cancels.
+
+> **Self-Check Question:** *Does an invalid finish discard the draft?*  
+> **Answer:** No. Keep accepted points so the learner can add missing vertices or cancel explicitly.
+
+- **Hands-On Lab Experiment:** Start Polyline, add one point and press Enter; then add a second and finish.
 
 <details>
 <summary>Implementation 72l-finish-open-tools-with-enter-and-route-typed-forms: Finish open tools with Enter and route typed forms</summary>
@@ -4660,6 +4890,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-72m-validate-complete-drawing-commands-before-adoption"></a>
 
+### Step 14 of 20 · Validate complete drawing commands before adoption (`72m-validate-complete-drawing-commands-before-adoption`)
+
+- **Goal:** Validate complete drawing commands before adoption.
+- **Data Flow Trace:** `direct command text → checked original points → complete or partial draft`
+- **Files You Touch:** `src/editor.rs` (*Validate direct current-plane coordinate commands before changing the current draft.*)
+
+Resolve direct Point, Line and Polyline arguments before replacing draft state or committing originals.
+
+> **Self-Check Question:** *Can a bad direct command clear a valid draft?*  
+> **Answer:** No. Validate its full coordinate batch and original construction first.
+
+- **Hands-On Lab Experiment:** Compare Line1,2 @3,4 with the same two inputs in an interactive Line draft.
+
 <details>
 <summary>Implementation 72m-validate-complete-drawing-commands-before-adoption: Validate complete drawing commands before adoption</summary>
 
@@ -5619,6 +5862,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-72n-close-original-polylines-as-one-transaction"></a>
+
+### Step 15 of 20 · Close original polylines as one transaction (`72n-close-original-polylines-as-one-transaction`)
+
+- **Goal:** Close original polylines as one transaction.
+- **Data Flow Trace:** `original first point → validated closing segment → one completed polyline`
+- **Files You Touch:** `src/editor.rs` (*Close original polylines without adding intermediate history transactions.*) · `src/tool.rs` (*Offer Close only for the open Polyline tool.*)
+
+Append the original first point only after validating Close; allow own-start clicks to finish the same tool.
+
+> **Self-Check Question:** *Can two vertices form a closed polygon?*  
+> **Answer:** No. Close needs at least three accepted points and room under the point cap.
+
+- **Hands-On Lab Experiment:** Type three points and Close, then Undo/Redo; compare the exact first and last original coordinates.
 
 <details>
 <summary>Implementation 72n-close-original-polylines-as-one-transaction: Close original polylines as one transaction</summary>
@@ -6678,6 +6934,19 @@ Edit the existing block to match this code; keep unchanged lines:
 
 <a id="checkpoint-72o-snap-draft-starts-and-use-the-construction-frame-grid"></a>
 
+### Step 16 of 20 · Snap draft starts and use the construction frame grid (`72o-snap-draft-starts-and-use-the-construction-frame-grid`)
+
+- **Goal:** Snap draft starts and use the construction frame grid.
+- **Data Flow Trace:** `object targets or own start → current plane fallback → plane-axis grid`
+- **Files You Touch:** `src/editor.rs` (*Snap current original targets and place finite free points on the current construction frame.*)
+
+Reuse object targets, prefer the open draft’s start and place free clicks through the current plane.
+
+> **Self-Check Question:** *Does the grid snap use world XY for every plane?*  
+> **Answer:** No. Round along the current plane axes and its origin; preserve the fixed plane or previous View-mode depth.
+
+- **Hands-On Lab Experiment:** Compare XZ grid placement with own-start closure and source-target snapping.
+
 <details>
 <summary>Implementation 72o-snap-draft-starts-and-use-the-construction-frame-grid: Snap draft starts and use the construction frame grid</summary>
 
@@ -6710,6 +6979,19 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-72p-register-current-drawing-commands-and-plane-choices"></a>
+
+### Step 17 of 20 · Register current drawing commands and plane choices (`72p-register-current-drawing-commands-and-plane-choices`)
+
+- **Goal:** Register current drawing commands and plane choices.
+- **Data Flow Trace:** `command name → drawing action → checked original result`
+- **Files You Touch:** `src/commands.rs` (*Register current original drawing tools, direct coordinates and explicit construction-plane choices.*)
+
+Connect the complete typed and interactive tools to the existing command registry.
+
+> **Self-Check Question:** *Should Line arguments be silently ignored?*  
+> **Answer:** No. Parse them as drawing input. Bare Line starts collection; bare CPlane opens options.
+
+- **Hands-On Lab Experiment:** Type CPlane, CPlane XZ, Point w1,2,3 and Polyline w0,0 w1,0 w1,1.
 
 <details>
 <summary>Implementation 72p-register-current-drawing-commands-and-plane-choices: Register current drawing commands and plane choices</summary>
@@ -6958,6 +7240,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-72q-preview-accepted-segments-without-committing-originals"></a>
 
+### Step 18 of 20 · Preview accepted segments without committing originals (`72q-preview-accepted-segments-without-committing-originals`)
+
+- **Goal:** Preview accepted segments without committing originals.
+- **Data Flow Trace:** `unfinished original points → temporary strokes → current prompt`
+- **Files You Touch:** `src/tool_preview.rs` (*Preview accepted draft segments and cursor motion without scene or history changes.*) · `src/browser.rs` (*Connect the current construction-plane chooser and drawing controls.*)
+
+Draw temporary accepted segments plus the current cursor; connect the chooser and original-coordinate diagnostics.
+
+> **Self-Check Question:** *Do preview segments appear in Save or Undo?*  
+> **Answer:** No. They are derived temporary display. The scene receives only the completed original geometry.
+
+- **Hands-On Lab Experiment:** Add several Polyline points and move the cursor; inspect the original scene before Enter.
+
 <details>
 <summary>Implementation 72q-preview-accepted-segments-without-committing-originals: Preview accepted segments without committing originals</summary>
 
@@ -7014,6 +7309,19 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-72r-expose-original-drawing-coordinates-and-cancellation-state"></a>
+
+### Step 19 of 20 · Expose original drawing coordinates and cancellation state (`72r-expose-original-drawing-coordinates-and-cancellation-state`)
+
+- **Goal:** Expose original drawing coordinates and cancellation state.
+- **Data Flow Trace:** `original coordinates → current diagnostic state → explicit draft retirement`
+- **Files You Touch:** `src/browser.rs` (*Expose precise original drawing coordinates and current fixed-plane chooser state.*) · `src/editor.rs` (*Retire current plane collection and chooser state with draft cancellation and scene replacement.*)
+
+Report precise original points beside derived display and retire unfinished plane tools with Cancel or Close.
+
+> **Self-Check Question:** *Does a displayed f32 vertex prove the saved coordinate?*  
+> **Answer:** No. Compare original doubles directly, including world-prefixed endpoints after a fixed-plane draft.
+
+- **Hands-On Lab Experiment:** Inspect original point, line and polyline coordinates after Save/Open and after changing the fixed plane.
 
 <details>
 <summary>Implementation 72r-expose-original-drawing-coordinates-and-cancellation-state: Expose original drawing coordinates and cancellation state</summary>
@@ -8141,6 +8449,20 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-72s-exercise-current-drawing-tools-and-original-persistence"></a>
 
+### Step 20 of 20 · Exercise current drawing tools and original persistence (`72s-exercise-current-drawing-tools-and-original-persistence`)
+
+- **Goal:** Exercise current drawing tools and original persistence.
+- **Data Flow Trace:** `current typed tools → original drawing → one history transaction → exact reopening`
+- **Files You Touch:** `src/drawing_tests.rs` (*Copy precise current drawing, fixed-plane replay, bounded input and history fixtures.*) · `src/lib.rs` (*Register the drawing component.*)
+
+Copy translated-plane replay, coordinate forms, open/closed polyline and original Save/Open regression fixtures.
+
+> **Self-Check Question:** *Which regression proves the latest world-prefix fix?*  
+> **Answer:** A picked endpoint under a translated or tilted fixed plane must remain identical after finished-command replay and Save/Open.
+
+- **What You Should See:** Original Point, Line and Polyline geometry renders on white. Interactive drafts share current fixed-plane and typed-coordinate rules; completed commands retain explicit world prefixes. Polyline Enter/Close commits once, and exact original coordinates survive Undo/Redo and Save/Open.
+- **Hands-On Lab Experiment:** Type Close, CPlane XY, Line w-0.75,-0.4,0 w0.75,-0.4,0, Polyline w-0.6,0,0 w0,0.6,0 w0.6,0,0, Point w0,0.3,0 and Fit. Try H/S/F, Delete and Undo/Redo on the created originals.
+
 <details>
 <summary>Implementation 72s-exercise-current-drawing-tools-and-original-persistence: Exercise current drawing tools and original persistence</summary>
 
@@ -8194,9 +8516,11 @@ After that block, append this supplied code:
 
 </details>
 
-## Run, Check, and Save
+---
 
-From `session_viewer`:
+## 5. Build, Verify, and Save Your Checkpoint
+
+Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 72s-exercise-current-drawing-tools-and-original-persistence
@@ -8207,12 +8531,12 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. Use [checkpoint recovery](../../recovery.md) to restore any saved checkpoint.
+Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
 
-## Expected Visual Result & Experiment
+## 6. Lesson Summary & Expected Visual Result
 
 Original Point, Line and Polyline geometry renders on white. Interactive drafts share current fixed-plane and typed-coordinate rules; completed commands retain explicit world prefixes. Polyline Enter/Close commits once, and exact original coordinates survive Undo/Redo and Save/Open.
 
-- **Try this:** Type Close, CPlane XY, Line w-0.75,-0.4,0 w0.75,-0.4,0, Polyline w-0.6,0,0 w0,0.6,0 w0.6,0,0, Point w0,0.3,0 and Fit. Try H/S/F, Delete and Undo/Redo on the created originals.
+- **Final Lesson Experiment:** Type Close, CPlane XY, Line w-0.75,-0.4,0 w0.75,-0.4,0, Polyline w-0.6,0,0 w0,0.6,0 w0.6,0,0, Point w0,0.3,0 and Fit. Try H/S/F, Delete and Undo/Redo on the created originals.
 
-Continue with [Planar boundaries and checked solid foundations](73-construct-rectangles-and-polygons-in-plane-axes.md).
+Continue with [Planar boundaries and checked solid foundations](../../consolidation/73-construct-rectangles-and-polygons-in-plane-axes.md).

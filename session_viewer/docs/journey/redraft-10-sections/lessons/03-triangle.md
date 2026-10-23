@@ -1,94 +1,182 @@
 # Shaders and the command dock
 
-**Section 1: WebGPU Foundations, Shaders, and the Command Dock** · **Lesson 1.3** (Redraft `1.3`) · **25 checkpoints (`03-triangle` → `03d-input`)**
+**Section 1: WebGPU Foundations, Shaders, and the Command Dock** · **Lesson 1.3** (Redraft `1.3`) · **25 checkpoints (`03-triangle` → `03d-input`)** · **Study time: 16.75–32 h**
 
-> **Learning Goal:** Draw a pink triangle on the white background.
+> **What You Will Learn & Build:** Draw a pink triangle on the white background. By the final checkpoint (`03d-input`), you will return accepted commands while keeping editing inside Panel.
 
-## Visual WebGPU & Architecture Schematic
+## 1. Visual Pipeline & WebGPU Architecture (Black & White Schematics)
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1px solid #cbd5e1;border-radius:10px;background:#f8fafc;">
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
+<svg viewBox="0 0 840 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <rect x="4" y="4" width="832" height="212" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Lesson 1.3 Execution Flow: Shaders and the command dock</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">Concrete data pipeline you build in this lesson (25 Checkpoints: 03-triangle → 03d-input)</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
+  
+    
+    <rect x="18" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="89" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
+    <line x1="28" y1="92" x2="151" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">Three shader</text>
+    <text x="89" y="124" text-anchor="middle" font-size="11" fill="#111111">positions</text>
+    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="183" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="254" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
+    <line x1="193" y1="92" x2="316" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">triangle coverage</text>
+    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="348" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="419" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
+    <line x1="358" y1="92" x2="481" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">fragment colour</text>
+    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="513" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="584" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
+    <line x1="523" y1="92" x2="646" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">canvas</text>
+    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="678" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="749" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
+    <line x1="688" y1="92" x2="811" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">Return accepted</text>
+    <text x="749" y="124" text-anchor="middle" font-size="11" fill="#111111">commands while</text>
+    <text x="749" y="140" text-anchor="middle" font-size="11" fill="#111111">keeping…</text>
+    
+    <rect x="18" y="162" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="32" y="181" font-size="11" font-weight="700" fill="#111111">Files You Edit in Lesson 1.3:</text>
+    <text x="215" y="181" font-size="11" fill="#111111">src/triangle.wgsl  ·  src/renderer.rs  ·  src/browser.rs  ·  Cargo.toml  ·  src/panel.rs  ·  src/lib.rs</text>
+    <text x="32" y="198" font-size="10.5" fill="#111111">25 Checkpoints: 03-triangle → 03d-input — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
+  
+</svg>
+</div>
+
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
 <svg viewBox="0 0 840 240" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#475569"/>
-    </marker>
-    <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#2563eb"/>
-    </marker>
-    <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#059669"/>
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
     </marker>
   </defs>
-  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
-  <text x="20" y="28" font-size="14" font-weight="700" fill="#0f172a">Chapter 1 WebGPU Architecture: Surface → CommandEncoder → Scene Pass (Clear) + UI Pass (Load)</text>
-  <text x="20" y="46" font-size="11.5" fill="#475569">Why two passes share one GPU TextureView: Pass 1 clears & draws the 3D scene; Pass 2 loads existing pixels and overlays the Command Dock.</text>
-  <line x1="16" y1="54" x2="824" y2="54" stroke="#e2e8f0" stroke-width="1"/>
+  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Chapter 1 WebGPU Architecture: Surface → CommandEncoder → Scene Pass (Clear) + UI Pass (Load)</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">Why two passes share one GPU TextureView: Pass 1 clears & draws the 3D scene; Pass 2 loads existing pixels and overlays the Command Dock.</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
   
     <!-- Box 1: HTML Canvas -->
-    <rect x="18" y="68" width="160" height="145" rx="6" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
-    <text x="98" y="88" text-anchor="middle" font-size="12" font-weight="700" fill="#1e40af">1. Browser (HTML/JS)</text>
-    <text x="30" y="110" font-size="11" fill="#1e3a8a">• &lt;canvas id="canvas"&gt;</text>
-    <text x="30" y="128" font-size="11" fill="#1e3a8a">• Pointer / Key Events</text>
-    <text x="30" y="146" font-size="11" fill="#1e3a8a">• Surface TextureView</text>
-    <text x="30" y="164" font-size="11" font-weight="600" fill="#1d4ed8">• frame.present()</text>
-    <text x="30" y="192" font-size="10.5" fill="#475569">Format: Bgra8UnormSrgb</text>
+    <rect x="18" y="68" width="160" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="98" y="88" text-anchor="middle" font-size="12" font-weight="700" fill="#111111">1. Browser (HTML/JS)</text>
+    <text x="30" y="110" font-size="11" fill="#111111">• &lt;canvas id="canvas"&gt;</text>
+    <text x="30" y="128" font-size="11" fill="#111111">• Pointer / Key Events</text>
+    <text x="30" y="146" font-size="11" fill="#111111">• Surface TextureView</text>
+    <text x="30" y="164" font-size="11" font-weight="600" fill="#111111">• frame.present()</text>
+    <text x="30" y="192" font-size="10.5" fill="#111111">Format: Bgra8UnormSrgb</text>
 
-    <line x1="178" y1="125" x2="208" y2="125" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
+    <line x1="178" y1="125" x2="208" y2="125" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
     <!-- Box 2: Rust CPU Owner -->
-    <rect x="210" y="68" width="215" height="145" rx="6" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5"/>
-    <text x="317" y="88" text-anchor="middle" font-size="12" font-weight="700" fill="#9a3412">2. Rust / WASM (CPU Owner)</text>
-    <text x="222" y="108" font-size="11" fill="#7c2d12">• Adapter.request_device().await</text>
-    <text x="222" y="126" font-size="11" fill="#7c2d12">• Panel::update(event) -&gt; Command</text>
-    <text x="222" y="144" font-size="11" fill="#7c2d12">• let mut enc = create_encoder()</text>
-    <text x="222" y="162" font-size="11" font-weight="600" fill="#c2410c">• { let pass = enc.begin_...(); }</text>
-    <text x="222" y="180" font-size="10.5" fill="#9a3412">  (Braces end &amp;mut borrow!)</text>
-    <text x="222" y="198" font-size="11" font-weight="600" fill="#7c2d12">• queue.submit([enc.finish()])</text>
+    <rect x="210" y="68" width="215" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="317" y="88" text-anchor="middle" font-size="12" font-weight="700" fill="#111111">2. Rust / WASM (CPU Owner)</text>
+    <text x="222" y="108" font-size="11" fill="#111111">• Adapter.request_device().await</text>
+    <text x="222" y="126" font-size="11" fill="#111111">• Panel::update(event) -&gt; Command</text>
+    <text x="222" y="144" font-size="11" fill="#111111">• let mut enc = create_encoder()</text>
+    <text x="222" y="162" font-size="11" font-weight="600" fill="#111111">• { let pass = enc.begin_...(); }</text>
+    <text x="222" y="180" font-size="10.5" fill="#111111">  (Braces end &amp;mut borrow!)</text>
+    <text x="222" y="198" font-size="11" font-weight="600" fill="#111111">• queue.submit([enc.finish()])</text>
 
-    <line x1="425" y1="108" x2="458" y2="108" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>
-    <line x1="425" y1="172" x2="458" y2="172" stroke="#059669" stroke-width="2" marker-end="url(#arrow-green)"/>
+    <line x1="425" y1="108" x2="458" y2="108" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
+    <line x1="425" y1="172" x2="458" y2="172" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
     <!-- Box 3: GPU Pass 1 -->
-    <rect x="460" y="68" width="360" height="68" rx="6" fill="#fdf2f8" stroke="#f472b6" stroke-width="1.5"/>
-    <text x="472" y="86" font-size="11.5" font-weight="700" fill="#9d174d">3A. GPU RenderPass #1 — Scene (LoadOp::Clear)</text>
-    <text x="472" y="104" font-size="11" fill="#831843">• @vertex fn vertex(@builtin(vertex_index) i: u32) -&gt; clip (-1..+1)</text>
-    <text x="472" y="122" font-size="11" fill="#831843">• @fragment fn fragment() -&gt; @location(0) vec4f (Pink Triangle)</text>
+    <rect x="460" y="68" width="360" height="68" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="472" y="86" font-size="11.5" font-weight="700" fill="#111111">3A. GPU RenderPass #1 — Scene (LoadOp::Clear)</text>
+    <text x="472" y="104" font-size="11" fill="#111111">• @vertex fn vertex(@builtin(vertex_index) i: u32) -&gt; clip (-1..+1)</text>
+    <text x="472" y="122" font-size="11" fill="#111111">• @fragment fn fragment() -&gt; @location(0) vec4f (Scene Triangle)</text>
 
     <!-- Box 4: GPU Pass 2 -->
-    <rect x="460" y="145" width="360" height="68" rx="6" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1.5"/>
-    <text x="472" y="163" font-size="11.5" font-weight="700" fill="#065f46">3B. GPU RenderPass #2 — Command Dock (LoadOp::Load)</text>
-    <text x="472" y="181" font-size="11" fill="#064e3b">• Keeps Pass #1 pixels! Uploads Noto Font Atlas glyph changes</text>
-    <text x="472" y="199" font-size="11" fill="#064e3b">• egui_wgpu::Renderer draws Command: prompt + completions on top</text>
+    <rect x="460" y="145" width="360" height="68" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="472" y="163" font-size="11.5" font-weight="700" fill="#111111">3B. GPU RenderPass #2 — Command Dock (LoadOp::Load)</text>
+    <text x="472" y="181" font-size="11" fill="#111111">• Keeps Pass #1 pixels! Uploads Noto Font Atlas glyph changes</text>
+    <text x="472" y="199" font-size="11" fill="#111111">• egui_wgpu::Renderer draws Command: prompt + completions on top</text>
     
 </svg>
 </div>
 
-### Lesson Data Flow (`Rust` → `WebGPU` → `WGSL`)
+## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
 
-```
-Draw a pink triangle on the white background.
-```
+Before writing code, review how the three layers in this chapter talk to each other:
 
-- Draw a pink triangle on the white background.
-- Use Tab, Enter and Escape without losing input ownership.
-- Return accepted commands while keeping editing inside Panel.
-- **Why it works (If you change the top vertex, which part of the picture changes, and which stays the same?):** The triangle silhouette changes because its corner positions changed. The surrounding white stays the same: the render pass clears the background before drawing the triangle.
-
-### Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `Browser`)
-
-| Layer | Construct | First-Year Student Explanation |
+| Layer | Construct | Plain-English Explanation for Students |
 | :--- | :--- | :--- |
 | **HTML / CSS** | `<canvas id="canvas">` | Full-window browser drawing surface; CSS `width/height: 100%` fills the viewport while Rust synchronizes physical pixel dimensions. |
 | **Rust (`wgpu`)** | `CommandEncoder` + `{ begin_render_pass(...) }` | Records GPU commands on the CPU. Scoping Pass #1 (`LoadOp::Clear`) in `{ ... }` releases the mutable borrow so Pass #2 (`LoadOp::Load`, Command Dock UI) can draw on top. |
 | **WGSL Shader** | `@vertex` & `@fragment` (`@builtin(vertex_index)`) | GPU stages that compute clip-space coordinates `(-1..+1)` and RGBA pixel colors in parallel across GPU cores. |
 
-**Production source (`session_viewer/src`):** [`lib.rs`](../../../../src/lib.rs), [`engine/pipelines/mod.rs`](../../../../src/engine/pipelines/mod.rs), [`command_dock/mod.rs`](../../../../src/command_dock/mod.rs), [`view.rs`](../../../../src/command_dock/view.rs), [`theme.rs`](../../../../src/command_dock/theme.rs), [`app/ui/command_line.rs`](../../../../src/app/ui/command_line.rs), [`app/ui/mod.rs`](../../../../src/app/ui/mod.rs), [`engine/gpu/ui.rs`](../../../../src/engine/gpu/ui.rs)
+**Authoritative production source (`session_viewer/src`):** [`lib.rs`](../../../../src/lib.rs), [`engine/pipelines/mod.rs`](../../../../src/engine/pipelines/mod.rs), [`command_dock/mod.rs`](../../../../src/command_dock/mod.rs), [`view.rs`](../../../../src/command_dock/view.rs), [`theme.rs`](../../../../src/command_dock/theme.rs), [`app/ui/command_line.rs`](../../../../src/app/ui/command_line.rs), [`app/ui/mod.rs`](../../../../src/app/ui/mod.rs), [`engine/gpu/ui.rs`](../../../../src/engine/gpu/ui.rs)
 
-## Implementation Checkpoints
+## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
 
-Apply these checkpoints in order inside `workspace/journey`. Expand each block to view the Rust/WGSL/HTML edits:
+| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
+| ---: | :--- | :--- | :--- | :--- |
+| **1** | [`03-triangle`](#checkpoint-03-triangle) | Draw a pink triangle on the white background. | `src/triangle.wgsl`, `src/renderer.rs`, `src/browser.rs` | `Three shader positions → triangle coverage → fragment colour → canvas` |
+| **2** | [`03a-fonts`](#checkpoint-03a-fonts) | Create the font and GPU painter owner while keeping the triangle. | `Cargo.toml`, `src/panel.rs`, `src/browser.rs`, `src/lib.rs` | `Embedded font bytes → shared font definitions → egui context → GPU painter` |
+| **3** | [`03a-paint`](#checkpoint-03a-paint) | Draw a Command label over the triangle using the same GPU. | `src/panel.rs`, `src/browser.rs` | `RawInput → egui shapes and font atlas → GPU upload → Load pass → present` |
+| **4** | [`03a-panel`](#checkpoint-03a-panel) | Draw the production command field beside its label. | `src/panel.rs`, `src/command_dock/theme.rs`, `src/command_dock/mod.rs`, `src/command_dock/view.rs` | `Panel rectangle → spacing and text style → local String → field response` |
+| **5** | [`03b-memory`](#checkpoint-03b-memory) | Store the field text and history in one owned model. | `src/panel.rs`, `src/browser.rs`, `src/command_dock/mod.rs` | `Panel owns CommandLine → field borrows text → placeholder borrows status` |
+| **6** | [`03b-state`](#checkpoint-03b-state) | Give the upcoming layout a vocabulary contract and caret helpers. | `Cargo.toml`, `src/command_dock/mod.rs`, `src/panel.rs` | `Commands contract → optional inspection → character-based caret positions` |
+| **7** | [`03c-history`](#checkpoint-03c-history) | Draw retained history above the field. | `src/browser.rs`, `src/command_dock/mod.rs`, `src/panel.rs` | `Draw retained history above the field` |
+| **8** | [`03ca-typing`](#checkpoint-03ca-typing) | Send the first printable key directly into the field. | `src/browser.rs`, `src/panel.rs` | `Send the first printable key directly into the field` |
+| **9** | [`03cb-submit`](#checkpoint-03cb-submit) | Clear submitted text and retain one history entry. | `src/browser.rs`, `src/command_dock/mod.rs`, `src/panel.rs` | `Clear submitted text and retain one history entry` |
+| **10** | [`03cc-edit`](#checkpoint-03cc-edit) | Keep text selection, deletion and Escape in the field. | `src/browser.rs`, `src/command_dock/mod.rs`, `src/panel.rs` | `Keep text selection, deletion and Escape in the field` |
+| **11** | [`03cd-vocabulary`](#checkpoint-03cd-vocabulary) | Connect known names and useful unknown-command replies. | `src/command_vocabulary.rs`, `src/browser.rs`, `src/panel.rs`, `src/lib.rs` | `Connect known names and useful unknown-command replies` |
+| **12** | [`03ce-complete`](#checkpoint-03ce-complete) | Select only the suggested suffix while retaining typed text. | `src/browser.rs`, `src/command_dock/mod.rs`, `src/panel.rs` | `Select only the suggested suffix while retaining typed text` |
+| **13** | [`03cf-accept`](#checkpoint-03cf-accept) | Use Tab, Enter and Escape without losing input ownership. | `src/command_dock/mod.rs`, `src/panel.rs` | `Use Tab, Enter and Escape without losing input ownership` |
+| **14** | [`03cg-keys`](#checkpoint-03cg-keys) | Consume command editing once and restore field focus. | `src/browser.rs`, `src/command_dock/mod.rs`, `src/panel.rs` | `Consume command editing once and restore field focus` |
+| **15** | [`03ch-popup`](#checkpoint-03ch-popup) | Draw the matching names above the field. | `src/browser.rs`, `src/command_dock/mod.rs`, `src/panel.rs` | `Draw the matching names above the field` |
+| **16** | [`03ci-browse`](#checkpoint-03ci-browse) | Move through matching command names without changing the scene. | `src/browser.rs`, `src/command_dock/mod.rs`, `src/panel.rs` | `Move through matching command names without changing the scene` |
+| **17** | [`03cj-prepare`](#checkpoint-03cj-prepare) | Keep UI output owned until one GPU submission. | `src/browser.rs`, `src/panel.rs` | `Keep UI output owned until one GPU submission` |
+| **18** | [`03ck-rects`](#checkpoint-03ck-rects) | Record actual widget bounds for mouse ownership. | `src/browser.rs`, `src/command_dock/mod.rs`, `src/panel.rs` | `Record actual widget bounds for mouse ownership` |
+| **19** | [`03ck-pointer`](#checkpoint-03ck-pointer) | Use pointer ownership to edit, choose a name and fold history. | `src/browser.rs`, `src/panel.rs` | `Use pointer ownership to edit, choose a name and fold history` |
+| **20** | [`03cl-wheel`](#checkpoint-03cl-wheel) | Keep scrolling over the dock inside the command list. | `src/browser.rs`, `src/command_dock/mod.rs`, `src/panel.rs` | `Keep scrolling over the dock inside the command list` |
+| **21** | [`03c-layout`](#checkpoint-03c-layout) | Connect the existing row and history to one shared layout. | `src/browser.rs`, `src/command_dock/mod.rs`, `src/panel.rs` | `Connect the existing row and history to one shared layout` |
+| **22** | [`03co-align`](#checkpoint-03co-align) | Align label and field text, and record the dock edge for later fitting. | `src/command_dock/mod.rs` | `22 px row → centred layout → drawn dock edge → future usable viewport` |
+| **23** | [`03cp-options`](#checkpoint-03cp-options) | Own active-tool value buttons beside the command field. | `src/command_dock/mod.rs`, `src/lib.rs`, `src/command_dock/tool_buttons_tests.rs` | `tool value labels → measured button width → command field reservation → option-owned pointer and keyboard focus` |
+| **24** | [`03cn-handoff`](#checkpoint-03cn-handoff) | Keep editing local and return accepted names to the caller. | `src/browser.rs`, `src/panel.rs` | `Keep editing local and return accepted names to the caller` |
+| **25** | [`03d-input`](#checkpoint-03d-input) | Return accepted commands while keeping editing inside Panel. | `src/browser.rs` | `Return accepted commands while keeping editing inside Panel` |
+
+---
+
+## 4. Step-by-Step Coding Notebook (Concept + Implementation)
+
+Work through each notebook cell below in order inside `workspace/journey`. Read the **Concept Walkthrough** and **Self-Check Q&A** first, then expand the **Implementation** block to type and verify the code.
 
 <a id="checkpoint-03-triangle"></a>
+
+### Step 1 of 25 · Give the GPU three corners (`03-triangle`)
+
+- **Goal:** Draw a pink triangle on the white background.
+- **Data Flow Trace:** `Three shader positions → triangle coverage → fragment colour → canvas`
+- **Files You Touch:** `src/triangle.wgsl` (*Create GPU vertex and fragment functions; the vertex function chooses a corner and the fragment function returns pink.*) · `src/renderer.rs` (*Create and retain the triangle shader pipeline.*) · `src/browser.rs` (*Pass the surface format to the renderer; a pipeline must agree with the texture it draws into.*)
+
+Draw one pink triangle inside the white GPU frame. The shader supplies three corners; the renderer keeps one pipeline and records its draw.
+
+The vertex shader places corners in clip space, where x and y near −1 and +1 reach the image edges. The fragment shader supplies colour. `0..3` draws three vertices; `0..1` draws one instance.
+
+A pipeline is the reusable recipe connecting these shaders to the colour target. Keep it between frames. `include_str!` embeds the WGSL text at compile time. An empty vertex-buffer list means the shader still supplies its own positions; Rust will supply geometry in lesson 05. Use the same sRGB view format as browser presentation.
+
+> **Self-Check Question:** *If you change the top vertex, which part of the picture changes, and which stays the same?*  
+> **Answer:** The triangle silhouette changes because its corner positions changed. The surrounding white stays the same: the render pass clears the background before drawing the triangle.
+
+- **What You Should See:** A pink triangle appears on white. Change its top vertex in the shader, save, and check that only the triangle’s shape changes. Restore the vertex.
+- **Hands-On Lab Experiment:** Predict the result of changing the last corner from `(0.0, 0.6)` to `(0.4, 0.6)`. Run it: the top should move right while the base stays still. Then change only the fragment colour. Explain why that changes the inside colour but not the silhouette. Restore both edits.
 
 <details>
 <summary>Implementation 03-triangle: Give the GPU three corners</summary>
@@ -259,6 +347,24 @@ Edit the existing block to match this code; keep unchanged lines:
 
 <a id="checkpoint-03a-fonts"></a>
 
+### Step 2 of 25 · Prepare the command fonts and painter (`03a-fonts`)
+
+- **Goal:** Create the font and GPU painter owner while keeping the triangle.
+- **Data Flow Trace:** `Embedded font bytes → shared font definitions → egui context → GPU painter`
+- **Files You Touch:** `Cargo.toml` (*Add egui and its GPU painter.*) · `src/panel.rs` (*Keep the context and painter together.*) · `src/browser.rs` (*Create the painter owner before presenting the scene.*) · `src/lib.rs` (*Register the browser-only drawing modules.*) · `src/command_dock/theme.rs` (*Configure Noto fonts and the light theme.*) · `src/command_dock/mod.rs` (*Register the shared styling module.*)
+
+Prepare one owner for the command drawing. It keeps an `egui::Context` and a GPU painter. The browser constructs this owner now; the triangle stays unchanged until we connect drawing.
+
+`include_bytes!` embeds the three Noto font files in the program. Their static lifetime lets the font definitions retain them. `Arc` gives egui shared ownership of the font data; both families list the same font names. The `fonts` helper returns that configuration; `new` installs it, chooses the light theme and creates a painter using the existing device.
+
+The painter records interface work on our GPU. It does not need a second canvas or HTML controls.
+
+> **Self-Check Question:** *Why can the font configuration keep the embedded byte slices?*  
+> **Answer:** include_bytes! supplies bytes with a static lifetime, so FontData can retain those slices. Arc lets egui share the same font data allocation; both families refer to its registered name.
+
+- **What You Should See:** The triangle stays visible in the full window. The font and painter owner is constructed, but no interface drawing is connected yet.
+- **Hands-On Lab Experiment:** Change visuals.window_fill and rebuild. Predict why the triangle stays unchanged before the painter is called, then restore the colour.
+
 <details>
 <summary>Implementation 03a-fonts: Prepare the command fonts and painter</summary>
 
@@ -364,6 +470,24 @@ Create the file and type:
 </details>
 
 <a id="checkpoint-03a-paint"></a>
+
+### Step 3 of 25 · Paint command text over the scene (`03a-paint`)
+
+- **Goal:** Draw a Command label over the triangle using the same GPU.
+- **Data Flow Trace:** `RawInput → egui shapes and font atlas → GPU upload → Load pass → present`
+- **Files You Touch:** `src/panel.rs` (*Lay out the label, upload its font atlas and draw over the scene.*) · `src/browser.rs` (*Create the panel and pass it into presentation.*)
+
+Draw the Command label after the triangle and before presenting the image. `RawInput` gives egui the available canvas size. `run_ui` calls our layout closure and returns shapes plus changed font-atlas pixels.
+
+Upload those pixels, turn the shapes into triangle jobs and update their GPU buffers. The second render pass uses `Load`, so it keeps the scene pixels already drawn. The panel uses a white frame and the production margins.
+
+`forget_lifetime` removes the pass’s compile-time link to the encoder. The pass still must end before we finish the encoder. Submit its buffers, then release textures egui no longer needs.
+
+> **Self-Check Question:** *Why does the interface pass use Load?*  
+> **Answer:** The triangle is already in the target image. Load keeps those pixels while the interface draws over them; another Clear would erase the scene.
+
+- **What You Should See:** Command: appears at the bottom of the full-window canvas. The triangle remains unchanged above it. Keyboard input is not connected yet.
+- **Hands-On Lab Experiment:** Change only Load to a white Clear, rebuild and see which earlier drawing disappears. Restore Load.
 
 <details>
 <summary>Implementation 03a-paint: Paint command text over the scene</summary>
@@ -551,6 +675,24 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-03a-panel"></a>
+
+### Step 4 of 25 · Lay out the command field (`03a-panel`)
+
+- **Goal:** Draw the production command field beside its label.
+- **Data Flow Trace:** `Panel rectangle → spacing and text style → local String → field response`
+- **Files You Touch:** `src/panel.rs` (*Own the field text in Panel and import its layout helpers.*) · `src/command_dock/theme.rs` (*Style selection and the caret for the command field.*) · `src/command_dock/mod.rs` (*Register the shared field layout.*) · `src/command_dock/view.rs` (*Add reusable panel, spacing and field functions.*)
+
+Add the command field beside its label. Keep panel sizing, shared spacing and field styling in the view module so later command behaviour can reuse them.
+
+The field receives `&mut String`: egui borrows the text for this draw instead of owning a separate copy. It returns a `Response` describing the widget. The current page still supplies no keyboard events, so drawing the field does not connect typing yet.
+
+The panel keeps its white fill, thin top rule, Noto text and unframed field. The history expansion control arrives with its behaviour in later steps.
+
+> **Self-Check Question:** *Why does the field receive &mut String?*  
+> **Answer:** The Panel owns the text. A mutable borrow lets the widget edit that same value during a draw without moving it or keeping a second copy.
+
+- **What You Should See:** The production command field appears beside Command: over the triangle. Input handling comes in the next command-line steps.
+- **Hands-On Lab Experiment:** Change the hint text, rebuild and check only the empty field hint changes. Restore it.
 
 <details>
 <summary>Implementation 03a-panel: Lay out the command field</summary>
@@ -809,6 +951,26 @@ Create the file and type:
 
 <a id="checkpoint-03b-memory"></a>
 
+### Step 5 of 25 · Give the command field its memory (`03b-memory`)
+
+- **Goal:** Store the field text and history in one owned model.
+- **Data Flow Trace:** `Panel owns CommandLine → field borrows text → placeholder borrows status`
+- **Files You Touch:** `src/panel.rs` (*Replace the local String with an owned CommandLine.*) · `src/browser.rs` (*Report that the field now uses the command model.*) · `src/command_dock/mod.rs` (*Define the state and choose the empty-field hint from borrowed text.*)
+
+Replace the panel’s local `String` with `CommandLine`. The field now reads and edits `model.command`; its empty hint comes from `model.status`.
+
+`String` owns editable text. `VecDeque<String>` retains ordered history and can remove the oldest entry from the front. `Option` represents values that do not exist yet, such as an undrawn widget’s rectangle. `Default` starts strings and queues empty, flags false and optional values absent.
+
+`placeholder` returns borrowed text. Its lifetime keeps that slice tied to the supplied prompt or status. Rust allows the field to borrow command mutably and status immutably because they are separate fields.
+
+The model also reserves completion and input state used by the next lessons. Keyboard events are connected later.
+
+> **Self-Check Question:** *Which value keeps the command text between draws?*  
+> **Answer:** CommandLine inside Panel owns it. The field borrows model.command during layout; finishing the draw does not discard that String.
+
+- **What You Should See:** The empty field now shows “The field now belongs to CommandLine.” Change that initial status, save, and check the hint changes. Restore it. Keyboard input comes later.
+- **Hands-On Lab Experiment:** Change only the initial status. Predict which part of the dock changes, then rebuild and restore it.
+
 <details>
 <summary>Implementation 03b-memory: Give the command field its memory</summary>
 
@@ -1053,6 +1215,26 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-03b-state"></a>
+
+### Step 6 of 25 · Prepare the dock completion helpers (`03b-state`)
+
+- **Goal:** Give the upcoming layout a vocabulary contract and caret helpers.
+- **Data Flow Trace:** `Commands contract → optional inspection → character-based caret positions`
+- **Files You Touch:** `Cargo.toml` (*Enable the browser event, canvas geometry and focus bindings.*) · `src/command_dock/mod.rs` (*Define the application vocabulary contract without coupling the dock to scene types.*) · `src/panel.rs` (*Import the module name for the following shared helper calls.*)
+
+The upcoming dock layout needs command names without knowing our scene types. `Commands` defines the methods the application will supply. Static string slices refer to its fixed vocabulary.
+
+`Control` stores an inspection key, label and rectangle. `record` appends actual egui response bounds through a mutable borrow. If inspection is absent, let-else returns immediately. `serde::Serialize` lets the inspector describe the record as JSON.
+
+Caret positions count characters rather than UTF-8 bytes: `é🙂x` has three scalar values. The helpers load a field’s stored egui state, change its range and store it back. An absent field state is left alone. `spelled` counts the displayed completion prefix while ignoring typed spaces.
+
+These helpers are preparation for the following layout and input lessons. They add no controls or keyboard handling; the picture stays the same.
+
+> **Self-Check Question:** *Why does the caret helper use chars().count()?*  
+> **Answer:** String::len counts UTF-8 bytes. egui caret ranges use character indices, so é🙂x needs position 3 rather than its byte length.
+
+- **What You Should See:** The connected field looks exactly as before. The vocabulary, inspection and caret helpers are ready for the following layout and input lessons.
+- **Hands-On Lab Experiment:** For é🙂x, predict the byte length and character count. Compare len() with chars().count() in a small Rust scratch program.
 
 <details>
 <summary>Implementation 03b-state: Prepare the dock completion helpers</summary>
@@ -1352,6 +1534,20 @@ Edit the existing block to match this code; keep unchanged lines:
 
 <a id="checkpoint-03c-history"></a>
 
+### Step 7 of 25 · Draw retained command history (`03c-history`)
+
+- **Goal:** Draw retained history above the field.
+- **Data Flow Trace:** `Draw retained history above the field`
+- **Files You Touch:** `src/browser.rs` (*Report that history is drawn.*) · `src/command_dock/mod.rs` (*Draw retained history and its divider.*) · `src/panel.rs` (*Start with expanded history and one retained sentence.*)
+
+Draw each retained String above the command field. ScrollArea borrows the entries; the model keeps them after drawing.
+
+> **Self-Check Question:** *Does drawing move the retained strings?*  
+> **Answer:** No. The loop borrows each entry.
+
+- **What You Should See:** The history sentence appears above the field.
+- **Hands-On Lab Experiment:** Change the initial history sentence and rebuild. The new sentence should appear above the field. Restore the original sentence afterward.
+
 <details>
 <summary>Implementation 03c-history: Draw retained command history</summary>
 
@@ -1577,6 +1773,20 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-03ca-typing"></a>
+
+### Step 8 of 25 · Type directly into the command field (`03ca-typing`)
+
+- **Goal:** Send the first printable key directly into the field.
+- **Data Flow Trace:** `Send the first printable key directly into the field`
+- **Files You Touch:** `src/browser.rs` (*Retain the panel in keyboard callbacks; redraw and inspect accepted input.*) · `src/panel.rs` (*Store pending egui events in Panel.*)
+
+Focus the field before sending the first Text event. Panel owns the event queue; mem::take leaves it empty after drawing.
+
+> **Self-Check Question:** *Why focus before Text?*  
+> **Answer:** The editor needs focus when egui processes the first character.
+
+- **What You Should See:** Click the scene and type G. G appears immediately in the command field.
+- **Hands-On Lab Experiment:** Click the triangle and type xyz without clicking the field. All three letters should appear in order.
 
 <details>
 <summary>Implementation 03ca-typing: Type directly into the command field</summary>
@@ -1866,6 +2076,20 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-03cb-submit"></a>
+
+### Step 9 of 25 · Submit command text once (`03cb-submit`)
+
+- **Goal:** Clear submitted text and retain one history entry.
+- **Data Flow Trace:** `Clear submitted text and retain one history entry`
+- **Files You Touch:** `src/browser.rs` (*Expose the actual retained history to browser inspection.*) · `src/command_dock/mod.rs` (*Take nonblank owned text and retain at most 200 history entries.*) · `src/panel.rs` (*Expose the model’s retained history by reference.*)
+
+Consume Enter before drawing the field. take_command moves a nonblank String out and leaves an empty String. remember retains at most 200 entries.
+
+> **Self-Check Question:** *Why take rather than clone the String?*  
+> **Answer:** Submission transfers its ownership once and clears the source.
+
+- **What You Should See:** Type Help and press Enter. One entry appears and the field clears. Empty Enter adds nothing.
+- **Hands-On Lab Experiment:** Submit Help twice. Two entries should appear; pressing Enter with an empty field should add none.
 
 <details>
 <summary>Implementation 03cb-submit: Submit command text once</summary>
@@ -2260,6 +2484,20 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-03cc-edit"></a>
 
+### Step 10 of 25 · Edit the command text (`03cc-edit`)
+
+- **Goal:** Keep text selection, deletion and Escape in the field.
+- **Data Flow Trace:** `Keep text selection, deletion and Escape in the field`
+- **Files You Touch:** `src/browser.rs` (*Report that editing stays in the field.*) · `src/command_dock/mod.rs` (*Separate the model helpers with a blank line.*) · `src/panel.rs` (*Translate modifiers and named editing keys; ignore composing text.*)
+
+Translate modifiers and editing keys into egui events. Ctrl+A selects text; Backspace deletes it; Escape clears and closes the field.
+
+> **Self-Check Question:** *Why skip text when Ctrl or Alt is held?*  
+> **Answer:** Those keys modify an editing action rather than insert ordinary text.
+
+- **What You Should See:** Type abc, press Ctrl+A, type x, then Escape. The field clears.
+- **Hands-On Lab Experiment:** Type abc, press Backspace once, then Enter. History should contain ab. Escape should clear any unfinished text.
+
 <details>
 <summary>Implementation 03cc-edit: Edit the command text</summary>
 
@@ -2540,6 +2778,22 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-03cd-vocabulary"></a>
+
+### Step 11 of 25 · Recognize Help (`03cd-vocabulary`)
+
+- **Goal:** Connect known names and useful unknown-command replies.
+- **Data Flow Trace:** `Connect known names and useful unknown-command replies`
+- **Files You Touch:** `src/command_vocabulary.rs` (*Rank exact words, then a whole-word extension, then remaining prefixes without replacing typed command meaning.*) · `src/browser.rs` (*Supply Help as the initial application vocabulary.*) · `src/panel.rs` (*Import the vocabulary trait methods.*) · `src/lib.rs` (*Compile the shared ranking helper alongside the first command dictionary.*)
+
+Commands borrows a fixed vocabulary. The adapter normalizes spacing and case; Help lists its names. Unknown input receives a useful reply.
+
+A matching prefix is not enough to choose inline completion. Rank an exact command first, then a match that extends at a word boundary. Keep the remaining prefixes in registry order. This prevents Select from becoming Selection before the user can type Object, and keeps an exact named view ahead of its longer variant.
+
+> **Self-Check Question:** *Why must an exact or whole-word command rank ahead of a longer character prefix?*  
+> **Answer:** Completion must preserve the words the user is typing. An exact match wins, a following space preserves the completed word, and a suffix inside that word must not replace it.
+
+- **What You Should See:** Type Help and press Enter. History shows Help as the available command.
+- **Hands-On Lab Experiment:** Submit lowercase help, then an unknown name. Help should still list the vocabulary; the unknown name should receive an error reply.
 
 <details>
 <summary>Implementation 03cd-vocabulary: Recognize Help</summary>
@@ -3094,6 +3348,20 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-03ce-complete"></a>
 
+### Step 12 of 25 · Complete a command name (`03ce-complete`)
+
+- **Goal:** Select only the suggested suffix while retaining typed text.
+- **Data Flow Trace:** `Select only the suggested suffix while retaining typed text`
+- **Files You Touch:** `src/browser.rs` (*Report that inline completion is connected.*) · `src/command_dock/mod.rs` (*Match names after changes and select only the suggested suffix.*) · `src/panel.rs` (*Keep the field response and refresh completion after editing.*)
+
+After the field changes, find a matching command name. Replace the text and select only the suggested suffix, so the next letter replaces that suffix.
+
+> **Self-Check Question:** *Why count characters instead of bytes?*  
+> **Answer:** egui caret positions use characters; UTF-8 characters can occupy several bytes.
+
+- **What You Should See:** Type He. The field shows Help with the suggested ending selected. Backspace leaves He.
+- **Hands-On Lab Experiment:** Type He, then x. The selected lp should be replaced by x, leaving Hex with no matching completion.
+
 <details>
 <summary>Implementation 03ce-complete: Complete a command name</summary>
 
@@ -3163,6 +3431,20 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-03cf-accept"></a>
+
+### Step 13 of 25 · Accept or cancel a completion (`03cf-accept`)
+
+- **Goal:** Use Tab, Enter and Escape without losing input ownership.
+- **Data Flow Trace:** `Use Tab, Enter and Escape without losing input ownership`
+- **Files You Touch:** `src/command_dock/mod.rs` (*Retain the editing-key results for this frame.*) · `src/panel.rs` (*Consume Enter and Tab before the field handles input.*)
+
+Read Enter and Tab before the field. finish accepts a completion, submits a nonblank command, or cancels with Escape.
+
+> **Self-Check Question:** *Why consume Enter once?*  
+> **Answer:** The field and command dispatcher must not both submit the same event.
+
+- **What You Should See:** Type He, then Tab. Help gains a trailing space. Escape clears it.
+- **Hands-On Lab Experiment:** Type He and press Tab. Check that history stays unchanged until you press Enter.
 
 <details>
 <summary>Implementation 03cf-accept: Accept or cancel a completion</summary>
@@ -3821,6 +4103,20 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-03cg-keys"></a>
 
+### Step 14 of 25 · Read editing keys before the field (`03cg-keys`)
+
+- **Goal:** Consume command editing once and restore field focus.
+- **Data Flow Trace:** `Consume command editing once and restore field focus`
+- **Files You Touch:** `src/browser.rs` (*Report that editing keys are read first.*) · `src/command_dock/mod.rs` (*Handle a space inside the selected suffix; centralize editing and focus keys.*) · `src/panel.rs` (*Restore field focus before accepting the first text event.*)
+
+Move key handling into keys. Restore focus before text editing; suffix_space keeps a space inside a multiword completion rather than replacing the remaining name.
+
+> **Self-Check Question:** *Why restore focus before drawing the field?*  
+> **Answer:** The field must own input when it handles queued events.
+
+- **What You Should See:** Type He, press Tab, then Enter. The command is submitted once.
+- **Hands-On Lab Experiment:** Submit Help, then press Enter again without typing. Only the first Enter should create a history entry.
+
 <details>
 <summary>Implementation 03cg-keys: Read editing keys before the field</summary>
 
@@ -4117,6 +4413,20 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-03ch-popup"></a>
 
+### Step 15 of 25 · Show matching commands (`03ch-popup`)
+
+- **Goal:** Draw the matching names above the field.
+- **Data Flow Trace:** `Draw the matching names above the field`
+- **Files You Touch:** `src/browser.rs` (*Report that matching commands are drawn.*) · `src/command_dock/mod.rs` (*Draw matching names in a bounded popup and remember its rectangle.*) · `src/panel.rs` (*Clear the previous popup rectangle before layout.*)
+
+Draw matching names above the field. A scroll area bounds the list, and the model remembers its actual rectangle. Pointer selection is connected later.
+
+> **Self-Check Question:** *Why store the drawn rectangle?*  
+> **Answer:** Later pointer handling needs the actual layout bounds.
+
+- **What You Should See:** Type He. Help appears above the field as a suggestion.
+- **Hands-On Lab Experiment:** Clear the field and type Z. The Help suggestion should disappear because the prefix no longer matches.
+
 <details>
 <summary>Implementation 03ch-popup: Show matching commands</summary>
 
@@ -4399,6 +4709,20 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-03ci-browse"></a>
 
+### Step 16 of 25 · Browse matching names (`03ci-browse`)
+
+- **Goal:** Move through matching command names without changing the scene.
+- **Data Flow Trace:** `Move through matching command names without changing the scene`
+- **Files You Touch:** `src/browser.rs` (*Report that arrow browsing is connected.*) · `src/command_dock/mod.rs` (*Wrap the match index and retain the original typed prefix.*) · `src/panel.rs` (*Use browse for arrow keys, Tab and popup choices.*)
+
+Use the original typed prefix while browsing matches. Arrow keys wrap the highlighted index; the selected suffix remains replaceable.
+
+> **Self-Check Question:** *Why retain the prefix while browsing?*  
+> **Answer:** The chosen suggestion must not become a new search filter.
+
+- **What You Should See:** Press ArrowDown in the empty field. Help appears. Escape clears it.
+- **Hands-On Lab Experiment:** Press ArrowDown twice in the empty field. The one-item list should wrap to Help without submitting it.
+
 <details>
 <summary>Implementation 03ci-browse: Browse matching names</summary>
 
@@ -4469,6 +4793,20 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-03cj-prepare"></a>
+
+### Step 17 of 25 · Prepare the dock before painting (`03cj-prepare`)
+
+- **Goal:** Keep UI output owned until one GPU submission.
+- **Data Flow Trace:** `Keep UI output owned until one GPU submission`
+- **Files You Touch:** `src/browser.rs` (*Report that prepared UI is painted once.*) · `src/panel.rs` (*Own prepared output and the screen descriptor.*)
+
+Prepare UI output before painting. Append any additional layout output so changed font textures survive until the single GPU submission.
+
+> **Self-Check Question:** *Why append output before painting?*  
+> **Answer:** Another layout may add texture changes that the renderer still needs.
+
+- **What You Should See:** Type Help. Text and the triangle remain visible after repeated key events.
+- **Hands-On Lab Experiment:** Type and delete Help repeatedly. The triangle and command text should remain visible throughout.
 
 <details>
 <summary>Implementation 03cj-prepare: Prepare the dock before painting</summary>
@@ -4886,6 +5224,20 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-03ck-rects"></a>
+
+### Step 18 of 25 · Remember where the dock is drawn (`03ck-rects`)
+
+- **Goal:** Record actual widget bounds for mouse ownership.
+- **Data Flow Trace:** `Record actual widget bounds for mouse ownership`
+- **Files You Touch:** `src/browser.rs` (*Expose actual dock state and rectangles for inspection.*) · `src/command_dock/mod.rs` (*Record the fold control and toggle expanded history on click.*) · `src/panel.rs` (*Store current control bounds and the panel’s top edge.*)
+
+Record the real field and collapse-control rectangles. The inspector reads these bounds from egui responses rather than guessing their positions.
+
+> **Self-Check Question:** *Why use response rectangles?*  
+> **Answer:** They reflect the actual layout and scale used for this frame.
+
+- **What You Should See:** Type He. The field and suggestion remain correctly placed above the history.
+- **Hands-On Lab Experiment:** Compare the inspector’s command/input rectangle with the visible field. Its bounds should describe the drawn widget.
 
 <details>
 <summary>Implementation 03ck-rects: Remember where the dock is drawn</summary>
@@ -5493,6 +5845,20 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-03ck-pointer"></a>
 
+### Step 19 of 25 · Click the command dock (`03ck-pointer`)
+
+- **Goal:** Use pointer ownership to edit, choose a name and fold history.
+- **Data Flow Trace:** `Use pointer ownership to edit, choose a name and fold history`
+- **Files You Touch:** `src/browser.rs` (*Dispatch keyboard and pointer events through one retained callback.*) · `src/panel.rs` (*Retain pointer ownership between press and release.*)
+
+Translate mouse positions into canvas coordinates. Keep a press owned until release or cancellation. collapse changes layout while retained history stays in the model.
+
+> **Self-Check Question:** *Why retain pointer ownership?*  
+> **Answer:** A drag must stay with the widget even after leaving its rectangle.
+
+- **What You Should See:** Click the history fold control. History folds away; click again to restore it.
+- **Hands-On Lab Experiment:** Press the history fold control, drag outside it, and release. The cancelled click should leave history expanded.
+
 <details>
 <summary>Implementation 03ck-pointer: Click the command dock</summary>
 
@@ -6032,6 +6398,20 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-03cl-wheel"></a>
+
+### Step 20 of 25 · Scroll through command names (`03cl-wheel`)
+
+- **Goal:** Keep scrolling over the dock inside the command list.
+- **Data Flow Trace:** `Keep scrolling over the dock inside the command list`
+- **Files You Touch:** `src/browser.rs` (*Dispatch wheel events to Panel.*) · `src/command_dock/mod.rs` (*Consume wheel movement over the field or previous popup.*) · `src/panel.rs` (*Queue wheel units and deltas at the canvas pointer position.*)
+
+Queue wheel input with the pointer position. Consume scrolling over the field or previous suggestion rectangle before it can reach the scene.
+
+> **Self-Check Question:** *Why remember the previous popup rectangle?*  
+> **Answer:** Input arrives before this frame draws the new popup.
+
+- **What You Should See:** Move the mouse over the field and scroll. Help is selected in the command list.
+- **Hands-On Lab Experiment:** Scroll in both directions over the empty field. The one-item list should wrap to Help without submitting it.
 
 <details>
 <summary>Implementation 03cl-wheel: Scroll through command names</summary>
@@ -7189,6 +7569,20 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-03c-layout"></a>
 
+### Step 21 of 25 · Share the production dock layout (`03c-layout`)
+
+- **Goal:** Connect the existing row and history to one shared layout.
+- **Data Flow Trace:** `Connect the existing row and history to one shared layout`
+- **Files You Touch:** `src/browser.rs` (*Report that the shared production layout is connected.*) · `src/command_dock/mod.rs` (*Combine the connected field, history and controls into row and draw.*) · `src/panel.rs` (*Remove imports now owned by the shared layout.*)
+
+Put the already connected helpers into one row and layout. The same command_dock source now draws both this lesson and the production viewer.
+
+> **Self-Check Question:** *Does sharing the layout give it ownership of the scene?*  
+> **Answer:** No. It edits the model and returns an accepted command to its caller.
+
+- **What You Should See:** Type Help and press Enter. The shared dock clears the field and adds one answer.
+- **Hands-On Lab Experiment:** Submit Help, fold history, then expand it. The retained answer should return.
+
 <details>
 <summary>Implementation 03c-layout: Share the production dock layout</summary>
 
@@ -7556,6 +7950,22 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-03co-align"></a>
+
+### Step 22 of 25 · Align and measure the command row (`03co-align`)
+
+- **Goal:** Align label and field text, and record the dock edge for later fitting.
+- **Data Flow Trace:** `22 px row → centred layout → drawn dock edge → future usable viewport`
+- **Files You Touch:** `src/command_dock/mod.rs` (*Use the field height and centre the row’s children.*)
+
+Give the shared row the field’s height and centre its children vertically. Store the drawn dock edge on the existing model.
+
+The row still returns accepted commands to its caller. The new optional edge is layout metadata, not scene state. Later fitting uses it to keep geometry above the dock.
+
+> **Self-Check Question:** *Why record the dock edge while drawing instead of assuming a fixed footer height?*  
+> **Answer:** The current layout knows the actual edge. Later fitting can use that value when history or other panels change the visible canvas.
+
+- **What You Should See:** Type Help, then click the drawing. The Command label and field text share a centre line; the dock retains its current top edge.
+- **Hands-On Lab Experiment:** Temporarily change the row height, redraw, then restore 22 px. Compare the label and typed text.
 
 <details>
 <summary>Implementation 03co-align: Align and measure the command row</summary>
@@ -8271,6 +8681,20 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-03cp-options"></a>
+
+### Step 23 of 25 · Reserve command-row space for active tool values (`03cp-options`)
+
+- **Goal:** Own active-tool value buttons beside the command field.
+- **Data Flow Trace:** `tool value labels → measured button width → command field reservation → option-owned pointer and keyboard focus`
+- **Files You Touch:** `src/command_dock/mod.rs` (*Measure active value buttons, reserve field width and return their owned commands.*) · `src/lib.rs` (*Compile the shared dock for native widget checks.*) · `src/command_dock/tool_buttons_tests.rs` (*Copy actual value-button, focus, text, completion and Enter checks.*)
+
+Reserve measured space for active-tool values and keep their taps in the command dock. Empty options preserve ordinary command completion; interactive tools supply values later.
+
+> **Self-Check Question:** *Does clicking Create decide when geometry is committed?*  
+> **Answer:** No. It returns an empty command to the active tool. That owner decides whether Enter keeps an asked value or creates geometry.
+
+- **What You Should See:** Type Help and fold the command history. This preparation keeps the ordinary command row; value buttons appear when an active tool supplies options in the later tool lesson. The optional supplied widget fixture records button, typed-value and Enter behavior.
+- **Hands-On Lab Experiment:** In the copied widget check, compare the button rectangle with the command-field rectangle and verify that a running tool suppresses unrelated completion.
 
 <details>
 <summary>Implementation 03cp-options: Reserve command-row space for active tool values</summary>
@@ -9171,6 +9595,20 @@ Copy this supplied file:
 
 <a id="checkpoint-03cn-handoff"></a>
 
+### Step 24 of 25 · Return accepted application commands (`03cn-handoff`)
+
+- **Goal:** Keep editing local and return accepted names to the caller.
+- **Data Flow Trace:** `Keep editing local and return accepted names to the caller`
+- **Files You Touch:** `src/browser.rs` (*Prepare the initial dock before presenting.*) · `src/panel.rs` (*Remove replies now handled by Panel.update.*)
+
+Panel.update prepares input and returns an accepted application name. Help and unknown-command replies stay local; the caller will handle scene actions.
+
+> **Self-Check Question:** *Why return Option<String>?*  
+> **Answer:** Most input edits the field; only an accepted application command needs dispatch.
+
+- **What You Should See:** Type Help and press Enter. The field clears and exactly one answer appears.
+- **Hands-On Lab Experiment:** Submit an unknown name. The dock should answer locally and leave the triangle unchanged.
+
 <details>
 <summary>Implementation 03cn-handoff: Return accepted application commands</summary>
 
@@ -9891,6 +10329,20 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-03d-input"></a>
 
+### Step 25 of 25 · Hand commands to the application (`03d-input`)
+
+- **Goal:** Return accepted commands while keeping editing inside Panel.
+- **Data Flow Trace:** `Return accepted commands while keeping editing inside Panel`
+- **Files You Touch:** `src/browser.rs` (*Import the retained Closure type.*)
+
+Listen on the canvas and hand events to Panel.update. Prepare the dock again after input, then paint one frame. Typing after a scene click focuses the field immediately.
+
+> **Self-Check Question:** *Why prepare again before painting?*  
+> **Answer:** Input can change layout or history; the final frame must show the updated model.
+
+- **What You Should See:** Click the scene, type Help and press Enter. One answer appears in the real dock.
+- **Hands-On Lab Experiment:** Click the scene between two Help submissions. Each submission should add one answer without requiring a field click.
+
 <details>
 <summary>Implementation 03d-input: Hand commands to the application</summary>
 
@@ -10175,22 +10627,24 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 </details>
 
-## Run, Check, and Save
+---
 
-From `session_viewer`:
+## 5. Build, Verify, and Save Your Checkpoint
+
+Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
 
 ```sh
 
 ```
 
-Open `http://127.0.0.1:8780/`. Use [checkpoint recovery](../../recovery.md) to restore any saved checkpoint.
+Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
 
-## Expected Visual Result & Experiment
+## 6. Lesson Summary & Expected Visual Result
 
 ![Historical Chrome reference: pink triangle and Help completion in the command dock. Current source/browser acceptance remains pending.](../../../screenshots/journey/03d-input-browser.png)
 
 Click the scene, type Help and press Enter. One answer appears in the real dock.
 
-- **Try this:** Click the scene between two Help submissions. Each submission should add one answer without requiring a field click.
+- **Final Lesson Experiment:** Click the scene between two Help submissions. Each submission should add one answer without requiring a field click.
 
-Continue with [Commands that change the view](04-input.md).
+Continue with [Commands that change the view](../../consolidation/04-input.md).

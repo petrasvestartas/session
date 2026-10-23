@@ -1,91 +1,151 @@
 # 6.4 · Ordered multi-selection and atomic edits
 
-**Section 4: Screen-Space Ink, Point Markers, NURBS Curves, and GPU Integer Picking** · **Lesson 6.4** (Redraft `4.11`) · **5 checkpoints (`45-order` → `45c-input`)**
+**Section 4: Screen-Space Ink, Point Markers, NURBS Curves, and GPU Integer Picking** · **Lesson 6.4** (Redraft `4.11`) · **5 checkpoints (`45-order` → `45c-input`)** · **Study time: 2.5–5 h**
 
-> **Learning Goal:** Preserve unique selections in pick order.
+> **What You Will Learn & Build:** Preserve unique selections in pick order. By the final checkpoint (`45c-input`), you will collect multiple objects with Shift-click and commands.
 
-## Visual WebGPU & Architecture Schematic
+## 1. Visual Pipeline & WebGPU Architecture (Black & White Schematics)
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1px solid #cbd5e1;border-radius:10px;background:#f8fafc;">
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
+<svg viewBox="0 0 840 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <rect x="4" y="4" width="832" height="212" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Lesson 6.4 Execution Flow: Ordered multi-selection and atomic edits</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">Concrete data pipeline you build in this lesson (5 Checkpoints: 45-order → 45c-input)</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
+  
+    
+    <rect x="18" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="89" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
+    <line x1="28" y1="92" x2="151" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">valid source owners</text>
+    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="183" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="254" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
+    <line x1="193" y1="92" x2="316" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">unique membership</text>
+    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="348" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="419" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
+    <line x1="358" y1="92" x2="481" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">original pick order</text>
+    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="513" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="584" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
+    <line x1="523" y1="92" x2="646" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">stable primary row</text>
+    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="678" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="749" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
+    <line x1="688" y1="92" x2="811" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">accepted pointer</text>
+    <text x="749" y="124" text-anchor="middle" font-size="11" fill="#111111">modifiers</text>
+    
+    <rect x="18" y="162" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="32" y="181" font-size="11" font-weight="700" fill="#111111">Files You Edit in Lesson 6.4:</text>
+    <text x="215" y="181" font-size="11" fill="#111111">src/object_selection.rs  ·  src/lib.rs  ·  src/scene.rs  ·  src/object_selection_tests.rs  ·  src/editor.rs  ·  src/rehydrate_tests.rs</text>
+    <text x="32" y="198" font-size="10.5" fill="#111111">5 Checkpoints: 45-order → 45c-input — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
+  
+</svg>
+</div>
+
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
 <svg viewBox="0 0 840 240" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#475569"/>
-    </marker>
-    <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#2563eb"/>
-    </marker>
-    <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#059669"/>
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
     </marker>
   </defs>
-  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
-  <text x="20" y="28" font-size="14" font-weight="700" fill="#0f172a">Chapter 6 WebGPU Integer Picking: Cropped Rg32Uint Offscreen Pass & Async Staging Buffer Readback</text>
-  <text x="20" y="46" font-size="11.5" fill="#475569">How the GPU identifies exact sub-elements (Face, Edge, Control Point) under the cursor without color-picking precision loss.</text>
-  <line x1="16" y1="54" x2="824" y2="54" stroke="#e2e8f0" stroke-width="1"/>
+  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Chapter 6 WebGPU Integer Picking: Cropped Rg32Uint Offscreen Pass & Async Staging Buffer Readback</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">How the GPU identifies exact sub-elements (Face, Edge, Control Point) under the cursor without color-picking precision loss.</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
   
-    <rect x="18" y="68" width="205" height="145" rx="6" fill="#fdf2f8" stroke="#f472b6" stroke-width="1.5"/>
-    <text x="120" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#9d174d">1. Cursor Crop Window</text>
-    <text x="28" y="108" font-size="10.5" fill="#831843">• Cursor at (px, py), radius R</text>
-    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#9d174d">• Target: TextureFormat::Rg32Uint</text>
-    <text x="28" y="142" font-size="10" fill="#831843">  Channel R = owner_id (u32)</text>
-    <text x="28" y="157" font-size="10" fill="#831843">  Channel G = sub_id (Face/Edge/CP)</text>
-    <text x="28" y="176" font-size="10.5" fill="#831843">• Priority: Point Glyph &gt; Wire Edge</text>
-    <text x="28" y="192" font-size="10.5" fill="#831843">  &gt; Surface Face (Depth32Float)</text>
+    <rect x="18" y="68" width="205" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="120" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">1. Cursor Crop Window</text>
+    <text x="28" y="108" font-size="10.5" fill="#111111">• Cursor at (px, py), radius R</text>
+    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#111111">• Target: TextureFormat::Rg32Uint</text>
+    <text x="28" y="142" font-size="10" fill="#111111">  Channel R = owner_id (u32)</text>
+    <text x="28" y="157" font-size="10" fill="#111111">  Channel G = sub_id (Face/Edge/CP)</text>
+    <text x="28" y="176" font-size="10.5" fill="#111111">• Priority: Point Glyph &gt; Wire Edge</text>
+    <text x="28" y="192" font-size="10.5" fill="#111111">  &gt; Surface Face (Depth32Float)</text>
 
-    <line x1="223" y1="138" x2="253" y2="138" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
+    <line x1="223" y1="138" x2="253" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="255" y="68" width="280" height="145" rx="6" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
-    <text x="395" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1e40af">2. 256-Byte Aligned Staging Copy</text>
-    <text x="267" y="108" font-size="10.5" fill="#1e3a8a">• WebGPU rule: bytes_per_row MUST be</text>
-    <text x="267" y="124" font-size="10.5" font-weight="600" fill="#1d4ed8">  a multiple of 256 (COPY_BYTES_PER_ROW)</text>
-    <text x="267" y="144" font-size="10.5" fill="#1e3a8a">• encoder.copy_texture_to_buffer(...)</text>
-    <text x="267" y="162" font-size="10.5" fill="#1e3a8a">• Stamp request with Ticket:</text>
-    <text x="267" y="178" font-size="10" font-weight="600" fill="#1e40af">  { pick_id, view_revision, shift_mode }</text>
-    <text x="267" y="195" font-size="10" fill="#1e3a8a">• Coalesce bursts into 1 in-flight map_async</text>
+    <rect x="255" y="68" width="280" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="395" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">2. 256-Byte Aligned Staging Copy</text>
+    <text x="267" y="108" font-size="10.5" fill="#111111">• WebGPU rule: bytes_per_row MUST be</text>
+    <text x="267" y="124" font-size="10.5" font-weight="600" fill="#111111">  a multiple of 256 (COPY_BYTES_PER_ROW)</text>
+    <text x="267" y="144" font-size="10.5" fill="#111111">• encoder.copy_texture_to_buffer(...)</text>
+    <text x="267" y="162" font-size="10.5" fill="#111111">• Stamp request with Ticket:</text>
+    <text x="267" y="178" font-size="10" font-weight="600" fill="#111111">  { pick_id, view_revision, shift_mode }</text>
+    <text x="267" y="195" font-size="10" fill="#111111">• Coalesce bursts into 1 in-flight map_async</text>
 
-    <line x1="535" y1="138" x2="565" y2="138" stroke="#059669" stroke-width="2" marker-end="url(#arrow-green)"/>
+    <line x1="535" y1="138" x2="565" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="567" y="68" width="253" height="145" rx="6" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1.5"/>
-    <text x="693" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#065f46">3. Spiral Search &amp; Sub-Selection</text>
-    <text x="579" y="108" font-size="10.5" fill="#064e3b">• buffer.map_async(MapMode::Read).await</text>
-    <text x="579" y="126" font-size="10.5" font-weight="600" fill="#047857">• Stale view_revision? Discard/Retry!</text>
-    <text x="579" y="144" font-size="10.5" fill="#064e3b">• Search center pixel -&gt; spiral halo</text>
-    <text x="579" y="162" font-size="10.5" fill="#064e3b">• Decode (owner_id, sub_id) -&gt; Object,</text>
-    <text x="579" y="178" font-size="10.5" fill="#064e3b">  Face, Edge, or NURBS Control Point</text>
-    <text x="579" y="195" font-size="10.5" fill="#064e3b">• Shift+Click: ordered selection list</text>
+    <rect x="567" y="68" width="253" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="693" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">3. Spiral Search &amp; Sub-Selection</text>
+    <text x="579" y="108" font-size="10.5" fill="#111111">• buffer.map_async(MapMode::Read).await</text>
+    <text x="579" y="126" font-size="10.5" font-weight="600" fill="#111111">• Stale view_revision? Discard/Retry!</text>
+    <text x="579" y="144" font-size="10.5" fill="#111111">• Search center pixel -&gt; spiral halo</text>
+    <text x="579" y="162" font-size="10.5" fill="#111111">• Decode (owner_id, sub_id) -&gt; Object,</text>
+    <text x="579" y="178" font-size="10.5" fill="#111111">  Face, Edge, or NURBS Control Point</text>
+    <text x="579" y="195" font-size="10.5" fill="#111111">• Shift+Click: ordered selection list</text>
     
 </svg>
 </div>
 
-### Lesson Data Flow (`Rust` → `WebGPU` → `WGSL`)
+## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
 
-```
-valid source owners → unique membership → original pick order → stable primary row.
-plain or additive target → current ordered membership → exclusive part mode → shared geometry with selected settings.
-accepted pointer modifiers → checked GPU request → current original hit → replace or additive membership → one batch command.
-```
+Before writing code, review how the three layers in this chapter talk to each other:
 
-- Preserve unique selections in pick order.
-- Connect multi-hit state and highlight every selected row.
-- Collect multiple objects with Shift-click and commands.
-- **Why it works (Should repeated Shift-clicks reorder an existing object?):** No. Additive selection keeps its first position and does not duplicate it.
-
-### Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `Browser`)
-
-| Layer | Construct | First-Year Student Explanation |
+| Layer | Construct | Plain-English Explanation for Students |
 | :--- | :--- | :--- |
 | **WebGPU (`wgpu`)** | `TextureFormat::Rg32Uint` (`[owner_id, sub_id]`) | Unblended 2-channel 32-bit unsigned integer render target: channel `R` stores object ID and channel `G` stores face/edge/control-point index with zero color quantization. |
 | **WebGPU (`wgpu`)** | `copy_texture_to_buffer` (`COPY_BYTES_PER_ROW_ALIGNMENT = 256`) | Copies only a small cursor crop window into a 256-byte-row-aligned staging buffer for non-blocking `map_async(MapMode::Read)` CPU readback. |
 | **Rust (Picker)** | Ticket `{ pick_id, view_revision }` + Spiral Halo Search | Discards stale readbacks if the camera moved while the GPU was busy, and searches outward from the cursor pixel with priority `Point > Wire > Face`. |
 
-**Production source (`session_viewer/src`):** [engine/gpu/pick.rs](../../../../src/engine/gpu/pick.rs), [app/selection.rs](../../../../src/app/selection.rs), [engine/gpu/faces.rs](../../../../src/engine/gpu/faces.rs), [app/walk/mesh_topology.rs](../../../../src/app/walk/mesh_topology.rs).
+**Authoritative production source (`session_viewer/src`):** [engine/gpu/pick.rs](../../../../src/engine/gpu/pick.rs), [app/selection.rs](../../../../src/app/selection.rs), [engine/gpu/faces.rs](../../../../src/engine/gpu/faces.rs), [app/walk/mesh_topology.rs](../../../../src/app/walk/mesh_topology.rs)
 
-## Implementation Checkpoints
+## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
 
-Apply these checkpoints in order inside `workspace/journey`. Expand each block to view the Rust/WGSL/HTML edits:
+| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
+| ---: | :--- | :--- | :--- | :--- |
+| **1** | [`45-order`](#checkpoint-45-order) | Preserve unique selections in pick order. | `src/object_selection.rs`, `src/lib.rs`, `src/scene.rs`, `src/object_selection_tests.rs` | `valid source owners → unique membership → original pick order → stable primary row` |
+| **2** | [`45a-batch`](#checkpoint-45a-batch) | Commit mixed selection edits atomically. | `src/editor.rs`, `src/rehydrate_tests.rs` | `selected original rows → one transaction → checked placements → complete commit or rollback` |
+| **3** | [`45b-membership`](#checkpoint-45b-membership) | Connect multi-hit state and highlight every selected row. | `src/editor.rs`, `src/highlight.rs`, `src/renderer.rs`, `src/multi_selection_tests.rs` | `plain or additive target → current ordered membership → exclusive part mode → shared geometry with selected settings` |
+| **4** | [`45bb-cycle`](#checkpoint-45bb-cycle) | Cycle visible unlocked mesh, line, path and point rows in stable owner order. | `src/scene.rs`, `src/selection_cycle_tests.rs`, `src/lib.rs` | `all original geometry lanes → visible unlocked owners → stable ID order → next or wrap` |
+| **5** | [`45c-input`](#checkpoint-45c-input) | Collect multiple objects with Shift-click and commands. | `src/browser.rs` | `accepted pointer modifiers → checked GPU request → current original hit → replace or additive membership → one batch command` |
+
+---
+
+## 4. Step-by-Step Coding Notebook (Concept + Implementation)
+
+Work through each notebook cell below in order inside `workspace/journey`. Read the **Concept Walkthrough** and **Self-Check Q&A** first, then expand the **Implementation** block to type and verify the code.
 
 <a id="checkpoint-45-order"></a>
+
+### Step 1 of 5 · Preserve unique selections in pick order (`45-order`)
+
+- **Goal:** Preserve unique selections in pick order.
+- **Data Flow Trace:** `valid source owners → unique membership → original pick order → stable primary row`
+- **Files You Touch:** `src/object_selection.rs` (*Keep unique current owners in their original pick order.*) · `src/lib.rs` (*Register the component and copied checks.*) · `src/scene.rs` (*Collect selected bounds and move mixed original row placements.*) · `src/object_selection_tests.rs` (*Copy unique order and additive miss checks.*)
+
+Keep object membership unique and preserve the order of valid picks. The primary object is the lowest row ID; it is independent of pick order.
+
+> **Self-Check Question:** *Should repeated Shift-clicks reorder an existing object?*  
+> **Answer:** No. Additive selection keeps its first position and does not duplicate it.
+
+- **What You Should See:** Run the copied ordering checks. The original face-selection exercise is unchanged.
+- **Hands-On Lab Experiment:** Add the higher row first, then the lower row, and compare primary selection with pick order.
 
 <details>
 <summary>Implementation 45-order: Preserve unique selections in pick order</summary>
@@ -190,6 +250,20 @@ After that block, type:
 </details>
 
 <a id="checkpoint-45a-batch"></a>
+
+### Step 2 of 5 · Commit mixed selection edits atomically (`45a-batch`)
+
+- **Goal:** Commit mixed selection edits atomically.
+- **Data Flow Trace:** `selected original rows → one transaction → checked placements → complete commit or rollback`
+- **Files You Touch:** `src/editor.rs` (*Own ordered selections and commit Move or Delete as one original-row transaction.*) · `src/rehydrate_tests.rs` (*Copy the existing hydration precision proof using its explicit row fixture placement, without selecting a locked row through input.*)
+
+Validate and move every selected original row in one transaction. Refuse cold editable meshes until Reload Sources; any failure rolls back the whole batch.
+
+> **Self-Check Question:** *What happens if the second selected row cannot move?*  
+> **Answer:** The first move is rolled back and no history entry or redo branch is consumed.
+
+- **What You Should See:** Run the batch and original-source checks. The previous part modes remain available; multiple-click input follows at45c.
+- **Hands-On Lab Experiment:** Use mixed mesh, line, point and polyline rows; one Undo must restore every placement.
 
 <details>
 <summary>Implementation 45a-batch: Commit mixed selection edits atomically</summary>
@@ -994,6 +1068,22 @@ Update the existing block with this supplied code; keep unchanged lines:
 
 <a id="checkpoint-45b-membership"></a>
 
+### Step 3 of 5 · Connect multi-hit state and highlight every selected row (`45b-membership`)
+
+- **Goal:** Connect multi-hit state and highlight every selected row.
+- **Data Flow Trace:** `plain or additive target → current ordered membership → exclusive part mode → shared geometry with selected settings`
+- **Files You Touch:** `src/editor.rs` (*Adopt unique multi-hit membership and repair it after source changes.*) · `src/highlight.rs` (*Present every selected original row while sharing primary geometry.*) · `src/renderer.rs` (*Present every selected original row while sharing primary geometry.*) · `src/multi_selection_tests.rs` (*Copy ordering, exclusive parts, mixed transactions, rollback, eligibility and release checks.*) · `src/lib.rs` (*Register the component and copied checks.*) · `src/pick_gpu_tests.rs` (*Copy actual multiple-mesh pixels, shared geometry and preserved pick ownership.*) · `src/browser.rs` (*Refresh cached selection settings after Select All, even when the editor returns a view-only change.*)
+
+Replace selection on a plain hit; add valid object hits without duplication. Part selections stay exclusive. Highlight all selected meshes and original ink without reuploading primary geometry.
+
+Select All changes selection membership without changing source geometry. Mark its GPU selection settings dirty before applying the action; the existing highlight update then shares the unchanged geometry buffers.
+
+> **Self-Check Question:** *Can a face and a whole-object set coexist?*  
+> **Answer:** No. Entering a part mode clears the object set and keeps one original part target.
+
+- **What You Should See:** Selection membership now handles unique order, locked and hidden exclusions and transactional edits. Browser selection commands connect in the following lessons; the supplied fixture records mixed Move/Delete and rollback.
+- **Hands-On Lab Experiment:** Select two meshes, then select only one; its neighbour must return to its unselected colour and retain the same source ID. Type Select All: the selected colour must appear immediately, and cancelling a Move must restore the same drawing.
+
 <details>
 <summary>Implementation 45b-membership: Connect multi-hit state and highlight every selected row</summary>
 
@@ -1758,6 +1848,20 @@ After that block, type:
 
 <a id="checkpoint-45bb-cycle"></a>
 
+### Step 4 of 5 · Cycle every eligible original geometry owner (`45bb-cycle`)
+
+- **Goal:** Cycle visible unlocked mesh, line, path and point rows in stable owner order.
+- **Data Flow Trace:** `all original geometry lanes → visible unlocked owners → stable ID order → next or wrap`
+- **Files You Touch:** `src/scene.rs` (*Cycle all original owners after applying visibility and locking.*) · `src/selection_cycle_tests.rs` (*Copy mixed-owner, visibility, lock and wraparound checks.*) · `src/lib.rs` (*Register the copied original-owner cycling check.*)
+
+Selection cycling uses current eligible original owners. Include every geometry lane, skip locked or hidden rows, and wrap in stable owner order so a locked first row cannot trap the command.
+
+> **Self-Check Question:** *Why filter eligibility before choosing the next owner?*  
+> **Answer:** If the first visible row is locked, choosing it and then rejecting it repeatedly leaves selection stuck at nothing.
+
+- **What You Should See:** Close; Example Line; Select Next; Selection. The original line can now be selected from the command field. Run the copied cycling checks for mixed rows, locks, hidden sources and wraparound.
+- **Hands-On Lab Experiment:** Add a point and a polyline, then cycle through all three owners. A locked or hidden owner must be skipped without losing the next valid row.
+
 <details>
 <summary>Implementation 45bb-cycle: Cycle every eligible original geometry owner</summary>
 
@@ -1829,6 +1933,20 @@ After that block, type:
 </details>
 
 <a id="checkpoint-45c-input"></a>
+
+### Step 5 of 5 · Collect multiple objects with Shift-click and commands (`45c-input`)
+
+- **Goal:** Collect multiple objects with Shift-click and commands.
+- **Data Flow Trace:** `accepted pointer modifiers → checked GPU request → current original hit → replace or additive membership → one batch command`
+- **Files You Touch:** `src/browser.rs` (*Capture additive pointer ownership and route ordered selection, batch edits and inspection.*)
+
+Capture Shift on the accepted pointer gesture, then apply it when the current GPU result completes. Select All and Select None act on eligible whole objects.
+
+> **Self-Check Question:** *Does releasing Shift before GPU mapping finishes change the accepted gesture?*  
+> **Answer:** No. The modifier belongs to the queued gesture, not the keyboard state when its readback completes.
+
+- **What You Should See:** Close; Example Box; Select Next; Move -2,0,0; Example Box; Fit. Click one box and Shift-click the other. Type Selection, Move 0,0,1 and Undo. Select All, Delete and Undo must restore both.
+- **Hands-On Lab Experiment:** Shift-click the same object twice, then an empty area; order and count stay unchanged. A plain empty click clears the selection. For cold imported rows, run Reload Sources before a batch edit.
 
 <details>
 <summary>Implementation 45c-input: Collect multiple objects with Shift-click and commands</summary>
@@ -2842,9 +2960,11 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 </details>
 
-## Run, Check, and Save
+---
 
-From `session_viewer`:
+## 5. Build, Verify, and Save Your Checkpoint
+
+Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 45c-input
@@ -2855,10 +2975,10 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. Use [checkpoint recovery](../../recovery.md) to restore any saved checkpoint.
+Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
 
-## Expected Visual Result & Experiment
+## 6. Lesson Summary & Expected Visual Result
 
 Close; Example Box; Select Next; Move -2,0,0; Example Box; Fit. Click one box and Shift-click the other. Type Selection, Move 0,0,1 and Undo. Select All, Delete and Undo must restore both.
 
-- **Try this:** Shift-click the same object twice, then an empty area; order and count stay unchanged. A plain empty click clears the selection. For cold imported rows, run Reload Sources before a batch edit.
+- **Final Lesson Experiment:** Shift-click the same object twice, then an empty area; order and count stay unchanged. A plain empty click clears the selection. For cold imported rows, run Reload Sources before a batch edit.

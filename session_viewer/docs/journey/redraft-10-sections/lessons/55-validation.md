@@ -1,92 +1,157 @@
 # 9.1 · Original surfaces, analytic normals and trim boundaries
 
-**Section 6: CAD B-Rep Topology, World Text Atlases, Outlines, and Point Clouds** · **Lesson 9.1** (Redraft `6.1`) · **11 checkpoints (`55-validation` → `55zc-follow-original-constrained-trim-labels`)**
+**Section 6: CAD B-Rep Topology, World Text Atlases, Outlines, and Point Clouds** · **Lesson 9.1** (Redraft `6.1`) · **11 checkpoints (`55-validation` → `55zc-follow-original-constrained-trim-labels`)** · **Study time: 5.5–11 h**
 
-> **Learning Goal:** Validate original surface control storage.
+> **What You Will Learn & Build:** Validate original surface control storage. By the final checkpoint (`55zc-follow-original-constrained-trim-labels`), you will read ordered edge-use and interval labels from mesh vertices.
 
-## Visual WebGPU & Architecture Schematic
+## 1. Visual Pipeline & WebGPU Architecture (Black & White Schematics)
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1px solid #cbd5e1;border-radius:10px;background:#f8fafc;">
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
+<svg viewBox="0 0 840 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <rect x="4" y="4" width="832" height="212" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Lesson 9.1 Execution Flow: Original surfaces, analytic normals and trim boundaries</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">Concrete data pipeline you build in this lesson (11 Checkpoints: 55-validation → 55zc-follow-original-constrained-trim-labels)</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
+  
+    
+    <rect x="18" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="89" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
+    <line x1="28" y1="92" x2="151" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">original NURBS</text>
+    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="183" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="254" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
+    <line x1="193" y1="92" x2="316" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">storage bounds</text>
+    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="348" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="419" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
+    <line x1="358" y1="92" x2="481" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">weights and knots</text>
+    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="513" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="584" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
+    <line x1="523" y1="92" x2="646" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">finite domains</text>
+    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="678" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="749" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
+    <line x1="688" y1="92" x2="811" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">original edge use</text>
+    
+    <rect x="18" y="162" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="32" y="181" font-size="11" font-weight="700" fill="#111111">Files You Edit in Lesson 9.1:</text>
+    <text x="215" y="181" font-size="11" fill="#111111">src/surface.rs  ·  src/lib.rs  ·  src/scene.rs  ·  src/document.rs  ·  src/part_preview.rs  ·  src/pick_sources.rs</text>
+    <text x="32" y="198" font-size="10.5" fill="#111111">11 Checkpoints: 55-validation → 55zc-follow-original-constrained-trim-labels — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
+  
+</svg>
+</div>
+
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
 <svg viewBox="0 0 840 240" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#475569"/>
-    </marker>
-    <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#2563eb"/>
-    </marker>
-    <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#059669"/>
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
     </marker>
   </defs>
-  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
-  <text x="20" y="28" font-size="14" font-weight="700" fill="#0f172a">Chapter 9 CAD B-Rep Pipeline: Topological Loops/Trims, Crease Normals & Analytical Boundary Wires</text>
-  <text x="20" y="46" font-size="11.5" fill="#475569">How exact Boundary Representations (B-Rep) combine shaded trimmed surface meshes with crisp analytical boundary & isoline curves.</text>
-  <line x1="16" y1="54" x2="824" y2="54" stroke="#e2e8f0" stroke-width="1"/>
+  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Chapter 9 CAD B-Rep Pipeline: Topological Loops/Trims, Crease Normals & Analytical Boundary Wires</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">How exact Boundary Representations (B-Rep) combine shaded trimmed surface meshes with crisp analytical boundary & isoline curves.</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
   
-    <rect x="18" y="68" width="245" height="145" rx="6" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
-    <text x="140" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1e40af">1. B-Rep Topological Validation</text>
-    <text x="28" y="108" font-size="10.5" fill="#1e3a8a">• Solid -&gt; Faces -&gt; Loops (Outer + Holes)</text>
-    <text x="28" y="126" font-size="10.5" fill="#1e3a8a">• Trim curves in 2D (u, v) domain</text>
-    <text x="28" y="144" font-size="10.5" font-weight="600" fill="#1d4ed8">• Validate orientation, loop closure,</text>
-    <text x="28" y="160" font-size="10.5" font-weight="600" fill="#1d4ed8">  and manifold edge adjacency</text>
-    <text x="28" y="180" font-size="10.5" fill="#1e3a8a">• Preserve exact NURBS surface source</text>
+    <rect x="18" y="68" width="245" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="140" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">1. B-Rep Topological Validation</text>
+    <text x="28" y="108" font-size="10.5" fill="#111111">• Solid -&gt; Faces -&gt; Loops (Outer + Holes)</text>
+    <text x="28" y="126" font-size="10.5" fill="#111111">• Trim curves in 2D (u, v) domain</text>
+    <text x="28" y="144" font-size="10.5" font-weight="600" fill="#111111">• Validate orientation, loop closure,</text>
+    <text x="28" y="160" font-size="10.5" font-weight="600" fill="#111111">  and manifold edge adjacency</text>
+    <text x="28" y="180" font-size="10.5" fill="#111111">• Preserve exact NURBS surface source</text>
 
-    <line x1="263" y1="112" x2="295" y2="112" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
-    <line x1="263" y1="175" x2="295" y2="175" stroke="#059669" stroke-width="2" marker-end="url(#arrow-green)"/>
+    <line x1="263" y1="112" x2="295" y2="112" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
+    <line x1="263" y1="175" x2="295" y2="175" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="297" y="68" width="275" height="68" rx="6" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5"/>
-    <text x="309" y="86" font-size="11" font-weight="700" fill="#9a3412">2A. Shaded Trimmed Faces (Surface Lane)</text>
-    <text x="309" y="104" font-size="10.5" fill="#7c2d12">• Tessellate within (u,v) trim loops</text>
-    <text x="309" y="120" font-size="10.5" fill="#7c2d12">• Smooth normals across G1; split at creases!</text>
+    <rect x="297" y="68" width="275" height="68" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="309" y="86" font-size="11" font-weight="700" fill="#111111">2A. Shaded Trimmed Faces (Surface Lane)</text>
+    <text x="309" y="104" font-size="10.5" fill="#111111">• Tessellate within (u,v) trim loops</text>
+    <text x="309" y="120" font-size="10.5" fill="#111111">• Smooth normals across G1; split at creases!</text>
 
-    <rect x="297" y="145" width="275" height="68" rx="6" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1.5"/>
-    <text x="309" y="163" font-size="11" font-weight="700" fill="#065f46">2B. Boundary Wires &amp; Isolines (Ribbon Lane)</text>
-    <text x="309" y="181" font-size="10.5" fill="#064e3b">• Extract 3D topological edges + UV isolines</text>
-    <text x="309" y="197" font-size="10.5" fill="#064e3b">• Render via ribbon.wgsl with depth bias</text>
+    <rect x="297" y="145" width="275" height="68" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="309" y="163" font-size="11" font-weight="700" fill="#111111">2B. Boundary Wires &amp; Isolines (Ribbon Lane)</text>
+    <text x="309" y="181" font-size="10.5" fill="#111111">• Extract 3D topological edges + UV isolines</text>
+    <text x="309" y="197" font-size="10.5" fill="#111111">• Render via ribbon.wgsl with depth bias</text>
 
-    <line x1="572" y1="138" x2="602" y2="138" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>
+    <line x1="572" y1="138" x2="602" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="604" y="68" width="216" height="145" rx="6" fill="#fdf2f8" stroke="#f472b6" stroke-width="1.5"/>
-    <text x="712" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#9d174d">3. Unified B-Rep Sub-Picking</text>
-    <text x="616" y="108" font-size="10.5" fill="#831843">• Every triangle &amp; wire carries</text>
-    <text x="616" y="124" font-size="10.5" font-weight="600" fill="#9d174d">  [brep_owner_id, sub_id]</text>
-    <text x="616" y="144" font-size="10" fill="#831843">• Click selects whole B-Rep solid</text>
-    <text x="616" y="159" font-size="10" fill="#831843">  or drills into Face #i / Edge #j</text>
-    <text x="616" y="178" font-size="10.5" fill="#831843">• Outlines &amp; Point Clouds (Sec 6)</text>
-    <text x="616" y="193" font-size="10" fill="#831843">  share the same owner ID contract</text>
+    <rect x="604" y="68" width="216" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="712" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">3. Unified B-Rep Sub-Picking</text>
+    <text x="616" y="108" font-size="10.5" fill="#111111">• Every triangle &amp; wire carries</text>
+    <text x="616" y="124" font-size="10.5" font-weight="600" fill="#111111">  [brep_owner_id, sub_id]</text>
+    <text x="616" y="144" font-size="10" fill="#111111">• Click selects whole B-Rep solid</text>
+    <text x="616" y="159" font-size="10" fill="#111111">  or drills into Face #i / Edge #j</text>
+    <text x="616" y="178" font-size="10.5" fill="#111111">• Outlines &amp; Point Clouds (Sec 6)</text>
+    <text x="616" y="193" font-size="10" fill="#111111">  share the same owner ID contract</text>
     
 </svg>
 </div>
 
-### Lesson Data Flow (`Rust` → `WebGPU` → `WGSL`)
+## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
 
-```
-original NURBS → storage bounds → weights and knots → finite domains.
-original surface owner → existing scene identity → current layer → shared placement history.
-original edge use → face-mesh samples → ordered CAD boundary chain.
-```
+Before writing code, review how the three layers in this chapter talk to each other:
 
-- Validate original surface control storage.
-- Resolve original surface face and domain edges.
-- Read ordered edge-use and interval labels from mesh vertices.
-- **Why it works (Why validate strides before reading a control point?):** The kernel control accessor expects complete storage. Invalid strides or missing values could index past the source buffer; rejecting them before evaluation preserves the scene.
-
-### Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `Browser`)
-
-| Layer | Construct | First-Year Student Explanation |
+| Layer | Construct | Plain-English Explanation for Students |
 | :--- | :--- | :--- |
 | **Rust (`session_rust`)** | `BRep` Faces, Outer/Inner Trim Loops & Edge Adjacency | Validates topological loop closure and manifold edges so trimmed CAD surfaces and analytical boundary curves stay synchronized. |
 | **Rust / WGSL** | Crease-Split Vertex Normals vs. Smooth `G1` Normals | Averages vertex normals across smooth surface patches (`angle < crease_threshold`) and splits vertices along sharp mechanical creases for crisp shading. |
 | **WebGPU (`Rg32Uint`)** | Unified `[brep_owner_id, face_or_edge_sub_id]` Picking | Both shaded B-Rep face triangles and boundary ribbon wires write the same B-Rep owner ID plus sub-element index for whole-solid or sub-face/edge selection. |
 
-**Production source (`session_viewer/src`):** [app/walk/brep.rs](../../../../src/app/walk/brep.rs), [app/walk/brep_edges.rs](../../../../src/app/walk/brep_edges.rs), [app/walk/brep_orient.rs](../../../../src/app/walk/brep_orient.rs), [app/walk/brep_shapes.rs](../../../../src/app/walk/brep_shapes.rs), [engine/gpu/faces.rs](../../../../src/engine/gpu/faces.rs).
+**Authoritative production source (`session_viewer/src`):** [app/walk/brep.rs](../../../../src/app/walk/brep.rs), [app/walk/brep_edges.rs](../../../../src/app/walk/brep_edges.rs), [app/walk/brep_orient.rs](../../../../src/app/walk/brep_orient.rs), [app/walk/brep_shapes.rs](../../../../src/app/walk/brep_shapes.rs), [engine/gpu/faces.rs](../../../../src/engine/gpu/faces.rs)
 
-## Implementation Checkpoints
+## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
 
-Apply these checkpoints in order inside `workspace/journey`. Expand each block to view the Rust/WGSL/HTML edits:
+| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
+| ---: | :--- | :--- | :--- | :--- |
+| **1** | [`55-validation`](#checkpoint-55-validation) | Validate original surface control storage. | `src/surface.rs`, `src/lib.rs` | `original NURBS → storage bounds → weights and knots → finite domains` |
+| **2** | [`55a-grid`](#checkpoint-55a-grid) | Keep UV coordinates beside original world samples. | `src/surface.rs` | `parameter domain → exact UV → f64 point and normal → grid and original borders` |
+| **3** | [`55b-normals`](#checkpoint-55b-normals) | Use analytic normals and finite singular-point fallbacks. | `src/surface.rs` | `analytic normal → finite unit vector → neighbouring cell fallback → display normal` |
+| **4** | [`55c-display`](#checkpoint-55c-display) | Prepare derived surface display without losing its source. | `src/surface.rs` | `shared original NURBS → UV grid → derived mesh display → one face and four borders` |
+| **5** | [`55d-source-row`](#checkpoint-55d-source-row) | Attach original surface ownership to existing scene rows. | `src/scene.rs`, `src/document.rs`, `src/part_preview.rs` | `original surface owner → existing scene identity → current layer → shared placement history` |
+| **6** | [`55e-identities`](#checkpoint-55e-identities) | Resolve original surface face and domain edges. | `src/pick_sources.rs`, `src/selection.rs`, `src/highlight.rs` | `display segment → compact GPU address → original domain edge → complete border highlight` |
+| **7** | [`55f-ownership`](#checkpoint-55f-ownership) | Account for shared source and UV cache owners. | `src/memory.rs`, `src/browser.rs` | `live and history rows → shared source identities → cached UV allocations → inspectable diagnostics` |
+| **8** | [`55g-surface`](#checkpoint-55g-surface) | Draw and pick the original parametric roof. | `src/editor.rs`, `src/commands.rs`, `src/surface_tests.rs`, `src/lib.rs` | `Example Surface → shared source row → analytic-normal drawing → original integer pick → one Undo` |
+| **9** | [`55za-read-original-edge-use-samples`](#checkpoint-55za-read-original-edge-use-samples) | Write edge-use and chain records, parameter ordering and exact linear pcurve endpoints. | `src/cad_edges.rs`, `src/lib.rs` | `original edge use → face-mesh samples → ordered CAD boundary chain` |
+| **10** | [`55zb-follow-original-isoparametric-boundaries`](#checkpoint-55zb-follow-original-isoparametric-boundaries) | Follow an exact constant-u or constant-v boundary through the existing face mesh. | `src/cad_edges.rs` | `original edge use → face-mesh samples → ordered CAD boundary chain` |
+| **11** | [`55zc-follow-original-constrained-trim-labels`](#checkpoint-55zc-follow-original-constrained-trim-labels) | Read ordered edge-use and interval labels from mesh vertices. | `src/cad_edges.rs` | `original edge use → face-mesh samples → ordered CAD boundary chain` |
+
+---
+
+## 4. Step-by-Step Coding Notebook (Concept + Implementation)
+
+Work through each notebook cell below in order inside `workspace/journey`. Read the **Concept Walkthrough** and **Self-Check Q&A** first, then expand the **Implementation** block to type and verify the code.
 
 <a id="checkpoint-55-validation"></a>
+
+### Step 1 of 11 · Validate original surface control storage (`55-validation`)
+
+- **Goal:** Validate original surface control storage.
+- **Data Flow Trace:** `original NURBS → storage bounds → weights and knots → finite domains`
+- **Files You Touch:** `src/surface.rs` (*Validate the original NURBS layout, parameter domains and bounded display input.*) · `src/lib.rs` (*Register the source component.*)
+
+Check bounded control counts, nonoverlapping row or column strides, positive rational weights, knot order and finite parameter domains before evaluating a source.
+
+> **Self-Check Question:** *Why validate strides before reading a control point?*  
+> **Answer:** The kernel control accessor expects complete storage. Invalid strides or missing values could index past the source buffer; rejecting them before evaluation preserves the scene.
+
+- **What You Should See:** Continue the navigation and blue Posts exercise. This preparation connects one surface component; draw and select the original parametric roof at the end of 55.
+- **Hands-On Lab Experiment:** Compare packed, transposed and padded valid control storage. Try overlapping strides, a zero weight and reversed knots; each must be refused before drawing.
 
 <details>
 <summary>Implementation 55-validation: Validate original surface control storage</summary>
@@ -129,6 +194,19 @@ After that block, type:
 
 <a id="checkpoint-55a-grid"></a>
 
+### Step 2 of 11 · Keep UV coordinates beside original world samples (`55a-grid`)
+
+- **Goal:** Keep UV coordinates beside original world samples.
+- **Data Flow Trace:** `parameter domain → exact UV → f64 point and normal → grid and original borders`
+- **Files You Touch:** `src/surface.rs` (*Build the current 16–96-step UV grid and open domain border segment ranges.*)
+
+Sample the original source in f64, retain each UV address, use the current bounded grid sizes and record four original domain boundaries.
+
+> **Self-Check Question:** *Are grid triangles new CAD faces?*  
+> **Answer:** No. They are derived display triangles for one original surface. UV addresses retain the connection to the source; its four domain borders keep their own identities.
+
+- **Hands-On Lab Experiment:** Evaluate a nonunit domain and compare every cached sample with the original surface at its UV. Count boundary segments separately from interior grid edges.
+
 <details>
 <summary>Implementation 55a-grid: Keep UV coordinates beside original world samples</summary>
 
@@ -158,6 +236,19 @@ After that block, type:
 </details>
 
 <a id="checkpoint-55b-normals"></a>
+
+### Step 3 of 11 · Use analytic normals and finite singular-point fallbacks (`55b-normals`)
+
+- **Goal:** Use analytic normals and finite singular-point fallbacks.
+- **Data Flow Trace:** `analytic normal → finite unit vector → neighbouring cell fallback → display normal`
+- **Files You Touch:** `src/surface.rs` (*Normalise analytic normals and safely handle singular sample positions.*)
+
+Keep the kernel normal when valid and recover a missing singular-point normal from a neighbouring grid cell without changing the source.
+
+> **Self-Check Question:** *Should a degenerate normal become a NaN vertex attribute?*  
+> **Answer:** No. A neighbouring nondegenerate cell can provide the direction. If the entire local patch collapses, its zero-area triangles receive a finite fallback normal.
+
+- **Hands-On Lab Experiment:** Compare a planar patch and a curved roof. Transpose its control layout and verify that sampling follows the transposed source rather than rewriting it.
 
 <details>
 <summary>Implementation 55b-normals: Use analytic normals and finite singular-point fallbacks</summary>
@@ -191,6 +282,19 @@ Edit the existing block to match this code; keep unchanged lines:
 
 <a id="checkpoint-55c-display"></a>
 
+### Step 4 of 11 · Prepare derived surface display without losing its source (`55c-display`)
+
+- **Goal:** Prepare derived surface display without losing its source.
+- **Data Flow Trace:** `shared original NURBS → UV grid → derived mesh display → one face and four borders`
+- **Files You Touch:** `src/surface.rs` (*Keep the original surface and its UV cache beside the derived display; provide the parametric-roof example.*)
+
+Keep the original NURBS in a shared owner. Build display positions, normals, triangles and only original domain boundary ink; all triangles resolve to one face.
+
+> **Self-Check Question:** *Why keep the original NURBS after making display triangles?*  
+> **Answer:** The triangles approximate its display. They cannot replace original control values, rational weights or parameter domains. Presentation and placements continue sharing the source.
+
+- **Hands-On Lab Experiment:** Inspect the original surface before and after preparation. Compare its weights, knots, GUID and colours; count one face and four boundary identities.
+
 <details>
 <summary>Implementation 55c-display: Prepare derived surface display without losing its source</summary>
 
@@ -221,6 +325,19 @@ After that block, type:
 </details>
 
 <a id="checkpoint-55d-source-row"></a>
+
+### Step 5 of 11 · Attach original surface ownership to existing scene rows (`55d-source-row`)
+
+- **Goal:** Attach original surface ownership to existing scene rows.
+- **Data Flow Trace:** `original surface owner → existing scene identity → current layer → shared placement history`
+- **Files You Touch:** `src/scene.rs` (*Attach and share original NURBS ownership while preventing proxy saving or premature CAD deformation.*) · `src/document.rs` (*Attach and share original NURBS ownership while preventing proxy saving or premature CAD deformation.*) · `src/part_preview.rs` (*Attach and share original NURBS ownership while preventing proxy saving or premature CAD deformation.*)
+
+Route a generated surface through the current layer while preserving original metadata and one whole-object history boundary. Guard saving and CAD part edits until their later subjects.
+
+> **Self-Check Question:** *Can this checkpoint silently save the tessellated proxy as a mesh?*  
+> **Answer:** No. Saving a CAD surface is explicitly guarded until mixed saving is implemented. Original NURBS geometry remains owned and unchanged while whole-object placements are edited.
+
+- **Hands-On Lab Experiment:** Add a surface on the current layer, move it and undo once. Close the document while retaining metadata and display data; the original surface should be released.
 
 <details>
 <summary>Implementation 55d-source-row: Attach original surface ownership to existing scene rows</summary>
@@ -987,6 +1104,19 @@ Edit the existing block to match this code; keep unchanged lines:
 
 <a id="checkpoint-55e-identities"></a>
 
+### Step 6 of 11 · Resolve original surface face and domain edges (`55e-identities`)
+
+- **Goal:** Resolve original surface face and domain edges.
+- **Data Flow Trace:** `display segment → compact GPU address → original domain edge → complete border highlight`
+- **Files You Touch:** `src/pick_sources.rs` (*Resolve and highlight one original CAD face and four domain edges without exposing interior grid lines.*) · `src/selection.rs` (*Resolve and highlight one original CAD face and four domain edges without exposing interior grid lines.*) · `src/highlight.rs` (*Resolve and highlight one original CAD face and four domain edges without exposing interior grid lines.*)
+
+Give the shaded patch one source face and retain four domain edge identities across all their display segments. Highlight the chosen complete original border.
+
+> **Self-Check Question:** *Do sixteen display segments make sixteen separate domain edges?*  
+> **Answer:** No. They are samples along one original border. Each segment resolves to the same domain edge identity, and highlighting that edge follows its whole sampled curve.
+
+- **Hands-On Lab Experiment:** Pick the four roof borders at several locations. Confirm identities 0–3, one face 0 and no internal tessellation diagonals in the edge pass.
+
 <details>
 <summary>Implementation 55e-identities: Resolve original surface face and domain edges</summary>
 
@@ -1282,6 +1412,19 @@ Edit the existing block to match this code; keep unchanged lines:
 
 <a id="checkpoint-55f-ownership"></a>
 
+### Step 7 of 11 · Account for shared source and UV cache owners (`55f-ownership`)
+
+- **Goal:** Account for shared source and UV cache owners.
+- **Data Flow Trace:** `live and history rows → shared source identities → cached UV allocations → inspectable diagnostics`
+- **Files You Touch:** `src/memory.rs` (*Count source control/metadata bytes and cached UV/triangle/boundary allocations by unique owner.*) · `src/browser.rs` (*Expose actual surface source, grid, face and edge identities and unique-owner accounting.*)
+
+Count original NURBS and sampled preparation owners once across live and history scenes. Expose their source and grid identities for acceptance checks.
+
+> **Self-Check Question:** *Does a history snapshot need another complete surface grid?*  
+> **Answer:** No. Unchanged snapshots share the original NURBS and prepared UV grid. Closing releases those source owners; a retained display mesh can survive independently.
+
+- **Hands-On Lab Experiment:** Compare one scene with its history snapshots, then close. Verify source and preparation counts deduplicate shared owners and return to zero after Close.
+
 <details>
 <summary>Implementation 55f-ownership: Account for shared source and UV cache owners</summary>
 
@@ -1334,6 +1477,20 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-55g-surface"></a>
+
+### Step 8 of 11 · Draw and pick the original parametric roof (`55g-surface`)
+
+- **Goal:** Draw and pick the original parametric roof.
+- **Data Flow Trace:** `Example Surface → shared source row → analytic-normal drawing → original integer pick → one Undo`
+- **Files You Touch:** `src/editor.rs` (*Create the parametric roof through the existing checked document transaction.*) · `src/commands.rs` (*Create the parametric roof through the existing checked document transaction.*) · `src/surface_tests.rs` (*Copy malformed-input, exact UV/normal/boundary, rational, storage layout, source lifetime and placement-history checks.*) · `src/lib.rs` (*Register the source component.*) · `src/pick_gpu_tests.rs` (*Copy actual one-face and four-original-domain-edge GPU readbacks with unchanged source and geometry allocations.*)
+
+Connect the parametric surface example and copy all source, sampling, ownership and actual GPU checks. Preserve the original NURBS while editing whole placements.
+
+> **Self-Check Question:** *What establishes correct surface picking?*  
+> **Answer:** Actual integer readback must resolve the patch to original face 0 and every boundary sample to its original edges 0–3. Source serialization and GPU geometry allocations remain unchanged.
+
+- **What You Should See:** Type Close, Example Surface, Fit and View Isometric. The blue parametric roof draws with analytic normals and black original borders. Select All, Move 0.123456789012345 0 0, then Undo once; original surface data remains shared. Use Select Face and Select Edge to inspect one original face and four domain borders. Return to Select Object before whole-placement editing.
+- **Hands-On Lab Experiment:** Type Close, Example Surface, Fit and View Isometric. Select the whole roof, move it and Undo. Select its face and domain edges; verify black border ink and no internal grid diagonals.
 
 <details>
 <summary>Implementation 55g-surface: Draw and pick the original parametric roof</summary>
@@ -2251,6 +2408,20 @@ After that block, append this supplied code:
 
 <a id="checkpoint-55za-read-original-edge-use-samples"></a>
 
+### Step 9 of 11 · Read original edge-use samples (`55za-read-original-edge-use-samples`)
+
+- **Goal:** Write edge-use and chain records, parameter ordering and exact linear pcurve endpoints.
+- **Data Flow Trace:** `original edge use → face-mesh samples → ordered CAD boundary chain`
+- **Files You Touch:** `src/cad_edges.rs` (*Type the whole original helpers introduced today.*) · `src/lib.rs` (*Register the original CAD edge records and lookup helpers.*)
+
+Write edge-use and chain records, parameter ordering and exact linear pcurve endpoints. Collect unique face-mesh samples and locate the matching periodic sample.
+
+> **Self-Check Question:** *Why retain the face use orientation?*  
+> **Answer:** A surface seam may have two parameter curves on the same face. Its oriented use selects the boundary being followed.
+
+- **What You Should See:** Boundary lookup can read an original edge-use sample without changing the displayed roof.
+- **Hands-On Lab Experiment:** Trace the pcurve checks and a periodic endpoint. Compare ordinary parameter ordering with the total order used for constrained labels.
+
 <details>
 <summary>Implementation 55za-read-original-edge-use-samples: Read original edge-use samples</summary>
 
@@ -2291,6 +2462,20 @@ After that block, type:
 </details>
 
 <a id="checkpoint-55zb-follow-original-isoparametric-boundaries"></a>
+
+### Step 10 of 11 · Follow original isoparametric boundaries (`55zb-follow-original-isoparametric-boundaries`)
+
+- **Goal:** Follow an exact constant-u or constant-v boundary through the existing face mesh.
+- **Data Flow Trace:** `original edge use → face-mesh samples → ordered CAD boundary chain`
+- **Files You Touch:** `src/cad_edges.rs` (*Extend this original owner with today’s complete helper.*)
+
+Follow an exact constant-u or constant-v boundary through the existing face mesh. Refuse unsupported pcurves and preserve the closing vertex of an original closed edge.
+
+> **Self-Check Question:** *Why require the exact parameter sample?*  
+> **Answer:** The chain must follow triangles already drawn at that boundary. A nearby independent curve sample would describe a different edge path.
+
+- **What You Should See:** Original isoparametric boundaries can be followed; BRep display connection remains preparatory.
+- **Hands-On Lab Experiment:** Trace fixed and free parameters along a cylindrical rim. Identify the periodic start match and closing vertex.
 
 <details>
 <summary>Implementation 55zb-follow-original-isoparametric-boundaries: Follow original isoparametric boundaries</summary>
@@ -2417,6 +2602,20 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-55zc-follow-original-constrained-trim-labels"></a>
 
+### Step 11 of 11 · Follow original constrained trim labels (`55zc-follow-original-constrained-trim-labels`)
+
+- **Goal:** Read ordered edge-use and interval labels from mesh vertices.
+- **Data Flow Trace:** `original edge use → face-mesh samples → ordered CAD boundary chain`
+- **Files You Touch:** `src/cad_edges.rs` (*Extend this original owner with today’s complete helper.*)
+
+Read ordered edge-use and interval labels from mesh vertices. Keep unique sample keys, reject gaps and insert finite interior trim samples in total parameter order.
+
+> **Self-Check Question:** *Why reject a missing integer sample?*  
+> **Answer:** The labels describe one continuous ordered boundary. A gap would join vertices across an unrepresented segment.
+
+- **What You Should See:** Constrained trim labels can resolve their original boundaries before coherent BRep drawing is connected.
+- **Hands-On Lab Experiment:** Trace duplicate vertex candidates, a missing sample and an interior interval point through the original lookup.
+
 <details>
 <summary>Implementation 55zc-follow-original-constrained-trim-labels: Follow original constrained trim labels</summary>
 
@@ -2540,9 +2739,11 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 </details>
 
-## Run, Check, and Save
+---
 
-From `session_viewer`:
+## 5. Build, Verify, and Save Your Checkpoint
+
+Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 55zc-follow-original-constrained-trim-labels
@@ -2553,12 +2754,12 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. Use [checkpoint recovery](../../recovery.md) to restore any saved checkpoint.
+Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
 
-## Expected Visual Result & Experiment
+## 6. Lesson Summary & Expected Visual Result
 
 Constrained trim labels can resolve their original boundaries before coherent BRep drawing is connected.
 
-- **Try this:** Trace duplicate vertex candidates, a missing sample and an interior interval point through the original lookup.
+- **Final Lesson Experiment:** Trace duplicate vertex candidates, a missing sample and an interior interval point through the original lookup.
 
-Continue with [Shared CAD boundaries across incident faces](56-chains.md).
+Continue with [Shared CAD boundaries across incident faces](../../consolidation/56-chains.md).

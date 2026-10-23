@@ -1,88 +1,144 @@
 # 18.1 · A retained depth and radius pyramid
 
-**Section 9: Compute Tile Visibility, Clipping Half-Spaces, Section Caps, and Ambient Occlusion** · **Lesson 18.1** (Redraft `9.5`) · **9 checkpoints (`89-copy-density-scaled-depth-reduction` → `89h-exercise-actual-depth-levels-and-cache-release`)**
+**Section 9: Compute Tile Visibility, Clipping Half-Spaces, Section Caps, and Ambient Occlusion** · **Lesson 18.1** (Redraft `9.5`) · **9 checkpoints (`89-copy-density-scaled-depth-reduction` → `89h-exercise-actual-depth-levels-and-cache-release`)** · **Study time: 4.5–9 h**
 
-> **Learning Goal:** Write the density policy and nearest-positive depth/radius reduction.
+> **What You Will Learn & Build:** Write the density policy and nearest-positive depth/radius reduction. By the final checkpoint (`89h-exercise-actual-depth-levels-and-cache-release`), you will exercise actual depth levels and cache release.
 
-## Visual WebGPU & Architecture Schematic
+## 1. Visual Pipeline & WebGPU Architecture (Black & White Schematics)
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1px solid #cbd5e1;border-radius:10px;background:#f8fafc;">
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
+<svg viewBox="0 0 840 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <rect x="4" y="4" width="832" height="212" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Lesson 18.1 Execution Flow: A retained depth and radius pyramid</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">Concrete data pipeline you build in this lesson (9 Checkpoints: 89-copy-density-scaled-depth-reduction → 89h-exercise-actual-depth-levels-and-cache-release)</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
+  
+    
+    <rect x="18" y="68" width="253" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="144" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
+    <line x1="28" y1="92" x2="261" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="144" y="108" text-anchor="middle" font-size="11" fill="#111111">original rendered depth</text>
+    <line x1="271" y1="108" x2="291" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="293" y="68" width="253" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="419" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
+    <line x1="303" y1="92" x2="536" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">density-scaled hierarchy</text>
+    <line x1="546" y1="108" x2="566" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="568" y="68" width="253" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="694" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
+    <line x1="578" y1="92" x2="811" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="694" y="108" text-anchor="middle" font-size="11" fill="#111111">nearest positive depth and radius</text>
+    
+    <rect x="18" y="162" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="32" y="181" font-size="11" font-weight="700" fill="#111111">Files You Edit in Lesson 18.1:</text>
+    <text x="215" y="181" font-size="11" fill="#111111">src/pyramid_size.rs  ·  src/lib.rs  ·  src/ambient_depth.wgsl  ·  src/pyramid_prepare.wgsl  ·  src/pyramid_image.rs  ·  src/pyramid_pipeline.rs</text>
+    <text x="32" y="198" font-size="10.5" fill="#111111">9 Checkpoints: 89-copy-density-scaled-depth-reduction → 89h-exercise-actual-depth-levels-and-cache-release — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
+  
+</svg>
+</div>
+
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
 <svg viewBox="0 0 840 240" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#475569"/>
-    </marker>
-    <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#2563eb"/>
-    </marker>
-    <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#059669"/>
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
     </marker>
   </defs>
-  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
-  <text x="20" y="28" font-size="14" font-weight="700" fill="#0f172a">Section 9 Compute Tile Visibility, Clipping Half-Spaces, Winding Section Caps & Horizon GTAO (Ch 17–18)</text>
-  <text x="20" y="46" font-size="11.5" fill="#475569">How @compute shaders bin triangles into screen tiles for hidden-line removal, clip solids with winding caps, and shade crevices.</text>
-  <line x1="16" y1="54" x2="824" y2="54" stroke="#e2e8f0" stroke-width="1"/>
+  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Section 9 Compute Tile Visibility, Clipping Half-Spaces, Winding Section Caps & Horizon GTAO (Ch 17–18)</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">How @compute shaders bin triangles into screen tiles for hidden-line removal, clip solids with winding caps, and shade crevices.</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
   
-    <rect x="18" y="68" width="250" height="145" rx="6" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
-    <text x="143" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1e40af">1. @compute Tile Visibility (Ch 17)</text>
-    <text x="28" y="108" font-size="10.5" fill="#1e3a8a">• projected_triangle.wgsl projects tris</text>
-    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#1d4ed8">• atomicAdd tile counts + prefix-sum CSR</text>
-    <text x="28" y="144" font-size="10.5" fill="#1e3a8a">• ink_visibility.wgsl tests center-line</text>
-    <text x="28" y="160" font-size="10.5" fill="#1e3a8a">  against covering triangles in tile</text>
-    <text x="28" y="178" font-size="10.5" fill="#1e3a8a">• Hidden lines dashed/faded cleanly!</text>
+    <rect x="18" y="68" width="250" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="143" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">1. @compute Tile Visibility (Ch 17)</text>
+    <text x="28" y="108" font-size="10.5" fill="#111111">• projected_triangle.wgsl projects tris</text>
+    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#111111">• atomicAdd tile counts + prefix-sum CSR</text>
+    <text x="28" y="144" font-size="10.5" fill="#111111">• ink_visibility.wgsl tests center-line</text>
+    <text x="28" y="160" font-size="10.5" fill="#111111">  against covering triangles in tile</text>
+    <text x="28" y="178" font-size="10.5" fill="#111111">• Hidden lines dashed/faded cleanly!</text>
 
-    <line x1="268" y1="138" x2="298" y2="138" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
+    <line x1="268" y1="138" x2="298" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="300" y="68" width="265" height="145" rx="6" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5"/>
-    <text x="432" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#9a3412">2. Clipping &amp; Winding Caps (Ch 17)</text>
-    <text x="312" y="108" font-size="10.5" fill="#7c2d12">• Half-space: dot(pos_world, plane) &lt; 0</text>
-    <text x="312" y="126" font-size="10.5" font-weight="600" fill="#c2410c">• Signed front/back crossing count</text>
-    <text x="312" y="142" font-size="10" fill="#7c2d12">  at clip plane depth (cap.wgsl):</text>
-    <text x="312" y="158" font-size="10" fill="#7c2d12">  Fills closed solid interiors while</text>
-    <text x="312" y="173" font-size="10" fill="#7c2d12">  leaving internal bores hollow!</text>
-    <text x="312" y="191" font-size="10.5" fill="#7c2d12">• Cap picks resolve to solid owner_id</text>
+    <rect x="300" y="68" width="265" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="432" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">2. Clipping &amp; Winding Caps (Ch 17)</text>
+    <text x="312" y="108" font-size="10.5" fill="#111111">• Half-space: dot(pos_world, plane) &lt; 0</text>
+    <text x="312" y="126" font-size="10.5" font-weight="600" fill="#111111">• Signed front/back crossing count</text>
+    <text x="312" y="142" font-size="10" fill="#111111">  at clip plane depth (cap.wgsl):</text>
+    <text x="312" y="158" font-size="10" fill="#111111">  Fills closed solid interiors while</text>
+    <text x="312" y="173" font-size="10" fill="#111111">  leaving internal bores hollow!</text>
+    <text x="312" y="191" font-size="10.5" fill="#111111">• Cap picks resolve to solid owner_id</text>
 
-    <line x1="565" y1="138" x2="595" y2="138" stroke="#059669" stroke-width="2" marker-end="url(#arrow-green)"/>
+    <line x1="565" y1="138" x2="595" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="597" y="68" width="223" height="145" rx="6" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1.5"/>
-    <text x="708" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#065f46">3. Horizon GTAO &amp; X-Ray (Ch 18)</text>
-    <text x="609" y="108" font-size="10.5" fill="#064e3b">• ambient_depth.wgsl -&gt; 6-mip pyramid</text>
-    <text x="609" y="126" font-size="10.5" font-weight="600" fill="#047857">• ssao.wgsl + bilateral blur +</text>
-    <text x="609" y="142" font-size="10.5" font-weight="600" fill="#047857">  ambient_composite.wgsl (Arctic)</text>
-    <text x="609" y="160" font-size="10" fill="#064e3b">• Glass / X-Ray translucent shells</text>
-    <text x="609" y="175" font-size="10" fill="#064e3b">  allow picking interior Wood joints</text>
+    <rect x="597" y="68" width="223" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="708" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">3. Horizon GTAO &amp; X-Ray (Ch 18)</text>
+    <text x="609" y="108" font-size="10.5" fill="#111111">• ambient_depth.wgsl -&gt; 6-mip pyramid</text>
+    <text x="609" y="126" font-size="10.5" font-weight="600" fill="#111111">• ssao.wgsl + bilateral blur +</text>
+    <text x="609" y="142" font-size="10.5" font-weight="600" fill="#111111">  ambient_composite.wgsl (Arctic)</text>
+    <text x="609" y="160" font-size="10" fill="#111111">• Glass / X-Ray translucent shells</text>
+    <text x="609" y="175" font-size="10" fill="#111111">  allow picking interior Wood joints</text>
     
 </svg>
 </div>
 
-### Lesson Data Flow (`Rust` → `WebGPU` → `WGSL`)
+## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
 
-```
-original rendered depth → density-scaled hierarchy → nearest positive depth and radius.
-```
+Before writing code, review how the three layers in this chapter talk to each other:
 
-- Write the density policy and nearest-positive depth/radius reduction.
-- Prepare cached pyramid inputs and images.
-- Exercise actual depth levels and cache release.
-- **Why it works (Why must a reduced depth sample keep the radius word from the same source pixel?):** The depth identifies the chosen original surface. Its contact radius and packed coordinate must follow that surface; averaging or selecting them independently would invent a mismatched contact sample.
-
-### Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `Browser`)
-
-| Layer | Construct | First-Year Student Explanation |
+| Layer | Construct | Plain-English Explanation for Students |
 | :--- | :--- | :--- |
 | **WGSL (`@compute`)** | `@compute @workgroup_size(64) fn main(@builtin(global_invocation_id) id: vec3<u32>)` | Runs general-purpose parallel GPU threads (outside vertex/fragment rasterization) to project triangles and prefix-sum tile counts. |
 | **WGSL (Atomics)** | `atomicAdd(&tile_counts[tile_id], 1u)` | Safely increments shared GPU buffer counters when multiple triangles overlap the same screen tile concurrently. |
 | **Math (Winding Cap)** | `signed_crossings != 0` at clip plane depth | Fills only the solid interior of a clipped B-Rep/mesh while leaving interior bores and open shells hollow. |
 | **WGSL (`ssao.wgsl`)** | Multi-level depth pyramid horizon integration | Samples 6 mip levels of linear depth and per-object contact radius to shade crevices and ground contact. |
 
-**Production source (`session_viewer/src`):** [engine/gpu/ssao.rs](../../../../src/engine/gpu/ssao.rs), [engine/gpu/ssao/pipelines.rs](../../../../src/engine/gpu/ssao/pipelines.rs), [shaders/ssao.wgsl](../../../../src/shaders/ssao.wgsl), [shaders/triangle.wgsl](../../../../src/shaders/triangle.wgsl), [shaders/ink_visibility.wgsl](../../../../src/shaders/ink_visibility.wgsl), [engine/gpu/surface_outline.rs](../../../../src/engine/gpu/surface_outline.rs), [engine/gpu/render.rs](../../../../src/engine/gpu/render.rs), [engine/performance.rs](../../../../src/engine/performance.rs), [engine/gpu/timing.rs](../../../../src/engine/gpu/timing.rs), [app/command/tool/elements.rs](../../../../src/app/command/tool/elements.rs), [build.rs](../../../../build.rs).
+**Authoritative production source (`session_viewer/src`):** [engine/gpu/ssao.rs](../../../../src/engine/gpu/ssao.rs), [engine/gpu/ssao/pipelines.rs](../../../../src/engine/gpu/ssao/pipelines.rs), [shaders/ssao.wgsl](../../../../src/shaders/ssao.wgsl), [shaders/triangle.wgsl](../../../../src/shaders/triangle.wgsl), [shaders/ink_visibility.wgsl](../../../../src/shaders/ink_visibility.wgsl), [engine/gpu/surface_outline.rs](../../../../src/engine/gpu/surface_outline.rs), [engine/gpu/render.rs](../../../../src/engine/gpu/render.rs), [engine/performance.rs](../../../../src/engine/performance.rs), [engine/gpu/timing.rs](../../../../src/engine/gpu/timing.rs), [app/command/tool/elements.rs](../../../../src/app/command/tool/elements.rs), [build.rs](../../../../build.rs).
 
-## Implementation Checkpoints
+## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
 
-Apply these checkpoints in order inside `workspace/journey`. Expand each block to view the Rust/WGSL/HTML edits:
+| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
+| ---: | :--- | :--- | :--- | :--- |
+| **1** | [`89-copy-density-scaled-depth-reduction`](#checkpoint-89-copy-density-scaled-depth-reduction) | Write the density policy and nearest-positive depth/radius reduction. | `src/pyramid_size.rs`, `src/lib.rs`, `src/ambient_depth.wgsl` | `original rendered depth → density-scaled hierarchy → nearest positive depth and radius` |
+| **2** | [`89a-prepare-linear-original-depth-and-radius-addresses`](#checkpoint-89a-prepare-linear-original-depth-and-radius-addresses) | Prepare linear original depth and radius addresses. | `src/pyramid_prepare.wgsl` | `original rendered depth → density-scaled hierarchy → nearest positive depth and radius` |
+| **3** | [`89b-own-six-real-depth-and-radius-levels`](#checkpoint-89b-own-six-real-depth-and-radius-levels) | Own six real depth and radius levels. | `src/pyramid_image.rs`, `src/lib.rs` | `original rendered depth → density-scaled hierarchy → nearest positive depth and radius` |
+| **4** | [`89c-build-prepare-and-nearest-depth-pipelines`](#checkpoint-89c-build-prepare-and-nearest-depth-pipelines) | Build prepare and nearest-depth pipelines. | `src/pyramid_pipeline.rs`, `src/lib.rs` | `original rendered depth → density-scaled hierarchy → nearest positive depth and radius` |
+| **5** | [`89d-prepare-cached-pyramid-inputs-and-images`](#checkpoint-89d-prepare-cached-pyramid-inputs-and-images) | Prepare cached pyramid inputs and images. | `src/pyramid_gpu.rs`, `src/lib.rs` | `original rendered depth → density-scaled hierarchy → nearest positive depth and radius` |
+| **6** | [`89e-encode-six-levels-only-when-inputs-change`](#checkpoint-89e-encode-six-levels-only-when-inputs-change) | Encode six levels only when inputs change. | `src/pyramid_gpu.rs` | `original rendered depth → density-scaled hierarchy → nearest positive depth and radius` |
+| **7** | [`89f-expose-actual-pyramid-allocation-and-levels`](#checkpoint-89f-expose-actual-pyramid-allocation-and-levels) | Expose actual pyramid allocation and levels. | `src/pyramid_gpu.rs` | `original rendered depth → density-scaled hierarchy → nearest positive depth and radius` |
+| **8** | [`89g-route-original-depth-into-the-pyramid-owner`](#checkpoint-89g-route-original-depth-into-the-pyramid-owner) | Route original depth into the pyramid owner. | `src/renderer.rs`, `src/browser.rs` | `original rendered depth → density-scaled hierarchy → nearest positive depth and radius` |
+| **9** | [`89h-exercise-actual-depth-levels-and-cache-release`](#checkpoint-89h-exercise-actual-depth-levels-and-cache-release) | Exercise actual depth levels and cache release. | `src/pyramid_gpu_tests.rs`, `src/renderer.rs` | `original rendered depth → density-scaled hierarchy → nearest positive depth and radius` |
+
+---
+
+## 4. Step-by-Step Coding Notebook (Concept + Implementation)
+
+Work through each notebook cell below in order inside `workspace/journey`. Read the **Concept Walkthrough** and **Self-Check Q&A** first, then expand the **Implementation** block to type and verify the code.
 
 <a id="checkpoint-89-copy-density-scaled-depth-reduction"></a>
+
+### Step 1 of 9 · Reduce depth and radius at a bounded display resolution (`89-copy-density-scaled-depth-reduction`)
+
+- **Goal:** Write the density policy and nearest-positive depth/radius reduction.
+- **Data Flow Trace:** `original rendered depth → density-scaled hierarchy → nearest positive depth and radius`
+- **Files You Touch:** `src/pyramid_size.rs` (*Bound the reduced target dimensions and retain the existing numerical examples.*) · `src/lib.rs` (*Register the completed section component.*) · `src/ambient_depth.wgsl` (*Reduce depth and its radius witness together; mark bounded geometry occupancy.*)
+
+Choose the ambient target resolution from physical framebuffer size and device density. Clamp its scale between one quarter and one half, then round each dimension up so odd edges remain covered. This is a workload policy; it does not change camera navigation.
+
+Each reduction fragment reads a2×2 source neighborhood. Keep the nearest positive ray distance and the packed radius word from that same source pixel. Ignore empty and negative ground entries; ground contact is handled separately. Clamp edge coordinates so odd dimensions cannot read outside the texture. The occupancy pass marks tiles near any positive geometry sample for later ground sampling.
+
+These shader owners remain preparatory until the existing depth-pyramid connection. Original CAD geometry and the current browser picture are unchanged here.
+
+> **Self-Check Question:** *Why must a reduced depth sample keep the radius word from the same source pixel?*  
+> **Answer:** The depth identifies the chosen original surface. Its contact radius and packed coordinate must follow that surface; averaging or selecting them independently would invent a mismatched contact sample.
+
+- **Hands-On Lab Experiment:** Calculate the target sizes for1920×1080 at DPR1 and3840×2160 at DPR2. For a2×2 block containing distances0,-2,5,3 with distinct radius words, predict the reduction result. Repeat with only empty/ground entries and with an odd right edge.
 
 <details>
 <summary>Implementation 89-copy-density-scaled-depth-reduction: Reduce depth and radius at a bounded display resolution</summary>
@@ -135,6 +191,19 @@ Create the file and type:
 
 <a id="checkpoint-89a-prepare-linear-original-depth-and-radius-addresses"></a>
 
+### Step 2 of 9 · Prepare linear original depth and radius addresses (`89a-prepare-linear-original-depth-and-radius-addresses`)
+
+- **Goal:** Prepare linear original depth and radius addresses.
+- **Data Flow Trace:** `original rendered depth → density-scaled hierarchy → nearest positive depth and radius`
+- **Files You Touch:** `src/pyramid_prepare.wgsl` (*Adapt the earlier forward-depth image to linear depth and packed radius addresses.*)
+
+Prepare linear original depth and radius addresses.
+
+> **Self-Check Question:** *Does hardware depth equal distance along a viewing ray?*  
+> **Answer:** No. Use the inverse camera to reconstruct the source position, then measure it along the normalized near-to-far ray.
+
+- **Hands-On Lab Experiment:** Trace empty forward depth, current source pixels, packed default radius and retained two-bit source offsets.
+
 <details>
 <summary>Implementation 89a-prepare-linear-original-depth-and-radius-addresses: Prepare linear original depth and radius addresses</summary>
 
@@ -155,6 +224,19 @@ Create the file and type:
 </details>
 
 <a id="checkpoint-89b-own-six-real-depth-and-radius-levels"></a>
+
+### Step 3 of 9 · Own six real depth and radius levels (`89b-own-six-real-depth-and-radius-levels`)
+
+- **Goal:** Own six real depth and radius levels.
+- **Data Flow Trace:** `original rendered depth → density-scaled hierarchy → nearest positive depth and radius`
+- **Files You Touch:** `src/pyramid_image.rs` (*Own exact mip views and actual texture allocation.*) · `src/lib.rs` (*Register the completed section component.*)
+
+Own six real depth and radius levels.
+
+> **Self-Check Question:** *Can a tiny canvas provide six valid mip levels?*  
+> **Answer:** Allocate at least32 pixels per dimension. Each level owns one view of the same six-mip texture.
+
+- **Hands-On Lab Experiment:** Calculate R32Float plus R16Uint allocation from every real level; inspect source and render usages.
 
 <details>
 <summary>Implementation 89b-own-six-real-depth-and-radius-levels: Own six real depth and radius levels</summary>
@@ -197,6 +279,19 @@ After that block, type:
 
 <a id="checkpoint-89c-build-prepare-and-nearest-depth-pipelines"></a>
 
+### Step 4 of 9 · Build prepare and nearest-depth pipelines (`89c-build-prepare-and-nearest-depth-pipelines`)
+
+- **Goal:** Build prepare and nearest-depth pipelines.
+- **Data Flow Trace:** `original rendered depth → density-scaled hierarchy → nearest positive depth and radius`
+- **Files You Touch:** `src/pyramid_pipeline.rs` (*Build current depth/radius preparation and reduction pipelines.*) · `src/lib.rs` (*Register the completed section component.*)
+
+Build prepare and nearest-depth pipelines.
+
+> **Self-Check Question:** *Can depth and radius use the same float target?*  
+> **Answer:** No. Linear depth writes R32Float; radius and source offsets stay integer in R16Uint.
+
+- **Hands-On Lab Experiment:** Inspect explicit sampled-depth input and compatible two-target reduction layouts.
+
 <details>
 <summary>Implementation 89c-build-prepare-and-nearest-depth-pipelines: Build prepare and nearest-depth pipelines</summary>
 
@@ -237,6 +332,19 @@ After that block, type:
 </details>
 
 <a id="checkpoint-89d-prepare-cached-pyramid-inputs-and-images"></a>
+
+### Step 5 of 9 · Prepare cached pyramid inputs and images (`89d-prepare-cached-pyramid-inputs-and-images`)
+
+- **Goal:** Prepare cached pyramid inputs and images.
+- **Data Flow Trace:** `original rendered depth → density-scaled hierarchy → nearest positive depth and radius`
+- **Files You Touch:** `src/pyramid_gpu.rs` (*Own lazy pyramid images and their current depth input.*) · `src/lib.rs` (*Register the completed section component.*)
+
+Prepare cached pyramid inputs and images.
+
+> **Self-Check Question:** *Does a new frame require a new texture?*  
+> **Answer:** Only when its density-scaled size changes. Rebind source depth when its view changes and invalidate cached contents.
+
+- **Hands-On Lab Experiment:** Compare source-depth view identity, six levels, five previous-level groups and actual resize allocation.
 
 <details>
 <summary>Implementation 89d-prepare-cached-pyramid-inputs-and-images: Prepare cached pyramid inputs and images</summary>
@@ -279,6 +387,19 @@ After that block, type:
 
 <a id="checkpoint-89e-encode-six-levels-only-when-inputs-change"></a>
 
+### Step 6 of 9 · Encode six levels only when inputs change (`89e-encode-six-levels-only-when-inputs-change`)
+
+- **Goal:** Encode six levels only when inputs change.
+- **Data Flow Trace:** `original rendered depth → density-scaled hierarchy → nearest positive depth and radius`
+- **Files You Touch:** `src/pyramid_gpu.rs` (*Validate the current camera and encode changed pyramid contents.*)
+
+Encode six levels only when inputs change.
+
+> **Self-Check Question:** *Can a resting viewer skip all pyramid passes?*  
+> **Answer:** Yes. Witness camera bits, full size, density and source/clipping revisions; unchanged input reuses all six levels.
+
+- **Hands-On Lab Experiment:** Inspect singular/nonfinite cameras, exact uniform writes and one prepare pass followed by five reductions.
+
 <details>
 <summary>Implementation 89e-encode-six-levels-only-when-inputs-change: Encode six levels only when inputs change</summary>
 
@@ -309,6 +430,19 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-89f-expose-actual-pyramid-allocation-and-levels"></a>
+
+### Step 7 of 9 · Expose actual pyramid allocation and levels (`89f-expose-actual-pyramid-allocation-and-levels`)
+
+- **Goal:** Expose actual pyramid allocation and levels.
+- **Data Flow Trace:** `original rendered depth → density-scaled hierarchy → nearest positive depth and radius`
+- **Files You Touch:** `src/pyramid_gpu.rs` (*Expose actual resources and preparation/write/pass counts.*)
+
+Expose actual pyramid allocation and levels.
+
+> **Self-Check Question:** *Do cached handles prove memory usage?*  
+> **Answer:** Count the real frame buffer and every depth/radius mip. Pipeline driver memory remains outside these allocation counters.
+
+- **Hands-On Lab Experiment:** Compare retained images with enabled-owner release and inspect the actual source textures.
 
 <details>
 <summary>Implementation 89f-expose-actual-pyramid-allocation-and-levels: Expose actual pyramid allocation and levels</summary>
@@ -344,6 +478,19 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-89g-route-original-depth-into-the-pyramid-owner"></a>
+
+### Step 8 of 9 · Route original depth into the pyramid owner (`89g-route-original-depth-into-the-pyramid-owner`)
+
+- **Goal:** Route original depth into the pyramid owner.
+- **Data Flow Trace:** `original rendered depth → density-scaled hierarchy → nearest positive depth and radius`
+- **Files You Touch:** `src/renderer.rs` (*Connect the explicit cached depth owner before its supplied fixtures.*) · `src/browser.rs` (*Observe actual depth owner allocation and errors.*)
+
+Route original depth into the pyramid owner.
+
+> **Self-Check Question:** *When should the hierarchy read original depth?*  
+> **Answer:** After depth-writing scene passes. The owner observes source and clipping revisions while ambient activation remains explicit.
+
+- **Hands-On Lab Experiment:** Compare color rendering, resting views, On/Off clipping, density and actual source-depth replacement.
 
 <details>
 <summary>Implementation 89g-route-original-depth-into-the-pyramid-owner: Route original depth into the pyramid owner</summary>
@@ -1057,6 +1204,20 @@ Edit the existing block to match this code; keep unchanged lines:
 
 <a id="checkpoint-89h-exercise-actual-depth-levels-and-cache-release"></a>
 
+### Step 9 of 9 · Exercise actual depth levels and cache release (`89h-exercise-actual-depth-levels-and-cache-release`)
+
+- **Goal:** Exercise actual depth levels and cache release.
+- **Data Flow Trace:** `original rendered depth → density-scaled hierarchy → nearest positive depth and radius`
+- **Files You Touch:** `src/pyramid_gpu_tests.rs` (*Copy supplied actual mip/readback and cache fixtures.*) · `src/renderer.rs` (*Register the supplied renderer-local GPU fixtures.*)
+
+Exercise actual depth levels and cache release.
+
+> **Self-Check Question:** *What proves the hierarchy follows rendered geometry?*  
+> **Answer:** Read the real GPU mip images and verify every nearest-positive reduction and radius address against its preceding level.
+
+- **What You Should See:** The original grey section stays visible while its actual depth is reduced into six cached levels.
+- **Hands-On Lab Experiment:** Run source section depth, empty pixels, six exact reductions, unchanged-frame caching, density/resize and disabled-release checks.
+
 <details>
 <summary>Implementation 89h-exercise-actual-depth-levels-and-cache-release: Exercise actual depth levels and cache release</summary>
 
@@ -1104,9 +1265,11 @@ After that block, type:
 
 </details>
 
-## Run, Check, and Save
+---
 
-From `session_viewer`:
+## 5. Build, Verify, and Save Your Checkpoint
+
+Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 89h-exercise-actual-depth-levels-and-cache-release
@@ -1117,12 +1280,12 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. Use [checkpoint recovery](../../recovery.md) to restore any saved checkpoint.
+Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
 
-## Expected Visual Result & Experiment
+## 6. Lesson Summary & Expected Visual Result
 
 The original grey section stays visible while its actual depth is reduced into six cached levels.
 
-- **Try this:** Run source section depth, empty pixels, six exact reductions, unchanged-frame caching, density/resize and disabled-release checks.
+- **Final Lesson Experiment:** Run source section depth, empty pixels, six exact reductions, unchanged-frame caching, density/resize and disabled-release checks.
 
-Continue with [Original contact metadata and ambient light](90-copy-maintained-original-contact-radius.md).
+Continue with [Original contact metadata and ambient light](../../consolidation/90-copy-maintained-original-contact-radius.md).

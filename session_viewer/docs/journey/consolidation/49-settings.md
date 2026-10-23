@@ -1,91 +1,155 @@
 # 7.4 · Precise snapping with derived search caches
 
-**Section 5: Interactive Drawing, Snapping, Gumball Handles, and Scene Hierarchy** · **Lesson 7.4** (Redraft `5.4`) · **8 checkpoints (`49-settings` → `49f-input`)**
+**Section 5: Interactive Drawing, Snapping, Gumball Handles, and Scene Hierarchy** · **Lesson 7.4** (Redraft `5.4`) · **8 checkpoints (`49-settings` → `49f-input`)** · **Study time: 4–8 h**
 
-> **Learning Goal:** Separate object and grid snapping.
+> **What You Will Learn & Build:** Separate object and grid snapping. By the final checkpoint (`49f-input`), you will snap actual drawing input through the command dock.
 
-## Visual WebGPU & Architecture Schematic
+## 1. Visual Pipeline & WebGPU Architecture (Black & White Schematics)
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1px solid #cbd5e1;border-radius:10px;background:#f8fafc;">
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
+<svg viewBox="0 0 840 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <rect x="4" y="4" width="832" height="212" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Lesson 7.4 Execution Flow: Precise snapping with derived search caches</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">Concrete data pipeline you build in this lesson (8 Checkpoints: 49-settings → 49f-input)</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
+  
+    
+    <rect x="18" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="89" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
+    <line x1="28" y1="92" x2="151" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">independent</text>
+    <text x="89" y="124" text-anchor="middle" font-size="11" fill="#111111">switches</text>
+    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="183" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="254" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
+    <line x1="193" y1="92" x2="316" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">mode bits</text>
+    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="348" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="419" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
+    <line x1="358" y1="92" x2="481" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">validated spacing</text>
+    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="513" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="584" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
+    <line x1="523" y1="92" x2="646" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">current settings</text>
+    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="678" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="749" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
+    <line x1="688" y1="92" x2="811" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">actual command or</text>
+    <text x="749" y="124" text-anchor="middle" font-size="11" fill="#111111">cursor</text>
+    
+    <rect x="18" y="162" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="32" y="181" font-size="11" font-weight="700" fill="#111111">Files You Edit in Lesson 7.4:</text>
+    <text x="215" y="181" font-size="11" fill="#111111">src/snap.rs  ·  src/lib.rs  ·  src/snap_math.rs  ·  src/snap_sources.rs  ·  src/snap_bins.rs  ·  src/snap_index.rs</text>
+    <text x="32" y="198" font-size="10.5" fill="#111111">8 Checkpoints: 49-settings → 49f-input — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
+  
+</svg>
+</div>
+
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
 <svg viewBox="0 0 840 240" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#475569"/>
-    </marker>
-    <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#2563eb"/>
-    </marker>
-    <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#059669"/>
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
     </marker>
   </defs>
-  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
-  <text x="20" y="28" font-size="14" font-weight="700" fill="#0f172a">Chapter 7 Interactive CAD Manipulation: Construction-Plane Ray Hit, Snap Priority & 3D Gumball (widget.wgsl)</text>
-  <text x="20" y="46" font-size="11.5" fill="#475569">How 2D mouse drags become exact 3D CAD coordinates via construction planes, geometric snapping, and constant-screen-size Gumball handles.</text>
-  <line x1="16" y1="54" x2="824" y2="54" stroke="#e2e8f0" stroke-width="1"/>
+  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Chapter 7 Interactive CAD Manipulation: Construction-Plane Ray Hit, Snap Priority & 3D Gumball (widget.wgsl)</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">How 2D mouse drags become exact 3D CAD coordinates via construction planes, geometric snapping, and constant-screen-size Gumball handles.</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
   
-    <rect x="18" y="68" width="240" height="145" rx="6" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
-    <text x="138" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1e40af">1. Construction Plane &amp; Snapping</text>
-    <text x="28" y="108" font-size="10.5" fill="#1e3a8a">• Ray R(t) = O + t·D intersects Plane(P0, N):</text>
-    <text x="28" y="124" font-size="10.5" font-weight="700" fill="#1d4ed8">  t = dot(P0 - O, N) / dot(D, N)</text>
-    <text x="28" y="144" font-size="10.5" font-weight="600" fill="#1e40af">• Snap Priority within pixel radius:</text>
-    <text x="28" y="160" font-size="10" fill="#1e3a8a">  1. Endpoint / Vertex   2. Midpoint</text>
-    <text x="28" y="175" font-size="10" fill="#1e3a8a">  3. Curve Nearest       4. Grid Step</text>
-    <text x="28" y="193" font-size="10" fill="#1e3a8a">• Typed "x,y,z" overrides cursor ray</text>
+    <rect x="18" y="68" width="240" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="138" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">1. Construction Plane &amp; Snapping</text>
+    <text x="28" y="108" font-size="10.5" fill="#111111">• Ray R(t) = O + t·D intersects Plane(P0, N):</text>
+    <text x="28" y="124" font-size="10.5" font-weight="700" fill="#111111">  t = dot(P0 - O, N) / dot(D, N)</text>
+    <text x="28" y="144" font-size="10.5" font-weight="600" fill="#111111">• Snap Priority within pixel radius:</text>
+    <text x="28" y="160" font-size="10" fill="#111111">  1. Endpoint / Vertex   2. Midpoint</text>
+    <text x="28" y="175" font-size="10" fill="#111111">  3. Curve Nearest       4. Grid Step</text>
+    <text x="28" y="193" font-size="10" fill="#111111">• Typed "x,y,z" overrides cursor ray</text>
 
-    <line x1="258" y1="138" x2="288" y2="138" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
+    <line x1="258" y1="138" x2="288" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="290" y="68" width="250" height="145" rx="6" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5"/>
-    <text x="415" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#9a3412">2. Tool State &amp; Preview Overlay</text>
-    <text x="302" y="108" font-size="10.5" fill="#7c2d12">• Active Tool (Line / Polyline / Point)</text>
-    <text x="302" y="126" font-size="10.5" font-weight="600" fill="#c2410c">• Rubber-band preview buffer:</text>
-    <text x="302" y="142" font-size="10" fill="#7c2d12">  Updates every pointermove without</text>
-    <text x="302" y="157" font-size="10" fill="#7c2d12">  polluting Undo history stack</text>
-    <text x="302" y="176" font-size="10.5" fill="#7c2d12">• Enter / Final Click -&gt; 1 atomic Undo</text>
-    <text x="302" y="192" font-size="10.5" fill="#7c2d12">• Escape -&gt; cancel &amp; clear preview</text>
+    <rect x="290" y="68" width="250" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="415" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">2. Tool State &amp; Preview Overlay</text>
+    <text x="302" y="108" font-size="10.5" fill="#111111">• Active Tool (Line / Polyline / Point)</text>
+    <text x="302" y="126" font-size="10.5" font-weight="600" fill="#111111">• Rubber-band preview buffer:</text>
+    <text x="302" y="142" font-size="10" fill="#111111">  Updates every pointermove without</text>
+    <text x="302" y="157" font-size="10" fill="#111111">  polluting Undo history stack</text>
+    <text x="302" y="176" font-size="10.5" fill="#111111">• Enter / Final Click -&gt; 1 atomic Undo</text>
+    <text x="302" y="192" font-size="10.5" fill="#111111">• Escape -&gt; cancel &amp; clear preview</text>
 
-    <line x1="540" y1="138" x2="570" y2="138" stroke="#059669" stroke-width="2" marker-end="url(#arrow-green)"/>
+    <line x1="540" y1="138" x2="570" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="572" y="68" width="248" height="145" rx="6" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1.5"/>
-    <text x="696" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#065f46">3. 3D Gumball Widget (widget.wgsl)</text>
-    <text x="584" y="108" font-size="10.5" fill="#064e3b">• Placed at selection bounding center</text>
-    <text x="584" y="126" font-size="10.5" font-weight="600" fill="#047857">• Scaled by camera distance w so</text>
-    <text x="584" y="142" font-size="10.5" font-weight="600" fill="#047857">  handles stay constant pixel size!</text>
-    <text x="584" y="160" font-size="10" fill="#064e3b">• Axis arrows (Translate X/Y/Z)</text>
-    <text x="584" y="175" font-size="10" fill="#064e3b">• Arc rings (Rotate) + Boxes (Scale)</text>
-    <text x="584" y="192" font-size="10" fill="#064e3b">• Picked via Rg32Uint widget sub_id</text>
+    <rect x="572" y="68" width="248" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="696" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">3. 3D Gumball Widget (widget.wgsl)</text>
+    <text x="584" y="108" font-size="10.5" fill="#111111">• Placed at selection bounding center</text>
+    <text x="584" y="126" font-size="10.5" font-weight="600" fill="#111111">• Scaled by camera distance w so</text>
+    <text x="584" y="142" font-size="10.5" font-weight="600" fill="#111111">  handles stay constant pixel size!</text>
+    <text x="584" y="160" font-size="10" fill="#111111">• Axis arrows (Translate X/Y/Z)</text>
+    <text x="584" y="175" font-size="10" fill="#111111">• Arc rings (Rotate) + Boxes (Scale)</text>
+    <text x="584" y="192" font-size="10" fill="#111111">• Picked via Rg32Uint widget sub_id</text>
     
 </svg>
 </div>
 
-### Lesson Data Flow (`Rust` → `WebGPU` → `WGSL`)
+## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
 
-```
-independent switches → mode bits → validated spacing → current settings.
-nearby IDs → mode eligibility → kind priority and distance → object hit or valid-plane grid.
-actual command or cursor → snap settings and current view → precise hit → temporary feedback or one commit.
-```
+Before writing code, review how the three layers in this chapter talk to each other:
 
-- Separate object and grid snapping.
-- Choose snap kinds before grid fallback.
-- Snap actual drawing input through the command dock.
-- **Why it works (Does Snap Off also turn Grid Snap off?):** No. Object targets and the construction-plane grid have separate switches. Grid Snap Off disables only rounding to grid cells.
-
-### Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `Browser`)
-
-| Layer | Construct | First-Year Student Explanation |
+| Layer | Construct | Plain-English Explanation for Students |
 | :--- | :--- | :--- |
 | **Rust (CAD Math)** | Ray–Plane Intersection `t = dot(P0 - O, N) / dot(D, N)` | Projects a 2D mouse ray onto the active 3D construction plane (`Plane`), with priority snapping (`Endpoint > Midpoint > Curve > Grid`). |
 | **Rust (Editor)** | Preview Overlay vs. Atomic Undo Commit | Rubber-band preview geometry updates on every `pointermove` without touching the Undo stack; `Enter` or final click commits one atomic kernel transaction. |
 | **WGSL (`widget.wgsl`)** | Perspective-Compensated 3D Gumball Handles | Scales axis arrows, rotation arcs, and scale boxes by camera depth `w` so the 3D Gumball gizmo stays a constant clickable pixel size at any zoom. |
 
-**Production source (`session_viewer/src`):** [app/command/mod.rs](../../../src/app/command/mod.rs), [app/command/tool.rs](../../../src/app/command/tool.rs), [app/cplane.rs](../../../src/app/cplane.rs), [app/snap.rs](../../../src/app/snap.rs), [app/gizmo.rs](../../../src/app/gizmo.rs), [engine/gpu/widget.rs](../../../src/engine/gpu/widget.rs), [app/deform.rs](../../../src/app/deform.rs).
+**Authoritative production source (`session_viewer/src`):** [app/command/mod.rs](../../../src/app/command/mod.rs), [app/command/tool.rs](../../../src/app/command/tool.rs), [app/cplane.rs](../../../src/app/cplane.rs), [app/snap.rs](../../../src/app/snap.rs), [app/gizmo.rs](../../../src/app/gizmo.rs), [engine/gpu/widget.rs](../../../src/engine/gpu/widget.rs), [app/deform.rs](../../../src/app/deform.rs)
 
-## Implementation Checkpoints
+## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
 
-Apply these checkpoints in order inside `workspace/journey`. Expand each block to view the Rust/WGSL/HTML edits:
+| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
+| ---: | :--- | :--- | :--- | :--- |
+| **1** | [`49-settings`](#checkpoint-49-settings) | Separate object and grid snapping. | `src/snap.rs`, `src/lib.rs` | `independent switches → mode bits → validated spacing → current settings` |
+| **2** | [`49a-math`](#checkpoint-49a-math) | Keep snap math in world and plane coordinates. | `src/snap_math.rs`, `src/lib.rs` | `original world coordinates → current projection or local plane frame → finite snap point` |
+| **3** | [`49b-sources`](#checkpoint-49b-sources) | Collect targets from original placed geometry. | `src/snap_sources.rs`, `src/lib.rs` | `visible source → original coordinates → row placement → derived candidates and wires` |
+| **4** | [`49c-bins`](#checkpoint-49c-bins) | Search nearby screen cells. | `src/snap_bins.rs`, `src/lib.rs` | `projected candidate or wire → small screen cells → nearby IDs plus conservative fallback` |
+| **5** | [`49d-index`](#checkpoint-49d-index) | Choose snap kinds before grid fallback. | `src/snap_index.rs`, `src/lib.rs` | `nearby IDs → mode eligibility → kind priority and distance → object hit or valid-plane grid` |
+| **6** | [`49e-cache`](#checkpoint-49e-cache) | Invalidate snap caches after source edits. | `src/editor.rs` | `source or placement change → invalidate world targets → current camera query → derived cache` |
+| **7** | [`49ea-state`](#checkpoint-49ea-state) | Preserve drafts while snapping. | `src/tool.rs`, `src/editor.rs` | `settings or current screen point → precise snap query → draft feedback → one completed source transaction` |
+| **8** | [`49f-input`](#checkpoint-49f-input) | Snap actual drawing input through the command dock. | `src/commands.rs`, `src/browser.rs`, `src/snap_tests.rs`, `src/lib.rs` | `actual command or cursor → snap settings and current view → precise hit → temporary feedback or one commit` |
+
+---
+
+## 4. Step-by-Step Coding Notebook (Concept + Implementation)
+
+Work through each notebook cell below in order inside `workspace/journey`. Read the **Concept Walkthrough** and **Self-Check Q&A** first, then expand the **Implementation** block to type and verify the code.
 
 <a id="checkpoint-49-settings"></a>
+
+### Step 1 of 8 · Separate object and grid snapping (`49-settings`)
+
+- **Goal:** Separate object and grid snapping.
+- **Data Flow Trace:** `independent switches → mode bits → validated spacing → current settings`
+- **Files You Touch:** `src/snap.rs` (*Define snap kinds, independent switches and validated current1000mm grid settings.*) · `src/lib.rs` (*Register the snap component and supplied checks.*)
+
+Keep object snapping and grid rounding independent. Grid Snap starts enabled at 1000 mm; changing its spacing enables it without changing object snapping or the running draft.
+
+> **Self-Check Question:** *Does Snap Off also turn Grid Snap off?*  
+> **Answer:** No. Object targets and the construction-plane grid have separate switches. Grid Snap Off disables only rounding to grid cells.
+
+- **What You Should See:** Continue the earlier Point/Line exercise. This settings model is connected to actual commands at 49f.
+- **Hands-On Lab Experiment:** Compare toggling Grid Snap with setting Grid Snap 50: spacing must be positive and finite, and a valid spacing enables the grid.
 
 <details>
 <summary>Implementation 49-settings: Separate object and grid snapping</summary>
@@ -129,6 +193,20 @@ After that block, type:
 
 <a id="checkpoint-49a-math"></a>
 
+### Step 2 of 8 · Keep snap math in world and plane coordinates (`49a-math`)
+
+- **Goal:** Keep snap math in world and plane coordinates.
+- **Data Flow Trace:** `original world coordinates → current projection or local plane frame → finite snap point`
+- **Files You Touch:** `src/snap_math.rs` (*Resolve screen projection, local-plane rounding and nearest/perpendicular segment points.*) · `src/lib.rs` (*Register the snap component and supplied checks.*)
+
+Project original world points into CSS pixels. Grid rounding uses the plane origin and two orthonormal axes, preserving height; Near and Perp resolve points on original segments.
+
+> **Self-Check Question:** *Why round plane coordinates instead of selected world axes?*  
+> **Answer:** A tilted plane has its own axes. Rounding world x/y can move a point off that plane; rounding local u/v preserves its local height.
+
+- **What You Should See:** Continue the earlier Point/Line exercise. Compare the copied tilted-grid and segment examples when the snap checks arrive at 49f.
+- **Hands-On Lab Experiment:** Use a tilted frame with a translated origin. The rounded point must retain its signed height; reject a degenerate frame, clipped projection or invalid spacing.
+
 <details>
 <summary>Implementation 49a-math: Keep snap math in world and plane coordinates</summary>
 
@@ -170,6 +248,20 @@ After that block, type:
 </details>
 
 <a id="checkpoint-49b-sources"></a>
+
+### Step 3 of 8 · Collect targets from original placed geometry (`49b-sources`)
+
+- **Goal:** Collect targets from original placed geometry.
+- **Data Flow Trace:** `visible source → original coordinates → row placement → derived candidates and wires`
+- **Files You Touch:** `src/snap_sources.rs` (*Collect precise placed source candidates and original boundaries without retaining source owners.*) · `src/lib.rs` (*Register the snap component and supplied checks.*)
+
+Collect visible source endpoints, vertices, midpoints, loop centers and boundary wires after their row placement. Locked geometry may supply a snap while remaining uneditable.
+
+> **Self-Check Question:** *Is a curve midpoint its middle control vertex?*  
+> **Answer:** No. It is the evaluated point halfway through the curve parameter domain. The control vertex shapes the curve and can lie away from it.
+
+- **What You Should See:** Continue the earlier drawing exercise. Inspect the target collection for each supported source lane before 49f connects actual snapping.
+- **Hands-On Lab Experiment:** Compare a quadratic curve’s evaluated midpoint with its middle control vertex. Hide its source and confirm it contributes no targets in the copied checks.
 
 <details>
 <summary>Implementation 49b-sources: Collect targets from original placed geometry</summary>
@@ -213,6 +305,20 @@ After that block, type:
 
 <a id="checkpoint-49c-bins"></a>
 
+### Step 4 of 8 · Search nearby screen cells (`49c-bins`)
+
+- **Goal:** Search nearby screen cells.
+- **Data Flow Trace:** `projected candidate or wire → small screen cells → nearby IDs plus conservative fallback`
+- **Files You Touch:** `src/snap_bins.rs` (*Bound screen-cell insertion and deduplicate nearby candidate IDs.*) · `src/lib.rs` (*Register the snap component and supplied checks.*)
+
+Index candidates in64 CSS-pixel cells. A query visits nearby cells; long or partially clipped wires remain in a conservative fallback list instead of filling an enormous rectangle.
+
+> **Self-Check Question:** *Why retain a fallback for very long wires?*  
+> **Answer:** A wire can cross the cursor even when its endpoints are distant or clipped. Dropping it loses valid snaps; indexing every crossed cell wastes memory.
+
+- **What You Should See:** Continue the earlier drawing exercise. The screen index is used by the candidate query in the next step.
+- **Hands-On Lab Experiment:** Insert a wire with enormous projected endpoints. It must remain queryable without allocating a huge range of cells.
+
 <details>
 <summary>Implementation 49c-bins: Search nearby screen cells</summary>
 
@@ -255,6 +361,20 @@ After that block, type:
 
 <a id="checkpoint-49d-index"></a>
 
+### Step 5 of 8 · Choose snap kinds before grid fallback (`49d-index`)
+
+- **Goal:** Choose snap kinds before grid fallback.
+- **Data Flow Trace:** `nearby IDs → mode eligibility → kind priority and distance → object hit or valid-plane grid`
+- **Files You Touch:** `src/snap_index.rs` (*Rank nearby valid candidates and apply independent construction-plane grid fallback.*) · `src/lib.rs` (*Register the snap component and supplied checks.*)
+
+Inside a12 CSS-pixel aperture, prefer End, Vertex, Mid, Center, Perp and Near in that order. Break same-kind ties by distance; use the grid only when no object target wins.
+
+> **Self-Check Question:** *Can a closer Near target displace an End inside the aperture?*  
+> **Answer:** No. Kind priority wins first. Distance chooses between targets of the same kind; grid rounding is only the fallback.
+
+- **What You Should See:** Continue the earlier drawing exercise. The editor adopts this query next; actual canvas snapping follows at 49f.
+- **Hands-On Lab Experiment:** Query the same view repeatedly, then resize or orbit. Rebuild screen cells only when the matrix or CSS size changes; retain precise world candidates.
+
 <details>
 <summary>Implementation 49d-index: Choose snap kinds before grid fallback</summary>
 
@@ -296,6 +416,20 @@ After that block, type:
 </details>
 
 <a id="checkpoint-49e-cache"></a>
+
+### Step 6 of 8 · Invalidate snap caches after source edits (`49e-cache`)
+
+- **Goal:** Invalidate snap caches after source edits.
+- **Data Flow Trace:** `source or placement change → invalidate world targets → current camera query → derived cache`
+- **Files You Touch:** `src/editor.rs` (*Own derived target caches and invalidate them after source and placement transactions.*)
+
+The editor owns derived snap targets. A source transaction, direct captured edit or hydration invalidates their world positions; a changed camera rebuilds only screen cells.
+
+> **Self-Check Question:** *What must happen after an object moves?*  
+> **Answer:** Invalidate the derived world targets. Otherwise a later drawing point could snap to the object’s former position even though its display moved.
+
+- **What You Should See:** Continue the earlier drawing exercise. This cache owner connects to snap input in the following steps.
+- **Hands-On Lab Experiment:** Compare a source move with an orbit. A move changes world targets; orbiting changes their projection while original source coordinates remain shared.
 
 <details>
 <summary>Implementation 49e-cache: Invalidate snap caches after source edits</summary>
@@ -1066,6 +1200,20 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-49ea-state"></a>
 
+### Step 7 of 8 · Preserve drafts while snapping (`49ea-state`)
+
+- **Goal:** Preserve drafts while snapping.
+- **Data Flow Trace:** `settings or current screen point → precise snap query → draft feedback → one completed source transaction`
+- **Files You Touch:** `src/tool.rs` (*Connect snap actions and feedback while preserving accepted draft points and history.*) · `src/editor.rs` (*Connect snap actions and feedback while preserving accepted draft points and history.*)
+
+Snap settings change independently of the unfinished tool. Clear stale hover feedback while retaining accepted points; a snapped completion still creates one original source in one Undo.
+
+> **Self-Check Question:** *Does changing grid spacing consume a line’s first point?*  
+> **Answer:** No. It changes mouse placement policy and clears the old hover point. Accepted points and the document history remain unchanged.
+
+- **What You Should See:** Run the supplied checks after 49f. Browser forwarding remains the earlier free-point route until that step.
+- **Hands-On Lab Experiment:** Change settings during a line draft. Its first point and redo branch must survive; completion must still create the whole line in one Undo.
+
 <details>
 <summary>Implementation 49ea-state: Preserve drafts while snapping</summary>
 
@@ -1751,6 +1899,20 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-49f-input"></a>
+
+### Step 8 of 8 · Snap actual drawing input through the command dock (`49f-input`)
+
+- **Goal:** Snap actual drawing input through the command dock.
+- **Data Flow Trace:** `actual command or cursor → snap settings and current view → precise hit → temporary feedback or one commit`
+- **Files You Touch:** `src/commands.rs` (*Route shared snap commands and current-camera CSS queries through tool-owned input.*) · `src/browser.rs` (*Route shared snap commands and current-camera CSS queries through tool-owned input.*) · `src/snap_tests.rs` (*Copy source precision, ranking, tilted-grid math, cache, draft and history regression checks.*) · `src/lib.rs` (*Register the snap component and supplied checks.*)
+
+Type Snap or Grid Snap commands, then draw with the mouse. An object target wins before the current1000 mm grid; typed coordinates stay exact and settings may change during drawing.
+
+> **Self-Check Question:** *Do typed coordinates get rounded to the grid?*  
+> **Answer:** No. Typed world coordinates are explicit. Mouse points use object targets and then grid fallback; both routes validate the final source point.
+
+- **What You Should See:** Close; Line; -0.65,-0.35,0; 0.65,0.35,0. Start Line again and type -0.5,0.5,0. Hover near the saved line’s right endpoint: the temporary cursor lands exactly on it and the prompt shows Snap End. Click to complete; Undo removes only the new line.
+- **Hands-On Lab Experiment:** During a line draft, use Snap Off and Grid Snap 0.25, then move over empty plane space. Use Grid Snap Off for free placement. Restore Snap On and Grid Snap 1000. Invalid spacing must preserve the first point.
 
 <details>
 <summary>Implementation 49f-input: Snap actual drawing input through the command dock</summary>
@@ -2795,9 +2957,11 @@ After that block, type:
 
 </details>
 
-## Run, Check, and Save
+---
 
-From `session_viewer`:
+## 5. Build, Verify, and Save Your Checkpoint
+
+Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 49f-input
@@ -2808,12 +2972,12 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. Use [checkpoint recovery](../recovery.md) to restore any saved checkpoint.
+Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../recovery.md) to save or restore any checkpoint ID.
 
-## Expected Visual Result & Experiment
+## 6. Lesson Summary & Expected Visual Result
 
 Close; Line; -0.65,-0.35,0; 0.65,0.35,0. Start Line again and type -0.5,0.5,0. Hover near the saved line’s right endpoint: the temporary cursor lands exactly on it and the prompt shows Snap End. Click to complete; Undo removes only the new line.
 
-- **Try this:** During a line draft, use Snap Off and Grid Snap 0.25, then move over empty plane space. Use Grid Snap Off for free placement. Restore Snap On and Grid Snap 1000. Invalid spacing must preserve the first point.
+- **Final Lesson Experiment:** During a line draft, use Snap Off and Grid Snap 0.25, then move over empty plane space. Use Grid Snap Off for free placement. Restore Snap On and Grid Snap 1000. Invalid spacing must preserve the first point.
 
 Continue with [Temporary transforms with a fixed baseline](50-placements.md).

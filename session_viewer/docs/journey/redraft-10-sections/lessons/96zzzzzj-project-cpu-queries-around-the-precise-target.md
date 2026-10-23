@@ -1,92 +1,155 @@
 # 21.2 · Precise CPU queries and origin-stamped picks
 
-**Section 10: Shared GPU Arenas, Floating-Origin Precision, Multisampling, and Production Parity** · **Lesson 21.2** (Redraft `10.12`) · **7 checkpoints (`96zzzzzj-project-cpu-queries-around-the-precise-target` → `96zzzzzp-share-derived-inputs-for-origin-refresh`)**
+**Section 10: Shared GPU Arenas, Floating-Origin Precision, Multisampling, and Production Parity** · **Lesson 21.2** (Redraft `10.12`) · **7 checkpoints (`96zzzzzj-project-cpu-queries-around-the-precise-target` → `96zzzzzp-share-derived-inputs-for-origin-refresh`)** · **Study time: 3.3–5.9 h**
 
-> **Learning Goal:** Keep CPU screen queries precise before converting world points to pixels.
+> **What You Will Learn & Build:** Keep CPU screen queries precise before converting world points to pixels. By the final checkpoint (`96zzzzzp-share-derived-inputs-for-origin-refresh`), you will refresh local draw inputs without replacing the document or cancelling its gesture.
 
-## Visual WebGPU & Architecture Schematic
+## 1. Visual Pipeline & WebGPU Architecture (Black & White Schematics)
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1px solid #cbd5e1;border-radius:10px;background:#f8fafc;">
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
+<svg viewBox="0 0 840 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <rect x="4" y="4" width="832" height="212" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Lesson 21.2 Execution Flow: Precise CPU queries and origin-stamped picks</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">Concrete data pipeline you build in this lesson (7 Checkpoints: 96zzzzzj-project-cpu-queries-around-the-precise-target → 96zzzzzp-share-derived-inputs-for-origin-refresh)</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
+  
+    
+    <rect x="18" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="89" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
+    <line x1="28" y1="92" x2="151" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">World query −</text>
+    <text x="89" y="124" text-anchor="middle" font-size="11" fill="#111111">precise target</text>
+    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="183" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="254" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
+    <line x1="193" y1="92" x2="316" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">local camera matrix</text>
+    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="348" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="419" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
+    <line x1="358" y1="92" x2="481" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">pixel query</text>
+    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="513" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="584" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
+    <line x1="523" y1="92" x2="646" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">Current origin</text>
+    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="678" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="749" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
+    <line x1="688" y1="92" x2="811" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">existing source</text>
+    <text x="749" y="124" text-anchor="middle" font-size="11" fill="#111111">packers</text>
+    
+    <rect x="18" y="162" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="32" y="181" font-size="11" font-weight="700" fill="#111111">Files You Edit in Lesson 21.2:</text>
+    <text x="215" y="181" font-size="11" fill="#111111">src/snap_math.rs  ·  src/editor.rs  ·  src/trim_draft.rs  ·  src/snap_tests.rs  ·  src/camera_space_tests.rs  ·  src/rect_select.rs</text>
+    <text x="32" y="198" font-size="10.5" fill="#111111">7 Checkpoints: 96zzzzzj-project-cpu-queries-around-the-precise-target → 96zzzzzp-share-derived-inputs-for-origin-refresh — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
+  
+</svg>
+</div>
+
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
 <svg viewBox="0 0 840 240" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#475569"/>
-    </marker>
-    <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#2563eb"/>
-    </marker>
-    <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#059669"/>
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
     </marker>
   </defs>
-  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
-  <text x="20" y="28" font-size="14" font-weight="700" fill="#0f172a">Section 10 Production Architecture: Shared GPU Storage Arena, f64 Floating Origin, Reversed-Z, 4x MSAA & Matrix Shader</text>
-  <text x="20" y="46" font-size="11.5" fill="#475569">How the maintained viewer pulls vertices from one growable GPU arena, eliminates jitter at 10^12 units, and renders procedural Matrices.</text>
-  <line x1="16" y1="54" x2="824" y2="54" stroke="#e2e8f0" stroke-width="1"/>
+  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Section 10 Production Architecture: Shared GPU Storage Arena, f64 Floating Origin, Reversed-Z, 4x MSAA & Matrix Shader</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">How the maintained viewer pulls vertices from one growable GPU arena, eliminates jitter at 10^12 units, and renders procedural Matrices.</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
   
-    <rect x="18" y="68" width="250" height="145" rx="6" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
-    <text x="143" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1e40af">1. Shared GPU Arena (Ch 19–20)</text>
-    <text x="28" y="108" font-size="10.5" fill="#1e3a8a">• 1 Growable Storage Buffer Arena</text>
-    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#1d4ed8">• Vertex Pulling (@builtin(vertex_index))</text>
-    <text x="28" y="144" font-size="10.5" fill="#1e3a8a">• 8-byte Draw Slots -&gt; ObjectRecord</text>
-    <text x="28" y="162" font-size="10.5" fill="#1e3a8a">• slot_table.wgsl maps Rg32Uint</text>
-    <text x="28" y="178" font-size="10.5" fill="#1e3a8a">  primitive IDs to Element/Face owners</text>
-    <text x="28" y="194" font-size="10" fill="#1e3a8a">• Free-list span reuse after GPU lease</text>
+    <rect x="18" y="68" width="250" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="143" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">1. Shared GPU Arena (Ch 19–20)</text>
+    <text x="28" y="108" font-size="10.5" fill="#111111">• 1 Growable Storage Buffer Arena</text>
+    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#111111">• Vertex Pulling (@builtin(vertex_index))</text>
+    <text x="28" y="144" font-size="10.5" fill="#111111">• 8-byte Draw Slots -&gt; ObjectRecord</text>
+    <text x="28" y="162" font-size="10.5" fill="#111111">• slot_table.wgsl maps Rg32Uint</text>
+    <text x="28" y="178" font-size="10.5" fill="#111111">  primitive IDs to Element/Face owners</text>
+    <text x="28" y="194" font-size="10" fill="#111111">• Free-list span reuse after GPU lease</text>
 
-    <line x1="268" y1="138" x2="298" y2="138" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
+    <line x1="268" y1="138" x2="298" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="300" y="68" width="265" height="145" rx="6" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5"/>
-    <text x="432" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#9a3412">2. f64 Floating Origin &amp; Reversed-Z (Ch 21)</text>
-    <text x="312" y="108" font-size="10.5" font-weight="600" fill="#c2410c">• rel_f32 = (world_f64 - anchor_f64) as f32</text>
-    <text x="312" y="125" font-size="10" fill="#7c2d12">  Zero vertex/grid jitter even at 10^12 m!</text>
-    <text x="312" y="144" font-size="10.5" font-weight="600" fill="#c2410c">• Reversed-Z Depth (GreaterEqual):</text>
-    <text x="312" y="160" font-size="10" fill="#7c2d12">  Near plane = 1.0, Far plane = 0.0</text>
-    <text x="312" y="178" font-size="10.5" fill="#7c2d12">• Held world base grid &amp; preserved</text>
-    <text x="312" y="193" font-size="10.5" fill="#7c2d12">  live camera during Session reload</text>
+    <rect x="300" y="68" width="265" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="432" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">2. f64 Floating Origin &amp; Reversed-Z (Ch 21)</text>
+    <text x="312" y="108" font-size="10.5" font-weight="600" fill="#111111">• rel_f32 = (world_f64 - anchor_f64) as f32</text>
+    <text x="312" y="125" font-size="10" fill="#111111">  Zero vertex/grid jitter even at 10^12 m!</text>
+    <text x="312" y="144" font-size="10.5" font-weight="600" fill="#111111">• Reversed-Z Depth (GreaterEqual):</text>
+    <text x="312" y="160" font-size="10" fill="#111111">  Near plane = 1.0, Far plane = 0.0</text>
+    <text x="312" y="178" font-size="10.5" fill="#111111">• Held world base grid &amp; preserved</text>
+    <text x="312" y="193" font-size="10.5" fill="#111111">  live camera during Session reload</text>
 
-    <line x1="565" y1="138" x2="595" y2="138" stroke="#059669" stroke-width="2" marker-end="url(#arrow-green)"/>
+    <line x1="565" y1="138" x2="595" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="597" y="68" width="223" height="145" rx="6" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1.5"/>
-    <text x="708" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#065f46">3. 4x MSAA &amp; Matrix Shader (Ch 22)</text>
-    <text x="609" y="108" font-size="10.5" fill="#064e3b">• Coherent 1x/4x MSAA sample targets</text>
-    <text x="609" y="126" font-size="10.5" font-weight="600" fill="#047857">• matrix.wgsl (16w header + 3w/cell):</text>
-    <text x="609" y="142" font-size="10" fill="#064e3b">  Heatmap + procedural 3-decimal digits</text>
-    <text x="609" y="157" font-size="10" fill="#064e3b">  (0 cell blank; plate-less title; yellow</text>
-    <text x="609" y="172" font-size="10" fill="#064e3b">  selected border; Rg32Uint whole pick)</text>
-    <text x="609" y="190" font-size="10" fill="#064e3b">• Coalesced single-flight frame scheduler</text>
+    <rect x="597" y="68" width="223" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="708" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">3. 4x MSAA &amp; Matrix Shader (Ch 22)</text>
+    <text x="609" y="108" font-size="10.5" fill="#111111">• Coherent 1x/4x MSAA sample targets</text>
+    <text x="609" y="126" font-size="10.5" font-weight="600" fill="#111111">• matrix.wgsl (16w header + 3w/cell):</text>
+    <text x="609" y="142" font-size="10" fill="#111111">  Heatmap + procedural 3-decimal digits</text>
+    <text x="609" y="157" font-size="10" fill="#111111">  (0 cell blank; plate-less title; yellow</text>
+    <text x="609" y="172" font-size="10" fill="#111111">  selected border; Rg32Uint whole pick)</text>
+    <text x="609" y="190" font-size="10" fill="#111111">• Coalesced single-flight frame scheduler</text>
     
 </svg>
 </div>
 
-### Lesson Data Flow (`Rust` → `WebGPU` → `WGSL`)
+## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
 
-```
-World query − precise target → local camera matrix → pixel query.
-Precise query frame → lasso membership and handle scale → local GPU widget.
-Current origin → existing source packers → synchronized ink/IDs and reused face placement.
-```
+Before writing code, review how the three layers in this chapter talk to each other:
 
-- Keep CPU screen queries precise before converting world points to pixels.
-- Keep lasso selection and handle sizing in precise local frames.
-- Refresh local draw inputs without replacing the document or cancelling its gesture.
-- **Why it works (Can an unchanged local matrix identify a CPU query frame?):** No. A camera pan can move the target while leaving its local matrix identical. The query owner must retain the origin so caches distinguish those frames.
-
-### Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `Browser`)
-
-| Layer | Construct | First-Year Student Explanation |
+| Layer | Construct | Plain-English Explanation for Students |
 | :--- | :--- | :--- |
 | **WGSL (Vertex Pull)** | `@group(0) @binding(b) var<storage, read> arena_verts: array<u32>;` | Fetches packed vertex positions, normals, and colors directly from a single growable storage buffer using `@builtin(vertex_index)`. |
 | **Rust/WGSL (`f64`->`f32`)** | `let rel: Vec3 = (world_f64 - anchor_f64).as_vec3();` | Subtracts the camera-area `f64` anchor on the CPU before converting to `f32`, preventing 32-bit float mantissa exhaustion far from `(0,0,0)`. |
 | **WGSL (`matrix.wgsl`)** | 16-word header + 3 words/cell procedural digits | Renders matrix heatmaps and 3-decimal numeric digits procedurally inside the fragment shader with zero texture uploads per cell. |
 | **Rust (`ink_ranges.rs`)** | Merged contiguous `Range<u32>` instance draws | Toggles point/line/edge/CAD-wire family visibility without rebuilding GPU buffers or invalidating original owner indices. |
 
-**Production source (`session_viewer/src`):** [camera.rs](../../../../src/camera.rs), [state.rs](../../../../src/state.rs), [engine/gpu/objects.rs](../../../../src/engine/gpu/objects.rs), [engine/gpu/frame.rs](../../../../src/engine/gpu/frame.rs), [engine/gpu/targets.rs](../../../../src/engine/gpu/targets.rs), [shaders/grid.wgsl](../../../../src/shaders/grid.wgsl), [shaders/ribbon.wgsl](../../../../src/shaders/ribbon.wgsl), [app/cplane.rs](../../../../src/app/cplane.rs), [build.rs](../../../../build.rs).
+**Authoritative production source (`session_viewer/src`):** [camera.rs](../../../../src/camera.rs), [state.rs](../../../../src/state.rs), [engine/gpu/objects.rs](../../../../src/engine/gpu/objects.rs), [engine/gpu/frame.rs](../../../../src/engine/gpu/frame.rs), [engine/gpu/targets.rs](../../../../src/engine/gpu/targets.rs), [shaders/grid.wgsl](../../../../src/shaders/grid.wgsl), [shaders/ribbon.wgsl](../../../../src/shaders/ribbon.wgsl), [app/cplane.rs](../../../../src/app/cplane.rs), [build.rs](../../../../build.rs).
 
-## Implementation Checkpoints
+## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
 
-Apply these checkpoints in order inside `workspace/journey`. Expand each block to view the Rust/WGSL/HTML edits:
+| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
+| ---: | :--- | :--- | :--- | :--- |
+| **1** | [`96zzzzzj-project-cpu-queries-around-the-precise-target`](#checkpoint-96zzzzzj-project-cpu-queries-around-the-precise-target) | Keep CPU screen queries precise before converting world points to pixels. | `src/snap_math.rs`, `src/editor.rs`, `src/trim_draft.rs`, `src/snap_tests.rs` | `World query − precise target → local camera matrix → pixel query` |
+| **2** | [`96zzzzzk-prepare-precise-text-selection-polygons`](#checkpoint-96zzzzzk-prepare-precise-text-selection-polygons) | Project original text bounds in a precise local query frame. | `src/snap_math.rs`, `src/rect_select.rs`, `src/scene_label_screen.rs`, `src/camera_space_tests.rs` | `Original text placement − query origin → local polygon → shared pixel projection` |
+| **3** | [`96zzzzzl-connect-precise-rectangle-selection-queries`](#checkpoint-96zzzzzl-connect-precise-rectangle-selection-queries) | Select original geometry and text through one precise CPU frame. | `src/rect_select.rs`, `src/editor.rs`, `src/camera_space_tests.rs` | `Original source + query-relative placement → unclipped pixels → window/crossing predicate` |
+| **4** | [`96zzzzzm-finish-precise-lasso-and-handle-queries`](#checkpoint-96zzzzzm-finish-precise-lasso-and-handle-queries) | Keep lasso selection and handle sizing in precise local frames. | `src/lasso.rs`, `src/widget_layout.rs`, `src/editor.rs`, `src/renderer.rs` | `Precise query frame → lasso membership and handle scale → local GPU widget` |
+| **5** | [`96zzzzzn-stamp-asynchronous-picks-with-the-origin`](#checkpoint-96zzzzzn-stamp-asynchronous-picks-with-the-origin) | Reject pick readbacks from a different local coordinate frame. | `src/pick_view.rs`, `src/pick_gpu.rs`, `src/renderer.rs`, `src/global_outline_tests.rs` | `Matrix + viewport + density + origin → pick ticket → matching-frame acceptance` |
+| **6** | [`96zzzzzo-retry-rebased-picks-with-the-latest-cursor`](#checkpoint-96zzzzzo-retry-rebased-picks-with-the-latest-cursor) | Finish a released gesture when its asynchronous pick frame is rebased. | `src/renderer.rs`, `src/global_outline_tests.rs` | `Latest successful cursor + saved origin → stale rebase → one fresh request` |
+| **7** | [`96zzzzzp-share-derived-inputs-for-origin-refresh`](#checkpoint-96zzzzzp-share-derived-inputs-for-origin-refresh) | Refresh local draw inputs without replacing the document or cancelling its gesture. | `src/renderer.rs`, `src/highlight.rs`, `src/global_outline_tests.rs` | `Current origin → existing source packers → synchronized ink/IDs and reused face placement` |
+
+---
+
+## 4. Step-by-Step Coding Notebook (Concept + Implementation)
+
+Work through each notebook cell below in order inside `workspace/journey`. Read the **Concept Walkthrough** and **Self-Check Q&A** first, then expand the **Implementation** block to type and verify the code.
 
 <a id="checkpoint-96zzzzzj-project-cpu-queries-around-the-precise-target"></a>
+
+### Step 1 of 7 · Project CPU queries around the precise target (`96zzzzzj-project-cpu-queries-around-the-precise-target`)
+
+- **Goal:** Keep CPU screen queries precise before converting world points to pixels.
+- **Data Flow Trace:** `World query − precise target → local camera matrix → pixel query`
+- **Files You Touch:** `src/snap_math.rs` (*Retain the coordinate frame in query and cache identity.*) · `src/editor.rs` (*Reuse the precise camera query frame at the existing editor call site.*) · `src/trim_draft.rs` (*Project trim boundaries through the same CPU frame owner.*) · `src/snap_tests.rs` (*Keep every original arbitrary-matrix snapping assertion in its explicit zero-origin frame.*) · `src/camera_space_tests.rs` (*Supply exact distant/local CPU pixels, equal-matrix origin witnesses and retained clip/finite/size guards without changing source coordinates.*)
+
+Give the existing screen-query owner a precise origin. Build its matrix around the camera target and subtract that same target before projection. Reuse it for snapping, extension, trimming and numeric-prompt placement. CPU queries keep double precision; the GPU origin can be throttled separately to limit buffer writes.
+
+> **Self-Check Question:** *Can an unchanged local matrix identify a CPU query frame?*  
+> **Answer:** No. A camera pan can move the target while leaving its local matrix identical. The query owner must retain the origin so caches distinguish those frames.
+
+- **What You Should See:** Connected CPU point queries project around the precise camera target and observe origin changes.
+- **Hands-On Lab Experiment:** Enable snapping, draw a line and polyline, then start Trim or Extend and inspect their cursor previews. Select a handle and open its numeric prompt. Confirm the existing browser behavior; rectangle/lasso/widget projection and shared GPU rebasing follow.
 
 <details>
 <summary>Implementation 96zzzzzj-project-cpu-queries-around-the-precise-target: Project CPU queries around the precise target</summary>
@@ -1655,6 +1718,20 @@ After that block, append this supplied code:
 
 <a id="checkpoint-96zzzzzk-prepare-precise-text-selection-polygons"></a>
 
+### Step 2 of 7 · Prepare precise text selection polygons (`96zzzzzk-prepare-precise-text-selection-polygons`)
+
+- **Goal:** Project original text bounds in a precise local query frame.
+- **Data Flow Trace:** `Original text placement − query origin → local polygon → shared pixel projection`
+- **Files You Touch:** `src/snap_math.rs` (*Share coordinate conversion while preserving depth, positive-w and logical-size rules.*) · `src/rect_select.rs` (*Reuse the shared projection without adding depth clipping to region selection.*) · `src/scene_label_screen.rs` (*Use the explicit query frame instead of a second projection recipe.*) · `src/camera_space_tests.rs` (*Supply exact local/distant plane/billboard/anchor/nameplate polygons and unchanged source owners, retaining distinct unused-depth, tiny-w, finite and size predicates.*)
+
+Share the existing clip transform and pixel conversion between depth-clipped point queries and unclipped region queries. Keep their distinct visibility rules. For text bounds, derive the original row’s local placement before constructing plane corners, anchors, nameplates or billboard scale. The source label remains unchanged.
+
+> **Self-Check Question:** *Why subtract the origin before constructing text corners?*  
+> **Answer:** Adding small corner offsets to a large world anchor can round them before projection. A local placement keeps those offsets precise, and the shared query owner supplies the matching camera matrix.
+
+- **What You Should See:** Text selection polygons prepare precise local coordinates using one shared projection recipe.
+- **Hands-On Lab Experiment:** Create scene text, change its placement and select it with crossing and window rectangles. Confirm the existing zero-origin selection behavior. The new polygon query API prepares the precise region-query connection in the next lesson.
+
 <details>
 <summary>Implementation 96zzzzzk-prepare-precise-text-selection-polygons: Prepare precise text selection polygons</summary>
 
@@ -1906,6 +1983,20 @@ After that block, append this supplied code:
 
 <a id="checkpoint-96zzzzzl-connect-precise-rectangle-selection-queries"></a>
 
+### Step 3 of 7 · Connect precise rectangle selection queries (`96zzzzzl-connect-precise-rectangle-selection-queries`)
+
+- **Goal:** Select original geometry and text through one precise CPU frame.
+- **Data Flow Trace:** `Original source + query-relative placement → unclipped pixels → window/crossing predicate`
+- **Files You Touch:** `src/rect_select.rs` (*Reuse one rectangle predicate while placing each original family in the explicit query frame.*) · `src/editor.rs` (*Connect the existing window/crossing gesture to the precise camera query owner.*) · `src/camera_space_tests.rs` (*Supply exact local/distant original window/crossing sets, text/point source identity, hidden eligibility and empty queries with unchanged earlier predicates.*)
+
+Pass the shared query frame to rectangle selection. Transform original mesh, cloud and sheet coordinates through a local placement; reuse the already written local line, path and point accessors. Project those local positions with a zero-origin view of the same matrix. Text bounds retain the original frame so their own placement helper subtracts the origin once.
+
+> **Self-Check Question:** *Why does text receive the original query frame while prepared geometry uses a zero-origin view?*  
+> **Answer:** Geometry positions are already local when projected. The text polygon owner still needs the world placement and origin to construct its own precise local corners. Subtracting twice would move either result incorrectly.
+
+- **What You Should See:** Window and crossing selection use the precise query frame for each supported original family.
+- **Hands-On Lab Experiment:** Draw a line, polyline, point and scene text. Select them with left-to-right windows and right-to-left crossing rectangles, then lock or hide one and repeat. Confirm original selections and Undo behavior. Shared GPU rebasing follows after remaining queries and asynchronous picks.
+
 <details>
 <summary>Implementation 96zzzzzl-connect-precise-rectangle-selection-queries: Connect precise rectangle selection queries</summary>
 
@@ -2078,6 +2169,20 @@ After that block, append this supplied code:
 </details>
 
 <a id="checkpoint-96zzzzzm-finish-precise-lasso-and-handle-queries"></a>
+
+### Step 4 of 7 · Finish precise lasso and handle queries (`96zzzzzm-finish-precise-lasso-and-handle-queries`)
+
+- **Goal:** Keep lasso selection and handle sizing in precise local frames.
+- **Data Flow Trace:** `Precise query frame → lasso membership and handle scale → local GPU widget`
+- **Files You Touch:** `src/lasso.rs` (*Retain the precise lasso query origin and physical pixel dimensions.*) · `src/widget_layout.rs` (*Share precise camera-relative handle sizing without repeating its projection recipe.*) · `src/editor.rs` (*Use the shared precise scale for handle hit testing.*) · `src/renderer.rs` (*Prepare the widget pivot and GPU layout in the actual renderer frame.*) · `src/camera_space_tests.rs` (*Supply local/distant original lasso sets at two densities, source identity and locked/empty eligibility.*) · `src/widget_tests.rs` (*Reuse the existing supplied widget readback helper from the renderer fixture module.*) · `src/global_outline_tests.rs` (*Supply actual local/distant widget pixels and camera scale at two densities/projections, retained tiles, no invented original picks and tile release.*)
+
+Reuse the query owner for lasso projection, placing originals locally before testing the loop. Share camera-relative handle sizing between hit testing and numeric prompts. Prepare the GPU widget with a pivot relative to the renderer origin and its matching local camera matrix.
+
+> **Self-Check Question:** *Why can handle sizing use the camera target while GPU layout uses the renderer origin?*  
+> **Answer:** CPU scale calculations keep double precision around the target. GPU layout must use the origin shared by its frame. Each pairs local coordinates with the matching matrix, so the projected handle size agrees.
+
+- **What You Should See:** Lasso and handle queries prepare precise local positions without moving original sources.
+- **Hands-On Lab Experiment:** Lasso several originals, lock one and repeat. Select an object, hover its handles, zoom and open a numeric prompt. Confirm stable handle size, placement and original selection. Shared GPU rebasing follows after asynchronous pick snapshots are prepared.
 
 <details>
 <summary>Implementation 96zzzzzm-finish-precise-lasso-and-handle-queries: Finish precise lasso and handle queries</summary>
@@ -4002,6 +4107,20 @@ After that block, append this supplied code:
 
 <a id="checkpoint-96zzzzzn-stamp-asynchronous-picks-with-the-origin"></a>
 
+### Step 5 of 7 · Stamp asynchronous picks with the scene origin (`96zzzzzn-stamp-asynchronous-picks-with-the-origin`)
+
+- **Goal:** Reject pick readbacks from a different local coordinate frame.
+- **Data Flow Trace:** `Matrix + viewport + density + origin → pick ticket → matching-frame acceptance`
+- **Files You Touch:** `src/pick_view.rs` (*Retain the precise local frame in readback identity.*) · `src/pick_gpu.rs` (*Stamp the same explicit frame at queue time without changing existing request data.*) · `src/renderer.rs` (*Queue the current renderer frame with the original screen request.*) · `src/global_outline_tests.rs` (*Supply actual same-matrix old-origin rejection, fresh empty/current results, restored original owner and unchanged source uploads.*)
+
+Extend the existing pick snapshot with exact origin bits. Queue and consume requests with the renderer’s current origin; retain zero-origin entry points for existing arbitrary-matrix callers. A camera pan and rebase can keep the local matrix identical while moving every original, so the matrix alone cannot identify a readback.
+
+> **Self-Check Question:** *Can an unchanged matrix make a stale pick safe after rebasing?*  
+> **Answer:** No. The same local matrix can describe a different world frame. The saved origin must match too before an old integer hit can select an original.
+
+- **What You Should See:** Asynchronous picks prepare an explicit origin witness and reject stale local-frame answers.
+- **Hands-On Lab Experiment:** Create two originals, select one, pan and select again. Confirm the existing asynchronous browser behavior. Inspect the origin witness; automatic rebasing and released-gesture retry are connected in subsequent lessons.
+
 <details>
 <summary>Implementation 96zzzzzn-stamp-asynchronous-picks-with-the-origin: Stamp asynchronous picks with the scene origin</summary>
 
@@ -5159,6 +5278,20 @@ After that block, append this supplied code:
 </details>
 
 <a id="checkpoint-96zzzzzo-retry-rebased-picks-with-the-latest-cursor"></a>
+
+### Step 6 of 7 · Retry rebased picks with the latest cursor (`96zzzzzo-retry-rebased-picks-with-the-latest-cursor`)
+
+- **Goal:** Finish a released gesture when its asynchronous pick frame is rebased.
+- **Data Flow Trace:** `Latest successful cursor + saved origin → stale rebase → one fresh request`
+- **Files You Touch:** `src/renderer.rs` (*Retain only the latest successfully queued cursor and its exact frame origin.*) · `src/global_outline_tests.rs` (*Retain old-origin rejection, fresh empty picks and restored-owner assertions while verifying the newly connected automatic retry.*)
+
+Retain the latest cursor only after queueing succeeds. If a completed response is stale because its saved origin differs from the current origin, request that cursor in the current frame. Keep ordinary camera-change behavior and the existing newest-pending gate. Clear retained intent on completion, errors and every explicit cancellation boundary.
+
+> **Self-Check Question:** *Why must a source cancellation clear the retained cursor?*  
+> **Answer:** A later rebase must not turn a cancelled gesture into a new request against another document. Retained intent belongs to the same cancellation boundary as the GPU flight.
+
+- **What You Should See:** Rebased asynchronous picks retain the latest valid gesture while cancellation stays final.
+- **Hands-On Lab Experiment:** Press and drag an original, release, then Undo. Repeat while selecting different originals quickly and cancel with Escape. The existing browser flow remains active; automatic shared-frame rebasing follows in the next integration lessons.
 
 <details>
 <summary>Implementation 96zzzzzo-retry-rebased-picks-with-the-latest-cursor: Retry rebased picks with the latest cursor</summary>
@@ -6464,6 +6597,20 @@ After that block, append this supplied code:
 </details>
 
 <a id="checkpoint-96zzzzzp-share-derived-inputs-for-origin-refresh"></a>
+
+### Step 7 of 7 · Share derived inputs for origin refresh (`96zzzzzp-share-derived-inputs-for-origin-refresh`)
+
+- **Goal:** Refresh local draw inputs without replacing the document or cancelling its gesture.
+- **Data Flow Trace:** `Current origin → existing source packers → synchronized ink/IDs and reused face placement`
+- **Files You Touch:** `src/renderer.rs` (*Keep the existing source-preparation block for the helper below, then replace this call site with the shared owner.*) · `src/highlight.rs` (*Retain only the identity of the temporary selected part.*) · `src/global_outline_tests.rs` (*Reuse the shared source owner in the existing exact original-highlight fixture; retain its pixel, address and source assertions.*)
+
+Move the already written original-ink preparation into one helper. Use its precise source accessors and current origin for points, paths, strokes, controls and pick IDs. Initialize new object records in that same frame. Retain a selected face’s target identity so a rebase updates its placement while reusing the derived GPU geometry.
+
+> **Self-Check Question:** *Why should a representation-only refresh avoid set_scene?*  
+> **Answer:** Document adoption cancels pending picks and clears temporary selection state. Rebasing needs the same derived inputs while retaining the gesture and its existing source ownership.
+
+- **What You Should See:** The renderer prepares reusable local draw inputs without treating a rebase as document replacement.
+- **Hands-On Lab Experiment:** Select original faces, curves and controls, clear selection and Undo. Confirm their existing browser behavior and source identities. The shared helper prepares the live origin update in the next lesson.
 
 <details>
 <summary>Implementation 96zzzzzp-share-derived-inputs-for-origin-refresh: Share derived inputs for origin refresh</summary>
@@ -8518,9 +8665,11 @@ After that block, append this supplied code:
 
 </details>
 
-## Run, Check, and Save
+---
 
-From `session_viewer`:
+## 5. Build, Verify, and Save Your Checkpoint
+
+Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 96zzzzzp-share-derived-inputs-for-origin-refresh
@@ -8531,12 +8680,12 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. Use [checkpoint recovery](../../recovery.md) to restore any saved checkpoint.
+Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
 
-## Expected Visual Result & Experiment
+## 6. Lesson Summary & Expected Visual Result
 
 The renderer prepares reusable local draw inputs without treating a rebase as document replacement.
 
-- **Try this:** Select original faces, curves and controls, clear selection and Undo. Confirm their existing browser behavior and source identities. The shared helper prepares the live origin update in the next lesson.
+- **Final Lesson Experiment:** Select original faces, curves and controls, clear selection and Undo. Confirm their existing browser behavior and source identities. The shared helper prepares the live origin update in the next lesson.
 
-Continue with [Browser ownership of frame matrices and wakeups](96zzzzzq-prepare-one-shared-render-origin.md).
+Continue with [Browser ownership of frame matrices and wakeups](../../consolidation/96zzzzzq-prepare-one-shared-render-origin.md).

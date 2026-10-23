@@ -1,88 +1,150 @@
 # 14.6 · Exact parabola recipes and editable freeform controls
 
-**Section 8: Precision Coordinate Frames, Solid Primitives, Surfacing, and CAD Editing** · **Lesson 14.6** (Redraft `8.6`) · **5 checkpoints (`76-copy-exact-planar-curve-definitions` → `76d-exercise-exact-curves-and-rational-control-edits`)**
+**Section 8: Precision Coordinate Frames, Solid Primitives, Surfacing, and CAD Editing** · **Lesson 14.6** (Redraft `8.6`) · **5 checkpoints (`76-copy-exact-planar-curve-definitions` → `76d-exercise-exact-curves-and-rational-control-edits`)** · **Study time: 2.5–5 h**
 
-> **Learning Goal:** Complete the original parabola questions and input reader.
+> **What You Will Learn & Build:** Complete the original parabola questions and input reader. By the final checkpoint (`76d-exercise-exact-curves-and-rational-control-edits`), you will exercise exact curves and rational control edits.
 
-## Visual WebGPU & Architecture Schematic
+## 1. Visual Pipeline & WebGPU Architecture (Black & White Schematics)
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1px solid #cbd5e1;border-radius:10px;background:#f8fafc;">
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
+<svg viewBox="0 0 840 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <rect x="4" y="4" width="832" height="212" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Lesson 14.6 Execution Flow: Exact parabola recipes and editable freeform controls</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">Concrete data pipeline you build in this lesson (5 Checkpoints: 76-copy-exact-planar-curve-definitions → 76d-exercise-exact-curves-and-rational-control-edits)</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
+  
+    
+    <rect x="18" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="89" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
+    <line x1="28" y1="92" x2="151" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">shared questions</text>
+    <text x="89" y="124" text-anchor="middle" font-size="11" fill="#111111">and frame</text>
+    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="183" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="254" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
+    <line x1="193" y1="92" x2="316" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">original exact</text>
+    <text x="254" y="124" text-anchor="middle" font-size="11" fill="#111111">curve</text>
+    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="348" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="419" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
+    <line x1="358" y1="92" x2="481" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">derived preview</text>
+    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="513" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="584" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
+    <line x1="523" y1="92" x2="646" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">original curve</text>
+    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="678" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="749" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
+    <line x1="688" y1="92" x2="811" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">checked control</text>
+    <text x="749" y="124" text-anchor="middle" font-size="11" fill="#111111">preview</text>
+    
+    <rect x="18" y="162" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="32" y="181" font-size="11" font-weight="700" fill="#111111">Files You Edit in Lesson 14.6:</text>
+    <text x="215" y="181" font-size="11" fill="#111111">src/freeform_parabola.rs  ·  src/primitive_registry.rs  ·  src/freeform_curve.rs  ·  src/lib.rs  ·  src/tool.rs  ·  src/commands.rs</text>
+    <text x="32" y="198" font-size="10.5" fill="#111111">5 Checkpoints: 76-copy-exact-planar-curve-definitions → 76d-exercise-exact-curves-and-rational-control-edits — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
+  
+</svg>
+</div>
+
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
 <svg viewBox="0 0 840 240" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#475569"/>
-    </marker>
-    <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#2563eb"/>
-    </marker>
-    <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#059669"/>
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
     </marker>
   </defs>
-  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
-  <text x="20" y="28" font-size="14" font-weight="700" fill="#0f172a">Section 8 Precision CAD Frames, Solid Primitives, Surfacing & Sub-Object Deformation (Chapters 14–16)</text>
-  <text x="20" y="46" font-size="11.5" fill="#475569">How double-precision coordinate frames (Plane), parametric solids, Loft/Sweep/Extrude surfaces, and Gumball control edits work.</text>
-  <line x1="16" y1="54" x2="824" y2="54" stroke="#e2e8f0" stroke-width="1"/>
+  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Section 8 Precision CAD Frames, Solid Primitives, Surfacing & Sub-Object Deformation (Chapters 14–16)</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">How double-precision coordinate frames (Plane), parametric solids, Loft/Sweep/Extrude surfaces, and Gumball control edits work.</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
   
-    <rect x="18" y="68" width="245" height="145" rx="6" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
-    <text x="140" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1e40af">1. Orthonormal Frames (Ch 14)</text>
-    <text x="28" y="108" font-size="10.5" fill="#1e3a8a">• Plane { origin: Vec3d, x, y, z }</text>
-    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#1d4ed8">• Rejects non-finite / collinear axes</text>
-    <text x="28" y="144" font-size="10.5" fill="#1e3a8a">• Basis change: World &lt;-&gt; Local Plane</text>
-    <text x="28" y="162" font-size="10.5" fill="#1e3a8a">• Exact Mirror, Rotate3D, Orient,</text>
-    <text x="28" y="178" font-size="10.5" fill="#1e3a8a">  and Align frame transformations</text>
+    <rect x="18" y="68" width="245" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="140" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">1. Orthonormal Frames (Ch 14)</text>
+    <text x="28" y="108" font-size="10.5" fill="#111111">• Plane { origin: Vec3d, x, y, z }</text>
+    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#111111">• Rejects non-finite / collinear axes</text>
+    <text x="28" y="144" font-size="10.5" fill="#111111">• Basis change: World &lt;-&gt; Local Plane</text>
+    <text x="28" y="162" font-size="10.5" fill="#111111">• Exact Mirror, Rotate3D, Orient,</text>
+    <text x="28" y="178" font-size="10.5" fill="#111111">  and Align frame transformations</text>
 
-    <line x1="263" y1="138" x2="293" y2="138" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
+    <line x1="263" y1="138" x2="293" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="295" y="68" width="265" height="145" rx="6" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5"/>
-    <text x="427" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#9a3412">2. Solids &amp; Surfacing (Ch 15–16)</text>
-    <text x="307" y="108" font-size="10.5" fill="#7c2d12">• Parametric Box, Cylinder, Sphere, Cone</text>
-    <text x="307" y="126" font-size="10.5" font-weight="600" fill="#c2410c">• Extrude, Revolve, Loft, Sweep, Planar</text>
-    <text x="307" y="144" font-size="10.5" fill="#7c2d12">• Curve Split, Trim, Extend, Join, Fillet</text>
-    <text x="307" y="162" font-size="10.5" fill="#7c2d12">• Every operation commits an atomic</text>
-    <text x="307" y="178" font-size="10.5" fill="#7c2d12">  session_rust kernel transaction</text>
+    <rect x="295" y="68" width="265" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="427" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">2. Solids &amp; Surfacing (Ch 15–16)</text>
+    <text x="307" y="108" font-size="10.5" fill="#111111">• Parametric Box, Cylinder, Sphere, Cone</text>
+    <text x="307" y="126" font-size="10.5" font-weight="600" fill="#111111">• Extrude, Revolve, Loft, Sweep, Planar</text>
+    <text x="307" y="144" font-size="10.5" fill="#111111">• Curve Split, Trim, Extend, Join, Fillet</text>
+    <text x="307" y="162" font-size="10.5" fill="#111111">• Every operation commits an atomic</text>
+    <text x="307" y="178" font-size="10.5" fill="#111112">  session_rust kernel transaction</text>
 
-    <line x1="560" y1="138" x2="590" y2="138" stroke="#059669" stroke-width="2" marker-end="url(#arrow-green)"/>
+    <line x1="560" y1="138" x2="590" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="592" y="68" width="228" height="145" rx="6" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1.5"/>
-    <text x="706" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#065f46">3. Rational Control-Point Deform</text>
-    <text x="604" y="108" font-size="10.5" fill="#064e3b">• Pick NURBS control point or vertex</text>
-    <text x="604" y="126" font-size="10.5" font-weight="600" fill="#047857">• Preserve homogeneous weight w</text>
-    <text x="604" y="142" font-size="10.5" font-weight="600" fill="#047857">  on rational curve control drags!</text>
-    <text x="604" y="162" font-size="10.5" fill="#064e3b">• Rebuild derived GPU tessellation</text>
-    <text x="604" y="178" font-size="10.5" fill="#064e3b">  in-place while keeping Object ID</text>
+    <rect x="592" y="68" width="228" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="706" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">3. Rational Control-Point Deform</text>
+    <text x="604" y="108" font-size="10.5" fill="#111111">• Pick NURBS control point or vertex</text>
+    <text x="604" y="126" font-size="10.5" font-weight="600" fill="#111111">• Preserve homogeneous weight w</text>
+    <text x="604" y="142" font-size="10.5" font-weight="600" fill="#111111">  on rational curve control drags!</text>
+    <text x="604" y="162" font-size="10.5" fill="#111111">• Rebuild derived GPU tessellation</text>
+    <text x="604" y="178" font-size="10.5" fill="#111111">  in-place while keeping Object ID</text>
     
 </svg>
 </div>
 
-### Lesson Data Flow (`Rust` → `WebGPU` → `WGSL`)
+## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
 
-```
-shared questions and frame → original exact curve → derived preview.
-collected original controls → degree and closure → NURBS curve → one history edit.
-original curve → checked control preview → one transaction → exact restoration.
-```
+Before writing code, review how the three layers in this chapter talk to each other:
 
-- Complete the original parabola questions and input reader.
-- Write the original degree and closure rules for collected control points.
-- Exercise exact curves and rational control edits.
-- **Why it works (Why retain the apex in the chord frame?):** The original curve can use the same input interpretation in any construction plane. Its display samples remain derived from that source.
-
-### Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `Browser`)
-
-| Layer | Construct | First-Year Student Explanation |
+| Layer | Construct | Plain-English Explanation for Students |
 | :--- | :--- | :--- |
 | **CAD Coords** | `w10,20,0` vs `@5,0,0` vs `10<30` | `w` forces absolute World coordinates; `@` measures relative to the last accepted point; `<` uses polar distance and angle in the active Construction Plane. |
 | **Rational NURBS** | Homogeneous control point `(w*x, w*y, w*z, w)` | Represents circles, ellipses, and conic arcs with zero approximation error using non-uniform weights `w`. |
 | **B-Rep Split/Trim** | Plane/Cutter intersection -> Face loop classification | Splits or trims B-Rep and mesh faces along cutting planes/curves while keeping retained topology tables valid. |
 
-**Production source (`session_viewer/src`):** [app/walk/sheet.rs](../../../../src/app/walk/sheet.rs), [app/sheet_query.rs](../../../../src/app/sheet_query.rs), [app/stream.rs](../../../../src/app/stream.rs), [app/cplane.rs](../../../../src/app/cplane.rs), [app/coords.rs](../../../../src/app/coords.rs), [app/command/tool/shape.rs](../../../../src/app/command/tool/shape.rs), [app/command/tool/gather.rs](../../../../src/app/command/tool/gather.rs), [app/deform.rs](../../../../src/app/deform.rs).
+**Authoritative production source (`session_viewer/src`):** [app/walk/sheet.rs](../../../../src/app/walk/sheet.rs), [app/sheet_query.rs](../../../../src/app/sheet_query.rs), [app/stream.rs](../../../../src/app/stream.rs), [app/cplane.rs](../../../../src/app/cplane.rs), [app/coords.rs](../../../../src/app/coords.rs), [app/command/tool/shape.rs](../../../../src/app/command/tool/shape.rs), [app/command/tool/gather.rs](../../../../src/app/command/tool/gather.rs), [app/deform.rs](../../../../src/app/deform.rs).
 
-## Implementation Checkpoints
+## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
 
-Apply these checkpoints in order inside `workspace/journey`. Expand each block to view the Rust/WGSL/HTML edits:
+| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
+| ---: | :--- | :--- | :--- | :--- |
+| **1** | [`76-copy-exact-planar-curve-definitions`](#checkpoint-76-copy-exact-planar-curve-definitions) | Complete the original parabola questions and input reader. | `src/freeform_parabola.rs` | `shared questions and frame → original exact curve → derived preview` |
+| **2** | [`76a-expose-exact-curve-choices-in-the-existing-registry`](#checkpoint-76a-expose-exact-curve-choices-in-the-existing-registry) | Expose exact curve choices in the existing registry. | `src/primitive_registry.rs` | `registered curve name → current option → shared answer owner` |
+| **3** | [`76b-retain-editable-freeform-controls-in-the-point-collector`](#checkpoint-76b-retain-editable-freeform-controls-in-the-point-collector) | Write the original degree and closure rules for collected control points. | `src/freeform_curve.rs`, `src/lib.rs`, `src/tool.rs`, `src/commands.rs` | `collected original controls → degree and closure → NURBS curve → one history edit` |
+| **4** | [`76c-inspect-original-curve-data-through-the-browser-contract`](#checkpoint-76c-inspect-original-curve-data-through-the-browser-contract) | Inspect original curve data through the browser contract. | `src/browser.rs` | `original curve owner → explicit diagnostic facts → browser assertions` |
+| **5** | [`76d-exercise-exact-curves-and-rational-control-edits`](#checkpoint-76d-exercise-exact-curves-and-rational-control-edits) | Exercise exact curves and rational control edits. | `src/freeform_tests.rs`, `src/lib.rs` | `original curve → checked control preview → one transaction → exact restoration` |
+
+---
+
+## 4. Step-by-Step Coding Notebook (Concept + Implementation)
+
+Work through each notebook cell below in order inside `workspace/journey`. Read the **Concept Walkthrough** and **Self-Check Q&A** first, then expand the **Implementation** block to type and verify the code.
 
 <a id="checkpoint-76-copy-exact-planar-curve-definitions"></a>
+
+### Step 1 of 5 · Read original parabola inputs in a checked frame (`76-copy-exact-planar-curve-definitions`)
+
+- **Goal:** Complete the original parabola questions and input reader.
+- **Data Flow Trace:** `shared questions and frame → original exact curve → derived preview`
+- **Files You Touch:** `src/freeform_parabola.rs` (*Extend this original owner with the day’s complete input helpers.*)
+
+Complete the original parabola questions and input reader. Orient the frame along its chord, retain the apex location in that frame, and reuse the preview and exact source builders from the previous checkpoint. The following registry connects the completed curve family.
+
+> **Self-Check Question:** *Why retain the apex in the chord frame?*  
+> **Answer:** The original curve can use the same input interpretation in any construction plane. Its display samples remain derived from that source.
+
+- **What You Should See:** The original round solids remain visible while exact curves connect. The final exercise displays original Circle, Ellipse, Arc, Parabola and a freeform Curve.
+- **Hands-On Lab Experiment:** Trace a nonplanar apex and a degenerate chord through the existing validation rules.
 
 <details>
 <summary>Implementation 76-copy-exact-planar-curve-definitions: Read original parabola inputs in a checked frame</summary>
@@ -243,6 +305,19 @@ After that block, append this supplied code:
 
 <a id="checkpoint-76a-expose-exact-curve-choices-in-the-existing-registry"></a>
 
+### Step 2 of 5 · Expose exact curve choices in the existing registry (`76a-expose-exact-curve-choices-in-the-existing-registry`)
+
+- **Goal:** Expose exact curve choices in the existing registry.
+- **Data Flow Trace:** `registered curve name → current option → shared answer owner`
+- **Files You Touch:** `src/primitive_registry.rs` (*Register all current exact planar curve names and supported Arc options.*)
+
+Register current multiword names and the Arc Center and3 Points options. The shared question owner already validates dimensions and preserves accepted answers after failure.
+
+> **Self-Check Question:** *How does a three point arc choose its side?*  
+> **Answer:** The curve runs from the first point through the third point to the second point. Collinear points cannot determine a circle and are refused.
+
+- **Hands-On Lab Experiment:** Try Nurbs Curve Arc Center0,0,0 1 90, then its3 Points form0,0,0 2,0,0 1,1,0. Try360 degrees and correct the same unfinished arc to270.
+
 <details>
 <summary>Implementation 76a-expose-exact-curve-choices-in-the-existing-registry: Expose exact curve choices in the existing registry</summary>
 
@@ -275,6 +350,20 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-76b-retain-editable-freeform-controls-in-the-point-collector"></a>
+
+### Step 3 of 5 · Create editable freeform curves (`76b-retain-editable-freeform-controls-in-the-point-collector`)
+
+- **Goal:** Write the original degree and closure rules for collected control points.
+- **Data Flow Trace:** `collected original controls → degree and closure → NURBS curve → one history edit`
+- **Files You Touch:** `src/freeform_curve.rs` (*Type the whole original helpers introduced today.*) · `src/lib.rs` (*Register the original freeform-curve constructor.*) · `src/tool.rs` (*Build original freeform curves from accepted controls and offer existing Finish/Close input.*) · `src/commands.rs` (*Route current Curve invocation and direct controls through the existing world-point collector.*)
+
+Write the original degree and closure rules for collected control points. Connect the resulting original NURBS curve to the existing point collector and command path.
+
+> **Self-Check Question:** *What makes the collected curve closed?*  
+> **Answer:** A final point coincident with the first closes it. Remove that repeated control and limit the degree to three while retaining the original editable controls.
+
+- **What You Should See:** Create a freeform curve through the existing browser command dock. Its original control points remain available for later editing.
+- **Hands-On Lab Experiment:** Collect an open curve, then one ending on its starting point. Compare the retained controls and cancel an unfinished draft.
 
 <details>
 <summary>Implementation 76b-retain-editable-freeform-controls-in-the-point-collector: Create editable freeform curves</summary>
@@ -834,6 +923,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-76c-inspect-original-curve-data-through-the-browser-contract"></a>
 
+### Step 4 of 5 · Inspect original curve data through the browser contract (`76c-inspect-original-curve-data-through-the-browser-contract`)
+
+- **Goal:** Inspect original curve data through the browser contract.
+- **Data Flow Trace:** `original curve owner → explicit diagnostic facts → browser assertions`
+- **Files You Touch:** `src/browser.rs` (*Expose original curve identity, weighted controls and knots for current browser acceptance.*)
+
+Expose original control storage, knot storage, rational flag and GUID for the existing browser acceptance checks.
+
+> **Self-Check Question:** *Does a browser diagnostic change saved geometry?*  
+> **Answer:** No. It reads the original source for acceptance checks. The command input and geometry owner remain the same.
+
+- **Hands-On Lab Experiment:** Create an Arc Center of90 degrees. Compare its three controls and rational flag before Undo and after Redo.
+
 <details>
 <summary>Implementation 76c-inspect-original-curve-data-through-the-browser-contract: Inspect original curve data through the browser contract</summary>
 
@@ -866,6 +968,20 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-76d-exercise-exact-curves-and-rational-control-edits"></a>
+
+### Step 5 of 5 · Exercise exact curves and rational control edits (`76d-exercise-exact-curves-and-rational-control-edits`)
+
+- **Goal:** Exercise exact curves and rational control edits.
+- **Data Flow Trace:** `original curve → checked control preview → one transaction → exact restoration`
+- **Files You Touch:** `src/freeform_tests.rs` (*Copy integrated exact-original, closure/world-replay, failed-input, rational-edit and archive fixtures.*) · `src/lib.rs` (*Register the current curve component.*)
+
+Verify current original builders, failed input, world replay, history and exact archive reopening. Reuse the existing source-edit preview for a created rational arc.
+
+> **Self-Check Question:** *What must moving a rational control preserve?*  
+> **Answer:** Keep its weight and the knot vector. Convert the edited Euclidean point back to homogeneous coordinates using the same weight, leaving other controls unchanged.
+
+- **What You Should See:** Five original NURBS curve families render on white. Curve controls remain editable; rational edits preserve weights and knots. Failed input keeps accepted answers and original source identity survives archive reopening.
+- **Hands-On Lab Experiment:** Type Close, CPlane XY, Nurbs Curve Circle w-2,0,0 0.5, Nurbs Curve Ellipse w-0.7,0,0 0.55 0.3, Nurbs Curve Arc Center w0.7,0,0 0.5 270, Nurbs Curve Parabola w1.5,0,0 1 0.5, Curve w-0.5,1,0 w0,1.6,0 w0.5,1,0, View Reset and Fit. Select a curve, use Controls or F10, select a control and move its handle; Undo restores the original control. Save and reopen to retain original weights and knots.
 
 <details>
 <summary>Implementation 76d-exercise-exact-curves-and-rational-control-edits: Exercise exact curves and rational control edits</summary>
@@ -920,9 +1036,11 @@ After that block, append this supplied code:
 
 </details>
 
-## Run, Check, and Save
+---
 
-From `session_viewer`:
+## 5. Build, Verify, and Save Your Checkpoint
+
+Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 76d-exercise-exact-curves-and-rational-control-edits
@@ -933,10 +1051,10 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. Use [checkpoint recovery](../../recovery.md) to restore any saved checkpoint.
+Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
 
-## Expected Visual Result & Experiment
+## 6. Lesson Summary & Expected Visual Result
 
 Five original NURBS curve families render on white. Curve controls remain editable; rational edits preserve weights and knots. Failed input keeps accepted answers and original source identity survives archive reopening.
 
-- **Try this:** Type Close, CPlane XY, Nurbs Curve Circle w-2,0,0 0.5, Nurbs Curve Ellipse w-0.7,0,0 0.55 0.3, Nurbs Curve Arc Center w0.7,0,0 0.5 270, Nurbs Curve Parabola w1.5,0,0 1 0.5, Curve w-0.5,1,0 w0,1.6,0 w0.5,1,0, View Reset and Fit. Select a curve, use Controls or F10, select a control and move its handle; Undo restores the original control. Save and reopen to retain original weights and knots.
+- **Final Lesson Experiment:** Type Close, CPlane XY, Nurbs Curve Circle w-2,0,0 0.5, Nurbs Curve Ellipse w-0.7,0,0 0.55 0.3, Nurbs Curve Arc Center w0.7,0,0 0.5 270, Nurbs Curve Parabola w1.5,0,0 1 0.5, Curve w-0.5,1,0 w0,1.6,0 w0.5,1,0, View Reset and Fit. Select a curve, use Controls or F10, select a control and move its handle; Undo restores the original control. Save and reopen to retain original weights and knots.

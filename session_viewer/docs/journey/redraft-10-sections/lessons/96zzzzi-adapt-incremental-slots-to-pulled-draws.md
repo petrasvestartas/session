@@ -1,92 +1,166 @@
 # 20.6 · Retained allocation, live lookup and safe reclamation
 
-**Section 10: Shared GPU Arenas, Floating-Origin Precision, Multisampling, and Production Parity** · **Lesson 20.6** (Redraft `10.10`) · **16 checkpoints (`96zzzzi-adapt-incremental-slots-to-pulled-draws` → `96zzzzx-retire-empty-arena-ranges-after-tail-trimming`)**
+**Section 10: Shared GPU Arenas, Floating-Origin Precision, Multisampling, and Production Parity** · **Lesson 20.6** (Redraft `10.10`) · **16 checkpoints (`96zzzzi-adapt-incremental-slots-to-pulled-draws` → `96zzzzx-retire-empty-arena-ranges-after-tail-trimming`)** · **Study time: 12.800000000000002–16 h**
 
-> **Learning Goal:** Keep physical triangle bases correct when pulled draws begin at local occurrence zero.
+> **What You Will Learn & Build:** Keep physical triangle bases correct when pulled draws begin at local occurrence zero. By the final checkpoint (`96zzzzx-retire-empty-arena-ranges-after-tail-trimming`), you will release empty source records independently of the current arena extent.
 
-## Visual WebGPU & Architecture Schematic
+## 1. Visual Pipeline & WebGPU Architecture (Black & White Schematics)
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1px solid #cbd5e1;border-radius:10px;background:#f8fafc;">
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
+<svg viewBox="0 0 840 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <rect x="4" y="4" width="832" height="212" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Lesson 20.6 Execution Flow: Retained allocation, live lookup and safe reclamation</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">Concrete data pipeline you build in this lesson (16 Checkpoints: 96zzzzi-adapt-incremental-slots-to-pulled-draws → 96zzzzx-retire-empty-arena-ranges-after-tail-trimming)</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
+  
+    
+    <rect x="18" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="89" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
+    <line x1="28" y1="92" x2="151" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">Retained allocator</text>
+    <text x="89" y="124" text-anchor="middle" font-size="11" fill="#111111">run</text>
+    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="183" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="254" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
+    <line x1="193" y1="92" x2="316" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">changed members and</text>
+    <text x="254" y="124" text-anchor="middle" font-size="11" fill="#111111">local slot base</text>
+    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="348" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="419" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
+    <line x1="358" y1="92" x2="481" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">correct physical</text>
+    <text x="419" y="124" text-anchor="middle" font-size="11" fill="#111111">IDs</text>
+    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="513" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="584" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
+    <line x1="523" y1="92" x2="646" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">Retire occupied</text>
+    <text x="584" y="124" text-anchor="middle" font-size="11" fill="#111111">tail</text>
+    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="678" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="749" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
+    <line x1="688" y1="92" x2="811" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">arena end shrinks</text>
+    
+    <rect x="18" y="162" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="32" y="181" font-size="11" font-weight="700" fill="#111111">Files You Edit in Lesson 20.6:</text>
+    <text x="215" y="181" font-size="11" fill="#111111">src/slot_space.rs  ·  src/instance_members.rs  ·  src/lib.rs  ·  src/gpu_geometry.rs  ·  src/instance_gpu.rs  ·  src/global_outline_tests.rs</text>
+    <text x="32" y="198" font-size="10.5" fill="#111111">16 Checkpoints: 96zzzzi-adapt-incremental-slots-to-pulled-draws → 96zzzzx-retire-empty-arena-ranges-after-tail-trimming — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
+  
+</svg>
+</div>
+
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
 <svg viewBox="0 0 840 240" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#475569"/>
-    </marker>
-    <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#2563eb"/>
-    </marker>
-    <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#059669"/>
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
     </marker>
   </defs>
-  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
-  <text x="20" y="28" font-size="14" font-weight="700" fill="#0f172a">Section 10 Production Architecture: Shared GPU Storage Arena, f64 Floating Origin, Reversed-Z, 4x MSAA & Matrix Shader</text>
-  <text x="20" y="46" font-size="11.5" fill="#475569">How the maintained viewer pulls vertices from one growable GPU arena, eliminates jitter at 10^12 units, and renders procedural Matrices.</text>
-  <line x1="16" y1="54" x2="824" y2="54" stroke="#e2e8f0" stroke-width="1"/>
+  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Section 10 Production Architecture: Shared GPU Storage Arena, f64 Floating Origin, Reversed-Z, 4x MSAA & Matrix Shader</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">How the maintained viewer pulls vertices from one growable GPU arena, eliminates jitter at 10^12 units, and renders procedural Matrices.</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
   
-    <rect x="18" y="68" width="250" height="145" rx="6" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
-    <text x="143" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1e40af">1. Shared GPU Arena (Ch 19–20)</text>
-    <text x="28" y="108" font-size="10.5" fill="#1e3a8a">• 1 Growable Storage Buffer Arena</text>
-    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#1d4ed8">• Vertex Pulling (@builtin(vertex_index))</text>
-    <text x="28" y="144" font-size="10.5" fill="#1e3a8a">• 8-byte Draw Slots -&gt; ObjectRecord</text>
-    <text x="28" y="162" font-size="10.5" fill="#1e3a8a">• slot_table.wgsl maps Rg32Uint</text>
-    <text x="28" y="178" font-size="10.5" fill="#1e3a8a">  primitive IDs to Element/Face owners</text>
-    <text x="28" y="194" font-size="10" fill="#1e3a8a">• Free-list span reuse after GPU lease</text>
+    <rect x="18" y="68" width="250" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="143" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">1. Shared GPU Arena (Ch 19–20)</text>
+    <text x="28" y="108" font-size="10.5" fill="#111111">• 1 Growable Storage Buffer Arena</text>
+    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#111111">• Vertex Pulling (@builtin(vertex_index))</text>
+    <text x="28" y="144" font-size="10.5" fill="#111111">• 8-byte Draw Slots -&gt; ObjectRecord</text>
+    <text x="28" y="162" font-size="10.5" fill="#111111">• slot_table.wgsl maps Rg32Uint</text>
+    <text x="28" y="178" font-size="10.5" fill="#111111">  primitive IDs to Element/Face owners</text>
+    <text x="28" y="194" font-size="10" fill="#111111">• Free-list span reuse after GPU lease</text>
 
-    <line x1="268" y1="138" x2="298" y2="138" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
+    <line x1="268" y1="138" x2="298" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="300" y="68" width="265" height="145" rx="6" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5"/>
-    <text x="432" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#9a3412">2. f64 Floating Origin &amp; Reversed-Z (Ch 21)</text>
-    <text x="312" y="108" font-size="10.5" font-weight="600" fill="#c2410c">• rel_f32 = (world_f64 - anchor_f64) as f32</text>
-    <text x="312" y="125" font-size="10" fill="#7c2d12">  Zero vertex/grid jitter even at 10^12 m!</text>
-    <text x="312" y="144" font-size="10.5" font-weight="600" fill="#c2410c">• Reversed-Z Depth (GreaterEqual):</text>
-    <text x="312" y="160" font-size="10" fill="#7c2d12">  Near plane = 1.0, Far plane = 0.0</text>
-    <text x="312" y="178" font-size="10.5" fill="#7c2d12">• Held world base grid &amp; preserved</text>
-    <text x="312" y="193" font-size="10.5" fill="#7c2d12">  live camera during Session reload</text>
+    <rect x="300" y="68" width="265" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="432" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">2. f64 Floating Origin &amp; Reversed-Z (Ch 21)</text>
+    <text x="312" y="108" font-size="10.5" font-weight="600" fill="#111111">• rel_f32 = (world_f64 - anchor_f64) as f32</text>
+    <text x="312" y="125" font-size="10" fill="#111111">  Zero vertex/grid jitter even at 10^12 m!</text>
+    <text x="312" y="144" font-size="10.5" font-weight="600" fill="#111111">• Reversed-Z Depth (GreaterEqual):</text>
+    <text x="312" y="160" font-size="10" fill="#111111">  Near plane = 1.0, Far plane = 0.0</text>
+    <text x="312" y="178" font-size="10.5" fill="#111111">• Held world base grid &amp; preserved</text>
+    <text x="312" y="193" font-size="10.5" fill="#111111">  live camera during Session reload</text>
 
-    <line x1="565" y1="138" x2="595" y2="138" stroke="#059669" stroke-width="2" marker-end="url(#arrow-green)"/>
+    <line x1="565" y1="138" x2="595" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="597" y="68" width="223" height="145" rx="6" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1.5"/>
-    <text x="708" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#065f46">3. 4x MSAA &amp; Matrix Shader (Ch 22)</text>
-    <text x="609" y="108" font-size="10.5" fill="#064e3b">• Coherent 1x/4x MSAA sample targets</text>
-    <text x="609" y="126" font-size="10.5" font-weight="600" fill="#047857">• matrix.wgsl (16w header + 3w/cell):</text>
-    <text x="609" y="142" font-size="10" fill="#064e3b">  Heatmap + procedural 3-decimal digits</text>
-    <text x="609" y="157" font-size="10" fill="#064e3b">  (0 cell blank; plate-less title; yellow</text>
-    <text x="609" y="172" font-size="10" fill="#064e3b">  selected border; Rg32Uint whole pick)</text>
-    <text x="609" y="190" font-size="10" fill="#064e3b">• Coalesced single-flight frame scheduler</text>
+    <rect x="597" y="68" width="223" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="708" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">3. 4x MSAA &amp; Matrix Shader (Ch 22)</text>
+    <text x="609" y="108" font-size="10.5" fill="#111111">• Coherent 1x/4x MSAA sample targets</text>
+    <text x="609" y="126" font-size="10.5" font-weight="600" fill="#111111">• matrix.wgsl (16w header + 3w/cell):</text>
+    <text x="609" y="142" font-size="10" fill="#111111">  Heatmap + procedural 3-decimal digits</text>
+    <text x="609" y="157" font-size="10" fill="#111111">  (0 cell blank; plate-less title; yellow</text>
+    <text x="609" y="172" font-size="10" fill="#111111">  selected border; Rg32Uint whole pick)</text>
+    <text x="609" y="190" font-size="10" fill="#111111">• Coalesced single-flight frame scheduler</text>
     
 </svg>
 </div>
 
-### Lesson Data Flow (`Rust` → `WebGPU` → `WGSL`)
+## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
 
-```
-Retained allocator run → changed members and local slot base → correct physical IDs.
-Existing compute recipe plus unsigned lookup texture → prepared projection pipeline.
-Retire occupied tail → arena end shrinks → release empty source association → keep the new end.
-```
+Before writing code, review how the three layers in this chapter talk to each other:
 
-- Keep physical triangle bases correct when pulled draws begin at local occurrence zero.
-- Add the inverse lookup texture to the existing compute binding recipe.
-- Release empty source records independently of the current arena extent.
-- **Why it works (Why does a local pulled draw use the full physical base?):** Its occurrence starts at zero. Subtracting the definition first triangle would shift every primitive address backward.
-
-### Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `Browser`)
-
-| Layer | Construct | First-Year Student Explanation |
+| Layer | Construct | Plain-English Explanation for Students |
 | :--- | :--- | :--- |
 | **WGSL (Vertex Pull)** | `@group(0) @binding(b) var<storage, read> arena_verts: array<u32>;` | Fetches packed vertex positions, normals, and colors directly from a single growable storage buffer using `@builtin(vertex_index)`. |
 | **Rust/WGSL (`f64`->`f32`)** | `let rel: Vec3 = (world_f64 - anchor_f64).as_vec3();` | Subtracts the camera-area `f64` anchor on the CPU before converting to `f32`, preventing 32-bit float mantissa exhaustion far from `(0,0,0)`. |
 | **WGSL (`matrix.wgsl`)** | 16-word header + 3 words/cell procedural digits | Renders matrix heatmaps and 3-decimal numeric digits procedurally inside the fragment shader with zero texture uploads per cell. |
 | **Rust (`ink_ranges.rs`)** | Merged contiguous `Range<u32>` instance draws | Toggles point/line/edge/CAD-wire family visibility without rebuilding GPU buffers or invalidating original owner indices. |
 
-**Production source (`session_viewer/src`):** [engine/gpu/arena.rs](../../../../src/engine/gpu/arena.rs), [engine/gpu/buffers.rs](../../../../src/engine/gpu/buffers.rs), [engine/gpu/objects.rs](../../../../src/engine/gpu/objects.rs), [engine/gpu/slots.rs](../../../../src/engine/gpu/slots.rs), [engine/gpu/instanced.rs](../../../../src/engine/gpu/instanced.rs), [engine/gpu/faces.rs](../../../../src/engine/gpu/faces.rs), [engine/gpu/clip.rs](../../../../src/engine/gpu/clip.rs), [engine/gpu/triangle_tiles.rs](../../../../src/engine/gpu/triangle_tiles.rs), [app/scene_sync/tombs.rs](../../../../src/app/scene_sync/tombs.rs), [build.rs](../../../../build.rs).
+**Authoritative production source (`session_viewer/src`):** [engine/gpu/arena.rs](../../../../src/engine/gpu/arena.rs), [engine/gpu/buffers.rs](../../../../src/engine/gpu/buffers.rs), [engine/gpu/objects.rs](../../../../src/engine/gpu/objects.rs), [engine/gpu/slots.rs](../../../../src/engine/gpu/slots.rs), [engine/gpu/instanced.rs](../../../../src/engine/gpu/instanced.rs), [engine/gpu/faces.rs](../../../../src/engine/gpu/faces.rs), [engine/gpu/clip.rs](../../../../src/engine/gpu/clip.rs), [engine/gpu/triangle_tiles.rs](../../../../src/engine/gpu/triangle_tiles.rs), [app/scene_sync/tombs.rs](../../../../src/app/scene_sync/tombs.rs), [build.rs](../../../../build.rs).
 
-## Implementation Checkpoints
+## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
 
-Apply these checkpoints in order inside `workspace/journey`. Expand each block to view the Rust/WGSL/HTML edits:
+| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
+| ---: | :--- | :--- | :--- | :--- |
+| **1** | [`96zzzzi-adapt-incremental-slots-to-pulled-draws`](#checkpoint-96zzzzi-adapt-incremental-slots-to-pulled-draws) | Keep physical triangle bases correct when pulled draws begin at local occurrence zero. | `src/slot_space.rs` | `Retained allocator run → changed members and local slot base → correct physical IDs` |
+| **2** | [`96zzzzj-prepare-exact-arena-slot-definitions`](#checkpoint-96zzzzj-prepare-exact-arena-slot-definitions) | Describe allocator members using exact arena ranges and stable object rows. | `src/instance_members.rs`, `src/lib.rs`, `src/gpu_geometry.rs` | `Shared arena range plus stable rows → one definition per source → existing slot allocator` |
+| **3** | [`96zzzzk-retain-live-allocator-member-runs`](#checkpoint-96zzzzk-retain-live-allocator-member-runs) | Update retained source runs from the live stable object rows. | `src/instance_gpu.rs`, `src/instance_members.rs`, `src/global_outline_tests.rs` | `Current stable object rows → exact definitions → bounded retained runs` |
+| **4** | [`96zzzzl-prepare-one-plan-for-draw-slots-and-lookup`](#checkpoint-96zzzzl-prepare-one-plan-for-draw-slots-and-lookup) | Publish one retained plan through the existing draw-slot and integer-texture owners. | `src/draw_slots.rs`, `src/slot_space.rs`, `src/primitive_slot_table_tests.rs` | `One retained plan → local draw-slot bytes and integer lookup texels` |
+| **5** | [`96zzzzm-prepare-one-owner-for-live-address-updates`](#checkpoint-96zzzzm-prepare-one-owner-for-live-address-updates) | Prepare synchronized mesh and record updates without changing primitive addresses. | `src/instance_gpu.rs`, `src/renderer.rs`, `src/browser.rs`, `src/global_outline_tests.rs` | `Live mesh slice plus membership → one address owner → measured allocation parts` |
+| **6** | [`96zzzzn-adopt-retained-gpu-slots-and-physical-bases`](#checkpoint-96zzzzn-adopt-retained-gpu-slots-and-physical-bases) | Draw retained sparse slots with synchronized original uniforms and shared records. | `src/instance_gpu.rs`, `src/primitive_slot_table.rs`, `src/renderer.rs`, `src/global_outline_tests.rs` | `Retained runs → synchronized records and uniforms → coherent sparse GPU slots and lookup` |
+| **7** | [`96zzzzo-separate-projection-rows-and-arena-offsets`](#checkpoint-96zzzzo-separate-projection-rows-and-arena-offsets) | Make source addressing explicit before projection consumes the inverse lookup. | `src/finite_project.wgsl` | `Explicit object row and first index → shared projection helper → unchanged projected records` |
+| **8** | [`96zzzzp-prepare-lookup-selected-triangle-projection`](#checkpoint-96zzzzp-prepare-lookup-selected-triangle-projection) | Resolve physical primitive IDs to their shared source triangle and object row. | `src/finite_project_source.rs` | `Physical primitive ID → exact unsigned lookup → arena triangle and object row → shared projection` |
+| **9** | [`96zzzzq-prepare-the-lookup-projection-pipeline`](#checkpoint-96zzzzq-prepare-the-lookup-projection-pipeline) | Add the inverse lookup texture to the existing compute binding recipe. | `src/tile_pipelines.rs` | `Existing compute recipe plus unsigned lookup texture → prepared projection pipeline` |
+| **10** | [`96zzzzr-own-current-lookup-projection-bindings`](#checkpoint-96zzzzr-own-current-lookup-projection-bindings) | Keep current shared inputs and replace immutable projection bindings when needed. | `src/projection_lookup.rs`, `src/lib.rs`, `src/global_outline_tests.rs` | `Current shared inputs → one dispatch interval → output-aware immutable bind group` |
+| **11** | [`96zzzzs-project-live-triangles-through-the-lookup`](#checkpoint-96zzzzs-project-live-triangles-through-the-lookup) | Resolve shared source triangles and object rows on the GPU for live projection. | `src/projection_lookup.rs`, `src/tile_gpu.rs`, `src/renderer.rs`, `src/global_outline_tests.rs` | `Physical IDs → GPU inverse lookup → original arena triangle and row → projected records → existing tile bins` |
+| **12** | [`96zzzzt-plan-reusable-arena-spans`](#checkpoint-96zzzzt-plan-reusable-arena-spans) | Prepare bounded hole reuse without moving any surviving geometry. | `src/arena_spans.rs`, `src/lib.rs` | `Free intervals plus tail → bounded plan → take after both ranges validate` |
+| **13** | [`96zzzzu-reuse-retired-arena-record-ranges`](#checkpoint-96zzzzu-reuse-retired-arena-record-ranges) | Connect bounded span plans to CPU arena records while preserving live offsets. | `src/arena_rows.rs`, `src/arena_rows_tests.rs` | `Retired source association → free spans → checked vertex/index plans → current packed records` |
+| **14** | [`96zzzzv-upload-reused-arena-spans-in-place`](#checkpoint-96zzzzv-upload-reused-arena-spans-in-place) | Write reused geometry ranges without replacing unchanged GPU buffers. | `src/text_gpu_support.rs`, `src/mesh_arena.rs`, `src/mesh_arena_tests.rs` | `Current arena range → bounded overwrite or tail → retained/grown buffers → exact upload totals` |
+| **15** | [`96zzzzw-reclaim-ranges-after-the-last-gpu-lease`](#checkpoint-96zzzzw-reclaim-ranges-after-the-last-gpu-lease) | Retire GPU ranges independently of precise CPU history ownership. | `src/mesh_arena.rs`, `src/gpu_geometry.rs`, `src/geometry_cache.rs`, `src/mesh_arena_tests.rs` | `Last shared GPU owner drops → weak range lease expires → retire source/span → later geometry reuses the hole` |
+| **16** | [`96zzzzx-retire-empty-arena-ranges-after-tail-trimming`](#checkpoint-96zzzzx-retire-empty-arena-ranges-after-tail-trimming) | Release empty source records independently of the current arena extent. | `src/arena_spans.rs`, `src/arena_rows_tests.rs` | `Retire occupied tail → arena end shrinks → release empty source association → keep the new end` |
+
+---
+
+## 4. Step-by-Step Coding Notebook (Concept + Implementation)
+
+Work through each notebook cell below in order inside `workspace/journey`. Read the **Concept Walkthrough** and **Self-Check Q&A** first, then expand the **Implementation** block to type and verify the code.
 
 <a id="checkpoint-96zzzzi-adapt-incremental-slots-to-pulled-draws"></a>
+
+### Step 1 of 16 · Adapt incremental slots to pulled draws (`96zzzzi-adapt-incremental-slots-to-pulled-draws`)
+
+- **Goal:** Keep physical triangle bases correct when pulled draws begin at local occurrence zero.
+- **Data Flow Trace:** `Retained allocator run → changed members and local slot base → correct physical IDs`
+- **Files You Touch:** `src/slot_space.rs` (*Adapt physical bases to local pulled occurrences and report only changed member positions to the existing allocator.*)
+
+The allocator originally subtracts the definition first triangle because its draw uses global arena indices. Our pulled draw begins at local occurrence zero. Add a local slot accessor from the existing texel instead of copying the allocator. Compare new definition rows with retained runs to report only changed member positions. The next connection will publish those changes to the existing GPU owners.
+
+> **Self-Check Question:** *Why does a local pulled draw use the full physical base?*  
+> **Answer:** Its occurrence starts at zero. Subtracting the definition first triangle would shift every primitive address backward.
+
+- **What You Should See:** The allocator supplies local pulled slot bases and changed-member positions; live drawing still uses its previous slots.
+- **Hands-On Lab Experiment:** Trace the second placement of a two-triangle definition: local triangle one and global definition triangle eleven must name the same physical primitive.
 
 <details>
 <summary>Implementation 96zzzzi-adapt-incremental-slots-to-pulled-draws: Adapt incremental slots to pulled draws</summary>
@@ -158,6 +232,20 @@ Update the existing block with this supplied code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-96zzzzj-prepare-exact-arena-slot-definitions"></a>
+
+### Step 2 of 16 · Prepare exact arena slot definitions (`96zzzzj-prepare-exact-arena-slot-definitions`)
+
+- **Goal:** Describe allocator members using exact arena ranges and stable object rows.
+- **Data Flow Trace:** `Shared arena range plus stable rows → one definition per source → existing slot allocator`
+- **Files You Touch:** `src/instance_members.rs` (*Group stable object rows by exact shared arena ranges; reject standalone buffers and mixed arenas instead of narrowing pointers into IDs.*) · `src/lib.rs` (*Declare the preparatory definition adapter.*) · `src/gpu_geometry.rs` (*Expose shared arena identity as a borrowed owner without changing range or allocation ownership.*)
+
+The allocator needs a stable integer definition key and a complete face range. A shared arena index offset already provides that exact identity. Group object rows at that offset and verify that every geometry belongs to the same arena. Standalone preview buffers retain the earlier drawing path. This adapter prepares the next live allocator connection without changing draws.
+
+> **Self-Check Question:** *Why avoid converting a geometry pointer into a definition key?*  
+> **Answer:** A pointer can be wider than the integer key. Its truncated value can collide, while the existing bounded arena range is an exact identity.
+
+- **What You Should See:** Exact shared-arena definitions are available; live slots remain unchanged.
+- **Hands-On Lab Experiment:** Trace two originals sharing one definition and a second independent mesh. The first pair shares a face range while retaining separate object rows.
 
 <details>
 <summary>Implementation 96zzzzj-prepare-exact-arena-slot-definitions: Prepare exact arena slot definitions</summary>
@@ -286,6 +374,20 @@ After that block, append this supplied code:
 </details>
 
 <a id="checkpoint-96zzzzk-retain-live-allocator-member-runs"></a>
+
+### Step 3 of 16 · Retain live allocator member runs (`96zzzzk-retain-live-allocator-member-runs`)
+
+- **Goal:** Update retained source runs from the live stable object rows.
+- **Data Flow Trace:** `Current stable object rows → exact definitions → bounded retained runs`
+- **Files You Touch:** `src/instance_gpu.rs` (*Keep the existing allocator under the surface lane without adding a GPU owner.*) · `src/instance_members.rs` (*Keep enough integer headroom for retained runs, growth and free intervals before invoking the existing allocator.*) · `src/global_outline_tests.rs` (*Supply actual retained allocator locations alongside the existing exact GPU comparisons.*)
+
+Keep the existing allocator in the surface lane. Build exact definitions from the grouped geometry and ordinary rows, detect changed member positions, and update retained runs. Check integer headroom before planning and release the allocator when no records remain. This checkpoint prepares live CPU allocation; GPU draws still use their earlier slots.
+
+> **Self-Check Question:** *Does selection need to move an allocator slot?*  
+> **Answer:** Selection changes the object record contents, not its stable row membership. Only changed member positions need slot updates.
+
+- **What You Should See:** Live source membership updates retained allocator runs while rendering remains unchanged.
+- **Hands-On Lab Experiment:** Add a shared copy, remove a different original and add another mesh. Trace the surviving original row and planned slot through those changes.
 
 <details>
 <summary>Implementation 96zzzzk-retain-live-allocator-member-runs: Retain live allocator member runs</summary>
@@ -653,6 +755,20 @@ After that block, append this supplied code:
 
 <a id="checkpoint-96zzzzl-prepare-one-plan-for-draw-slots-and-lookup"></a>
 
+### Step 4 of 16 · Prepare one plan for draw slots and lookup (`96zzzzl-prepare-one-plan-for-draw-slots-and-lookup`)
+
+- **Goal:** Publish one retained plan through the existing draw-slot and integer-texture owners.
+- **Data Flow Trace:** `One retained plan → local draw-slot bytes and integer lookup texels`
+- **Files You Touch:** `src/draw_slots.rs` (*Publish one retained plan through both owners. Merge slot boundary changes with allocator reports and refresh the lookup header after shrinking; reuse the existing range coalescer.*) · `src/slot_space.rs` (*Expose the range coalescer already written so publication shares its bounds and merging instead of duplicating it.*) · `src/primitive_slot_table_tests.rs` (*Supply exact mapped writes and actual lookup shader results through high IDs, hole splitting/reuse, unchanged neighbours, shrinking headers, arena following and release.*)
+
+The local slot accessor and lookup texel describe the same physical interval. Publish both through the existing changed-write helpers. A reused hole can change an inactive boundary that binary search still reads; merge those slot differences with the allocator report using its existing coalescer. Update the header when the retained range shrinks. Preserve the own-row sentinel and release empty plans. Live adoption follows in the next lesson.
+
+> **Self-Check Question:** *Why update an inactive hole boundary?*  
+> **Answer:** The lookup binary search reads interval starts before checking whether a slot is active. A stale boundary can hide a newly reused live interval.
+
+- **What You Should See:** One publication operation prepares matching local slots and lookup texels; live rendering remains unchanged.
+- **Hands-On Lab Experiment:** Trace a changed member, a retired hole and a replacement member. Compare the local base with the lookup start before and after arena growth.
+
 <details>
 <summary>Implementation 96zzzzl-prepare-one-plan-for-draw-slots-and-lookup: Prepare one plan for draw slots and lookup</summary>
 
@@ -798,6 +914,20 @@ Update the existing block with this supplied code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-96zzzzm-prepare-one-owner-for-live-address-updates"></a>
+
+### Step 5 of 16 · Prepare one owner for live address updates (`96zzzzm-prepare-one-owner-for-live-address-updates`)
+
+- **Goal:** Prepare synchronized mesh and record updates without changing primitive addresses.
+- **Data Flow Trace:** `Live mesh slice plus membership → one address owner → measured allocation parts`
+- **Files You Touch:** `src/instance_gpu.rs` (*Pass the live meshes to their record owner so the next connection can synchronize addresses before preparing consumers.*) · `src/renderer.rs` (*Distinguish source membership updates from style changes before preparing projection.*) · `src/browser.rs` (*Expose measured allocation parts beside the existing browser GPU diagnostic.*) · `src/global_outline_tests.rs` (*Supply exact allocation parts alongside the unchanged two-definition GPU pixels, slots, selection and release checks.*)
+
+The next connection must update both the shared record and its uniform fallback before projection. Pass the mesh slice and membership set to their existing lane owner, distinguishing source changes from style-only updates. Expose the existing record and slot allocations separately while deriving their total once. The drawing and address allocation remain unchanged here.
+
+> **Self-Check Question:** *Why distinguish selection from a source change?*  
+> **Answer:** Selection changes presentation. It must preserve an explicit primitive address instead of silently renumbering the geometry.
+
+- **What You Should See:** The record owner can synchronize live addresses; existing pixels, IDs and allocation totals remain unchanged.
+- **Hands-On Lab Experiment:** Compare the two-definition allocation parts with their total, then select and clear selection. The original primitive addresses must remain intact.
 
 <details>
 <summary>Implementation 96zzzzm-prepare-one-owner-for-live-address-updates: Prepare one owner for live address updates</summary>
@@ -1869,6 +1999,20 @@ After that block, append this supplied code:
 </details>
 
 <a id="checkpoint-96zzzzn-adopt-retained-gpu-slots-and-physical-bases"></a>
+
+### Step 6 of 16 · Adopt retained GPU slots and physical bases (`96zzzzn-adopt-retained-gpu-slots-and-physical-bases`)
+
+- **Goal:** Draw retained sparse slots with synchronized original uniforms and shared records.
+- **Data Flow Trace:** `Retained runs → synchronized records and uniforms → coherent sparse GPU slots and lookup`
+- **Files You Touch:** `src/instance_gpu.rs` (*Retain the inverse lookup under the same live surface owner.*) · `src/primitive_slot_table.rs` (*Measure actual lookup upload bytes, including padded full writes.*) · `src/renderer.rs` (*Expose all three measured allocation owners.*) · `src/global_outline_tests.rs` (*Include the actual one-row 1024-texel lookup in exact two-definition allocation accounting.*) · `src/slot_space.rs` (*Report newly active retained members even when their row number is unchanged; inverse lookup counts must refresh after hide/show.*) · `src/pick_gpu_tests.rs` (*Retain all original copied/placed/nested owner, pixel, history and release assertions while adding the actual padded 16384-byte inverse lookup to exact allocation totals.*) · `src/primitive_slot_table_tests.rs` (*Supply actual lookup shader readback for inactive and reactivated retained rows, while checking unchanged draw-slot bytes and all earlier reuse, shrink, high-ID and release assertions.*) · `src/tile_gpu_tests.rs` (*Read the first placed projected polygon after the two original demo arena triangles; retain exact clipping-corner, tile-depth, list bounds, cache and release checks.*)
+
+Use the retained runs to locate each stable object row and batch. Synchronize original uniform addresses and shared records before uploading, then publish the matching local slots and inverse lookup. Source changes adopt current physical intervals; style-only explicit address overrides retain the earlier path. Measure every lookup allocation and upload once. Primitive lookup consumers follow next. Reactivating a retained member updates its lookup count even when its object row is unchanged.
+
+> **Self-Check Question:** *Why synchronize the uniform fallback before projection?*  
+> **Answer:** A guarded draw can use either resource path. Both must name the same physical primitive interval before the next pass reads it.
+
+- **What You Should See:** Live drawing uses retained sparse slots and matching physical bases while preserving original CAD ownership and the exact fallback.
+- **Hands-On Lab Experiment:** Remove one original, insert another, select a surviving placement and restore its color. Inspect measured record, slot and lookup allocations as holes are retained and reused.
 
 <details>
 <summary>Implementation 96zzzzn-adopt-retained-gpu-slots-and-physical-bases: Adopt retained GPU slots and physical bases</summary>
@@ -4219,6 +4363,20 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-96zzzzo-separate-projection-rows-and-arena-offsets"></a>
 
+### Step 7 of 16 · Separate projection rows and arena offsets (`96zzzzo-separate-projection-rows-and-arena-offsets`)
+
+- **Goal:** Make source addressing explicit before projection consumes the inverse lookup.
+- **Data Flow Trace:** `Explicit object row and first index → shared projection helper → unchanged projected records`
+- **Files You Touch:** `src/finite_project.wgsl` (*Pass the model row and index offset explicitly instead of closing over one dispatch interval.*)
+
+The inverse lookup returns a global arena triangle and an object row. The current projection starts from a local triangle and adds the object range. Pass the row and first index explicitly to the existing corner and polygon helpers, retaining the current local call. This prepares global inputs without copying the projection or clipping algorithm.
+
+> **Self-Check Question:** *Why must a lookup-selected arena triangle use a zero first index?*  
+> **Answer:** It already names the global arena triangle. Adding the object range again would shift the source twice.
+
+- **What You Should See:** Projection accepts explicit source rows and offsets; current drawing and projected bytes remain unchanged.
+- **Hands-On Lab Experiment:** Trace a source whose index range starts after another mesh. Compare its local triangle plus first index with the corresponding global arena triangle.
+
 <details>
 <summary>Implementation 96zzzzo-separate-projection-rows-and-arena-offsets: Separate projection rows and arena offsets</summary>
 
@@ -4534,6 +4692,20 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-96zzzzp-prepare-lookup-selected-triangle-projection"></a>
 
+### Step 8 of 16 · Prepare lookup-selected triangle projection (`96zzzzp-prepare-lookup-selected-triangle-projection`)
+
+- **Goal:** Resolve physical primitive IDs to their shared source triangle and object row.
+- **Data Flow Trace:** `Physical primitive ID → exact unsigned lookup → arena triangle and object row → shared projection`
+- **Files You Touch:** `src/finite_project_source.rs` (*Assemble lookup-selected projection from the existing shader and unsigned lookup helper; keep one clipping and projection algorithm.*)
+
+Assemble a third compute source from the projection algorithm already written. The unsigned inverse lookup resolves a physical ID into an arena triangle and object row. Skip direct-arena and inactive entries, then project the resolved triangle with a zero extra offset. The existing uniform and per-mesh record sources remain available.
+
+> **Self-Check Question:** *Why skip direct-arena entries in this owned slot path?*  
+> **Answer:** Visible objects use explicit slot rows. A direct-arena entry has the own-row sentinel and no shared object row to index.
+
+- **What You Should See:** The lookup-selected compute source is prepared and interface-checked; live projection still uses its existing dispatches.
+- **Hands-On Lab Experiment:** Trace two placed copies to the same arena triangle and different object rows. Trace an inactive slot and confirm it produces no projected triangle.
+
 <details>
 <summary>Implementation 96zzzzp-prepare-lookup-selected-triangle-projection: Prepare lookup-selected triangle projection</summary>
 
@@ -4605,6 +4777,20 @@ Update the existing block with this supplied code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-96zzzzq-prepare-the-lookup-projection-pipeline"></a>
+
+### Step 9 of 16 · Prepare the lookup projection pipeline (`96zzzzq-prepare-the-lookup-projection-pipeline`)
+
+- **Goal:** Add the inverse lookup texture to the existing compute binding recipe.
+- **Data Flow Trace:** `Existing compute recipe plus unsigned lookup texture → prepared projection pipeline`
+- **Files You Touch:** `src/tile_pipelines.rs` (*Keep the lookup projection layout beside the two existing resource contracts.*)
+
+Extend the current projection constructor with an unsigned texture entry and select the lookup-assembled shader. Keep uniform and per-mesh storage states built by the same constructor. The new pipeline is prepared under the existing tile lifetime; live dispatches remain unchanged until their bindings are connected.
+
+> **Self-Check Question:** *Does adding a resource contract require another projection algorithm?*  
+> **Answer:** No. The constructor selects a compatible layout and assembled source while reusing the same clipping and projection code.
+
+- **What You Should See:** All three compute resource contracts are prepared; rendering still uses its current dispatch path.
+- **Hands-On Lab Experiment:** List the six lookup projection bindings and identify which one replaces per-mesh CPU source selection. Repeat an original pick and a clipped cap to confirm unchanged behavior.
 
 <details>
 <summary>Implementation 96zzzzq-prepare-the-lookup-projection-pipeline: Prepare the lookup projection pipeline</summary>
@@ -4714,6 +4900,20 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-96zzzzr-own-current-lookup-projection-bindings"></a>
+
+### Step 10 of 16 · Own current lookup projection bindings (`96zzzzr-own-current-lookup-projection-bindings`)
+
+- **Goal:** Keep current shared inputs and replace immutable projection bindings when needed.
+- **Data Flow Trace:** `Current shared inputs → one dispatch interval → output-aware immutable bind group`
+- **Files You Touch:** `src/projection_lookup.rs` (*Own immutable current arena/record/lookup bindings and one bounded dispatch interval; replace the group when the output buffer changes.*) · `src/lib.rs` (*Declare the binding owner without changing live projection dispatch.*) · `src/global_outline_tests.rs` (*Supply actual mapped dispatch words, exact immutable-group reuse and replacement, missing/current-record refusal and empty checks.*)
+
+Capture the current arena buffers, shared records and lookup view under one binding owner. Reject missing or stale records. Store the physical interval once and cache its bind group against the projected output buffer. A resized output needs a new immutable group. The live tile path adopts this owner next.
+
+> **Self-Check Question:** *Why does output-buffer growth invalidate the group?*  
+> **Answer:** A bind group retains its original buffer. It does not follow a replacement allocation automatically.
+
+- **What You Should See:** Lookup projection bindings and their output replacement policy are prepared; live dispatch remains unchanged.
+- **Hands-On Lab Experiment:** Trace the six group resources, then resize the output. Identify which owner retains each allocation and why only the dispatch interval is counted here.
 
 <details>
 <summary>Implementation 96zzzzr-own-current-lookup-projection-bindings: Own current lookup projection bindings</summary>
@@ -5032,6 +5232,20 @@ After that block, append this supplied code:
 </details>
 
 <a id="checkpoint-96zzzzs-project-live-triangles-through-the-lookup"></a>
+
+### Step 11 of 16 · Project live triangles through the lookup (`96zzzzs-project-live-triangles-through-the-lookup`)
+
+- **Goal:** Resolve shared source triangles and object rows on the GPU for live projection.
+- **Data Flow Trace:** `Physical IDs → GPU inverse lookup → original arena triangle and row → projected records → existing tile bins`
+- **Files You Touch:** `src/projection_lookup.rs` (*Release cached output references when tile resources are replaced or released.*) · `src/tile_gpu.rs` (*Own the current global lookup binding state under the existing tile lifetime.*) · `src/renderer.rs` (*Observe explicit address overrides after style changes while the unchanged witness retains cached projections for ordinary selection.*) · `src/global_outline_tests.rs` (*Supply exact global/per-mesh projected bytes and pixels across distinct and copied definitions, selection cache reuse, unchanged geometry uploads and full release.*)
+
+Adopt the current binding owner when every record is valid. Dispatch physical IDs once, resolve their original arena triangle and object row through the inverse lookup, and reuse the projection algorithm. Keep the existing per-mesh fallback. Include lookup-view identity in the cache witness and invalidate output groups on resize or release. Selection-only record bytes retain the cached projection.
+
+> **Self-Check Question:** *Why does ordinary selection keep the projection cache?*  
+> **Answer:** It changes presentation flags, while the geometry, model matrix, row and physical interval stay the same.
+
+- **What You Should See:** Live projection consumes the inverse lookup and shares one dispatch interval, retaining exact legacy projected bytes and original ownership.
+- **Hands-On Lab Experiment:** Add a placed copy, remove another original, select a survivor and restore it. Repeat after resize; inspect projection reuse and released tile resources.
 
 <details>
 <summary>Implementation 96zzzzs-project-live-triangles-through-the-lookup: Project live triangles through the lookup</summary>
@@ -5561,6 +5775,20 @@ After that block, append this supplied code:
 
 <a id="checkpoint-96zzzzt-plan-reusable-arena-spans"></a>
 
+### Step 12 of 16 · Plan reusable arena spans (`96zzzzt-plan-reusable-arena-spans`)
+
+- **Goal:** Prepare bounded hole reuse without moving any surviving geometry.
+- **Data Flow Trace:** `Free intervals plus tail → bounded plan → take after both ranges validate`
+- **Files You Touch:** `src/arena_spans.rs` (*Plan reusable spans before committing either geometry range, and reuse the existing coalescer for retirement.*) · `src/lib.rs` (*Declare the complete preparatory span helper.*)
+
+Plan a vertex span and an index span before taking either. Prefer a suitable free interval; otherwise extend the checked tail. Retirement merges free intervals through the coalescer already written and trims only an unused tail. These helpers are preparatory; the application still appends geometry until the following connection.
+
+> **Self-Check Question:** *Why separate planning from taking?*  
+> **Answer:** If either bounded request fails, neither free pool has changed.
+
+- **What You Should See:** Reusable arena-span helpers compile; the application retains its existing drawing and allocation behavior.
+- **Hands-On Lab Experiment:** Select and clear an original, confirming unchanged drawing. Trace two free intervals and a request that cannot extend a u32 tail; neither original source nor the other interval should change.
+
 <details>
 <summary>Implementation 96zzzzt-plan-reusable-arena-spans: Plan reusable arena spans</summary>
 
@@ -5654,6 +5882,20 @@ After that block, append this supplied code:
 </details>
 
 <a id="checkpoint-96zzzzu-reuse-retired-arena-record-ranges"></a>
+
+### Step 13 of 16 · Reuse retired arena record ranges (`96zzzzu-reuse-retired-arena-record-ranges`)
+
+- **Goal:** Connect bounded span plans to CPU arena records while preserving live offsets.
+- **Data Flow Trace:** `Retired source association → free spans → checked vertex/index plans → current packed records`
+- **Files You Touch:** `src/arena_rows.rs` (*Keep free vertex and index spans under the existing arena record owner.*) · `src/arena_rows_tests.rs` (*Supply exact packed bytes, rebased indices, surviving offsets, retained CPU history, safe source restoration and coalesced tail retirement.*)
+
+Keep free vertex and index spans beside the existing source map. Plan both requests and validate rebased indices before taking either. A retired source loses its range association even when history still retains its precise mesh. Reuse holes and trim only unused tails. GPU retirement is connected after in-place uploads are prepared.
+
+> **Self-Check Question:** *Why remove the source association while its mesh is still alive?*  
+> **Answer:** History can retain the mesh after its GPU range is retired. Returning to it must allocate a current range rather than recover bytes reused by another source.
+
+- **What You Should See:** CPU arena records can reuse retired spans; application GPU allocation remains unchanged until retirement is connected.
+- **Hands-On Lab Experiment:** Keep an original in Undo history, remove it, then add another original. At this preparatory checkpoint drawing stays unchanged; trace how a reused range must get a new source association.
 
 <details>
 <summary>Implementation 96zzzzu-reuse-retired-arena-record-ranges: Reuse retired arena record ranges</summary>
@@ -5822,6 +6064,20 @@ After that block, append this supplied code:
 </details>
 
 <a id="checkpoint-96zzzzv-upload-reused-arena-spans-in-place"></a>
+
+### Step 14 of 16 · Upload reused arena spans in place (`96zzzzv-upload-reused-arena-spans-in-place`)
+
+- **Goal:** Write reused geometry ranges without replacing unchanged GPU buffers.
+- **Data Flow Trace:** `Current arena range → bounded overwrite or tail → retained/grown buffers → exact upload totals`
+- **Files You Touch:** `src/text_gpu_support.rs` (*Use the same device-limit calculation for append and bounded overwrite operations.*) · `src/mesh_arena.rs` (*Measure real new geometry uploads and written source bytes under the arena owner.*) · `src/mesh_arena_tests.rs` (*Supply mapped reused bytes, exact upload totals, retained CPU source, real blue/green/yellow pixels, old/fresh immutable bindings and refused-write preservation.*)
+
+A reused span is inside the buffer, so appending its bytes would draw the old data. Add a bounded overwrite-and-tail operation to the growing buffer, sharing its existing device-limit calculation. Upload each arena range at its actual start, retain immutable groups for in-place writes and refresh them on growth. Count actual new geometry uploads and source bytes, including reused holes.
+
+> **Self-Check Question:** *Why does hole reuse need explicit upload accounting?*  
+> **Answer:** The arena length may stay unchanged even though a new source writes vertex and index bytes.
+
+- **What You Should See:** The arena can upload reused ranges correctly; live retirement remains unconnected until geometry leases are tracked.
+- **Hands-On Lab Experiment:** Repeat original selection and restore it. Trace a retired left-hand triangle replaced by a blue triangle while the right-hand range stays fixed; buffer growth must replace the immutable group.
 
 <details>
 <summary>Implementation 96zzzzv-upload-reused-arena-spans-in-place: Upload reused arena spans in place</summary>
@@ -6165,6 +6421,20 @@ After that block, append this supplied code:
 </details>
 
 <a id="checkpoint-96zzzzw-reclaim-ranges-after-the-last-gpu-lease"></a>
+
+### Step 15 of 16 · Reclaim ranges after the last GPU lease (`96zzzzw-reclaim-ranges-after-the-last-gpu-lease`)
+
+- **Goal:** Retire GPU ranges independently of precise CPU history ownership.
+- **Data Flow Trace:** `Last shared GPU owner drops → weak range lease expires → retire source/span → later geometry reuses the hole`
+- **Files You Touch:** `src/mesh_arena.rs` (*Use weak range tokens independently of CPU source ownership.*) · `src/gpu_geometry.rs` (*Keep the range reserved for every shared GPU geometry owner, including direct construction outside the cache.*) · `src/geometry_cache.rs` (*Capture real arena upload counters before acquisition, including hole reuse.*) · `src/mesh_arena_tests.rs` (*Supply direct shared-construction aliases, last-owner retirement despite retained CPU history, exact reused offsets/bytes, safe restoration and logical empty release.*) · `src/global_outline_tests.rs` (*Supply actual scene deletion/addition/Undo with retained precise CPU history, reused GPU ranges, stable survivor pixels/owners, exact uploads, original identity and empty release.*)
+
+A source mesh can remain alive in Undo while no GPU geometry uses its range. Give every shared GPU geometry a strong range token; the arena retains weak tokens only. Prune expired leases, remove their source associations and return their spans. Keep surviving ranges fixed, reuse holes for later uploads and derive cache statistics from actual arena writes.
+
+> **Self-Check Question:** *Why is a weak source mesh insufficient for retirement?*  
+> **Answer:** History may keep the precise mesh alive after its GPU geometry is gone. The range follows GPU leases, while source and history ownership remain independent.
+
+- **What You Should See:** Live shared geometry reclaims retired arena ranges while retaining original CAD ownership and safe history restoration.
+- **Hands-On Lab Experiment:** Create two original meshes, delete the first while it remains in Undo, then add another mesh. The new mesh should reuse the hole; the survivor must keep its placement and pick owner. Undo twice and inspect exact restoration, then reload an empty scene.
 
 <details>
 <summary>Implementation 96zzzzw-reclaim-ranges-after-the-last-gpu-lease: Reclaim ranges after the last GPU lease</summary>
@@ -6984,6 +7254,20 @@ After that block, append this supplied code:
 
 <a id="checkpoint-96zzzzx-retire-empty-arena-ranges-after-tail-trimming"></a>
 
+### Step 16 of 16 · Retire empty arena ranges after tail trimming (`96zzzzx-retire-empty-arena-ranges-after-tail-trimming`)
+
+- **Goal:** Release empty source records independently of the current arena extent.
+- **Data Flow Trace:** `Retire occupied tail → arena end shrinks → release empty source association → keep the new end`
+- **Files You Touch:** `src/arena_spans.rs` (*Empty ranges reserve no bytes; a previous free-tail trim cannot invalidate their release.*) · `src/arena_rows_tests.rs` (*Supply both source retirement orders after tail trimming, exact empty endpoints, retained originals, subsequent zero-based reuse and unchanged rejection of reversed/out-of-bounds nonempty ranges.*)
+
+An empty geometry can receive a zero-length range at the old tail. Retiring another source may shorten the tail before that empty record expires. Since the empty range owns no bytes, return the current end without inserting a hole or checking its old endpoint against the new extent. Keep all bounds checks for nonempty ranges.
+
+> **Self-Check Question:** *Why can an empty range’s endpoint lie beyond the current arena end?*  
+> **Answer:** It was recorded before another retirement trimmed the tail. A zero-length range reserves no element, so its old endpoint does not constrain later release.
+
+- **What You Should See:** Empty geometry retires safely in either order while preserving nonempty range bounds and hole reuse.
+- **Hands-On Lab Experiment:** Run Example CAD, Clipping Plane XY 0,0,0, Clipping Plane Solid and Fit. Run Select All, Delete, Undo and Select None repeatedly. Confirm exact restoration and no runtime error. The supplied optional fixture separately checks both empty/nonempty retirement orders and nonempty bounds.
+
 <details>
 <summary>Implementation 96zzzzx-retire-empty-arena-ranges-after-tail-trimming: Retire empty arena ranges after tail trimming</summary>
 
@@ -7077,9 +7361,11 @@ After that block, append this supplied code:
 
 </details>
 
-## Run, Check, and Save
+---
 
-From `session_viewer`:
+## 5. Build, Verify, and Save Your Checkpoint
+
+Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 96zzzzx-retire-empty-arena-ranges-after-tail-trimming
@@ -7090,10 +7376,10 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. Use [checkpoint recovery](../../recovery.md) to restore any saved checkpoint.
+Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
 
-## Expected Visual Result & Experiment
+## 6. Lesson Summary & Expected Visual Result
 
 Empty geometry retires safely in either order while preserving nonempty range bounds and hole reuse.
 
-- **Try this:** Run Example CAD, Clipping Plane XY 0,0,0, Clipping Plane Solid and Fit. Run Select All, Delete, Undo and Select None repeatedly. Confirm exact restoration and no runtime error. The supplied optional fixture separately checks both empty/nonempty retirement orders and nonempty bounds.
+- **Final Lesson Experiment:** Run Example CAD, Clipping Plane XY 0,0,0, Clipping Plane Solid and Fit. Run Select All, Delete, Undo and Select None repeatedly. Confirm exact restoration and no runtime error. The supplied optional fixture separately checks both empty/nonempty retirement orders and nonempty bounds.

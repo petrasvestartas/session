@@ -1,90 +1,186 @@
 # 17.3 · Original clipping half-spaces across drawing families
 
-**Section 9: Compute Tile Visibility, Clipping Half-Spaces, Section Caps, and Ambient Occlusion** · **Lesson 17.3** (Redraft `9.3`) · **38 checkpoints (`87-copy-current-original-plane-modes` → `87ab-exercise-original-clipping-color-and-picking`)**
+**Section 9: Compute Tile Visibility, Clipping Half-Spaces, Section Caps, and Ambient Occlusion** · **Lesson 17.3** (Redraft `9.3`) · **38 checkpoints (`87-copy-current-original-plane-modes` → `87ab-exercise-original-clipping-color-and-picking`)** · **Study time: 19–38 h**
 
-> **Learning Goal:** Describe original clipping half-spaces.
+> **What You Will Learn & Build:** Describe original clipping half-spaces. By the final checkpoint (`87ab-exercise-original-clipping-color-and-picking`), you will exercise original clipping color and picking.
 
-## Visual WebGPU & Architecture Schematic
+## 1. Visual Pipeline & WebGPU Architecture (Black & White Schematics)
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1px solid #cbd5e1;border-radius:10px;background:#f8fafc;">
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
+<svg viewBox="0 0 840 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <rect x="4" y="4" width="832" height="212" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Lesson 17.3 Execution Flow: Original clipping half-spaces across drawing families</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">Concrete data pipeline you build in this lesson (38 Checkpoints: 87-copy-current-original-plane-modes → 87ab-exercise-original-clipping-color-and-picking)</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
+  
+    
+    <rect x="18" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="89" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
+    <line x1="28" y1="92" x2="151" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">original Plane</text>
+    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="183" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="254" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
+    <line x1="193" y1="92" x2="316" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">checked</text>
+    <text x="254" y="124" text-anchor="middle" font-size="11" fill="#111111">construction and</text>
+    <text x="254" y="140" text-anchor="middle" font-size="11" fill="#111111">placement</text>
+    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="348" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="419" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
+    <line x1="358" y1="92" x2="481" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">world half-space</text>
+    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="513" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="584" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
+    <line x1="523" y1="92" x2="646" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">later GPU uniform</text>
+    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="678" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="749" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
+    <line x1="688" y1="92" x2="811" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">original source</text>
+    
+    <rect x="18" y="162" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="32" y="181" font-size="11" font-weight="700" fill="#111111">Files You Edit in Lesson 17.3:</text>
+    <text x="215" y="181" font-size="11" fill="#111111">src/clipping_geometry.rs  ·  src/lib.rs  ·  src/clipping_rows.rs  ·  src/clipping_uniform.rs  ·  src/clip.wgsl  ·  src/clipping_input.rs</text>
+    <text x="32" y="198" font-size="10.5" fill="#111111">38 Checkpoints: 87-copy-current-original-plane-modes → 87ab-exercise-original-clipping-color-and-picking — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
+  
+</svg>
+</div>
+
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
 <svg viewBox="0 0 840 240" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#475569"/>
-    </marker>
-    <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#2563eb"/>
-    </marker>
-    <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#059669"/>
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
     </marker>
   </defs>
-  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
-  <text x="20" y="28" font-size="14" font-weight="700" fill="#0f172a">Section 9 Compute Tile Visibility, Clipping Half-Spaces, Winding Section Caps & Horizon GTAO (Ch 17–18)</text>
-  <text x="20" y="46" font-size="11.5" fill="#475569">How @compute shaders bin triangles into screen tiles for hidden-line removal, clip solids with winding caps, and shade crevices.</text>
-  <line x1="16" y1="54" x2="824" y2="54" stroke="#e2e8f0" stroke-width="1"/>
+  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Section 9 Compute Tile Visibility, Clipping Half-Spaces, Winding Section Caps & Horizon GTAO (Ch 17–18)</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">How @compute shaders bin triangles into screen tiles for hidden-line removal, clip solids with winding caps, and shade crevices.</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
   
-    <rect x="18" y="68" width="250" height="145" rx="6" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
-    <text x="143" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1e40af">1. @compute Tile Visibility (Ch 17)</text>
-    <text x="28" y="108" font-size="10.5" fill="#1e3a8a">• projected_triangle.wgsl projects tris</text>
-    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#1d4ed8">• atomicAdd tile counts + prefix-sum CSR</text>
-    <text x="28" y="144" font-size="10.5" fill="#1e3a8a">• ink_visibility.wgsl tests center-line</text>
-    <text x="28" y="160" font-size="10.5" fill="#1e3a8a">  against covering triangles in tile</text>
-    <text x="28" y="178" font-size="10.5" fill="#1e3a8a">• Hidden lines dashed/faded cleanly!</text>
+    <rect x="18" y="68" width="250" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="143" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">1. @compute Tile Visibility (Ch 17)</text>
+    <text x="28" y="108" font-size="10.5" fill="#111111">• projected_triangle.wgsl projects tris</text>
+    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#111111">• atomicAdd tile counts + prefix-sum CSR</text>
+    <text x="28" y="144" font-size="10.5" fill="#111111">• ink_visibility.wgsl tests center-line</text>
+    <text x="28" y="160" font-size="10.5" fill="#111111">  against covering triangles in tile</text>
+    <text x="28" y="178" font-size="10.5" fill="#111111">• Hidden lines dashed/faded cleanly!</text>
 
-    <line x1="268" y1="138" x2="298" y2="138" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
+    <line x1="268" y1="138" x2="298" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="300" y="68" width="265" height="145" rx="6" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5"/>
-    <text x="432" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#9a3412">2. Clipping &amp; Winding Caps (Ch 17)</text>
-    <text x="312" y="108" font-size="10.5" fill="#7c2d12">• Half-space: dot(pos_world, plane) &lt; 0</text>
-    <text x="312" y="126" font-size="10.5" font-weight="600" fill="#c2410c">• Signed front/back crossing count</text>
-    <text x="312" y="142" font-size="10" fill="#7c2d12">  at clip plane depth (cap.wgsl):</text>
-    <text x="312" y="158" font-size="10" fill="#7c2d12">  Fills closed solid interiors while</text>
-    <text x="312" y="173" font-size="10" fill="#7c2d12">  leaving internal bores hollow!</text>
-    <text x="312" y="191" font-size="10.5" fill="#7c2d12">• Cap picks resolve to solid owner_id</text>
+    <rect x="300" y="68" width="265" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="432" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">2. Clipping &amp; Winding Caps (Ch 17)</text>
+    <text x="312" y="108" font-size="10.5" fill="#111111">• Half-space: dot(pos_world, plane) &lt; 0</text>
+    <text x="312" y="126" font-size="10.5" font-weight="600" fill="#111111">• Signed front/back crossing count</text>
+    <text x="312" y="142" font-size="10" fill="#111111">  at clip plane depth (cap.wgsl):</text>
+    <text x="312" y="158" font-size="10" fill="#111111">  Fills closed solid interiors while</text>
+    <text x="312" y="173" font-size="10" fill="#111111">  leaving internal bores hollow!</text>
+    <text x="312" y="191" font-size="10.5" fill="#111111">• Cap picks resolve to solid owner_id</text>
 
-    <line x1="565" y1="138" x2="595" y2="138" stroke="#059669" stroke-width="2" marker-end="url(#arrow-green)"/>
+    <line x1="565" y1="138" x2="595" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="597" y="68" width="223" height="145" rx="6" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1.5"/>
-    <text x="708" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#065f46">3. Horizon GTAO &amp; X-Ray (Ch 18)</text>
-    <text x="609" y="108" font-size="10.5" fill="#064e3b">• ambient_depth.wgsl -&gt; 6-mip pyramid</text>
-    <text x="609" y="126" font-size="10.5" font-weight="600" fill="#047857">• ssao.wgsl + bilateral blur +</text>
-    <text x="609" y="142" font-size="10.5" font-weight="600" fill="#047857">  ambient_composite.wgsl (Arctic)</text>
-    <text x="609" y="160" font-size="10" fill="#064e3b">• Glass / X-Ray translucent shells</text>
-    <text x="609" y="175" font-size="10" fill="#064e3b">  allow picking interior Wood joints</text>
+    <rect x="597" y="68" width="223" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="708" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">3. Horizon GTAO &amp; X-Ray (Ch 18)</text>
+    <text x="609" y="108" font-size="10.5" fill="#111111">• ambient_depth.wgsl -&gt; 6-mip pyramid</text>
+    <text x="609" y="126" font-size="10.5" font-weight="600" fill="#111111">• ssao.wgsl + bilateral blur +</text>
+    <text x="609" y="142" font-size="10.5" font-weight="600" fill="#111111">  ambient_composite.wgsl (Arctic)</text>
+    <text x="609" y="160" font-size="10" fill="#111111">• Glass / X-Ray translucent shells</text>
+    <text x="609" y="175" font-size="10" fill="#111111">  allow picking interior Wood joints</text>
     
 </svg>
 </div>
 
-### Lesson Data Flow (`Rust` → `WebGPU` → `WGSL`)
+## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
 
-```
-original Plane → checked construction and placement → world half-space → later GPU uniform.
-original source → checked derived clipping → current view.
-original clipping plane → anchor-relative projection → shared pixel and sample coverage.
-```
+Before writing code, review how the three layers in this chapter talk to each other:
 
-- Describe original clipping half-spaces.
-- Retain clipping state beside the renderer.
-- Exercise original clipping color and picking.
-- **Why it works (What changes when a point moves one unit along the kept normal?):** Its signed distance increases by one because the normal has unit length.
-
-### Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `Browser`)
-
-| Layer | Construct | First-Year Student Explanation |
+| Layer | Construct | Plain-English Explanation for Students |
 | :--- | :--- | :--- |
 | **WGSL (`@compute`)** | `@compute @workgroup_size(64) fn main(@builtin(global_invocation_id) id: vec3<u32>)` | Runs general-purpose parallel GPU threads (outside vertex/fragment rasterization) to project triangles and prefix-sum tile counts. |
 | **WGSL (Atomics)** | `atomicAdd(&tile_counts[tile_id], 1u)` | Safely increments shared GPU buffer counters when multiple triangles overlap the same screen tile concurrently. |
 | **Math (Winding Cap)** | `signed_crossings != 0` at clip plane depth | Fills only the solid interior of a clipped B-Rep/mesh while leaving interior bores and open shells hollow. |
 | **WGSL (`ssao.wgsl`)** | Multi-level depth pyramid horizon integration | Samples 6 mip levels of linear depth and per-object contact radius to shade crevices and ground contact. |
 
-**Production source (`session_viewer/src`):** [engine/gpu/triangle_tiles.rs](../../../../src/engine/gpu/triangle_tiles.rs), [shaders/project_triangles.wgsl](../../../../src/shaders/project_triangles.wgsl), [shaders/ink_visibility.wgsl](../../../../src/shaders/ink_visibility.wgsl), [shaders/ribbon.wgsl](../../../../src/shaders/ribbon.wgsl), [shaders/vector.wgsl](../../../../src/shaders/vector.wgsl), [engine/gpu/clip.rs](../../../../src/engine/gpu/clip.rs), [shaders/cap.wgsl](../../../../src/shaders/cap.wgsl), [engine/gpu/render.rs](../../../../src/engine/gpu/render.rs), [engine/gpu/pass.rs](../../../../src/engine/gpu/pass.rs), [build.rs](../../../../build.rs).
+**Authoritative production source (`session_viewer/src`):** [engine/gpu/triangle_tiles.rs](../../../../src/engine/gpu/triangle_tiles.rs), [shaders/project_triangles.wgsl](../../../../src/shaders/project_triangles.wgsl), [shaders/ink_visibility.wgsl](../../../../src/shaders/ink_visibility.wgsl), [shaders/ribbon.wgsl](../../../../src/shaders/ribbon.wgsl), [shaders/vector.wgsl](../../../../src/shaders/vector.wgsl), [engine/gpu/clip.rs](../../../../src/engine/gpu/clip.rs), [shaders/cap.wgsl](../../../../src/shaders/cap.wgsl), [engine/gpu/render.rs](../../../../src/engine/gpu/render.rs), [engine/gpu/pass.rs](../../../../src/engine/gpu/pass.rs), [build.rs](../../../../build.rs).
 
-## Implementation Checkpoints
+## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
 
-Apply these checkpoints in order inside `workspace/journey`. Expand each block to view the Rust/WGSL/HTML edits:
+| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
+| ---: | :--- | :--- | :--- | :--- |
+| **1** | [`87-copy-current-original-plane-modes`](#checkpoint-87-copy-current-original-plane-modes) | Describe original clipping half-spaces. | `src/clipping_geometry.rs`, `src/lib.rs` | `original Plane → checked construction and placement → world half-space → later GPU uniform` |
+| **2** | [`87sa-describe-clipping-construction-choices-once`](#checkpoint-87sa-describe-clipping-construction-choices-once) | Describe clipping construction choices once. | `src/clipping_geometry.rs` | `original Plane → checked construction and placement → world half-space → later GPU uniform` |
+| **3** | [`87sb-construct-and-reverse-original-clipping-planes`](#checkpoint-87sb-construct-and-reverse-original-clipping-planes) | Construct and reverse original clipping planes. | `src/clipping_geometry.rs` | `original Plane → checked construction and placement → world half-space → later GPU uniform` |
+| **4** | [`87sc-derive-placed-world-half-spaces-from-original-planes`](#checkpoint-87sc-derive-placed-world-half-spaces-from-original-planes) | Derive placed world half-spaces from original planes. | `src/clipping_geometry.rs` | `original Plane → checked construction and placement → world half-space → later GPU uniform` |
+| **5** | [`87a-gather-six-visible-original-world-planes`](#checkpoint-87a-gather-six-visible-original-world-planes) | Gather six visible original world planes. | `src/clipping_rows.rs`, `src/lib.rs` | `original source → checked derived clipping → current view` |
+| **6** | [`87b-copy-the-maintained-clipping-uniform-layout`](#checkpoint-87b-copy-the-maintained-clipping-uniform-layout) | Match six-plane CPU storage to the later WGSL layout without losing original f64 data. | `src/clipping_uniform.rs`, `src/lib.rs` | `original source → checked derived clipping → current view` |
+| **7** | [`87c-copy-conditioned-screen-and-hatch-projections`](#checkpoint-87c-copy-conditioned-screen-and-hatch-projections) | Scale matrix rows before inversion and undo that scaling on the inverse. | `src/clipping_uniform.rs` | `original clipping plane → anchor-relative projection → shared pixel and sample coverage` |
+| **8** | [`87ca-project-a-stable-hatch-coordinate-onto-a-plane`](#checkpoint-87ca-project-a-stable-hatch-coordinate-onto-a-plane) | Build homogeneous hatch numerator and denominator from the projected plane. | `src/clipping_uniform.rs` | `original clipping plane → anchor-relative projection → shared pixel and sample coverage` |
+| **9** | [`87cb-fill-one-bounded-clipping-uniform-from-original-planes`](#checkpoint-87cb-fill-one-bounded-clipping-uniform-from-original-planes) | Populate world and screen half-spaces and reuse the hatch projection helper. | `src/clipping_uniform.rs` | `original clipping plane → anchor-relative projection → shared pixel and sample coverage` |
+| **10** | [`87cc-match-the-clipping-uniform-and-sample-conventions`](#checkpoint-87cc-match-the-clipping-uniform-and-sample-conventions) | Match the Rust layout and define shared specialization and sample constants. | `src/clip.wgsl` | `original clipping plane → anchor-relative projection → shared pixel and sample coverage` |
+| **11** | [`87cd-apply-shared-original-half-space-tests`](#checkpoint-87cd-apply-shared-original-half-space-tests) | Reject points or segments on the cut side while preserving plane display rows. | `src/clip.wgsl` | `original clipping plane → anchor-relative projection → shared pixel and sample coverage` |
+| **12** | [`87ce-compute-clipping-coverage-in-framebuffer-sample-space`](#checkpoint-87ce-compute-clipping-coverage-in-framebuffer-sample-space) | Convert framebuffer pixels to NDC and form per-sample half-space masks. | `src/clip.wgsl` | `original clipping plane → anchor-relative projection → shared pixel and sample coverage` |
+| **13** | [`87cf-address-section-depth-and-original-cap-records`](#checkpoint-87cf-address-section-depth-and-original-cap-records) | Solve section depth and preserve the reserved cap and pick address conventions. | `src/clip.wgsl` | `original clipping plane → anchor-relative projection → shared pixel and sample coverage` |
+| **14** | [`87d-parse-strict-clipping-modes-and-presentation-switches`](#checkpoint-87d-parse-strict-clipping-modes-and-presentation-switches) | Parse strict clipping modes and presentation switches. | `src/clipping_input.rs`, `src/lib.rs` | `original source → checked derived clipping → current view` |
+| **15** | [`87e-preserve-mode-prefixes-in-generic-point-drafts`](#checkpoint-87e-preserve-mode-prefixes-in-generic-point-drafts) | Preserve mode prefixes in generic point drafts. | `src/tool.rs` | `original source → checked derived clipping → current view` |
+| **16** | [`87f-build-original-clipping-planes-through-the-shared-tool`](#checkpoint-87f-build-original-clipping-planes-through-the-shared-tool) | Build original clipping planes through the shared tool. | `src/clipping_tool.rs`, `src/lib.rs` | `original source → checked derived clipping → current view` |
+| **17** | [`87g-own-clipping-presentation-and-one-history-transaction`](#checkpoint-87g-own-clipping-presentation-and-one-history-transaction) | Own clipping presentation and one history transaction. | `src/editor.rs` | `original source → checked derived clipping → current view` |
+| **18** | [`87h-route-clipping-plane-and-preserve-pending-points`](#checkpoint-87h-route-clipping-plane-and-preserve-pending-points) | Route Clipping Plane and preserve pending points. | `src/editor.rs`, `src/commands.rs`, `src/primitive_geometry.rs` | `original source → checked derived clipping → current view` |
+| **19** | [`87i-own-one-shared-clipping-gpu-uniform`](#checkpoint-87i-own-one-shared-clipping-gpu-uniform) | Own one shared clipping GPU uniform. | `src/clipping_gpu.rs`, `src/lib.rs` | `original source → checked derived clipping → current view` |
+| **20** | [`87j-retain-clipping-state-beside-the-renderer`](#checkpoint-87j-retain-clipping-state-beside-the-renderer) | Retain clipping state beside the renderer. | `src/renderer.rs` | `original source → checked derived clipping → current view` |
+| **21** | [`87k-prepare-shared-clipping-shader-declarations`](#checkpoint-87k-prepare-shared-clipping-shader-declarations) | Prepare shared clipping shader declarations. | `src/pick_pipeline.rs`, `src/face_pick.rs` | `original source → checked derived clipping → current view` |
+| **22** | [`87l-connect-mesh-and-instance-color-half-spaces`](#checkpoint-87l-connect-mesh-and-instance-color-half-spaces) | Connect mesh and instance color half-spaces. | `src/gpu_mesh.rs`, `src/triangle.wgsl`, `src/instance_gpu.rs`, `src/renderer.rs` | `original source → checked derived clipping → current view` |
+| **23** | [`87m-prepare-explicit-original-mesh-pick-clipping`](#checkpoint-87m-prepare-explicit-original-mesh-pick-clipping) | Prepare explicit original mesh pick clipping. | `src/triangle_pick.wgsl` | `original source → checked derived clipping → current view` |
+| **24** | [`87n-bind-shared-clipping-before-the-first-integer-request`](#checkpoint-87n-bind-shared-clipping-before-the-first-integer-request) | Bind shared clipping before the first integer request. | `src/pick_gpu.rs`, `src/pick_encode.rs`, `src/renderer.rs`, `src/pick_pipeline.rs` | `original source → checked derived clipping → current view` |
+| **25** | [`87o-preserve-sparse-source-face-ids-across-the-cut`](#checkpoint-87o-preserve-sparse-source-face-ids-across-the-cut) | Preserve sparse source face IDs across the cut. | `src/face_pick.rs`, `src/face_pick.wgsl`, `src/renderer.rs` | `original source → checked derived clipping → current view` |
+| **26** | [`87p-invalidate-selected-masks-on-clipping-changes`](#checkpoint-87p-invalidate-selected-masks-on-clipping-changes) | Invalidate selected masks on clipping changes. | `src/outline_mask.wgsl`, `src/outline_gpu.rs`, `src/renderer.rs` | `original source → checked derived clipping → current view` |
+| **27** | [`87q-share-clipping-at-finite-original-center-lines`](#checkpoint-87q-share-clipping-at-finite-original-center-lines) | Share clipping at finite original center lines. | `src/finite_visibility.wgsl`, `src/finite_sources.rs`, `src/finite_stroke.wgsl`, `src/finite_stroke_pick.wgsl` | `original source → checked derived clipping → current view` |
+| **28** | [`87r-cache-explicit-original-plane-ink-flags`](#checkpoint-87r-cache-explicit-original-plane-ink-flags) | Cache explicit original-plane ink flags. | `src/stroke_gpu.rs` | `original source → checked derived clipping → current view` |
+| **29** | [`87s-bind-original-flags-without-changing-instance-strides`](#checkpoint-87s-bind-original-flags-without-changing-instance-strides) | Bind original flags without changing instance strides. | `src/finite_ink.rs`, `src/stroke_gpu.rs` | `original source → checked derived clipping → current view` |
+| **30** | [`87t-keep-stroke-color-and-pick-exemptions-aligned`](#checkpoint-87t-keep-stroke-color-and-pick-exemptions-aligned) | Keep stroke color and pick exemptions aligned. | `src/finite_stroke.wgsl`, `src/finite_stroke_pick.wgsl` | `original source → checked derived clipping → current view` |
+| **31** | [`87u-keep-chain-color-and-pick-exemptions-aligned`](#checkpoint-87u-keep-chain-color-and-pick-exemptions-aligned) | Keep chain color and pick exemptions aligned. | `src/finite_chain.wgsl`, `src/finite_chain_pick.wgsl` | `original source → checked derived clipping → current view` |
+| **32** | [`87v-keep-marker-color-and-pick-exemptions-aligned`](#checkpoint-87v-keep-marker-color-and-pick-exemptions-aligned) | Keep marker color and pick exemptions aligned. | `src/finite_marker.wgsl`, `src/finite_marker_pick.wgsl` | `original source → checked derived clipping → current view` |
+| **33** | [`87w-resolve-locked-and-selected-original-plane-boundaries`](#checkpoint-87w-resolve-locked-and-selected-original-plane-boundaries) | Resolve locked and selected original plane boundaries. | `src/highlight.rs`, `src/renderer.rs` | `original source → checked derived clipping → current view` |
+| **34** | [`87x-clip-cached-original-point-cloud-discs`](#checkpoint-87x-clip-cached-original-point-cloud-discs) | Clip cached original point cloud discs. | `src/cloud_gpu.rs`, `src/cloud_points.wgsl`, `src/renderer.rs`, `src/cloud_shader_contract.rs` | `original source → checked derived clipping → current view` |
+| **35** | [`87y-clip-original-sheet-pens-and-integer-entities`](#checkpoint-87y-clip-original-sheet-pens-and-integer-entities) | Clip original sheet pens and integer entities. | `src/sheet_pipeline.rs`, `src/sheet.wgsl`, `src/sheet_gpu.rs`, `src/pick_encode.rs` | `original source → checked derived clipping → current view` |
+| **36** | [`87z-clip-text-anchors-with-all-six-original-planes`](#checkpoint-87z-clip-text-anchors-with-all-six-original-planes) | Clip text anchors with all six original planes. | `src/scene_text_gpu.rs`, `src/renderer.rs` | `original source → checked derived clipping → current view` |
+| **37** | [`87aa-observe-actual-clipping-resources-and-errors`](#checkpoint-87aa-observe-actual-clipping-resources-and-errors) | Observe actual clipping resources and errors. | `src/browser.rs` | `original source → checked derived clipping → current view` |
+| **38** | [`87ab-exercise-original-clipping-color-and-picking`](#checkpoint-87ab-exercise-original-clipping-color-and-picking) | Exercise original clipping color and picking. | `src/clipping_source_tests.rs`, `src/lib.rs`, `src/clipping_gpu_tests.rs`, `src/clipping_uniform_tests.rs` | `original source → checked derived clipping → current view` |
+
+---
+
+## 4. Step-by-Step Coding Notebook (Concept + Implementation)
+
+Work through each notebook cell below in order inside `workspace/journey`. Read the **Concept Walkthrough** and **Self-Check Q&A** first, then expand the **Implementation** block to type and verify the code.
 
 <a id="checkpoint-87-copy-current-original-plane-modes"></a>
+
+### Step 1 of 38 · Describe original clipping half-spaces (`87-copy-current-original-plane-modes`)
+
+- **Goal:** Describe original clipping half-spaces.
+- **Data Flow Trace:** `original Plane → checked construction and placement → world half-space → later GPU uniform`
+- **Files You Touch:** `src/clipping_geometry.rs` (*Describe original clipping half-spaces.*) · `src/lib.rs` (*Register the completed source owner.*)
+
+A CAD clipping plane keeps one side of a world-space half-space.
+
+Keep its unit normal, signed offset, original origin and hatch direction in f64. The signed distance is normal · point + offset. Build the small shared array operations used by this clipping owner, and retain the earlier saved plane name as an input alias. These values describe a derived view; they do not rewrite the original Plane.
+
+> **Self-Check Question:** *What changes when a point moves one unit along the kept normal?*  
+> **Answer:** Its signed distance increases by one because the normal has unit length.
+
+- **What You Should See:** The preceding finite-ink drawing remains visible. This original-plane preparation compiles; cutting connects in the following uniform and pipeline lessons.
+- **Hands-On Lab Experiment:** For normal (0,0,-1) and offset 3, predict the signed distances at z = 2, 3 and 4. Locate the kept side.
 
 <details>
 <summary>Implementation 87-copy-current-original-plane-modes: Describe original clipping half-spaces</summary>
@@ -126,6 +222,21 @@ After that block, type:
 </details>
 
 <a id="checkpoint-87sa-describe-clipping-construction-choices-once"></a>
+
+### Step 2 of 38 · Describe clipping construction choices once (`87sa-describe-clipping-construction-choices-once`)
+
+- **Goal:** Describe clipping construction choices once.
+- **Data Flow Trace:** `original Plane → checked construction and placement → world half-space → later GPU uniform`
+- **Files You Touch:** `src/clipping_geometry.rs` (*Describe clipping construction choices once.*)
+
+Each construction mode declares its name, required point count and prompts in one owner.
+
+Normal uses an origin and a point toward the cut side. Three-point construction uses a right-handed frame. XY, YZ and ZX each need only an origin. Reuse this same mode table for command choices and input prompts; the following constructor consumes it.
+
+> **Self-Check Question:** *Why keep required point counts with the modes?*  
+> **Answer:** Parsing, prompting and construction must agree about when input is complete. One table prevents separate command and geometry rules from drifting.
+
+- **Hands-On Lab Experiment:** Trace the case-insensitive word 3point to its mode, required count and third prompt.
 
 <details>
 <summary>Implementation 87sa-describe-clipping-construction-choices-once: Describe clipping construction choices once</summary>
@@ -241,6 +352,21 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-87sb-construct-and-reverse-original-clipping-planes"></a>
 
+### Step 3 of 38 · Construct and reverse original clipping planes (`87sb-construct-and-reverse-original-clipping-planes`)
+
+- **Goal:** Construct and reverse original clipping planes.
+- **Data Flow Trace:** `original Plane → checked construction and placement → world half-space → later GPU uniform`
+- **Files You Touch:** `src/clipping_geometry.rs` (*Construct and reverse original clipping planes.*)
+
+Reject the wrong point count before reading the coordinates.
+
+For a normal construction, ask the Session kernel for a perpendicular frame. For three points, reject a zero direction or near-collinear cross product, then normalize the axes. The named world modes use fixed right-handed axes. Store the display rectangle size in the in-plane axes while keeping the normal direction separate. Flip by cloning and reversing the original Plane, preserving its source identity.
+
+> **Self-Check Question:** *Why does the rectangle size not change the cut side?*  
+> **Answer:** Its half size scales the in-plane axes. The normalized perpendicular direction determines which side is cut; the GPU half-space is derived later.
+
+- **Hands-On Lab Experiment:** Compare Normal from (0,0,0) towards (0,0,1) with XY at the origin. Predict their frames and the effect of Flip.
+
 <details>
 <summary>Implementation 87sb-construct-and-reverse-original-clipping-planes: Construct and reverse original clipping planes</summary>
 
@@ -355,6 +481,21 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-87sc-derive-placed-world-half-spaces-from-original-planes"></a>
+
+### Step 4 of 38 · Derive placed world half-spaces from original planes (`87sc-derive-placed-world-half-spaces-from-original-planes`)
+
+- **Goal:** Derive placed world half-spaces from original planes.
+- **Data Flow Trace:** `original Plane → checked construction and placement → world half-space → later GPU uniform`
+- **Files You Touch:** `src/clipping_geometry.rs` (*Derive placed world half-spaces from original planes.*)
+
+Transform the original origin and the two in-plane axes through the current placement.
+
+Their cross product supplies the correctly placed perpendicular, including a mirrored placement. Reject a collapsed rectangle or non-finite origin, then point the unit normal toward the kept side and derive its offset. Compute the hatch direction in the plane from the transformed axes. The following row collector bounds the visible world planes before uniform projection.
+
+> **Self-Check Question:** *Why cross the transformed in-plane axes instead of transforming the source normal directly?*  
+> **Answer:** A non-uniform or mirrored placement changes the perpendicular and orientation. The transformed axes define the actual placed plane.
+
+- **Hands-On Lab Experiment:** Trace a mirrored scale and a collapsed in-plane axis. Predict the kept normal, offset and rejected plane.
 
 <details>
 <summary>Implementation 87sc-derive-placed-world-half-spaces-from-original-planes: Derive placed world half-spaces from original planes</summary>
@@ -486,6 +627,19 @@ After that block, append this supplied code:
 
 <a id="checkpoint-87a-gather-six-visible-original-world-planes"></a>
 
+### Step 5 of 38 · Gather six visible original world planes (`87a-gather-six-visible-original-world-planes`)
+
+- **Goal:** Gather six visible original world planes.
+- **Data Flow Trace:** `original source → checked derived clipping → current view`
+- **Files You Touch:** `src/clipping_rows.rs` (*Retain the original source and explicit derived owner.*) · `src/lib.rs` (*Register the completed source owner.*)
+
+Gather six visible original world planes.
+
+> **Self-Check Question:** *Does locking a plane disable cutting?*  
+> **Answer:** No. Visibility controls cutting; locking controls picking. Gather its world frame without changing original coordinates.
+
+- **Hands-On Lab Experiment:** Compare hidden, locked and placed planes, the six-plane ceiling and derived preview size.
+
 <details>
 <summary>Implementation 87a-gather-six-visible-original-world-planes: Gather six visible original world planes</summary>
 
@@ -526,6 +680,24 @@ After that block, type:
 </details>
 
 <a id="checkpoint-87b-copy-the-maintained-clipping-uniform-layout"></a>
+
+### Step 6 of 38 · Pack the clipping uniform with explicit byte offsets (`87b-copy-the-maintained-clipping-uniform-layout`)
+
+- **Goal:** Match six-plane CPU storage to the later WGSL layout without losing original f64 data.
+- **Data Flow Trace:** `original source → checked derived clipping → current view`
+- **Files You Touch:** `src/clipping_uniform.rs` (*Write the fixed arrays, scalar fields and explicit padding for the shared GPU layout.*) · `src/lib.rs` (*Register the completed source owner.*)
+
+The GPU reads a byte layout, not a Rust object.
+
+Group six vec4 plane coefficients, screen coefficients and homogeneous hatch rows in fixed arrays. Keep eye-side values in two vec4 rows. Follow with eight scalar words so the complete uniform occupies 448 bytes. Use repr(C) and explicit padding; the field offsets beside the code let you compare Rust storage with the WGSL declaration written later.
+
+ClipView borrows the current camera matrix and provides the anchor, framebuffer height, CSS density and sample count. It does not own or replace the original clipping planes. The next lessons fill this layout in f64 and convert only the final GPU coefficients to f32.
+
+> **Self-Check Question:** *Why do six eye-side values occupy eight scalar slots?*  
+> **Answer:** Two vec4 rows occupy 32 bytes. Keeping that aligned representation gives the same offsets in Rust and WGSL; the last two scalar slots remain unused.
+
+- **What You Should See:** The browser still shows the preceding finite-ink drawing. The clipping uniform layout now compiles; its plane coefficients and visible cutting behavior connect in the following lessons.
+- **Hands-On Lab Experiment:** Calculate the offset of count from the preceding arrays, then calculate the total size through the padding. Compare those offsets with the later WGSL ClipUniform.
 
 <details>
 <summary>Implementation 87b-copy-the-maintained-clipping-uniform-layout: Pack the clipping uniform with explicit byte offsets</summary>
@@ -604,6 +776,22 @@ After that block, type:
 
 <a id="checkpoint-87c-copy-conditioned-screen-and-hatch-projections"></a>
 
+### Step 7 of 38 · Condition the camera inverse for clipping (`87c-copy-conditioned-screen-and-hatch-projections`)
+
+- **Goal:** Scale matrix rows before inversion and undo that scaling on the inverse.
+- **Data Flow Trace:** `original clipping plane → anchor-relative projection → shared pixel and sample coverage`
+- **Files You Touch:** `src/clipping_uniform.rs` (*Scale matrix rows before inversion and undo that scaling on the inverse.*)
+
+A clipping plane must be transformed into the current screen coordinates.
+
+A badly scaled camera matrix can make a direct inverse fail. Normalize each row by its largest coefficient, reject non-normal scales, then rescale the inverse columns. Keep the calculation in f64; the GPU receives f32 only after the projection is prepared.
+
+> **Self-Check Question:** *Why does undoing row scaling change inverse columns?*  
+> **Answer:** For A = D B, A⁻¹ = B⁻¹ D⁻¹. The diagonal factor is on the right of the inverse, so it scales its columns.
+
+- **What You Should See:** The cumulative browser application still shows the preceding drawing. This is shader and uniform preparation; the following pipeline lessons connect its visible behavior.
+- **Hands-On Lab Experiment:** Trace a diagonal matrix whose four row scales differ. Predict the inverse entries and the zero-row rejection.
+
 <details>
 <summary>Implementation 87c-copy-conditioned-screen-and-hatch-projections: Condition the camera inverse for clipping</summary>
 
@@ -634,6 +822,21 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-87ca-project-a-stable-hatch-coordinate-onto-a-plane"></a>
+
+### Step 8 of 38 · Project a stable hatch coordinate onto a plane (`87ca-project-a-stable-hatch-coordinate-onto-a-plane`)
+
+- **Goal:** Build homogeneous hatch numerator and denominator from the projected plane.
+- **Data Flow Trace:** `original clipping plane → anchor-relative projection → shared pixel and sample coverage`
+- **Files You Touch:** `src/clipping_uniform.rs` (*Build homogeneous hatch numerator and denominator from the projected plane.*)
+
+Solve the screen plane for depth, then transform three screen columns back into anchor-relative world space.
+
+Dot their spatial components with the hatch direction. Keep the homogeneous w separately: perspective interpolation needs numerator divided by denominator. Wrap the distant anchor phase by a power-of-two period to preserve the local hatch position when converting to f32.
+
+> **Self-Check Question:** *Why keep hatch_w instead of storing one affine hatch coordinate?*  
+> **Answer:** Perspective division is not affine in screen space. The numerator and denominator must be evaluated at the fragment before division.
+
+- **Hands-On Lab Experiment:** Trace the three screen columns for an orthographic plane, then predict how a perspective denominator varies across the canvas.
 
 <details>
 <summary>Implementation 87ca-project-a-stable-hatch-coordinate-onto-a-plane: Project a stable hatch coordinate onto a plane</summary>
@@ -721,6 +924,21 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-87cb-fill-one-bounded-clipping-uniform-from-original-planes"></a>
 
+### Step 9 of 38 · Fill one bounded clipping uniform from original planes (`87cb-fill-one-bounded-clipping-uniform-from-original-planes`)
+
+- **Goal:** Populate world and screen half-spaces and reuse the hatch projection helper.
+- **Data Flow Trace:** `original clipping plane → anchor-relative projection → shared pixel and sample coverage`
+- **Files You Touch:** `src/clipping_uniform.rs` (*Populate world and screen half-spaces and reuse the hatch projection helper.*)
+
+Start with an empty uniform when there is no plane or no valid inverse.
+
+Bound the plane count by the existing six-plane layout. Translate original plane offsets relative to the camera anchor, transform the coefficients by the inverse, and record which side contains the eye. Convert CSS spacing and boundary widths into physical pixels once. Edge-on planes keep their half-space but receive no hatch projection.
+
+> **Self-Check Question:** *Why is an edge-on plane still retained?*  
+> **Answer:** It still clips geometry. Its screen depth cannot be solved when the depth coefficient is zero, so it cannot produce a section cap.
+
+- **Hands-On Lab Experiment:** Predict count, eye side and hatch rows for an empty list, an edge-on plane and a plane facing the camera.
+
 <details>
 <summary>Implementation 87cb-fill-one-bounded-clipping-uniform-from-original-planes: Fill one bounded clipping uniform from original planes</summary>
 
@@ -764,6 +982,21 @@ After that block, type:
 
 <a id="checkpoint-87cc-match-the-clipping-uniform-and-sample-conventions"></a>
 
+### Step 10 of 38 · Match the clipping uniform and sample conventions (`87cc-match-the-clipping-uniform-and-sample-conventions`)
+
+- **Goal:** Match the Rust layout and define shared specialization and sample constants.
+- **Data Flow Trace:** `original clipping plane → anchor-relative projection → shared pixel and sample coverage`
+- **Files You Touch:** `src/clip.wgsl` (*Match the Rust layout and define shared specialization and sample constants.*)
+
+Write the WGSL layout already defined in Rust, including explicit padding and fixed six-plane arrays.
+
+Use the clipping override to remove inactive tests at pipeline specialization. Preserve the existing flags and reserved cap marker range, and define the four WebGPU sample offsets once for every pass that shares clipping coverage.
+
+> **Self-Check Question:** *Why preserve field order and padding?*  
+> **Answer:** The bind group exposes bytes, not Rust field names. WGSL must read the same offsets and total size that Rust writes.
+
+- **Hands-On Lab Experiment:** Locate count at byte 416 and compare the remaining scalar fields with ClipUniform in Rust.
+
 <details>
 <summary>Implementation 87cc-match-the-clipping-uniform-and-sample-conventions: Match the clipping uniform and sample conventions</summary>
 
@@ -784,6 +1017,19 @@ Create the file and type:
 </details>
 
 <a id="checkpoint-87cd-apply-shared-original-half-space-tests"></a>
+
+### Step 11 of 38 · Apply shared original half-space tests (`87cd-apply-shared-original-half-space-tests`)
+
+- **Goal:** Reject points or segments on the cut side while preserving plane display rows.
+- **Data Flow Trace:** `original clipping plane → anchor-relative projection → shared pixel and sample coverage`
+- **Files You Touch:** `src/clip.wgsl` (*Reject points or segments on the cut side while preserving plane display rows.*)
+
+A scale-relative slack keeps coincident faces classified consistently in f32. Plane display rows are exempt from their own clipping. A segment is fully rejected only when the same plane cuts both endpoints. These predicates use anchor-relative scene coordinates; screen sample coverage follows next.
+
+> **Self-Check Question:** *Why must both endpoints fail the same plane?*  
+> **Answer:** Endpoints can fail different planes while the segment between them crosses the kept region. Rejecting that segment would remove visible geometry.
+
+- **Hands-On Lab Experiment:** Evaluate two endpoints outside different half-spaces, then two endpoints outside the same half-space. Predict clip_cut_both.
 
 <details>
 <summary>Implementation 87cd-apply-shared-original-half-space-tests: Apply shared original half-space tests</summary>
@@ -879,6 +1125,21 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-87ce-compute-clipping-coverage-in-framebuffer-sample-space"></a>
+
+### Step 12 of 38 · Compute clipping coverage in framebuffer sample space (`87ce-compute-clipping-coverage-in-framebuffer-sample-space`)
+
+- **Goal:** Convert framebuffer pixels to NDC and form per-sample half-space masks.
+- **Data Flow Trace:** `original clipping plane → anchor-relative projection → shared pixel and sample coverage`
+- **Files You Touch:** `src/clip.wgsl` (*Convert framebuffer pixels to NDC and form per-sample half-space masks.*)
+
+Reuse the projected plane coefficients for screen-space tests.
+
+Convert top-left framebuffer coordinates to WebGPU NDC with the y direction reversed. At four samples, evaluate the signed plane value at the fixed WebGPU sample offsets and combine planes with bitwise AND. Compute derivatives before control-flow branches so neighboring fragments provide a valid gradient.
+
+> **Self-Check Question:** *Why is clipping coverage a bit mask?*  
+> **Answer:** Each bit represents one sample. Intersecting half-spaces retains only samples kept by every plane; averaging first would lose their correspondence.
+
+- **Hands-On Lab Experiment:** For a plane crossing the pixel center with an x gradient, calculate the four kept bits. Compare with single-sample coverage.
 
 <details>
 <summary>Implementation 87ce-compute-clipping-coverage-in-framebuffer-sample-space: Compute clipping coverage in framebuffer sample space</summary>
@@ -991,6 +1252,21 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-87cf-address-section-depth-and-original-cap-records"></a>
 
+### Step 13 of 38 · Address section depth and original cap records (`87cf-address-section-depth-and-original-cap-records`)
+
+- **Goal:** Solve section depth and preserve the reserved cap and pick address conventions.
+- **Data Flow Trace:** `original clipping plane → anchor-relative projection → shared pixel and sample coverage`
+- **Files You Touch:** `src/clip.wgsl` (*Solve section depth and preserve the reserved cap and pick address conventions.*)
+
+A section lies on an original clipping plane.
+
+Solve its depth from the screen plane, then derive its depth change per framebuffer pixel. Reserve the existing high primitive range for caps and recover the plane index from that marker. Flatten plane, row, column and the four-word pick record in the same order as the storage allocation. The next lessons assemble these shared predicates into real color and integer pipelines.
+
+> **Self-Check Question:** *Why does the pick address include the plane index?*  
+> **Answer:** Several clipping planes can cover the same pixel. Each plane needs separate crossing counts and original owner evidence.
+
+- **Hands-On Lab Experiment:** Calculate the first word for plane 2, pixel (3,4), and a 10×8 target. Check its four-word alignment.
+
 <details>
 <summary>Implementation 87cf-address-section-depth-and-original-cap-records: Address section depth and original cap records</summary>
 
@@ -1082,6 +1358,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-87d-parse-strict-clipping-modes-and-presentation-switches"></a>
 
+### Step 14 of 38 · Parse strict clipping modes and presentation switches (`87d-parse-strict-clipping-modes-and-presentation-switches`)
+
+- **Goal:** Parse strict clipping modes and presentation switches.
+- **Data Flow Trace:** `original source → checked derived clipping → current view`
+- **Files You Touch:** `src/clipping_input.rs` (*Retain the original source and explicit derived owner.*) · `src/lib.rs` (*Register the completed source owner.*)
+
+Parse strict clipping modes and presentation switches.
+
+> **Self-Check Question:** *Should Fill change the original Plane?*  
+> **Answer:** No. On,Off,Hatch,Solid and Fill change presentation. Coordinates and mode arity are validated before source adoption.
+
+- **Hands-On Lab Experiment:** Try incomplete modes, nonfinite/out-of-range coordinates and extra words.
+
 <details>
 <summary>Implementation 87d-parse-strict-clipping-modes-and-presentation-switches: Parse strict clipping modes and presentation switches</summary>
 
@@ -1122,6 +1411,19 @@ After that block, type:
 </details>
 
 <a id="checkpoint-87e-preserve-mode-prefixes-in-generic-point-drafts"></a>
+
+### Step 15 of 38 · Preserve mode prefixes in generic point drafts (`87e-preserve-mode-prefixes-in-generic-point-drafts`)
+
+- **Goal:** Preserve mode prefixes in generic point drafts.
+- **Data Flow Trace:** `original source → checked derived clipping → current view`
+- **Files You Touch:** `src/tool.rs` (*Connect matching source ownership and derived clipping.*)
+
+Preserve mode prefixes in generic point drafts.
+
+> **Self-Check Question:** *Can a two-word mode prefix enter the coordinate parser?*  
+> **Answer:** No. Slice the complete command prefix before resolving the saved world points.
+
+- **Hands-On Lab Experiment:** Compare typed XY and Normal points with click input and their distinct prompts.
 
 <details>
 <summary>Implementation 87e-preserve-mode-prefixes-in-generic-point-drafts: Preserve mode prefixes in generic point drafts</summary>
@@ -1386,6 +1688,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-87f-build-original-clipping-planes-through-the-shared-tool"></a>
 
+### Step 16 of 38 · Build original clipping planes through the shared tool (`87f-build-original-clipping-planes-through-the-shared-tool`)
+
+- **Goal:** Build original clipping planes through the shared tool.
+- **Data Flow Trace:** `original source → checked derived clipping → current view`
+- **Files You Touch:** `src/clipping_tool.rs` (*Retain the original source and explicit derived owner.*) · `src/lib.rs` (*Register the completed source owner.*)
+
+Build original clipping planes through the shared tool.
+
+> **Self-Check Question:** *Does a preview acquire a source row?*  
+> **Answer:** No. The generic draft draws temporary outline points; only an accepted original Plane is adopted.
+
+- **Hands-On Lab Experiment:** Compare mode point counts, equal/collinear refusal, mode chips and Escape.
+
 <details>
 <summary>Implementation 87f-build-original-clipping-planes-through-the-shared-tool: Build original clipping planes through the shared tool</summary>
 
@@ -1426,6 +1741,19 @@ After that block, type:
 </details>
 
 <a id="checkpoint-87g-own-clipping-presentation-and-one-history-transaction"></a>
+
+### Step 17 of 38 · Own clipping presentation and one history transaction (`87g-own-clipping-presentation-and-one-history-transaction`)
+
+- **Goal:** Own clipping presentation and one history transaction.
+- **Data Flow Trace:** `original source → checked derived clipping → current view`
+- **Files You Touch:** `src/editor.rs` (*Own presentation state and checked original-plane edits before command routing.*)
+
+Own clipping presentation and one history transaction.
+
+> **Self-Check Question:** *Does Flip rewrite the display mesh?*  
+> **Answer:** No. Flip replaces selected original Plane frames in one checked scene transaction; Undo restores their exact sides.
+
+- **Hands-On Lab Experiment:** Inspect source freshness, selected original owners and validation before cancelling a pending draft.
 
 <details>
 <summary>Implementation 87g-own-clipping-presentation-and-one-history-transaction: Own clipping presentation and one history transaction</summary>
@@ -2714,6 +3042,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-87h-route-clipping-plane-and-preserve-pending-points"></a>
+
+### Step 18 of 38 · Route Clipping Plane and preserve pending points (`87h-route-clipping-plane-and-preserve-pending-points`)
+
+- **Goal:** Route Clipping Plane and preserve pending points.
+- **Data Flow Trace:** `original source → checked derived clipping → current view`
+- **Files You Touch:** `src/editor.rs` (*Connect matching source ownership and derived clipping.*) · `src/commands.rs` (*Connect matching source ownership and derived clipping.*) · `src/primitive_geometry.rs` (*Connect matching source ownership and derived clipping.*)
+
+Route Clipping Plane and preserve pending points.
+
+> **Self-Check Question:** *Should changing view or Fill erase pending points?*  
+> **Answer:** No. Keep the existing draft; a mode change starts its own required point count and Escape cancels it.
+
+- **Hands-On Lab Experiment:** Use Clipping Plane XY, enter a point, then Flip,Undo,Off and On. Fill controls are retained for88 section drawing.
 
 <details>
 <summary>Implementation 87h-route-clipping-plane-and-preserve-pending-points: Route Clipping Plane and preserve pending points</summary>
@@ -4330,6 +4671,19 @@ Edit the existing block to match this code; keep unchanged lines:
 
 <a id="checkpoint-87i-own-one-shared-clipping-gpu-uniform"></a>
 
+### Step 19 of 38 · Own one shared clipping GPU uniform (`87i-own-one-shared-clipping-gpu-uniform`)
+
+- **Goal:** Own one shared clipping GPU uniform.
+- **Data Flow Trace:** `original source → checked derived clipping → current view`
+- **Files You Touch:** `src/clipping_gpu.rs` (*Retain the original source and explicit derived owner.*) · `src/lib.rs` (*Register the completed source owner.*)
+
+Own one shared clipping GPU uniform.
+
+> **Self-Check Question:** *Do each of the drawing families need another448-byte buffer?*  
+> **Answer:** No. One owner caches the current encoded bytes and lends its uniform binding to color, picks and derived caches.
+
+- **Hands-On Lab Experiment:** Compare actual buffer allocation, identical-frame writes and truthful row-gathering errors.
+
 <details>
 <summary>Implementation 87i-own-one-shared-clipping-gpu-uniform: Own one shared clipping GPU uniform</summary>
 
@@ -4370,6 +4724,19 @@ After that block, type:
 </details>
 
 <a id="checkpoint-87j-retain-clipping-state-beside-the-renderer"></a>
+
+### Step 20 of 38 · Retain clipping state beside the renderer (`87j-retain-clipping-state-beside-the-renderer`)
+
+- **Goal:** Retain clipping state beside the renderer.
+- **Data Flow Trace:** `original source → checked derived clipping → current view`
+- **Files You Touch:** `src/renderer.rs` (*Own current clipping independently of original uploads.*)
+
+Retain clipping state beside the renderer.
+
+> **Self-Check Question:** *Does changing clipping upload original mesh vertices?*  
+> **Answer:** No. Update the shared derived uniform and gather current original planes; original geometry ownership stays unchanged.
+
+- **Hands-On Lab Experiment:** Inspect the448-byte allocation and original row/model inputs before wiring drawing passes.
 
 <details>
 <summary>Implementation 87j-retain-clipping-state-beside-the-renderer: Retain clipping state beside the renderer</summary>
@@ -5009,6 +5376,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-87k-prepare-shared-clipping-shader-declarations"></a>
 
+### Step 21 of 38 · Prepare shared clipping shader declarations (`87k-prepare-shared-clipping-shader-declarations`)
+
+- **Goal:** Prepare shared clipping shader declarations.
+- **Data Flow Trace:** `original source → checked derived clipping → current view`
+- **Files You Touch:** `src/pick_pipeline.rs` (*Connect matching source ownership and derived clipping.*) · `src/face_pick.rs` (*Declare the shared predicate before connecting face clipping.*)
+
+Prepare shared clipping shader declarations. Keep the existing pick layout until the integer draw binds the new uniform in 87n.
+
+> **Self-Check Question:** *Can an unused color entry still name an undeclared clipping uniform?*  
+> **Answer:** No. Assemble the shared declarations in the mesh-pick and face modules before their common triangle recipe starts using clipping.
+
+- **Hands-On Lab Experiment:** Compare explicit pick group3 and face group2,binding4 without changing original face addresses.
+
 <details>
 <summary>Implementation 87k-prepare-shared-clipping-shader-declarations: Prepare shared clipping shader declarations</summary>
 
@@ -5067,6 +5447,19 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-87l-connect-mesh-and-instance-color-half-spaces"></a>
+
+### Step 22 of 38 · Connect mesh and instance color half-spaces (`87l-connect-mesh-and-instance-color-half-spaces`)
+
+- **Goal:** Connect mesh and instance color half-spaces.
+- **Data Flow Trace:** `original source → checked derived clipping → current view`
+- **Files You Touch:** `src/gpu_mesh.rs` (*Connect matching source ownership and derived clipping.*) · `src/triangle.wgsl` (*Connect matching source ownership and derived clipping.*) · `src/instance_gpu.rs` (*Connect matching source ownership and derived clipping.*) · `src/renderer.rs` (*Connect the completed owner through this method.*)
+
+Connect mesh and instance color half-spaces.
+
+> **Self-Check Question:** *Can a clipping plane clip its own original outline?*  
+> **Answer:** No. Preserve the original-plane exemption independently of the selectable owner ID, including locked planes.
+
+- **Hands-On Lab Experiment:** Compare identical world half-spaces for ordinary meshes and placed instances.
 
 <details>
 <summary>Implementation 87l-connect-mesh-and-instance-color-half-spaces: Connect mesh and instance color half-spaces</summary>
@@ -5895,6 +6288,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-87m-prepare-explicit-original-mesh-pick-clipping"></a>
 
+### Step 23 of 38 · Prepare explicit original mesh pick clipping (`87m-prepare-explicit-original-mesh-pick-clipping`)
+
+- **Goal:** Prepare explicit original mesh pick clipping.
+- **Data Flow Trace:** `original source → checked derived clipping → current view`
+- **Files You Touch:** `src/triangle_pick.wgsl` (*Connect matching source ownership and derived clipping.*)
+
+Carry world position and clipping flags through the mesh-pick output. Activate the clipping predicate in 87n together with its pipeline layout and draw binding.
+
+> **Self-Check Question:** *Must integer picks use a different cut predicate?*  
+> **Answer:** No. Preserve original IDs and world positions while using the shared half-space predicate.
+
+- **Hands-On Lab Experiment:** Inspect un-cropped source positions before the small integer draw transform.
+
 <details>
 <summary>Implementation 87m-prepare-explicit-original-mesh-pick-clipping: Prepare explicit original mesh pick clipping</summary>
 
@@ -5930,6 +6336,19 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-87n-bind-shared-clipping-before-the-first-integer-request"></a>
+
+### Step 24 of 38 · Bind shared clipping before the first integer request (`87n-bind-shared-clipping-before-the-first-integer-request`)
+
+- **Goal:** Bind shared clipping before the first integer request.
+- **Data Flow Trace:** `original source → checked derived clipping → current view`
+- **Files You Touch:** `src/pick_gpu.rs` (*Connect matching source ownership and derived clipping.*) · `src/pick_encode.rs` (*Bind shared clipping to compatible integer passes.*) · `src/renderer.rs` (*Connect the completed owner through this method.*) · `src/pick_pipeline.rs` (*Enable the clipping predicate and required pipeline layout only when every integer draw binds the shared uniform.*) · `src/triangle_pick.wgsl` (*Enable the clipping predicate and required pipeline layout only when every integer draw binds the shared uniform.*)
+
+Bind shared clipping before the first integer request. Enable the mesh-pick predicate and its required layout in the same checkpoint; an explicit layout requires every declared bind group at draw time.
+
+> **Self-Check Question:** *Must a pick wait for a color frame?*  
+> **Answer:** No. Prepare the current view uniform and shared clipping before submitting the first cropped request.
+
+- **Hands-On Lab Experiment:** Compare exact original IDs, stale-request gates, lazy legacy ownership and charged allocation.
 
 <details>
 <summary>Implementation 87n-bind-shared-clipping-before-the-first-integer-request: Bind shared clipping before the first integer request</summary>
@@ -6392,6 +6811,19 @@ Edit the existing block to match this code; keep unchanged lines:
 
 <a id="checkpoint-87o-preserve-sparse-source-face-ids-across-the-cut"></a>
 
+### Step 25 of 38 · Preserve sparse source face IDs across the cut (`87o-preserve-sparse-source-face-ids-across-the-cut`)
+
+- **Goal:** Preserve sparse source face IDs across the cut.
+- **Data Flow Trace:** `original source → checked derived clipping → current view`
+- **Files You Touch:** `src/face_pick.rs` (*Connect matching source ownership and derived clipping.*) · `src/face_pick.wgsl` (*Connect matching source ownership and derived clipping.*) · `src/renderer.rs` (*Connect the completed owner through this method.*)
+
+Preserve sparse source face IDs across the cut.
+
+> **Self-Check Question:** *Can the fifth clipping group fit the browser binding limit?*  
+> **Answer:** No. Bind it alongside existing face metadata at group2,binding4, keeping the original four-group layout.
+
+- **Hands-On Lab Experiment:** Compare original face addresses, crop ownership and the exact current world clipping predicate.
+
 <details>
 <summary>Implementation 87o-preserve-sparse-source-face-ids-across-the-cut: Preserve sparse source face IDs across the cut</summary>
 
@@ -6674,6 +7106,19 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-87p-invalidate-selected-masks-on-clipping-changes"></a>
+
+### Step 26 of 38 · Invalidate selected masks on clipping changes (`87p-invalidate-selected-masks-on-clipping-changes`)
+
+- **Goal:** Invalidate selected masks on clipping changes.
+- **Data Flow Trace:** `original source → checked derived clipping → current view`
+- **Files You Touch:** `src/outline_mask.wgsl` (*Connect matching source ownership and derived clipping.*) · `src/outline_gpu.rs` (*Connect matching source ownership and derived clipping.*) · `src/renderer.rs` (*Connect the completed owner through this method.*)
+
+Invalidate selected masks on clipping changes.
+
+> **Self-Check Question:** *Does an unchanged camera prove the selection mask is current?*  
+> **Answer:** No. Its key also witnesses clipping revisions; cutting changes mask coverage independently of the view.
+
+- **Hands-On Lab Experiment:** Compare moved or flipped planes with cached selected original coverage.
 
 <details>
 <summary>Implementation 87p-invalidate-selected-masks-on-clipping-changes: Invalidate selected masks on clipping changes</summary>
@@ -7318,6 +7763,19 @@ Edit the existing block to match this code; keep unchanged lines:
 
 <a id="checkpoint-87q-share-clipping-at-finite-original-center-lines"></a>
 
+### Step 27 of 38 · Share clipping at finite original center lines (`87q-share-clipping-at-finite-original-center-lines`)
+
+- **Goal:** Share clipping at finite original center lines.
+- **Data Flow Trace:** `original source → checked derived clipping → current view`
+- **Files You Touch:** `src/finite_visibility.wgsl` (*Connect matching source ownership and derived clipping.*) · `src/finite_sources.rs` (*Connect matching source ownership and derived clipping.*) · `src/finite_stroke.wgsl` (*Use the same shared clipping predicate before original-plane flags connect.*) · `src/finite_stroke_pick.wgsl` (*Use the same shared clipping predicate before original-plane flags connect.*) · `src/finite_chain.wgsl` (*Use the same shared clipping predicate before original-plane flags connect.*) · `src/finite_chain_pick.wgsl` (*Use the same shared clipping predicate before original-plane flags connect.*) · `src/finite_marker.wgsl` (*Use the same shared clipping predicate before original-plane flags connect.*) · `src/finite_marker_pick.wgsl` (*Use the same shared clipping predicate before original-plane flags connect.*) · `src/finite_ink.rs` (*Add the compatible shared clipping layout without changing original attributes yet.*)
+
+Share clipping at finite original center lines.
+
+> **Self-Check Question:** *Does a wide ribbon test its displaced pixel against the cut?*  
+> **Answer:** No. Test the original centerline point, and exclude cut triangles from its finite occluders.
+
+- **Hands-On Lab Experiment:** Compare retained ink behind a removed solid and full-canvas coordinates before cropped picking.
+
 <details>
 <summary>Implementation 87q-share-clipping-at-finite-original-center-lines: Share clipping at finite original center lines</summary>
 
@@ -7582,6 +8040,19 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-87r-cache-explicit-original-plane-ink-flags"></a>
+
+### Step 28 of 38 · Cache explicit original-plane ink flags (`87r-cache-explicit-original-plane-ink-flags`)
+
+- **Goal:** Cache explicit original-plane ink flags.
+- **Data Flow Trace:** `original source → checked derived clipping → current view`
+- **Files You Touch:** `src/stroke_gpu.rs` (*Own flag buffers before connecting them to vertex layouts.*)
+
+Cache explicit original-plane ink flags.
+
+> **Self-Check Question:** *Can a locked owner ID carry clipping exemptions?*  
+> **Answer:** Its pick ID can be zero. Keep an independent flag per original ink instance and account for its actual CPU/GPU allocation.
+
+- **Hands-On Lab Experiment:** Inspect equal-data caching, empty release and one four-byte flag per original instance.
 
 <details>
 <summary>Implementation 87r-cache-explicit-original-plane-ink-flags: Cache explicit original-plane ink flags</summary>
@@ -7931,6 +8402,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-87s-bind-original-flags-without-changing-instance-strides"></a>
+
+### Step 29 of 38 · Bind original flags without changing instance strides (`87s-bind-original-flags-without-changing-instance-strides`)
+
+- **Goal:** Bind original flags without changing instance strides.
+- **Data Flow Trace:** `original source → checked derived clipping → current view`
+- **Files You Touch:** `src/finite_ink.rs` (*Connect matching source ownership and derived clipping.*) · `src/stroke_gpu.rs` (*Connect matching source ownership and derived clipping.*)
+
+Bind original flags without changing instance strides.
+
+> **Self-Check Question:** *Do flags change44,72 or32-byte original layouts?*  
+> **Answer:** No. A separate four-byte vertex stream preserves original geometry and integer owner addresses.
+
+- **Hands-On Lab Experiment:** Compare matching color/pick flag bindings and existing original ID stream7.
 
 <details>
 <summary>Implementation 87s-bind-original-flags-without-changing-instance-strides: Bind original flags without changing instance strides</summary>
@@ -8298,6 +8782,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-87t-keep-stroke-color-and-pick-exemptions-aligned"></a>
 
+### Step 30 of 38 · Keep stroke color and pick exemptions aligned (`87t-keep-stroke-color-and-pick-exemptions-aligned`)
+
+- **Goal:** Keep stroke color and pick exemptions aligned.
+- **Data Flow Trace:** `original source → checked derived clipping → current view`
+- **Files You Touch:** `src/finite_stroke.wgsl` (*Connect matching source ownership and derived clipping.*) · `src/finite_stroke_pick.wgsl` (*Connect matching source ownership and derived clipping.*)
+
+Keep stroke color and pick exemptions aligned.
+
+> **Self-Check Question:** *Can color and picking disagree about original plane flags?*  
+> **Answer:** No. Carry the same flag through their original geometry recipes and shared visibility predicate.
+
+- **Hands-On Lab Experiment:** Compare cut ordinary originals with immune original-plane boundaries.
+
 <details>
 <summary>Implementation 87t-keep-stroke-color-and-pick-exemptions-aligned: Keep stroke color and pick exemptions aligned</summary>
 
@@ -8557,6 +9054,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-87u-keep-chain-color-and-pick-exemptions-aligned"></a>
+
+### Step 31 of 38 · Keep chain color and pick exemptions aligned (`87u-keep-chain-color-and-pick-exemptions-aligned`)
+
+- **Goal:** Keep chain color and pick exemptions aligned.
+- **Data Flow Trace:** `original source → checked derived clipping → current view`
+- **Files You Touch:** `src/finite_chain.wgsl` (*Connect matching source ownership and derived clipping.*) · `src/finite_chain_pick.wgsl` (*Connect matching source ownership and derived clipping.*)
+
+Keep chain color and pick exemptions aligned.
+
+> **Self-Check Question:** *Can a chain arrowhead lose its original clipping exemption?*  
+> **Answer:** Carry the original flag through its geometry and both fragment paths. Reuse the [shared exemption contract](../../87t-keep-stroke-color-and-pick-exemptions-aligned.md).
+
+- **Hands-On Lab Experiment:** Cut an ordinary headed chain with a clipping plane and compare its color and ID result. An exempt plane boundary keeps its source flag through the same adapter.
 
 <details>
 <summary>Implementation 87u-keep-chain-color-and-pick-exemptions-aligned: Keep chain color and pick exemptions aligned</summary>
@@ -8954,6 +9464,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-87v-keep-marker-color-and-pick-exemptions-aligned"></a>
 
+### Step 32 of 38 · Keep marker color and pick exemptions aligned (`87v-keep-marker-color-and-pick-exemptions-aligned`)
+
+- **Goal:** Keep marker color and pick exemptions aligned.
+- **Data Flow Trace:** `original source → checked derived clipping → current view`
+- **Files You Touch:** `src/finite_marker.wgsl` (*Connect matching source ownership and derived clipping.*) · `src/finite_marker_pick.wgsl` (*Connect matching source ownership and derived clipping.*)
+
+Keep marker color and pick exemptions aligned.
+
+> **Self-Check Question:** *Which clipping flag governs an expanded marker disc?*  
+> **Answer:** The flag of its original source. Its quad must not acquire a new flag or a different picking exemption; see the [shared contract](../../87t-keep-stroke-color-and-pick-exemptions-aligned.md).
+
+- **Hands-On Lab Experiment:** Place an ordinary point across a clipping plane and compare visible and pickable disc coverage. Check the exempt original-plane marker separately.
+
 <details>
 <summary>Implementation 87v-keep-marker-color-and-pick-exemptions-aligned: Keep marker color and pick exemptions aligned</summary>
 
@@ -9177,6 +9700,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-87w-resolve-locked-and-selected-original-plane-boundaries"></a>
+
+### Step 33 of 38 · Resolve locked and selected original plane boundaries (`87w-resolve-locked-and-selected-original-plane-boundaries`)
+
+- **Goal:** Resolve locked and selected original plane boundaries.
+- **Data Flow Trace:** `original source → checked derived clipping → current view`
+- **Files You Touch:** `src/highlight.rs` (*Connect matching source ownership and derived clipping.*) · `src/renderer.rs` (*Connect the completed owner through this method.*)
+
+Resolve locked and selected original plane boundaries.
+
+> **Self-Check Question:** *Does selection change which planes cut?*  
+> **Answer:** No. Resolve exemptions from the original source owner for whole and part highlights, even when selectable IDs are zero.
+
+- **Hands-On Lab Experiment:** Inspect source edge-address lookup, locked outlines and separately charged flag allocations.
 
 <details>
 <summary>Implementation 87w-resolve-locked-and-selected-original-plane-boundaries: Resolve locked and selected original plane boundaries</summary>
@@ -9946,6 +10482,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-87x-clip-cached-original-point-cloud-discs"></a>
+
+### Step 34 of 38 · Clip cached original point cloud discs (`87x-clip-cached-original-point-cloud-discs`)
+
+- **Goal:** Clip cached original point cloud discs.
+- **Data Flow Trace:** `original source → checked derived clipping → current view`
+- **Files You Touch:** `src/cloud_gpu.rs` (*Connect matching source ownership and derived clipping.*) · `src/cloud_points.wgsl` (*Connect matching source ownership and derived clipping.*) · `src/renderer.rs` (*Connect the completed owner through this method.*) · `src/cloud_shader_contract.rs` (*Validate the completed clipped point source rather than its unexpanded file.*)
+
+Clip cached original point cloud discs.
+
+> **Self-Check Question:** *Does changing a plane reupload the cloud columns?*  
+> **Answer:** No. Include the clipping revision in the cached disc-image key and bind the shared uniform before preparing it.
+
+- **Hands-On Lab Experiment:** Compare On/Off, unchanged resting views, exact original u32 addresses and one retained source upload.
 
 <details>
 <summary>Implementation 87x-clip-cached-original-point-cloud-discs: Clip cached original point cloud discs</summary>
@@ -11462,6 +12011,19 @@ Update the existing block with this supplied code; keep unchanged lines:
 
 <a id="checkpoint-87y-clip-original-sheet-pens-and-integer-entities"></a>
 
+### Step 35 of 38 · Clip original sheet pens and integer entities (`87y-clip-original-sheet-pens-and-integer-entities`)
+
+- **Goal:** Clip original sheet pens and integer entities.
+- **Data Flow Trace:** `original source → checked derived clipping → current view`
+- **Files You Touch:** `src/sheet_pipeline.rs` (*Connect matching source ownership and derived clipping.*) · `src/sheet.wgsl` (*Connect matching source ownership and derived clipping.*) · `src/sheet_gpu.rs` (*Connect matching source ownership and derived clipping.*) · `src/pick_encode.rs` (*Connect matching source ownership and derived clipping.*)
+
+Clip original sheet pens and integer entities.
+
+> **Self-Check Question:** *Does a cropped pick lose the original sheet centerline?*  
+> **Answer:** No. Retain its un-cropped homogeneous position, authored pen width, original source entity and parent placement.
+
+- **Hands-On Lab Experiment:** Compare a segment crossing a cut, before-color picks and unchanged original columns.
+
 <details>
 <summary>Implementation 87y-clip-original-sheet-pens-and-integer-entities: Clip original sheet pens and integer entities</summary>
 
@@ -11814,6 +12376,19 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-87z-clip-text-anchors-with-all-six-original-planes"></a>
+
+### Step 36 of 38 · Clip text anchors with all six original planes (`87z-clip-text-anchors-with-all-six-original-planes`)
+
+- **Goal:** Clip text anchors with all six original planes.
+- **Data Flow Trace:** `original source → checked derived clipping → current view`
+- **Files You Touch:** `src/scene_text_gpu.rs` (*Connect matching source ownership and derived clipping.*) · `src/renderer.rs` (*Connect the completed owner through this method.*)
+
+Clip text anchors with all six original planes.
+
+> **Self-Check Question:** *Is text clipping a new glyph rasterization?*  
+> **Answer:** No. The current world-anchor rule removes cut labels before drawing and picking; shaped words remain cached.
+
+- **Hands-On Lab Experiment:** Compare the sixth plane, nameplate picks, original world text and retained font/glyph resources.
 
 <details>
 <summary>Implementation 87z-clip-text-anchors-with-all-six-original-planes: Clip text anchors with all six original planes</summary>
@@ -12700,6 +13275,19 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-87aa-observe-actual-clipping-resources-and-errors"></a>
+
+### Step 37 of 38 · Observe actual clipping resources and errors (`87aa-observe-actual-clipping-resources-and-errors`)
+
+- **Goal:** Observe actual clipping resources and errors.
+- **Data Flow Trace:** `original source → checked derived clipping → current view`
+- **Files You Touch:** `src/browser.rs` (*Connect matching source ownership and derived clipping.*)
+
+Observe actual clipping resources and errors.
+
+> **Self-Check Question:** *Do clipping counters prove Lenovo speed?*  
+> **Answer:** No. They show current rows, uniform writes and allocated flag bytes; real hardware motion timing remains separate.
+
+- **Hands-On Lab Experiment:** Compare unchanged frames, On/Off and the current f64 original plane coefficients.
 
 <details>
 <summary>Implementation 87aa-observe-actual-clipping-resources-and-errors: Observe actual clipping resources and errors</summary>
@@ -13655,6 +14243,20 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-87ab-exercise-original-clipping-color-and-picking"></a>
 
+### Step 38 of 38 · Exercise original clipping color and picking (`87ab-exercise-original-clipping-color-and-picking`)
+
+- **Goal:** Exercise original clipping color and picking.
+- **Data Flow Trace:** `original source → checked derived clipping → current view`
+- **Files You Touch:** `src/clipping_source_tests.rs` (*Retain the original source and explicit derived owner.*) · `src/lib.rs` (*Register the completed source owner.*) · `src/clipping_gpu_tests.rs` (*Retain the original source and explicit derived owner.*) · `src/clipping_uniform_tests.rs` (*Retain the original source and explicit derived owner.*)
+
+Exercise original clipping color and picking.
+
+> **Self-Check Question:** *What proves clipped owners cannot still be picked?*  
+> **Answer:** The supplied native checks read actual integer targets before color frames and compare retained/cut pixels across original families.
+
+- **What You Should See:** A blue original solid and red original line remain on the kept side; their cut halves are absent.
+- **Hands-On Lab Experiment:** Create Example CAD and Clipping Plane YZ 0,0,0. Fit the scene, switch Clipping Plane Off and On, then Flip it and Undo. Click the retained half and inspect the missing half. Save and reopen the drawing; optional GPU fixtures cover the additional ink families and pre-frame picks.
+
 <details>
 <summary>Implementation 87ab-exercise-original-clipping-color-and-picking: Exercise original clipping color and picking</summary>
 
@@ -13796,9 +14398,11 @@ After that block, append this supplied code:
 
 </details>
 
-## Run, Check, and Save
+---
 
-From `session_viewer`:
+## 5. Build, Verify, and Save Your Checkpoint
+
+Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 87ab-exercise-original-clipping-color-and-picking
@@ -13809,12 +14413,12 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. Use [checkpoint recovery](../../recovery.md) to restore any saved checkpoint.
+Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
 
-## Expected Visual Result & Experiment
+## 6. Lesson Summary & Expected Visual Result
 
 A blue original solid and red original line remain on the kept side; their cut halves are absent.
 
-- **Try this:** Create Example CAD and Clipping Plane YZ 0,0,0. Fit the scene, switch Clipping Plane Off and On, then Flip it and Undo. Click the retained half and inspect the missing half. Save and reopen the drawing; optional GPU fixtures cover the additional ink families and pre-frame picks.
+- **Final Lesson Experiment:** Create Example CAD and Clipping Plane YZ 0,0,0. Fit the scene, switch Clipping Plane Off and On, then Flip it and Undo. Click the retained half and inspect the missing half. Save and reopen the drawing; optional GPU fixtures cover the additional ink families and pre-frame picks.
 
-Continue with [Verified closed sections and exact cap picks](88-copy-original-closedness-and-winding.md).
+Continue with [Verified closed sections and exact cap picks](../../consolidation/88-copy-original-closedness-and-winding.md).

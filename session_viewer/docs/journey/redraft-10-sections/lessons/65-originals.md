@@ -1,93 +1,153 @@
 # 11.4 · Original point identity and manifest source records
 
-**Section 6: CAD B-Rep Topology, World Text Atlases, Outlines, and Point Clouds** · **Lesson 11.4** (Redraft `6.13`) · **6 checkpoints (`65-originals` → `65zb-validate-original-manifest-text-and-source-keys`)**
+**Section 6: CAD B-Rep Topology, World Text Atlases, Outlines, and Point Clouds** · **Lesson 11.4** (Redraft `6.13`) · **6 checkpoints (`65-originals` → `65zb-validate-original-manifest-text-and-source-keys`)** · **Study time: 3–6 h**
 
-> **Learning Goal:** Resolve source point identities and precise positions.
+> **What You Will Learn & Build:** Resolve source point identities and precise positions. By the final checkpoint (`65zb-validate-original-manifest-text-and-source-keys`), you will validate world text, heights and plane axes.
 
-## Visual WebGPU & Architecture Schematic
+## 1. Visual Pipeline & WebGPU Architecture (Black & White Schematics)
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1px solid #cbd5e1;border-radius:10px;background:#f8fafc;">
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
+<svg viewBox="0 0 840 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <rect x="4" y="4" width="832" height="212" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Lesson 11.4 Execution Flow: Original point identity and manifest source records</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">Concrete data pipeline you build in this lesson (6 Checkpoints: 65-originals → 65zb-validate-original-manifest-text-and-source-keys)</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
+  
+    
+    <rect x="18" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="89" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
+    <line x1="28" y1="92" x2="151" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">stored source row</text>
+    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="183" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="254" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
+    <line x1="193" y1="92" x2="316" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">original u32 ID</text>
+    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="348" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="419" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
+    <line x1="358" y1="92" x2="481" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">placed f64 point</text>
+    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="513" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="584" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
+    <line x1="523" y1="92" x2="646" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">local highlight</text>
+    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="678" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="749" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
+    <line x1="688" y1="92" x2="811" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">original family</text>
+    
+    <rect x="18" y="162" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="32" y="181" font-size="11" font-weight="700" fill="#111111">Files You Edit in Lesson 11.4:</text>
+    <text x="215" y="181" font-size="11" fill="#111111">src/cloud.rs  ·  src/cloud_pick.rs  ·  src/scene.rs  ·  src/pick_sources.rs  ·  src/selection.rs  ·  src/highlight.rs</text>
+    <text x="32" y="198" font-size="10.5" fill="#111111">6 Checkpoints: 65-originals → 65zb-validate-original-manifest-text-and-source-keys — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
+  
+</svg>
+</div>
+
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
 <svg viewBox="0 0 840 240" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#475569"/>
-    </marker>
-    <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#2563eb"/>
-    </marker>
-    <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#059669"/>
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
     </marker>
   </defs>
-  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
-  <text x="20" y="28" font-size="14" font-weight="700" fill="#0f172a">Chapter 9 CAD B-Rep Pipeline: Topological Loops/Trims, Crease Normals & Analytical Boundary Wires</text>
-  <text x="20" y="46" font-size="11.5" fill="#475569">How exact Boundary Representations (B-Rep) combine shaded trimmed surface meshes with crisp analytical boundary & isoline curves.</text>
-  <line x1="16" y1="54" x2="824" y2="54" stroke="#e2e8f0" stroke-width="1"/>
+  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Chapter 9 CAD B-Rep Pipeline: Topological Loops/Trims, Crease Normals & Analytical Boundary Wires</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">How exact Boundary Representations (B-Rep) combine shaded trimmed surface meshes with crisp analytical boundary & isoline curves.</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
   
-    <rect x="18" y="68" width="245" height="145" rx="6" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
-    <text x="140" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1e40af">1. B-Rep Topological Validation</text>
-    <text x="28" y="108" font-size="10.5" fill="#1e3a8a">• Solid -&gt; Faces -&gt; Loops (Outer + Holes)</text>
-    <text x="28" y="126" font-size="10.5" fill="#1e3a8a">• Trim curves in 2D (u, v) domain</text>
-    <text x="28" y="144" font-size="10.5" font-weight="600" fill="#1d4ed8">• Validate orientation, loop closure,</text>
-    <text x="28" y="160" font-size="10.5" font-weight="600" fill="#1d4ed8">  and manifold edge adjacency</text>
-    <text x="28" y="180" font-size="10.5" fill="#1e3a8a">• Preserve exact NURBS surface source</text>
+    <rect x="18" y="68" width="245" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="140" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">1. B-Rep Topological Validation</text>
+    <text x="28" y="108" font-size="10.5" fill="#111111">• Solid -&gt; Faces -&gt; Loops (Outer + Holes)</text>
+    <text x="28" y="126" font-size="10.5" fill="#111111">• Trim curves in 2D (u, v) domain</text>
+    <text x="28" y="144" font-size="10.5" font-weight="600" fill="#111111">• Validate orientation, loop closure,</text>
+    <text x="28" y="160" font-size="10.5" font-weight="600" fill="#111111">  and manifold edge adjacency</text>
+    <text x="28" y="180" font-size="10.5" fill="#111111">• Preserve exact NURBS surface source</text>
 
-    <line x1="263" y1="112" x2="295" y2="112" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
-    <line x1="263" y1="175" x2="295" y2="175" stroke="#059669" stroke-width="2" marker-end="url(#arrow-green)"/>
+    <line x1="263" y1="112" x2="295" y2="112" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
+    <line x1="263" y1="175" x2="295" y2="175" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="297" y="68" width="275" height="68" rx="6" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5"/>
-    <text x="309" y="86" font-size="11" font-weight="700" fill="#9a3412">2A. Shaded Trimmed Faces (Surface Lane)</text>
-    <text x="309" y="104" font-size="10.5" fill="#7c2d12">• Tessellate within (u,v) trim loops</text>
-    <text x="309" y="120" font-size="10.5" fill="#7c2d12">• Smooth normals across G1; split at creases!</text>
+    <rect x="297" y="68" width="275" height="68" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="309" y="86" font-size="11" font-weight="700" fill="#111111">2A. Shaded Trimmed Faces (Surface Lane)</text>
+    <text x="309" y="104" font-size="10.5" fill="#111111">• Tessellate within (u,v) trim loops</text>
+    <text x="309" y="120" font-size="10.5" fill="#111111">• Smooth normals across G1; split at creases!</text>
 
-    <rect x="297" y="145" width="275" height="68" rx="6" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1.5"/>
-    <text x="309" y="163" font-size="11" font-weight="700" fill="#065f46">2B. Boundary Wires &amp; Isolines (Ribbon Lane)</text>
-    <text x="309" y="181" font-size="10.5" fill="#064e3b">• Extract 3D topological edges + UV isolines</text>
-    <text x="309" y="197" font-size="10.5" fill="#064e3b">• Render via ribbon.wgsl with depth bias</text>
+    <rect x="297" y="145" width="275" height="68" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="309" y="163" font-size="11" font-weight="700" fill="#111111">2B. Boundary Wires &amp; Isolines (Ribbon Lane)</text>
+    <text x="309" y="181" font-size="10.5" fill="#111111">• Extract 3D topological edges + UV isolines</text>
+    <text x="309" y="197" font-size="10.5" fill="#111111">• Render via ribbon.wgsl with depth bias</text>
 
-    <line x1="572" y1="138" x2="602" y2="138" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>
+    <line x1="572" y1="138" x2="602" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="604" y="68" width="216" height="145" rx="6" fill="#fdf2f8" stroke="#f472b6" stroke-width="1.5"/>
-    <text x="712" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#9d174d">3. Unified B-Rep Sub-Picking</text>
-    <text x="616" y="108" font-size="10.5" fill="#831843">• Every triangle &amp; wire carries</text>
-    <text x="616" y="124" font-size="10.5" font-weight="600" fill="#9d174d">  [brep_owner_id, sub_id]</text>
-    <text x="616" y="144" font-size="10" fill="#831843">• Click selects whole B-Rep solid</text>
-    <text x="616" y="159" font-size="10" fill="#831843">  or drills into Face #i / Edge #j</text>
-    <text x="616" y="178" font-size="10.5" fill="#831843">• Outlines &amp; Point Clouds (Sec 6)</text>
-    <text x="616" y="193" font-size="10" fill="#831843">  share the same owner ID contract</text>
+    <rect x="604" y="68" width="216" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="712" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">3. Unified B-Rep Sub-Picking</text>
+    <text x="616" y="108" font-size="10.5" fill="#111111">• Every triangle &amp; wire carries</text>
+    <text x="616" y="124" font-size="10.5" font-weight="600" fill="#111111">  [brep_owner_id, sub_id]</text>
+    <text x="616" y="144" font-size="10" fill="#111111">• Click selects whole B-Rep solid</text>
+    <text x="616" y="159" font-size="10" fill="#111111">  or drills into Face #i / Edge #j</text>
+    <text x="616" y="178" font-size="10.5" fill="#111111">• Outlines &amp; Point Clouds (Sec 6)</text>
+    <text x="616" y="193" font-size="10" fill="#111111">  share the same owner ID contract</text>
     
 </svg>
 </div>
 
-### Lesson Data Flow (`Rust` → `WebGPU` → `WGSL`)
+## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
 
-```
-stored source row → original u32 ID → placed f64 point → local highlight.
-selected cloud → Controls or F10 → one original parent → point selection.
-original family → pure calculation → result or refusal.
-```
+Before writing code, review how the three layers in this chapter talk to each other:
 
-- Resolve source point identities and precise positions.
-- Pick original points and prove source query reuse.
-- Validate world text, heights and plane axes.
-- **Why it works (Can an original ID be packed into the tagged GPU address?):** No. The GPU address has a bounded storage index. Original IDs can use all 32 bits, including 4294967295; resolve them from the original source after readback.
-
-### Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `Browser`)
-
-| Layer | Construct | First-Year Student Explanation |
+| Layer | Construct | Plain-English Explanation for Students |
 | :--- | :--- | :--- |
 | **CAD Topology** | `EdgeUse { edge_index, reversed, pcurve_2d }` | Connects two adjacent curved faces along one shared 3D `Edge` while giving each face its own oriented `(u, v)` trim curve. |
 | **WGSL (`splat.wgsl`)** | `let dist2 = dot(pixel_offset, pixel_offset); if dist2 > r2 { discard; }` | Turns each point quad into a crisp circular disc around an integer pixel center and discards corner fragments. |
 | **WGSL (`splat_resolve`)** | `exp(-edl_sum * 75.0 * strength)` | Computes Eye-Dome Lighting from neighbor depth discontinuities so unlit point clouds show 3D surface relief. |
 | **WGSL (`surface_outline`)** | Conservative mask dilation -> single composite | Detects silhouette and selection boundaries in screen space without duplicating 3D wire geometry. |
 
-**Production source (`session_viewer/src`):** [engine/gpu/surface_outline.rs](../../../../src/engine/gpu/surface_outline.rs), [engine/gpu/cloud.rs](../../../../src/engine/gpu/cloud.rs), [engine/gpu/lod.rs](../../../../src/engine/gpu/lod.rs), [engine/gpu/splat.rs](../../../../src/engine/gpu/splat.rs), [shaders/splat.wgsl](../../../../src/shaders/splat.wgsl), [shaders/splat_resolve.wgsl](../../../../src/shaders/splat_resolve.wgsl), [app/cloud_query.rs](../../../../src/app/cloud_query.rs).
+**Authoritative production source (`session_viewer/src`):** [engine/gpu/surface_outline.rs](../../../../src/engine/gpu/surface_outline.rs), [engine/gpu/cloud.rs](../../../../src/engine/gpu/cloud.rs), [engine/gpu/lod.rs](../../../../src/engine/gpu/lod.rs), [engine/gpu/splat.rs](../../../../src/engine/gpu/splat.rs), [shaders/splat.wgsl](../../../../src/shaders/splat.wgsl), [shaders/splat_resolve.wgsl](../../../../src/shaders/splat_resolve.wgsl), [app/cloud_query.rs](../../../../src/app/cloud_query.rs).
 
-## Implementation Checkpoints
+## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
 
-Apply these checkpoints in order inside `workspace/journey`. Expand each block to view the Rust/WGSL/HTML edits:
+| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
+| ---: | :--- | :--- | :--- | :--- |
+| **1** | [`65-originals`](#checkpoint-65-originals) | Resolve source point identities and precise positions. | `src/cloud.rs`, `src/cloud_pick.rs`, `src/scene.rs`, `src/pick_sources.rs` | `stored source row → original u32 ID → placed f64 point → local highlight` |
+| **2** | [`65a-addresses`](#checkpoint-65a-addresses) | Recover original IDs from integer cloud pixels. | `src/pick_sources.rs`, `src/cloud_gpu.rs`, `src/cloud_resolve.wgsl` | `active original parent → complete resident run → integer stored address → original ID lookup` |
+| **3** | [`65b-controls`](#checkpoint-65b-controls) | Enter source controls with the current command or F10. | `src/editor.rs`, `src/commands.rs`, `src/shortcuts.rs`, `src/shortcuts_tests.rs` | `selected cloud → Controls or F10 → one original parent → point selection` |
+| **4** | [`65c-cloud-point`](#checkpoint-65c-cloud-point) | Pick original points and prove source query reuse. | `src/cloud_pick_tests.rs`, `src/lib.rs`, `src/pick_gpu_tests.rs` | `original sparse IDs → actual integer readback → local marker → cancellation and source reuse` |
+| **5** | [`65za-read-original-manifest-records-and-placements`](#checkpoint-65za-read-original-manifest-records-and-placements) | Pin the parser dependencies and write geometry/text records with their defaults. | `Cargo.toml`, `src/manifest.rs`, `src/lib.rs` | `original family → pure calculation → result or refusal` |
+| **6** | [`65zb-validate-original-manifest-text-and-source-keys`](#checkpoint-65zb-validate-original-manifest-text-and-source-keys) | Validate world text, heights and plane axes. | `src/manifest.rs` | `original family → pure calculation → result or refusal` |
+
+---
+
+## 4. Step-by-Step Coding Notebook (Concept + Implementation)
+
+Work through each notebook cell below in order inside `workspace/journey`. Read the **Concept Walkthrough** and **Self-Check Q&A** first, then expand the **Implementation** block to type and verify the code.
 
 <a id="checkpoint-65-originals"></a>
+
+### Step 1 of 6 · Resolve source point identities and precise positions (`65-originals`)
+
+- **Goal:** Resolve source point identities and precise positions.
+- **Data Flow Trace:** `stored source row → original u32 ID → placed f64 point → local highlight`
+- **Files You Touch:** `src/cloud.rs` (*Retain source point identity, one control owner and precise placement without rewriting the original cloud.*) · `src/cloud_pick.rs` (*Retain source point identity, one control owner and precise placement without rewriting the original cloud.*) · `src/scene.rs` (*Retain source point identity, one control owner and precise placement without rewriting the original cloud.*) · `src/pick_sources.rs` (*Retain source point identity, one control owner and precise placement without rewriting the original cloud.*) · `src/selection.rs` (*Retain source point identity, one control owner and precise placement without rewriting the original cloud.*) · `src/highlight.rs` (*Retain source point identity, one control owner and precise placement without rewriting the original cloud.*) · `src/part_preview.rs` (*Retain source point identity, one control owner and precise placement without rewriting the original cloud.*) · `src/lib.rs` (*Register the source component.*)
+
+Keep the original point ID distinct from its current storage row. A selected point retains the original cloud owner and independent f64 placement.
+
+> **Self-Check Question:** *Can an original ID be packed into the tagged GPU address?*  
+> **Answer:** No. The GPU address has a bounded storage index. Original IDs can use all 32 bits, including 4294967295; resolve them from the original source after readback.
+
+- **What You Should See:** The coloured original cloud remains visible. The final checkpoint adds a local yellow highlight for a selected original point.
+- **Hands-On Lab Experiment:** Trace a cloud with original IDs 4294967295 and 16777217. Translate its row by 1000000000.125; compare source coordinates with the precise placed selection position.
 
 <details>
 <summary>Implementation 65-originals: Resolve source point identities and precise positions</summary>
@@ -1201,6 +1261,19 @@ After that block, type:
 
 <a id="checkpoint-65a-addresses"></a>
 
+### Step 2 of 6 · Recover original IDs from integer cloud pixels (`65a-addresses`)
+
+- **Goal:** Recover original IDs from integer cloud pixels.
+- **Data Flow Trace:** `active original parent → complete resident run → integer stored address → original ID lookup`
+- **Files You Touch:** `src/pick_sources.rs` (*Return original integer storage addresses and query the active parent’s complete resident points.*) · `src/cloud_gpu.rs` (*Return original integer storage addresses and query the active parent’s complete resident points.*) · `src/cloud_resolve.wgsl` (*Return original integer storage addresses and query the active parent’s complete resident points.*)
+
+In control mode, return the cached owner and original storage address. Only the active parent exposes original points; other visible clouds still occlude.
+
+> **Self-Check Question:** *Can ordinary coarse display points limit the control query?*  
+> **Answer:** No. The active resident parent uses the complete original resident prefix. Returning to object viewing restores ordinary LOD, reusing source columns; streamed queries later inspect bounded source pages instead.
+
+- **Hands-On Lab Experiment:** Compare a coarse 64-point view with its active 2000064-point source query. Keep the same GPU upload counter and return to the 64-point display after Controls Off.
+
 <details>
 <summary>Implementation 65a-addresses: Recover original IDs from integer cloud pixels</summary>
 
@@ -1278,6 +1351,19 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-65b-controls"></a>
+
+### Step 3 of 6 · Enter source controls with the current command or F10 (`65b-controls`)
+
+- **Goal:** Enter source controls with the current command or F10.
+- **Data Flow Trace:** `selected cloud → Controls or F10 → one original parent → point selection`
+- **Files You Touch:** `src/editor.rs` (*Route the current Controls command and canvas-owned F10 to one original cloud parent.*) · `src/commands.rs` (*Route the current Controls command and canvas-owned F10 to one original cloud parent.*) · `src/shortcuts.rs` (*Route the current Controls command and canvas-owned F10 to one original cloud parent.*) · `src/shortcuts_tests.rs` (*Copy the earlier shortcut checks plus focused F10 ownership coverage.*)
+
+Type Controls after selecting one cloud, or press F10 while the canvas owns keys. Draw only a local point highlight and preserve history.
+
+> **Self-Check Question:** *Should F10 run while a name or command field owns the key?*  
+> **Answer:** No. Fields and open popups retain keyboard ownership. Controls activates one selected cloud, removes its whole selection highlight and leaves original geometry and history intact.
+
+- **Hands-On Lab Experiment:** Type Example Cloud, Select Next and Controls. Pick a point and inspect its original ID. Type Controls Off to return to its parent; compare the same source GUID and upload count.
 
 <details>
 <summary>Implementation 65b-controls: Enter source controls with the current command or F10</summary>
@@ -2299,6 +2385,20 @@ After that block, append this supplied code:
 
 <a id="checkpoint-65c-cloud-point"></a>
 
+### Step 4 of 6 · Pick original points and prove source query reuse (`65c-cloud-point`)
+
+- **Goal:** Pick original points and prove source query reuse.
+- **Data Flow Trace:** `original sparse IDs → actual integer readback → local marker → cancellation and source reuse`
+- **Files You Touch:** `src/cloud_pick_tests.rs` (*Copy original point-ID, f64 placement, eligibility, parent and source/history invariants.*) · `src/lib.rs` (*Register the source component.*) · `src/pick_gpu_tests.rs` (*Copy actual full-u32 integer picks, local highlights, locked coverage, resident source queries, cancellation and shared-upload checks.*)
+
+Copy source and GPU regressions. Query original points omitted by a real coarse view, then restore display detail without reuploading source columns.
+
+> **Self-Check Question:** *Do the native checks replace browser or Lenovo acceptance?*  
+> **Answer:** No. They verify actual integer pixels and source invariants on the available software GPU. The browser contract remains pending, and hardware rotation/zoom timing still needs the Lenovo.
+
+- **What You Should See:** Select the cloud, type Controls or press canvas F10, then click a visible original point. Its source ID is reported and only that point receives a yellow marker. Controls Off returns to the original parent and ordinary view detail. Cloud point editing is explicitly guarded until77. Close releases all cloud and highlight owners.
+- **Hands-On Lab Experiment:** Type Example Cloud, Select Next and Controls, then click an original point and read its reported source ID. Use Controls Off to return to the parent. Read the optional high-ID and coarse-view fixtures for cases too large to infer from this small browser example.
+
 <details>
 <summary>Implementation 65c-cloud-point: Pick original points and prove source query reuse</summary>
 
@@ -2381,6 +2481,20 @@ After that block, append this supplied code:
 </details>
 
 <a id="checkpoint-65za-read-original-manifest-records-and-placements"></a>
+
+### Step 5 of 6 · Read original manifest records and placements (`65za-read-original-manifest-records-and-placements`)
+
+- **Goal:** Pin the parser dependencies and write geometry/text records with their defaults.
+- **Data Flow Trace:** `original family → pure calculation → result or refusal`
+- **Files You Touch:** `Cargo.toml` (*Edit the named browser features and pinned manifest dependencies; keep existing entries.*) · `src/manifest.rs` (*Type the whole original helpers introduced today.*) · `src/lib.rs` (*Register the original manifest records and helpers.*)
+
+Pin the parser dependencies and write geometry/text records with their defaults. Resolve full matrices before translations and keep one shared automatic-grid placement helper.
+
+> **Self-Check Question:** *Why distinguish stored size from decoded size?*  
+> **Answer:** An encoded source declares its decoded size. It is downloaded and decoded as a whole instead of being treated as a raw range-readable file.
+
+- **What You Should See:** Manifest records retain original source keys and precise placements; loading is not connected yet.
+- **Hands-On Lab Experiment:** Trace a matrix, translation and automatic placement. Compare an encoded source with an unencoded source.
 
 <details>
 <summary>Implementation 65za-read-original-manifest-records-and-placements: Read original manifest records and placements</summary>
@@ -2538,6 +2652,20 @@ After that block, type:
 
 <a id="checkpoint-65zb-validate-original-manifest-text-and-source-keys"></a>
 
+### Step 6 of 6 · Validate original manifest text and source keys (`65zb-validate-original-manifest-text-and-source-keys`)
+
+- **Goal:** Validate world text, heights and plane axes.
+- **Data Flow Trace:** `original family → pure calculation → result or refusal`
+- **Files You Touch:** `src/manifest.rs` (*Extend this original owner with today’s complete helper.*)
+
+Validate world text, heights and plane axes. Reuse the original format readers, write immutable-source keys and add placement/name accessors using the earlier records.
+
+> **Self-Check Question:** *Why validate text axes before making labels?*  
+> **Answer:** World text needs finite unit directions with a usable right-angle frame. Invalid axes would produce an unusable placement even when the text itself parses.
+
+- **What You Should See:** Manifest validation can reject malformed text and source keys before browser loading is connected.
+- **Hands-On Lab Experiment:** Trace empty text, an invalid height and non-unit axes through the original checks. Compare a content-addressed source key with a mutable filename.
+
 <details>
 <summary>Implementation 65zb-validate-original-manifest-text-and-source-keys: Validate original manifest text and source keys</summary>
 
@@ -2580,9 +2708,11 @@ Edit the existing block to match this code; keep unchanged lines:
 
 </details>
 
-## Run, Check, and Save
+---
 
-From `session_viewer`:
+## 5. Build, Verify, and Save Your Checkpoint
+
+Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 65zb-validate-original-manifest-text-and-source-keys
@@ -2593,10 +2723,10 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. Use [checkpoint recovery](../../recovery.md) to restore any saved checkpoint.
+Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
 
-## Expected Visual Result & Experiment
+## 6. Lesson Summary & Expected Visual Result
 
 Manifest validation can reject malformed text and source keys before browser loading is connected.
 
-- **Try this:** Trace empty text, an invalid height and non-unit axes through the original checks. Compare a content-addressed source key with a mutable filename.
+- **Final Lesson Experiment:** Trace empty text, an invalid height and non-unit axes through the original checks. Compare a content-addressed source key with a mutable filename.

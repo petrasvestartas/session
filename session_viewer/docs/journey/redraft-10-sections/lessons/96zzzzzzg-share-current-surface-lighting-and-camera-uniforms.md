@@ -1,90 +1,153 @@
 # 22.1 · Original surface colours and lighting controls
 
-**Section 10: Shared GPU Arenas, Floating-Origin Precision, Multisampling, and Production Parity** · **Lesson 22.1** (Redraft `10.16`) · **2 checkpoints (`96zzzzzzg-share-current-surface-lighting-and-camera-uniforms` → `96zzzzzzh-connect-headlight-and-backface-controls`)**
+**Section 10: Shared GPU Arenas, Floating-Origin Precision, Multisampling, and Production Parity** · **Lesson 22.1** (Redraft `10.16`) · **2 checkpoints (`96zzzzzzg-share-current-surface-lighting-and-camera-uniforms` → `96zzzzzzh-connect-headlight-and-backface-controls`)** · **Study time: 2–4 h**
 
-> **Learning Goal:** Keep original fill colors and Arctic sky shading in one surface shader, with stable ambient cameras during wide zoom.
+> **What You Will Learn & Build:** Keep original fill colors and Arctic sky shading in one surface shader, with stable ambient cameras during wide zoom. By the final checkpoint (`96zzzzzzh-connect-headlight-and-backface-controls`), you will expose current headlight and backface presentation through the existing surface shader, editor commands and browser settings.
 
-## Visual WebGPU & Architecture Schematic
+## 1. Visual Pipeline & WebGPU Architecture (Black & White Schematics)
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1px solid #cbd5e1;border-radius:10px;background:#f8fafc;">
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
+<svg viewBox="0 0 840 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <rect x="4" y="4" width="832" height="212" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Lesson 22.1 Execution Flow: Original surface colours and lighting controls</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">Concrete data pipeline you build in this lesson (2 Checkpoints: 96zzzzzzg-share-current-surface-lighting-and-camera-uniforms → 96zzzzzzh-connect-headlight-and-backface-controls)</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
+  
+    
+    <rect x="18" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="89" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
+    <line x1="28" y1="92" x2="151" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">Existing view</text>
+    <text x="89" y="124" text-anchor="middle" font-size="11" fill="#111111">controls</text>
+    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="183" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="254" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
+    <line x1="193" y1="92" x2="316" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">one frame encoder</text>
+    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="348" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="419" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
+    <line x1="358" y1="92" x2="481" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">shared surface</text>
+    <text x="419" y="124" text-anchor="middle" font-size="11" fill="#111111">shader; scaled</text>
+    <text x="419" y="140" text-anchor="middle" font-size="11" fill="#111111">clipping…</text>
+    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="513" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="584" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
+    <line x1="523" y1="92" x2="646" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">ambient and depth</text>
+    <text x="584" y="124" text-anchor="middle" font-size="11" fill="#111111">pyramid</text>
+    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="678" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="749" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
+    <line x1="688" y1="92" x2="811" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">View command or</text>
+    <text x="749" y="124" text-anchor="middle" font-size="11" fill="#111111">startup query</text>
+    
+    <rect x="18" y="162" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="32" y="181" font-size="11" font-weight="700" fill="#111111">Files You Edit in Lesson 22.1:</text>
+    <text x="215" y="181" font-size="11" fill="#111111">src/surface_view.rs  ·  src/lib.rs  ·  src/renderer.rs  ·  src/face_pick.rs  ·  src/ambient_source_pipeline.rs  ·  src/cap_pipeline.rs</text>
+    <text x="32" y="198" font-size="10.5" fill="#111111">2 Checkpoints: 96zzzzzzg-share-current-surface-lighting-and-camera-uniforms → 96zzzzzzh-connect-headlight-and-backface-controls — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
+  
+</svg>
+</div>
+
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
 <svg viewBox="0 0 840 240" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#475569"/>
-    </marker>
-    <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#2563eb"/>
-    </marker>
-    <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#059669"/>
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
     </marker>
   </defs>
-  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
-  <text x="20" y="28" font-size="14" font-weight="700" fill="#0f172a">Section 10 Production Architecture: Shared GPU Storage Arena, f64 Floating Origin, Reversed-Z, 4x MSAA & Matrix Shader</text>
-  <text x="20" y="46" font-size="11.5" fill="#475569">How the maintained viewer pulls vertices from one growable GPU arena, eliminates jitter at 10^12 units, and renders procedural Matrices.</text>
-  <line x1="16" y1="54" x2="824" y2="54" stroke="#e2e8f0" stroke-width="1"/>
+  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Section 10 Production Architecture: Shared GPU Storage Arena, f64 Floating Origin, Reversed-Z, 4x MSAA & Matrix Shader</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">How the maintained viewer pulls vertices from one growable GPU arena, eliminates jitter at 10^12 units, and renders procedural Matrices.</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
   
-    <rect x="18" y="68" width="250" height="145" rx="6" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
-    <text x="143" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1e40af">1. Shared GPU Arena (Ch 19–20)</text>
-    <text x="28" y="108" font-size="10.5" fill="#1e3a8a">• 1 Growable Storage Buffer Arena</text>
-    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#1d4ed8">• Vertex Pulling (@builtin(vertex_index))</text>
-    <text x="28" y="144" font-size="10.5" fill="#1e3a8a">• 8-byte Draw Slots -&gt; ObjectRecord</text>
-    <text x="28" y="162" font-size="10.5" fill="#1e3a8a">• slot_table.wgsl maps Rg32Uint</text>
-    <text x="28" y="178" font-size="10.5" fill="#1e3a8a">  primitive IDs to Element/Face owners</text>
-    <text x="28" y="194" font-size="10" fill="#1e3a8a">• Free-list span reuse after GPU lease</text>
+    <rect x="18" y="68" width="250" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="143" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">1. Shared GPU Arena (Ch 19–20)</text>
+    <text x="28" y="108" font-size="10.5" fill="#111111">• 1 Growable Storage Buffer Arena</text>
+    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#111111">• Vertex Pulling (@builtin(vertex_index))</text>
+    <text x="28" y="144" font-size="10.5" fill="#111111">• 8-byte Draw Slots -&gt; ObjectRecord</text>
+    <text x="28" y="162" font-size="10.5" fill="#111111">• slot_table.wgsl maps Rg32Uint</text>
+    <text x="28" y="178" font-size="10.5" fill="#111111">  primitive IDs to Element/Face owners</text>
+    <text x="28" y="194" font-size="10" fill="#111111">• Free-list span reuse after GPU lease</text>
 
-    <line x1="268" y1="138" x2="298" y2="138" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
+    <line x1="268" y1="138" x2="298" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="300" y="68" width="265" height="145" rx="6" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5"/>
-    <text x="432" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#9a3412">2. f64 Floating Origin &amp; Reversed-Z (Ch 21)</text>
-    <text x="312" y="108" font-size="10.5" font-weight="600" fill="#c2410c">• rel_f32 = (world_f64 - anchor_f64) as f32</text>
-    <text x="312" y="125" font-size="10" fill="#7c2d12">  Zero vertex/grid jitter even at 10^12 m!</text>
-    <text x="312" y="144" font-size="10.5" font-weight="600" fill="#c2410c">• Reversed-Z Depth (GreaterEqual):</text>
-    <text x="312" y="160" font-size="10" fill="#7c2d12">  Near plane = 1.0, Far plane = 0.0</text>
-    <text x="312" y="178" font-size="10.5" fill="#7c2d12">• Held world base grid &amp; preserved</text>
-    <text x="312" y="193" font-size="10.5" fill="#7c2d12">  live camera during Session reload</text>
+    <rect x="300" y="68" width="265" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="432" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">2. f64 Floating Origin &amp; Reversed-Z (Ch 21)</text>
+    <text x="312" y="108" font-size="10.5" font-weight="600" fill="#111111">• rel_f32 = (world_f64 - anchor_f64) as f32</text>
+    <text x="312" y="125" font-size="10" fill="#111111">  Zero vertex/grid jitter even at 10^12 m!</text>
+    <text x="312" y="144" font-size="10.5" font-weight="600" fill="#111111">• Reversed-Z Depth (GreaterEqual):</text>
+    <text x="312" y="160" font-size="10" fill="#111111">  Near plane = 1.0, Far plane = 0.0</text>
+    <text x="312" y="178" font-size="10.5" fill="#111111">• Held world base grid &amp; preserved</text>
+    <text x="312" y="193" font-size="10.5" fill="#111111">  live camera during Session reload</text>
 
-    <line x1="565" y1="138" x2="595" y2="138" stroke="#059669" stroke-width="2" marker-end="url(#arrow-green)"/>
+    <line x1="565" y1="138" x2="595" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="597" y="68" width="223" height="145" rx="6" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1.5"/>
-    <text x="708" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#065f46">3. 4x MSAA &amp; Matrix Shader (Ch 22)</text>
-    <text x="609" y="108" font-size="10.5" fill="#064e3b">• Coherent 1x/4x MSAA sample targets</text>
-    <text x="609" y="126" font-size="10.5" font-weight="600" fill="#047857">• matrix.wgsl (16w header + 3w/cell):</text>
-    <text x="609" y="142" font-size="10" fill="#064e3b">  Heatmap + procedural 3-decimal digits</text>
-    <text x="609" y="157" font-size="10" fill="#064e3b">  (0 cell blank; plate-less title; yellow</text>
-    <text x="609" y="172" font-size="10" fill="#064e3b">  selected border; Rg32Uint whole pick)</text>
-    <text x="609" y="190" font-size="10" fill="#064e3b">• Coalesced single-flight frame scheduler</text>
+    <rect x="597" y="68" width="223" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="708" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">3. 4x MSAA &amp; Matrix Shader (Ch 22)</text>
+    <text x="609" y="108" font-size="10.5" fill="#111111">• Coherent 1x/4x MSAA sample targets</text>
+    <text x="609" y="126" font-size="10.5" font-weight="600" fill="#111111">• matrix.wgsl (16w header + 3w/cell):</text>
+    <text x="609" y="142" font-size="10" fill="#111111">  Heatmap + procedural 3-decimal digits</text>
+    <text x="609" y="157" font-size="10" fill="#111111">  (0 cell blank; plate-less title; yellow</text>
+    <text x="609" y="172" font-size="10" fill="#111111">  selected border; Rg32Uint whole pick)</text>
+    <text x="609" y="190" font-size="10" fill="#111111">• Coalesced single-flight frame scheduler</text>
     
 </svg>
 </div>
 
-### Lesson Data Flow (`Rust` → `WebGPU` → `WGSL`)
+## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
 
-```
-Existing view controls → one frame encoder → shared surface shader; scaled clipping inverse → ambient and depth pyramid.
-View command or startup query → existing editor settings → shared frame → the same surface shader.
-```
+Before writing code, review how the three layers in this chapter talk to each other:
 
-- Keep original fill colors and Arctic sky shading in one surface shader, with stable ambient cameras during wide zoom.
-- Expose current headlight and backface presentation through the existing surface shader, editor commands and browser settings.
-- **Why it works (Why share the frame and inverse instead of adding another camera?):** All passes already use the same anchored projection. One frame encoder keeps its byte layout consistent, and the existing scaled inverse handles camera units without retaining scene or camera copies.
-
-### Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `Browser`)
-
-| Layer | Construct | First-Year Student Explanation |
+| Layer | Construct | Plain-English Explanation for Students |
 | :--- | :--- | :--- |
 | **WGSL (Vertex Pull)** | `@group(0) @binding(b) var<storage, read> arena_verts: array<u32>;` | Fetches packed vertex positions, normals, and colors directly from a single growable storage buffer using `@builtin(vertex_index)`. |
 | **Rust/WGSL (`f64`->`f32`)** | `let rel: Vec3 = (world_f64 - anchor_f64).as_vec3();` | Subtracts the camera-area `f64` anchor on the CPU before converting to `f32`, preventing 32-bit float mantissa exhaustion far from `(0,0,0)`. |
 | **WGSL (`matrix.wgsl`)** | 16-word header + 3 words/cell procedural digits | Renders matrix heatmaps and 3-decimal numeric digits procedurally inside the fragment shader with zero texture uploads per cell. |
 | **Rust (`ink_ranges.rs`)** | Merged contiguous `Range<u32>` instance draws | Toggles point/line/edge/CAD-wire family visibility without rebuilding GPU buffers or invalidating original owner indices. |
 
-**Production source (`session_viewer/src`):** [engine/gpu/render.rs](../../../../src/engine/gpu/render.rs), [engine/gpu/pass.rs](../../../../src/engine/gpu/pass.rs), [engine/gpu/targets.rs](../../../../src/engine/gpu/targets.rs), [engine/gpu/frame.rs](../../../../src/engine/gpu/frame.rs), [engine/gpu/view.rs](../../../../src/engine/gpu/view.rs), [engine/pipelines/mod.rs](../../../../src/engine/pipelines/mod.rs), [shaders/triangle.wgsl](../../../../src/shaders/triangle.wgsl), [shaders/ribbon.wgsl](../../../../src/shaders/ribbon.wgsl), [shaders/vector.wgsl](../../../../src/shaders/vector.wgsl), [shaders/ink_visibility.wgsl](../../../../src/shaders/ink_visibility.wgsl), [app/scene.rs](../../../../src/app/scene.rs), [build.rs](../../../../build.rs).
+**Authoritative production source (`session_viewer/src`):** [engine/gpu/render.rs](../../../../src/engine/gpu/render.rs), [engine/gpu/pass.rs](../../../../src/engine/gpu/pass.rs), [engine/gpu/targets.rs](../../../../src/engine/gpu/targets.rs), [engine/gpu/frame.rs](../../../../src/engine/gpu/frame.rs), [engine/gpu/view.rs](../../../../src/engine/gpu/view.rs), [engine/pipelines/mod.rs](../../../../src/engine/pipelines/mod.rs), [shaders/triangle.wgsl](../../../../src/shaders/triangle.wgsl), [shaders/ribbon.wgsl](../../../../src/shaders/ribbon.wgsl), [shaders/vector.wgsl](../../../../src/shaders/vector.wgsl), [shaders/ink_visibility.wgsl](../../../../src/shaders/ink_visibility.wgsl), [app/scene.rs](../../../../src/app/scene.rs), [build.rs](../../../../build.rs).
 
-## Implementation Checkpoints
+## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
 
-Apply these checkpoints in order inside `workspace/journey`. Expand each block to view the Rust/WGSL/HTML edits:
+| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
+| ---: | :--- | :--- | :--- | :--- |
+| **1** | [`96zzzzzzg-share-current-surface-lighting-and-camera-uniforms`](#checkpoint-96zzzzzzg-share-current-surface-lighting-and-camera-uniforms) | Keep original fill colors and Arctic sky shading in one surface shader, with stable ambient cameras during wide zoom. | `src/surface_view.rs`, `src/lib.rs`, `src/renderer.rs`, `src/face_pick.rs` | `Existing view controls → one frame encoder → shared surface shader; scaled clipping inverse → ambient and depth pyramid` |
+| **2** | [`96zzzzzzh-connect-headlight-and-backface-controls`](#checkpoint-96zzzzzzh-connect-headlight-and-backface-controls) | Expose current headlight and backface presentation through the existing surface shader, editor commands and browser settings. | `src/renderer.rs`, `src/triangle.wgsl`, `src/editor.rs`, `src/commands.rs` | `View command or startup query → existing editor settings → shared frame → the same surface shader` |
+
+---
+
+## 4. Step-by-Step Coding Notebook (Concept + Implementation)
+
+Work through each notebook cell below in order inside `workspace/journey`. Read the **Concept Walkthrough** and **Self-Check Q&A** first, then expand the **Implementation** block to type and verify the code.
 
 <a id="checkpoint-96zzzzzzg-share-current-surface-lighting-and-camera-uniforms"></a>
+
+### Step 1 of 2 · Share flat and Arctic surface frames (`96zzzzzzg-share-current-surface-lighting-and-camera-uniforms`)
+
+- **Goal:** Keep original fill colors and Arctic sky shading in one surface shader, with stable ambient cameras during wide zoom.
+- **Data Flow Trace:** `Existing view controls → one frame encoder → shared surface shader; scaled clipping inverse → ambient and depth pyramid`
+- **Files You Touch:** `src/surface_view.rs` (*Encode the existing anchored frame once, on the stack, with its current eye and projection kind.*) · `src/lib.rs` (*Keep one internal owner for the shared surface-frame layout.*) · `src/renderer.rs` (*Share the frame layout with derived surface pipelines.*) · `src/face_pick.rs` (*Keep every consumer of the shared frame on the same binding layout.*) · `src/ambient_source_pipeline.rs` (*Keep every consumer of the shared frame on the same binding layout.*) · `src/cap_pipeline.rs` (*Keep every consumer of the shared frame on the same binding layout.*) · `src/cap_pick_pipeline.rs` (*Keep every consumer of the shared frame on the same binding layout.*) · `src/outline_gpu.rs` (*Keep every consumer of the shared frame on the same binding layout.*) · `src/pick_gpu.rs` (*Grow only the shared pick view; its crop frame keeps its own size.*) · `src/triangle.wgsl` (*Read the same eye/projection block in both surface-record variants.*) · `src/clipping_uniform.rs` (*Share the existing scale-stable inverse and reject invalid inputs.*) · `src/ambient_camera.rs` (*Keep valid wide orthographic cameras in the real ambient pass.*) · `src/pyramid_gpu.rs` (*Reuse the same current camera inversion in the optional depth-pyramid path.*) · `src/surface_lighting_tests.rs` (*Supply real mode pixels, uniform/fallback restoration, current camera bytes and wide ambient/pyramid controls.*)
+
+A surface color should remain its original color when lighting is off. Arctic uses eye-facing soft sky light before its separate ambient compositor. Headlight and backface controls will connect to this same frame in the following lesson. Keep these modes in the existing shader so ordinary and placed originals agree. Extend the existing frame with the kernel-derived eye and projection kind, and share its size and byte encoder with original picking. Ink and sheet lanes retain their own frame owners. A wide orthographic camera also exposes a scale problem: the general kernel inverse rejects its small determinant. Reuse the row-scaled clipping inverse for ambient cameras and the depth pyramid rather than copying another inverse.
+
+> **Self-Check Question:** *Why share the frame and inverse instead of adding another camera?*  
+> **Answer:** All passes already use the same anchored projection. One frame encoder keeps its byte layout consistent, and the existing scaled inverse handles camera units without retaining scene or camera copies.
+
+- **What You Should See:** Flat and Arctic modes retain original geometry. Wide orthographic navigation keeps ambient shading live and recovers the exact view after zooming back.
+- **Hands-On Lab Experiment:** Compare Arctic On and Off on the same original surface. The default flat mode preserves its source color. Zoom a large Box out three times in Top/Orthographic with Arctic enabled, then zoom back. Compare original coordinates, geometry uploads, actual pixels and ambient errors.
 
 <details>
 <summary>Implementation 96zzzzzzg-share-current-surface-lighting-and-camera-uniforms: Share flat and Arctic surface frames</summary>
@@ -1539,6 +1602,20 @@ After that block, append this supplied code:
 </details>
 
 <a id="checkpoint-96zzzzzzh-connect-headlight-and-backface-controls"></a>
+
+### Step 2 of 2 · Connect headlight and backface controls (`96zzzzzzh-connect-headlight-and-backface-controls`)
+
+- **Goal:** Expose current headlight and backface presentation through the existing surface shader, editor commands and browser settings.
+- **Data Flow Trace:** `View command or startup query → existing editor settings → shared frame → the same surface shader`
+- **Files You Touch:** `src/renderer.rs` (*Store only the two optional presentation settings.*) · `src/triangle.wgsl` (*Reuse the current wrapped headlight, soft highlight, sky and backface colors in one shader.*) · `src/editor.rs` (*Keep presentation state beside Arctic.*) · `src/commands.rs` (*Share registry entries with command completion.*) · `src/browser_defaults.rs` (*Match current presence-based startup queries.*) · `src/browser.rs` (*Forward presentation through the same renderer.*) · `src/surface_controls_tests.rs` (*Supply command, draft/history and actual shared/fallback face-pixel controls.*) · `src/lib.rs` (*Register optional command controls.*) · `src/surface_controls_gpu_tests.rs` (*Supply actual headlight/backface, mirrored orientation, projection and exact restoration controls.*)
+
+The preceding lesson established one surface frame for flat and Arctic shading. Reuse its existing display fields for optional headlight and backface modes. A headlight follows the eye through either projection, with wrapped diffuse light and a soft highlight. Red backfaces use original face orientation, including mirrored placements. Contact and sheet fills keep their existing unlit behavior. Presentation commands must return before tool cancellation or history mutation, so a lighting change cannot consume a pending point or erase Redo.
+
+> **Self-Check Question:** *Why extend the existing display controls instead of adding another render pass?*  
+> **Answer:** These modes only change a face color. The original source, surface records, frame owner and draw path already contain everything the shader needs.
+
+- **What You Should See:** Headlight and backface modes change actual original face pixels and restore the exact flat image without a geometry upload or document edit.
+- **Hands-On Lab Experiment:** Compare View Lighting On and Off on the same original surface, then inspect an open face from behind with View Backfaces On. Change a mode while a Line is waiting for its second point, and check that its first point remains. Arctic still takes precedence over the optional headlight.
 
 <details>
 <summary>Implementation 96zzzzzzh-connect-headlight-and-backface-controls: Connect headlight and backface controls</summary>
@@ -5137,9 +5214,11 @@ Copy this supplied file:
 
 </details>
 
-## Run, Check, and Save
+---
 
-From `session_viewer`:
+## 5. Build, Verify, and Save Your Checkpoint
+
+Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 96zzzzzzh-connect-headlight-and-backface-controls
@@ -5150,12 +5229,12 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. Use [checkpoint recovery](../../recovery.md) to restore any saved checkpoint.
+Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
 
-## Expected Visual Result & Experiment
+## 6. Lesson Summary & Expected Visual Result
 
 Headlight and backface modes change actual original face pixels and restore the exact flat image without a geometry upload or document edit.
 
-- **Try this:** Compare View Lighting On and Off on the same original surface, then inspect an open face from behind with View Backfaces On. Change a mode while a Line is waiting for its second point, and check that its first point remains. Arctic still takes precedence over the optional headlight.
+- **Final Lesson Experiment:** Compare View Lighting On and Off on the same original surface, then inspect an open face from behind with View Backfaces On. Change a mode while a Line is waiting for its second point, and check that its first point remains. Arctic still takes precedence over the optional headlight.
 
-Continue with [Contact fills and original face queries](96zzzzzzi-share-one-frame-across-color-and-ink.md).
+Continue with [Contact fills and original face queries](../../consolidation/96zzzzzzi-share-one-frame-across-color-and-ink.md).

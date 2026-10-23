@@ -1,91 +1,159 @@
 # 22.6 · Original display controls and remaining integration boundaries
 
-**Section 10: Shared GPU Arenas, Floating-Origin Precision, Multisampling, and Production Parity** · **Lesson 22.6** (Redraft `10.21`) · **5 checkpoints (`96zzzzzzzm-retain-visible-instance-ranges` → `96zzzzzzzq-draw-original-cad-wire-curves`)**
+**Section 10: Shared GPU Arenas, Floating-Origin Precision, Multisampling, and Production Parity** · **Lesson 22.6** (Redraft `10.21`) · **5 checkpoints (`96zzzzzzzm-retain-visible-instance-ranges` → `96zzzzzzzq-draw-original-cad-wire-curves`)** · **Study time: 5–10 h**
 
-> **Learning Goal:** Keep absolute original query addresses while filtering existing instance buffers with merged CPU ranges.
+> **What You Will Learn & Build:** Keep absolute original query addresses while filtering existing instance buffers with merged CPU ranges. By the final checkpoint (`96zzzzzzzq-draw-original-cad-wire-curves`), you will display original CAD fallback curves through the existing joined path lane while retaining coherent source borders and independent family controls. Route ordinary lines through the exact production ribbon shader, storage rows and independent integer coverage.
 
-## Visual WebGPU & Architecture Schematic
+## 1. Visual Pipeline & WebGPU Architecture (Black & White Schematics)
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1px solid #cbd5e1;border-radius:10px;background:#f8fafc;">
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
+<svg viewBox="0 0 840 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <rect x="4" y="4" width="832" height="212" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Lesson 22.6 Execution Flow: Original display controls and remaining integration boundaries</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">Concrete data pipeline you build in this lesson (5 Checkpoints: 96zzzzzzzm-retain-visible-instance-ranges → 96zzzzzzzq-draw-original-cad-wire-curves)</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
+  
+    
+    <rect x="18" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="89" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
+    <line x1="28" y1="92" x2="151" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">Original source</text>
+    <text x="89" y="124" text-anchor="middle" font-size="11" fill="#111111">rows</text>
+    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="183" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="254" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
+    <line x1="193" y1="92" x2="316" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">merged CPU ranges</text>
+    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="348" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="419" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
+    <line x1="358" y1="92" x2="481" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">unchanged colour</text>
+    <text x="419" y="124" text-anchor="middle" font-size="11" fill="#111111">and query buffers</text>
+    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="513" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="584" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
+    <line x1="523" y1="92" x2="646" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">Original BRep curve</text>
+    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="678" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="749" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
+    <line x1="688" y1="92" x2="811" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">retained samples</text>
+    
+    <rect x="18" y="162" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="32" y="181" font-size="11" font-weight="700" fill="#111111">Files You Edit in Lesson 22.6:</text>
+    <text x="215" y="181" font-size="11" fill="#111111">src/ink_ranges.rs  ·  src/lib.rs  ·  src/stroke_gpu.rs  ·  src/finite_ink.rs  ·  src/ink_range_gpu_tests.rs  ·  src/renderer.rs</text>
+    <text x="32" y="198" font-size="10.5" fill="#111111">5 Checkpoints: 96zzzzzzzm-retain-visible-instance-ranges → 96zzzzzzzq-draw-original-cad-wire-curves — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
+  
+</svg>
+</div>
+
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
 <svg viewBox="0 0 840 240" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#475569"/>
-    </marker>
-    <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#2563eb"/>
-    </marker>
-    <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#059669"/>
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
     </marker>
   </defs>
-  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
-  <text x="20" y="28" font-size="14" font-weight="700" fill="#0f172a">Section 10 Production Architecture: Shared GPU Storage Arena, f64 Floating Origin, Reversed-Z, 4x MSAA & Matrix Shader</text>
-  <text x="20" y="46" font-size="11.5" fill="#475569">How the maintained viewer pulls vertices from one growable GPU arena, eliminates jitter at 10^12 units, and renders procedural Matrices.</text>
-  <line x1="16" y1="54" x2="824" y2="54" stroke="#e2e8f0" stroke-width="1"/>
+  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Section 10 Production Architecture: Shared GPU Storage Arena, f64 Floating Origin, Reversed-Z, 4x MSAA & Matrix Shader</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">How the maintained viewer pulls vertices from one growable GPU arena, eliminates jitter at 10^12 units, and renders procedural Matrices.</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
   
-    <rect x="18" y="68" width="250" height="145" rx="6" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
-    <text x="143" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1e40af">1. Shared GPU Arena (Ch 19–20)</text>
-    <text x="28" y="108" font-size="10.5" fill="#1e3a8a">• 1 Growable Storage Buffer Arena</text>
-    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#1d4ed8">• Vertex Pulling (@builtin(vertex_index))</text>
-    <text x="28" y="144" font-size="10.5" fill="#1e3a8a">• 8-byte Draw Slots -&gt; ObjectRecord</text>
-    <text x="28" y="162" font-size="10.5" fill="#1e3a8a">• slot_table.wgsl maps Rg32Uint</text>
-    <text x="28" y="178" font-size="10.5" fill="#1e3a8a">  primitive IDs to Element/Face owners</text>
-    <text x="28" y="194" font-size="10" fill="#1e3a8a">• Free-list span reuse after GPU lease</text>
+    <rect x="18" y="68" width="250" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="143" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">1. Shared GPU Arena (Ch 19–20)</text>
+    <text x="28" y="108" font-size="10.5" fill="#111111">• 1 Growable Storage Buffer Arena</text>
+    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#111111">• Vertex Pulling (@builtin(vertex_index))</text>
+    <text x="28" y="144" font-size="10.5" fill="#111111">• 8-byte Draw Slots -&gt; ObjectRecord</text>
+    <text x="28" y="162" font-size="10.5" fill="#111111">• slot_table.wgsl maps Rg32Uint</text>
+    <text x="28" y="178" font-size="10.5" fill="#111111">  primitive IDs to Element/Face owners</text>
+    <text x="28" y="194" font-size="10" fill="#111111">• Free-list span reuse after GPU lease</text>
 
-    <line x1="268" y1="138" x2="298" y2="138" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
+    <line x1="268" y1="138" x2="298" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="300" y="68" width="265" height="145" rx="6" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5"/>
-    <text x="432" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#9a3412">2. f64 Floating Origin &amp; Reversed-Z (Ch 21)</text>
-    <text x="312" y="108" font-size="10.5" font-weight="600" fill="#c2410c">• rel_f32 = (world_f64 - anchor_f64) as f32</text>
-    <text x="312" y="125" font-size="10" fill="#7c2d12">  Zero vertex/grid jitter even at 10^12 m!</text>
-    <text x="312" y="144" font-size="10.5" font-weight="600" fill="#c2410c">• Reversed-Z Depth (GreaterEqual):</text>
-    <text x="312" y="160" font-size="10" fill="#7c2d12">  Near plane = 1.0, Far plane = 0.0</text>
-    <text x="312" y="178" font-size="10.5" fill="#7c2d12">• Held world base grid &amp; preserved</text>
-    <text x="312" y="193" font-size="10.5" fill="#7c2d12">  live camera during Session reload</text>
+    <rect x="300" y="68" width="265" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="432" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">2. f64 Floating Origin &amp; Reversed-Z (Ch 21)</text>
+    <text x="312" y="108" font-size="10.5" font-weight="600" fill="#111111">• rel_f32 = (world_f64 - anchor_f64) as f32</text>
+    <text x="312" y="125" font-size="10" fill="#111111">  Zero vertex/grid jitter even at 10^12 m!</text>
+    <text x="312" y="144" font-size="10.5" font-weight="600" fill="#111111">• Reversed-Z Depth (GreaterEqual):</text>
+    <text x="312" y="160" font-size="10" fill="#111111">  Near plane = 1.0, Far plane = 0.0</text>
+    <text x="312" y="178" font-size="10.5" fill="#111111">• Held world base grid &amp; preserved</text>
+    <text x="312" y="193" font-size="10.5" fill="#111111">  live camera during Session reload</text>
 
-    <line x1="565" y1="138" x2="595" y2="138" stroke="#059669" stroke-width="2" marker-end="url(#arrow-green)"/>
+    <line x1="565" y1="138" x2="595" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="597" y="68" width="223" height="145" rx="6" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1.5"/>
-    <text x="708" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#065f46">3. 4x MSAA &amp; Matrix Shader (Ch 22)</text>
-    <text x="609" y="108" font-size="10.5" fill="#064e3b">• Coherent 1x/4x MSAA sample targets</text>
-    <text x="609" y="126" font-size="10.5" font-weight="600" fill="#047857">• matrix.wgsl (16w header + 3w/cell):</text>
-    <text x="609" y="142" font-size="10" fill="#064e3b">  Heatmap + procedural 3-decimal digits</text>
-    <text x="609" y="157" font-size="10" fill="#064e3b">  (0 cell blank; plate-less title; yellow</text>
-    <text x="609" y="172" font-size="10" fill="#064e3b">  selected border; Rg32Uint whole pick)</text>
-    <text x="609" y="190" font-size="10" fill="#064e3b">• Coalesced single-flight frame scheduler</text>
+    <rect x="597" y="68" width="223" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="708" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">3. 4x MSAA &amp; Matrix Shader (Ch 22)</text>
+    <text x="609" y="108" font-size="10.5" fill="#111111">• Coherent 1x/4x MSAA sample targets</text>
+    <text x="609" y="126" font-size="10.5" font-weight="600" fill="#111111">• matrix.wgsl (16w header + 3w/cell):</text>
+    <text x="609" y="142" font-size="10" fill="#111111">  Heatmap + procedural 3-decimal digits</text>
+    <text x="609" y="157" font-size="10" fill="#111111">  (0 cell blank; plate-less title; yellow</text>
+    <text x="609" y="172" font-size="10" fill="#111111">  selected border; Rg32Uint whole pick)</text>
+    <text x="609" y="190" font-size="10" fill="#111111">• Coalesced single-flight frame scheduler</text>
     
 </svg>
 </div>
 
-### Lesson Data Flow (`Rust` → `WebGPU` → `WGSL`)
+## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
 
-```
-Original source rows → merged CPU ranges → unchanged colour and query buffers.
-Semantic command or startup defaults → retained editor state → one browser display helper → original colour/query/highlight owners.
-```
+Before writing code, review how the three layers in this chapter talk to each other:
 
-- Keep absolute original query addresses while filtering existing instance buffers with merged CPU ranges.
-- Apply one retained visibility owner to actual colour, original queries and selected highlights while preserving active controls and shared sources.
-- Display original CAD fallback curves through the existing joined path lane while retaining coherent source borders and independent family controls. Route ordinary lines through the exact production ribbon shader, storage rows and independent integer coverage.
-- **Why it works (Why must a filtered run retain its original first instance?):** The vertex, metadata and original-ID buffers still use absolute instance positions. Rebasing only one buffer would draw or pick another original object.
-
-### Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `Browser`)
-
-| Layer | Construct | First-Year Student Explanation |
+| Layer | Construct | Plain-English Explanation for Students |
 | :--- | :--- | :--- |
 | **WGSL (Vertex Pull)** | `@group(0) @binding(b) var<storage, read> arena_verts: array<u32>;` | Fetches packed vertex positions, normals, and colors directly from a single growable storage buffer using `@builtin(vertex_index)`. |
 | **Rust/WGSL (`f64`->`f32`)** | `let rel: Vec3 = (world_f64 - anchor_f64).as_vec3();` | Subtracts the camera-area `f64` anchor on the CPU before converting to `f32`, preventing 32-bit float mantissa exhaustion far from `(0,0,0)`. |
 | **WGSL (`matrix.wgsl`)** | 16-word header + 3 words/cell procedural digits | Renders matrix heatmaps and 3-decimal numeric digits procedurally inside the fragment shader with zero texture uploads per cell. |
 | **Rust (`ink_ranges.rs`)** | Merged contiguous `Range<u32>` instance draws | Toggles point/line/edge/CAD-wire family visibility without rebuilding GPU buffers or invalidating original owner indices. |
 
-**Production source (`session_viewer/src`):** [engine/gpu/render.rs](../../../../src/engine/gpu/render.rs), [engine/gpu/pass.rs](../../../../src/engine/gpu/pass.rs), [engine/gpu/targets.rs](../../../../src/engine/gpu/targets.rs), [engine/gpu/frame.rs](../../../../src/engine/gpu/frame.rs), [engine/gpu/view.rs](../../../../src/engine/gpu/view.rs), [engine/pipelines/mod.rs](../../../../src/engine/pipelines/mod.rs), [shaders/triangle.wgsl](../../../../src/shaders/triangle.wgsl), [shaders/ribbon.wgsl](../../../../src/shaders/ribbon.wgsl), [shaders/vector.wgsl](../../../../src/shaders/vector.wgsl), [shaders/ink_visibility.wgsl](../../../../src/shaders/ink_visibility.wgsl), [app/scene.rs](../../../../src/app/scene.rs), [build.rs](../../../../build.rs).
+**Authoritative production source (`session_viewer/src`):** [engine/gpu/render.rs](../../../../src/engine/gpu/render.rs), [engine/gpu/pass.rs](../../../../src/engine/gpu/pass.rs), [engine/gpu/targets.rs](../../../../src/engine/gpu/targets.rs), [engine/gpu/frame.rs](../../../../src/engine/gpu/frame.rs), [engine/gpu/view.rs](../../../../src/engine/gpu/view.rs), [engine/pipelines/mod.rs](../../../../src/engine/pipelines/mod.rs), [shaders/triangle.wgsl](../../../../src/shaders/triangle.wgsl), [shaders/ribbon.wgsl](../../../../src/shaders/ribbon.wgsl), [shaders/vector.wgsl](../../../../src/shaders/vector.wgsl), [shaders/ink_visibility.wgsl](../../../../src/shaders/ink_visibility.wgsl), [app/scene.rs](../../../../src/app/scene.rs), [build.rs](../../../../build.rs).
 
-## Implementation Checkpoints
+## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
 
-Apply these checkpoints in order inside `workspace/journey`. Expand each block to view the Rust/WGSL/HTML edits:
+| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
+| ---: | :--- | :--- | :--- | :--- |
+| **1** | [`96zzzzzzzm-retain-visible-instance-ranges`](#checkpoint-96zzzzzzzm-retain-visible-instance-ranges) | Keep absolute original query addresses while filtering existing instance buffers with merged CPU ranges. | `src/ink_ranges.rs`, `src/lib.rs`, `src/stroke_gpu.rs`, `src/finite_ink.rs` | `Original source rows → merged CPU ranges → unchanged colour and query buffers` |
+| **2** | [`96zzzzzzzn-prepare-original-ink-families`](#checkpoint-96zzzzzzzn-prepare-original-ink-families) | Classify retained original borders, points and controls once while preserving source query keys and complete buffer bindings. | `src/ink_ranges.rs`, `src/pick_sources.rs`, `src/renderer.rs`, `src/ink_range_gpu_tests.rs` | `Original source rows → merged CPU ranges → unchanged colour and query buffers` |
+| **3** | [`96zzzzzzzo-show-original-ink-families`](#checkpoint-96zzzzzzzo-show-original-ink-families) | Apply one retained visibility owner to actual colour, original queries and selected highlights while preserving active controls and shared sources. | `src/ink_ranges.rs`, `src/renderer.rs`, `src/highlight.rs`, `src/ink_visibility_gpu_tests.rs` | `Original source rows → merged CPU ranges → unchanged colour and query buffers` |
+| **4** | [`96zzzzzzzp-apply-semantic-view-controls`](#checkpoint-96zzzzzzzp-apply-semantic-view-controls) | Apply one retained editor presentation state before the first frame and after view commands while preserving original edits and history. | `src/ink_ranges.rs`, `src/editor.rs`, `src/commands.rs`, `src/browser_defaults.rs` | `Semantic command or startup defaults → retained editor state → one browser display helper → original colour/query/highlight owners` |
+| **5** | [`96zzzzzzzq-draw-original-cad-wire-curves`](#checkpoint-96zzzzzzzq-draw-original-cad-wire-curves) | Display original CAD fallback curves through the existing joined path lane while retaining coherent source borders and independent family controls. Route ordinary lines through the exact production ribbon shader, storage rows and independent integer coverage. | `src/cad_boundary.rs`, `src/cad_display.rs`, `src/chain.rs`, `src/pick_sources.rs` | `Original BRep curve → retained samples → existing joined path records and Object-only IDs` |
+
+---
+
+## 4. Step-by-Step Coding Notebook (Concept + Implementation)
+
+Work through each notebook cell below in order inside `workspace/journey`. Read the **Concept Walkthrough** and **Self-Check Q&A** first, then expand the **Implementation** block to type and verify the code.
 
 <a id="checkpoint-96zzzzzzzm-retain-visible-instance-ranges"></a>
+
+### Step 1 of 5 · Retain visible instance ranges (`96zzzzzzzm-retain-visible-instance-ranges`)
+
+- **Goal:** Keep absolute original query addresses while filtering existing instance buffers with merged CPU ranges.
+- **Data Flow Trace:** `Original source rows → merged CPU ranges → unchanged colour and query buffers`
+- **Files You Touch:** `src/ink_ranges.rs` (*Retain merged contiguous CPU instance ranges and filter draw submission without copying geometry or rebasing GPU instance indices. Empty metadata preserves the existing whole lane. Retain one complete draw when all populated families remain visible, and skip the metadata scan when no populated family is visible.*) · `src/lib.rs` (*Share one allocation-free range iterator between ordinary and finite colour/query drawing.*) · `src/stroke_gpu.rs` (*Keep presentation metadata beside the existing lane; it owns no GPU resource.*) · `src/finite_ink.rs` (*Give finite drawing the retained CPU range iterator.*) · `src/ink_range_gpu_tests.rs` (*Actual Native GPU witness: nonzero first-instance ranges retain the original middle colour and original owner, hide both outside owners, restore exact pixels, and retain all source records/uploads in finite and ordinary paths at one/four samples.*) · `src/renderer.rs` (*Supply the actual GPU range/address regression as a child of the renderer.*) · `src/ink_pixels_tests.rs` (*Adapt the existing supplied actual finite-ink GPU observer to the explicit all-visible range argument, preserving every coverage/owner/pixel assertion.*)
+
+Retain CPU runs beside each existing ink lane. A visible run draws from the original instance buffer at its absolute first instance, so colour, flags and original query addresses stay aligned. No geometry copies or GPU family buffer are added.
+
+The common all-visible case draws one whole lane. Empty masks skip it. Partial masks visit only merged runs prepared with the source. The range helper binds the full vertex, metadata and original-ID buffers; it never slices an ID buffer relative to a filtered run.
+
+The supplied actual GPU witness uses three distinct original points and shows only the middle instance. It checks its real colour and original owner, excludes the other instances and restores exact pixels at one/four samples in the finite and retained legacy paths. CPU source records and GPU upload/geometry identity remain unchanged.
+
+This checkpoint adds the range mechanism. Source-family classification and the public visibility owner follow in the same display-controls section. The standard Chrome fixture retains all original target-reuse assertions under an explicit one-sample URL; automatic/forced/recovery quality has separate coverage.
+
+> **Self-Check Question:** *Why must a filtered run retain its original first instance?*  
+> **Answer:** The vertex, metadata and original-ID buffers still use absolute instance positions. Rebasing only one buffer would draw or pick another original object.
+
+- **What You Should See:** Keep absolute original query addresses while filtering existing instance buffers with merged CPU ranges. Source-only preparation is not acceptance; actual complete application, source-bound pictures and published UI gates remain required.
+- **Hands-On Lab Experiment:** Inspect actual source-specific controls and exact pixel returns at one/four samples. Keep original owner keys, source archives and GPU uploads unchanged.
 
 <details>
 <summary>Implementation 96zzzzzzzm-retain-visible-instance-ranges: Retain visible instance ranges</summary>
@@ -775,6 +843,26 @@ Update the existing block with this supplied code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-96zzzzzzzn-prepare-original-ink-families"></a>
+
+### Step 2 of 5 · Prepare original ink families (`96zzzzzzzn-prepare-original-ink-families`)
+
+- **Goal:** Classify retained original borders, points and controls once while preserving source query keys and complete buffer bindings.
+- **Data Flow Trace:** `Original source rows → merged CPU ranges → unchanged colour and query buffers`
+- **Files You Touch:** `src/ink_ranges.rs` (*Account the retained CPU range capacity without adding GPU storage.*) · `src/pick_sources.rs` (*Retain source-family boundaries beside original query addresses while preparing a changed scene.*) · `src/renderer.rs` (*Move prepared CPU ranges into the existing lanes after the unchanged geometry/ID upload. Default whole-lane drawing remains one draw.*) · `src/ink_range_gpu_tests.rs` (*The supplied absolute-range witness deliberately chooses its own synthetic family split after normal source-family preparation.*)
+
+Prepare merged family ranges when original source rows change. Keep mesh and surface boundaries, ordinary lines, ordinary points, mesh vertex dots and active controls distinct without adding per-instance GPU family storage.
+
+Original Plane and OBB borders follow Lines and retain Object-only query addresses. Their proxy display edges do not become invented original MeshEdge keys. Mapped mesh, NURBS surface and CAD boundaries follow Edges. Active control nets and dots remain independent of ordinary display flags.
+
+The existing marker order supplies three ranges: mesh vertices, ordinary points and active controls. Compact CPU runs move into the existing lanes beside the unchanged upload; retained capacity is included in resource accounting. Colour and integer queries consume the same full-buffer absolute ranges.
+
+No public visibility switch is introduced here. The next checkpoint owns visibility and supplies mixed-family GPU pictures, selected highlights and behind-frame query controls. Full procedural Plane appearance and unmapped CAD wire display still need their dedicated integration.
+
+> **Self-Check Question:** *Why do original Plane and OBB borders use a zero subaddress?*  
+> **Answer:** They are Object-only frame displays in the maintained viewer. Their generated border segments are not original mesh edges and must not block a valid edge query behind them.
+
+- **What You Should See:** Classify retained original borders, points and controls once while preserving source query keys and complete buffer bindings. Source-only preparation is not acceptance; actual complete application, source-bound pictures and published UI gates remain required.
+- **Hands-On Lab Experiment:** Inspect actual source-specific controls and exact pixel returns at one/four samples. Keep original owner keys, source archives and GPU uploads unchanged.
 
 <details>
 <summary>Implementation 96zzzzzzzn-prepare-original-ink-families: Prepare original ink families</summary>
@@ -1974,6 +2062,50 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-96zzzzzzzo-show-original-ink-families"></a>
+
+### Step 3 of 5 · Show original ink families (`96zzzzzzzo-show-original-ink-families`)
+
+- **Goal:** Apply one retained visibility owner to actual colour, original queries and selected highlights while preserving active controls and shared sources.
+- **Data Flow Trace:** `Original source rows → merged CPU ranges → unchanged colour and query buffers`
+- **Files You Touch:** `src/ink_ranges.rs` (*Keep one presentation value for ordinary families. Mesh vertex markers require Edges and Vertices; active controls remain independent.*) · `src/renderer.rs` (*Retain current family visibility independently from immutable scene/source ownership.*) · `src/highlight.rs` (*Retain the selected stroke family once when a target changes, avoiding a scene lookup per frame.*) · `src/ink_visibility_gpu_tests.rs` (*Supply an actual Native GPU object/query/occlusion/stale-answer witness for original Plane/OBB and the real mesh edge behind, at both colour counts, exact pixel return and source/upload identity. This source-only witness still requires real execution; other family/highlight/control/shared tests remain required.*) · `src/sub_id.rs` (*Name the existing Object-only ink sentinel. It has no decoded subpart but retains ink priority in the bounded query window.*) · `src/pick_sources.rs` (*Visible original Plane/OBB borders keep Object-only ownership and the same ink priority as ordinary original points. Genuine rear edges remain queryable in Edge mode.*)
+
+Retain one visibility value in the renderer. Actual changes invalidate stale picks and update CPU range masks. Repeated values return immediately. Reapply the masks after a changed source upload, so late-created original lanes use the same policy.
+
+ShowEdges gates mapped borders and, together with the mesh-marker flag, mesh vertex dots. ShowPoints gates ordinary points. ShowLines gates original lines/curves, drawing pens and original frame borders. Active control nets/dots and cloud points keep their own editing/display rules.
+
+Apply the same policy to colour, original integer queries and selected ink highlights. Hidden frame borders must not occlude a valid original edge query behind them. Original Plane/OBB frames remain Object-only, with no invented sub-edge addresses.
+
+Two supplied GPU witnesses exercise actual original frame/behind-edge queries and a mixed shared-mesh, line, point, drawing and active NURBS-control scene at both projections and one/four samples. Nine actual Native figures distinguish the retained and hidden families. Source identity, archives, upload/geometry identity, selected highlights, stale-query cancellation and exact returns remain independent assertions. Public command/input routing follows next.
+
+Object-only borders use the existing ink sentinel, shared with ordinary points. A zero subpart is ranked with surfaces by the bounded picker; reusing the ink sentinel preserves visible-border priority without inventing a MeshEdge or adding metadata. Edge mode still rejects that sentinel before it can hide the genuine source edge behind the frame. The actual GPU fixture checks both modes.
+
+Draw the selected edge fringe before ordinary ink, so its original black core remains visible. Size the fringe from the actual mesh, surface or CAD pen width plus two CSS pixels. A fixed three-pixel fringe disappears under a wider source pen; moving it above the source instead would erase the black core. Independent GPU tests check both the wide-pen fringe and the original black center.
+
+> **Self-Check Question:** *Should hiding ordinary lines also hide an active curve control net?*  
+> **Answer:** No. Active editing controls retain their own ranges and queries; ordinary family switches must not remove the controls needed to finish the current edit.
+
+- **What You Should See:** Apply one retained visibility owner to actual colour, original queries and selected highlights while preserving active controls and shared sources. Source-only preparation is not acceptance; actual complete application, source-bound pictures and published UI gates remain required.
+
+These actual Native frames use original shared meshes, a selected original line and an ordinary point, original drawing pens and an active NURBS control net. Captions distinguish one/four samples and the exact retained/hidden families. They accompany independent original-owner, source/archive, geometry/upload, selected-highlight and query assertions. Public browser commands, procedural original Plane appearance and final whole-course feature review remain pending. At this fixture scale the default one-CSS-pixel mesh dots are partly covered by six-pixel source borders. The marker-disabled frame shows the retained geometry; use the independent pixel/query assertions for the small dot difference. Authored marker-width parity remains part of the following settings coverage. Two additional actual selected-edge frames show the source-width fringe and black center on each shared placement.
+
+**all original ink families visible, one sample — actual Native original-family frame.**
+
+**all original ink families visible, four samples — actual Native original-family frame.**
+
+**Hide Lines: line, curve and sheet pens hidden; active controls retained, four samples — actual Native original-family frame.**
+
+**Hide Edges: shared mesh borders and vertex dots hidden; faces and active controls retained, four samples — actual Native original-family frame.**
+
+**Hide Points: ordinary point hidden; mesh vertex dots and active controls retained, four samples — actual Native original-family frame.**
+
+**Mesh markers disabled: original faces and mesh borders retained, four samples — actual Native original-family frame.**
+
+**Ordinary ink hidden: original faces and active control net/dots retained, four samples — actual Native original-family frame.**
+
+**Selected original edge of the left shared mesh: yellow fringe around retained black source center, four samples — actual Native original-family frame.**
+
+**Selected original edge of the right shared mesh: correct placed highlight with retained black center, four samples — actual Native original-family frame.**
+- **Hands-On Lab Experiment:** Inspect actual source-specific controls and exact pixel returns at one/four samples. Keep original owner keys, source archives and GPU uploads unchanged.
 
 <details>
 <summary>Implementation 96zzzzzzzo-show-original-ink-families: Show original ink families</summary>
@@ -4536,6 +4668,60 @@ Update the existing block with this supplied code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-96zzzzzzzp-apply-semantic-view-controls"></a>
+
+### Step 4 of 5 · Apply semantic view controls (`96zzzzzzzp-apply-semantic-view-controls`)
+
+- **Goal:** Apply one retained editor presentation state before the first frame and after view commands while preserving original edits and history.
+- **Data Flow Trace:** `Semantic command or startup defaults → retained editor state → one browser display helper → original colour/query/highlight owners`
+- **Files You Touch:** `src/ink_ranges.rs` (*Use named source families in semantic view commands rather than numeric selectors.*) · `src/editor.rs` (*Keep presentation commands distinct from document mutations.*) · `src/commands.rs` (*Connect explicit Show/Hide family names and reuse existing hide-selected/show-all actions. No invented canvas letter shortcuts.*) · `src/browser_defaults.rs` (*Read mesh-marker and outline presence overrides once alongside existing browser view defaults; ordinary points and controls stay independent.*) · `src/browser.rs` (*Share one presentation update for startup/recovery and subsequent semantic input, retaining the existing grid policy until its separately authorized corrective lesson.*) · `src/view_command_tests.rs` (*Supply semantic command/draft/camera/history/source retention and Xray nonzero-opacity boundary regressions.*) · `src/lib.rs` (*Supply actual editor/command state tests without adding production work.*)
+
+Retain view flags in the editor and apply them through one browser helper. Call it before the initial or recovered frame and after semantic input. View commands keep active drafting, original sources, camera and document history intact.
+
+View Show/Hide Edges, Lines and Points drive the renderer visibility owner. View Xray accepts On, Off or a toggle; repeating Off preserves an already nonzero opacity, and an actual switch back from Xray restores opacity one.
+
+View Hide Selected and View Show All use the existing Hide/Show presentation actions. They do not create an undo transaction; restore hidden display with Show All. The supplied CPU fixtures exercise active drafts, source/archive identity, camera, history and explicit Xray behavior. Actual GPU visibility and selected-highlight witnesses remain inherited.
+
+Read nomarkers and outlines from the URL into the same retained state. The shared helper also applies the existing clipping, opacity, lighting/backface, ambient and grid policies. This removes a separate initial-frame settings path. Actual first-frame GPU submission/defaults, command colour/query/control results and real recovery still need fresh browser proof; source inspection alone does not establish a past visual defect.
+
+Full procedural Plane display, remaining pen/cloud settings and the final explicit camera/base-grid correction follow later. The existing dynamic drawing-plane/grid policy is retained at this checkpoint.
+
+Observe the first submitted GPU settings before commands. For readable default, URL and recovery pictures, then import and fit the frozen original mesh without changing those settings. Check the actual submitted settings again; do not present an empty or tiny startup specimen as feature validation.
+
+Ordinary family visibility leaves the selection gizmo and active controls available. Use Fit Selected to see a long line outside that widget: check its black core and yellow fringe, hide Lines, then clear selection. The line ink disappears before the widget.
+
+World-plane label coverage grows when zoom requires more detail and retains that sharper raster. Warm it explicitly before an exact pixel baseline; returning from a first zoom can sharpen the label while preserving the exact camera and source.
+
+> **Self-Check Question:** *Why does the view adapter run before the first frame as well as after commands?*  
+> **Answer:** Startup and recovered runs need the same retained settings as later input. Applying one helper avoids a separate initial-frame policy and keeps colour, queries and highlights aligned.
+
+- **What You Should See:** One editor state and one browser helper own startup, recovery and semantic-input presentation. Actual first-frame GPU/command/recovery pictures and source/query/history assertions are required before acceptance.
+
+These Chrome frames show display settings after an original mesh is imported and fitted, followed by visibility and control exercises. The review records all 32 individually inspected images and separate checks of the first GPU frame, source identity, picking and exact restoration.
+
+The selected-line examples use Fit Selected to expose ink outside the editing widget. Label coverage is warmed before exact comparisons because zooming can retain a sharper raster. Whole-course review and the later camera/grid corrections remain pending.
+
+**default retained view settings retained on an explicitly imported and fitted original mesh; first GPU submission is checked separately before commands; browser DPR 1 — actual source-bound browser presentation frame.**
+
+**presence-based URL view settings retained on an explicitly imported and fitted original mesh; first GPU submission is checked separately before commands; browser DPR 2 — actual source-bound browser presentation frame.**
+
+**same URL settings after actual GPUDevice loss with reduced density; browser DPR 2 — actual source-bound browser presentation frame.**
+
+**all original display families; 4 samples; browser DPR 2 — actual source-bound browser presentation frame.**
+
+**original edges hidden with other families retained; 4 samples; browser DPR 2 — actual source-bound browser presentation frame.**
+
+**original lines hidden with other families retained; 4 samples; browser DPR 2 — actual source-bound browser presentation frame.**
+
+**original points hidden with other families retained; 4 samples; browser DPR 2 — actual source-bound browser presentation frame.**
+
+**original active curve controls with ordinary edges, lines and points hidden; 4 samples; browser DPR 2 — actual source-bound browser presentation frame.**
+
+**original selected-line on state after explicit Fit Selected; independent editing widget distinguished from ordinary line ink, four samples, browser DPR 2 — actual source-bound browser presentation frame.**
+
+**original selected-line hidden state after explicit Fit Selected; independent editing widget distinguished from ordinary line ink, four samples, browser DPR 2 — actual source-bound browser presentation frame.**
+
+**original selected-line cleared state after explicit Fit Selected; independent editing widget distinguished from ordinary line ink, four samples, browser DPR 2 — actual source-bound browser presentation frame.**
+- **Hands-On Lab Experiment:** Check the first actual GPU frame before issuing a command, then exercise each view family and explicit Xray state. Repeat settings and restore exact original pixels/source archives; use Show All to restore Hide Selected.
 
 <details>
 <summary>Implementation 96zzzzzzzp-apply-semantic-view-controls: Apply semantic view controls</summary>
@@ -7426,6 +7612,56 @@ After that block, append this supplied code:
 </details>
 
 <a id="checkpoint-96zzzzzzzq-draw-original-cad-wire-curves"></a>
+
+### Step 5 of 5 · Draw original CAD wire curves (`96zzzzzzzq-draw-original-cad-wire-curves`)
+
+- **Goal:** Display original CAD fallback curves through the existing joined path lane while retaining coherent source borders and independent family controls. Route ordinary lines through the exact production ribbon shader, storage rows and independent integer coverage.
+- **Data Flow Trace:** `Original BRep curve → retained samples → existing joined path records and Object-only IDs`
+- **Files You Touch:** `src/cad_boundary.rs` (*Validate a face-free original wire without inventing a face. Preserve the general BRep validator and all coherent face-boundary guards.*) · `src/cad_display.rs` (*Retain original fallback curve samples beside coherent boundaries. Use the existing joined path lane rather than introducing a family buffer or drawing overlapping capsules.*) · `src/chain.rs` (*Share the existing joined-stroke helper, retaining its complete original join and closed-chain body.*) · `src/pick_sources.rs` (*Prepare fallback path records once alongside their original Object-only query IDs.*) · `src/renderer.rs` (*Upload the prepared fallback spans through the existing path buffer and visibility/query policy.*) · `src/highlight.rs` (*Selected mixed and face-free CAD wires use the same joined highlight lane and source pen width, keeping black centers and Lines masks.*) · `src/cad_shape_cache.rs` (*Rigid-source replay must transform fallback curve samples together with mapped edges; retain original source records and precise models.*) · `src/cap_gpu_tests.rs` (*Supply a format-parameterized real GPU readback helper while keeping every existing Unorm fixture unchanged; matched maintained comparisons need actual sRGB targets, not edited pixels.*) · `src/cad_wire_tests.rs` (*Supply independent original-wire topology validation and actual mixed/family/query/shared-source/selection/archive GPU witnesses.*) · `src/lib.rs` (*Supply original CAD wire regressions without production code.*) · `src/production_ribbon.wgsl` (*Copy the exact compiled production ribbon source and shared visibility/prelude without substitute coverage math.*) · `src/production_ribbon_provenance.json` (*Record production source hashes, composition and the copied storage ABI.*) · `src/production_ribbon.rs` (*Pack original ordinary lines and production frame uniforms in the actual storage layout.*) · `src/production_ribbon_gpu.rs` (*Own production ordinary-line color and independent integer pipelines with the same four bind groups.*) · `src/pick_gpu.rs` (*Legacy picker construction has no production ordinary-line owner.*) · `src/pick_encode.rs` (*Supply production ordinary-line resources to the existing bounded query pass.*) · `src/finite_ink.rs` (*Compile retained finite color variants only when nonempty ink is bound, and integer variants only when a real query draws, preserving the shader recipes and independent single-sample ownership.*) · `src/line_placement_gpu_tests.rs` (*Fresh native GPU Object and Curve queries follow an original standalone Line through translation, mirrored nonuniform placement and a distant camera-origin rebase; actual color pixels and retained source/archive data are checked independently.*) · `src/production_splat.wgsl` (*Reuse the exact compiled production splat projection, world clipping, normals and disc coverage.*) · `src/production_splat_resolve.wgsl` (*Reuse the exact compiled production opaque depth and eye-dome resolve.*) · `src/production_cloud_provenance.json` (*Record the production composition hashes, GPU layouts and bounded ownership adapter.*) · `src/production_cloud.rs` (*Name the production 160-byte record and keep its optional selected point separate from pick ownership.*) · `src/cloud_point_ids.wgsl` (*Attach the course cached integer ownership output to production disc coverage through its own uniform.*) · `src/cloud_gpu.rs` (*Each draw owns a small page-address uniform independently of its production splat records.*) · `src/cloud_production_gpu_tests.rs` (*Supply real GPU regressions for unintended page-dependent highlighting and first-source ownership at equal depth.*) · `src/gpu_test_adapter.rs` (*Use the existing strict Microsoft CPU DX12 identity and adjacent task-local DXC guard for native Windows GPU tests; retain the original Vulkan/default-adapter path on other platforms. Device descriptors remain owned by each test.*) · `src/ambient_contact_tests.rs` (*Select the guarded software adapter on Windows while preserving this test's exact device request, required limits, error handler, renderer settings, readback deadlines and assertions.*) · `src/clipping_gpu_tests.rs` (*Select the guarded software adapter on Windows while preserving this test's exact device request, required limits, error handler, renderer settings, readback deadlines and assertions.*) · `src/command_inventory_tests.rs` (*Select the guarded software adapter on Windows while preserving this test's exact device request, required limits, error handler, renderer settings, readback deadlines and assertions.*) · `src/contact_boundary_tests.rs` (*Select the guarded software adapter on Windows while preserving this test's exact device request, required limits, error handler, renderer settings, readback deadlines and assertions.*) · `src/finite_visibility_tests.rs` (*Select the guarded software adapter on Windows while preserving this test's exact device request, required limits, error handler, renderer settings, readback deadlines and assertions.*) · `src/frame_target_tests.rs` (*Select the guarded software adapter on Windows while preserving this test's exact device request, required limits, error handler, renderer settings, readback deadlines and assertions.*) · `src/grid_hardware_tests.rs` (*Select the guarded software adapter on Windows while preserving this test's exact device request, required limits, error handler, renderer settings, readback deadlines and assertions.*) · `src/pick_gpu_tests.rs` (*Select the guarded software adapter on Windows while preserving this test's exact device request, required limits, error handler, renderer settings, readback deadlines and assertions.*) · `src/sample_composition_tests.rs` (*Select the guarded software adapter on Windows while preserving this test's exact device request, required limits, error handler, renderer settings, readback deadlines and assertions.*) · `src/sample_positions_tests.rs` (*Select the guarded software adapter on Windows while preserving this test's exact device request, required limits, error handler, renderer settings, readback deadlines and assertions.*) · `src/text_atlas_tests.rs` (*Select the guarded software adapter on Windows while preserving this test's exact device request, required limits, error handler, renderer settings, readback deadlines and assertions.*) · `src/tile_gpu_tests.rs` (*Select the guarded software adapter on Windows while preserving this test's exact device request, required limits, error handler, renderer settings, readback deadlines and assertions.*) · `src/widget_tests.rs` (*Select the guarded software adapter on Windows while preserving this test's exact device request, required limits, error handler, renderer settings, readback deadlines and assertions.*) · `src/stroke_gpu.rs` (*Keep the existing legacy stroke draw and integer-pick shader recipes in stable lazy handles. Compile only when a visible legacy draw or pick uses the pipeline; finite-enabled lanes no longer compile unused legacy pipelines during construction.*) · `src/scene.rs` (*Connect original Matrix component rows and plate-less titles through the existing scene, archive and render owners.*) · `src/text.rs` (*Connect original Matrix component rows and plate-less titles through the existing scene, archive and render owners.*) · `src/text_example.rs` (*Connect original Matrix component rows and plate-less titles through the existing scene, archive and render owners.*) · `src/text_plane.wgsl` (*Connect original Matrix component rows and plate-less titles through the existing scene, archive and render owners.*) · `src/scene_text_gpu.rs` (*Connect original Matrix component rows and plate-less titles through the existing scene, archive and render owners.*) · `src/text_plane.rs` (*Connect original Matrix component rows and plate-less titles through the existing scene, archive and render owners.*) · `src/geometry_snapshot.rs` (*Connect original Matrix component rows and plate-less titles through the existing scene, archive and render owners.*) · `src/scene_archive.rs` (*Connect original Matrix component rows and plate-less titles through the existing scene, archive and render owners.*) · `src/archive_identity.rs` (*Connect original Matrix component rows and plate-less titles through the existing scene, archive and render owners.*) · `src/archive_document.rs` (*Connect original Matrix component rows and plate-less titles through the existing scene, archive and render owners.*) · `src/document_geometry.rs` (*Connect original Matrix component rows and plate-less titles through the existing scene, archive and render owners.*) · `src/scene_document.rs` (*Connect original Matrix component rows and plate-less titles through the existing scene, archive and render owners.*) · `src/measure_mark.rs` (*Connect original Matrix component rows and plate-less titles through the existing scene, archive and render owners.*) · `src/text_geometry.rs` (*Connect original Matrix component rows and plate-less titles through the existing scene, archive and render owners.*) · `src/production_matrix.wgsl` (*Reuse the current Matrix shader, original component packing and explicit source/GPU ownership.*) · `src/production_matrix_walk.rs` (*Reuse the current Matrix shader, original component packing and explicit source/GPU ownership.*) · `src/production_matrix.rs` (*Reuse the current Matrix shader, original component packing and explicit source/GPU ownership.*) · `src/production_matrix_gpu.rs` (*Reuse the current Matrix shader, original component packing and explicit source/GPU ownership.*) · `src/matrix_tests.rs` (*Check original Matrix round trips, packed decimals and actual GPU colors, whole-object picks and sample returns.*) · `src/production_matrix_provenance.json` (*Reuse the current Matrix shader, original component packing and explicit source/GPU ownership.*) · `src/ink_plane.wgsl` (*Share one unchanged axis-visibility fallback call across invalid-plane and invalid-triangle branches to reduce duplicated browser shader compilation. Rendering decisions and arithmetic remain unchanged; memory improvement requires measurement.*) · `src/cloud_placement_gpu_tests.rs` (*Exercise original cloud placement, mirror/nonuniform scale, exact far rebasing, cached source IDs, archives and real-source LOD resident boundaries.*) · `src/production_curve_walk.rs` (*Bind the actual production joined/vector/sheet algorithms to original source IDs, compact object rows and bounded resident pages.*) · `src/production_joined.rs` (*Bind the actual production joined/vector/sheet algorithms to original source IDs, compact object rows and bounded resident pages.*) · `src/production_joined.wgsl` (*Bind the actual production joined/vector/sheet algorithms to original source IDs, compact object rows and bounded resident pages.*) · `src/production_sheet.wgsl` (*Bind the actual production joined/vector/sheet algorithms to original source IDs, compact object rows and bounded resident pages.*) · `src/production_sheet_gpu.rs` (*Bind the actual production joined/vector/sheet algorithms to original source IDs, compact object rows and bounded resident pages.*) · `src/production_vector.wgsl` (*Bind the actual production joined/vector/sheet algorithms to original source IDs, compact object rows and bounded resident pages.*) · `src/production_vector_gpu.rs` (*Bind the actual production joined/vector/sheet algorithms to original source IDs, compact object rows and bounded resident pages.*) · `src/production_vector_provenance.json` (*Bind the actual production joined/vector/sheet algorithms to original source IDs, compact object rows and bounded resident pages.*) · `src/production_vector_tests.rs` (*Bind the actual production joined/vector/sheet algorithms to original source IDs, compact object rows and bounded resident pages.*) · `src/editor.rs` (*Keep the displayed world grid separate from the view-following working drawing plane.*) · `src/browser.rs` (*Camera navigation and Session replacement retain the displayed grid.*) · `src/camera.rs` (*Keep the display-plane depth reach tied to its explicit world snapshot.*) · `src/reload_grid_tests.rs` (*Check shared pending-publication camera adoption and explicit held-grid commands, cancellation, GPU row reuse and exact far rebasing.*) · `Cargo.toml` (*Keep the maintained viewer available to native tests and examples without compiling it into the normal learner library.*) · `src/reference_example.rs` (*Keep the existing reference example command and image assertions available with the native development dependency.*) · `src/inventory_example.rs` (*Keep the existing inventory example command available with the native development dependency.*) · `src/frame_schedule.rs` (*Coalesce presentation behind one owned animation frame and GPU completion fence without delaying ordered input mutations.*) · `src/frame_schedule_tests.rs` (*Coalesce presentation behind one owned animation frame and GPU completion fence without delaying ordered input mutations.*) · `src/browser_frame.rs` (*Coalesce presentation behind one owned animation frame and GPU completion fence without delaying ordered input mutations.*) · `src/browser_runtime.rs` (*Cancel pending presentation on runtime replacement or disposal and forward existing lifecycle permission changes.*) · `src/report_lifecycle.rs` (*Notify presentation after existing hidden, frozen and cached-state transitions, preserving the listener inventory.*) · `src/document_source.rs` (*Preserve the original prost decode diagnostic through measured file preparation and the browser error status.*) · `src/source_phase_tests.rs` (*Require the canonical invalid-varint diagnostic while preserving the failed-decode-only measurement assertion.*) · `src/publication.rs` (*Require the original decode diagnostic while preserving atomic failed publication and all existing source assertions.*) · `src/matrix_compact_tests.rs` (*Use exact production display algorithms with compact GPU ownership while retaining original source identity.*) · `src/ink_range_gpu_tests.rs` (*Prove hidden ranges do not initialize colour, then re-enable exact pixels and fresh owner queries without uploads or source/ID changes at both sample counts.*) · `src/production_plane.rs` (*Use exact production display algorithms with compact GPU ownership while retaining original source identity.*) · `src/production_plane.wgsl` (*Use exact production display algorithms with compact GPU ownership while retaining original source identity.*) · `src/production_plane_provenance.json` (*Use exact production display algorithms with compact GPU ownership while retaining original source identity.*) · `src/production_plane_tests.rs` (*Use exact production display algorithms with compact GPU ownership while retaining original source identity.*) · `src/plane_original.rs` (*Use exact production display algorithms with compact GPU ownership while retaining original source identity.*) · `src/commands.rs` (*Use exact production display algorithms with compact GPU ownership while retaining original source identity.*) · `src/bounds_original.rs` (*Use exact production display algorithms with compact GPU ownership while retaining original source identity.*) · `src/browser_defaults.rs` (*Use exact production display algorithms with compact GPU ownership while retaining original source identity.*) · `src/display_settings.rs` (*Use exact production display algorithms with compact GPU ownership while retaining original source identity.*) · `src/mesh_parts.rs` (*Use exact production display algorithms with compact GPU ownership while retaining original source identity.*) · `src/production_glyph.rs` (*Use exact production display algorithms with compact GPU ownership while retaining original source identity.*) · `src/production_glyph.wgsl` (*Use exact production display algorithms with compact GPU ownership while retaining original source identity.*) · `src/production_glyph_gpu.rs` (*Use exact production display algorithms with compact GPU ownership while retaining original source identity.*) · `src/production_glyph_provenance.json` (*Use exact production display algorithms with compact GPU ownership while retaining original source identity.*) · `src/production_glyph_tests.rs` (*Use exact production display algorithms with compact GPU ownership while retaining original source identity.*) · `src/production_sphere.wgsl` (*Use exact production display algorithms with compact GPU ownership while retaining original source identity.*) · `src/print_fill.rs` (*Draw retained print fills with production flat-colour and read-only depth semantics.*) · `src/print_fill.wgsl` (*Adapt production text_outline placement, flat alpha colour, clipping and owner-only picking to existing course buffers.*) · `src/print_fill_tests.rs` (*Prove exact print classification and visible ink/fresh owner queries without physical print triangles.*) · `src/mesh.rs` (*Retain authored print classification with prepared geometry across source unloading.*) · `src/gpu_mesh.rs` (*Retain production FLAG_PRINT in the original object record.*) · `src/tile_gpu.rs` (*Build physical projected triangles and tile lists only from nonprinted meshes, retaining primitive addresses.*) · `src/projection_lookup.rs` (*Use bounded per-object physical projection when the shared slot table also contains print triangles.*) · `src/face_pick.rs` (*Printed fills have object identity without fabricated source-face IDs.*) · `src/outline_gpu.rs` (*Printed fills are not physical silhouette sources.*) · `src/ambient_source_gpu.rs` (*Printed fills do not supply physical ambient normals or radii.*) · `src/object_record.rs` (*Name the unused final record word without changing its 176-byte layout or cap token.*) · `src/object_settings.wgsl` (*Document the existing record words consumed by printed fill.*) · `src/production_brep_ink.rs` (*Use exact production display algorithms with compact GPU ownership while retaining original source identity.*) · `src/production_mesh_ink.rs` (*Use exact production display algorithms with compact GPU ownership while retaining original source identity.*) · `src/production_mesh_ink_provenance.json` (*Use exact production display algorithms with compact GPU ownership while retaining original source identity.*) · `src/production_mesh_ink_tests.rs` (*Use exact production display algorithms with compact GPU ownership while retaining original source identity.*) · `src/surface.rs` (*Use exact production display algorithms with compact GPU ownership while retaining original source identity.*) · `src/command_owner_tests.rs` (*At the production-integrated endpoint ordinary Plane uses its real whole-object owner and compact PlaneRows, rather than seven invented mesh-edge identities. The existing original-source, archive, trim, undo and redo assertions remain intact; clipping Plane retains its seven edges.*) · `src/cloud_composite_tests.rs` (*Set EDL through its new authoritative presentation-settings owner; draw now reapplies this setting to the cloud lane. Preserve every original complete-frame, independent production compositor, sample-count, EDL-mode, pick and source assertion.*) · `src/current_inventory.json` (*Record the actual pulled and locally corrected production source inventory at the final endpoint; preserve earlier checkpoint inventories and all source-verification assertions.*) · `src/inventory_tests.rs` (*Record the actual pulled and locally corrected production source inventory at the final endpoint; preserve earlier checkpoint inventories and all source-verification assertions.*) · `src/feature_display.rs` (*Use the actual production contact outline walk, joined ribbon, sentinel colour and packed face normal from app/walk/mod.rs; retain original fill/query geometry.*) · `src/source_audit.rs` (*Compare canonical UTF-8 source hashes across Windows and Linux line endings; retain exact binary hashing and every source-presence/hash assertion.*)
+
+Keep coherent CAD face boundaries and their original edge addresses. When an edge has no face boundary, sample its original 3D curve into the existing joined path lane. The two kinds retain independent Edges and Lines controls.
+
+A face-free BRep needs explicit reference validation because the kernel general validator requires faces. Validate every referenced vertex, curve, wire and pcurve; reject faceless shells/solids and malformed input. Do not create a fake face or relax the guard that rejects an incoherent boundary on an actual CAD face.
+
+Share the existing joined-stroke helper for ordinary and selected curves. Prepare path records once with their Object-only IDs, then move them into the existing path buffer. No new GPU lane, family table or proxy scene owner is needed.
+
+Retain fallback samples in the original prepared CAD record and transform them during rigid source replay. Shared placements retain the same original source. Actual bounds, source archives, owner queries, selected black centers/fringes and one/four-sample returns need independent checks.
+
+Supplied Native witnesses cover malformed topology, source-preserving rigid replay, and actual face-free/mixed/shared display and queries at both projections and sample counts. The browser uses their exported original archives at both densities/counts. Matched maintained frames remain a separate acceptance requirement.
+
+Sample each repeated fallback curve reference once. Bound aggregate display samples before appending them or allocating a GPU path buffer; a topology count limit alone does not bound sampled geometry. Keep all original source references and archive fields.
+
+The same-source, same-pose comparison uses separately rendered sRGB targets. Fine terminal and antialias coverage remain part of the following global pen work; this checkpoint establishes original fallback curves, ownership and independent family controls.
+
+Ordinary lines now use the production ribbon implementation: original local endpoints, packed pen inputs, separate model translations, homogeneous screen-line anchoring, orientation-dependent pixel coverage and per-sample visibility. The copied shader and host ABI have explicit source hashes. Joined paths, arrows and other ink families remain staged; this checkpoint does not establish whole-renderer parity.
+
+The latest kernel Matrix is an original Component, including matrix-only sessions. Retain its GUID and row-major data through placement and archives. Reuse the complete maintained matrix shader and original packing body: one quad per matrix, a 16-word header, and three words per cell. The fragment stage draws value colors, borders and numeric glyphs; the separate world title uses shaped text without a plate.
+
+Nonzero values round to thousandths and shrink to fit; zeros use their own color without a numeric glyph. The current shader is opaque, picks whole matrices, and highlights selected borders. Its clipping test runs at quad vertices. Titles have their own text identity and lifetime; this lesson does not claim coupled Matrix/title editing or exact fragment clipping.
+
+> **Self-Check Question:** *Does a detached original CAD curve acquire a mapped BRepEdge query address?*  
+> **Answer:** No. It remains selectable as its original object. Only a coherent mapped face boundary receives the original BRepEdge subpart address.
+
+- **What You Should See:** Original CAD fallback curves share the existing joined path buffer, source ownership, family masks and selected-ink path. Actual complete application, maintained comparison, feature pictures and published UI remain mandatory.
+
+Actual original face-free and mixed face/wire BReps, each with a shared mirrored nonuniform placement. Captions distinguish one/four samples, ordinary family flags and selected source curves. White output when all face-free wires are hidden is an intentional hidden-family state, paired with visible-source and original-owner checks. The existing bore, mapped boundary and black-core assertions remain mandatory. Matched maintained frames and actual Browser proof are separate gates. The source’s four-pixel pen leaves small white bore centers in these 320×240 frames. The maintained comparison uses additional renders with matching sRGB output.
+
+**Original face-free CAD wires and shared placement, one sample — actual Native original CAD wire frame.**
+
+**Original face-free CAD wires and shared placement, four samples — actual Native original CAD wire frame.**
+
+**Hide Lines removes face-free wires; original owners and source archive retained, four samples — actual Native original CAD wire frame.**
+
+**Selected original face-free wires retain their black centers and yellow fringe, four samples — actual Native original CAD wire frame.**
+
+**Original bore plus detached wire and shared placement, four samples — actual Native original CAD wire frame.**
+
+**Hide Edges removes mapped CAD borders while detached original wires remain, four samples — actual Native original CAD wire frame.**
+
+**Hide Lines removes detached wires while original faces and mapped borders remain, four samples — actual Native original CAD wire frame.**
+
+**Selected mixed original CAD objects and their detached wires, four samples — actual Native original CAD wire frame.**
+- **Hands-On Lab Experiment:** Hide Edges and Lines independently on the mixed original bore/wire fixture. Restore exact pixels and query both shared owners without changing source archives or geometry uploads.
 
 <details>
 <summary>Implementation 96zzzzzzzq-draw-original-cad-wire-curves: Draw original CAD wire curves</summary>
@@ -50994,9 +51230,11 @@ After that block, append this supplied code:
 
 </details>
 
-## Run, Check, and Save
+---
 
-From `session_viewer`:
+## 5. Build, Verify, and Save Your Checkpoint
+
+Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 96zzzzzzzq-draw-original-cad-wire-curves
@@ -51007,9 +51245,9 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. Use [checkpoint recovery](../../recovery.md) to restore any saved checkpoint.
+Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
 
-## Expected Visual Result & Experiment
+## 6. Lesson Summary & Expected Visual Result
 
 Original CAD fallback curves share the existing joined path buffer, source ownership, family masks and selected-ink path. Actual complete application, maintained comparison, feature pictures and published UI remain mandatory.
 
@@ -51031,4 +51269,4 @@ Actual original face-free and mixed face/wire BReps, each with a shared mirrored
 
 **Selected mixed original CAD objects and their detached wires, four samples — actual Native original CAD wire frame.**
 
-- **Try this:** Hide Edges and Lines independently on the mixed original bore/wire fixture. Restore exact pixels and query both shared owners without changing source archives or geometry uploads.
+- **Final Lesson Experiment:** Hide Edges and Lines independently on the mixed original bore/wire fixture. Restore exact pixels and query both shared owners without changing source archives or geometry uploads.

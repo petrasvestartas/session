@@ -1,91 +1,150 @@
 # 7.2 · Typed commands and host requests
 
-**Section 5: Interactive Drawing, Snapping, Gumball Handles, and Scene Hierarchy** · **Lesson 7.2** (Redraft `5.2`) · **4 checkpoints (`47-registry` → `47c-route`)**
+**Section 5: Interactive Drawing, Snapping, Gumball Handles, and Scene Hierarchy** · **Lesson 7.2** (Redraft `5.2`) · **4 checkpoints (`47-registry` → `47c-route`)** · **Study time: 2–4 h**
 
-> **Learning Goal:** Separate browser requests from editor actions.
+> **What You Will Learn & Build:** Separate browser requests from editor actions. By the final checkpoint (`47c-route`), you will route the command field through the typed registry.
 
-## Visual WebGPU & Architecture Schematic
+## 1. Visual Pipeline & WebGPU Architecture (Black & White Schematics)
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1px solid #cbd5e1;border-radius:10px;background:#f8fafc;">
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
+<svg viewBox="0 0 840 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <rect x="4" y="4" width="832" height="212" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Lesson 7.2 Execution Flow: Typed commands and host requests</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">Concrete data pipeline you build in this lesson (4 Checkpoints: 47-registry → 47c-route)</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
+  
+    
+    <rect x="18" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="89" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
+    <line x1="28" y1="92" x2="151" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">shown names</text>
+    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="183" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="254" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
+    <line x1="193" y1="92" x2="316" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">typed host requests</text>
+    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="348" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="419" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
+    <line x1="358" y1="92" x2="481" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">action factories</text>
+    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="513" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="584" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
+    <line x1="523" y1="92" x2="646" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">one vocabulary</text>
+    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="678" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="749" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
+    <line x1="688" y1="92" x2="811" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">actual command</text>
+    <text x="749" y="124" text-anchor="middle" font-size="11" fill="#111111">field</text>
+    
+    <rect x="18" y="162" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="32" y="181" font-size="11" font-weight="700" fill="#111111">Files You Edit in Lesson 7.2:</text>
+    <text x="215" y="181" font-size="11" fill="#111111">src/commands.rs  ·  src/lib.rs  ·  src/offset.rs  ·  src/commands_tests.rs  ·  src/panel.rs  ·  src/browser.rs</text>
+    <text x="32" y="198" font-size="10.5" fill="#111111">4 Checkpoints: 47-registry → 47c-route — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
+  
+</svg>
+</div>
+
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
 <svg viewBox="0 0 840 240" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#475569"/>
-    </marker>
-    <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#2563eb"/>
-    </marker>
-    <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#059669"/>
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
     </marker>
   </defs>
-  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
-  <text x="20" y="28" font-size="14" font-weight="700" fill="#0f172a">Chapter 7 Interactive CAD Manipulation: Construction-Plane Ray Hit, Snap Priority & 3D Gumball (widget.wgsl)</text>
-  <text x="20" y="46" font-size="11.5" fill="#475569">How 2D mouse drags become exact 3D CAD coordinates via construction planes, geometric snapping, and constant-screen-size Gumball handles.</text>
-  <line x1="16" y1="54" x2="824" y2="54" stroke="#e2e8f0" stroke-width="1"/>
+  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Chapter 7 Interactive CAD Manipulation: Construction-Plane Ray Hit, Snap Priority & 3D Gumball (widget.wgsl)</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">How 2D mouse drags become exact 3D CAD coordinates via construction planes, geometric snapping, and constant-screen-size Gumball handles.</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
   
-    <rect x="18" y="68" width="240" height="145" rx="6" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
-    <text x="138" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1e40af">1. Construction Plane &amp; Snapping</text>
-    <text x="28" y="108" font-size="10.5" fill="#1e3a8a">• Ray R(t) = O + t·D intersects Plane(P0, N):</text>
-    <text x="28" y="124" font-size="10.5" font-weight="700" fill="#1d4ed8">  t = dot(P0 - O, N) / dot(D, N)</text>
-    <text x="28" y="144" font-size="10.5" font-weight="600" fill="#1e40af">• Snap Priority within pixel radius:</text>
-    <text x="28" y="160" font-size="10" fill="#1e3a8a">  1. Endpoint / Vertex   2. Midpoint</text>
-    <text x="28" y="175" font-size="10" fill="#1e3a8a">  3. Curve Nearest       4. Grid Step</text>
-    <text x="28" y="193" font-size="10" fill="#1e3a8a">• Typed "x,y,z" overrides cursor ray</text>
+    <rect x="18" y="68" width="240" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="138" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">1. Construction Plane &amp; Snapping</text>
+    <text x="28" y="108" font-size="10.5" fill="#111111">• Ray R(t) = O + t·D intersects Plane(P0, N):</text>
+    <text x="28" y="124" font-size="10.5" font-weight="700" fill="#111111">  t = dot(P0 - O, N) / dot(D, N)</text>
+    <text x="28" y="144" font-size="10.5" font-weight="600" fill="#111111">• Snap Priority within pixel radius:</text>
+    <text x="28" y="160" font-size="10" fill="#111111">  1. Endpoint / Vertex   2. Midpoint</text>
+    <text x="28" y="175" font-size="10" fill="#111111">  3. Curve Nearest       4. Grid Step</text>
+    <text x="28" y="193" font-size="10" fill="#111111">• Typed "x,y,z" overrides cursor ray</text>
 
-    <line x1="258" y1="138" x2="288" y2="138" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
+    <line x1="258" y1="138" x2="288" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="290" y="68" width="250" height="145" rx="6" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5"/>
-    <text x="415" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#9a3412">2. Tool State &amp; Preview Overlay</text>
-    <text x="302" y="108" font-size="10.5" fill="#7c2d12">• Active Tool (Line / Polyline / Point)</text>
-    <text x="302" y="126" font-size="10.5" font-weight="600" fill="#c2410c">• Rubber-band preview buffer:</text>
-    <text x="302" y="142" font-size="10" fill="#7c2d12">  Updates every pointermove without</text>
-    <text x="302" y="157" font-size="10" fill="#7c2d12">  polluting Undo history stack</text>
-    <text x="302" y="176" font-size="10.5" fill="#7c2d12">• Enter / Final Click -&gt; 1 atomic Undo</text>
-    <text x="302" y="192" font-size="10.5" fill="#7c2d12">• Escape -&gt; cancel &amp; clear preview</text>
+    <rect x="290" y="68" width="250" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="415" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">2. Tool State &amp; Preview Overlay</text>
+    <text x="302" y="108" font-size="10.5" fill="#111111">• Active Tool (Line / Polyline / Point)</text>
+    <text x="302" y="126" font-size="10.5" font-weight="600" fill="#111111">• Rubber-band preview buffer:</text>
+    <text x="302" y="142" font-size="10" fill="#111111">  Updates every pointermove without</text>
+    <text x="302" y="157" font-size="10" fill="#111111">  polluting Undo history stack</text>
+    <text x="302" y="176" font-size="10.5" fill="#111111">• Enter / Final Click -&gt; 1 atomic Undo</text>
+    <text x="302" y="192" font-size="10.5" fill="#111111">• Escape -&gt; cancel &amp; clear preview</text>
 
-    <line x1="540" y1="138" x2="570" y2="138" stroke="#059669" stroke-width="2" marker-end="url(#arrow-green)"/>
+    <line x1="540" y1="138" x2="570" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="572" y="68" width="248" height="145" rx="6" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1.5"/>
-    <text x="696" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#065f46">3. 3D Gumball Widget (widget.wgsl)</text>
-    <text x="584" y="108" font-size="10.5" fill="#064e3b">• Placed at selection bounding center</text>
-    <text x="584" y="126" font-size="10.5" font-weight="600" fill="#047857">• Scaled by camera distance w so</text>
-    <text x="584" y="142" font-size="10.5" font-weight="600" fill="#047857">  handles stay constant pixel size!</text>
-    <text x="584" y="160" font-size="10" fill="#064e3b">• Axis arrows (Translate X/Y/Z)</text>
-    <text x="584" y="175" font-size="10" fill="#064e3b">• Arc rings (Rotate) + Boxes (Scale)</text>
-    <text x="584" y="192" font-size="10" fill="#064e3b">• Picked via Rg32Uint widget sub_id</text>
+    <rect x="572" y="68" width="248" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="696" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">3. 3D Gumball Widget (widget.wgsl)</text>
+    <text x="584" y="108" font-size="10.5" fill="#111111">• Placed at selection bounding center</text>
+    <text x="584" y="126" font-size="10.5" font-weight="600" fill="#111111">• Scaled by camera distance w so</text>
+    <text x="584" y="142" font-size="10.5" font-weight="600" fill="#111111">  handles stay constant pixel size!</text>
+    <text x="584" y="160" font-size="10" fill="#111111">• Axis arrows (Translate X/Y/Z)</text>
+    <text x="584" y="175" font-size="10" fill="#111111">• Arc rings (Rotate) + Boxes (Scale)</text>
+    <text x="584" y="192" font-size="10" fill="#111111">• Picked via Rg32Uint widget sub_id</text>
     
 </svg>
 </div>
 
-### Lesson Data Flow (`Rust` → `WebGPU` → `WGSL`)
+## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
 
-```
-shown names → typed host requests → action factories → one vocabulary.
-typed words → longest known name → checked argument count and finite numbers → typed request or visible error.
-actual command field → canonical registry name → typed parse → browser request or editor action → one dock answer.
-```
+Before writing code, review how the three layers in this chapter talk to each other:
 
-- Separate browser requests from editor actions.
-- Parse the longest command and validate its arguments.
-- Route the command field through the typed registry.
-- **Why it works (Why keep Open outside the synchronous editor action?):** The browser owns its chooser and asynchronous read lifetime; only a checked completion becomes an editor transaction.
-
-### Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `Browser`)
-
-| Layer | Construct | First-Year Student Explanation |
+| Layer | Construct | Plain-English Explanation for Students |
 | :--- | :--- | :--- |
 | **Rust (CAD Math)** | Ray–Plane Intersection `t = dot(P0 - O, N) / dot(D, N)` | Projects a 2D mouse ray onto the active 3D construction plane (`Plane`), with priority snapping (`Endpoint > Midpoint > Curve > Grid`). |
 | **Rust (Editor)** | Preview Overlay vs. Atomic Undo Commit | Rubber-band preview geometry updates on every `pointermove` without touching the Undo stack; `Enter` or final click commits one atomic kernel transaction. |
 | **WGSL (`widget.wgsl`)** | Perspective-Compensated 3D Gumball Handles | Scales axis arrows, rotation arcs, and scale boxes by camera depth `w` so the 3D Gumball gizmo stays a constant clickable pixel size at any zoom. |
 
-**Production source (`session_viewer/src`):** [app/command/mod.rs](../../../src/app/command/mod.rs), [app/command/tool.rs](../../../src/app/command/tool.rs), [app/cplane.rs](../../../src/app/cplane.rs), [app/snap.rs](../../../src/app/snap.rs), [app/gizmo.rs](../../../src/app/gizmo.rs), [engine/gpu/widget.rs](../../../src/engine/gpu/widget.rs), [app/deform.rs](../../../src/app/deform.rs).
+**Authoritative production source (`session_viewer/src`):** [app/command/mod.rs](../../../src/app/command/mod.rs), [app/command/tool.rs](../../../src/app/command/tool.rs), [app/cplane.rs](../../../src/app/cplane.rs), [app/snap.rs](../../../src/app/snap.rs), [app/gizmo.rs](../../../src/app/gizmo.rs), [engine/gpu/widget.rs](../../../src/engine/gpu/widget.rs), [app/deform.rs](../../../src/app/deform.rs)
 
-## Implementation Checkpoints
+## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
 
-Apply these checkpoints in order inside `workspace/journey`. Expand each block to view the Rust/WGSL/HTML edits:
+| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
+| ---: | :--- | :--- | :--- | :--- |
+| **1** | [`47-registry`](#checkpoint-47-registry) | Separate browser requests from editor actions. | `src/commands.rs`, `src/lib.rs` | `shown names → typed host requests → action factories → one vocabulary` |
+| **2** | [`47a-actions`](#checkpoint-47a-actions) | Register the existing editor command factories. | `src/commands.rs` | `shown command name → noncapturing factory → typed action → existing editor transaction` |
+| **3** | [`47b-parse`](#checkpoint-47b-parse) | Parse the longest command and validate its arguments. | `src/commands.rs`, `src/offset.rs`, `src/commands_tests.rs`, `src/lib.rs` | `typed words → longest known name → checked argument count and finite numbers → typed request or visible error` |
+| **4** | [`47c-route`](#checkpoint-47c-route) | Route the command field through the typed registry. | `src/panel.rs`, `src/browser.rs` | `actual command field → canonical registry name → typed parse → browser request or editor action → one dock answer` |
+
+---
+
+## 4. Step-by-Step Coding Notebook (Concept + Implementation)
+
+Work through each notebook cell below in order inside `workspace/journey`. Read the **Concept Walkthrough** and **Self-Check Q&A** first, then expand the **Implementation** block to type and verify the code.
 
 <a id="checkpoint-47-registry"></a>
+
+### Step 1 of 4 · Separate browser requests from editor actions (`47-registry`)
+
+- **Goal:** Separate browser requests from editor actions.
+- **Data Flow Trace:** `shown names → typed host requests → action factories → one vocabulary`
+- **Files You Touch:** `src/commands.rs` (*Declare host requests and the shared names they expose.*) · `src/lib.rs` (*Register the typed command component and copied checks.*)
+
+A command can request an editor transaction or a browser operation. Store its shown name once so completion, help and parsing can share the same vocabulary.
+
+> **Self-Check Question:** *Why keep Open outside the synchronous editor action?*  
+> **Answer:** The browser owns its chooser and asynchronous read lifetime; only a checked completion becomes an editor transaction.
+
+- **What You Should See:** Run the earlier two-box selection exercise. This preparation declares typed requests; the command field keeps its existing route until47c.
+- **Hands-On Lab Experiment:** Compare Open and Open Replace: their host requests must remain different even though their names share a prefix.
 
 <details>
 <summary>Implementation 47-registry: Separate browser requests from editor actions</summary>
@@ -129,6 +188,20 @@ After that block, type:
 
 <a id="checkpoint-47a-actions"></a>
 
+### Step 2 of 4 · Register the existing editor command factories (`47a-actions`)
+
+- **Goal:** Register the existing editor command factories.
+- **Data Flow Trace:** `shown command name → noncapturing factory → typed action → existing editor transaction`
+- **Files You Touch:** `src/commands.rs` (*Register existing actions without duplicating command names in parsing branches.*)
+
+Each registry entry constructs one existing typed action. A noncapturing closure becomes a function pointer and retains no editor borrow or mutable state.
+
+> **Self-Check Question:** *Does constructing an action create an Undo entry?*  
+> **Answer:** No. Construction has no scene effects; Editor.apply decides whether to commit a transaction.
+
+- **What You Should See:** Continue the existing selection exercise. The action registry is ready; command-field dispatch follows at47c.
+- **Hands-On Lab Experiment:** Compare Fit, Fit Selected and View Perspective; each factory carries the existing action and its required parameters.
+
 <details>
 <summary>Implementation 47a-actions: Register the existing editor command factories</summary>
 
@@ -164,6 +237,20 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-47b-parse"></a>
+
+### Step 3 of 4 · Parse the longest command and validate its arguments (`47b-parse`)
+
+- **Goal:** Parse the longest command and validate its arguments.
+- **Data Flow Trace:** `typed words → longest known name → checked argument count and finite numbers → typed request or visible error`
+- **Files You Touch:** `src/commands.rs` (*Match current names and return checked typed requests.*) · `src/offset.rs` (*Accept finite three-coordinate offsets in comma or space form.*) · `src/commands_tests.rs` (*Copy longest-name, invalid-input, redo-preservation and one-Undo execution checks.*) · `src/lib.rs` (*Register the typed command component and copied checks.*)
+
+Match names without case or internal-space differences. Keep arguments intact, choose the longest name, and reject invalid offsets before the editor sees an action.
+
+> **Self-Check Question:** *Why match Open Replace before Open?*  
+> **Answer:** Otherwise Replace becomes an unexpected argument to the shorter command. Longest-name matching preserves the intended operation.
+
+- **What You Should See:** Inspect commands_tests. Both Move 1,-2,0.03 and Move 1 -2 0.03 reach one transaction; malformed input keeps the source and redo branch. The browser uses this parser at47c.
+- **Hands-On Lab Experiment:** Try empty input, Delete all, Move 1,,2 and Move NaN,0,0 in the copied parser check; each must fail before applying an action.
 
 <details>
 <summary>Implementation 47b-parse: Parse the longest command and validate its arguments</summary>
@@ -258,6 +345,20 @@ After that block, type:
 </details>
 
 <a id="checkpoint-47c-route"></a>
+
+### Step 4 of 4 · Route the command field through the typed registry (`47c-route`)
+
+- **Goal:** Route the command field through the typed registry.
+- **Data Flow Trace:** `actual command field → canonical registry name → typed parse → browser request or editor action → one dock answer`
+- **Files You Touch:** `src/panel.rs` (*Supply the registry vocabulary and route typed requests with one visible error answer.*) · `src/browser.rs` (*Supply the registry vocabulary and route typed requests with one visible error answer.*)
+
+Give the panel its vocabulary from the registry. Parse submitted lines once, dispatch typed host requests or editor actions, and render input errors through the existing dock.
+
+> **Self-Check Question:** *Why continue drawing after a parse error?*  
+> **Answer:** The dock must show its new answer. Returning from the event handler before drawing would leave the previous status on screen.
+
+- **What You Should See:** Close; Example Box; Select Next; Move 1 -2 .03; Undo. Type OpenReplace with the compact spelling, cancel its chooser, then try Delete all and Move NaN,0,0. Invalid commands leave geometry and history unchanged.
+- **Hands-On Lab Experiment:** Try ViewPerspective and View Orthographic, then Report Previous. Compact spelling must choose the same command and retain its distinct operation.
 
 <details>
 <summary>Implementation 47c-route: Route the command field through the typed registry</summary>
@@ -1615,9 +1716,11 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 </details>
 
-## Run, Check, and Save
+---
 
-From `session_viewer`:
+## 5. Build, Verify, and Save Your Checkpoint
+
+Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 47c-route
@@ -1628,12 +1731,12 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. Use [checkpoint recovery](../recovery.md) to restore any saved checkpoint.
+Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../recovery.md) to save or restore any checkpoint ID.
 
-## Expected Visual Result & Experiment
+## 6. Lesson Summary & Expected Visual Result
 
 Close; Example Box; Select Next; Move 1 -2 .03; Undo. Type OpenReplace with the compact spelling, cancel its chooser, then try Delete all and Move NaN,0,0. Invalid commands leave geometry and history unchanged.
 
-- **Try this:** Try ViewPerspective and View Orthographic, then Report Previous. Compact spelling must choose the same command and retain its distinct operation.
+- **Final Lesson Experiment:** Try ViewPerspective and View Orthographic, then Report Previous. Compact spelling must choose the same command and retain its distinct operation.
 
 Continue with [Construction-plane drafts and one final commit](48-coordinates.md).

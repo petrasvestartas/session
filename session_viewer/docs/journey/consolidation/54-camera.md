@@ -1,90 +1,163 @@
 # 8.4 · Navigation, delayed picks and direct dragging
 
-**Section 5: Interactive Drawing, Snapping, Gumball Handles, and Scene Hierarchy** · **Lesson 8.4** (Redraft `5.10`) · **18 checkpoints (`54-camera` → `54p-navigation`)**
+**Section 5: Interactive Drawing, Snapping, Gumball Handles, and Scene Hierarchy** · **Lesson 8.4** (Redraft `5.10`) · **18 checkpoints (`54-camera` → `54p-navigation`)** · **Study time: 9–18 h**
 
-> **Learning Goal:** Navigate and fit inside the free canvas.
+> **What You Will Learn & Build:** Navigate and fit inside the free canvas. By the final checkpoint (`54p-navigation`), you will exercise current navigation selection and delayed answers.
 
-## Visual WebGPU & Architecture Schematic
+## 1. Visual Pipeline & WebGPU Architecture (Black & White Schematics)
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1px solid #cbd5e1;border-radius:10px;background:#f8fafc;">
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
+<svg viewBox="0 0 840 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <rect x="4" y="4" width="832" height="212" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Lesson 8.4 Execution Flow: Navigation, delayed picks and direct dragging</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">Concrete data pipeline you build in this lesson (18 Checkpoints: 54-camera → 54p-navigation)</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
+  
+    
+    <rect x="18" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="89" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
+    <line x1="28" y1="92" x2="151" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">CSS cursor</text>
+    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="183" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="254" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
+    <line x1="193" y1="92" x2="316" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">target-plane offset</text>
+    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="348" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="419" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
+    <line x1="358" y1="92" x2="481" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">f64 camera</text>
+    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="513" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="584" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
+    <line x1="523" y1="92" x2="646" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">free-canvas</text>
+    <text x="584" y="124" text-anchor="middle" font-size="11" fill="#111111">projection</text>
+    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="678" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="749" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
+    <line x1="688" y1="92" x2="811" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">actual input</text>
+    
+    <rect x="18" y="162" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="32" y="181" font-size="11" font-weight="700" fill="#111111">Files You Edit in Lesson 8.4:</text>
+    <text x="215" y="181" font-size="11" fill="#111111">src/camera.rs  ·  src/navigation.rs  ·  src/navigation_tests.rs  ·  src/editor.rs  ·  src/shortcuts.rs  ·  src/object_selection.rs</text>
+    <text x="32" y="198" font-size="10.5" fill="#111111">18 Checkpoints: 54-camera → 54p-navigation — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
+  
+</svg>
+</div>
+
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
 <svg viewBox="0 0 840 240" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#475569"/>
-    </marker>
-    <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#2563eb"/>
-    </marker>
-    <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#059669"/>
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
     </marker>
   </defs>
-  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
-  <text x="20" y="28" font-size="14" font-weight="700" fill="#0f172a">Chapter 8 Scene Graph & Layer Architecture: Hierarchical Transforms, Lamp Inheritance & Inspector Focus</text>
-  <text x="20" y="46" font-size="11.5" fill="#475569">How parent-child Element trees and Layer visibility lamps compose without losing individual child visibility states.</text>
-  <line x1="16" y1="54" x2="824" y2="54" stroke="#e2e8f0" stroke-width="1"/>
+  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Chapter 8 Scene Graph & Layer Architecture: Hierarchical Transforms, Lamp Inheritance & Inspector Focus</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">How parent-child Element trees and Layer visibility lamps compose without losing individual child visibility states.</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
   
-    <rect x="18" y="68" width="250" height="145" rx="6" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
-    <text x="143" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1e40af">1. Scene Tree &amp; Matrix Composition</text>
-    <text x="28" y="108" font-size="10.5" fill="#1e3a8a">• Root Element -&gt; Child Assembly -&gt; Leaf</text>
-    <text x="28" y="126" font-size="10.5" font-weight="700" fill="#1d4ed8">• M_world(child) = M_world(parent) * M_local</text>
-    <text x="28" y="146" font-size="10.5" fill="#1e3a8a">• Tree path identity keeps duplicate</text>
-    <text x="28" y="162" font-size="10.5" fill="#1e3a8a">  group names distinct</text>
-    <text x="28" y="180" font-size="10.5" fill="#1e3a8a">• Cycle-safe parent reassignment</text>
+    <rect x="18" y="68" width="250" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="143" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">1. Scene Tree &amp; Matrix Composition</text>
+    <text x="28" y="108" font-size="10.5" fill="#111111">• Root Element -&gt; Child Assembly -&gt; Leaf</text>
+    <text x="28" y="126" font-size="10.5" font-weight="700" fill="#111111">• M_world(child) = M_world(parent) * M_local</text>
+    <text x="28" y="146" font-size="10.5" fill="#111111">• Tree path identity keeps duplicate</text>
+    <text x="28" y="162" font-size="10.5" fill="#111111">  group names distinct</text>
+    <text x="28" y="180" font-size="10.5" fill="#111111">• Cycle-safe parent reassignment</text>
 
-    <line x1="268" y1="138" x2="298" y2="138" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
+    <line x1="268" y1="138" x2="298" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="300" y="68" width="265" height="145" rx="6" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5"/>
-    <text x="432" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#9a3412">2. Layer &amp; Parent Lamp Restoration</text>
-    <text x="312" y="108" font-size="10.5" fill="#7c2d12">• Effective Visible =</text>
-    <text x="312" y="124" font-size="10.5" font-weight="600" fill="#c2410c">  layer_lamp &amp;&amp; parent_lamps &amp;&amp; own_lamp</text>
-    <text x="312" y="144" font-size="10" fill="#7c2d12">• Toggling a parent/layer lamp OFF hides</text>
-    <text x="312" y="159" font-size="10" fill="#7c2d12">  descendants without overwriting own_lamp;</text>
-    <text x="312" y="174" font-size="10" fill="#7c2d12">  toggling back ON restores prior state!</text>
-    <text x="312" y="192" font-size="10.5" fill="#7c2d12">• Hidden/Locked rows skipped in Rg32Uint pick</text>
+    <rect x="300" y="68" width="265" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="432" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">2. Layer &amp; Parent Lamp Restoration</text>
+    <text x="312" y="108" font-size="10.5" fill="#111111">• Effective Visible =</text>
+    <text x="312" y="124" font-size="10.5" font-weight="600" fill="#111111">  layer_lamp &amp;&amp; parent_lamps &amp;&amp; own_lamp</text>
+    <text x="312" y="144" font-size="10" fill="#111111">• Toggling a parent/layer lamp OFF hides</text>
+    <text x="312" y="159" font-size="10" fill="#111111">  descendants without overwriting own_lamp;</text>
+    <text x="312" y="174" font-size="10" fill="#111111">  toggling back ON restores prior state!</text>
+    <text x="312" y="192" font-size="10.5" fill="#111111">• Hidden/Locked rows skipped in Rg32Uint pick</text>
 
-    <line x1="565" y1="138" x2="595" y2="138" stroke="#059669" stroke-width="2" marker-end="url(#arrow-green)"/>
+    <line x1="565" y1="138" x2="595" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="597" y="68" width="223" height="145" rx="6" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1.5"/>
-    <text x="708" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#065f46">3. Inspector &amp; Focus Adapter</text>
-    <text x="609" y="108" font-size="10.5" fill="#064e3b">• egui Tree / Layer / Property UI</text>
-    <text x="609" y="126" font-size="10.5" font-weight="600" fill="#047857">• Layer-rename focus adapter:</text>
-    <text x="609" y="142" font-size="10" fill="#064e3b">  Suppresses Command Dock auto-focus</text>
-    <text x="609" y="157" font-size="10" fill="#064e3b">  while editing layer/object names</text>
-    <text x="609" y="176" font-size="10.5" fill="#064e3b">• Selection filter &amp; Next/Prev</text>
-    <text x="609" y="192" font-size="10.5" fill="#064e3b">  member navigation</text>
+    <rect x="597" y="68" width="223" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="708" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">3. Inspector &amp; Focus Adapter</text>
+    <text x="609" y="108" font-size="10.5" fill="#111111">• egui Tree / Layer / Property UI</text>
+    <text x="609" y="126" font-size="10.5" font-weight="600" fill="#111111">• Layer-rename focus adapter:</text>
+    <text x="609" y="142" font-size="10" fill="#111111">  Suppresses Command Dock auto-focus</text>
+    <text x="609" y="157" font-size="10" fill="#111111">  while editing layer/object names</text>
+    <text x="609" y="176" font-size="10.5" fill="#111111">• Selection filter &amp; Next/Prev</text>
+    <text x="609" y="192" font-size="10.5" fill="#111111">  member navigation</text>
     
 </svg>
 </div>
 
-### Lesson Data Flow (`Rust` → `WebGPU` → `WGSL`)
+## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
 
-```
-CSS cursor → target-plane offset → f64 camera → free-canvas projection.
-captured pointer → four-pixel slop → orbit pan or probe → checked release.
-actual input → current source eligibility → pending integer answer → exact history → two-density browser contract.
-```
+Before writing code, review how the three layers in this chapter talk to each other:
 
-- Navigate and fit inside the free canvas.
-- Capture mouse gestures in CSS pixels.
-- Exercise current navigation selection and delayed answers.
-- **Why it works (Why subtract the free-canvas shift while zooming?):** The camera target is centred in the space left by panels. The cursor offset must use that same shifted projection to keep its target-plane point under the cursor.
-
-### Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `Browser`)
-
-| Layer | Construct | First-Year Student Explanation |
+| Layer | Construct | Plain-English Explanation for Students |
 | :--- | :--- | :--- |
 | **Rust (`session_rust`)** | Hierarchical `Element` Transform `M_world = M_parent * M_local` | Composes parent assembly transforms down the scene tree while keeping duplicate group names distinct via full tree-path identity. |
 | **Rust (Scene Tree)** | Effective Visibility `layer_lamp && parent_lamps && own_lamp` | Hiding a parent group or layer masks descendants without overwriting their stored child lamp states, restoring them faithfully when re-enabled. |
 | **Rust (`command_dock`)** | Layer-Rename Focus Adapter (`src/command_dock/mod.rs`) | Temporarily yields keyboard focus while renaming a layer or object in the inspector so typing does not get hijacked by the Command Dock prompt. |
 
-**Production source (`session_viewer/src`):** [app/hierarchy.rs](../../../src/app/hierarchy.rs), [app/layers.rs](../../../src/app/layers.rs), [app/ui/layers.rs](../../../src/app/ui/layers.rs), [app/gesture/mod.rs](../../../src/app/gesture/mod.rs), [state/drag.rs](../../../src/state/drag.rs), [state/box_select.rs](../../../src/state/box_select.rs).
+**Authoritative production source (`session_viewer/src`):** [app/hierarchy.rs](../../../src/app/hierarchy.rs), [app/layers.rs](../../../src/app/layers.rs), [app/ui/layers.rs](../../../src/app/ui/layers.rs), [app/gesture/mod.rs](../../../src/app/gesture/mod.rs), [state/drag.rs](../../../src/state/drag.rs), [state/box_select.rs](../../../src/state/box_select.rs)
 
-## Implementation Checkpoints
+## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
 
-Apply these checkpoints in order inside `workspace/journey`. Expand each block to view the Rust/WGSL/HTML edits:
+| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
+| ---: | :--- | :--- | :--- | :--- |
+| **1** | [`54-camera`](#checkpoint-54-camera) | Navigate and fit inside the free canvas. | `src/camera.rs`, `src/navigation.rs`, `src/navigation_tests.rs` | `CSS cursor → target-plane offset → f64 camera → free-canvas projection` |
+| **2** | [`54aa-view-actions`](#checkpoint-54aa-view-actions) | Route camera changes without consuming document history. | `src/editor.rs` | `view action → preserved drawing draft → current camera → unchanged document history` |
+| **3** | [`54a-selection`](#checkpoint-54a-selection) | Apply visible selection and modifier precedence. | `src/shortcuts.rs`, `src/object_selection.rs`, `src/editor.rs` | `canvas-owned shortcut → live eligibility → unique ordered selection → preserved source` |
+| **4** | [`54b-finger`](#checkpoint-54b-finger) | Keep touch handles reachable without enlarging them. | `src/editor.rs` | `CSS finger cursor → 18-pixel reach → original handle → unchanged drawn geometry` |
+| **5** | [`54c-rectangle`](#checkpoint-54c-rectangle) | Distinguish window and crossing rectangles. | `src/rect_select.rs`, `src/lib.rs` | `drag direction → ordered bounds → f64 projection → segment clipping` |
+| **6** | [`54d-samples`](#checkpoint-54d-samples) | Select original projected geometry in one source pass. | `src/rect_select.rs`, `src/rect_select_tests.rs`, `src/lib.rs` | `eligible source → world placement → projected points and strokes → ordered unique identities` |
+| **7** | [`54e-drag`](#checkpoint-54e-drag) | Freeze a released drag until its pick answers. | `src/canvas_drag.rs`, `src/lib.rs` | `press probe → cursor updates → frozen release → late hit or miss → one result` |
+| **8** | [`54f-drag-state`](#checkpoint-54f-drag-state) | Own drag previews outside document history. | `src/editor.rs` | `saved scene → shared preview baseline → display scene → checked final commit` |
+| **9** | [`54g-drag-actions`](#checkpoint-54g-drag-actions) | Apply held released and cancelled drag outcomes. | `src/editor.rs` | `checked drag action → preserved pending pick → late answer → precise commit or rectangle` |
+| **10** | [`54h-mouse`](#checkpoint-54h-mouse) | Capture mouse gestures in CSS pixels. | `src/gesture.rs`, `src/gesture_tests.rs` | `captured pointer → four-pixel slop → orbit pan or probe → checked release` |
+| **11** | [`54i-touch`](#checkpoint-54i-touch) | Orbit with one finger and pan pinch with two. | `src/touch.rs`, `src/lib.rs` | `touch identities → one-finger orbit → two-finger centre and distance → ordered camera actions` |
+| **12** | [`54j-taps`](#checkpoint-54j-taps) | Finish taps double taps and touch cancellation. | `src/touch.rs` | `touch release → time and movement limits → tap or nearby double tap → all-fingers reset` |
+| **13** | [`54k-overlay`](#checkpoint-54k-overlay) | Draw a thin selection rectangle above the canvas. | `src/panel.rs` | `drag bounds → grey overlay → solid window or dashed crossing → panel-free frame` |
+| **14** | [`54l-navigation`](#checkpoint-54l-navigation) | Route mouse touch and wheel after panel input. | `src/browser.rs` | `measured UI ownership → CSS navigation → pointer capture → view action` |
+| **15** | [`54m-pick-release`](#checkpoint-54m-pick-release) | Retain the press pick through a quick release. | `src/browser.rs` | `press integer pick → pending cursor → frozen release → checked answer → move or rectangle` |
+| **16** | [`54n-cancellation`](#checkpoint-54n-cancellation) | Cancel owned gestures and preserve normal capture release. | `src/browser.rs` | `owned gesture → blur resize or cancel → dropped preview → no late mutation` |
+| **17** | [`54o-frame`](#checkpoint-54o-frame) | Expose drag ownership and centre the available drawing. | `src/browser.rs` | `measured panel layout → free camera frame → overlay update → inspectable ownership` |
+| **18** | [`54p-navigation`](#checkpoint-54p-navigation) | Exercise current navigation selection and delayed answers. | `src/navigation_complete_tests.rs`, `src/lib.rs`, `src/shortcut_focus_tests.rs`, `src/pick_gpu_tests.rs` | `actual input → current source eligibility → pending integer answer → exact history → two-density browser contract` |
+
+---
+
+## 4. Step-by-Step Coding Notebook (Concept + Implementation)
+
+Work through each notebook cell below in order inside `workspace/journey`. Read the **Concept Walkthrough** and **Self-Check Q&A** first, then expand the **Implementation** block to type and verify the code.
 
 <a id="checkpoint-54-camera"></a>
+
+### Step 1 of 18 · Navigate and fit inside the free canvas (`54-camera`)
+
+- **Goal:** Navigate and fit inside the free canvas.
+- **Data Flow Trace:** `CSS cursor → target-plane offset → f64 camera → free-canvas projection`
+- **Files You Touch:** `src/camera.rs` (*Keep cursor zoom, CSS pan, unbounded captured rays and panel-free fit in the camera.*) · `src/navigation.rs` (*Normalise wheel units and use the current bounded 0.9 zoom steps.*) · `src/navigation_tests.rs` (*Copy the preserved wheel, invalid-input and history checks with the current ten-step limit.*)
+
+Use CSS pixel camera rates, zoom around a cursor point and frame the selected geometry in the space left by panels.
+
+> **Self-Check Question:** *Why subtract the free-canvas shift while zooming?*  
+> **Answer:** The camera target is centred in the space left by panels. The cursor offset must use that same shifted projection to keep its target-plane point under the cursor.
+
+- **What You Should See:** Continue the blue Posts layer exercise. This preparation connects one navigation component; the complete canvas and touch exercise comes at the end of54.
+- **Hands-On Lab Experiment:** Project a target-plane point, zoom at its cursor and compare its screen position in both projections.
 
 <details>
 <summary>Implementation 54-camera: Navigate and fit inside the free canvas</summary>
@@ -588,6 +661,19 @@ Update the existing block with this supplied code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-54aa-view-actions"></a>
+
+### Step 2 of 18 · Route camera changes without consuming document history (`54aa-view-actions`)
+
+- **Goal:** Route camera changes without consuming document history.
+- **Data Flow Trace:** `view action → preserved drawing draft → current camera → unchanged document history`
+- **Files You Touch:** `src/editor.rs` (*Route camera actions without consuming document history or cancelling a point tool.*)
+
+Connect CSS camera actions while keeping drawing tools and their previews alive. Fit targets the eligible selection, then falls back to the whole visible scene.
+
+> **Self-Check Question:** *Should wheel zoom cancel a partly drawn line?*  
+> **Answer:** No. A camera change updates the view while keeping the point-tool draft and its source-preserving preview. Document edits still own their own Undo transactions.
+
+- **Hands-On Lab Experiment:** Start a line, change the view, then finish it. Fit a selected object and compare its source and document history.
 
 <details>
 <summary>Implementation 54aa-view-actions: Route camera changes without consuming document history</summary>
@@ -1446,6 +1532,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-54a-selection"></a>
+
+### Step 3 of 18 · Apply visible selection and modifier precedence (`54a-selection`)
+
+- **Goal:** Apply visible selection and modifier precedence.
+- **Data Flow Trace:** `canvas-owned shortcut → live eligibility → unique ordered selection → preserved source`
+- **Files You Touch:** `src/shortcuts.rs` (*Add field-aware Select All alongside the already taught history and H/S/F keys.*) · `src/object_selection.rs` (*Remove unique identities while retaining current eligibility and pick order.*) · `src/editor.rs` (*Apply modifier selection as presentation and keep Select All out of document Undo.*)
+
+Teach Ctrl/Cmd+A while keeping focused fields in control. Remove takes precedence over adding, and current view flags decide eligibility.
+
+> **Self-Check Question:** *What does Ctrl plus Shift do when a selection ends?*  
+> **Answer:** Ctrl/Cmd removes. It takes precedence over Shift adding. Focused name and number fields keep their own Ctrl/Cmd+A; an empty command field forwards it to scene selection.
+
+- **Hands-On Lab Experiment:** Select all, lock one object, select all again, then remove an object. Compare original source identities and geometry.
 
 <details>
 <summary>Implementation 54a-selection: Apply visible selection and modifier precedence</summary>
@@ -2407,6 +2506,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-54b-finger"></a>
 
+### Step 4 of 18 · Keep touch handles reachable without enlarging them (`54b-finger`)
+
+- **Goal:** Keep touch handles reachable without enlarging them.
+- **Data Flow Trace:** `CSS finger cursor → 18-pixel reach → original handle → unchanged drawn geometry`
+- **Files You Touch:** `src/editor.rs` (*Choose a finger hit aperture before starting the existing source-preserving handle preview.*)
+
+Use the existing handle hit test with a wider finger aperture while preserving its constant drawn size.
+
+> **Self-Check Question:** *Does the larger touch aperture scale the drawn handle?*  
+> **Answer:** No. The hit reach changes from eight to eighteen CSS pixels. The rendered axis and ball sizes remain unchanged.
+
+- **Hands-On Lab Experiment:** Compare mouse and finger reach around a scale ball; confirm that both begin the same precise handle preview.
+
 <details>
 <summary>Implementation 54b-finger: Keep touch handles reachable without enlarging them</summary>
 
@@ -3312,6 +3424,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-54c-rectangle"></a>
 
+### Step 5 of 18 · Distinguish window and crossing rectangles (`54c-rectangle`)
+
+- **Goal:** Distinguish window and crossing rectangles.
+- **Data Flow Trace:** `drag direction → ordered bounds → f64 projection → segment clipping`
+- **Files You Touch:** `src/rect_select.rs` (*Define finite rectangles, direction, point containment, segment clipping and CSS projection.*) · `src/lib.rs` (*Register the source component.*)
+
+Track drag direction independently of ordered bounds, project original world points in CSS pixels and clip segments against the rectangle.
+
+> **Self-Check Question:** *Can a crossing find a line when both endpoints are outside?*  
+> **Answer:** Yes. Segment clipping finds an intersection with the rectangle even when neither endpoint lies inside. A window still requires every projected sample inside.
+
+- **Hands-On Lab Experiment:** Drag the same rectangle in opposite directions around the middle of a long line. Compare its window and crossing results.
+
 <details>
 <summary>Implementation 54c-rectangle: Distinguish window and crossing rectangles</summary>
 
@@ -3352,6 +3477,19 @@ After that block, type:
 </details>
 
 <a id="checkpoint-54d-samples"></a>
+
+### Step 6 of 18 · Select original projected geometry in one source pass (`54d-samples`)
+
+- **Goal:** Select original projected geometry in one source pass.
+- **Data Flow Trace:** `eligible source → world placement → projected points and strokes → ordered unique identities`
+- **Files You Touch:** `src/rect_select.rs` (*Collect original mesh vertices and boundary strokes plus precise line, path and point samples.*) · `src/rect_select_tests.rs` (*Copy direction, segment, projection, mixed-geometry and current-eligibility checks.*) · `src/lib.rs` (*Register the source component.*)
+
+Test the precise original geometry already taught and exclude hidden, locked and read-only owners before collecting samples.
+
+> **Self-Check Question:** *Why avoid searching all rows again for each candidate identity?*  
+> **Answer:** It makes rectangle selection quadratic in the number of objects. One pass per geometry lane preserves original precision and checks each eligible owner directly.
+
+- **Hands-On Lab Experiment:** Select a line and point in a small rectangle, lock the point, hide the line, and compare all three results.
 
 <details>
 <summary>Implementation 54d-samples: Select original projected geometry in one source pass</summary>
@@ -3428,6 +3566,19 @@ After that block, append this supplied code:
 
 <a id="checkpoint-54e-drag"></a>
 
+### Step 7 of 18 · Freeze a released drag until its pick answers (`54e-drag`)
+
+- **Goal:** Freeze a released drag until its pick answers.
+- **Data Flow Trace:** `press probe → cursor updates → frozen release → late hit or miss → one result`
+- **Files You Touch:** `src/canvas_drag.rs` (*Store the captured drag and a fixed world plane without changing original geometry.*) · `src/lib.rs` (*Register the source component.*)
+
+Keep the press, current cursor, release modifiers and source-preserving preview. A late hit moves by the entire drag; a late miss finishes rectangle selection.
+
+> **Self-Check Question:** *What survives when release comes before the pick answer?*  
+> **Answer:** The release cursor and its modifiers. A hit commits the full movement once; a miss applies the rectangle using those release modifiers. A new press discards the old request.
+
+- **Hands-On Lab Experiment:** Compare hit and miss answers while held and after release; then cancel before either answer arrives.
+
 <details>
 <summary>Implementation 54e-drag: Freeze a released drag until its pick answers</summary>
 
@@ -3468,6 +3619,19 @@ After that block, type:
 </details>
 
 <a id="checkpoint-54f-drag-state"></a>
+
+### Step 8 of 18 · Own drag previews outside document history (`54f-drag-state`)
+
+- **Goal:** Own drag previews outside document history.
+- **Data Flow Trace:** `saved scene → shared preview baseline → display scene → checked final commit`
+- **Files You Touch:** `src/editor.rs` (*Prepare captured drag state, presentation ownership and the checked commit or rectangle finish.*)
+
+Include drag previews in display and memory ownership while keeping the saved scene unchanged until commit.
+
+> **Self-Check Question:** *Does moving a held preview change the saved placement?*  
+> **Answer:** No. The preview shares original geometry and owns temporary placements. Only a successful release or late released hit commits one history transaction.
+
+- **Hands-On Lab Experiment:** Watch temporary display placements, cancel, and verify saved geometry, placements and redo remain unchanged.
 
 <details>
 <summary>Implementation 54f-drag-state: Own drag previews outside document history</summary>
@@ -4421,6 +4585,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-54g-drag-actions"></a>
 
+### Step 9 of 18 · Apply held released and cancelled drag outcomes (`54g-drag-actions`)
+
+- **Goal:** Apply held released and cancelled drag outcomes.
+- **Data Flow Trace:** `checked drag action → preserved pending pick → late answer → precise commit or rectangle`
+- **Files You Touch:** `src/editor.rs` (*Route captured drag actions, commit whole movement and invalidate snap caches after a document change.*)
+
+Update only the captured preview. Keep unanswered picks alive through movement and release, and discard previews on ordinary command or view changes.
+
+> **Self-Check Question:** *Why must pending movement return a view change rather than upload a scene?*  
+> **Answer:** Uploading the unchanged scene invalidates its pending pick. A pending drag only updates cursor state. A real placement preview can update display after its answer arrives.
+
+- **Hands-On Lab Experiment:** Release before answering, move the cursor again, then deliver the answer. Verify it uses the frozen release and one Undo restores the source placement.
+
 <details>
 <summary>Implementation 54g-drag-actions: Apply held released and cancelled drag outcomes</summary>
 
@@ -4454,6 +4631,19 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-54h-mouse"></a>
+
+### Step 10 of 18 · Capture mouse gestures in CSS pixels (`54h-mouse`)
+
+- **Goal:** Capture mouse gestures in CSS pixels.
+- **Data Flow Trace:** `captured pointer → four-pixel slop → orbit pan or probe → checked release`
+- **Files You Touch:** `src/gesture.rs` (*Keep captured pointer ownership, full first delta, mouse navigation and released probes.*) · `src/gesture_tests.rs` (*Copy all preserved captured-pointer, CSS, cancellation and view-history checks for the new probe and middle pan.*)
+
+Use four-pixel slop before orbit or selection probes. Middle drag and Ctrl/Cmd-right drag pan; an unmoved right click requests command repetition.
+
+> **Self-Check Question:** *Can returning to the press turn a drag back into a click?*  
+> **Answer:** No. Once movement crosses the slop it remains a drag. Only the captured pointer may update or release it.
+
+- **Hands-On Lab Experiment:** Move right past the slop then back to the start. Confirm no command repeats; test middle pan and Ctrl-right pan separately.
 
 <details>
 <summary>Implementation 54h-mouse: Capture mouse gestures in CSS pixels</summary>
@@ -4635,6 +4825,19 @@ Update the existing block with this supplied code; keep unchanged lines:
 
 <a id="checkpoint-54i-touch"></a>
 
+### Step 11 of 18 · Orbit with one finger and pan pinch with two (`54i-touch`)
+
+- **Goal:** Orbit with one finger and pan pinch with two.
+- **Data Flow Trace:** `touch identities → one-finger orbit → two-finger centre and distance → ordered camera actions`
+- **Files You Touch:** `src/touch.rs` (*Track active fingers, CSS orbit and ordered two-finger camera changes.*) · `src/lib.rs` (*Register the source component.*)
+
+Keep touch identities, cancel first-finger editing when another finger arrives and apply pan before cursor-centred pinch zoom.
+
+> **Self-Check Question:** *What happens when one finger lifts after a pinch?*  
+> **Answer:** The remaining finger does not start a new orbit or select. The gesture waits until all fingers have lifted before accepting a new one-finger action.
+
+- **Hands-On Lab Experiment:** Move one finger, add another, pan and pinch, then lift one. Verify the remaining finger cannot begin an unintended orbit.
+
 <details>
 <summary>Implementation 54i-touch: Orbit with one finger and pan pinch with two</summary>
 
@@ -4676,6 +4879,19 @@ After that block, type:
 
 <a id="checkpoint-54j-taps"></a>
 
+### Step 12 of 18 · Finish taps double taps and touch cancellation (`54j-taps`)
+
+- **Goal:** Finish taps double taps and touch cancellation.
+- **Data Flow Trace:** `touch release → time and movement limits → tap or nearby double tap → all-fingers reset`
+- **Files You Touch:** `src/touch.rs` (*Finish taps, nearby double-tap Fit and all-finger cancellation without changing document history.*)
+
+Use bounded tap time and distance, fit on a nearby double tap and clear all touch ownership when cancelled.
+
+> **Self-Check Question:** *Can a cancelled touch select when its release arrives later?*  
+> **Answer:** No. Cancellation removes every captured finger and the remembered tap. A later release has no gesture to finish.
+
+- **Hands-On Lab Experiment:** Tap to select, double tap nearby to fit, then cancel a touch before release and verify selection remains unchanged.
+
 <details>
 <summary>Implementation 54j-taps: Finish taps double taps and touch cancellation</summary>
 
@@ -4708,6 +4924,19 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-54k-overlay"></a>
+
+### Step 13 of 18 · Draw a thin selection rectangle above the canvas (`54k-overlay`)
+
+- **Goal:** Draw a thin selection rectangle above the canvas.
+- **Data Flow Trace:** `drag bounds → grey overlay → solid window or dashed crossing → panel-free frame`
+- **Files You Touch:** `src/panel.rs` (*Draw the non-pickable overlay, measure free canvas and obtain a repeated command from dock history.*)
+
+Draw one-CSS-pixel grey outlines with a light fill. Crossing uses dashes. Keep the overlay presentation-only and measure the panel-free canvas.
+
+> **Self-Check Question:** *Does the rectangle enter source geometry or document Undo?*  
+> **Answer:** No. It is a presentation overlay. Its bounds are CSS pixels and its direction changes only the outline style and selection rule.
+
+- **Hands-On Lab Experiment:** Compare solid and dashed rectangles at DPR1 and DPR2. Open Layers and confirm the camera uses the remaining canvas space.
 
 <details>
 <summary>Implementation 54k-overlay: Draw a thin selection rectangle above the canvas</summary>
@@ -5221,6 +5450,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-54l-navigation"></a>
+
+### Step 14 of 18 · Route mouse touch and wheel after panel input (`54l-navigation`)
+
+- **Goal:** Route mouse touch and wheel after panel input.
+- **Data Flow Trace:** `measured UI ownership → CSS navigation → pointer capture → view action`
+- **Files You Touch:** `src/browser.rs` (*Route real mouse and touch events, cursor-centred wheel and right-click repeat through the existing command path.*)
+
+Route canvas gestures only after UI ownership, keep CSS coordinates independent of device density and focus without scrolling.
+
+> **Self-Check Question:** *Should wheel input over a layer colour popup zoom the drawing?*  
+> **Answer:** No. Measured panels and popups own their pointer and wheel input first. Only unconsumed canvas input changes the camera.
+
+- **Hands-On Lab Experiment:** Scroll over a popup, then over the drawing. Compare camera changes and repeat at DPR1 and DPR2.
 
 <details>
 <summary>Implementation 54l-navigation: Route mouse touch and wheel after panel input</summary>
@@ -6238,6 +6480,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-54m-pick-release"></a>
 
+### Step 15 of 18 · Retain the press pick through a quick release (`54m-pick-release`)
+
+- **Goal:** Retain the press pick through a quick release.
+- **Data Flow Trace:** `press integer pick → pending cursor → frozen release → checked answer → move or rectangle`
+- **Files You Touch:** `src/browser.rs` (*Dispatch late GPU hits to drags, preserve pending picks and route tap points through an active drawing tool.*)
+
+Request the press position once, keep the pending readback through move and release and send its late answer to the captured drag.
+
+> **Self-Check Question:** *Why is a pick requested at the press rather than at release?*  
+> **Answer:** The press decides whether an object was grabbed. Release may lie elsewhere; retaining the original probe gives the correct object move or empty-canvas rectangle.
+
+- **Hands-On Lab Experiment:** Flick from an object and release immediately. Compare its full move with a flick from empty canvas, using release modifiers.
+
 <details>
 <summary>Implementation 54m-pick-release: Retain the press pick through a quick release</summary>
 
@@ -7107,6 +7362,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-54n-cancellation"></a>
+
+### Step 16 of 18 · Cancel owned gestures and preserve normal capture release (`54n-cancellation`)
+
+- **Goal:** Cancel owned gestures and preserve normal capture release.
+- **Data Flow Trace:** `owned gesture → blur resize or cancel → dropped preview → no late mutation`
+- **Files You Touch:** `src/browser.rs` (*Preserve frozen release ownership and choose the larger finger aperture before canvas navigation.*)
+
+Cancel previews on blur, resize and pointer cancellation. Unexpected capture loss cancels a held drag; normal release preserves its unanswered result.
+
+> **Self-Check Question:** *Does every lostpointercapture event cancel a released pending drag?*  
+> **Answer:** No. Pointerup normally releases capture. An already released drag keeps its frozen cursor until its answer arrives. Unexpected capture loss while held cancels it.
+
+- **Hands-On Lab Experiment:** Release a pending drag and deliver its answer after capture loss; then lose capture while held and verify the late result cannot change the source.
 
 <details>
 <summary>Implementation 54n-cancellation: Cancel owned gestures and preserve normal capture release</summary>
@@ -7988,6 +8256,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-54o-frame"></a>
+
+### Step 17 of 18 · Expose drag ownership and centre the available drawing (`54o-frame`)
+
+- **Goal:** Expose drag ownership and centre the available drawing.
+- **Data Flow Trace:** `measured panel layout → free camera frame → overlay update → inspectable ownership`
+- **Files You Touch:** `src/browser.rs` (*Expose actual pending drag state, refresh the overlay and cancel a stale camera projection.*)
+
+Update the overlay and camera frame after measured layout. Expose pending and released state for browser checks without fabricating acceptance.
+
+> **Self-Check Question:** *Why cancel a drag when the panel-free frame changes?*  
+> **Answer:** Its press and cursor used a different projection. Cancelling prevents a delayed answer from committing against a newly shifted camera.
+
+- **Hands-On Lab Experiment:** Open and close Layers, fit and compare the camera target with the free canvas. Inspect held and frozen drag state separately.
 
 <details>
 <summary>Implementation 54o-frame: Expose drag ownership and centre the available drawing</summary>
@@ -8877,6 +9158,20 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-54p-navigation"></a>
 
+### Step 18 of 18 · Exercise current navigation selection and delayed answers (`54p-navigation`)
+
+- **Goal:** Exercise current navigation selection and delayed answers.
+- **Data Flow Trace:** `actual input → current source eligibility → pending integer answer → exact history → two-density browser contract`
+- **Files You Touch:** `src/navigation_complete_tests.rs` (*Copy the camera, current eligibility, release, cold-source, touch and repeat regressions.*) · `src/lib.rs` (*Register the source component.*) · `src/shortcut_focus_tests.rs` (*Copy actual egui command, name and popup ownership checks.*) · `src/pick_gpu_tests.rs` (*Copy the actual delayed integer-pick, full released movement, one-Undo and geometry-reuse regression.*)
+
+Copy the preserved and new camera, touch, selection and delayed GPU regressions. Exercise the full canvas contract at two device densities.
+
+> **Self-Check Question:** *What is still needed after native and WebAssembly checks pass?*  
+> **Answer:** Real browser acceptance, including pointer capture and touch event delivery. Native software-GPU checks do not establish Lenovo rotation or zoom performance.
+
+- **What You Should See:** Navigation and delayed selection share the same original drawing and document history. The supplied regressions record the two-density input contract.
+- **Hands-On Lab Experiment:** Load Example Nested, Fit and show Layers All. Compare a left-to-right window with a right-to-left crossing selection, then use Shift to add. Orbit, pan and zoom at the cursor. Release an object drag promptly and Undo its completed move once; touch gestures are an additional device exercise.
+
 <details>
 <summary>Implementation 54p-navigation: Exercise current navigation selection and delayed answers</summary>
 
@@ -9001,9 +9296,11 @@ After that block, append this supplied code:
 
 </details>
 
-## Run, Check, and Save
+---
 
-From `session_viewer`:
+## 5. Build, Verify, and Save Your Checkpoint
+
+Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 54p-navigation
@@ -9014,10 +9311,10 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. Use [checkpoint recovery](../recovery.md) to restore any saved checkpoint.
+Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../recovery.md) to save or restore any checkpoint ID.
 
-## Expected Visual Result & Experiment
+## 6. Lesson Summary & Expected Visual Result
 
 Navigation and delayed selection share the same original drawing and document history. The supplied regressions record the two-density input contract.
 
-- **Try this:** Load Example Nested, Fit and show Layers All. Compare a left-to-right window with a right-to-left crossing selection, then use Shift to add. Orbit, pan and zoom at the cursor. Release an object drag promptly and Undo its completed move once; touch gestures are an additional device exercise.
+- **Final Lesson Experiment:** Load Example Nested, Fit and show Layers All. Compare a left-to-right window with a right-to-left crossing selection, then use Shift to add. Orbit, pan and zoom at the cursor. Release an object drag promptly and Undo its completed move once; touch gestures are an additional device exercise.

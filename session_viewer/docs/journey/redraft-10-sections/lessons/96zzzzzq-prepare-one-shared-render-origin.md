@@ -1,92 +1,152 @@
 # 21.3 · Browser ownership of frame matrices and wakeups
 
-**Section 10: Shared GPU Arenas, Floating-Origin Precision, Multisampling, and Production Parity** · **Lesson 21.3** (Redraft `10.13`) · **3 checkpoints (`96zzzzzq-prepare-one-shared-render-origin` → `96zzzzzs-adopt-the-shared-origin-in-the-browser`)**
+**Section 10: Shared GPU Arenas, Floating-Origin Precision, Multisampling, and Production Parity** · **Lesson 21.3** (Redraft `10.13`) · **3 checkpoints (`96zzzzzq-prepare-one-shared-render-origin` → `96zzzzzs-adopt-the-shared-origin-in-the-browser`)** · **Study time: 1.7000000000000002–2.9 h**
 
-> **Learning Goal:** Adopt one origin and synchronize original draw inputs before rendering or picking.
+> **What You Will Learn & Build:** Adopt one origin and synchronize original draw inputs before rendering or picking. By the final checkpoint (`96zzzzzs-adopt-the-shared-origin-in-the-browser`), you will keep browser drawing and asynchronous interaction in one precise local frame.
 
-## Visual WebGPU & Architecture Schematic
+## 1. Visual Pipeline & WebGPU Architecture (Black & White Schematics)
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1px solid #cbd5e1;border-radius:10px;background:#f8fafc;">
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
+<svg viewBox="0 0 840 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <rect x="4" y="4" width="832" height="212" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Lesson 21.3 Execution Flow: Browser ownership of frame matrices and wakeups</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">Concrete data pipeline you build in this lesson (3 Checkpoints: 96zzzzzq-prepare-one-shared-render-origin → 96zzzzzs-adopt-the-shared-origin-in-the-browser)</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
+  
+    
+    <rect x="18" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="89" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
+    <line x1="28" y1="92" x2="151" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">Precise camera</text>
+    <text x="89" y="124" text-anchor="middle" font-size="11" fill="#111111">target</text>
+    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="183" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="254" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
+    <line x1="193" y1="92" x2="316" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">origin policy</text>
+    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="348" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="419" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
+    <line x1="358" y1="92" x2="481" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">synchronized draw</text>
+    <text x="419" y="124" text-anchor="middle" font-size="11" fill="#111111">inputs</text>
+    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="513" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="584" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
+    <line x1="523" y1="92" x2="646" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">matching local</text>
+    <text x="584" y="124" text-anchor="middle" font-size="11" fill="#111111">matrix</text>
+    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="678" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="749" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
+    <line x1="688" y1="92" x2="811" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">Browser action</text>
+    
+    <rect x="18" y="162" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="32" y="181" font-size="11" font-weight="700" fill="#111111">Files You Edit in Lesson 21.3:</text>
+    <text x="215" y="181" font-size="11" fill="#111111">src/render_space.rs  ·  src/renderer.rs  ·  src/global_outline_tests.rs  ·  src/timer.rs  ·  src/browser.rs  ·  src/browser_rebase.rs</text>
+    <text x="32" y="198" font-size="10.5" fill="#111111">3 Checkpoints: 96zzzzzq-prepare-one-shared-render-origin → 96zzzzzs-adopt-the-shared-origin-in-the-browser — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
+  
+</svg>
+</div>
+
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
 <svg viewBox="0 0 840 240" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#475569"/>
-    </marker>
-    <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#2563eb"/>
-    </marker>
-    <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#059669"/>
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
     </marker>
   </defs>
-  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
-  <text x="20" y="28" font-size="14" font-weight="700" fill="#0f172a">Section 10 Production Architecture: Shared GPU Storage Arena, f64 Floating Origin, Reversed-Z, 4x MSAA & Matrix Shader</text>
-  <text x="20" y="46" font-size="11.5" fill="#475569">How the maintained viewer pulls vertices from one growable GPU arena, eliminates jitter at 10^12 units, and renders procedural Matrices.</text>
-  <line x1="16" y1="54" x2="824" y2="54" stroke="#e2e8f0" stroke-width="1"/>
+  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Section 10 Production Architecture: Shared GPU Storage Arena, f64 Floating Origin, Reversed-Z, 4x MSAA & Matrix Shader</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">How the maintained viewer pulls vertices from one growable GPU arena, eliminates jitter at 10^12 units, and renders procedural Matrices.</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
   
-    <rect x="18" y="68" width="250" height="145" rx="6" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
-    <text x="143" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1e40af">1. Shared GPU Arena (Ch 19–20)</text>
-    <text x="28" y="108" font-size="10.5" fill="#1e3a8a">• 1 Growable Storage Buffer Arena</text>
-    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#1d4ed8">• Vertex Pulling (@builtin(vertex_index))</text>
-    <text x="28" y="144" font-size="10.5" fill="#1e3a8a">• 8-byte Draw Slots -&gt; ObjectRecord</text>
-    <text x="28" y="162" font-size="10.5" fill="#1e3a8a">• slot_table.wgsl maps Rg32Uint</text>
-    <text x="28" y="178" font-size="10.5" fill="#1e3a8a">  primitive IDs to Element/Face owners</text>
-    <text x="28" y="194" font-size="10" fill="#1e3a8a">• Free-list span reuse after GPU lease</text>
+    <rect x="18" y="68" width="250" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="143" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">1. Shared GPU Arena (Ch 19–20)</text>
+    <text x="28" y="108" font-size="10.5" fill="#111111">• 1 Growable Storage Buffer Arena</text>
+    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#111111">• Vertex Pulling (@builtin(vertex_index))</text>
+    <text x="28" y="144" font-size="10.5" fill="#111111">• 8-byte Draw Slots -&gt; ObjectRecord</text>
+    <text x="28" y="162" font-size="10.5" fill="#111111">• slot_table.wgsl maps Rg32Uint</text>
+    <text x="28" y="178" font-size="10.5" fill="#111111">  primitive IDs to Element/Face owners</text>
+    <text x="28" y="194" font-size="10" fill="#111111">• Free-list span reuse after GPU lease</text>
 
-    <line x1="268" y1="138" x2="298" y2="138" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
+    <line x1="268" y1="138" x2="298" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="300" y="68" width="265" height="145" rx="6" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5"/>
-    <text x="432" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#9a3412">2. f64 Floating Origin &amp; Reversed-Z (Ch 21)</text>
-    <text x="312" y="108" font-size="10.5" font-weight="600" fill="#c2410c">• rel_f32 = (world_f64 - anchor_f64) as f32</text>
-    <text x="312" y="125" font-size="10" fill="#7c2d12">  Zero vertex/grid jitter even at 10^12 m!</text>
-    <text x="312" y="144" font-size="10.5" font-weight="600" fill="#c2410c">• Reversed-Z Depth (GreaterEqual):</text>
-    <text x="312" y="160" font-size="10" fill="#7c2d12">  Near plane = 1.0, Far plane = 0.0</text>
-    <text x="312" y="178" font-size="10.5" fill="#7c2d12">• Held world base grid &amp; preserved</text>
-    <text x="312" y="193" font-size="10.5" fill="#7c2d12">  live camera during Session reload</text>
+    <rect x="300" y="68" width="265" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="432" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">2. f64 Floating Origin &amp; Reversed-Z (Ch 21)</text>
+    <text x="312" y="108" font-size="10.5" font-weight="600" fill="#111111">• rel_f32 = (world_f64 - anchor_f64) as f32</text>
+    <text x="312" y="125" font-size="10" fill="#111111">  Zero vertex/grid jitter even at 10^12 m!</text>
+    <text x="312" y="144" font-size="10.5" font-weight="600" fill="#111111">• Reversed-Z Depth (GreaterEqual):</text>
+    <text x="312" y="160" font-size="10" fill="#111111">  Near plane = 1.0, Far plane = 0.0</text>
+    <text x="312" y="178" font-size="10.5" fill="#111111">• Held world base grid &amp; preserved</text>
+    <text x="312" y="193" font-size="10.5" fill="#111111">  live camera during Session reload</text>
 
-    <line x1="565" y1="138" x2="595" y2="138" stroke="#059669" stroke-width="2" marker-end="url(#arrow-green)"/>
+    <line x1="565" y1="138" x2="595" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="597" y="68" width="223" height="145" rx="6" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1.5"/>
-    <text x="708" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#065f46">3. 4x MSAA &amp; Matrix Shader (Ch 22)</text>
-    <text x="609" y="108" font-size="10.5" fill="#064e3b">• Coherent 1x/4x MSAA sample targets</text>
-    <text x="609" y="126" font-size="10.5" font-weight="600" fill="#047857">• matrix.wgsl (16w header + 3w/cell):</text>
-    <text x="609" y="142" font-size="10" fill="#064e3b">  Heatmap + procedural 3-decimal digits</text>
-    <text x="609" y="157" font-size="10" fill="#064e3b">  (0 cell blank; plate-less title; yellow</text>
-    <text x="609" y="172" font-size="10" fill="#064e3b">  selected border; Rg32Uint whole pick)</text>
-    <text x="609" y="190" font-size="10" fill="#064e3b">• Coalesced single-flight frame scheduler</text>
+    <rect x="597" y="68" width="223" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="708" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">3. 4x MSAA &amp; Matrix Shader (Ch 22)</text>
+    <text x="609" y="108" font-size="10.5" fill="#111111">• Coherent 1x/4x MSAA sample targets</text>
+    <text x="609" y="126" font-size="10.5" font-weight="600" fill="#111111">• matrix.wgsl (16w header + 3w/cell):</text>
+    <text x="609" y="142" font-size="10" fill="#111111">  Heatmap + procedural 3-decimal digits</text>
+    <text x="609" y="157" font-size="10" fill="#111111">  (0 cell blank; plate-less title; yellow</text>
+    <text x="609" y="172" font-size="10" fill="#111111">  selected border; Rg32Uint whole pick)</text>
+    <text x="609" y="190" font-size="10" fill="#111111">• Coalesced single-flight frame scheduler</text>
     
 </svg>
 </div>
 
-### Lesson Data Flow (`Rust` → `WebGPU` → `WGSL`)
+## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
 
-```
-Precise camera target → origin policy → synchronized draw inputs → matching local matrix.
-Renderer origin → matching browser matrix; owned timeout → one later frame.
-Browser action → shared origin → original and temporary inputs → draw/pick; pending → owned wake.
-```
+Before writing code, review how the three layers in this chapter talk to each other:
 
-- Adopt one origin and synchronize original draw inputs before rendering or picking.
-- Use one browser render matrix and prepare a wake owned by the runtime.
-- Keep browser drawing and asynchronous interaction in one precise local frame.
-- **Why it works (Why must a pending rebase schedule another frame?):** The origin policy can defer a move for its throttle interval. An event-driven browser may receive no more input after release, so it needs one later wake to finish the move and any rebased pick retry.
-
-### Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `Browser`)
-
-| Layer | Construct | First-Year Student Explanation |
+| Layer | Construct | Plain-English Explanation for Students |
 | :--- | :--- | :--- |
 | **WGSL (Vertex Pull)** | `@group(0) @binding(b) var<storage, read> arena_verts: array<u32>;` | Fetches packed vertex positions, normals, and colors directly from a single growable storage buffer using `@builtin(vertex_index)`. |
 | **Rust/WGSL (`f64`->`f32`)** | `let rel: Vec3 = (world_f64 - anchor_f64).as_vec3();` | Subtracts the camera-area `f64` anchor on the CPU before converting to `f32`, preventing 32-bit float mantissa exhaustion far from `(0,0,0)`. |
 | **WGSL (`matrix.wgsl`)** | 16-word header + 3 words/cell procedural digits | Renders matrix heatmaps and 3-decimal numeric digits procedurally inside the fragment shader with zero texture uploads per cell. |
 | **Rust (`ink_ranges.rs`)** | Merged contiguous `Range<u32>` instance draws | Toggles point/line/edge/CAD-wire family visibility without rebuilding GPU buffers or invalidating original owner indices. |
 
-**Production source (`session_viewer/src`):** [camera.rs](../../../../src/camera.rs), [state.rs](../../../../src/state.rs), [engine/gpu/objects.rs](../../../../src/engine/gpu/objects.rs), [engine/gpu/frame.rs](../../../../src/engine/gpu/frame.rs), [engine/gpu/targets.rs](../../../../src/engine/gpu/targets.rs), [shaders/grid.wgsl](../../../../src/shaders/grid.wgsl), [shaders/ribbon.wgsl](../../../../src/shaders/ribbon.wgsl), [app/cplane.rs](../../../../src/app/cplane.rs), [build.rs](../../../../build.rs).
+**Authoritative production source (`session_viewer/src`):** [camera.rs](../../../../src/camera.rs), [state.rs](../../../../src/state.rs), [engine/gpu/objects.rs](../../../../src/engine/gpu/objects.rs), [engine/gpu/frame.rs](../../../../src/engine/gpu/frame.rs), [engine/gpu/targets.rs](../../../../src/engine/gpu/targets.rs), [shaders/grid.wgsl](../../../../src/shaders/grid.wgsl), [shaders/ribbon.wgsl](../../../../src/shaders/ribbon.wgsl), [app/cplane.rs](../../../../src/app/cplane.rs), [build.rs](../../../../build.rs).
 
-## Implementation Checkpoints
+## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
 
-Apply these checkpoints in order inside `workspace/journey`. Expand each block to view the Rust/WGSL/HTML edits:
+| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
+| ---: | :--- | :--- | :--- | :--- |
+| **1** | [`96zzzzzq-prepare-one-shared-render-origin`](#checkpoint-96zzzzzq-prepare-one-shared-render-origin) | Adopt one origin and synchronize original draw inputs before rendering or picking. | `src/render_space.rs`, `src/renderer.rs`, `src/global_outline_tests.rs` | `Precise camera target → origin policy → synchronized draw inputs → matching local matrix` |
+| **2** | [`96zzzzzr-prepare-browser-frame-matrices-and-owned-wakes`](#checkpoint-96zzzzzr-prepare-browser-frame-matrices-and-owned-wakes) | Use one browser render matrix and prepare a wake owned by the runtime. | `src/timer.rs`, `src/browser.rs` | `Renderer origin → matching browser matrix; owned timeout → one later frame` |
+| **3** | [`96zzzzzs-adopt-the-shared-origin-in-the-browser`](#checkpoint-96zzzzzs-adopt-the-shared-origin-in-the-browser) | Keep browser drawing and asynchronous interaction in one precise local frame. | `src/browser_rebase.rs`, `src/lib.rs`, `src/browser.rs` | `Browser action → shared origin → original and temporary inputs → draw/pick; pending → owned wake` |
+
+---
+
+## 4. Step-by-Step Coding Notebook (Concept + Implementation)
+
+Work through each notebook cell below in order inside `workspace/journey`. Read the **Concept Walkthrough** and **Self-Check Q&A** first, then expand the **Implementation** block to type and verify the code.
 
 <a id="checkpoint-96zzzzzq-prepare-one-shared-render-origin"></a>
+
+### Step 1 of 3 · Prepare one shared render origin (`96zzzzzq-prepare-one-shared-render-origin`)
+
+- **Goal:** Adopt one origin and synchronize original draw inputs before rendering or picking.
+- **Data Flow Trace:** `Precise camera target → origin policy → synchronized draw inputs → matching local matrix`
+- **Files You Touch:** `src/render_space.rs` (*Expose a finite bounded delay beyond the existing strict 200ms throttle.*) · `src/renderer.rs` (*Adopt one origin without source cancellation; reuse existing input owners and skip unchanged data.*) · `src/global_outline_tests.rs` (*Supply aggregate original mesh/ink/point/cloud/sheet/text/grid pixels, precise ground, unchanged records, throttled wake timing, preserved pending flight/retry and exact restoration/source ownership.*)
+
+Connect the existing origin policy to the prepared record, ink, selection, text, cloud, sheet and grid owners. Refresh only when the actual origin changes; retain active picks because the change represents the same document. Return the pending state and a bounded retry delay so the browser can finish a throttled rebase after input stops.
+
+> **Self-Check Question:** *Why must a pending rebase schedule another frame?*  
+> **Answer:** The origin policy can defer a move for its throttle interval. An event-driven browser may receive no more input after release, so it needs one later wake to finish the move and any rebased pick retry.
+
+- **What You Should See:** The renderer prepares one synchronized origin update and its matching projection.
+- **Hands-On Lab Experiment:** Select originals, enable the grid and navigate while drawing or moving a source. Confirm the existing browser behavior. The origin API remains preparatory until the next browser integration lesson connects its wake and matrix paths.
 
 <details>
 <summary>Implementation 96zzzzzq-prepare-one-shared-render-origin: Prepare one shared render origin</summary>
@@ -599,6 +659,20 @@ After that block, append this supplied code:
 </details>
 
 <a id="checkpoint-96zzzzzr-prepare-browser-frame-matrices-and-owned-wakes"></a>
+
+### Step 2 of 3 · Prepare browser frame matrices and owned wakes (`96zzzzzr-prepare-browser-frame-matrices-and-owned-wakes`)
+
+- **Goal:** Use one browser render matrix and prepare a wake owned by the runtime.
+- **Data Flow Trace:** `Renderer origin → matching browser matrix; owned timeout → one later frame`
+- **Files You Touch:** `src/timer.rs` (*Retain the kind of owned browser timer for cancellation.*) · `src/browser.rs` (*Use the matching renderer matrix for every existing browser draw, request and readback path.*)
+
+Route browser drawing and asynchronous pick calls through the renderer’s matching matrix getter. Expose that actual matrix and origin alongside the existing world-camera diagnostic. Extend the already written timer owner with a one-shot mode, sharing callback construction and cancelling its own timer on drop. The next lesson activates the origin policy and schedules this wake.
+
+> **Self-Check Question:** *Why must a delayed wake have an owner?*  
+> **Answer:** Stopping or replacing the runtime must cancel its outstanding callback. A wake must not retain an old document or cause an obsolete device to render again.
+
+- **What You Should See:** Browser matrix paths and owned one-shot wake support are prepared for live rebasing.
+- **Hands-On Lab Experiment:** Select originals, navigate, Undo and reopen a file. Confirm the current browser behavior. The render-origin diagnostic still reads zero until the next lesson activates the policy; the render matrix already comes from the same getter used by drawing and picking.
 
 <details>
 <summary>Implementation 96zzzzzr-prepare-browser-frame-matrices-and-owned-wakes: Prepare browser frame matrices and owned wakes</summary>
@@ -1834,6 +1908,20 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-96zzzzzs-adopt-the-shared-origin-in-the-browser"></a>
 
+### Step 3 of 3 · Adopt the shared origin in the browser (`96zzzzzs-adopt-the-shared-origin-in-the-browser`)
+
+- **Goal:** Keep browser drawing and asynchronous interaction in one precise local frame.
+- **Data Flow Trace:** `Browser action → shared origin → original and temporary inputs → draw/pick; pending → owned wake`
+- **Files You Touch:** `src/browser_rebase.rs` (*Connect the existing origin policy and timer owner without retaining an editor or scene in a wake.*) · `src/lib.rs` (*Compile the browser-only frame and wake adapter.*) · `src/browser.rs` (*Prepare actual origin-relative inputs before the initial frame and its diagnostics.*)
+
+Prepare the original draw frame before asynchronous pick processing and again after actions. Existing previews, guides, measurements, grid and handles then use the updated origin before drawing. Own one deferred wake for a throttled move; its callback checks the current device and retains no scene. Runtime disposal drops the timer and its callback.
+
+> **Self-Check Question:** *Why prepare the frame on both sides of an action?*  
+> **Answer:** An old readback must be judged in the current frame before it can change the document. The action may then move the camera or change the scene, requiring a fresh frame before drawing.
+
+- **What You Should See:** The browser uses real anchored coordinates and finishes deferred rebases after input stops.
+- **Hands-On Lab Experiment:** Create a unit Box, move it by 1000000000,-1000000000,1000000000 and Fit. Select its original, clear selection and Undo/Redo the move. Zoom out and pan twice quickly, then stop input; the deferred frame must settle without another gesture. Save/reopen and confirm the original source and view.
+
 <details>
 <summary>Implementation 96zzzzzs-adopt-the-shared-origin-in-the-browser: Adopt the shared origin in the browser</summary>
 
@@ -2979,9 +3067,11 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 </details>
 
-## Run, Check, and Save
+---
 
-From `session_viewer`:
+## 5. Build, Verify, and Save Your Checkpoint
+
+Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 96zzzzzs-adopt-the-shared-origin-in-the-browser
@@ -2992,12 +3082,12 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. Use [checkpoint recovery](../../recovery.md) to restore any saved checkpoint.
+Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
 
-## Expected Visual Result & Experiment
+## 6. Lesson Summary & Expected Visual Result
 
 The browser uses real anchored coordinates and finishes deferred rebases after input stops.
 
-- **Try this:** Create a unit Box, move it by 1000000000,-1000000000,1000000000 and Fit. Select its original, clear selection and Undo/Redo the move. Zoom out and pan twice quickly, then stop input; the deferred frame must settle without another gesture. Save/reopen and confirm the original source and view.
+- **Final Lesson Experiment:** Create a unit Box, move it by 1000000000,-1000000000,1000000000 and Fit. Select its original, clear selection and Undo/Redo the move. Zoom out and pan twice quickly, then stop input; the deferred frame must settle without another gesture. Save/reopen and confirm the original source and view.
 
-Continue with [Reversed depth and homogeneous near clipping](96zzzzzt-share-depth-endpoints-and-comparisons.md).
+Continue with [Reversed depth and homogeneous near clipping](../../consolidation/96zzzzzt-share-depth-endpoints-and-comparisons.md).

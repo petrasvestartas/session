@@ -1,92 +1,159 @@
 # 3.2 · One drawing size and one captured gesture
 
-**Section 3: Scene Documents, Transactions, and Browser GPU Lifetime** · **Lesson 3.2** (Redraft `3.2`) · **8 checkpoints (`19a-viewport` → `22-shortcuts`)**
+**Section 3: Scene Documents, Transactions, and Browser GPU Lifetime** · **Lesson 3.2** (Redraft `3.2`) · **8 checkpoints (`19a-viewport` → `22-shortcuts`)** · **Study time: 6.25–10.5 h**
 
-> **Learning Goal:** Convert CSS dimensions and display density to finite, bounded GPU pixel dimensions.
+> **What You Will Learn & Build:** Convert CSS dimensions and display density to finite, bounded GPU pixel dimensions. By the final checkpoint (`22-shortcuts`), you will normalize wheel input and keep every keyboard feature command in the command dock.
 
-## Visual WebGPU & Architecture Schematic
+## 1. Visual Pipeline & WebGPU Architecture (Black & White Schematics)
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1px solid #cbd5e1;border-radius:10px;background:#f8fafc;">
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
+<svg viewBox="0 0 840 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <rect x="4" y="4" width="832" height="212" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Lesson 3.2 Execution Flow: One drawing size and one captured gesture</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">Concrete data pipeline you build in this lesson (8 Checkpoints: 19a-viewport → 22-shortcuts)</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
+  
+    
+    <rect x="18" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="89" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
+    <line x1="28" y1="92" x2="151" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">CSS width and</text>
+    <text x="89" y="124" text-anchor="middle" font-size="11" fill="#111111">height × display</text>
+    <text x="89" y="140" text-anchor="middle" font-size="11" fill="#111111">density</text>
+    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="183" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="254" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
+    <line x1="193" y1="92" x2="316" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">proportional</text>
+    <text x="254" y="124" text-anchor="middle" font-size="11" fill="#111111">GPU-limit cap</text>
+    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="348" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="419" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
+    <line x1="358" y1="92" x2="481" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">Viewport</text>
+    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="513" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="584" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
+    <line x1="523" y1="92" x2="646" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">Wheel</text>
+    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="678" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="749" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
+    <line x1="688" y1="92" x2="811" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">navigation_action</text>
+    
+    <rect x="18" y="162" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="32" y="181" font-size="11" font-weight="700" fill="#111111">Files You Edit in Lesson 3.2:</text>
+    <text x="215" y="181" font-size="11" fill="#111111">src/viewport.rs  ·  src/lib.rs  ·  src/renderer.rs  ·  src/browser.rs  ·  src/gesture.rs  ·  src/gesture_tests.rs</text>
+    <text x="32" y="198" font-size="10.5" fill="#111111">8 Checkpoints: 19a-viewport → 22-shortcuts — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
+  
+</svg>
+</div>
+
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
 <svg viewBox="0 0 840 240" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#475569"/>
-    </marker>
-    <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#2563eb"/>
-    </marker>
-    <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#059669"/>
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
     </marker>
   </defs>
-  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
-  <text x="20" y="28" font-size="14" font-weight="700" fill="#0f172a">Chapter 3 Architecture: Transactional Protobuf (.pb) Decode, World Placements & Incremental GPU Sync</text>
-  <text x="20" y="46" font-size="11.5" fill="#475569">Separating exact session_rust kernel geometry from GPU display buffers so view changes never re-upload unchanged meshes.</text>
-  <line x1="16" y1="54" x2="824" y2="54" stroke="#e2e8f0" stroke-width="1"/>
+  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Chapter 3 Architecture: Transactional Protobuf (.pb) Decode, World Placements & Incremental GPU Sync</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">Separating exact session_rust kernel geometry from GPU display buffers so view changes never re-upload unchanged meshes.</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
   
-    <rect x="18" y="68" width="185" height="145" rx="6" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
-    <text x="110" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1e40af">1. Async .pb File / URL I/O</text>
-    <text x="28" y="108" font-size="10.5" fill="#1e3a8a">• Ticket #N (cancels #N-1)</text>
-    <text x="28" y="126" font-size="10.5" fill="#1e3a8a">• Bounded Protobuf decode</text>
-    <text x="28" y="144" font-size="10.5" font-weight="600" fill="#1d4ed8">• Topological validation</text>
-    <text x="28" y="162" font-size="10.5" fill="#1e3a8a">• Corrupt file? Reject with</text>
-    <text x="28" y="177" font-size="10.5" fill="#1e3a8a">  ZERO partial scene mutation</text>
+    <rect x="18" y="68" width="185" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="110" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">1. Async .pb File / URL I/O</text>
+    <text x="28" y="108" font-size="10.5" fill="#111111">• Ticket #N (cancels #N-1)</text>
+    <text x="28" y="126" font-size="10.5" fill="#111111">• Bounded Protobuf decode</text>
+    <text x="28" y="144" font-size="10.5" font-weight="600" fill="#111111">• Topological validation</text>
+    <text x="28" y="162" font-size="10.5" fill="#111111">• Corrupt file? Reject with</text>
+    <text x="28" y="177" font-size="10.5" fill="#111111">  ZERO partial scene mutation</text>
 
-    <line x1="203" y1="138" x2="233" y2="138" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
+    <line x1="203" y1="138" x2="233" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="235" y="68" width="275" height="145" rx="6" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5"/>
-    <text x="372" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#9a3412">2. Editor Owner (Browser-Independent)</text>
-    <text x="247" y="108" font-size="10.5" fill="#7c2d12">• Kernel Mesh (local-space f64 coordinates)</text>
-    <text x="247" y="126" font-size="10.5" fill="#7c2d12">• Placement 4x4 Matrix (world transform)</text>
-    <text x="247" y="144" font-size="10.5" font-weight="600" fill="#c2410c">• Releasable Source Ownership:</text>
-    <text x="247" y="160" font-size="10" fill="#7c2d12">  Drop cold CPU source after GPU upload;</text>
-    <text x="247" y="175" font-size="10" fill="#7c2d12">  re-fetch exact SHA/revision on edit!</text>
-    <text x="247" y="195" font-size="10.5" fill="#7c2d12">• Emits Change { sync_scene, redraw }</text>
+    <rect x="235" y="68" width="275" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="372" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">2. Editor Owner (Browser-Independent)</text>
+    <text x="247" y="108" font-size="10.5" fill="#111111">• Kernel Mesh (local-space f64 coordinates)</text>
+    <text x="247" y="126" font-size="10.5" fill="#111111">• Placement 4x4 Matrix (world transform)</text>
+    <text x="247" y="144" font-size="10.5" font-weight="600" fill="#111111">• Releasable Source Ownership:</text>
+    <text x="247" y="160" font-size="10" fill="#111111">  Drop cold CPU source after GPU upload;</text>
+    <text x="247" y="175" font-size="10" fill="#111111">  re-fetch exact SHA/revision on edit!</text>
+    <text x="247" y="195" font-size="10.5" fill="#111111">• Emits Change { sync_scene, redraw }</text>
 
-    <line x1="510" y1="115" x2="542" y2="115" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>
-    <line x1="510" y1="175" x2="542" y2="175" stroke="#059669" stroke-width="2" marker-end="url(#arrow-green)"/>
+    <line x1="510" y1="115" x2="542" y2="115" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
+    <line x1="510" y1="175" x2="542" y2="175" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="544" y="68" width="276" height="68" rx="6" fill="#fdf2f8" stroke="#f472b6" stroke-width="1.5"/>
-    <text x="556" y="86" font-size="11" font-weight="700" fill="#9d174d">3A. Geometry Changed (sync_scene = true)</text>
-    <text x="556" y="104" font-size="10.5" fill="#831843">• Upload changed mesh vertex/index buffers</text>
-    <text x="556" y="120" font-size="10.5" fill="#831843">• Retain unchanged object GPU allocations</text>
+    <rect x="544" y="68" width="276" height="68" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="556" y="86" font-size="11" font-weight="700" fill="#111111">3A. Geometry Changed (sync_scene = true)</text>
+    <text x="556" y="104" font-size="10.5" fill="#111111">• Upload changed mesh vertex/index buffers</text>
+    <text x="556" y="120" font-size="10.5" fill="#111111">• Retain unchanged object GPU allocations</text>
 
-    <rect x="544" y="145" width="276" height="68" rx="6" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1.5"/>
-    <text x="556" y="163" font-size="11" font-weight="700" fill="#065f46">3B. View / Camera Only (sync_scene = false)</text>
-    <text x="556" y="181" font-size="10.5" fill="#064e3b">• queue.write_buffer(camera_uniform) ONLY</text>
-    <text x="556" y="197" font-size="10.5" fill="#064e3b">• Zero geometry re-uploads during Orbit/Fit!</text>
+    <rect x="544" y="145" width="276" height="68" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="556" y="163" font-size="11" font-weight="700" fill="#111111">3B. View / Camera Only (sync_scene = false)</text>
+    <text x="556" y="181" font-size="10.5" fill="#111111">• queue.write_buffer(camera_uniform) ONLY</text>
+    <text x="556" y="197" font-size="10.5" fill="#111111">• Zero geometry re-uploads during Orbit/Fit!</text>
     
 </svg>
 </div>
 
-### Lesson Data Flow (`Rust` → `WebGPU` → `WGSL`)
+## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
 
-```
-CSS width and height × display density → proportional GPU-limit cap → Viewport.
-Motion + CSS rectangle → Action → Editor → selection or view change.
-Wheel → navigation_action → Editor; printable key → command dock → typed Action.
-```
+Before writing code, review how the three layers in this chapter talk to each other:
 
-- Convert CSS dimensions and display density to finite, bounded GPU pixel dimensions.
-- Convert CSS pointer coordinates and movement into existing Pick and Orbit actions.
-- Normalize wheel input and keep every keyboard feature command in the command dock.
-- **Why it works (Why cap width and height by the same scale?):** Independent caps would change their ratio and stretch the scene. A shared scale keeps proportions apart from integer rounding.
-
-### Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `Browser`)
-
-| Layer | Construct | First-Year Student Explanation |
+| Layer | Construct | Plain-English Explanation for Students |
 | :--- | :--- | :--- |
 | **Protobuf (`.pb`)** | `session_proto` Binary Wire Format | Compact binary serialization for `Session` models; decoded with strict byte/count limits and topological validation before touching the live scene. |
 | **Rust (`session_rust`)** | Kernel `Mesh` + World Placement `4x4` Matrix | Separates exact `f64` kernel geometry from placed world instances; cold CPU source bytes can be released after GPU upload and re-fetched on edit. |
 | **Rust (`wgpu`)** | `Change { sync_scene, redraw }` | Incremental dirty-flag contract: camera orbit/fit sets `sync_scene = false` (updating only the 64-byte camera uniform), while geometry edits upload only changed buffers. |
 
-**Production source (`session_viewer/src`):** `session_viewer/src`
+**Authoritative production source (`session_viewer/src`):** `session_viewer/src`
 
-## Implementation Checkpoints
+## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
 
-Apply these checkpoints in order inside `workspace/journey`. Expand each block to view the Rust/WGSL/HTML edits:
+| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
+| ---: | :--- | :--- | :--- | :--- |
+| **1** | [`19a-viewport`](#checkpoint-19a-viewport) | Convert CSS dimensions and display density to finite, bounded GPU pixel dimensions. | `src/viewport.rs`, `src/lib.rs` | `CSS width and height × display density → proportional GPU-limit cap → Viewport` |
+| **2** | [`20-resize`](#checkpoint-20-resize) | Resize the drawing buffer, depth attachment and camera together, including on dense displays. | `src/renderer.rs`, `src/browser.rs` | `Resize event → Viewport → canvas pixels, surface, depth and aspect → command layout → draw` |
+| **3** | [`20a-press`](#checkpoint-20a-press) | Retain one pointer and produce movement relative to its previous position. | `src/gesture.rs`, `src/gesture_tests.rs`, `src/lib.rs` | `Press → Option<Drag> → matching move → Motion::Orbit` |
+| **4** | [`20b-release`](#checkpoint-20b-release) | Release an owned pointer or cancel it without inventing a click. | `src/gesture.rs`, `src/gesture_tests.rs` | `Release → final move → take stored Drag → click or orbit; cancel → no active drag` |
+| **5** | [`20c-motion`](#checkpoint-20c-motion) | Convert CSS pointer coordinates and movement into existing Pick and Orbit actions. | `src/gesture.rs`, `src/gesture_tests.rs` | `Motion + CSS rectangle → Action → Editor → selection or view change` |
+| **6** | [`21-gestures`](#checkpoint-21-gestures) | Orbit with a right drag, pick with a left click, and stop safely when the pointer or window loses focus. | `Cargo.toml`, `src/browser.rs` | `DOM pointer → Gesture → Motion::action → Editor → redraw` |
+| **7** | [`21a-wheel`](#checkpoint-21a-wheel) | Normalize pixels, lines and pages to bounded camera zoom without adding document history. | `src/navigation.rs`, `src/navigation_tests.rs`, `src/lib.rs` | `Wheel delta and units → CSS pixels → bounded exponential → Action::Zoom` |
+| **8** | [`22-shortcuts`](#checkpoint-22-shortcuts) | Normalize wheel input and keep every keyboard feature command in the command dock. | `Cargo.toml`, `src/browser.rs` | `Wheel → navigation_action → Editor; printable key → command dock → typed Action` |
+
+---
+
+## 4. Step-by-Step Coding Notebook (Concept + Implementation)
+
+Work through each notebook cell below in order inside `workspace/journey`. Read the **Concept Walkthrough** and **Self-Check Q&A** first, then expand the **Implementation** block to type and verify the code.
 
 <a id="checkpoint-19a-viewport"></a>
+
+### Step 1 of 8 · Measure a safe drawing size (`19a-viewport`)
+
+- **Goal:** Convert CSS dimensions and display density to finite, bounded GPU pixel dimensions.
+- **Data Flow Trace:** `CSS width and height × display density → proportional GPU-limit cap → Viewport`
+- **Files You Touch:** `src/viewport.rs` (*Convert layout dimensions to a safe drawing size, keeping the proportions when the GPU limit applies.*) · `src/lib.rs` (*Make the size calculation usable by browser code and Rust tests.*)
+
+Viewport converts CSS size and display density to GPU pixel dimensions. Reduce both dimensions together when they exceed the device limit. Reject hidden or invalid sizes.
+
+Viewport is Copy, so drawing and camera setup can receive the same measured value. aspect uses the bounded pixel dimensions.
+
+> **Self-Check Question:** *Why cap width and height by the same scale?*  
+> **Answer:** Independent caps would change their ratio and stretch the scene. A shared scale keeps proportions apart from integer rounding.
+
+- **What You Should See:** Inspect the supplied state fixtures. Density two doubles pixel dimensions without stretching the view; the GPU cap preserves proportions; hidden sizes are rejected.
+- **Hands-On Lab Experiment:** Change the dense-display test ratio to 4.0 and lower the device limit to 1024. Predict the bounded dimensions before running the check.
 
 <details>
 <summary>Implementation 19a-viewport: Measure a safe drawing size</summary>
@@ -132,6 +199,22 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-20-resize"></a>
+
+### Step 2 of 8 · Resize canvas, depth and camera together (`20-resize`)
+
+- **Goal:** Resize the drawing buffer, depth attachment and camera together, including on dense displays.
+- **Data Flow Trace:** `Resize event → Viewport → canvas pixels, surface, depth and aspect → command layout → draw`
+- **Files You Touch:** `src/renderer.rs` (*Keep depth texture allocation in the existing depth helper.*) · `src/browser.rs` (*Import the viewport size type.*)
+
+Use Viewport to resize canvas pixels, the surface, depth attachment and camera aspect together. Read the current CSS rectangle and display density before drawing.
+
+The callback borrows the renderer and editor mutably. A hidden canvas returns without drawing; a changed size recreates attachments before the next frame.
+
+> **Self-Check Question:** *Why resize the depth attachment with the canvas?*  
+> **Answer:** The colour and depth attachments in one render pass must have matching dimensions.
+
+- **What You Should See:** Resize the browser window. Geometry keeps its proportions and continues drawing across wide and tall sizes.
+- **Hands-On Lab Experiment:** Change the window from wide to tall, then type View Reset. The view should retain the current aspect.
 
 <details>
 <summary>Implementation 20-resize: Resize canvas, depth and camera together</summary>
@@ -984,6 +1067,22 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-20a-press"></a>
 
+### Step 3 of 8 · Remember the pointer that starts a drag (`20a-press`)
+
+- **Goal:** Retain one pointer and produce movement relative to its previous position.
+- **Data Flow Trace:** `Press → Option<Drag> → matching move → Motion::Orbit`
+- **Files You Touch:** `src/gesture.rs` (*Retain one pointer, track its starting position and return relative right-drag movement.*) · `src/gesture_tests.rs` (*Optional authoring fixture. Check rejected presses, pointer ownership and movement from the previous position.*) · `src/lib.rs` (*Expose the gesture module to the browser and compile its tests only in the test build.*)
+
+Gesture remembers one pointer ID, its button and its positions. Reject a second press while that pointer is active. Each move reports the change from the previous position.
+
+Option holds one Drag or none. as_mut borrows the stored drag; filter accepts only its pointer ID. The click threshold remembers whether any movement exceeded four CSS pixels.
+
+> **Self-Check Question:** *Why retain both the starting and previous positions?*  
+> **Answer:** The start distinguishes a click from a drag. The previous position gives the next orbit delta.
+
+- **What You Should See:** Inspect the supplied state fixtures. Another pointer cannot replace the press or move it; matching moves report relative deltas.
+- **Hands-On Lab Experiment:** Trace a matching pointer moving from [20.0, 25.0] to [30.0, 28.0] through the supplied press fixture. Predict the delta before reading its expected result.
+
 <details>
 <summary>Implementation 20a-press: Remember the pointer that starts a drag</summary>
 
@@ -1045,6 +1144,22 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-20b-release"></a>
+
+### Step 4 of 8 · Finish or cancel a drag (`20b-release`)
+
+- **Goal:** Release an owned pointer or cancel it without inventing a click.
+- **Data Flow Trace:** `Release → final move → take stored Drag → click or orbit; cancel → no active drag`
+- **Files You Touch:** `src/gesture.rs` (*Finish the owned pointer, preserve drag classification and clear cancelled input.*) · `src/gesture_tests.rs` (*Optional authoring fixture. Check left-click classification, final motion, pointer ownership and cancellation.*)
+
+Release processes the final position, then takes the remembered drag out of Gesture. A left release picks only if the press never crossed the movement threshold. Right release may supply one final orbit delta.
+
+Cancellation clears the state without selecting. cancel_pointer checks ownership first; another pointer cannot end the active drag.
+
+> **Self-Check Question:** *What does Option::take do on release?*  
+> **Answer:** It returns the stored Drag and leaves None, so later movement cannot continue the finished gesture.
+
+- **What You Should See:** Inspect the supplied state fixtures. A left drag returning to its start does not click; cancellation produces no selection and permits a fresh press.
+- **Hands-On Lab Experiment:** Read the return-to-start test. Predict the result if release checked only its final distance instead of the remembered moved flag.
 
 <details>
 <summary>Implementation 20b-release: Finish or cancel a drag</summary>
@@ -1116,6 +1231,22 @@ Update the existing block with this supplied code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-20c-motion"></a>
+
+### Step 5 of 8 · Convert pointer motion to editor actions (`20c-motion`)
+
+- **Goal:** Convert CSS pointer coordinates and movement into existing Pick and Orbit actions.
+- **Data Flow Trace:** `Motion + CSS rectangle → Action → Editor → selection or view change`
+- **Files You Touch:** `src/gesture.rs` (*Import the editor action used by motion conversion.*) · `src/gesture_tests.rs` (*Optional authoring fixture. Import editor actions for motion and history checks.*)
+
+Motion::action uses the canvas CSS rectangle to convert a pick to normalized screen coordinates or a drag delta to orbit angles. Reject an invalid rectangle before dividing.
+
+The method consumes Motion. Option<Action> permits invalid input to produce no editor request. Orbit changes the view while leaving document history unchanged.
+
+> **Self-Check Question:** *Why use CSS dimensions instead of the GPU drawing size?*  
+> **Answer:** Pointer positions use CSS pixels. Mixing them with denser GPU pixels would change picking and sensitivity when display density changes.
+
+- **What You Should See:** Inspect the supplied state fixtures. A CSS centre maps to [0, 0]; orbit changes the camera, and Undo restores the document without rewinding it.
+- **Hands-On Lab Experiment:** Double the rectangle dimensions and the pointer offsets in the centre test. Predict the same [0, 0] pick before running it.
 
 <details>
 <summary>Implementation 20c-motion: Convert pointer motion to editor actions</summary>
@@ -1347,6 +1478,22 @@ After that block, append this supplied code:
 </details>
 
 <a id="checkpoint-21-gestures"></a>
+
+### Step 6 of 8 · Connect captured pointers to the editor (`21-gestures`)
+
+- **Goal:** Orbit with a right drag, pick with a left click, and stop safely when the pointer or window loses focus.
+- **Data Flow Trace:** `DOM pointer → Gesture → Motion::action → Editor → redraw`
+- **Files You Touch:** `Cargo.toml` (*Enable the browser event bindings used by the command dock.*) · `src/browser.rs` (*Import the gesture state.*)
+
+Deliver canvas pointer events to Gesture when the command dock has not consumed them. Capture the accepted pointer so events keep arriving outside the canvas. Apply any returned action through Editor.
+
+Release capture on pointer-up. Clear gesture state on cancellation, lost capture, blur or resize; suppress the browser context menu for right-drag navigation.
+
+> **Self-Check Question:** *Why do we need both browser pointer capture and our own active pointer ID?*  
+> **Answer:** Capture keeps delivering events outside the canvas. The ID tells our application which pointer owns the gesture. Neither replaces the other: a second pointer must not finish the first gesture, and lost capture must clear our state.
+
+- **What You Should See:** Right-drag the scene, then release. Further movement must stop orbiting; a left click still selects a face.
+- **Hands-On Lab Experiment:** Change the four-pixel click threshold to twenty. Try a short left drag, then restore four. Explain why this distance is measured in CSS pixels: doubling display density should not make the same hand movement harder to classify. Finally undo adding the box after orbiting. The box should disappear while the camera stays where you put it.
 
 <details>
 <summary>Implementation 21-gestures: Connect captured pointers to the editor</summary>
@@ -2005,6 +2152,22 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-21a-wheel"></a>
 
+### Step 7 of 8 · Convert wheel units to camera zoom (`21a-wheel`)
+
+- **Goal:** Normalize pixels, lines and pages to bounded camera zoom without adding document history.
+- **Data Flow Trace:** `Wheel delta and units → CSS pixels → bounded exponential → Action::Zoom`
+- **Files You Touch:** `src/navigation.rs` (*Normalize wheel units into the existing Zoom action. Zero or invalid input returns None.*) · `src/navigation_tests.rs` (*Optional authoring fixture. Compare equivalent wheel inputs, bound large jumps, and show that navigation preserves document history.*) · `src/lib.rs` (*Register the small input translator and its tests.*)
+
+navigation::wheel converts pixels, lines or pages to CSS pixels, caps one event at 600 pixels, then returns a positive exponential zoom factor. Invalid input returns None.
+
+The stateless function borrows no editor. Its checks apply the returned Zoom through Editor and verify that camera movement stays outside document history.
+
+> **Self-Check Question:** *Why use an exponential for the zoom factor?*  
+> **Answer:** It stays positive and lets equal opposite movements restore the earlier distance, subject to the camera limits.
+
+- **What You Should See:** Inspect the supplied state fixtures. Equivalent pixel, line and page deltas give the same zoom; Undo restores geometry while retaining the camera.
+- **Hands-On Lab Experiment:** Compare 48 pixels, three lines and 0.1 pages at height 480. Predict the same result before running the unit check.
+
 <details>
 <summary>Implementation 21a-wheel: Convert wheel units to camera zoom</summary>
 
@@ -2066,6 +2229,22 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-22-shortcuts"></a>
+
+### Step 8 of 8 · Deliver wheel input without keyboard feature shortcuts (`22-shortcuts`)
+
+- **Goal:** Normalize wheel input and keep every keyboard feature command in the command dock.
+- **Data Flow Trace:** `Wheel → navigation_action → Editor; printable key → command dock → typed Action`
+- **Files You Touch:** `Cargo.toml` (*Enable the browser event bindings used by the command dock.*) · `src/browser.rs` (*Route unconsumed canvas input through navigation_action.*)
+
+Route wheel events through navigation::wheel, prevent page scrolling when zoom is handled, and keep printable keyboard input in the command dock. Focus the canvas when a pointer press starts navigation.
+
+There is no keyboard feature map. Text-editing keys stay with the dock; Escape can cancel gesture state through the navigation route when the dock has not consumed it.
+
+> **Self-Check Question:** *Why request a non-passive wheel listener?*  
+> **Answer:** Handled wheel navigation must call prevent_default so the browser does not scroll the page.
+
+- **What You Should See:** Wheel over the scene to zoom. Click the canvas and type Pan Right; the first character reaches the dock and Enter pans the view.
+- **Hands-On Lab Experiment:** Change wheel sensitivity from 0.002 to 0.001, predict the difference, and try it before restoring the value. Run `Undo` after several wheel movements: it removes the box while preserving the camera. Run `Redo` to restore it. Explain why navigation does not enter document history. Finally Tab away during a drag; the canvas blur listener should cancel it.
 
 <details>
 <summary>Implementation 22-shortcuts: Deliver wheel input without keyboard feature shortcuts</summary>
@@ -2596,9 +2775,11 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 </details>
 
-## Run, Check, and Save
+---
 
-From `session_viewer`:
+## 5. Build, Verify, and Save Your Checkpoint
+
+Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 22-shortcuts
@@ -2609,12 +2790,12 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. Use [checkpoint recovery](../recovery.md) to restore any saved checkpoint.
+Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../recovery.md) to save or restore any checkpoint ID.
 
-## Expected Visual Result & Experiment
+## 6. Lesson Summary & Expected Visual Result
 
 Wheel over the scene to zoom. Click the canvas and type Pan Right; the first character reaches the dock and Enter pans the view.
 
-- **Try this:** Change wheel sensitivity from 0.002 to 0.001, predict the difference, and try it before restoring the value. Run `Undo` after several wheel movements: it removes the box while preserving the camera. Run `Redo` to restore it. Explain why navigation does not enter document history. Finally Tab away during a drag; the canvas blur listener should cancel it.
+- **Final Lesson Experiment:** Change wheel sensitivity from 0.002 to 0.001, predict the difference, and try it before restoring the value. Run `Undo` after several wheel movements: it removes the box while preserving the camera. Run `Redo` to restore it. Explain why navigation does not enter document history. Finally Tab away during a drag; the canvas blur listener should cancel it.
 
 Continue with [Validated files, bounds and useful projections](22a-records.md).

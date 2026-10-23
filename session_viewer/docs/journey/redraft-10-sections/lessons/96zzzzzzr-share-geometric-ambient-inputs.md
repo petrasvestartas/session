@@ -1,92 +1,158 @@
 # 22.4 · Original ambient inputs and real pass ordering
 
-**Section 10: Shared GPU Arenas, Floating-Origin Precision, Multisampling, and Production Parity** · **Lesson 22.4** (Redraft `10.19`) · **3 checkpoints (`96zzzzzzr-share-geometric-ambient-inputs` → `96zzzzzzt-keep-contact-ambient-inputs-on-originals`)**
+**Section 10: Shared GPU Arenas, Floating-Origin Precision, Multisampling, and Production Parity** · **Lesson 22.4** (Redraft `10.19`) · **3 checkpoints (`96zzzzzzr-share-geometric-ambient-inputs` → `96zzzzzzt-keep-contact-ambient-inputs-on-originals`)** · **Study time: 3–6 h**
 
-> **Learning Goal:** Shade contacts from actual face geometry while preserving authored lighting normals and one contact-radius owner.
+> **What You Will Learn & Build:** Shade contacts from actual face geometry while preserving authored lighting normals and one contact-radius owner. By the final checkpoint (`96zzzzzzt-keep-contact-ambient-inputs-on-originals`), you will match the displayed contact depth and original visual radius without adding GPU resources.
 
-## Visual WebGPU & Architecture Schematic
+## 1. Visual Pipeline & WebGPU Architecture (Black & White Schematics)
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1px solid #cbd5e1;border-radius:10px;background:#f8fafc;">
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
+<svg viewBox="0 0 840 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <rect x="4" y="4" width="832" height="212" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Lesson 22.4 Execution Flow: Original ambient inputs and real pass ordering</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">Concrete data pipeline you build in this lesson (3 Checkpoints: 96zzzzzzr-share-geometric-ambient-inputs → 96zzzzzzt-keep-contact-ambient-inputs-on-originals)</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
+  
+    
+    <rect x="18" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="89" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
+    <line x1="28" y1="92" x2="151" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">Original mesh and</text>
+    <text x="89" y="124" text-anchor="middle" font-size="11" fill="#111111">placement</text>
+    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="183" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="254" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
+    <line x1="193" y1="92" x2="316" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">retained object</text>
+    <text x="254" y="124" text-anchor="middle" font-size="11" fill="#111111">radius</text>
+    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="348" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="419" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
+    <line x1="358" y1="92" x2="481" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">geometric source</text>
+    <text x="419" y="124" text-anchor="middle" font-size="11" fill="#111111">normal</text>
+    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="513" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="584" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
+    <line x1="523" y1="92" x2="646" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">ambient contact</text>
+    <text x="584" y="124" text-anchor="middle" font-size="11" fill="#111111">shading</text>
+    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="678" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="749" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
+    <line x1="688" y1="92" x2="811" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">Original visual</text>
+    <text x="749" y="124" text-anchor="middle" font-size="11" fill="#111111">owner</text>
+    
+    <rect x="18" y="162" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="32" y="181" font-size="11" font-weight="700" fill="#111111">Files You Edit in Lesson 22.4:</text>
+    <text x="215" y="181" font-size="11" fill="#111111">src/ambient_sources.wgsl  ·  src/ambient_source_gpu.rs  ·  src/ambient_source_pipeline.rs  ·  src/renderer.rs  ·  src/ambient_gpu.rs  ·  src/ambient_input_tests.rs</text>
+    <text x="32" y="198" font-size="10.5" fill="#111111">3 Checkpoints: 96zzzzzzr-share-geometric-ambient-inputs → 96zzzzzzt-keep-contact-ambient-inputs-on-originals — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
+  
+</svg>
+</div>
+
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
 <svg viewBox="0 0 840 240" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#475569"/>
-    </marker>
-    <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#2563eb"/>
-    </marker>
-    <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#059669"/>
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
     </marker>
   </defs>
-  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
-  <text x="20" y="28" font-size="14" font-weight="700" fill="#0f172a">Section 10 Production Architecture: Shared GPU Storage Arena, f64 Floating Origin, Reversed-Z, 4x MSAA & Matrix Shader</text>
-  <text x="20" y="46" font-size="11.5" fill="#475569">How the maintained viewer pulls vertices from one growable GPU arena, eliminates jitter at 10^12 units, and renders procedural Matrices.</text>
-  <line x1="16" y1="54" x2="824" y2="54" stroke="#e2e8f0" stroke-width="1"/>
+  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Section 10 Production Architecture: Shared GPU Storage Arena, f64 Floating Origin, Reversed-Z, 4x MSAA & Matrix Shader</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">How the maintained viewer pulls vertices from one growable GPU arena, eliminates jitter at 10^12 units, and renders procedural Matrices.</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
   
-    <rect x="18" y="68" width="250" height="145" rx="6" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
-    <text x="143" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1e40af">1. Shared GPU Arena (Ch 19–20)</text>
-    <text x="28" y="108" font-size="10.5" fill="#1e3a8a">• 1 Growable Storage Buffer Arena</text>
-    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#1d4ed8">• Vertex Pulling (@builtin(vertex_index))</text>
-    <text x="28" y="144" font-size="10.5" fill="#1e3a8a">• 8-byte Draw Slots -&gt; ObjectRecord</text>
-    <text x="28" y="162" font-size="10.5" fill="#1e3a8a">• slot_table.wgsl maps Rg32Uint</text>
-    <text x="28" y="178" font-size="10.5" fill="#1e3a8a">  primitive IDs to Element/Face owners</text>
-    <text x="28" y="194" font-size="10" fill="#1e3a8a">• Free-list span reuse after GPU lease</text>
+    <rect x="18" y="68" width="250" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="143" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">1. Shared GPU Arena (Ch 19–20)</text>
+    <text x="28" y="108" font-size="10.5" fill="#111111">• 1 Growable Storage Buffer Arena</text>
+    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#111111">• Vertex Pulling (@builtin(vertex_index))</text>
+    <text x="28" y="144" font-size="10.5" fill="#111111">• 8-byte Draw Slots -&gt; ObjectRecord</text>
+    <text x="28" y="162" font-size="10.5" fill="#111111">• slot_table.wgsl maps Rg32Uint</text>
+    <text x="28" y="178" font-size="10.5" fill="#111111">  primitive IDs to Element/Face owners</text>
+    <text x="28" y="194" font-size="10" fill="#111111">• Free-list span reuse after GPU lease</text>
 
-    <line x1="268" y1="138" x2="298" y2="138" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
+    <line x1="268" y1="138" x2="298" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="300" y="68" width="265" height="145" rx="6" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5"/>
-    <text x="432" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#9a3412">2. f64 Floating Origin &amp; Reversed-Z (Ch 21)</text>
-    <text x="312" y="108" font-size="10.5" font-weight="600" fill="#c2410c">• rel_f32 = (world_f64 - anchor_f64) as f32</text>
-    <text x="312" y="125" font-size="10" fill="#7c2d12">  Zero vertex/grid jitter even at 10^12 m!</text>
-    <text x="312" y="144" font-size="10.5" font-weight="600" fill="#c2410c">• Reversed-Z Depth (GreaterEqual):</text>
-    <text x="312" y="160" font-size="10" fill="#7c2d12">  Near plane = 1.0, Far plane = 0.0</text>
-    <text x="312" y="178" font-size="10.5" fill="#7c2d12">• Held world base grid &amp; preserved</text>
-    <text x="312" y="193" font-size="10.5" fill="#7c2d12">  live camera during Session reload</text>
+    <rect x="300" y="68" width="265" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="432" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">2. f64 Floating Origin &amp; Reversed-Z (Ch 21)</text>
+    <text x="312" y="108" font-size="10.5" font-weight="600" fill="#111111">• rel_f32 = (world_f64 - anchor_f64) as f32</text>
+    <text x="312" y="125" font-size="10" fill="#111111">  Zero vertex/grid jitter even at 10^12 m!</text>
+    <text x="312" y="144" font-size="10.5" font-weight="600" fill="#111111">• Reversed-Z Depth (GreaterEqual):</text>
+    <text x="312" y="160" font-size="10" fill="#111111">  Near plane = 1.0, Far plane = 0.0</text>
+    <text x="312" y="178" font-size="10.5" fill="#111111">• Held world base grid &amp; preserved</text>
+    <text x="312" y="193" font-size="10.5" fill="#111111">  live camera during Session reload</text>
 
-    <line x1="565" y1="138" x2="595" y2="138" stroke="#059669" stroke-width="2" marker-end="url(#arrow-green)"/>
+    <line x1="565" y1="138" x2="595" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="597" y="68" width="223" height="145" rx="6" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1.5"/>
-    <text x="708" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#065f46">3. 4x MSAA &amp; Matrix Shader (Ch 22)</text>
-    <text x="609" y="108" font-size="10.5" fill="#064e3b">• Coherent 1x/4x MSAA sample targets</text>
-    <text x="609" y="126" font-size="10.5" font-weight="600" fill="#047857">• matrix.wgsl (16w header + 3w/cell):</text>
-    <text x="609" y="142" font-size="10" fill="#064e3b">  Heatmap + procedural 3-decimal digits</text>
-    <text x="609" y="157" font-size="10" fill="#064e3b">  (0 cell blank; plate-less title; yellow</text>
-    <text x="609" y="172" font-size="10" fill="#064e3b">  selected border; Rg32Uint whole pick)</text>
-    <text x="609" y="190" font-size="10" fill="#064e3b">• Coalesced single-flight frame scheduler</text>
+    <rect x="597" y="68" width="223" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="708" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">3. 4x MSAA &amp; Matrix Shader (Ch 22)</text>
+    <text x="609" y="108" font-size="10.5" fill="#111111">• Coherent 1x/4x MSAA sample targets</text>
+    <text x="609" y="126" font-size="10.5" font-weight="600" fill="#111111">• matrix.wgsl (16w header + 3w/cell):</text>
+    <text x="609" y="142" font-size="10" fill="#111111">  Heatmap + procedural 3-decimal digits</text>
+    <text x="609" y="157" font-size="10" fill="#111111">  (0 cell blank; plate-less title; yellow</text>
+    <text x="609" y="172" font-size="10" fill="#111111">  selected border; Rg32Uint whole pick)</text>
+    <text x="609" y="190" font-size="10" fill="#111111">• Coalesced single-flight frame scheduler</text>
     
 </svg>
 </div>
 
-### Lesson Data Flow (`Rust` → `WebGPU` → `WGSL`)
+## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
 
-```
-Original mesh and placement → retained object radius → geometric source normal → ambient contact shading.
-Faces, sections and cloud depth → ambient contacts → drawing ink and scene text → independent widget.
-Original visual owner → existing radius word → shared contact geometry → exact source depth → geometric ambient normal.
-```
+Before writing code, review how the three layers in this chapter talk to each other:
 
-- Shade contacts from actual face geometry while preserving authored lighting normals and one contact-radius owner.
-- Preserve authored drawing colours and independent widget pixels by ordering existing passes.
-- Match the displayed contact depth and original visual radius without adding GPU resources.
-- **Why it works (Why can a correct lighting normal still be wrong for ambient contacts?):** A source may intentionally smooth or author its lighting normals. Ambient contact geometry must follow the actual rendered face plane, so it uses the geometric normal and leaves the lighting data unchanged.
-
-### Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `Browser`)
-
-| Layer | Construct | First-Year Student Explanation |
+| Layer | Construct | Plain-English Explanation for Students |
 | :--- | :--- | :--- |
 | **WGSL (Vertex Pull)** | `@group(0) @binding(b) var<storage, read> arena_verts: array<u32>;` | Fetches packed vertex positions, normals, and colors directly from a single growable storage buffer using `@builtin(vertex_index)`. |
 | **Rust/WGSL (`f64`->`f32`)** | `let rel: Vec3 = (world_f64 - anchor_f64).as_vec3();` | Subtracts the camera-area `f64` anchor on the CPU before converting to `f32`, preventing 32-bit float mantissa exhaustion far from `(0,0,0)`. |
 | **WGSL (`matrix.wgsl`)** | 16-word header + 3 words/cell procedural digits | Renders matrix heatmaps and 3-decimal numeric digits procedurally inside the fragment shader with zero texture uploads per cell. |
 | **Rust (`ink_ranges.rs`)** | Merged contiguous `Range<u32>` instance draws | Toggles point/line/edge/CAD-wire family visibility without rebuilding GPU buffers or invalidating original owner indices. |
 
-**Production source (`session_viewer/src`):** [engine/gpu/render.rs](../../../../src/engine/gpu/render.rs), [engine/gpu/pass.rs](../../../../src/engine/gpu/pass.rs), [engine/gpu/targets.rs](../../../../src/engine/gpu/targets.rs), [engine/gpu/frame.rs](../../../../src/engine/gpu/frame.rs), [engine/gpu/view.rs](../../../../src/engine/gpu/view.rs), [engine/pipelines/mod.rs](../../../../src/engine/pipelines/mod.rs), [shaders/triangle.wgsl](../../../../src/shaders/triangle.wgsl), [shaders/ribbon.wgsl](../../../../src/shaders/ribbon.wgsl), [shaders/vector.wgsl](../../../../src/shaders/vector.wgsl), [shaders/ink_visibility.wgsl](../../../../src/shaders/ink_visibility.wgsl), [app/scene.rs](../../../../src/app/scene.rs), [build.rs](../../../../build.rs).
+**Authoritative production source (`session_viewer/src`):** [engine/gpu/render.rs](../../../../src/engine/gpu/render.rs), [engine/gpu/pass.rs](../../../../src/engine/gpu/pass.rs), [engine/gpu/targets.rs](../../../../src/engine/gpu/targets.rs), [engine/gpu/frame.rs](../../../../src/engine/gpu/frame.rs), [engine/gpu/view.rs](../../../../src/engine/gpu/view.rs), [engine/pipelines/mod.rs](../../../../src/engine/pipelines/mod.rs), [shaders/triangle.wgsl](../../../../src/shaders/triangle.wgsl), [shaders/ribbon.wgsl](../../../../src/shaders/ribbon.wgsl), [shaders/vector.wgsl](../../../../src/shaders/vector.wgsl), [shaders/ink_visibility.wgsl](../../../../src/shaders/ink_visibility.wgsl), [app/scene.rs](../../../../src/app/scene.rs), [build.rs](../../../../build.rs).
 
-## Implementation Checkpoints
+## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
 
-Apply these checkpoints in order inside `workspace/journey`. Expand each block to view the Rust/WGSL/HTML edits:
+| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
+| ---: | :--- | :--- | :--- | :--- |
+| **1** | [`96zzzzzzr-share-geometric-ambient-inputs`](#checkpoint-96zzzzzzr-share-geometric-ambient-inputs) | Shade contacts from actual face geometry while preserving authored lighting normals and one contact-radius owner. | `src/ambient_sources.wgsl`, `src/ambient_source_gpu.rs`, `src/ambient_source_pipeline.rs`, `src/renderer.rs` | `Original mesh and placement → retained object radius → geometric source normal → ambient contact shading` |
+| **2** | [`96zzzzzzs-shade-surfaces-before-drawing-ink`](#checkpoint-96zzzzzzs-shade-surfaces-before-drawing-ink) | Preserve authored drawing colours and independent widget pixels by ordering existing passes. | `src/renderer.rs`, `src/ambient_order_tests.rs` | `Faces, sections and cloud depth → ambient contacts → drawing ink and scene text → independent widget` |
+| **3** | [`96zzzzzzt-keep-contact-ambient-inputs-on-originals`](#checkpoint-96zzzzzzt-keep-contact-ambient-inputs-on-originals) | Match the displayed contact depth and original visual radius without adding GPU resources. | `src/feature_owner.rs`, `src/ambient_rows.rs`, `src/ambient_sources.wgsl`, `src/ambient_source_pipeline.rs` | `Original visual owner → existing radius word → shared contact geometry → exact source depth → geometric ambient normal` |
+
+---
+
+## 4. Step-by-Step Coding Notebook (Concept + Implementation)
+
+Work through each notebook cell below in order inside `workspace/journey`. Read the **Concept Walkthrough** and **Self-Check Q&A** first, then expand the **Implementation** block to type and verify the code.
 
 <a id="checkpoint-96zzzzzzr-share-geometric-ambient-inputs"></a>
+
+### Step 1 of 3 · Share geometric ambient inputs (`96zzzzzzr-share-geometric-ambient-inputs`)
+
+- **Goal:** Shade contacts from actual face geometry while preserving authored lighting normals and one contact-radius owner.
+- **Data Flow Trace:** `Original mesh and placement → retained object radius → geometric source normal → ambient contact shading`
+- **Files You Touch:** `src/ambient_sources.wgsl` (*Read both source paths from the existing object record instead of a separate radius uniform.*) · `src/ambient_source_gpu.rs` (*Remove the redundant per-object property cache.*) · `src/ambient_source_pipeline.rs` (*Keep only the actual render pipelines.*) · `src/renderer.rs` (*Prepare bounds and object radii once, without maintaining a second property store.*) · `src/ambient_gpu.rs` (*Only image and camera state need clearing.*) · `src/ambient_input_tests.rs` (*Check actual production property readbacks, preserved lighting, both object paths, shared placed radii and source release.*)
+
+Ambient occlusion follows the actual face geometry; authored normals continue to control lighting. Read each placed contact radius from its existing object record and remove the duplicate radius resources.
+
+The current ambient pass incorrectly prefers the interpolated lighting normal. An original cube with sideways authored normals exposes a false dark gradient across its flat top. Read back the actual production GPU source pass, then keep geometric and lighting normals in their distinct roles.
+
+Each object record already contains its placed radius. Both storage and uniform object paths can read that same field. Retain shared geometry storage where vertex pulling needs it; remove the second per-object radius buffer, bind group, scalar cache and reset path.
+
+> **Self-Check Question:** *Why can a correct lighting normal still be wrong for ambient contacts?*  
+> **Answer:** A source may intentionally smooth or author its lighting normals. Ambient contact geometry must follow the actual rendered face plane, so it uses the geometric normal and leaves the lighting data unchanged.
+
+- **What You Should See:** The flat top no longer receives a false dark contact gradient. Authored lighting remains intact, and additional shared placements allocate no additional ambient-radius buffers.
+- **Hands-On Lab Experiment:** Compare the actual original authored-normal cube with the preceding dark top and the maintained camera-matched reference. Check both object paths, projections and densities, mirrored nonuniform placements, complete decoded archives and source release. Definition instances retain the existing ineligible-source rejection; source unload/reload checks use an eligible original mesh.
 
 <details>
 <summary>Implementation 96zzzzzzr-share-geometric-ambient-inputs: Share geometric ambient inputs</summary>
@@ -1130,6 +1196,24 @@ After that block, append this supplied code:
 
 <a id="checkpoint-96zzzzzzs-shade-surfaces-before-drawing-ink"></a>
 
+### Step 2 of 3 · Shade surfaces before drawing ink (`96zzzzzzs-shade-surfaces-before-drawing-ink`)
+
+- **Goal:** Preserve authored drawing colours and independent widget pixels by ordering existing passes.
+- **Data Flow Trace:** `Faces, sections and cloud depth → ambient contacts → drawing ink and scene text → independent widget`
+- **Files You Touch:** `src/renderer.rs` (*Remove ambient multiplication from the end of the completed scene.*) · `src/ambient_order_tests.rs` (*Check real ground contacts, authored point/stroke colour, picks, source restoration and independent widget GPU output.*)
+
+Complete ambient contact shading before drawing ink, then place the existing widget after scene text. Original point and stroke colours remain unchanged over ground shadows.
+
+An actual original red point loses more than half its colour when ambient shading multiplies the finished image. The same pass changes opaque widget pixels even though the widget already has its own depth buffer. Read back these actual GPU results, then move the existing pass calls into their correct order.
+
+Keep the current depth, shared records and geometry owners. This change introduces no additional texture, buffer or pipeline.
+
+> **Self-Check Question:** *Why does a widget with its own depth buffer still need to draw after ambient shading?*  
+> **Answer:** Its depth buffer orders the widget handles internally. A later full-screen colour multiplication still modifies the already composited widget, so ambient shading must finish before that overlay.
+
+- **What You Should See:** Ambient shadows still shade the scene, while original ink retains its authored colour and opaque widget pixels match an independent render of the same production widget.
+- **Hands-On Lab Experiment:** Compare actual original points, lines and paths over measured ground-contact shadows in both projections and densities. Check the widget against its actual independent GPU output, source restoration, real picks and unchanged geometry uploads.
+
 <details>
 <summary>Implementation 96zzzzzzs-shade-surfaces-before-drawing-ink: Shade surfaces before drawing ink</summary>
 
@@ -1942,6 +2026,24 @@ After that block, append this supplied code:
 
 <a id="checkpoint-96zzzzzzt-keep-contact-ambient-inputs-on-originals"></a>
 
+### Step 3 of 3 · Keep contact ambient inputs on originals (`96zzzzzzt-keep-contact-ambient-inputs-on-originals`)
+
+- **Goal:** Match the displayed contact depth and original visual radius without adding GPU resources.
+- **Data Flow Trace:** `Original visual owner → existing radius word → shared contact geometry → exact source depth → geometric ambient normal`
+- **Files You Touch:** `src/feature_owner.rs` (*Resolve the existing original visual ancestor before applying pickability.*) · `src/ambient_rows.rs` (*Remove the obsolete maximum before visual-owner mapping.*) · `src/ambient_sources.wgsl` (*Reuse the actual geometry function, including contact depth and clipping flags.*) · `src/ambient_source_pipeline.rs` (*Use the existing 20-byte vertex layout; no additional buffer or attribute storage.*) · `src/ambient_contact_tests.rs` (*Check real contact coverage/radius, both object paths and device budgets, locks, original picks, source semantics and placed definitions.*) · `src/renderer.rs` (*Register the two actual original contact-input GPU checks.*)
+
+Read ambient properties at the contact surface’s actual display depth and use its original object’s radius. Reuse the same geometry function as the face pass so contact shading stays correct without new GPU resources.
+
+A real original panel and contact feature expose a zero ambient radius even though an independent GPU query resolves the original face. The contact depth is seven float steps closer than the original plane; the separate source vertex path fails the exact depth test. Its separate radius also differs from the original object’s radius.
+
+Call the existing geometry function from both source vertex paths. It already handles contact placement and clipping flags. Reuse the packed colour and normal words in the existing 20-byte vertex layout, while ambient normals still come from geometric face derivatives. Resolve visual ancestry before applying picking filters, so locking never removes visible contact shading.
+
+> **Self-Check Question:** *Why can a visually aligned contact surface still lose its ambient input?*  
+> **Answer:** The displayed contact uses a deliberate depth shift. A second vertex path without that shift fails exact depth matching. Sharing geometry fixes coverage, and the original visual owner supplies the correct radius independently of picking locks.
+
+- **What You Should See:** Actual contact pixels retain their original radius and receive ambient shading. Uniform and storage paths share the existing contact geometry function, including device fallback and original ownership.
+- **Hands-On Lab Experiment:** Inspect actual source-radius readbacks and matching whole frames, both projections and densities, real 64 KiB device fallback, locked original owners, mirrored nonuniform definition placements and complete source values.
+
 <details>
 <summary>Implementation 96zzzzzzt-keep-contact-ambient-inputs-on-originals: Keep contact ambient inputs on originals</summary>
 
@@ -2280,9 +2382,11 @@ After that block, append this supplied code:
 
 </details>
 
-## Run, Check, and Save
+---
 
-From `session_viewer`:
+## 5. Build, Verify, and Save Your Checkpoint
+
+Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 96zzzzzzt-keep-contact-ambient-inputs-on-originals
@@ -2293,12 +2397,12 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. Use [checkpoint recovery](../../recovery.md) to restore any saved checkpoint.
+Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
 
-## Expected Visual Result & Experiment
+## 6. Lesson Summary & Expected Visual Result
 
 Actual contact pixels retain their original radius and receive ambient shading. Uniform and storage paths share the existing contact geometry function, including device fallback and original ownership.
 
-- **Try this:** Inspect actual source-radius readbacks and matching whole frames, both projections and densities, real 64 KiB device fallback, locked original owners, mirrored nonuniform definition placements and complete source values.
+- **Final Lesson Experiment:** Inspect actual source-radius readbacks and matching whole frames, both projections and densities, real 64 KiB device fallback, locked original owners, mirrored nonuniform definition placements and complete source values.
 
-Continue with [Coherent multisampling and frame-resource ownership](96zzzzzzu-keep-depth-and-address-samples-separate.md).
+Continue with [Coherent multisampling and frame-resource ownership](../../consolidation/96zzzzzzu-keep-depth-and-address-samples-separate.md).

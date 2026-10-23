@@ -1,89 +1,160 @@
 # 13.2 · Independent presentation and reusable CAD preparation
 
-**Section 7: Out-of-Core HTTP Range Streaming, Shared Instances, and Drawing Sheets** · **Lesson 13.2** (Redraft `7.6`) · **15 checkpoints (`69j-preserve-per-instance-original-colours` → `69af-exercise-independent-original-cad-reuse`)**
+**Section 7: Out-of-Core HTTP Range Streaming, Shared Instances, and Drawing Sheets** · **Lesson 13.2** (Redraft `7.6`) · **15 checkpoints (`69j-preserve-per-instance-original-colours` → `69af-exercise-independent-original-cad-reuse`)** · **Study time: 7.5–15 h**
 
-> **Learning Goal:** Preserve per instance original colours.
+> **What You Will Learn & Build:** Preserve per instance original colours. By the final checkpoint (`69af-exercise-independent-original-cad-reuse`), you will exercise independent original CAD reuse.
 
-## Visual WebGPU & Architecture Schematic
+## 1. Visual Pipeline & WebGPU Architecture (Black & White Schematics)
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1px solid #cbd5e1;border-radius:10px;background:#f8fafc;">
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
+<svg viewBox="0 0 840 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <rect x="4" y="4" width="832" height="212" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Lesson 13.2 Execution Flow: Independent presentation and reusable CAD preparation</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">Concrete data pipeline you build in this lesson (15 Checkpoints: 69j-preserve-per-instance-original-colours → 69af-exercise-independent-original-cad-reuse)</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
+  
+    
+    <rect x="18" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="89" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
+    <line x1="28" y1="92" x2="151" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">viewer colour</text>
+    <text x="89" y="124" text-anchor="middle" font-size="11" fill="#111111">override</text>
+    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="183" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="254" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
+    <line x1="193" y1="92" x2="316" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">original instance</text>
+    <text x="254" y="124" text-anchor="middle" font-size="11" fill="#111111">colour</text>
+    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="348" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="419" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
+    <line x1="358" y1="92" x2="481" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">shared definition</text>
+    <text x="419" y="124" text-anchor="middle" font-size="11" fill="#111111">colour</text>
+    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="513" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="584" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
+    <line x1="523" y1="92" x2="646" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">two original BReps</text>
+    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="678" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="749" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
+    <line x1="688" y1="92" x2="811" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">one walk and replay</text>
+    
+    <rect x="18" y="162" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="32" y="181" font-size="11" font-weight="700" fill="#111111">Files You Edit in Lesson 13.2:</text>
+    <text x="215" y="181" font-size="11" fill="#111111">src/gpu_mesh.rs  ·  src/cloud_gpu.rs  ·  src/renderer.rs  ·  src/gpu_geometry.rs  ·  src/instance_gpu.rs  ·  src/lib.rs</text>
+    <text x="32" y="198" font-size="10.5" fill="#111111">15 Checkpoints: 69j-preserve-per-instance-original-colours → 69af-exercise-independent-original-cad-reuse — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
+  
+</svg>
+</div>
+
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
 <svg viewBox="0 0 840 240" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#475569"/>
-    </marker>
-    <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#2563eb"/>
-    </marker>
-    <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#059669"/>
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
     </marker>
   </defs>
-  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
-  <text x="20" y="28" font-size="14" font-weight="700" fill="#0f172a">Section 7 WebGPU Streaming & Instancing: HTTP Range Requests, Shared Source Meshes & 2D Drawing Sheets</text>
-  <text x="20" y="46" font-size="11.5" fill="#475569">How massive multi-gigabyte scenes stream out-of-core via HTTP 206 Partial Content and draw 1,000+ placements from 1 GPU buffer.</text>
-  <line x1="16" y1="54" x2="824" y2="54" stroke="#e2e8f0" stroke-width="1"/>
+  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Section 7 WebGPU Streaming & Instancing: HTTP Range Requests, Shared Source Meshes & 2D Drawing Sheets</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">How massive multi-gigabyte scenes stream out-of-core via HTTP 206 Partial Content and draw 1,000+ placements from 1 GPU buffer.</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
   
-    <rect x="18" y="68" width="245" height="145" rx="6" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
-    <text x="140" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1e40af">1. HTTP 206 Range Streaming (Ch 12)</text>
-    <text x="28" y="108" font-size="10.5" fill="#1e3a8a">• Fetch compact Manifest + World Bounds</text>
-    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#1d4ed8">• Prioritize visible frustum chunks</text>
-    <text x="28" y="144" font-size="10.5" fill="#1e3a8a">• Range: bytes=start-end (bounded memory)</text>
-    <text x="28" y="162" font-size="10.5" fill="#1e3a8a">• Evict cold off-screen chunks under</text>
-    <text x="28" y="178" font-size="10.5" fill="#1e3a8a">  memory budget without losing metadata</text>
+    <rect x="18" y="68" width="245" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="140" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">1. HTTP 206 Range Streaming (Ch 12)</text>
+    <text x="28" y="108" font-size="10.5" fill="#111111">• Fetch compact Manifest + World Bounds</text>
+    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#111111">• Prioritize visible frustum chunks</text>
+    <text x="28" y="144" font-size="10.5" fill="#111111">• Range: bytes=start-end (bounded memory)</text>
+    <text x="28" y="162" font-size="10.5" fill="#111111">• Evict cold off-screen chunks under</text>
+    <text x="28" y="178" font-size="10.5" fill="#111111">  memory budget without losing metadata</text>
 
-    <line x1="263" y1="138" x2="293" y2="138" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
+    <line x1="263" y1="138" x2="293" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="295" y="68" width="265" height="145" rx="6" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5"/>
-    <text x="427" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#9a3412">2. GPU Hardware Instancing (Ch 13)</text>
-    <text x="307" y="108" font-size="10.5" fill="#7c2d12">• 1 Shared Definition Buffer (e.g. Bolt)</text>
-    <text x="307" y="126" font-size="10.5" font-weight="600" fill="#c2410c">• N Instance Rows (@builtin(instance_index)):</text>
-    <text x="307" y="142" font-size="10" fill="#7c2d12">  Per-instance mat4x4 transform, tint,</text>
-    <text x="307" y="157" font-size="10" fill="#7c2d12">  and distinct instance_owner_id</text>
-    <text x="307" y="176" font-size="10.5" fill="#7c2d12">• draw_indexed(0..idx_cnt, 0, 0..N_inst)</text>
+    <rect x="295" y="68" width="265" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="427" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">2. GPU Hardware Instancing (Ch 13)</text>
+    <text x="307" y="108" font-size="10.5" fill="#111111">• 1 Shared Definition Buffer (e.g. Bolt)</text>
+    <text x="307" y="126" font-size="10.5" font-weight="600" fill="#111111">• N Instance Rows (@builtin(instance_index)):</text>
+    <text x="307" y="142" font-size="10" fill="#111111">  Per-instance mat4x4 transform, tint,</text>
+    <text x="307" y="157" font-size="10" fill="#111111">  and distinct instance_owner_id</text>
+    <text x="307" y="176" font-size="10.5" fill="#111111">• draw_indexed(0..idx_cnt, 0, 0..N_inst)</text>
 
-    <line x1="560" y1="138" x2="590" y2="138" stroke="#059669" stroke-width="2" marker-end="url(#arrow-green)"/>
+    <line x1="560" y1="138" x2="590" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="592" y="68" width="228" height="145" rx="6" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1.5"/>
-    <text x="706" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#065f46">3. 2D Drawing Sheets &amp; Blocks</text>
-    <text x="604" y="108" font-size="10.5" fill="#064e3b">• Paper-space Sheet frames &amp; title</text>
-    <text x="604" y="124" font-size="10.5" fill="#064e3b">  blocks (`SheetInit / SheetRows`)</text>
-    <text x="604" y="144" font-size="10.5" font-weight="600" fill="#047857">• Calibrated mm/inch pen widths</text>
-    <text x="604" y="162" font-size="10.5" fill="#064e3b">• Switch smoothly between 3D Model</text>
-    <text x="604" y="178" font-size="10.5" fill="#064e3b">  view and 2D Sheet layouts</text>
+    <rect x="592" y="68" width="228" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="706" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">3. 2D Drawing Sheets &amp; Blocks</text>
+    <text x="604" y="108" font-size="10.5" fill="#111111">• Paper-space Sheet frames &amp; title</text>
+    <text x="604" y="124" font-size="10.5" fill="#111111">  blocks (SheetInit / SheetRows)</text>
+    <text x="604" y="144" font-size="10.5" font-weight="600" fill="#111111">• Calibrated mm/inch pen widths</text>
+    <text x="604" y="162" font-size="10.5" fill="#111111">• Switch smoothly between 3D Model</text>
+    <text x="604" y="178" font-size="10.5" fill="#111111">  view and 2D Sheet layouts</text>
     
 </svg>
 </div>
 
-### Lesson Data Flow (`Rust` → `WebGPU` → `WGSL`)
+## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
 
-```
-viewer colour override → original instance colour → shared definition colour.
-original source validation → derived values → scoped recording.
-two original BReps → one walk and replay → independent commands → unchanged saved sources.
-```
+Before writing code, review how the three layers in this chapter talk to each other:
 
-- Preserve per instance original colours.
-- Encode knots, local points, pcurve values and curve descriptors.
-- Exercise independent original CAD reuse.
-- **Why it works (Does recolouring one placement alter the definition?):** No. Resolve its colour in the draw settings. Preserve the original definition record and every other placement.
-
-### Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `Browser`)
-
-| Layer | Construct | First-Year Student Explanation |
+| Layer | Construct | Plain-English Explanation for Students |
 | :--- | :--- | :--- |
 | **HTTP / Fetch** | `Range: bytes=start-end` -> `206 Partial Content` | Fetches only the exact byte slice of an octree node or sheet column needed for the current camera view. |
 | **Protobuf Wire** | Varint tag + length prefix scanner | Skips over multi-megabyte coordinate arrays by reading their byte range offsets without allocating their contents. |
 | **Rust (Residency)** | `budget.reserve(bytes)?` -> LRU eviction | Guarantees resident + in-flight pages never exceed the memory cap; coarse root pages stay pinned so the scene is never blank. |
 | **GPU Instancing** | Shared definition buffer + per-instance record | Draws N placed copies of a complex CAD component using 1 shared vertex/index allocation and N compact instance records. |
 
-**Production source (`session_viewer/src`):** [app/scene_instances.rs](../../../../src/app/scene_instances.rs), [engine/gpu/instanced.rs](../../../../src/engine/gpu/instanced.rs), [engine/gpu/slots.rs](../../../../src/engine/gpu/slots.rs), [app/walk/brep_shapes.rs](../../../../src/app/walk/brep_shapes.rs), [app/hierarchy.rs](../../../../src/app/hierarchy.rs), [app/sheet_query.rs](../../../../src/app/sheet_query.rs).
+**Authoritative production source (`session_viewer/src`):** [app/scene_instances.rs](../../../../src/app/scene_instances.rs), [engine/gpu/instanced.rs](../../../../src/engine/gpu/instanced.rs), [engine/gpu/slots.rs](../../../../src/engine/gpu/slots.rs), [app/walk/brep_shapes.rs](../../../../src/app/walk/brep_shapes.rs), [app/hierarchy.rs](../../../../src/app/hierarchy.rs), [app/sheet_query.rs](../../../../src/app/sheet_query.rs).
 
-## Implementation Checkpoints
+## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
 
-Apply these checkpoints in order inside `workspace/journey`. Expand each block to view the Rust/WGSL/HTML edits:
+| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
+| ---: | :--- | :--- | :--- | :--- |
+| **1** | [`69j-preserve-per-instance-original-colours`](#checkpoint-69j-preserve-per-instance-original-colours) | Preserve per instance original colours. | `src/gpu_mesh.rs`, `src/cloud_gpu.rs`, `src/renderer.rs`, `src/gpu_geometry.rs` | `viewer colour override → original instance colour → shared definition colour` |
+| **2** | [`69k-create-a-shared-definition-face-pipeline`](#checkpoint-69k-create-a-shared-definition-face-pipeline) | Create a shared definition face pipeline. | `src/instance_gpu.rs`, `src/lib.rs` | `shared vertices → instance index → bounded storage record → placed colour face` |
+| **3** | [`69l-reuse-bounded-independent-draw-records`](#checkpoint-69l-reuse-bounded-independent-draw-records) | Reuse bounded independent draw records. | `src/instance_gpu.rs` | `shared GPU source → bounded record chunks → changed-only upload → indexed instance draw` |
+| **4** | [`69m-draw-batched-faces-with-independent-integer-owners`](#checkpoint-69m-draw-batched-faces-with-independent-integer-owners) | Draw batched faces with independent integer owners. | `src/renderer.rs`, `src/pick_gpu_tests.rs` | `visible instance IDs → shared face batches → independent selection → actual integer picks` |
+| **5** | [`69n-inspect-and-exercise-original-definition-instances`](#checkpoint-69n-inspect-and-exercise-original-definition-instances) | Inspect and exercise original definition instances. | `src/editor.rs`, `src/commands.rs`, `src/browser.rs` | `example original → placed shared rows → source diagnostics → reversible commands → saved references` |
+| **6** | [`69zza-move-between-original-rigid-frames`](#checkpoint-69zza-move-between-original-rigid-frames) | Write local coordinates and the rotation between two right-handed frames. | `src/cad_shape_key.rs`, `src/lib.rs` | `original controls → rigid frame → local shape words → candidate rigid copy` |
+| **7** | [`69zzb-find-an-original-frame-and-pack-key-words`](#checkpoint-69zzb-find-an-original-frame-and-pack-key-words) | Choose well-separated original surface control points for a right-handed frame. | `src/cad_shape_key.rs` | `original controls → rigid frame → local shape words → candidate rigid copy` |
+| **8** | [`69zzc-encode-original-parameters-and-topology`](#checkpoint-69zzc-encode-original-parameters-and-topology) | Encode knots, local points, pcurve values and curve descriptors. | `src/cad_shape_key.rs` | `original controls → rigid frame → local shape words → candidate rigid copy` |
+| **9** | [`69a-describe-a-rigid-frame-and-original-shape-key`](#checkpoint-69a-describe-a-rigid-frame-and-original-shape-key) | Assemble the existing encoders for every original surface, curve, vertex and topology record. | `src/cad_shape_key.rs` | `original controls → rigid frame → local shape words → candidate rigid copy` |
+| **10** | [`69aa-retain-cloneable-derived-cad-values`](#checkpoint-69aa-retain-cloneable-derived-cad-values) | Retain cloneable derived CAD values. | `src/mesh.rs`, `src/mesh_parts.rs`, `src/cad_face.rs`, `src/cad_display.rs` | `original source validation → derived values → scoped recording` |
+| **11** | [`69ab-replay-sampled-geometry-in-the-new-rigid-frame`](#checkpoint-69ab-replay-sampled-geometry-in-the-new-rigid-frame) | Replay sampled geometry in the new rigid frame. | `src/cad_shape_cache.rs`, `src/lib.rs` | `recorded samples → rigid motion → new original owner → replayed display` |
+| **12** | [`69ac-guard-reusable-walks-with-source-validity-and-size`](#checkpoint-69ac-guard-reusable-walks-with-source-validity-and-size) | Guard reusable walks with source validity and size. | `src/cad_shape_cache.rs` | `checked original → shape candidates → physical size check → replay or new walk` |
+| **13** | [`69ad-share-recordings-only-during-document-preparation`](#checkpoint-69ad-share-recordings-only-during-document-preparation) | Share recordings only during document preparation. | `src/scene.rs`, `src/document_geometry.rs`, `src/instance_definition.rs` | `one source document → scoped recordings → independent scene owners → dropped preparation cache` |
+| **14** | [`69ae-compare-actual-replay-pixels-and-integer-owners`](#checkpoint-69ae-compare-actual-replay-pixels-and-integer-owners) | Compare actual replay pixels and integer owners. | `src/pick_gpu_tests.rs` | `replayed display → independent reference → actual pixels → original integer owner` |
+| **15** | [`69af-exercise-independent-original-cad-reuse`](#checkpoint-69af-exercise-independent-original-cad-reuse) | Exercise independent original CAD reuse. | `src/cad_shape_example.rs`, `src/lib.rs`, `src/editor.rs`, `src/commands.rs` | `two original BReps → one walk and replay → independent commands → unchanged saved sources` |
+
+---
+
+## 4. Step-by-Step Coding Notebook (Concept + Implementation)
+
+Work through each notebook cell below in order inside `workspace/journey`. Read the **Concept Walkthrough** and **Self-Check Q&A** first, then expand the **Implementation** block to type and verify the code.
 
 <a id="checkpoint-69j-preserve-per-instance-original-colours"></a>
+
+### Step 1 of 15 · Preserve per instance original colours (`69j-preserve-per-instance-original-colours`)
+
+- **Goal:** Preserve per instance original colours.
+- **Data Flow Trace:** `viewer colour override → original instance colour → shared definition colour`
+- **Files You Touch:** `src/gpu_mesh.rs` (*Resolve instance colours without mutating original shared geometry.*) · `src/cloud_gpu.rs` (*Resolve instance colours without mutating original shared geometry.*) · `src/renderer.rs` (*Apply per-instance original colour to mesh, point, path and line lanes.*) · `src/gpu_geometry.rs` (*Draw shared indexed geometry with a bounded instance count.*)
+
+Resolve presentation overrides first and original instance colours second, retaining source alpha for the later blending subject.
+
+> **Self-Check Question:** *Does recolouring one placement alter the definition?*  
+> **Answer:** No. Resolve its colour in the draw settings. Preserve the original definition record and every other placement.
+
+- **Hands-On Lab Experiment:** Compare one red and one blue placement sharing the same geometry; Save/Open retains original colour and alpha.
 
 <details>
 <summary>Implementation 69j-preserve-per-instance-original-colours: Preserve per instance original colours</summary>
@@ -1538,6 +1609,19 @@ Edit the existing block to match this code; keep unchanged lines:
 
 <a id="checkpoint-69k-create-a-shared-definition-face-pipeline"></a>
 
+### Step 2 of 15 · Create a shared definition face pipeline (`69k-create-a-shared-definition-face-pipeline`)
+
+- **Goal:** Create a shared definition face pipeline.
+- **Data Flow Trace:** `shared vertices → instance index → bounded storage record → placed colour face`
+- **Files You Touch:** `src/instance_gpu.rs` (*Create a storage-backed shared-definition colour pipeline.*) · `src/lib.rs` (*Register the source component.*)
+
+Replace one uniform placement with a bounded storage array. Each vertex reads the current instance record.
+
+> **Self-Check Question:** *Does hardware instancing replace original integer pick ownership?*  
+> **Answer:** No. This pipeline batches colour faces. Existing source-aware integer picking and CAD ink keep their independent row paths.
+
+- **Hands-On Lab Experiment:** Trace one 160-byte placement/style record and compare the unchanged vertex and normal layouts.
+
 <details>
 <summary>Implementation 69k-create-a-shared-definition-face-pipeline: Create a shared definition face pipeline</summary>
 
@@ -1579,6 +1663,19 @@ After that block, type:
 
 <a id="checkpoint-69l-reuse-bounded-independent-draw-records"></a>
 
+### Step 3 of 15 · Reuse bounded independent draw records (`69l-reuse-bounded-independent-draw-records`)
+
+- **Goal:** Reuse bounded independent draw records.
+- **Data Flow Trace:** `shared GPU source → bounded record chunks → changed-only upload → indexed instance draw`
+- **Files You Touch:** `src/instance_gpu.rs` (*Reuse bounded shared-definition draw batches and changed-only record uploads.*)
+
+Group visible placements by shared GPU geometry and split them at the device storage limit. Reuse unchanged record buffers.
+
+> **Self-Check Question:** *Must an unchanged frame upload instance records again?*  
+> **Answer:** No. Compare packed records and reuse both their storage buffer and the original geometry allocation.
+
+- **Hands-On Lab Experiment:** Draw two placements in one face batch; move one, preserve geometry uploads and release record capacity after Close.
+
 <details>
 <summary>Implementation 69l-reuse-bounded-independent-draw-records: Reuse bounded independent draw records</summary>
 
@@ -1610,6 +1707,19 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-69m-draw-batched-faces-with-independent-integer-owners"></a>
+
+### Step 4 of 15 · Draw batched faces with independent integer owners (`69m-draw-batched-faces-with-independent-integer-owners`)
+
+- **Goal:** Draw batched faces with independent integer owners.
+- **Data Flow Trace:** `visible instance IDs → shared face batches → independent selection → actual integer picks`
+- **Files You Touch:** `src/renderer.rs` (*Draw original definition faces in shared batches while retaining independent source picking.*) · `src/pick_gpu_tests.rs` (*Copy actual GPU batching, full integer owner IDs, source colour, reuse and release regressions.*)
+
+Connect face batches to scene refresh and selection while retaining existing whole, face, edge, control and outline picking.
+
+> **Self-Check Question:** *Are all rendering and picking passes batched by this subject?*  
+> **Answer:** No. Original instance colour faces are batched; ink, outlines and integer source picking retain their established per-row paths.
+
+- **Hands-On Lab Experiment:** Run actual red/blue instances, high integer owner IDs, selection, unchanged uploads, Move, Hide and Close checks.
 
 <details>
 <summary>Implementation 69m-draw-batched-faces-with-independent-integer-owners: Draw batched faces with independent integer owners</summary>
@@ -2355,6 +2465,20 @@ After that block, append this supplied code:
 </details>
 
 <a id="checkpoint-69n-inspect-and-exercise-original-definition-instances"></a>
+
+### Step 5 of 15 · Inspect and exercise original definition instances (`69n-inspect-and-exercise-original-definition-instances`)
+
+- **Goal:** Inspect and exercise original definition instances.
+- **Data Flow Trace:** `example original → placed shared rows → source diagnostics → reversible commands → saved references`
+- **Files You Touch:** `src/editor.rs` (*Connect original instance examples and separate source, placement and GPU diagnostics.*) · `src/commands.rs` (*Connect original instance examples and separate source, placement and GPU diagnostics.*) · `src/browser.rs` (*Connect original instance examples and separate source, placement and GPU diagnostics.*)
+
+Connect the visible shared-definition example and original-owner diagnostics. Save/Open preserves definitions and independent references.
+
+> **Self-Check Question:** *How can the exercise distinguish sharing from flattening?*  
+> **Answer:** Inspect one original definition, two instance references and one face batch, then compare their independent models after Save/Open.
+
+- **What You Should See:** Two placements share one original triangle definition and one face batch. One selected instance is yellow, the other remains blue, beside unchanged CAD boundaries. Move, Delete, Undo/Redo and Save/Open preserve original references.
+- **Hands-On Lab Experiment:** Type Close, Example Instances, Fit and View Isometric; select one, Move 0.25 0 0, Delete, Undo, Redo and Save/Open.
 
 <details>
 <summary>Implementation 69n-inspect-and-exercise-original-definition-instances: Inspect and exercise original definition instances</summary>
@@ -3248,6 +3372,20 @@ Edit the existing block to match this code; keep unchanged lines:
 
 <a id="checkpoint-69zza-move-between-original-rigid-frames"></a>
 
+### Step 6 of 15 · Move between original rigid frames (`69zza-move-between-original-rigid-frames`)
+
+- **Goal:** Write local coordinates and the rotation between two right-handed frames.
+- **Data Flow Trace:** `original controls → rigid frame → local shape words → candidate rigid copy`
+- **Files You Touch:** `src/cad_shape_key.rs` (*Type the whole original helpers introduced today.*) · `src/lib.rs` (*Register the original rigid-frame and shape-key owner.*)
+
+Write local coordinates and the rotation between two right-handed frames. Move render positions and turn normals using the same original motion.
+
+> **Self-Check Question:** *Why translate positions but only rotate normals?*  
+> **Answer:** Positions have an origin; normals describe directions. Translation does not change a surface direction.
+
+- **What You Should See:** Point and normal helpers can move between rigid frames; the existing browser drawing is unchanged.
+- **Hands-On Lab Experiment:** Trace a quarter turn and translation through point and normal separately.
+
 <details>
 <summary>Implementation 69zza-move-between-original-rigid-frames: Move between original rigid frames</summary>
 
@@ -3288,6 +3426,20 @@ After that block, type:
 </details>
 
 <a id="checkpoint-69zzb-find-an-original-frame-and-pack-key-words"></a>
+
+### Step 7 of 15 · Find an original frame and pack key words (`69zzb-find-an-original-frame-and-pack-key-words`)
+
+- **Goal:** Choose well-separated original surface control points for a right-handed frame.
+- **Data Flow Trace:** `original controls → rigid frame → local shape words → candidate rigid copy`
+- **Files You Touch:** `src/cad_shape_key.rs` (*Extend this original owner with today’s complete helper.*)
+
+Choose well-separated original surface control points for a right-handed frame. Define the key records and encode counts, references, exact colours and rounded weights.
+
+> **Self-Check Question:** *Why choose axes relative to the original size?*  
+> **Answer:** A relative separation threshold avoids unstable axes for both very small and very large originals. A line or empty control set has no usable frame.
+
+- **What You Should See:** Well-separated controls provide a stable frame and key words. Rigid-copy acceptance is still deferred.
+- **Hands-On Lab Experiment:** Trace an empty set, a line and three non-collinear controls. Compare exact colour bits with rounded weight words.
 
 <details>
 <summary>Implementation 69zzb-find-an-original-frame-and-pack-key-words: Find an original frame and pack key words</summary>
@@ -3436,6 +3588,20 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-69zzc-encode-original-parameters-and-topology"></a>
 
+### Step 8 of 15 · Encode original parameters and topology (`69zzc-encode-original-parameters-and-topology`)
+
+- **Goal:** Encode knots, local points, pcurve values and curve descriptors.
+- **Data Flow Trace:** `original controls → rigid frame → local shape words → candidate rigid copy`
+- **Files You Touch:** `src/cad_shape_key.rs` (*Extend this original owner with today’s complete helper.*)
+
+Encode knots, local points, pcurve values and curve descriptors. Record the ordered edge, wire, face, shell and solid references.
+
+> **Self-Check Question:** *Why keep topology in a geometric key?*  
+> **Answer:** Identical control coordinates can describe different holes or connectivity. Their ordered references distinguish those originals.
+
+- **What You Should See:** Ordered geometry and topology can contribute to a normalized key without changing the original source.
+- **Hands-On Lab Experiment:** Trace a changed hole, reversed edge reference and knot span through the words.
+
 <details>
 <summary>Implementation 69zzc-encode-original-parameters-and-topology: Encode original parameters and topology</summary>
 
@@ -3491,6 +3657,20 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-69a-describe-a-rigid-frame-and-original-shape-key"></a>
+
+### Step 9 of 15 · Assemble an original rigid shape key (`69a-describe-a-rigid-frame-and-original-shape-key`)
+
+- **Goal:** Assemble the existing encoders for every original surface, curve, vertex and topology record.
+- **Data Flow Trace:** `original controls → rigid frame → local shape words → candidate rigid copy`
+- **Files You Touch:** `src/cad_shape_key.rs` (*Extend this original owner with today’s complete helper.*)
+
+Assemble the existing encoders for every original surface, curve, vertex and topology record. Keep the original frame and physical quantization step beside the words.
+
+> **Self-Check Question:** *Does a matching normalized key prove a rigid copy?*  
+> **Answer:** No. Validate the original source and compare physical size before accepting a recorded display walk.
+
+- **What You Should See:** The complete key can identify candidates. Physical-size and original-source checks must still approve display reuse.
+- **Hands-On Lab Experiment:** Compare moved, rotated, mirrored, differently sized and changed-hole originals without changing their source GUIDs.
 
 <details>
 <summary>Implementation 69a-describe-a-rigid-frame-and-original-shape-key: Assemble an original rigid shape key</summary>
@@ -3591,6 +3771,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-69aa-retain-cloneable-derived-cad-values"></a>
+
+### Step 10 of 15 · Retain cloneable derived CAD values (`69aa-retain-cloneable-derived-cad-values`)
+
+- **Goal:** Retain cloneable derived CAD values.
+- **Data Flow Trace:** `original source validation → derived values → scoped recording`
+- **Files You Touch:** `src/mesh.rs` (*Separate original validation and cloneable derived CAD values.*) · `src/mesh_parts.rs` (*Separate original validation and cloneable derived CAD values.*) · `src/cad_face.rs` (*Separate original validation and cloneable derived CAD values.*) · `src/cad_display.rs` (*Separate original validation and cloneable derived CAD values.*) · `src/cad_boundary.rs` (*Separate original validation and cloneable derived CAD values.*)
+
+Keep derived display values cloneable and validate original topology/control storage separately from tessellation.
+
+> **Self-Check Question:** *Are copied display values another editable BRep?*  
+> **Answer:** No. Original BRep records remain the editable source. Sampled vertices, normals, boundary chords and source mappings are derived display values.
+
+- **Hands-On Lab Experiment:** Inspect original source sharing beside copied display arrays and their exact source face and edge mappings.
 
 <details>
 <summary>Implementation 69aa-retain-cloneable-derived-cad-values: Retain cloneable derived CAD values</summary>
@@ -3772,6 +3965,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-69ab-replay-sampled-geometry-in-the-new-rigid-frame"></a>
 
+### Step 11 of 15 · Replay sampled geometry in the new rigid frame (`69ab-replay-sampled-geometry-in-the-new-rigid-frame`)
+
+- **Goal:** Replay sampled geometry in the new rigid frame.
+- **Data Flow Trace:** `recorded samples → rigid motion → new original owner → replayed display`
+- **Files You Touch:** `src/cad_shape_cache.rs` (*Replay recorded display values with the correct independent original owner.*) · `src/lib.rs` (*Register the CAD preparation component.*)
+
+Transform display positions, normals, precise boundary endpoints and proxy geometry while retaining the new original BRep.
+
+> **Self-Check Question:** *Should replay retain the first BRep as the new editable source?*  
+> **Answer:** No. Keep the new original source, GUID, flags and name. Only its display values reuse the first walk.
+
+- **Hands-On Lab Experiment:** Compare independent original GUIDs, UV samples, topology and boundary endpoints after a skew rotation.
+
 <details>
 <summary>Implementation 69ab-replay-sampled-geometry-in-the-new-rigid-frame: Replay sampled geometry in the new rigid frame</summary>
 
@@ -3812,6 +4018,19 @@ After that block, type:
 </details>
 
 <a id="checkpoint-69ac-guard-reusable-walks-with-source-validity-and-size"></a>
+
+### Step 12 of 15 · Guard reusable walks with source validity and size (`69ac-guard-reusable-walks-with-source-validity-and-size`)
+
+- **Goal:** Guard reusable walks with source validity and size.
+- **Data Flow Trace:** `checked original → shape candidates → physical size check → replay or new walk`
+- **Files You Touch:** `src/cad_shape_cache.rs` (*Validate original sources and physical size before reusing a display walk.*)
+
+Refuse malformed source data and nonrigid size matches before replay. Walk changed or mirrored shapes independently.
+
+> **Self-Check Question:** *Why must physical size be checked separately?*  
+> **Answer:** Normalized coordinates can match uniformly scaled geometry. A rigid replay has no scale and would otherwise display the wrong-sized solid.
+
+- **Hands-On Lab Experiment:** Inspect moved/turned equivalence, scale/mirror/changed-hole refusal, invalid-source and cache-release fixtures.
 
 <details>
 <summary>Implementation 69ac-guard-reusable-walks-with-source-validity-and-size: Guard reusable walks with source validity and size</summary>
@@ -3870,6 +4089,19 @@ After that block, append this supplied code:
 </details>
 
 <a id="checkpoint-69ad-share-recordings-only-during-document-preparation"></a>
+
+### Step 13 of 15 · Share recordings only during document preparation (`69ad-share-recordings-only-during-document-preparation`)
+
+- **Goal:** Share recordings only during document preparation.
+- **Data Flow Trace:** `one source document → scoped recordings → independent scene owners → dropped preparation cache`
+- **Files You Touch:** `src/scene.rs` (*Reuse scoped CAD recordings across original objects and definition templates.*) · `src/document_geometry.rs` (*Reuse scoped CAD recordings across original objects and definition templates.*) · `src/instance_definition.rs` (*Reuse scoped CAD recordings across original objects and definition templates.*)
+
+Create one cache while preparing ordinary originals and definitions. Adoption retains scene sources while the temporary recordings are released.
+
+> **Self-Check Question:** *Does the document keep a global recording table after import?*  
+> **Answer:** No. The preparation cache drops at scope end. Scene rows retain their own originals and derived display, not a global source cache.
+
+- **Hands-On Lab Experiment:** Import two congruent originals, inspect one walk and one replay, then clear the scene and release both sources.
 
 <details>
 <summary>Implementation 69ad-share-recordings-only-during-document-preparation: Share recordings only during document preparation</summary>
@@ -4942,6 +5174,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-69ae-compare-actual-replay-pixels-and-integer-owners"></a>
 
+### Step 14 of 15 · Compare actual replay pixels and integer owners (`69ae-compare-actual-replay-pixels-and-integer-owners`)
+
+- **Goal:** Compare actual replay pixels and integer owners.
+- **Data Flow Trace:** `replayed display → independent reference → actual pixels → original integer owner`
+- **Files You Touch:** `src/pick_gpu_tests.rs` (*Copy actual GPU independent face, boundary ink, integer ownership and source-release comparison.*)
+
+Compare replay with independent CAD preparation using actual colour, boundary ink and integer picking.
+
+> **Self-Check Question:** *Does matching source topology alone prove rendering agreement?*  
+> **Answer:** No. Compare actual faces and border ink, as well as original integer picks, against an independently prepared source.
+
+- **Hands-On Lab Experiment:** Import congruent originals using the preceding lesson's replay example. Orbit, select each original, clear selection and compare their boundary ink. Clear the document and inspect released resources. The supplied GPU comparison separately records exact pixels and integer-owner equality.
+
 <details>
 <summary>Implementation 69ae-compare-actual-replay-pixels-and-integer-owners: Compare actual replay pixels and integer owners</summary>
 
@@ -4979,6 +5224,20 @@ After that block, append this supplied code:
 </details>
 
 <a id="checkpoint-69af-exercise-independent-original-cad-reuse"></a>
+
+### Step 15 of 15 · Exercise independent original CAD reuse (`69af-exercise-independent-original-cad-reuse`)
+
+- **Goal:** Exercise independent original CAD reuse.
+- **Data Flow Trace:** `two original BReps → one walk and replay → independent commands → unchanged saved sources`
+- **Files You Touch:** `src/cad_shape_example.rs` (*Copy congruent original CAD and document persistence/release fixtures.*) · `src/lib.rs` (*Register the CAD preparation component.*) · `src/editor.rs` (*Connect congruent original CAD examples and document-scoped preparation counters.*) · `src/commands.rs` (*Connect congruent original CAD examples and document-scoped preparation counters.*) · `src/browser.rs` (*Connect congruent original CAD examples and document-scoped preparation counters.*)
+
+Connect a two-original example and report walk/replay counts for the last imported document. Save original BReps unchanged.
+
+> **Self-Check Question:** *Do these counters measure frame speed or GPU sharing?*  
+> **Answer:** No. They describe the last document preparation only. Independent originals retain their own display allocations and integer owners.
+
+- **What You Should See:** Two independent original BReps share one preparation walk. The turned copy is selected yellow, the first remains blue, and both retain their original black bore and outer boundaries. Save/Open preserves both originals.
+- **Hands-On Lab Experiment:** Type Close, Example Shape Reuse, Fit and View Isometric; Save/Open, select one, Delete, Undo/Redo and Close.
 
 <details>
 <summary>Implementation 69af-exercise-independent-original-cad-reuse: Exercise independent original CAD reuse</summary>
@@ -5909,9 +6168,11 @@ Edit the existing block to match this code; keep unchanged lines:
 
 </details>
 
-## Run, Check, and Save
+---
 
-From `session_viewer`:
+## 5. Build, Verify, and Save Your Checkpoint
+
+Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 69af-exercise-independent-original-cad-reuse
@@ -5922,12 +6183,12 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. Use [checkpoint recovery](../../recovery.md) to restore any saved checkpoint.
+Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
 
-## Expected Visual Result & Experiment
+## 6. Lesson Summary & Expected Visual Result
 
 Two independent original BReps share one preparation walk. The turned copy is selected yellow, the first remains blue, and both retain their original black bore and outer boundaries. Save/Open preserves both originals.
 
-- **Try this:** Type Close, Example Shape Reuse, Fit and View Isometric; Save/Open, select one, Delete, Undo/Redo and Close.
+- **Final Lesson Experiment:** Type Close, Example Shape Reuse, Fit and View Isometric; Save/Open, select one, Delete, Undo/Redo and Close.
 
-Continue with [Feature ancestry and canonical local-to-world placement](70-evaluate-source-ancestry-once-per-document.md).
+Continue with [Feature ancestry and canonical local-to-world placement](../../consolidation/70-evaluate-source-ancestry-once-per-document.md).

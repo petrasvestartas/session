@@ -1,88 +1,186 @@
 # 14.1 · Original drawings, entity queries and construction frames
 
-**Section 8: Precision Coordinate Frames, Solid Primitives, Surfacing, and CAD Editing** · **Lesson 14.1** (Redraft `8.1`) · **42 checkpoints (`71-read-original-sheet-entity-metadata` → `71ze-resolve-original-relative-and-polar-coordinates`)**
+**Section 8: Precision Coordinate Frames, Solid Primitives, Surfacing, and CAD Editing** · **Lesson 14.1** (Redraft `8.1`) · **42 checkpoints (`71-read-original-sheet-entity-metadata` → `71ze-resolve-original-relative-and-polar-coordinates`)** · **Study time: 21–42 h**
 
-> **Learning Goal:** Complete the original lookup owner with its query id, sheet row and entity index.
+> **What You Will Learn & Build:** Complete the original lookup owner with its query id, sheet row and entity index. By the final checkpoint (`71ze-resolve-original-relative-and-polar-coordinates`), you will recognize the existing world prefix and resolve parsed coordinates from the plane origin, previous point and current direction.
 
-## Visual WebGPU & Architecture Schematic
+## 1. Visual Pipeline & WebGPU Architecture (Black & White Schematics)
 
-<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1px solid #cbd5e1;border-radius:10px;background:#f8fafc;">
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
+<svg viewBox="0 0 840 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
+    </marker>
+  </defs>
+  <rect x="4" y="4" width="832" height="212" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Lesson 14.1 Execution Flow: Original drawings, entity queries and construction frames</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">Concrete data pipeline you build in this lesson (42 Checkpoints: 71-read-original-sheet-entity-metadata → 71ze-resolve-original-relative-and-polar-coordinates)</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
+  
+    
+    <rect x="18" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="89" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 1</text>
+    <line x1="28" y1="92" x2="151" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="89" y="108" text-anchor="middle" font-size="11" fill="#111111">original table</text>
+    <text x="89" y="124" text-anchor="middle" font-size="11" fill="#111111">bytes</text>
+    <line x1="161" y1="108" x2="181" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="183" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="254" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 2</text>
+    <line x1="193" y1="92" x2="316" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="254" y="108" text-anchor="middle" font-size="11" fill="#111111">revision-bound</text>
+    <text x="254" y="124" text-anchor="middle" font-size="11" fill="#111111">entity</text>
+    <line x1="326" y1="108" x2="346" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="348" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="419" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 3</text>
+    <line x1="358" y1="92" x2="481" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="419" y="108" text-anchor="middle" font-size="11" fill="#111111">cancellable lookup</text>
+    <line x1="491" y1="108" x2="511" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="513" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="584" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 4</text>
+    <line x1="523" y1="92" x2="646" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="584" y="108" text-anchor="middle" font-size="11" fill="#111111">original frame</text>
+    <line x1="656" y1="108" x2="676" y2="108" stroke="#111111" stroke-width="1.75" marker-end="url(#arrow)"/>
+
+    <rect x="678" y="68" width="143" height="82" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="749" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#111111">Stage 5</text>
+    <line x1="688" y1="92" x2="811" y2="92" stroke="#111111" stroke-width="0.75"/>
+    <text x="749" y="108" text-anchor="middle" font-size="11" fill="#111111">parsed coordinates</text>
+    
+    <rect x="18" y="162" width="804" height="44" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="32" y="181" font-size="11" font-weight="700" fill="#111111">Files You Edit in Lesson 14.1:</text>
+    <text x="215" y="181" font-size="11" fill="#111111">src/sheet_entity.rs  ·  src/sheet_example.rs  ·  src/lib.rs  ·  src/range_fetch.rs  ·  src/sheet_entity_fetch.rs  ·  src/sheet_page.rs</text>
+    <text x="32" y="198" font-size="10.5" fill="#111111">42 Checkpoints: 71-read-original-sheet-entity-metadata → 71ze-resolve-original-relative-and-polar-coordinates — Verify at each checkpoint with: npm --prefix ../session_tests run course -- check &lt;ID&gt;</text>
+  
+</svg>
+</div>
+
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1.5px solid #111111;border-radius:10px;background:#ffffff;">
 <svg viewBox="0 0 840 240" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#475569"/>
-    </marker>
-    <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#2563eb"/>
-    </marker>
-    <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#059669"/>
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#111111"/>
     </marker>
   </defs>
-  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
-  <text x="20" y="28" font-size="14" font-weight="700" fill="#0f172a">Section 8 Precision CAD Frames, Solid Primitives, Surfacing & Sub-Object Deformation (Chapters 14–16)</text>
-  <text x="20" y="46" font-size="11.5" fill="#475569">How double-precision coordinate frames (Plane), parametric solids, Loft/Sweep/Extrude surfaces, and Gumball control edits work.</text>
-  <line x1="16" y1="54" x2="824" y2="54" stroke="#e2e8f0" stroke-width="1"/>
+  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#111111">Section 8 Precision CAD Frames, Solid Primitives, Surfacing & Sub-Object Deformation (Chapters 14–16)</text>
+  <text x="20" y="46" font-size="11.5" fill="#111111">How double-precision coordinate frames (Plane), parametric solids, Loft/Sweep/Extrude surfaces, and Gumball control edits work.</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#111111" stroke-width="1"/>
   
-    <rect x="18" y="68" width="245" height="145" rx="6" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
-    <text x="140" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1e40af">1. Orthonormal Frames (Ch 14)</text>
-    <text x="28" y="108" font-size="10.5" fill="#1e3a8a">• Plane { origin: Vec3d, x, y, z }</text>
-    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#1d4ed8">• Rejects non-finite / collinear axes</text>
-    <text x="28" y="144" font-size="10.5" fill="#1e3a8a">• Basis change: World &lt;-&gt; Local Plane</text>
-    <text x="28" y="162" font-size="10.5" fill="#1e3a8a">• Exact Mirror, Rotate3D, Orient,</text>
-    <text x="28" y="178" font-size="10.5" fill="#1e3a8a">  and Align frame transformations</text>
+    <rect x="18" y="68" width="245" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="140" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">1. Orthonormal Frames (Ch 14)</text>
+    <text x="28" y="108" font-size="10.5" fill="#111111">• Plane { origin: Vec3d, x, y, z }</text>
+    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#111111">• Rejects non-finite / collinear axes</text>
+    <text x="28" y="144" font-size="10.5" fill="#111111">• Basis change: World &lt;-&gt; Local Plane</text>
+    <text x="28" y="162" font-size="10.5" fill="#111111">• Exact Mirror, Rotate3D, Orient,</text>
+    <text x="28" y="178" font-size="10.5" fill="#111111">  and Align frame transformations</text>
 
-    <line x1="263" y1="138" x2="293" y2="138" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
+    <line x1="263" y1="138" x2="293" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="295" y="68" width="265" height="145" rx="6" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5"/>
-    <text x="427" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#9a3412">2. Solids &amp; Surfacing (Ch 15–16)</text>
-    <text x="307" y="108" font-size="10.5" fill="#7c2d12">• Parametric Box, Cylinder, Sphere, Cone</text>
-    <text x="307" y="126" font-size="10.5" font-weight="600" fill="#c2410c">• Extrude, Revolve, Loft, Sweep, Planar</text>
-    <text x="307" y="144" font-size="10.5" fill="#7c2d12">• Curve Split, Trim, Extend, Join, Fillet</text>
-    <text x="307" y="162" font-size="10.5" fill="#7c2d12">• Every operation commits an atomic</text>
-    <text x="307" y="178" font-size="10.5" fill="#7c2d12">  session_rust kernel transaction</text>
+    <rect x="295" y="68" width="265" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="427" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">2. Solids &amp; Surfacing (Ch 15–16)</text>
+    <text x="307" y="108" font-size="10.5" fill="#111111">• Parametric Box, Cylinder, Sphere, Cone</text>
+    <text x="307" y="126" font-size="10.5" font-weight="600" fill="#111111">• Extrude, Revolve, Loft, Sweep, Planar</text>
+    <text x="307" y="144" font-size="10.5" fill="#111111">• Curve Split, Trim, Extend, Join, Fillet</text>
+    <text x="307" y="162" font-size="10.5" fill="#111111">• Every operation commits an atomic</text>
+    <text x="307" y="178" font-size="10.5" fill="#111112">  session_rust kernel transaction</text>
 
-    <line x1="560" y1="138" x2="590" y2="138" stroke="#059669" stroke-width="2" marker-end="url(#arrow-green)"/>
+    <line x1="560" y1="138" x2="590" y2="138" stroke="#111111" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <rect x="592" y="68" width="228" height="145" rx="6" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1.5"/>
-    <text x="706" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#065f46">3. Rational Control-Point Deform</text>
-    <text x="604" y="108" font-size="10.5" fill="#064e3b">• Pick NURBS control point or vertex</text>
-    <text x="604" y="126" font-size="10.5" font-weight="600" fill="#047857">• Preserve homogeneous weight w</text>
-    <text x="604" y="142" font-size="10.5" font-weight="600" fill="#047857">  on rational curve control drags!</text>
-    <text x="604" y="162" font-size="10.5" fill="#064e3b">• Rebuild derived GPU tessellation</text>
-    <text x="604" y="178" font-size="10.5" fill="#064e3b">  in-place while keeping Object ID</text>
+    <rect x="592" y="68" width="228" height="145" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+    <text x="706" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#111111">3. Rational Control-Point Deform</text>
+    <text x="604" y="108" font-size="10.5" fill="#111111">• Pick NURBS control point or vertex</text>
+    <text x="604" y="126" font-size="10.5" font-weight="600" fill="#111111">• Preserve homogeneous weight w</text>
+    <text x="604" y="142" font-size="10.5" font-weight="600" fill="#111111">  on rational curve control drags!</text>
+    <text x="604" y="162" font-size="10.5" fill="#111111">• Rebuild derived GPU tessellation</text>
+    <text x="604" y="178" font-size="10.5" fill="#111111">  in-place while keeping Object ID</text>
     
 </svg>
 </div>
 
-### Lesson Data Flow (`Rust` → `WebGPU` → `WGSL`)
+## 2. Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `WebGPU`)
 
-```
-original table bytes → revision-bound entity → cancellable lookup.
-current original source → generation ticket → checked page → synchronous refresh.
-original frame → parsed coordinates → world drawing point.
-```
+Before writing code, review how the three layers in this chapter talk to each other:
 
-- Complete the original lookup owner with its query id, sheet row and entity index.
-- Project authored world pens into drawing quads.
-- Recognize the existing world prefix and resolve parsed coordinates from the plane origin, previous point and current direction.
-- **Why it works (Why share the cancellation flag instead of retaining the query owner?):** The reader can observe cancellation without keeping an obsolete lookup alive. Dropping the owner signals that its result is no longer wanted.
-
-### Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `Browser`)
-
-| Layer | Construct | First-Year Student Explanation |
+| Layer | Construct | Plain-English Explanation for Students |
 | :--- | :--- | :--- |
 | **CAD Coords** | `w10,20,0` vs `@5,0,0` vs `10<30` | `w` forces absolute World coordinates; `@` measures relative to the last accepted point; `<` uses polar distance and angle in the active Construction Plane. |
 | **Rational NURBS** | Homogeneous control point `(w*x, w*y, w*z, w)` | Represents circles, ellipses, and conic arcs with zero approximation error using non-uniform weights `w`. |
 | **B-Rep Split/Trim** | Plane/Cutter intersection -> Face loop classification | Splits or trims B-Rep and mesh faces along cutting planes/curves while keeping retained topology tables valid. |
 
-**Production source (`session_viewer/src`):** [app/walk/sheet.rs](../../../../src/app/walk/sheet.rs), [app/sheet_query.rs](../../../../src/app/sheet_query.rs), [app/stream.rs](../../../../src/app/stream.rs), [app/cplane.rs](../../../../src/app/cplane.rs), [app/coords.rs](../../../../src/app/coords.rs), [app/command/tool/shape.rs](../../../../src/app/command/tool/shape.rs), [app/command/tool/gather.rs](../../../../src/app/command/tool/gather.rs), [app/deform.rs](../../../../src/app/deform.rs).
+**Authoritative production source (`session_viewer/src`):** [app/walk/sheet.rs](../../../../src/app/walk/sheet.rs), [app/sheet_query.rs](../../../../src/app/sheet_query.rs), [app/stream.rs](../../../../src/app/stream.rs), [app/cplane.rs](../../../../src/app/cplane.rs), [app/coords.rs](../../../../src/app/coords.rs), [app/command/tool/shape.rs](../../../../src/app/command/tool/shape.rs), [app/command/tool/gather.rs](../../../../src/app/command/tool/gather.rs), [app/deform.rs](../../../../src/app/deform.rs).
 
-## Implementation Checkpoints
+## 3. Checkpoint Roadmap (Jump to Any Notebook Step)
 
-Apply these checkpoints in order inside `workspace/journey`. Expand each block to view the Rust/WGSL/HTML edits:
+| Step | Checkpoint | What You Build | Files Modified | Pipeline Trace |
+| ---: | :--- | :--- | :--- | :--- |
+| **1** | [`71-read-original-sheet-entity-metadata`](#checkpoint-71-read-original-sheet-entity-metadata) | Complete the original lookup owner with its query id, sheet row and entity index. | `src/sheet_entity.rs`, `src/sheet_example.rs`, `src/lib.rs` | `original table bytes → revision-bound entity → cancellable lookup` |
+| **2** | [`71a-bound-original-entity-records-before-reading`](#checkpoint-71a-bound-original-entity-records-before-reading) | Bound original entity records before reading. | `src/sheet_entity.rs` | `selected original ID → checked record interval → bounded blob` |
+| **3** | [`71b-give-metadata-reads-their-own-cancellation-signal`](#checkpoint-71b-give-metadata-reads-their-own-cancellation-signal) | Give metadata reads their own cancellation signal. | `src/range_fetch.rs`, `src/sheet_entity_fetch.rs`, `src/lib.rs` | `owned controller → one range request → listener cleanup` |
+| **4** | [`71c-fetch-one-revision-matched-metadata-answer`](#checkpoint-71c-fetch-one-revision-matched-metadata-answer) | Fetch one revision matched metadata answer. | `src/sheet_entity_fetch.rs` | `checked head → selected record → checked JSON answer` |
+| **5** | [`71d-decode-precise-original-sheet-columns`](#checkpoint-71d-decode-precise-original-sheet-columns) | Decode precise original sheet columns. | `src/sheet_page.rs`, `src/lib.rs` | `fixed width ranges → original columns → derived display` |
+| **6** | [`71e-measure-original-sheet-pages-and-world-pens`](#checkpoint-71e-measure-original-sheet-pages-and-world-pens) | Measure original sheet pages and world pens. | `src/sheet_page.rs` | `original endpoints → f64 bounds → authored radius → payload bytes` |
+| **7** | [`71f-retain-charged-pages-beside-resident-pages`](#checkpoint-71f-retain-charged-pages-beside-resident-pages) | Retain charged pages beside resident pages. | `src/sheet_stream.rs`, `src/lib.rs` | `resident source page → charged streamed page → retained display owner` |
+| **8** | [`71g-own-the-complete-original-drawing-source`](#checkpoint-71g-own-the-complete-original-drawing-source) | Own the complete original drawing source. | `src/sheet_source.rs`, `src/lib.rs` | `original Sheet → checked source count → shared derived page` |
+| **9** | [`71h-place-drawing-rows-without-changing-endpoints`](#checkpoint-71h-place-drawing-rows-without-changing-endpoints) | Place drawing rows without changing endpoints. | `src/sheet_source.rs` | `shared original drawing → row model → precise placed bounds` |
+| **10** | [`71i-register-original-drawing-rows-on-the-current-layer`](#checkpoint-71i-register-original-drawing-rows-on-the-current-layer) | Register original drawing rows on the current layer. | `src/scene.rs` | `validated source → stable row → current layer` |
+| **11** | [`71j-carry-drawing-identity-through-scene-operations`](#checkpoint-71j-carry-drawing-identity-through-scene-operations) | Carry drawing identity through scene operations. | `src/scene.rs`, `src/rect_select.rs` | `source row → generic owner operations → reversible history` |
+| **12** | [`71k-save-and-reopen-complete-original-sheets`](#checkpoint-71k-save-and-reopen-complete-original-sheets) | Save and reopen complete original sheets. | `src/document_source.rs`, `src/document_geometry.rs`, `src/archive_identity.rs`, `src/scene_archive.rs` | `mixed original document → original sheet snapshot → checked archive reopening` |
+| **13** | [`71l-locate-original-drawing-identity-and-fixed-ranges`](#checkpoint-71l-locate-original-drawing-identity-and-fixed-ranges) | Locate original drawing identity and fixed ranges. | `src/sheet_range.rs`, `src/lib.rs` | `single sheet envelope → source GUID → fixed column interval` |
+| **14** | [`71m-validate-the-bounded-drawing-envelope-tail`](#checkpoint-71m-validate-the-bounded-drawing-envelope-tail) | Validate the bounded drawing envelope tail. | `src/sheet_range.rs`, `src/stream.rs` | `checked drawing end → bounded tail → original envelope validation` |
+| **15** | [`71n-scan-drawing-columns-under-one-revision`](#checkpoint-71n-scan-drawing-columns-under-one-revision) | Scan drawing columns under one revision. | `src/sheet_range.rs` | `source probe → checked metadata windows → original drawing layout` |
+| **16** | [`71o-read-drawing-page-columns-through-the-shared-queue`](#checkpoint-71o-read-drawing-page-columns-through-the-shared-queue) | Read drawing page columns through the shared queue. | `src/sheet_range.rs` | `checked row interval → four fixed column reads → original page` |
+| **17** | [`71p-adopt-nonoverlapping-charged-drawing-pages`](#checkpoint-71p-adopt-nonoverlapping-charged-drawing-pages) | Adopt nonoverlapping charged drawing pages. | `src/sheet_stream.rs` | `reserved payload → original page interval → source cache` |
+| **18** | [`71q-keep-partial-drawing-sources-explicit`](#checkpoint-71q-keep-partial-drawing-sources-explicit) | Keep partial drawing sources explicit. | `src/sheet_source.rs`, `src/scene.rs`, `src/geometry_snapshot.rs` | `original remote header → available charged pages → explicit partial source` |
+| **19** | [`71r-reserve-memory-before-the-drawing-prefix`](#checkpoint-71r-reserve-memory-before-the-drawing-prefix) | Reserve memory before the drawing prefix. | `src/sheet_stream.rs` | `remaining segment share → reserved temporary bytes → checked prefix` |
+| **20** | [`71s-continue-drawing-reads-without-reviving-closed-sources`](#checkpoint-71s-continue-drawing-reads-without-reviving-closed-sources) | Continue drawing reads without reviving closed sources. | `src/sheet_stream.rs` | `current original source → generation ticket → checked page → synchronous refresh` |
+| **21** | [`71t-resolve-sheet-picks-to-original-entity-ids`](#checkpoint-71t-resolve-sheet-picks-to-original-entity-ids) | Resolve sheet picks to original entity IDs. | `src/pick_sources.rs`, `src/selection.rs`, `src/highlight.rs`, `src/part_preview.rs` | `compact integer address → original entity ID → current weak query owner` |
+| **22** | [`71u-project-authored-world-pens-into-drawing-quads`](#checkpoint-71u-project-authored-world-pens-into-drawing-quads) | Project authored world pens into drawing quads. | `src/sheet.wgsl` | `original millimetre pen → projected radius → covered quad` |
+| **23** | [`71v-use-the-same-sheet-coverage-for-color-and-picks`](#checkpoint-71v-use-the-same-sheet-coverage-for-color-and-picks) | Use the same sheet coverage for color and picks. | `src/sheet.wgsl`, `src/sheet_pick.wgsl` | `covered drawing quad → color coverage → integer owner coverage` |
+| **24** | [`71w-build-sheet-color-and-integer-pipelines`](#checkpoint-71w-build-sheet-color-and-integer-pipelines) | Build sheet color and integer pipelines. | `src/sheet_pipeline.rs`, `src/lib.rs` | `shared segment vertices → independent model uniform → explicit targets` |
+| **25** | [`71x-own-the-shared-drawing-lane-resources`](#checkpoint-71x-own-the-shared-drawing-lane-resources) | Own the shared drawing lane resources. | `src/sheet_gpu.rs`, `src/lib.rs` | `shared source cache → independent placement records → current lens` |
+| **26** | [`71y-bound-drawing-buffers-and-pack-independent-settings`](#checkpoint-71y-bound-drawing-buffers-and-pack-independent-settings) | Bound drawing buffers and pack independent settings. | `src/sheet_gpu.rs` | `device byte limit → exact source interval → independent row settings` |
+| **27** | [`71z-upload-each-original-drawing-page-once`](#checkpoint-71z-upload-each-original-drawing-page-once) | Upload each original drawing page once. | `src/sheet_gpu.rs` | `original page → bounded segment words → shared GPU buffer` |
+| **28** | [`71aa-reuse-independent-drawing-placement-records`](#checkpoint-71aa-reuse-independent-drawing-placement-records) | Reuse independent drawing placement records. | `src/sheet_gpu.rs` | `visible original row → shared page buffer → changed placement record` |
+| **29** | [`71ab-draw-world-pens-with-the-current-camera-lens`](#checkpoint-71ab-draw-world-pens-with-the-current-camera-lens) | Draw world pens with the current camera lens. | `src/sheet_gpu.rs` | `camera lens → original world pen → shared color and integer batches` |
+| **30** | [`71ac-connect-sheet-batches-to-rendering-and-bounded-picks`](#checkpoint-71ac-connect-sheet-batches-to-rendering-and-bounded-picks) | Connect sheet batches to rendering and bounded picks. | `src/renderer.rs`, `src/pick_gpu.rs`, `src/pick_encode.rs` | `current scene → retained sheet batches → bounded readback` |
+| **31** | [`71ad-own-metadata-delivery-without-pinning-drawings`](#checkpoint-71ad-own-metadata-delivery-without-pinning-drawings) | Own metadata delivery without pinning drawings. | `src/browser_sheet.rs`, `src/lib.rs` | `weak original owner → current query gate → one delivery` |
+| **32** | [`71ae-query-metadata-only-for-the-current-selected-entity`](#checkpoint-71ae-query-metadata-only-for-the-current-selected-entity) | Query metadata only for the current selected entity. | `src/browser_sheet.rs` | `selected original entity → source-relative URL → owned metadata ranges` |
+| **33** | [`71af-keep-published-drawing-sources-and-url-bases-independent`](#checkpoint-71af-keep-published-drawing-sources-and-url-bases-independent) | Keep published drawing sources and URL bases independent. | `src/publication.rs`, `src/publication_index.rs` | `original published URL → checked source cache → repeated independent placement` |
+| **34** | [`71ag-retire-staged-drawing-reads-with-their-publication-owner`](#checkpoint-71ag-retire-staged-drawing-reads-with-their-publication-owner) | Retire staged drawing reads with their publication owner. | `src/browser_publication.rs` | `staged original prefix → current publication → weak source retirement` |
+| **35** | [`71ah-stage-bounded-drawings-through-publication-loading`](#checkpoint-71ah-stage-bounded-drawings-through-publication-loading) | Stage bounded drawings through publication loading. | `src/browser_publication.rs` | `source probe → bounded original prefix → shared staged ceiling → current pages` |
+| **36** | [`71ai-show-current-sheet-resources-and-selected-entity-answers`](#checkpoint-71ai-show-current-sheet-resources-and-selected-entity-answers) | Show current sheet resources and selected entity answers. | `src/memory.rs`, `src/browser.rs` | `current scene counters → selected query → accepted original metadata` |
+| **37** | [`71aj-exercise-complete-and-ranged-original-drawings`](#checkpoint-71aj-exercise-complete-and-ranged-original-drawings) | Exercise complete and ranged original drawings. | `src/editor.rs`, `src/commands.rs`, `src/sheet_scene_tests.rs`, `src/lib.rs` | `original sheet example → shared display → original entity lookup → reversible history` |
+| **38** | [`71za-build-original-construction-plane-frames`](#checkpoint-71za-build-original-construction-plane-frames) | Describe the original world planes and a movable frame. | `src/cplane.rs`, `src/lib.rs` | `original frame → parsed coordinates → world drawing point` |
+| **39** | [`71zb-map-original-plane-and-world-coordinates`](#checkpoint-71zb-map-original-plane-and-world-coordinates) | Reuse the existing origin and axes to map between plane and world coordinates. | `src/cplane.rs` | `original frame → parsed coordinates → world drawing point` |
+| **40** | [`71zc-guard-original-plane-and-ray-projections`](#checkpoint-71zc-guard-original-plane-and-ray-projections) | Complete the original plane queries for view choice, nearest projection, facing and ray intersection. | `src/cplane.rs` | `original frame → parsed coordinates → world drawing point` |
+| **41** | [`71zd-parse-original-drawing-coordinate-forms`](#checkpoint-71zd-parse-original-drawing-coordinate-forms) | Describe the original absolute, relative, polar and distance forms. | `src/drawing_coords.rs`, `src/lib.rs` | `original frame → parsed coordinates → world drawing point` |
+| **42** | [`71ze-resolve-original-relative-and-polar-coordinates`](#checkpoint-71ze-resolve-original-relative-and-polar-coordinates) | Recognize the existing world prefix and resolve parsed coordinates from the plane origin, previous point and current direction. | `src/drawing_coords.rs` | `original frame → parsed coordinates → world drawing point` |
+
+---
+
+## 4. Step-by-Step Coding Notebook (Concept + Implementation)
+
+Work through each notebook cell below in order inside `workspace/journey`. Read the **Concept Walkthrough** and **Self-Check Q&A** first, then expand the **Implementation** block to type and verify the code.
 
 <a id="checkpoint-71-read-original-sheet-entity-metadata"></a>
+
+### Step 1 of 42 · Own cancellable sheet-entity lookups (`71-read-original-sheet-entity-metadata`)
+
+- **Goal:** Complete the original lookup owner with its query id, sheet row and entity index.
+- **Data Flow Trace:** `original table bytes → revision-bound entity → cancellable lookup`
+- **Files You Touch:** `src/sheet_entity.rs` (*Extend this original owner with the day’s complete input helpers.*) · `src/sheet_example.rs` (*Supply the existing sheet scene and side-table data specimen.*) · `src/lib.rs` (*Register the supplied sheet data specimen.*)
+
+Complete the original lookup owner with its query id, sheet row and entity index. Share its cancellation flag with the pending reader and cancel when the owner drops. Keep the result and table revision together. The following lookup bridge connects these prepared helpers.
+
+> **Self-Check Question:** *Why share the cancellation flag instead of retaining the query owner?*  
+> **Answer:** The reader can observe cancellation without keeping an obsolete lookup alive. Dropping the owner signals that its result is no longer wanted.
+
+- **What You Should See:** The rotated and mirrored original references remain visible while original drawing columns, shared segment batches and selected-entity metadata connect. The final checkpoint opens the original plan.
+- **Hands-On Lab Experiment:** Trace a replacement lookup through the old owner’s Drop and the held cancellation flag.
 
 <details>
 <summary>Implementation 71-read-original-sheet-entity-metadata: Own cancellable sheet-entity lookups</summary>
@@ -319,6 +417,19 @@ After that block, type:
 </details>
 
 <a id="checkpoint-71a-bound-original-entity-records-before-reading"></a>
+
+### Step 2 of 42 · Bound original entity records before reading (`71a-bound-original-entity-records-before-reading`)
+
+- **Goal:** Bound original entity records before reading.
+- **Data Flow Trace:** `selected original ID → checked record interval → bounded blob`
+- **Files You Touch:** `src/sheet_entity.rs` (*Bound metadata records and retain the original side-table byte length.*)
+
+Check record count, offset overflow, JSON size and file end before fetching an entity.
+
+> **Self-Check Question:** *Can a valid record header point outside its file?*  
+> **Answer:** Yes. Check its offset and length against the total side-table size, and retain that size with the revision.
+
+- **Hands-On Lab Experiment:** Inspect overflow, oversized blob, out-of-range entity and exact file-end fixtures.
 
 <details>
 <summary>Implementation 71a-bound-original-entity-records-before-reading: Bound original entity records before reading</summary>
@@ -634,6 +745,19 @@ After that block, append this supplied code:
 
 <a id="checkpoint-71b-give-metadata-reads-their-own-cancellation-signal"></a>
 
+### Step 3 of 42 · Give metadata reads their own cancellation signal (`71b-give-metadata-reads-their-own-cancellation-signal`)
+
+- **Goal:** Give metadata reads their own cancellation signal.
+- **Data Flow Trace:** `owned controller → one range request → listener cleanup`
+- **Files You Touch:** `src/range_fetch.rs` (*Forward an owned cancellation signal to one bounded range read.*) · `src/sheet_entity_fetch.rs` (*Register the current original metadata range types.*) · `src/lib.rs` (*Register the drawing component.*)
+
+Connect one external abort signal without cancelling unrelated reads from the same source URL.
+
+> **Self-Check Question:** *Why not cancel every request to the metadata URL?*  
+> **Answer:** Another owner can share that URL. Forward this query’s signal to its own request controller and remove the listener on Drop.
+
+- **Hands-On Lab Experiment:** Compare query cancellation with whole-scene reset and the existing request stall timer.
+
 <details>
 <summary>Implementation 71b-give-metadata-reads-their-own-cancellation-signal: Give metadata reads their own cancellation signal</summary>
 
@@ -943,6 +1067,19 @@ After that block, type:
 
 <a id="checkpoint-71c-fetch-one-revision-matched-metadata-answer"></a>
 
+### Step 4 of 42 · Fetch one revision matched metadata answer (`71c-fetch-one-revision-matched-metadata-answer`)
+
+- **Goal:** Fetch one revision matched metadata answer.
+- **Data Flow Trace:** `checked head → selected record → checked JSON answer`
+- **Files You Touch:** `src/sheet_entity_fetch.rs` (*Read bounded original entity metadata under one owned signal.*)
+
+Read the head, selected record and JSON blob under one checked revision and byte length.
+
+> **Self-Check Question:** *Can a cached table head permit a changed record?*  
+> **Answer:** No. Each range must match its revision and total size; cancellation remains active throughout.
+
+- **Hands-On Lab Experiment:** Trace three metadata ranges, cached-head reuse and explicit errors for mutable URLs without validators.
+
 <details>
 <summary>Implementation 71c-fetch-one-revision-matched-metadata-answer: Fetch one revision matched metadata answer</summary>
 
@@ -973,6 +1110,19 @@ After that block, type:
 </details>
 
 <a id="checkpoint-71d-decode-precise-original-sheet-columns"></a>
+
+### Step 5 of 42 · Decode precise original sheet columns (`71d-decode-precise-original-sheet-columns`)
+
+- **Goal:** Decode precise original sheet columns.
+- **Data Flow Trace:** `fixed width ranges → original columns → derived display`
+- **Files You Touch:** `src/sheet_page.rs` (*Decode original drawing columns without truncating entity IDs.*) · `src/lib.rs` (*Register the drawing component.*)
+
+Retain f64 endpoints and original pen, color and entity columns beside their f32 display values.
+
+> **Self-Check Question:** *May two segments share one entity ID?*  
+> **Answer:** Yes. Entity IDs identify original drawing entities, so repeated IDs are valid and must survive decoding.
+
+- **Hands-On Lab Experiment:** Check exact coordinate and attribute sizes, finite display conversion and unknown-ID defaults.
 
 <details>
 <summary>Implementation 71d-decode-precise-original-sheet-columns: Decode precise original sheet columns</summary>
@@ -1014,6 +1164,19 @@ After that block, type:
 </details>
 
 <a id="checkpoint-71e-measure-original-sheet-pages-and-world-pens"></a>
+
+### Step 6 of 42 · Measure original sheet pages and world pens (`71e-measure-original-sheet-pages-and-world-pens`)
+
+- **Goal:** Measure original sheet pages and world pens.
+- **Data Flow Trace:** `original endpoints → f64 bounds → authored radius → payload bytes`
+- **Files You Touch:** `src/sheet_page.rs` (*Derive precise bounds, physical pen radii and capacity accounting.*)
+
+Use original doubles for bounds; positive pen widths become radii while invalid pens remain original hairlines.
+
+> **Self-Check Question:** *Does a NaN original pen make a NaN GPU radius?*  
+> **Answer:** No. Preserve the original word and derive a zero-radius hairline, matching current display defaults.
+
+- **Hands-On Lab Experiment:** Copy precise coordinate, repeated high-ID, hairline and malformed-column fixtures.
 
 <details>
 <summary>Implementation 71e-measure-original-sheet-pages-and-world-pens: Measure original sheet pages and world pens</summary>
@@ -1073,6 +1236,19 @@ After that block, append this supplied code:
 
 <a id="checkpoint-71f-retain-charged-pages-beside-resident-pages"></a>
 
+### Step 7 of 42 · Retain charged pages beside resident pages (`71f-retain-charged-pages-beside-resident-pages`)
+
+- **Goal:** Retain charged pages beside resident pages.
+- **Data Flow Trace:** `resident source page → charged streamed page → retained display owner`
+- **Files You Touch:** `src/sheet_stream.rs` (*Retain resident and charged streamed pages through one display interface.*) · `src/lib.rs` (*Register the drawing component.*)
+
+Give display owners one page interface while streamed owners keep their cache charge alive.
+
+> **Self-Check Question:** *Does eviction immediately release a displayed page?*  
+> **Answer:** No. Its renderer or reader can still own it. Release the payload charge only after the last owner drops.
+
+- **Hands-On Lab Experiment:** Inspect the shared page interface and explicit segment prefix, chunk, ceiling and temporary-byte rules.
+
 <details>
 <summary>Implementation 71f-retain-charged-pages-beside-resident-pages: Retain charged pages beside resident pages</summary>
 
@@ -1114,6 +1290,19 @@ After that block, type:
 
 <a id="checkpoint-71g-own-the-complete-original-drawing-source"></a>
 
+### Step 8 of 42 · Own the complete original drawing source (`71g-own-the-complete-original-drawing-source`)
+
+- **Goal:** Own the complete original drawing source.
+- **Data Flow Trace:** `original Sheet → checked source count → shared derived page`
+- **Files You Touch:** `src/sheet_source.rs` (*Own immutable original sheet columns and derive their display defaults.*) · `src/lib.rs` (*Register the drawing component.*)
+
+Validate original segment counts and derive padded display columns without modifying the authored protobuf.
+
+> **Self-Check Question:** *Should padding missing pens rewrite the original drawing?*  
+> **Answer:** No. Defaults belong to display columns. The original protobuf stays unchanged for editable Save.
+
+- **Hands-On Lab Experiment:** Compare short original columns with complete display columns, and reject inconsistent segment counts.
+
 <details>
 <summary>Implementation 71g-own-the-complete-original-drawing-source: Own the complete original drawing source</summary>
 
@@ -1154,6 +1343,19 @@ After that block, type:
 </details>
 
 <a id="checkpoint-71h-place-drawing-rows-without-changing-endpoints"></a>
+
+### Step 9 of 42 · Place drawing rows without changing endpoints (`71h-place-drawing-rows-without-changing-endpoints`)
+
+- **Goal:** Place drawing rows without changing endpoints.
+- **Data Flow Trace:** `shared original drawing → row model → precise placed bounds`
+- **Files You Touch:** `src/sheet_source.rs` (*Own independent row models and precise placed bounds.*)
+
+Keep independent row identity, placement and source URL beside shared original pages.
+
+> **Self-Check Question:** *Does copying a sheet duplicate its source endpoints?*  
+> **Answer:** No. Copy shares original and derived columns while keeping independent row identity and placement.
+
+- **Hands-On Lab Experiment:** Inspect transformed bound corners and original-entity eligibility without editing the source.
 
 <details>
 <summary>Implementation 71h-place-drawing-rows-without-changing-endpoints: Place drawing rows without changing endpoints</summary>
@@ -1362,6 +1564,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-71i-register-original-drawing-rows-on-the-current-layer"></a>
+
+### Step 10 of 42 · Register original drawing rows on the current layer (`71i-register-original-drawing-rows-on-the-current-layer`)
+
+- **Goal:** Register original drawing rows on the current layer.
+- **Data Flow Trace:** `validated source → stable row → current layer`
+- **Files You Touch:** `src/scene.rs` (*Insert checked drawing rows and attach their layer identities.*)
+
+Validate placement before allocating a stable row and attach its original name to the current layer.
+
+> **Self-Check Question:** *When should the next viewer ID advance?*  
+> **Answer:** After validation succeeds. Failed insertion must not leave a partial source or layer entry.
+
+- **Hands-On Lab Experiment:** Inspect empty scenes, row allocation, source URLs and placed bounds.
 
 <details>
 <summary>Implementation 71i-register-original-drawing-rows-on-the-current-layer: Register original drawing rows on the current layer</summary>
@@ -2233,6 +2448,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-71j-carry-drawing-identity-through-scene-operations"></a>
+
+### Step 11 of 42 · Carry drawing identity through scene operations (`71j-carry-drawing-identity-through-scene-operations`)
+
+- **Goal:** Carry drawing identity through scene operations.
+- **Data Flow Trace:** `source row → generic owner operations → reversible history`
+- **Files You Touch:** `src/scene.rs` (*Connect drawing rows to existing generic scene operations.*) · `src/rect_select.rs` (*Select original drawing segments through window and crossing rectangles.*)
+
+Include drawings in bounds, traversal, Copy, Move, Delete, history and Close.
+
+> **Self-Check Question:** *Does Close retain sheet sources through history?*  
+> **Answer:** No. It clears document history and display owners so their original allocations can release.
+
+- **Hands-On Lab Experiment:** Compare row GUIDs, shared source pointers, independent models and eligible selection.
 
 <details>
 <summary>Implementation 71j-carry-drawing-identity-through-scene-operations: Carry drawing identity through scene operations</summary>
@@ -3400,6 +3628,19 @@ Edit the existing block to match this code; keep unchanged lines:
 
 <a id="checkpoint-71k-save-and-reopen-complete-original-sheets"></a>
 
+### Step 12 of 42 · Save and reopen complete original sheets (`71k-save-and-reopen-complete-original-sheets`)
+
+- **Goal:** Save and reopen complete original sheets.
+- **Data Flow Trace:** `mixed original document → original sheet snapshot → checked archive reopening`
+- **Files You Touch:** `src/document_source.rs` (*Connect original sheets to mixed document persistence and namespace identities.*) · `src/document_geometry.rs` (*Connect original sheets to mixed document persistence and namespace identities.*) · `src/archive_identity.rs` (*Connect original sheets to mixed document persistence and namespace identities.*) · `src/scene_archive.rs` (*Connect original sheets to mixed document persistence and namespace identities.*) · `src/document.rs` (*Connect original sheets to mixed document persistence and namespace identities.*) · `src/geometry_snapshot.rs` (*Save complete original Sheet protobuf columns rather than display segments.*)
+
+Import original Sheet records beside other geometry and save original columns with independent placements and layer flags.
+
+> **Self-Check Question:** *Does the Sheet protobuf contain object visibility flags?*  
+> **Answer:** No. Keep viewer layer presentation in archive metadata while retaining the original drawing columns and source names.
+
+- **Hands-On Lab Experiment:** Compare complete mixed archives with original doubles, repeated entity IDs and separate namespaces.
+
 <details>
 <summary>Implementation 71k-save-and-reopen-complete-original-sheets: Save and reopen complete original sheets</summary>
 
@@ -3620,6 +3861,19 @@ Edit the existing block to match this code; keep unchanged lines:
 
 <a id="checkpoint-71l-locate-original-drawing-identity-and-fixed-ranges"></a>
 
+### Step 13 of 42 · Locate original drawing identity and fixed ranges (`71l-locate-original-drawing-identity-and-fixed-ranges`)
+
+- **Goal:** Locate original drawing identity and fixed ranges.
+- **Data Flow Trace:** `single sheet envelope → source GUID → fixed column interval`
+- **Files You Touch:** `src/sheet_range.rs` (*Locate original sheet identity and checked column intervals.*) · `src/lib.rs` (*Register the drawing component.*)
+
+Accept one original sheet envelope and derive checked intervals within its fixed-width arrays.
+
+> **Self-Check Question:** *Can a mixed document use this single-sheet shortcut?*  
+> **Answer:** No. Mixed documents load complete so other source owners and placements remain intact.
+
+- **Hands-On Lab Experiment:** Copy original protobuf layout, repeated-sheet, mixed-source and overflow fixtures.
+
 <details>
 <summary>Implementation 71l-locate-original-drawing-identity-and-fixed-ranges: Locate original drawing identity and fixed ranges</summary>
 
@@ -3687,6 +3941,19 @@ After that block, append this supplied code:
 </details>
 
 <a id="checkpoint-71m-validate-the-bounded-drawing-envelope-tail"></a>
+
+### Step 14 of 42 · Validate the bounded drawing envelope tail (`71m-validate-the-bounded-drawing-envelope-tail`)
+
+- **Goal:** Validate the bounded drawing envelope tail.
+- **Data Flow Trace:** `checked drawing end → bounded tail → original envelope validation`
+- **Files You Touch:** `src/sheet_range.rs` (*Validate bounded original drawing envelope metadata under its revision.*) · `src/stream.rs` (*Expose the existing bounded metadata window to drawing range adapters.*)
+
+Refuse unapplied placements and extended originals before adopting a ranged drawing.
+
+> **Self-Check Question:** *May a range loader silently ignore source transforms?*  
+> **Answer:** No. A placed or extended envelope requires complete loading until the loader can apply it correctly.
+
+- **Hands-On Lab Experiment:** Trace the one-MiB tail cap and existing original tree-owner and source-placement guards.
 
 <details>
 <summary>Implementation 71m-validate-the-bounded-drawing-envelope-tail: Validate the bounded drawing envelope tail</summary>
@@ -4989,6 +5256,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-71n-scan-drawing-columns-under-one-revision"></a>
 
+### Step 15 of 42 · Scan drawing columns under one revision (`71n-scan-drawing-columns-under-one-revision`)
+
+- **Goal:** Scan drawing columns under one revision.
+- **Data Flow Trace:** `source probe → checked metadata windows → original drawing layout`
+- **Files You Touch:** `src/sheet_range.rs` (*Scan original array positions and validate source revision before page reads.*)
+
+Skip large arrays while reading bounded metadata windows and rejecting duplicate fields or inconsistent counts.
+
+> **Self-Check Question:** *Must the first paint download every coordinate?*  
+> **Answer:** No. Fixed-width arrays expose byte positions, and bounded metadata reads supply counts and the side-table URL.
+
+- **Hands-On Lab Experiment:** Inspect byte-range status, immutable URLs, original declared counts and duplicate-field errors.
+
 <details>
 <summary>Implementation 71n-scan-drawing-columns-under-one-revision: Scan drawing columns under one revision</summary>
 
@@ -5021,6 +5301,19 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-71o-read-drawing-page-columns-through-the-shared-queue"></a>
+
+### Step 16 of 42 · Read drawing page columns through the shared queue (`71o-read-drawing-page-columns-through-the-shared-queue`)
+
+- **Goal:** Read drawing page columns through the shared queue.
+- **Data Flow Trace:** `checked row interval → four fixed column reads → original page`
+- **Files You Touch:** `src/sheet_range.rs` (*Read original page columns through the bounded source range queue.*)
+
+Request coordinate, color, pen and entity ranges through the existing bounded range queue.
+
+> **Self-Check Question:** *Does four columns mean four unrestricted requests?*  
+> **Answer:** No. They use the shared range gate, retaining existing concurrency, retry and cancellation rules.
+
+- **Hands-On Lab Experiment:** Trace absent-column defaults and exact byte counts before constructing a page.
 
 <details>
 <summary>Implementation 71o-read-drawing-page-columns-through-the-shared-queue: Read drawing page columns through the shared queue</summary>
@@ -5409,6 +5702,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-71p-adopt-nonoverlapping-charged-drawing-pages"></a>
 
+### Step 17 of 42 · Adopt nonoverlapping charged drawing pages (`71p-adopt-nonoverlapping-charged-drawing-pages`)
+
+- **Goal:** Adopt nonoverlapping charged drawing pages.
+- **Data Flow Trace:** `reserved payload → original page interval → source cache`
+- **Files You Touch:** `src/sheet_stream.rs` (*Own checked original page intervals, cache charges and source generations.*)
+
+Keep original intervals in a source-owned cache and retain its generation and loaded extent.
+
+> **Self-Check Question:** *Can a second page overlap a resident original interval?*  
+> **Answer:** No. Reject it before adoption; payload charges and original source identity remain attached to the accepted page.
+
+- **Hands-On Lab Experiment:** Copy segment-limit, overflow and retained-charge fixtures.
+
 <details>
 <summary>Implementation 71p-adopt-nonoverlapping-charged-drawing-pages: Adopt nonoverlapping charged drawing pages</summary>
 
@@ -5471,6 +5777,19 @@ After that block, append this supplied code:
 </details>
 
 <a id="checkpoint-71q-keep-partial-drawing-sources-explicit"></a>
+
+### Step 18 of 42 · Keep partial drawing sources explicit (`71q-keep-partial-drawing-sources-explicit`)
+
+- **Goal:** Keep partial drawing sources explicit.
+- **Data Flow Trace:** `original remote header → available charged pages → explicit partial source`
+- **Files You Touch:** `src/sheet_source.rs` (*Keep complete and partial source ownership explicit.*) · `src/scene.rs` (*Keep original stream URLs beside independent drawing rows.*) · `src/geometry_snapshot.rs` (*Refuse partial drawing sources before editable archive creation.*)
+
+Expose available charged pages and preserve original header fields without claiming a complete editable drawing.
+
+> **Self-Check Question:** *Can a fully displayed prefix become an editable Save?*  
+> **Answer:** No. The original complete source is required; retained display pages can omit coordinates or be evicted.
+
+- **Hands-On Lab Experiment:** Compare original count, available page intervals, source URL and the editable-save refusal.
 
 <details>
 <summary>Implementation 71q-keep-partial-drawing-sources-explicit: Keep partial drawing sources explicit</summary>
@@ -5865,6 +6184,19 @@ Edit the existing block to match this code; keep unchanged lines:
 
 <a id="checkpoint-71r-reserve-memory-before-the-drawing-prefix"></a>
 
+### Step 19 of 42 · Reserve memory before the drawing prefix (`71r-reserve-memory-before-the-drawing-prefix`)
+
+- **Goal:** Reserve memory before the drawing prefix.
+- **Data Flow Trace:** `remaining segment share → reserved temporary bytes → checked prefix`
+- **Files You Touch:** `src/sheet_stream.rs` (*Reserve temporary memory and stage one checked original drawing prefix.*)
+
+Charge temporary page bytes before allocation and adopt the first checked segment prefix.
+
+> **Self-Check Question:** *Does the segment ceiling bound all CPU and GPU memory?*  
+> **Answer:** No. It bounds staged segments; retained original data, display buffers and pending reads need separate accounting.
+
+- **Hands-On Lab Experiment:** Compare a25000-segment prefix with its source count and shared page budget.
+
 <details>
 <summary>Implementation 71r-reserve-memory-before-the-drawing-prefix: Reserve memory before the drawing prefix</summary>
 
@@ -5898,6 +6230,19 @@ Edit the existing block to match this code; keep unchanged lines:
 
 <a id="checkpoint-71s-continue-drawing-reads-without-reviving-closed-sources"></a>
 
+### Step 20 of 42 · Continue drawing reads without reviving closed sources (`71s-continue-drawing-reads-without-reviving-closed-sources`)
+
+- **Goal:** Continue drawing reads without reviving closed sources.
+- **Data Flow Trace:** `current original source → generation ticket → checked page → synchronous refresh`
+- **Files You Touch:** `src/sheet_stream.rs` (*Continue checked drawing pages with explicit ownership and visible eviction refresh.*)
+
+Require the current source, runtime, cancellation token and generation before adopting each page.
+
+> **Self-Check Question:** *When can an evicted page charge be reused?*  
+> **Answer:** After refresh drops its GPU owner and cancels old pick addresses. Other retained readers remain charged.
+
+- **Hands-On Lab Experiment:** Trace chunk ceilings, eviction, failed reads and late replies after Close.
+
 <details>
 <summary>Implementation 71s-continue-drawing-reads-without-reviving-closed-sources: Continue drawing reads without reviving closed sources</summary>
 
@@ -5930,6 +6275,19 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-71t-resolve-sheet-picks-to-original-entity-ids"></a>
+
+### Step 21 of 42 · Resolve sheet picks to original entity IDs (`71t-resolve-sheet-picks-to-original-entity-ids`)
+
+- **Goal:** Resolve sheet picks to original entity IDs.
+- **Data Flow Trace:** `compact integer address → original entity ID → current weak query owner`
+- **Files You Touch:** `src/pick_sources.rs` (*Resolve original sheet entities and guard display-only source edits.*) · `src/selection.rs` (*Resolve original sheet entities and guard display-only source edits.*) · `src/highlight.rs` (*Resolve original sheet entities and guard display-only source edits.*) · `src/part_preview.rs` (*Resolve original sheet entities and guard display-only source edits.*) · `src/sheet_lookup.rs` (*Require current original ownership and selection for one metadata answer.*) · `src/lib.rs` (*Register the drawing component.*)
+
+Map compact segment addresses back to complete original u32 entity IDs and retain query ownership separately.
+
+> **Self-Check Question:** *Should the GPU tag pack the original entity ID?*  
+> **Answer:** No. Keep the full ID in the source table; compact addresses identify the current display snapshot.
+
+- **Hands-On Lab Experiment:** Compare repeated high IDs, wrong owners, one-shot completions and cancellation without pinned sources.
 
 <details>
 <summary>Implementation 71t-resolve-sheet-picks-to-original-entity-ids: Resolve sheet picks to original entity IDs</summary>
@@ -6347,6 +6705,19 @@ After that block, append this supplied code:
 
 <a id="checkpoint-71u-project-authored-world-pens-into-drawing-quads"></a>
 
+### Step 22 of 42 · Project authored world pens into drawing quads (`71u-project-authored-world-pens-into-drawing-quads`)
+
+- **Goal:** Project authored world pens into drawing quads.
+- **Data Flow Trace:** `original millimetre pen → projected radius → covered quad`
+- **Files You Touch:** `src/sheet.wgsl` (*Project original physical sheet pens into covered quads.*)
+
+Expand each original segment by its projected physical radius, preserving original colors and selection style.
+
+> **Self-Check Question:** *Should instance scale multiply the authored pen?*  
+> **Answer:** No. It transforms segment positions; the original physical pen width remains unchanged.
+
+- **Hands-On Lab Experiment:** Inspect near clipping, degenerate segments, hairline flooring and subpixel fade.
+
 <details>
 <summary>Implementation 71u-project-authored-world-pens-into-drawing-quads: Project authored world pens into drawing quads</summary>
 
@@ -6367,6 +6738,19 @@ Create the file and type:
 </details>
 
 <a id="checkpoint-71v-use-the-same-sheet-coverage-for-color-and-picks"></a>
+
+### Step 23 of 42 · Use the same sheet coverage for color and picks (`71v-use-the-same-sheet-coverage-for-color-and-picks`)
+
+- **Goal:** Use the same sheet coverage for color and picks.
+- **Data Flow Trace:** `covered drawing quad → color coverage → integer owner coverage`
+- **Files You Touch:** `src/sheet.wgsl` (*Connect original pen coverage to the color entry points.*) · `src/sheet_pick.wgsl` (*Use matching sheet coverage and compact original entity addresses in integer picks.*)
+
+Write integer owner addresses only where the drawing coverage exists and the current pick mode permits them.
+
+> **Self-Check Question:** *Can an invisible fragment select an entity?*  
+> **Answer:** No. The integer pass uses the same geometric coverage and rejects disallowed kinds. Locked rows retain occlusion with owner zero.
+
+- **Hands-On Lab Experiment:** Compare physical-width quads, original packed colors and bounded crop transforms.
 
 <details>
 <summary>Implementation 71v-use-the-same-sheet-coverage-for-color-and-picks: Use the same sheet coverage for color and picks</summary>
@@ -6409,6 +6793,19 @@ Create the file and type:
 
 <a id="checkpoint-71w-build-sheet-color-and-integer-pipelines"></a>
 
+### Step 24 of 42 · Build sheet color and integer pipelines (`71w-build-sheet-color-and-integer-pipelines`)
+
+- **Goal:** Build sheet color and integer pipelines.
+- **Data Flow Trace:** `shared segment vertices → independent model uniform → explicit targets`
+- **Files You Touch:** `src/sheet_pipeline.rs` (*Build current wgpu color and exact integer sheet pipeline adapters.*) · `src/lib.rs` (*Register the drawing component.*)
+
+Bind the32-byte original segment layout, independent model records and bounded pick crop.
+
+> **Self-Check Question:** *Why does the pick pipeline use an integer target?*  
+> **Answer:** It preserves exact owner and source-table addresses, including values that cannot be represented by an f32 color.
+
+- **Hands-On Lab Experiment:** Check original segment stride, color blending, forward ink depth and pick attachment formats.
+
 <details>
 <summary>Implementation 71w-build-sheet-color-and-integer-pipelines: Build sheet color and integer pipelines</summary>
 
@@ -6450,6 +6847,19 @@ After that block, type:
 
 <a id="checkpoint-71x-own-the-shared-drawing-lane-resources"></a>
 
+### Step 25 of 42 · Own the shared drawing lane resources (`71x-own-the-shared-drawing-lane-resources`)
+
+- **Goal:** Own the shared drawing lane resources.
+- **Data Flow Trace:** `shared source cache → independent placement records → current lens`
+- **Files You Touch:** `src/sheet_gpu.rs` (*Own shared sheet GPU resources and independent row settings.*) · `src/lib.rs` (*Register the drawing component.*)
+
+Keep one source-buffer cache beside independent placement records and an explicit camera lens.
+
+> **Self-Check Question:** *Does changing the camera require rebuilding original segments?*  
+> **Answer:** No. Update view settings; keep source buffers and original page owners shared.
+
+- **Hands-On Lab Experiment:** Inspect cached geometry, weak entries, live draw owners and explicit allocation counters.
+
 <details>
 <summary>Implementation 71x-own-the-shared-drawing-lane-resources: Own the shared drawing lane resources</summary>
 
@@ -6490,6 +6900,19 @@ After that block, type:
 </details>
 
 <a id="checkpoint-71y-bound-drawing-buffers-and-pack-independent-settings"></a>
+
+### Step 26 of 42 · Bound drawing buffers and pack independent settings (`71y-bound-drawing-buffers-and-pack-independent-settings`)
+
+- **Goal:** Bound drawing buffers and pack independent settings.
+- **Data Flow Trace:** `device byte limit → exact source interval → independent row settings`
+- **Files You Touch:** `src/sheet_gpu.rs` (*Bound source-buffer intervals and pack independent original owner settings.*)
+
+Split large resident pages at device limits and keep row identity, source address and style in independent settings.
+
+> **Self-Check Question:** *Does splitting a buffer renumber original entities?*  
+> **Answer:** No. Preserve each original interval and offset its compact address base; original entity IDs stay in the source table.
+
+- **Hands-On Lab Experiment:** Copy exact chunk-limit fixtures and inspect packed model, color and eligibility words.
 
 <details>
 <summary>Implementation 71y-bound-drawing-buffers-and-pack-independent-settings: Bound drawing buffers and pack independent settings</summary>
@@ -6551,6 +6974,19 @@ Update the existing block with this supplied code; keep unchanged lines:
 
 <a id="checkpoint-71z-upload-each-original-drawing-page-once"></a>
 
+### Step 27 of 42 · Upload each original drawing page once (`71z-upload-each-original-drawing-page-once`)
+
+- **Goal:** Upload each original drawing page once.
+- **Data Flow Trace:** `original page → bounded segment words → shared GPU buffer`
+- **Files You Touch:** `src/sheet_gpu.rs` (*Reuse original page uploads while retaining their payload ownership.*)
+
+Cache source-owned32-byte segment buffers while retaining their resident or charged page owner.
+
+> **Self-Check Question:** *Can a GPU buffer outlive an evicted cache entry?*  
+> **Answer:** Yes. Retain the charged page alongside that buffer, so memory cannot be reused while display still owns it.
+
+- **Hands-On Lab Experiment:** Compare repeated placements, original page keys and exact upload-byte counters.
+
 <details>
 <summary>Implementation 71z-upload-each-original-drawing-page-once: Upload each original drawing page once</summary>
 
@@ -6583,6 +7019,19 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-71aa-reuse-independent-drawing-placement-records"></a>
+
+### Step 28 of 42 · Reuse independent drawing placement records (`71aa-reuse-independent-drawing-placement-records`)
+
+- **Goal:** Reuse independent drawing placement records.
+- **Data Flow Trace:** `visible original row → shared page buffer → changed placement record`
+- **Files You Touch:** `src/sheet_gpu.rs` (*Reuse shared source geometry and update only changed independent row records.*)
+
+Update changed row settings while shared original geometry stays in the cache.
+
+> **Self-Check Question:** *Does Move upload the original drawing again?*  
+> **Answer:** No. Only its independent model record changes; reused source buffers keep their upload counters unchanged.
+
+- **Hands-On Lab Experiment:** Inspect source-key reuse, compact address offsets, selection style and weak-cache pruning.
 
 <details>
 <summary>Implementation 71aa-reuse-independent-drawing-placement-records: Reuse independent drawing placement records</summary>
@@ -6617,6 +7066,19 @@ Edit the existing block to match this code; keep unchanged lines:
 
 <a id="checkpoint-71ab-draw-world-pens-with-the-current-camera-lens"></a>
 
+### Step 29 of 42 · Draw world pens with the current camera lens (`71ab-draw-world-pens-with-the-current-camera-lens`)
+
+- **Goal:** Draw world pens with the current camera lens.
+- **Data Flow Trace:** `camera lens → original world pen → shared color and integer batches`
+- **Files You Touch:** `src/sheet_gpu.rs` (*Draw original page batches with physical pens and truthful allocated-byte counters.*)
+
+Use the camera lens independently of panel shifts and send the same original batches to drawing and picks.
+
+> **Self-Check Question:** *Can a shifted panel frame change pen thickness?*  
+> **Answer:** No. A frame shift moves the projection without changing the lens. Read the lens directly from the camera.
+
+- **Hands-On Lab Experiment:** Inspect perspective/orthographic lens values, retained buffers and independent view updates.
+
 <details>
 <summary>Implementation 71ab-draw-world-pens-with-the-current-camera-lens: Draw world pens with the current camera lens</summary>
 
@@ -6650,6 +7112,19 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-71ac-connect-sheet-batches-to-rendering-and-bounded-picks"></a>
+
+### Step 30 of 42 · Connect sheet batches to rendering and bounded picks (`71ac-connect-sheet-batches-to-rendering-and-bounded-picks`)
+
+- **Goal:** Connect sheet batches to rendering and bounded picks.
+- **Data Flow Trace:** `current scene → retained sheet batches → bounded readback`
+- **Files You Touch:** `src/renderer.rs` (*Connect shared original drawing batches to color and bounded integer picking.*) · `src/pick_gpu.rs` (*Connect shared original drawing batches to color and bounded integer picking.*) · `src/pick_encode.rs` (*Connect shared original drawing batches to color and bounded integer picking.*)
+
+Refresh drawing batches with the scene and selection; cancel old pick work before reusing source addresses.
+
+> **Self-Check Question:** *Why refresh both batch settings and the source table?*  
+> **Answer:** Compact addresses belong to the current display pages. Their owners and page retention must change together.
+
+- **Hands-On Lab Experiment:** Compare camera-only frames, selected rows, locked occlusion and page removal.
 
 <details>
 <summary>Implementation 71ac-connect-sheet-batches-to-rendering-and-bounded-picks: Connect sheet batches to rendering and bounded picks</summary>
@@ -7681,6 +8156,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-71ad-own-metadata-delivery-without-pinning-drawings"></a>
 
+### Step 31 of 42 · Own metadata delivery without pinning drawings (`71ad-own-metadata-delivery-without-pinning-drawings`)
+
+- **Goal:** Own metadata delivery without pinning drawings.
+- **Data Flow Trace:** `weak original owner → current query gate → one delivery`
+- **Files You Touch:** `src/browser_sheet.rs` (*Own cancellation, revision cache and current weak metadata delivery.*) · `src/lib.rs` (*Register the drawing component.*)
+
+Keep cancellation, weak source identity and current-runtime validation beside the metadata inbox.
+
+> **Self-Check Question:** *Can a pending lookup keep a closed drawing alive?*  
+> **Answer:** No. Its source reference is weak, and its controller retires the request when the UI owner drops.
+
+- **Hands-On Lab Experiment:** Inspect stale-runtime rejection, cached table ownership and exact one-shot delivery.
+
 <details>
 <summary>Implementation 71ad-own-metadata-delivery-without-pinning-drawings: Own metadata delivery without pinning drawings</summary>
 
@@ -7722,6 +8210,19 @@ After that block, type:
 
 <a id="checkpoint-71ae-query-metadata-only-for-the-current-selected-entity"></a>
 
+### Step 32 of 42 · Query metadata only for the current selected entity (`71ae-query-metadata-only-for-the-current-selected-entity`)
+
+- **Goal:** Query metadata only for the current selected entity.
+- **Data Flow Trace:** `selected original entity → source-relative URL → owned metadata ranges`
+- **Files You Touch:** `src/browser_sheet.rs` (*Start one selected-entity query with independent cancellation and original URL identity.*)
+
+Resolve the side table from the published drawing URL and cancel a lookup when selection changes.
+
+> **Self-Check Question:** *Should opening a sheet fetch every entity name?*  
+> **Answer:** No. Begin metadata reads only for one selected original entity. Local files need an explicit published URL.
+
+- **Hands-On Lab Experiment:** Compare selecting a shared entity, changing selection, missing metadata URLs and cached-head reuse.
+
 <details>
 <summary>Implementation 71ae-query-metadata-only-for-the-current-selected-entity: Query metadata only for the current selected entity</summary>
 
@@ -7754,6 +8255,19 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-71af-keep-published-drawing-sources-and-url-bases-independent"></a>
+
+### Step 33 of 42 · Keep published drawing sources and URL bases independent (`71af-keep-published-drawing-sources-and-url-bases-independent`)
+
+- **Goal:** Keep published drawing sources and URL bases independent.
+- **Data Flow Trace:** `original published URL → checked source cache → repeated independent placement`
+- **Files You Touch:** `src/publication.rs` (*Keep original drawing revisions and per-import metadata URL bases independent.*) · `src/publication_index.rs` (*Keep original drawing revisions and per-import metadata URL bases independent.*)
+
+Cache checked ranged sources and preserve each original drawing’s metadata base when appending another document.
+
+> **Self-Check Question:** *May a new import rewrite older drawings’ metadata URLs?*  
+> **Answer:** No. Attach the new URL only to newly imported rows and keep earlier originals unchanged.
+
+- **Hands-On Lab Experiment:** Compare repeated revisions, independent placement records and sources imported from two folders.
 
 <details>
 <summary>Implementation 71af-keep-published-drawing-sources-and-url-bases-independent: Keep published drawing sources and URL bases independent</summary>
@@ -7812,6 +8326,19 @@ Edit the existing block to match this code; keep unchanged lines:
 </details>
 
 <a id="checkpoint-71ag-retire-staged-drawing-reads-with-their-publication-owner"></a>
+
+### Step 34 of 42 · Retire staged drawing reads with their publication owner (`71ag-retire-staged-drawing-reads-with-their-publication-owner`)
+
+- **Goal:** Retire staged drawing reads with their publication owner.
+- **Data Flow Trace:** `staged original prefix → current publication → weak source retirement`
+- **Files You Touch:** `src/browser_publication.rs` (*Own staged drawing delivery and retire obsolete original source generations.*)
+
+Keep staged prefixes and weak streamed owners beside publication delivery; close obsolete generations before releasing them.
+
+> **Self-Check Question:** *Can a superseded publication continue adopting pages?*  
+> **Answer:** No. Current runtime, source ownership and generation must all match before delivery.
+
+- **Hands-On Lab Experiment:** Trace Close, replacement, obsolete sources and cancellation of pending drawing prefixes.
 
 <details>
 <summary>Implementation 71ag-retire-staged-drawing-reads-with-their-publication-owner: Retire staged drawing reads with their publication owner</summary>
@@ -8112,6 +8639,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 <a id="checkpoint-71ah-stage-bounded-drawings-through-publication-loading"></a>
 
+### Step 35 of 42 · Stage bounded drawings through publication loading (`71ah-stage-bounded-drawings-through-publication-loading`)
+
+- **Goal:** Stage bounded drawings through publication loading.
+- **Data Flow Trace:** `source probe → bounded original prefix → shared staged ceiling → current pages`
+- **Files You Touch:** `src/browser_publication.rs` (*Connect checked single-sheet ranges and staged segment ceilings to publication delivery.*)
+
+Load single unplaced drawings by checked ranges and share the global staged segment ceiling across sources.
+
+> **Self-Check Question:** *Do repeated placements spend the source ceiling twice?*  
+> **Answer:** No. Cache one original source and reuse it; each placement keeps independent row identity and model settings.
+
+- **Hands-On Lab Experiment:** Compare original prefix/chunk defaults, complete mixed loading and no whole body for a ranged sheet.
+
 <details>
 <summary>Implementation 71ah-stage-bounded-drawings-through-publication-loading: Stage bounded drawings through publication loading</summary>
 
@@ -8364,6 +8904,19 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-71ai-show-current-sheet-resources-and-selected-entity-answers"></a>
+
+### Step 36 of 42 · Show current sheet resources and selected entity answers (`71ai-show-current-sheet-resources-and-selected-entity-answers`)
+
+- **Goal:** Show current sheet resources and selected entity answers.
+- **Data Flow Trace:** `current scene counters → selected query → accepted original metadata`
+- **Files You Touch:** `src/memory.rs` (*Expose original drawing resources and only accepted current entity answers.*) · `src/browser.rs` (*Expose original drawing resources and only accepted current entity answers.*)
+
+Connect original-source and GPU counters, query ownership and accepted metadata answers to the viewer.
+
+> **Self-Check Question:** *What should resource diagnostics distinguish?*  
+> **Answer:** Original column capacities, retained derived pages, independent rows and actual GPU buffers; none is a total-memory or Lenovo timing claim.
+
+- **Hands-On Lab Experiment:** Inspect original count beside resident pages, then Close while a metadata lookup is pending.
 
 <details>
 <summary>Implementation 71ai-show-current-sheet-resources-and-selected-entity-answers: Show current sheet resources and selected entity answers</summary>
@@ -9359,6 +9912,20 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-71aj-exercise-complete-and-ranged-original-drawings"></a>
+
+### Step 37 of 42 · Exercise complete and ranged original drawings (`71aj-exercise-complete-and-ranged-original-drawings`)
+
+- **Goal:** Exercise complete and ranged original drawings.
+- **Data Flow Trace:** `original sheet example → shared display → original entity lookup → reversible history`
+- **Files You Touch:** `src/editor.rs` (*Connect the original drawing example through the existing history transactions.*) · `src/commands.rs` (*Connect the original drawing example through the existing history transactions.*) · `src/sheet_scene_tests.rs` (*Copy exact original persistence, partial-source, revision and independent-URL fixtures.*) · `src/lib.rs` (*Register the drawing component.*) · `src/pick_gpu_tests.rs` (*Copy actual original entity IDs, physical pens, source sharing, camera shifts, locked occlusion and eviction fixtures.*)
+
+Open the plan example and copy complete archive, ownership, physical-pen and actual GPU regression fixtures.
+
+> **Self-Check Question:** *What distinguishes source identity from displayed segment addresses?*  
+> **Answer:** The saved original GUID and full entity IDs belong to the drawing. Compact addresses belong only to the current display snapshot.
+
+- **What You Should See:** The original plan has black physical-width boundaries and a blue hairline axis. Complete sheets preserve original columns through editable Save/Open; ranged sheets keep partial ownership explicit. Select Edge resolves original entity IDs and loads one side-table record only from a published drawing URL. Move, Copy, Delete, Undo/Redo, layers and Close operate on stable row owners.
+- **Hands-On Lab Experiment:** Type Close, Example Sheet, Fit and Select Edge; select the blue axis. Test Move, Undo/Redo, Save/Open and Close. Use the supplied published fixture for metadata and cancellation.
 
 <details>
 <summary>Implementation 71aj-exercise-complete-and-ranged-original-drawings: Exercise complete and ranged original drawings</summary>
@@ -10402,6 +10969,20 @@ After that block, append this supplied code:
 
 <a id="checkpoint-71za-build-original-construction-plane-frames"></a>
 
+### Step 38 of 42 · Build original construction-plane frames (`71za-build-original-construction-plane-frames`)
+
+- **Goal:** Describe the original world planes and a movable frame.
+- **Data Flow Trace:** `original frame → parsed coordinates → world drawing point`
+- **Files You Touch:** `src/cplane.rs` (*Type the whole original frame or coordinate helpers using their shared owners.*) · `src/lib.rs` (*Compile this shared original frame or coordinate module.*)
+
+Describe the original world planes and a movable frame. Build a right-handed frame from three points using shared subtraction, cross-product and normalization helpers. Reject collinear points before constructing the axes.
+
+> **Self-Check Question:** *Why take two cross products when constructing the frame?*  
+> **Answer:** The first finds its normal. The second derives a perpendicular in-plane y axis while retaining the chosen x direction.
+
+- **What You Should See:** Construction-plane frames can be built without changing the current browser view.
+- **Hands-On Lab Experiment:** Trace three valid points and three collinear points through the same frame builder.
+
 <details>
 <summary>Implementation 71za-build-original-construction-plane-frames: Build original construction-plane frames</summary>
 
@@ -10442,6 +11023,20 @@ After that block, type:
 </details>
 
 <a id="checkpoint-71zb-map-original-plane-and-world-coordinates"></a>
+
+### Step 39 of 42 · Map original plane and world coordinates (`71zb-map-original-plane-and-world-coordinates`)
+
+- **Goal:** Reuse the existing origin and axes to map between plane and world coordinates.
+- **Data Flow Trace:** `original frame → parsed coordinates → world drawing point`
+- **Files You Touch:** `src/cplane.rs` (*Extend this original owner with the day’s complete input helpers.*)
+
+Reuse the existing origin and axes to map between plane and world coordinates. Pack the same basis into a column-major matrix for drawing the grid. Keep CAD calculations in double precision and convert only the grid matrix to GPU floats.
+
+> **Self-Check Question:** *Why keep the coordinate maps separate from the grid matrix?*  
+> **Answer:** CAD points retain double precision. The matrix is a drawing representation of the same frame.
+
+- **What You Should See:** The frame helpers can map original plane coordinates to and from world coordinates.
+- **Hands-On Lab Experiment:** Trace a plane point into world coordinates and back. Identify the matrix columns that draw those axes.
 
 <details>
 <summary>Implementation 71zb-map-original-plane-and-world-coordinates: Map original plane and world coordinates</summary>
@@ -10529,6 +11124,20 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 </details>
 
 <a id="checkpoint-71zc-guard-original-plane-and-ray-projections"></a>
+
+### Step 40 of 42 · Guard original plane and ray projections (`71zc-guard-original-plane-and-ray-projections`)
+
+- **Goal:** Complete the original plane queries for view choice, nearest projection, facing and ray intersection.
+- **Data Flow Trace:** `original frame → parsed coordinates → world drawing point`
+- **Files You Touch:** `src/cplane.rs` (*Extend this original owner with the day’s complete input helpers.*)
+
+Complete the original plane queries for view choice, nearest projection, facing and ray intersection. Reuse the same origin, axes and normal. Reject a grazing ray before dividing by its small plane-normal component.
+
+> **Self-Check Question:** *Why reject grazing rays before intersection?*  
+> **Answer:** A nearly parallel ray makes the intersection unstable. Preserve the original guard instead of returning a distant misleading drawing point.
+
+- **What You Should See:** Plane and ray projection guards compile before drawing input uses them.
+- **Hands-On Lab Experiment:** Compare a perpendicular ray, a grazing ray and a ray facing away from the plane.
 
 <details>
 <summary>Implementation 71zc-guard-original-plane-and-ray-projections: Guard original plane and ray projections</summary>
@@ -10792,6 +11401,20 @@ After that block, append this supplied code:
 
 <a id="checkpoint-71zd-parse-original-drawing-coordinate-forms"></a>
 
+### Step 41 of 42 · Parse original drawing coordinate forms (`71zd-parse-original-drawing-coordinate-forms`)
+
+- **Goal:** Describe the original absolute, relative, polar and distance forms.
+- **Data Flow Trace:** `original frame → parsed coordinates → world drawing point`
+- **Files You Touch:** `src/drawing_coords.rs` (*Type the whole original frame or coordinate helpers using their shared owners.*) · `src/lib.rs` (*Compile this shared original frame or coordinate module.*)
+
+Describe the original absolute, relative, polar and distance forms. Keep the selected construction plane in its existing owner. Parse only finite numbers and retain missing height as a distinct two-dimensional coordinate.
+
+> **Self-Check Question:** *Why retain missing height instead of immediately inserting zero?*  
+> **Answer:** A two-dimensional input lies on the drawing plane. An explicit third coordinate asks for a three-dimensional position.
+
+- **What You Should See:** The coordinate grammar can distinguish supported drawing forms; the existing input remains available.
+- **Hands-On Lab Experiment:** Trace 1,2, @1,2, 5<45 and a single distance through the same parser.
+
 <details>
 <summary>Implementation 71zd-parse-original-drawing-coordinate-forms: Parse original drawing coordinate forms</summary>
 
@@ -10832,6 +11455,20 @@ After that block, type:
 </details>
 
 <a id="checkpoint-71ze-resolve-original-relative-and-polar-coordinates"></a>
+
+### Step 42 of 42 · Resolve original relative and polar coordinates (`71ze-resolve-original-relative-and-polar-coordinates`)
+
+- **Goal:** Recognize the existing world prefix and resolve parsed coordinates from the plane origin, previous point and current direction.
+- **Data Flow Trace:** `original frame → parsed coordinates → world drawing point`
+- **Files You Touch:** `src/drawing_coords.rs` (*Extend this original owner with the day’s complete input helpers.*)
+
+Recognize the existing world prefix and resolve parsed coordinates from the plane origin, previous point and current direction. Reuse one finite parser for every form. Require a previous point and direction where the original distance form needs them.
+
+> **Self-Check Question:** *Why does a distance need both a previous point and direction?*  
+> **Answer:** Its scalar value alone cannot locate a point. The existing context supplies the starting point and the direction to follow.
+
+- **What You Should See:** Relative and polar coordinates can resolve against the declared drawing frame.
+- **Hands-On Lab Experiment:** Trace a polar input from a previous point, then a distance with and without a direction.
 
 <details>
 <summary>Implementation 71ze-resolve-original-relative-and-polar-coordinates: Resolve original relative and polar coordinates</summary>
@@ -10898,9 +11535,11 @@ Edit the existing block to match this code; keep unchanged lines:
 
 </details>
 
-## Run, Check, and Save
+---
 
-From `session_viewer`:
+## 5. Build, Verify, and Save Your Checkpoint
+
+Run these commands from `session_viewer` to install dependencies, verify your typed code against the checkpoint, and save your progress:
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 71ze-resolve-original-relative-and-polar-coordinates
@@ -10911,12 +11550,12 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. Use [checkpoint recovery](../../recovery.md) to restore any saved checkpoint.
+Open `http://127.0.0.1:8780/` in your browser. Use [checkpoint recovery](../../recovery.md) to save or restore any checkpoint ID.
 
-## Expected Visual Result & Experiment
+## 6. Lesson Summary & Expected Visual Result
 
 Relative and polar coordinates can resolve against the declared drawing frame.
 
-- **Try this:** Trace a polar input from a previous point, then a distance with and without a direction.
+- **Final Lesson Experiment:** Trace a polar input from a previous point, then a distance with and without a direction.
 
-Continue with [Precise coordinates and original drawing drafts](72-copy-current-construction-planes-and-coordinate-forms.md).
+Continue with [Precise coordinates and original drawing drafts](../../consolidation/72-copy-current-construction-planes-and-coordinate-forms.md).
