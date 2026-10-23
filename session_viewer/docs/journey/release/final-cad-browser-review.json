@@ -1,0 +1,242 @@
+{
+  "status": "PASS within the original final CAD canonical browser contract",
+  "checkpoint": "96zzzzzzzq-draw-original-cad-wire-curves",
+  "sourceFingerprint": "97d4a9ff577fe4e932ee9561260e4bd0adbc2a82943883d111949038af33fd23",
+  "sourceFiles": 713,
+  "courseSha256": "f739c713178ed6d98d91f6f6f33165e18880a4f5effecc153c269e6c23709d9c",
+  "callback": {
+    "path": "docs/journey/checks/browser/cad-wire.cjs",
+    "sha256": "1ee67d8204313b78c87ea143778daf923ffa8c80ba0bbb235b6c65a4e3e39e6d",
+    "recursiveSha256": "7954dbe4c7330e9cba6b1e270b927517956ac4f60fce3b05629259a8fbb0c674",
+    "capture": {
+      "path": "docs/capture_journey.cjs",
+      "sha256": "ecbc4c716aa91a7aedc2532132c4b08e0a7d1e7511c380b0dbbba0152325a733"
+    },
+    "browserEntry": {
+      "source": "4607f800e4e755afb21d81b0517dc2e9fee635c2e14ff7abb8b54a6196ad22eb",
+      "checker": "ecbc4c716aa91a7aedc2532132c4b08e0a7d1e7511c380b0dbbba0152325a733",
+      "extraChecker": "7954dbe4c7330e9cba6b1e270b927517956ac4f60fce3b05629259a8fbb0c674",
+      "browser": "145.0.7632.6",
+      "headless": true,
+      "captured": "2026-10-23T21:28:10.281Z",
+      "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "canvas": "91603cd3d7aa6e7f047dfe42c3fea154698853b9b20a44ce4c6a2050a82f088f",
+      "file": "96zzzzzzzq-draw-original-cad-wire-curves-browser.png",
+      "initialViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "initialCanvas": {
+        "x": 0,
+        "y": 0,
+        "width": 900,
+        "height": 760
+      },
+      "screenshotViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "bundle": "6f7874fcb8e862a53ce9ad72df8b2cfa223a2eea574d3eb397cfacbe92493e6d",
+      "commands": [],
+      "keyboardRoundtrip": false
+    }
+  },
+  "resources": {
+    "path": "target/course-windows-20261018/canonical-final-cad-97d-browser-only-v2/resources.json",
+    "sha256": "b09d7988e484824e78d09c235473cdedc200e65d65fed24aacb2af86598ca78b",
+    "elapsedSeconds": 708.475,
+    "peakJobCommitBytes": 856780800
+  },
+  "log": {
+    "path": "target/course-windows-20261018/canonical-final-cad-97d-browser-only-v2/run.log",
+    "sha256": "35c662273168c6001a0df75244e96864d0deb2529ab94dc249700ea1e65dea52"
+  },
+  "recovery": {
+    "path": "target/course-windows-20261018/final-cad-v2-postflight-recovery.json",
+    "sha256": "ddb909aeba7a24f751261d680053578c2512e671f57e1bb6ffc8a509fb1a13dc"
+  },
+  "rootVisualReview": {
+    "path": "target/course-windows-20261018/final-cad-97d-root-visible-review.json",
+    "sha256": "61379b30009fee1ffc5ffa9b8578efc1397b4c3bbe18b79b5428f252ff13e384"
+  },
+  "originalWrapper": {
+    "path": "target/course-windows-20261018/canonical-final-cad-97d-browser-only-v2/browser-phase-proof.json",
+    "sha256": "d79ac567f75d8b6cd20d4d3373d6a70270bece86760f81a850df80d1cb62ed78",
+    "status": "failed",
+    "error": "TypeError: fetch failed\n    at node:internal/deps/undici/undici:16416:13\n    at async verifyServed (C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\run-final-cad-browser-only-v2.cjs:95:26)\n    at async main (C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\run-final-cad-browser-only-v2.cjs:156:25)",
+    "qualification": "Capture exited0 and passed all assertions; wrapper failed its subsequent HTTP fetch. Original failed proof is preserved. Independent recovery passed; no claim of a successful full wrapper execution."
+  },
+  "sourceQualification": "Legacy browser source metadata remains4607f800 at its original binding. Exact97d acceptance is independently qualified by713 source hashes,433 external inputs,native1060/frame reviews,16 built/served payload hashes and unchanged canonical callback. Global results.json is unchanged.",
+  "prerequisites": [
+    {
+      "path": "docs/journey/release/native-97d-integration-review.json",
+      "sha256": "64c7515eecd6c4e90b0ac1d9f3d76900193d16956e8a9f34319c6ebe0a670e91"
+    },
+    {
+      "path": "docs/journey/release/final-cad-native-frame-review.json",
+      "sha256": "a6c4429d4aaf07fa6069cb1a6bbb91bf2e32ca4f5cbdb2dfc162cdbda90a70ba"
+    },
+    {
+      "path": "target/course-windows-20261018/final-97d-web-build/provenance.json",
+      "sha256": "1eff746d7f0da091ba868eaca14c53852905ec1766b1a8f7656b9364f6dfce04"
+    }
+  ],
+  "bundle": {
+    "files": {
+      "assets/pb/course-comparison.pb": "8d952b0ac17ebf0bb7c20704b45b95acbe5b4395ff809a38baacaad93de4bed5",
+      "assets/pb/course-feature-pick.pb": "e05c864d93c99b700665508eb8ddc630c637cec24b51558de97f26f05762387d",
+      "assets/pb/course-instance-features.pb": "3b9a0d162728849ff09fe9b8e77b877a4565e66b77b5c73d09422f362e816500",
+      "assets/pb/course-metadata.pb": "2cfe2ad9becff37d0fcca23f71e47b1c6e674d7934327120a9233efd0c2faf55",
+      "index.html": "6f7874fcb8e862a53ce9ad72df8b2cfa223a2eea574d3eb397cfacbe92493e6d",
+      "snippets/session_viewer-568dd7ccbb8842dd/inline0.js": "bcd603923161001987d238655bc702c35aa98920d69d7c9793006792bd030104",
+      "snippets/viewer_journey-7519825317df163d/src/adapter_info.js": "3d87da73f9a18dd579c0e96f207899630a600a7839ff4d9857a87fe1211091bb",
+      "text/NotoSans-Regular.subset.ttf": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09",
+      "text/NotoSans-Regular.ttf": "b85c38ecea8a7cfb39c24e395a4007474fa5a4fc864f6ee33309eb4948d232d5",
+      "text/NotoSansSymbols-Regular.subset.ttf": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3",
+      "text/NotoSansSymbols-Regular.ttf": "8f02f31959bbdf6061547a188248e13f84dc5fdd940326ec494675f453f072bb",
+      "text/NotoSansSymbols2-Regular.subset.ttf": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed",
+      "text/NotoSansSymbols2-Regular.ttf": "630846d528dbe4c4981370a4d0a9475a1fd1491a129bb411f8e157cdb5de13c6",
+      "text/OFL.txt": "0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb",
+      "viewer_journey-8f9cce4104b7de63.js": "71e2ab7b32f734d393535a507b3cfc6ec1fb18b15038ce1570c1a34816c13df2",
+      "viewer_journey-8f9cce4104b7de63_bg.wasm": "368967bed76e0a45d69580bc7af7d252e30747b0e0cf0208a8b4521f4be49f3d"
+    },
+    "servingEvidence": "Original pre-capture hashes and independent recovery fresh-connection HTTP200/hash checks for all16 payloads. Publication validates those preserved records and current disk bytes; no new browser/HTTP run."
+  },
+  "coverage": {
+    "fixtureDensityRows": 4,
+    "fixtures": [
+      "wire",
+      "mixed"
+    ],
+    "densities": [
+      1,
+      2
+    ],
+    "sampleSettingsPerRow": [
+      1,
+      4
+    ],
+    "explanation": "Entry starts atmsaa1, then each fixture/DPR row explicitly dispatches samples1 and4 and waits for data-samples. Four display-state PNGs per row are saved at4x:16 dedicated CAD images; inherited contact/shared-source/resize and final screenshot bring reviewed total to25."
+  },
+  "assertions": "Original Object-only queries, independent families, ordinary black/unselected and selected yellow/zero-black wire, Hide Lines, selected owner/gizmo preservation, exact return, original BRep bytes, archive/camera/upload invariants; inherited callback assertions also passed unchanged.",
+  "images": [
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-cad-wire/mixed-all-dpr1.png",
+      "sha256": "82ec5b8b5a2b5c58e7b2ff7f6bc35d89c9ff7bc79f3326731643d0d7679b6cfc"
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-cad-wire/mixed-all-dpr2.png",
+      "sha256": "36617ed84731101586a87e0c1e925f9063bfad50ac554f6ec9bae697770433e3"
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-cad-wire/mixed-no-edges-dpr1.png",
+      "sha256": "638f94f7669fb9cfe5bfa6633eca7fb9baacb194905d94e3aa22cba5e5798114"
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-cad-wire/mixed-no-edges-dpr2.png",
+      "sha256": "4b001a3cbf6e393d6c1dd35dda5b8cb8c0a46b42fb49da1d86326f48260251e7"
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-cad-wire/mixed-no-lines-dpr1.png",
+      "sha256": "81dcfc3bae1fec032e9017f91b16d6391a2de0fa2464603d6749773ffce369ba"
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-cad-wire/mixed-no-lines-dpr2.png",
+      "sha256": "3ee97f322824c232e657d1d33ff8efff8cf9638be0ef6a49fbe5e21e352aa02d"
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-cad-wire/mixed-selected-dpr1.png",
+      "sha256": "fea43e83b129621b95fa7f46de92a383af90d053abc5d20a6fc88c80e080e8b3"
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-cad-wire/mixed-selected-dpr2.png",
+      "sha256": "2de74721bef169443d489a16fca0389bc357e3c07fd3e3eaed64ea98be9195b9"
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-cad-wire/wire-all-dpr1.png",
+      "sha256": "c6fd0c025f5ab1e6f829771681fd3475fcdd98332c7cd4153ef971d2700e22c1"
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-cad-wire/wire-all-dpr2.png",
+      "sha256": "9797620bd69d06039379d1dd31b68c7799c8cf22685ca4ff3d6a4433fa889a00"
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-cad-wire/wire-no-edges-dpr1.png",
+      "sha256": "2ac11a2a771d9ed214989f58ca22a2d003ff6d1fa3db884c7e7033cba6ffaa8c"
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-cad-wire/wire-no-edges-dpr2.png",
+      "sha256": "7b241589221e255a4103502fe09f1588d52b84684a1a63d8b4d179814b683f8b"
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-cad-wire/wire-no-lines-dpr1.png",
+      "sha256": "34a80c39608f6c156dd0eb2ae4e4bb22b431072f333f4e8335406849e9d938cd"
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-cad-wire/wire-no-lines-dpr2.png",
+      "sha256": "5c146a077d0503524dde7e7ac480afdbf929182b8224ae936456bd4acc505b0c"
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-cad-wire/wire-selected-dpr1.png",
+      "sha256": "2fc2adfe58991c9f00d232f29ed1c38ea3be1e2dd5e64da21c52908ffa8b5cc0"
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-cad-wire/wire-selected-dpr2.png",
+      "sha256": "a9bb425ffc2dff2e146f944e8c5bafa8bea27fd6e754a07af85845885a93914e"
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-contact-shading-dpr1.png",
+      "sha256": "4d4d5794fb8af84ba09dbe5dfe7ca6bc67d537209438323549e1832e7513bdb4"
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-contact-shading-dpr2.png",
+      "sha256": "6b4797fd4f46e156c4455f3d9649dcc786d2eea8b25cb510baa65c54dc16dc3a"
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-shared-originals-dpr1.png",
+      "sha256": "d273e9dc5369802b2364d3d2aa04619d185fa704dee86b30f14fb4862527ac3d"
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-shared-originals-dpr2.png",
+      "sha256": "9355fa231fb2a445f38e45bfaa690de172ee43e290026c9561e6655ca7dff72e"
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-resize-620-dpr1.png",
+      "sha256": "332b69aa73c30dc3217d0c7fc212b4478ac915b586428951d0192cc6e7d2a822"
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-resize-480-dpr1.png",
+      "sha256": "5e15478fb6d569373549b6c478636d7477838d95cacd9d95fc1fbf78b4d5ec25"
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-resize-620-dpr2.png",
+      "sha256": "9f3c8a10a49a0625498732e8ad402587a65a998a4d2e7cd19fad7f951e4e7f3a"
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-resize-480-dpr2.png",
+      "sha256": "9e407ba70d3f37c4eb499a8236c1e8dfc8ece2547b03b41d43858ac185edab5a"
+    },
+    {
+      "path": "docs/screenshots/journey/96zzzzzzzq-draw-original-cad-wire-curves-browser.png",
+      "sha256": "c6d90324bdae516c7c0205f6390445926ccfcaa89c0022b99b7062b0abcffed5"
+    }
+  ],
+  "imagePathBase": "session_viewer; references existing docs/screenshots files, no copied images",
+  "resultManifests": [
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-cad-wire/result.json",
+      "sha256": "3dae2d57cdd4e3c31ca0add2f90b6e319630b889c830fd05275de17ab34e53e2"
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-target-reuse.json",
+      "sha256": "6778484dc00456b464b327a430a079fe9d11f5de9da0ac5f90427454a8e541c5"
+    }
+  ],
+  "observations": [
+    "DPR1/2 originalwire curvedpaths remain continuous; edges-off retains fallbackLine,lines-off hidesit.",
+    "Mixedoriginals retain whiteholes/bluefaces and separateedge/linecontrols; selectedyellowhasno blackcorewhenoutlinesoff.",
+    "Sharedoriginaltransform, contactshading andfourresizeframes are legible andcorrectlyframed.",
+    "Finalcanonicalimage is controlledcontactfixture;16dedicatedCADPNGssupplyactualCADappearance."
+  ],
+  "limits": "One accepted entry in the original18 source-specific callback set. Historical13 and fixture1/4 remain unchanged. This does not close CAD/NURBS isolines, other source-specific callbacks or global release0/5."
+}

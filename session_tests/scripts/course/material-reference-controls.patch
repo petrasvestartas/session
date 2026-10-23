@@ -1,0 +1,39 @@
+--- actual/src/selftest/stroke_witness.rs
++++ mirror/src/selftest/stroke_witness.rs
+@@ -193,11 +193,14 @@
+     pub points: bool,
+     pub markers: bool,
+     pub selected_guids: Vec<String>,
++    pub lit: bool,
++    pub backface: bool,
++    pub opacity: f32,
+ }
+ 
+ impl Default for Families {
+     fn default() -> Self {
+-        Self { lines: true, mesh_edges: false, points: false, markers: false, selected_guids: Vec::new() }
++        Self { lines: true, mesh_edges: false, points: false, markers: false, selected_guids: Vec::new(), lit: false, backface: false, opacity: 1.0 }
+     }
+ }
+ 
+@@ -267,6 +270,7 @@
+     source: &[u8], matrix: [f32; 16], viewport: [u32; 2], density: f32,
+     samples: u32, thickness: f32, planes: &[ClipPlane], families: &Families, require_pen: bool,
+ ) -> anyhow::Result<Frame> {
++    anyhow::ensure!(families.opacity.is_finite() && (0.0..=1.0).contains(&families.opacity));
+     anyhow::ensure!(viewport.iter().all(|v| *v > 0));
+     anyhow::ensure!(matrix.iter().all(|v| v.is_finite()));
+     anyhow::ensure!(density.is_finite() && density > 0.0);
+@@ -298,9 +302,9 @@
+         lod_px: 0.0,
+         thickness_px: thickness,
+         feather_px: 1.0,
+-        lit: false,
+-        backface: false,
+-        opacity: 1.0,
++        lit: families.lit,
++        backface: families.backface,
++        opacity: families.opacity,
+         msaa_forced: Some(samples),
+         perf: false,
+         spin: false,

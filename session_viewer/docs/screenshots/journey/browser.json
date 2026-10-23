@@ -10798,6 +10798,34 @@
       "bundle": "989aeb1a7e43add12be2bde7519e8cd7b676814f69086698933020721f8ad79a",
       "commands": [],
       "keyboardRoundtrip": false
+    },
+    "96zzzzzzzq-draw-original-cad-wire-curves": {
+      "source": "4607f800e4e755afb21d81b0517dc2e9fee635c2e14ff7abb8b54a6196ad22eb",
+      "checker": "ecbc4c716aa91a7aedc2532132c4b08e0a7d1e7511c380b0dbbba0152325a733",
+      "extraChecker": "7954dbe4c7330e9cba6b1e270b927517956ac4f60fce3b05629259a8fbb0c674",
+      "browser": "145.0.7632.6",
+      "headless": true,
+      "captured": "2026-10-23T21:28:10.281Z",
+      "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "canvas": "91603cd3d7aa6e7f047dfe42c3fea154698853b9b20a44ce4c6a2050a82f088f",
+      "file": "96zzzzzzzq-draw-original-cad-wire-curves-browser.png",
+      "initialViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "initialCanvas": {
+        "x": 0,
+        "y": 0,
+        "width": 900,
+        "height": 760
+      },
+      "screenshotViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "bundle": "6f7874fcb8e862a53ce9ad72df8b2cfa223a2eea574d3eb397cfacbe92493e6d",
+      "commands": [],
+      "keyboardRoundtrip": false
     }
   }
 }

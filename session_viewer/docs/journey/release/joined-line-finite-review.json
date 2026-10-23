@@ -1,0 +1,182 @@
+{
+  "status": "COMPLETE: both original finite Joined-line criteria satisfied",
+  "sourceFingerprint": "97d4a9ff577fe4e932ee9561260e4bd0adbc2a82943883d111949038af33fd23",
+  "feature": "Lines, joined strokes, widths and AA",
+  "originalAuthority": {
+    "feature": "Lines, joined strokes, widths and AA",
+    "gitRevision": "7baf0e2e",
+    "gitPath": "session_viewer/docs/journey/production-course-map.json",
+    "blobSha256": "c0d728cc09bafa5422c36cb69977e334625dbd855d5415f4cf273dfd1206f2ad",
+    "literalCriteria": [
+      "Complete joined/headed/CAD width, AA, clipping, visibility and display-toggle controls against actual production.",
+      "Resolve the recorded selected CAD color contract conflict before claiming canonical cad-wire browser acceptance; preserve the assertion meanwhile."
+    ],
+    "savedPlan": {
+      "path": "C:\\Users\\Petras\\Downloads\\viewer-course-consolidation-plan.md",
+      "sha256": "0d8819420522c8d2b8c8ce84f32002a65ac240906a0a286eeb3849bb672ed9f3",
+      "literalLines": [
+        {
+          "line": 22,
+          "text": "- Tests verify faithful extraction, staged integration, and regression safety. They do not justify substituting different shader algorithms merely because self-authored tests pass. Matched GPU images use the same original source, camera, viewport/DPR, samples, settings, and output encoding."
+        },
+        {
+          "line": 56,
+          "text": "1. **Display completeness:** reconcile divergent course rendering with the actual production shaders and pipelines; complete pending CAD evidence without restarting already valid builds; consolidate pen width/AA, marker/cloud display controls, original Plane, and relevant color rules into existing lessons. Diagnose the known fine stroke-end difference with a matched witness. Verify real BRep holes, legible NURBS isolines, mirrored/nonuniform placement, and family visibility independently."
+        },
+        {
+          "line": 64,
+          "text": "Freeze runtime source after the reload/grid correction. Run the complete required Native/WASM/build checks and declared runnable-checkpoint checks against that final state. Inspect actual feature evidence for every chapter, close the coverage table, verify navigation/aliases and local publication, and report the final counts and known limitations. Never relabel stale results as current."
+        }
+      ]
+    },
+    "attribution": "Original finite row is an authored planning record, not an invented exact user quotation."
+  },
+  "criteriaMapping": [
+    {
+      "literalCriterion": "Complete joined/headed/CAD width, AA, clipping, visibility and display-toggle controls against actual production.",
+      "decision": "SATISFIED within actual declared finite contract",
+      "mapping": {
+        "joinsAndHeads": "Native14 exact production/course controls includes open arrowed,closed headless,placed selected joined fixtures; full shader/source provenance and exact neighbor/head/degenerate topology test passed. Historical ordinary8/headed4/Sheet32 keep independent bindings.",
+        "widthAndAA": "Current1060 native suite actual mesh global pen1?4 thickens coverage; feather4 EXACTLY unchanged because ribbon AA is analytic. Surface/BRep CSS pens1/7/0/-2 atdensity1/2 and sparse original pen colors/queries checked. This is supported finite production behavior, not a nonexistent ribbon feather-effect requirement.",
+        "clipping": "Native plain/headed/Point kept/cut integer owners before color; actual cut/unclipped pixels and original identity atdensity1/2. Near cuts flat/no invented arrow cap; differing terminal pixels constrained to actual production analytic cap/filter supports.",
+        "visibilityAndDisplayToggles": "Native14 exact mixed-CAD no-lines/no-edges pairs and current1060 mixed-family assertions cover their recorded projections/samples1/4. Canonical finalCAD has four wire/mixed-by-DPR1/2 result rows, each with samples1/4, originalObject-only wire queries, independent families, selection hiding and exact restore/archive/camera/upload invariants."
+      },
+      "limits": "No arbitrary material or infinite width/tolerance sweep; these are finite assertions on actual supported lanes. Original criterion does not prescribe optionalCAD60/joined44 Cartesian matrices."
+    },
+    {
+      "literalCriterion": "Resolve the recorded selected CAD color contract conflict before claiming canonical cad-wire browser acceptance; preserve the assertion meanwhile.",
+      "decision": "SATISFIED",
+      "mapping": "Approved production-yellow/zero-black selected-CAD contract passed the complete canonical callback at97d:708.475s/856780800B. Four fixture/DPR rows each check samples1/4;16 dedicated CAD PNGs at4x and25 total current images were individually reviewed. Ordinary black/yellow0, selected black0/yellow>0, hidden nonwhite0, retained owner/gizmo and exact return assertions all remain.",
+      "wrapperQualification": "Original wrapper failed only its later HTTP postflight; remains FAILED. Independent recovery freshly reverified16 served payloads,713 source files,433 external inputs,metadata pins and unchanged successful capture/results. This decision combines capture PASS+postflight recovery+visual attestation; it does not relabel wrapper exit as0."
+    }
+  ],
+  "nativePassedBodies": [
+    {
+      "test": "scene::production_mesh_ink_tests::actual_mesh_edges_use_global_production_pen_aa_selection_and_family_switches",
+      "source": "target/course-final-original-owners/src/production_mesh_ink_tests.rs",
+      "sourceSha256": "141a1de312899f928ce792b06f7e9111e2793628bb362c2582daf5e71b27697a",
+      "normalizedLfSha256": "141a1de312899f928ce792b06f7e9111e2793628bb362c2582daf5e71b27697a",
+      "line": 66,
+      "observedSuiteResult": "ok",
+      "actualAssertions": [
+        "samples1/4 ?density1/2; global thickness4 yields>100 additional black pixels versus1",
+        "feather4 yields EXACT same ribbon image: production ribbon AA analytic, feather applies to glyphs",
+        "original sparse MeshEdge(11,700) GPU pick; selected highlight yellow",
+        "edges=false removes black even with lines=true; archive/source placement semantics preserved"
+      ],
+      "scopeLimit": "Actual course production-extracted path. Existing matched14 ink pairs complement fixed fixture parity; does not prove arbitrary material or browser controls."
+    },
+    {
+      "test": "renderer::source_pen_tests::actual_surface_and_brep_boundary_widths_use_css_pens",
+      "source": "target/course-final-original-owners/src/source_pen_tests.rs",
+      "sourceSha256": "299bad0ac52791ea35acc59fa6ffc0d910ccccaa1f00ec98865095fd91de8697",
+      "normalizedLfSha256": "299bad0ac52791ea35acc59fa6ffc0d910ccccaa1f00ec98865095fd91de8697",
+      "line": 44,
+      "observedSuiteResult": "ok",
+      "actualAssertions": [
+        "mesh,surface,BRep widths1,7,0,-2 atdensity1/2; seven-CSS-pixel pen wider by>=4*density",
+        "surface/BRep zero defaults to width1; negative defaults across all3; archive unchanged"
+      ],
+      "scopeLimit": "Finite native width contract already tested; no need invent continuous width Cartesian sweep."
+    },
+    {
+      "test": "renderer::visibility_tests::actual_mixed_families_keep_shared_sources_highlights_queries_and_active_controls",
+      "source": "target/course-final-original-owners/src/ink_visibility_gpu_tests.rs",
+      "sourceSha256": "752c281837f9ac14b7d799916bbc41eb71ed76465f0057ccfc9d4fa2332184ac",
+      "normalizedLfSha256": "752c281837f9ac14b7d799916bbc41eb71ed76465f0057ccfc9d4fa2332184ac",
+      "line": 186,
+      "observedSuiteResult": "ok",
+      "actualAssertions": [
+        "orthographic/perspective ?samples1/4: lines/edges/points/vertices off and all-ink off each change actual frame",
+        "original Line,Sheet,Point owner picks follow their flags; both placed MeshEdge picks follow edges flag",
+        "active curve Control(0) remains pickable independently of ordinary family flags",
+        "no geometry/upload/row counters change; reenabling restores EXACT frame",
+        "selected-edge highlight hides with edges; original documents and Rc geometry sharing unchanged"
+      ],
+      "scopeLimit": "This native family-control requirement is satisfied for specified mixed fixture; callbacks remain separately required."
+    },
+    {
+      "test": "finite_visibility_tests::original_lines_headed_chains_and_points_share_actual_color_and_integer_occlusion",
+      "source": "target/course-final-original-owners/src/finite_visibility_tests.rs",
+      "sourceSha256": "d67908d4906f50817045d24f4c539b8e9c8e6e3e2031b4d9592fa1c32d41f0d6",
+      "normalizedLfSha256": "d67908d4906f50817045d24f4c539b8e9c8e6e3e2031b4d9592fa1c32d41f0d6",
+      "line": 16,
+      "observedSuiteResult": "ok",
+      "actualAssertions": [
+        "DPR1/2 ?plainLine/headedLine/Point: hidden original loses first pick to solid before color; visible wins",
+        "near camera cut yields no clipped original pick; kept side retains owner",
+        "every differing clipped-vs-explicit-end pixel constrained to actual production cap/filter radius; genuine cap adds pixels; cut stays flat",
+        "original Line Rc identity retained"
+      ],
+      "scopeLimit": "Already tests finite clipping and cap/filter support; not a full independent production parity sweep or CAD-sag tolerance proof."
+    },
+    {
+      "test": "finite_visibility_tests::a_line_on_a_sloping_original_face_keeps_its_full_css_width",
+      "source": "target/course-final-original-owners/src/finite_visibility_tests.rs",
+      "sourceSha256": "d67908d4906f50817045d24f4c539b8e9c8e6e3e2031b4d9592fa1c32d41f0d6",
+      "normalizedLfSha256": "d67908d4906f50817045d24f4c539b8e9c8e6e3e2031b4d9592fa1c32d41f0d6",
+      "line": 44,
+      "observedSuiteResult": "ok",
+      "actualAssertions": [
+        "DPR1/2: sloping-surface four-CSS-pixel ribbon red pixel count EXACTLY equals flat count; owner pick retained"
+      ],
+      "scopeLimit": "Native finite centerline visibility already tested."
+    },
+    {
+      "test": "clipping_gpu_tests::clipping_all_original_ink_families_preserve_kept_integer_owners_and_release_cut_occluders",
+      "source": "target/course-final-original-owners/src/clipping_gpu_tests.rs",
+      "sourceSha256": "1563e57a958f92054c6d63d59e867ff4a2f6473eee63eb987226f4d27208a299",
+      "normalizedLfSha256": "1563e57a958f92054c6d63d59e867ff4a2f6473eee63eb987226f4d27208a299",
+      "line": 23,
+      "observedSuiteResult": "ok",
+      "actualAssertions": [
+        "plainLine/headedLine/Point atdensity1/2: kept original owner picked,cut side None before color",
+        "clip disable increases actual red coverage; cut solid releases retained ink visibility/picking"
+      ],
+      "scopeLimit": "Exact named native clipping contract accepted; independent arbitrary production clipping sweep unsupported."
+    },
+    {
+      "test": "scene::production_vector_tests::production_joined_neighbours_heads_and_degenerate_ends_are_exact",
+      "source": "target/course-final-original-owners/src/production_vector_tests.rs",
+      "sourceSha256": "d317153758ba502929b8a587fe343c3f44d01cd36c5825ee5aee9043bd280e93",
+      "normalizedLfSha256": "d317153758ba502929b8a587fe343c3f44d01cd36c5825ee5aee9043bd280e93",
+      "line": 24,
+      "observedSuiteResult": "ok",
+      "actualAssertions": [
+        "duplicate middle point produces exactly2 ribbons and2heads; exact head directions/masks and neighbor indices",
+        "source width3 gives radius-1.5; closed head markers/indices exact; zero-length Line has no heads"
+      ],
+      "scopeLimit": "Native row topology; existing open-arrowed/closed-headless/placed-selected exact pairs provide actual fixed-frame parity."
+    }
+  ],
+  "records": [
+    "release/ink-family-controls-native-review.json",
+    "release/native-control-semantics-review.json",
+    "release/native-97d-integration-review.json",
+    "release/final-cad-browser-review.json"
+  ],
+  "decisionEvidence": {
+    "path": "target/course-windows-20261018/joined-line-cad-wire-finite-closure-decision.json",
+    "sha256": "e29a53e64733bcb07fded6fea3efac99a8679a69b2dabef46593b718b602c537"
+  },
+  "countClarification": "Four browser fixture/DPR result rows, each containing two sample settings;16 dedicated CAD images at4x,25 total reviewed images. Not eight independent fixture/DPR rows.",
+  "remainingGlobalChapterObligations": [
+    {
+      "checkpoint": "88ad-exercise-original-sections-bores-and-ink",
+      "callback": "journey/checks/browser/caps.cjs",
+      "status": "required-pending in historical chapter queue unless a separate actual matching execution record closes it",
+      "actualDirectAssertions": "Example CAD plus clipping XY produces cap bytes and classifies original exactly once; Hatch/Solid switch retains closedness cache; Off empties and On restores cap draw bytes;Close empties activecap ownership. Imports clipping.cjs and its recursive chain; presence alone is not execution."
+    },
+    {
+      "checkpoint": "80d-exercise-networks-corner-retries-and-exact-original-archives",
+      "callback": "journey/checks/browser/network.cjs",
+      "status": "required-pending global/source-specific CADnetwork proof"
+    },
+    {
+      "checkpoint": "96zzzzzzm-query-original-faces-under-contact-overlays",
+      "callback": "journey/checks/browser/source-faces.cjs default export",
+      "status": "Required pending default source-face callback in current global queue; isometric interior-curve/surface-lighting/default parent assertions are not proved by separately exported helper calls."
+    }
+  ],
+  "boundary": "Finite Joined closure only. Caps88ad, network80d and default source-faces96zzzzzzm remain required in the global queue. CAD/NURBS and arbitrary unrelated material/tolerance features remain partial; no new Cartesian matrix is introduced."
+}

@@ -146,6 +146,7 @@ function navGroups(bySlug: Map<string, string>): Group[] {
     const reference = groups.find((g) => g.title === 'Course');
     if (reference) reference.title = 'Complete viewer reference';
   }
+  for (const group of groups) group.slugs = group.slugs.filter(slug => !['journey/contents', 'journey/roadmap'].includes(slug));
   const listed = new Set(groups.flatMap((g) => g.slugs));
   const rest = [...bySlug.keys()].filter((s) => !listed.has(s) && !s.includes('/')).sort();
   if (rest.length) groups.push({ title: 'More', slugs: rest });

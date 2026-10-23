@@ -127,6 +127,7 @@ const onClick = (e: MouseEvent) => {
   flex: 1 1 auto;
   min-width: 0;
   max-width: 820px;
+  overflow-wrap: anywhere;
   line-height: 1.6;
   font-size: 15.5px;
 }

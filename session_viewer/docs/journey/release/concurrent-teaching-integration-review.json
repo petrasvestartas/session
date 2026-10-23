@@ -1,5 +1,5 @@
 {
-  "status": "DONE source integration; PENDING current docs build and visible publication review",
+  "status": "DONE source integration, scoped content publication and observed docs UI corrections",
   "recordedUtc": "2026-10-23T21:22:27.189258+00:00",
   "authoredIntroBaseline": "fa3d9132",
   "schematicCheckpoint": "d1d0871f",
@@ -11,7 +11,7 @@
     "preservedCheckpointBodies": 59,
     "runtimeInputsChanged": 0
   },
-  "currentPublication": "Pending fresh docs build and scoped visible review at these new hashes.",
+  "currentPublication": "PASS scoped teaching content and observed duplicate-navigation/phone-prose corrections.59 integrated lesson hashes retain their content review; four new UI views and source hashes are recorded separately. First10/current whole-book/global release handoff remains pending.",
   "previousVisibleProof": {
     "record": "release/late-chapter-visible-review.json",
     "scope": "Accepted only at its own prior source/build hashes; not rebound to the current new diagrams."
@@ -687,5 +687,7 @@
       ],
       "figures": 20
     }
-  ]
+  ],
+  "currentVisibleReview": "release/concurrent-teaching-visible-review.json",
+  "docsUiReview": "release/docs-navigation-overflow-review.json"
 }
