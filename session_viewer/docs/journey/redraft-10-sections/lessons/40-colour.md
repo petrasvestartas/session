@@ -6,7 +6,8 @@
 
 ## 1. Visual WebGPU Schematic
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="220" viewBox="0 0 840 220" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="220" viewBox="0 0 840 220" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -48,6 +49,7 @@
   <text x="704" y="68" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">alpha = 1.0</text>
   <text x="704" y="186" text-anchor="middle" font-family="monospace" font-size="10" fill="#111111">smoothstep() Edge</text>
 </svg>
+</div>
 
 | Layer | Construct | Role |
 | :--- | :--- | :--- |
@@ -65,7 +67,8 @@
 
 ### Step 1 of 3 · Carry the original mesh colour mode into display data (`40-colour`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -87,6 +90,7 @@
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">actual colour pixels</text>
 </svg>
+</div>
 
 Use the kernel’s current colour policy rather than duplicate its interpretation in the viewer. A complete active point-colour array shares interpolated display vertices; active face colours duplicate triangle corners.
 
@@ -138,7 +142,8 @@ Copy this supplied file:
 
 ### Step 2 of 3 · Compare original colour modes through actual input (`40a-input`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -160,6 +165,7 @@ Copy this supplied file:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">editable download/reopen</text>
 </svg>
+</div>
 
 Add three real dock commands that insert original colour-mode specimens. Each commits one prepared mesh in the existing history.
 
@@ -1404,7 +1410,8 @@ Update the existing block with this supplied code; keep unchanged lines:
 
 ### Step 3 of 3 · Draw meshes beyond the sixteen-bit index limit (`40b-indices`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -1426,6 +1433,7 @@ Update the existing block with this supplied code; keep unchanged lines:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">real high-index pixels</text>
 </svg>
+</div>
 
 Keep the kernel’s u32 indices through the display adapter and GPU draw call. Do not truncate high vertex references to fit an earlier demonstration layout.
 

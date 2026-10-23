@@ -6,7 +6,8 @@
 
 ## 1. Visual WebGPU Schematic
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="220" viewBox="0 0 840 220" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="220" viewBox="0 0 840 220" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -52,6 +53,7 @@
   <text x="730" y="63" font-family="monospace" font-size="9" fill="#111111">z=0.8</text>
   <text x="704" y="186" text-anchor="middle" font-family="monospace" font-size="10" fill="#111111">Depth32Float + Ray Hit</text>
 </svg>
+</div>
 
 | Layer | Construct | Role |
 | :--- | :--- | :--- |
@@ -68,7 +70,8 @@
 
 ### Step 1 of 25 · Test visibility at the original center line (`86s-test-visibility-at-the-original-center-line`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -90,6 +93,7 @@
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">finite original triangl…</text>
 </svg>
+</div>
 
 Test visibility at the original center line.
 
@@ -109,7 +113,8 @@ Create the file and type:
 
 ### Step 2 of 25 · Reuse original stroke coverage (`86t-reuse-original-stroke-coverage`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -131,6 +136,7 @@ Create the file and type:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">unchanged coverage</text>
 </svg>
+</div>
 
 Reuse original stroke coverage.
 
@@ -481,7 +487,8 @@ cp src/stroke.wgsl src/finite_stroke.wgsl
 
 ### Step 3 of 25 · Carry stroke axis and depth (`86u-carry-stroke-axis-and-depth`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -503,6 +510,7 @@ cp src/stroke.wgsl src/finite_stroke.wgsl
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">finite visibility</text>
 </svg>
+</div>
 
 Carry stroke axis and depth.
 
@@ -571,7 +579,8 @@ fn finite_depth_pixel(pixel:vec2<f32>)->vec2<i32>{return vec2<i32>(pixel);}
 
 ### Step 4 of 25 · Reuse original stroke integer coverage (`86v-reuse-original-stroke-integer-coverage`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -593,6 +602,7 @@ fn finite_depth_pixel(pixel:vec2<f32>)->vec2<i32>{return vec2<i32>(pixel);}
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">original owner ID</text>
 </svg>
+</div>
 
 Reuse original stroke integer coverage.
 
@@ -622,7 +632,8 @@ cp src/stroke_pick.wgsl src/finite_stroke_pick.wgsl
 
 ### Step 5 of 25 · Keep stroke crop ownership aligned (`86w-keep-stroke-crop-ownership-aligned`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -644,6 +655,7 @@ cp src/stroke_pick.wgsl src/finite_stroke_pick.wgsl
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">original ID</text>
 </svg>
+</div>
 
 Keep stroke crop ownership aligned.
 
@@ -694,7 +706,8 @@ fn pick_fragment(input: PickOutput) -> @location(0) vec2<u32> {
 
 ### Step 6 of 25 · Reuse original chain coverage (`86x-reuse-original-chain-coverage`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -716,6 +729,7 @@ fn pick_fragment(input: PickOutput) -> @location(0) vec2<u32> {
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">unchanged coverage</text>
 </svg>
+</div>
 
 Reuse original chain coverage.
 
@@ -801,7 +815,8 @@ cp src/chain.wgsl src/finite_chain.wgsl
 
 ### Step 7 of 25 · Carry chain axis and depth (`86y-carry-chain-axis-and-depth`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -823,6 +838,7 @@ cp src/chain.wgsl src/finite_chain.wgsl
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">finite visibility</text>
 </svg>
+</div>
 
 Carry chain axis and depth.
 
@@ -1018,7 +1034,8 @@ fn finite_depth_pixel(pixel:vec2<f32>)->vec2<i32>{return vec2<i32>(pixel);}
 
 ### Step 8 of 25 · Reuse original chain integer coverage (`86z-reuse-original-chain-integer-coverage`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -1040,6 +1057,7 @@ fn finite_depth_pixel(pixel:vec2<f32>)->vec2<i32>{return vec2<i32>(pixel);}
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">original owner ID</text>
 </svg>
+</div>
 
 Reuse original chain integer coverage.
 
@@ -1069,7 +1087,8 @@ cp src/chain_pick.wgsl src/finite_chain_pick.wgsl
 
 ### Step 9 of 25 · Keep chain crop ownership aligned (`86aa-keep-chain-crop-ownership-aligned`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -1091,6 +1110,7 @@ cp src/chain_pick.wgsl src/finite_chain_pick.wgsl
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">original ID</text>
 </svg>
+</div>
 
 Keep chain crop ownership aligned.
 
@@ -1150,7 +1170,8 @@ fn pick_fragment(input: PickOutput) -> @location(0) vec2<u32> {
 
 ### Step 10 of 25 · Reuse original marker coverage (`86ab-reuse-original-marker-coverage`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -1172,6 +1193,7 @@ fn pick_fragment(input: PickOutput) -> @location(0) vec2<u32> {
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">unchanged coverage</text>
 </svg>
+</div>
 
 Reuse original marker coverage.
 
@@ -1257,7 +1279,8 @@ cp src/marker.wgsl src/finite_marker.wgsl
 
 ### Step 11 of 25 · Carry marker axis and depth (`86ac-carry-marker-axis-and-depth`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -1279,6 +1302,7 @@ cp src/marker.wgsl src/finite_marker.wgsl
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">finite visibility</text>
 </svg>
+</div>
 
 Carry marker axis and depth.
 
@@ -1332,7 +1356,8 @@ fn finite_depth_pixel(pixel:vec2<f32>)->vec2<i32>{return vec2<i32>(pixel);}
 
 ### Step 12 of 25 · Reuse original marker integer coverage (`86ad-reuse-original-marker-integer-coverage`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -1354,6 +1379,7 @@ fn finite_depth_pixel(pixel:vec2<f32>)->vec2<i32>{return vec2<i32>(pixel);}
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">original owner ID</text>
 </svg>
+</div>
 
 Reuse original marker integer coverage.
 
@@ -1383,7 +1409,8 @@ cp src/marker_pick.wgsl src/finite_marker_pick.wgsl
 
 ### Step 13 of 25 · Keep marker crop ownership aligned (`86ae-keep-marker-crop-ownership-aligned`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -1405,6 +1432,7 @@ cp src/marker_pick.wgsl src/finite_marker_pick.wgsl
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">original ID</text>
 </svg>
+</div>
 
 Keep marker crop ownership aligned.
 
@@ -1454,7 +1482,8 @@ fn pick_fragment(input: PickOutput) -> @location(0) vec2<u32> {
 
 ### Step 14 of 25 · Assemble one shared finite shader predicate (`86af-assemble-one-shared-finite-shader-predicate`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -1476,6 +1505,7 @@ fn pick_fragment(input: PickOutput) -> @location(0) vec2<u32> {
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">color or pick source</text>
 </svg>
+</div>
 
 Assemble one shared finite shader predicate.
 
@@ -1505,7 +1535,8 @@ After that block, type:
 
 ### Step 15 of 25 · Own finite color and integer pipelines (`86ag-own-finite-color-and-integer-pipelines`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -1527,6 +1558,7 @@ After that block, type:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">color and pick targets</text>
 </svg>
+</div>
 
 Declare the finite color/integer pipeline owner and its cached table bindings. Register it alongside the existing finite-source assembler. The next helpers create pipelines and bind these resources; the existing ribbon pass remains active until renderer adoption.
 
@@ -1560,7 +1592,8 @@ After that block, type:
 
 ### Step 16 of 25 · Build finite shader pipelines with original layouts (`86ah-build-finite-shader-pipelines-with-original-layouts`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -1582,6 +1615,7 @@ After that block, type:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">target pipeline</text>
 </svg>
+</div>
 
 Build finite shader pipelines with original layouts.
 
@@ -1601,7 +1635,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### Step 17 of 25 · Bind finite coverage for original families (`86ai-bind-finite-coverage-for-original-families`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -1623,6 +1658,7 @@ Edit the existing block to match this code; keep unchanged lines:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">family pipeline</text>
 </svg>
+</div>
 
 Bind finite coverage for original families.
 
@@ -1642,7 +1678,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### Step 18 of 25 · Reuse bindings and draw original owners (`86aj-reuse-bindings-and-draw-original-owners`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -1664,6 +1701,7 @@ Edit the existing block to match this code; keep unchanged lines:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">color or integer draw</text>
 </svg>
+</div>
 
 Reuse bindings and draw original owners.
 
@@ -1683,7 +1721,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### Step 19 of 25 · Expose original GPU models to projection (`86ak-expose-original-gpu-models-to-projection`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -1705,6 +1744,7 @@ Edit the existing block to match this code; keep unchanged lines:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">compute-readable origin…</text>
 </svg>
+</div>
 
 Expose original GPU models to projection.
 
@@ -1726,7 +1766,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### Step 20 of 25 · Connect finite visibility to all original ink lanes (`86al-connect-finite-visibility-to-all-original-ink-lanes`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -1748,6 +1789,7 @@ Edit the existing block to match this code; keep unchanged lines:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">preserved legacy API</text>
 </svg>
+</div>
 
 Connect finite visibility to all original ink lanes.
 
@@ -2088,7 +2130,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### Step 21 of 25 · Separate integer depth writers and sampled ink (`86am-separate-integer-depth-writers-and-sampled-ink`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -2110,6 +2153,7 @@ Edit the existing block to match this code; keep unchanged lines:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">other original owners</text>
 </svg>
+</div>
 
 Separate integer depth writers and sampled ink.
 
@@ -2344,7 +2388,8 @@ pub(crate) fn draw(device: &wgpu::Device, image: &Image, window: Window, pipelin
 
 ### Step 22 of 25 · Own tile state before color and first picks (`86an-own-tile-state-before-color-and-first-picks`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -2366,6 +2411,7 @@ pub(crate) fn draw(device: &wgpu::Device, image: &Image, window: Window, pipelin
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">cached owner</text>
 </svg>
+</div>
 
 Own tile state before color and first picks.
 
@@ -3038,7 +3084,8 @@ impl Renderer {
 
 ### Step 23 of 25 · Split opaque finite ink and cloud composition (`86ao-split-opaque-finite-ink-and-cloud-composition`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -3060,6 +3107,7 @@ impl Renderer {
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">read-only finite ink</text>
 </svg>
+</div>
 
 Compose cached cloud depth after opaque surfaces, then draw finite ink against that depth. A separate cloud pass can write depth without binding the same image as sampled ink.
 
@@ -3637,7 +3685,8 @@ impl Renderer {
 
 ### Step 24 of 25 · Observe actual derived tile resources (`86ap-observe-actual-derived-tile-resources`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -3659,6 +3708,7 @@ impl Renderer {
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">truthful counters</text>
 </svg>
+</div>
 
 Observe actual derived tile resources.
 
@@ -4587,7 +4637,8 @@ fn lasso_action(event:&web_sys::Event,canvas:&web_sys::HtmlCanvasElement,editor:
 
 ### Step 25 of 25 · Exercise finite color and original picking (`86aq-exercise-finite-color-and-original-picking`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -4609,6 +4660,7 @@ fn lasso_action(event:&web_sys::Event,canvas:&web_sys::HtmlCanvasElement,editor:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">stable view</text>
 </svg>
+</div>
 
 Exercise finite color and original picking.
 

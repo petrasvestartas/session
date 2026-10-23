@@ -6,7 +6,8 @@
 
 ## 1. Visual WebGPU Schematic
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="220" viewBox="0 0 840 220" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="220" viewBox="0 0 840 220" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -47,6 +48,7 @@
   <rect x="724" y="124" width="40" height="30" fill="url(#hatch)"/><text x="744" y="143" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">1.0</text>
   <text x="704" y="186" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#111111">0-Cells Blank</text>
 </svg>
+</div>
 
 | Layer | Construct | Role |
 | :--- | :--- | :--- |
@@ -63,7 +65,8 @@
 
 ### Step 1 of 17 · Own original range-read permits (`66za-own-original-range-read-permits`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -85,6 +88,7 @@
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">release</text>
 </svg>
+</div>
 
 Write the per-scene gate, queued turn, waiting-read and permit types. Bound simultaneous reads, wake queued turns and hand a released permit to the oldest waiting read.
 
@@ -118,7 +122,8 @@ After that block, type:
 
 ### Step 2 of 17 · Poll and cancel original queued range reads (`67a-queue-range-reads-in-arrival-order`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -140,6 +145,7 @@ After that block, type:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">release</text>
 </svg>
+</div>
 
 Complete the waiting-read Future and its Drop behavior. Admit free capacity without overtaking older readers, refresh each pending waker and remove cancelled turns or pass on an already granted slot.
 
@@ -177,7 +183,8 @@ After that block, append this supplied code:
 
 ### Step 3 of 17 · Validate exact HTTP range replies (`67b-validate-exact-http-range-replies`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -199,6 +206,7 @@ After that block, append this supplied code:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">accepted bytes</text>
 </svg>
+</div>
 
 Compute checked inclusive HTTP intervals, then match response offsets, lengths and total file size.
 
@@ -244,7 +252,8 @@ After that block, append this supplied code:
 
 ### Step 4 of 17 · Retain original point page values (`67c-retain-original-point-page-values`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -266,6 +275,7 @@ After that block, append this supplied code:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">separate display floats</text>
 </svg>
+</div>
 
 Keep original doubles and IDs beside derived display floats. An absent ID column uses the source row.
 
@@ -311,7 +321,8 @@ After that block, append this supplied code:
 
 ### Step 5 of 17 · Own cancellable range requests (`67d-own-cancellable-range-requests`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -333,6 +344,7 @@ After that block, append this supplied code:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">request release</text>
 </svg>
+</div>
 
 Assign each request a unique owner and retain its abort controller until completion.
 
@@ -374,7 +386,8 @@ After that block, type:
 
 ### Step 6 of 17 · Time out stalled source reads (`67e-time-out-stalled-source-reads`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -396,6 +409,7 @@ After that block, type:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">timer cleanup</text>
 </svg>
+</div>
 
 Restart the deadline when bytes arrive. Abort and clear its timer when the read owner drops.
 
@@ -417,7 +431,8 @@ After that block, type:
 
 ### Step 7 of 17 · Bound incoming range body chunks (`67f-bound-incoming-range-body-chunks`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -439,6 +454,7 @@ After that block, type:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">retained original bytes</text>
 </svg>
+</div>
 
 Check every chunk against the requested byte length before allocating its copied bytes.
 
@@ -460,7 +476,8 @@ After that block, type:
 
 ### Step 8 of 17 · Request and accept one source interval (`67g-request-and-accept-one-source-interval`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -482,6 +499,7 @@ After that block, type:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">exact response acceptan…</text>
 </svg>
+</div>
 
 Issue the Range header and verify HTTP status, offset and length before returning original bytes.
 
@@ -503,7 +521,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### Step 9 of 17 · Keep range revisions and background results (`67h-keep-range-revisions-and-background-results`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -525,6 +544,7 @@ Edit the existing block to match this code; keep unchanged lines:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">caller ownership</text>
 </svg>
+</div>
 
 Compare every accepted ETag with the source revision and retain a background result until its caller awaits it.
 
@@ -546,7 +566,8 @@ After that block, type:
 
 ### Step 10 of 17 · Queue original source range reads (`67hza-queue-original-source-range-reads`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -568,6 +589,7 @@ After that block, type:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">decoded points</text>
 </svg>
+</div>
 
 Write the browser range-read owner and cached metadata-window read. Acquire a permit before starting the stall timer, retry once when allowed and close the old scene queue on reset.
 
@@ -591,7 +613,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### Step 11 of 17 · Probe original source array layouts (`67hzb-probe-original-source-array-layouts`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -613,6 +636,7 @@ Edit the existing block to match this code; keep unchanged lines:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">decoded points</text>
 </svg>
+</div>
 
 Start owned asynchronous range tasks and inspect the bounded file probe. Locate the coordinate and colour arrays while checking file bounds, point stride and response status.
 
@@ -636,7 +660,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### Step 12 of 17 · Read original cloud node tables (`67hzc-read-original-cloud-node-tables`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -658,6 +683,7 @@ Edit the existing block to match this code; keep unchanged lines:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">decoded points</text>
 </svg>
+</div>
 
 Read original node-table fields through the cached metadata window. Reject duplicate fields and oversized tables while retaining point-ID and normal ranges.
 
@@ -681,7 +707,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### Step 13 of 17 · Fetch original coordinates normals and colours (`67i-read-source-arrays-through-the-bounded-queue`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -703,6 +730,7 @@ Edit the existing block to match this code; keep unchanged lines:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">decoded points</text>
 </svg>
+</div>
 
 Fetch bounded source-array slices through the queue already written. Convert coordinate doubles and normal records, and advance the variable-length colour cursor using its consumed bytes.
 
@@ -726,7 +754,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### Step 14 of 17 · Keep original ranged source identity (`67j-keep-original-ranged-source-identity`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -748,6 +777,7 @@ Edit the existing block to match this code; keep unchanged lines:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">stable remote source id…</text>
 </svg>
+</div>
 
 Read the original cloud GUID and name before its coordinate body. Refuse missing or repeated identity fields.
 
@@ -769,7 +799,8 @@ After that block, type:
 
 ### Step 15 of 17 · Prepare a revision bound remote source (`67k-prepare-a-revision-bound-remote-source`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -791,6 +822,7 @@ After that block, type:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">remote source owner</text>
 </svg>
+</div>
 
 Prepare original array offsets and the complete checked octree before requesting point pages.
 
@@ -822,7 +854,8 @@ After that block, type:
 
 ### Step 16 of 17 · Fetch precise coordinates and original IDs (`67l-fetch-precise-coordinates-and-original-ids`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -844,6 +877,7 @@ After that block, type:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">checked original page</text>
 </svg>
+</div>
 
 Read coordinate and ID columns for the same source rows, then decode one complete original page.
 
@@ -879,7 +913,8 @@ After that block, append this supplied code:
 
 ### Step 17 of 17 · Cancel range work when its runtime closes (`67m-cancel-range-work-when-its-runtime-closes`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -901,6 +936,7 @@ After that block, append this supplied code:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">released owners</text>
 </svg>
+</div>
 
 Connect gate replacement and active-request abortion to Close and browser runtime disposal.
 

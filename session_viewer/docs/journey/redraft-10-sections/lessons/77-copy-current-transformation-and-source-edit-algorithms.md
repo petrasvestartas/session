@@ -6,7 +6,8 @@
 
 ## 1. Visual WebGPU Schematic
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="220" viewBox="0 0 840 220" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="220" viewBox="0 0 840 220" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -47,6 +48,7 @@
   <text x="704" y="135" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">ticket.rev == view.rev</text>
   <text x="704" y="186" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#111111">Drop Stale Picks</text>
 </svg>
+</div>
 
 | Layer | Construct | Role |
 | :--- | :--- | :--- |
@@ -62,7 +64,8 @@
 
 ### Step 1 of 49 · Build directional scale transforms (`77-copy-current-transformation-and-source-edit-algorithms`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -84,6 +87,7 @@
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">later edit preview and…</text>
 </svg>
+</div>
 
 Measure scale reach in space, in the construction plane or along one chosen axis.
 
@@ -133,7 +137,8 @@ After that block, append this supplied code:
 
 ### Step 2 of 49 · Compute signed construction-plane rotation (`77sa-compute-signed-construction-plane-rotation`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -155,6 +160,7 @@ After that block, append this supplied code:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">later edit preview and…</text>
 </svg>
+</div>
 
 Project the two reference vectors onto the construction plane axes.
 
@@ -202,7 +208,8 @@ After that block, append this supplied code:
 
 ### Step 3 of 49 · Address original controls and exclusive part selections (`77sb-address-original-controls-and-exclusive-part-selections`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -224,6 +231,7 @@ After that block, append this supplied code:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">later edit preview and…</text>
 </svg>
+</div>
 
 Define stable source addresses for vertices, curve controls, surface controls and cloud points.
 
@@ -257,7 +265,8 @@ After that block, type:
 
 ### Step 4 of 49 · Collect finite original controls and mesh vertices (`77sc-collect-finite-original-controls-and-mesh-vertices`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -279,6 +288,7 @@ After that block, type:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">later edit preview and…</text>
 </svg>
+</div>
 
 A control keeps its original address and f64 position.
 
@@ -351,7 +361,8 @@ impl Controls {
 
 ### Step 5 of 49 · Connect curve polygons and surface control nets (`77sd-connect-curve-polygons-and-surface-control-nets`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -373,6 +384,7 @@ impl Controls {
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">later edit preview and…</text>
 </svg>
+</div>
 
 Reuse push for finite positions and original addresses.
 
@@ -456,7 +468,8 @@ impl Controls {
 
 ### Step 6 of 49 · Reuse control collectors across original geometry families (`77se-reuse-control-collectors-across-original-geometry-families`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -478,6 +491,7 @@ impl Controls {
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">later edit preview and…</text>
 </svg>
+</div>
 
 BRep controls retain vertex, curve and surface addresses.
 
@@ -582,7 +596,8 @@ After that block, append this supplied code:
 
 ### Step 7 of 49 · Represent original geometry edit targets (`77sf-represent-original-geometry-edit-targets`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -604,6 +619,7 @@ After that block, append this supplied code:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">later edit preview and…</text>
 </svg>
+</div>
 
 Target translates the exclusive selection mode into a source edit request.
 
@@ -637,7 +653,8 @@ After that block, type:
 
 ### Step 8 of 49 · Resolve original mesh vertices for part edits (`77sg-resolve-original-mesh-vertices-for-part-edits`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -659,6 +676,7 @@ After that block, type:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">later edit preview and…</text>
 </svg>
+</div>
 
 Resolve a selected vertex directly by key. A face collects its outer and hole vertices, then sorts and deduplicates them. Mesh edge numbering follows first appearance of an unordered vertex pair across original faces. This reproduces the source edge convention instead of numbering tessellation edges.
 
@@ -722,7 +740,8 @@ pub(crate) fn mesh_keys(mesh: &Mesh, target: Target) -> Result<Vec<usize>, Strin
 
 ### Step 9 of 49 · Resolve surface grids and individual source controls (`77sh-resolve-surface-grids-and-individual-source-controls`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -744,6 +763,7 @@ pub(crate) fn mesh_keys(mesh: &Mesh, target: Target) -> Result<Vec<usize>, Strin
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">later edit preview and…</text>
 </svg>
+</div>
 
 A surface control uses its original u/v address. Face0 selects the complete control grid; edges0–3 choose its four sides. For other geometry families, control_point reuses Controls::from_geometry and its stable IDs. There is one control collector, so picking and source editing agree about the addressed point.
 
@@ -798,7 +818,8 @@ fn control_point(geometry: &Geometry, id: ControlId) -> Result<Point, String> {
 
 ### Step 10 of 49 · Collect affected points across CAD geometry families (`77si-collect-affected-points-across-cad-geometry-families`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -820,6 +841,7 @@ fn control_point(geometry: &Geometry, id: ControlId) -> Result<Point, String> {
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">later edit preview and…</text>
 </svg>
+</div>
 
 Dispatch the selected target to the existing source key and control helpers.
 
@@ -894,7 +916,8 @@ pub fn points(geometry: &Geometry, target: Target) -> Result<Vec<Point>, String>
 
 ### Step 11 of 49 · Preserve rational weights and validate BRep boundaries (`77sj-preserve-rational-weights-and-validate-brep-boundaries`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -916,6 +939,7 @@ pub fn points(geometry: &Geometry, target: Target) -> Result<Vec<Point>, String>
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">later edit preview and…</text>
 </svg>
+</div>
 
 For rational curves, store the moved Euclidean point multiplied by its unchanged weight.
 
@@ -1004,7 +1028,8 @@ fn validate_boundaries(
 
 ### Step 12 of 49 · Transform original mesh and surface controls (`77sk-transform-original-mesh-and-surface-controls`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -1026,6 +1051,7 @@ fn validate_boundaries(
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">later edit preview and…</text>
 </svg>
+</div>
 
 Clone the original source before changing addressed points.
 
@@ -1084,7 +1110,8 @@ fn transform_nurbssurface(source: &Rc<session_rust::NurbsSurface>, target: Targe
 
 ### Step 13 of 49 · Transform original line polyline point and curve controls (`77sl-transform-original-line-polyline-point-and-curve-controls`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -1106,6 +1133,7 @@ fn transform_nurbssurface(source: &Rc<session_rust::NurbsSurface>, target: Targe
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">later edit preview and…</text>
 </svg>
+</div>
 
 Use each original control address to move one point in a cloned source.
 
@@ -1181,7 +1209,8 @@ fn transform_point(source: &Rc<session_rust::Point>, target: Target, delta: &Xfo
 
 ### Step 14 of 49 · Transform shared BRep boundary positions coherently (`77sm-transform-shared-brep-boundary-positions-coherently`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -1203,6 +1232,7 @@ fn transform_point(source: &Rc<session_rust::Point>, target: Target, delta: &Xfo
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">later edit preview and…</text>
 </svg>
+</div>
 
 Collect the selected source positions and clone the BRep.
 
@@ -1278,7 +1308,8 @@ fn transform_brep(geometry: &Geometry, source: &Rc<session_rust::BRep>, target: 
 
 ### Step 15 of 49 · Dispatch original part edits and retain Element ownership (`77sn-dispatch-original-part-edits-and-retain-element-ownership`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -1300,6 +1331,7 @@ fn transform_brep(geometry: &Geometry, source: &Rc<session_rust::BRep>, target: 
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">later edit preview and…</text>
 </svg>
+</div>
 
 Validate the requested transform once, then dispatch to the source helpers written in the preceding lessons.
 
@@ -1366,7 +1398,8 @@ pub fn transform(geometry: &Geometry, target: Target, delta: &Xform) -> Result<G
 
 ### Step 16 of 49 · Map sparse original vertex keys to display slots (`77so-map-sparse-original-vertex-keys-to-display-slots`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -1388,6 +1421,7 @@ pub fn transform(geometry: &Geometry, target: Target, delta: &Xform) -> Result<G
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">later edit preview and…</text>
 </svg>
+</div>
 
 Choose a dense slot lookup only when sorted original keys are close enough together; otherwise use a sparse map.
 
@@ -1431,7 +1465,8 @@ After that block, type:
 
 ### Step 17 of 49 · Compute polygon normals from original boundaries (`77sp-compute-polygon-normals-from-original-boundaries`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -1453,6 +1488,7 @@ After that block, type:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">later edit preview and…</text>
 </svg>
+</div>
 
 MeshTopo separates original edges, their incident face slots, winding agreement, face normals and closure.
 
@@ -1515,7 +1551,8 @@ fn face_key(face: &(usize, &Vec<usize>)) -> usize {
 
 ### Step 18 of 49 · Build one original edge table and record incident faces (`77sq-build-one-original-edge-table-and-record-incident-faces`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -1537,6 +1574,7 @@ fn face_key(face: &(usize, &Vec<usize>)) -> usize {
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">later edit preview and…</text>
 </svg>
+</div>
 
 Each low-vertex slot owns a linked list of edge indices.
 
@@ -1611,7 +1649,8 @@ impl EdgeTable {
 
 ### Step 19 of 49 · Preserve hole winding and complete original mesh topology (`77sr-preserve-hole-winding-and-complete-original-mesh-topology`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -1633,6 +1672,7 @@ impl EdgeTable {
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">later edit preview and…</text>
 </svg>
+</div>
 
 Collect sorted original faces and their normals.
 
@@ -1746,7 +1786,8 @@ After that block, append this supplied code:
 
 ### Step 20 of 49 · Own transformation questions and the selected original targets (`77a-own-transformation-questions-and-the-selected-original-targets`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -1768,6 +1809,7 @@ After that block, append this supplied code:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">pending transform quest…</text>
 </svg>
+</div>
 
 Keep the tool kind, scale mode, accepted points, current plane and frozen original targets in one owner.
 
@@ -1801,7 +1843,8 @@ After that block, type:
 
 ### Step 21 of 49 · Validate point and number transformation answers (`77b-validate-point-and-number-transformation-answers`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -1823,6 +1866,7 @@ After that block, type:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">current original transf…</text>
 </svg>
+</div>
 
 Resolve a valid factor, reference reach or signed plane angle before adopting the candidate points.
 
@@ -1844,7 +1888,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### Step 22 of 49 · Resolve typed batches and temporary transformation previews (`77c-resolve-typed-batches-and-temporary-transformation-previews`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -1866,6 +1911,7 @@ Edit the existing block to match this code; keep unchanged lines:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">checked transforms or t…</text>
 </svg>
+</div>
 
 Validate all typed words before replacing the owner. Copy repeats after a target; other transforms finish after their result.
 
@@ -1887,7 +1933,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### Step 23 of 49 · Resolve original CAD parts and complete selected bounds (`77d-resolve-original-cad-parts-and-complete-selected-bounds`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -1909,6 +1956,7 @@ Edit the existing block to match this code; keep unchanged lines:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">checked target</text>
 </svg>
+</div>
 
 Map displayed CAD face/boundary identities back to original geometry. Include Line, Point and Curve in precise selected bounds.
 
@@ -1950,7 +1998,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### Step 24 of 49 · Rebuild an edited original CAD source before adoption (`77e-rebuild-an-edited-original-cad-source-before-adoption`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -1972,6 +2021,7 @@ Edit the existing block to match this code; keep unchanged lines:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">derived display</text>
 </svg>
+</div>
 
 Apply the world delta in the original local frame, validate adjacent trims, and prepare the edited source before changing the row.
 
@@ -2128,7 +2178,8 @@ fn same_source(a:&Scene,b:&Scene,id:ObjectId) -> bool {
 
 ### Step 25 of 49 · Copy original rows beside their existing parents (`77f-copy-original-rows-beside-their-existing-parents`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -2150,6 +2201,7 @@ fn same_source(a:&Scene,b:&Scene,id:ObjectId) -> bool {
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">new identities and worl…</text>
 </svg>
+</div>
 
 Stage checked copies with new row and tree identities, retain names/colours and copy attached attributes under the same parent.
 
@@ -2171,7 +2223,8 @@ After that block, type:
 
 ### Step 26 of 49 · Carry transformation state through the existing drawing owner (`77g-carry-transformation-state-through-the-existing-drawing-owner`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -2193,6 +2246,7 @@ After that block, type:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">temporary scene and res…</text>
 </svg>
+</div>
 
 Keep transformation questions beside the current Draft and include their temporary scene owners in display and memory reporting.
 
@@ -3456,7 +3510,8 @@ mod tests {
 
 ### Step 27 of 49 · Validate selected originals before beginning or committing a transform (`77h-validate-selected-originals-before-beginning-or-committing-a-transform`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -3478,6 +3533,7 @@ mod tests {
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">current tool or one com…</text>
 </svg>
+</div>
 
 Freeze the selected targets and prepare their original preview before replacing any active input owner.
 
@@ -3499,7 +3555,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### Step 28 of 49 · Adopt validated outcomes and preserve repeat copy transactions (`77i-adopt-validated-outcomes-and-preserve-repeat-copy-transactions`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -3521,6 +3578,7 @@ Edit the existing block to match this code; keep unchanged lines:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">individual Copy transac…</text>
 </svg>
+</div>
 
 Preflight the full typed batch against a temporary scene, then record each Copy target as one transaction.
 
@@ -3542,7 +3600,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### Step 29 of 49 · Route transform input cancellation and current plane changes (`77j-route-transform-input-cancellation-and-current-plane-changes`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -3564,6 +3623,7 @@ Edit the existing block to match this code; keep unchanged lines:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">preview or cancellation</text>
 </svg>
+</div>
 
 Connect clicked and typed answers, current-plane changes and cancellation while keeping Polyline Close separate from transformation completion.
 
@@ -4628,7 +4688,8 @@ mod tests {
 
 ### Step 30 of 49 · Connect transformation lifecycle and part Move dispatch (`77k-connect-transformation-lifecycle-and-part-move-dispatch`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -4650,6 +4711,7 @@ mod tests {
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">checked original preview</text>
 </svg>
+</div>
 
 Connect current plane updates and successful cancellation while routing part Move through its original source preview.
 
@@ -5847,7 +5909,8 @@ Update the existing block with this supplied code; keep unchanged lines:
 
 ### Step 31 of 49 · Register Copy Scale Rotate and their current aliases (`77l-register-copy-scale-rotate-and-their-current-aliases`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -5869,6 +5932,7 @@ Update the existing block with this supplied code; keep unchanged lines:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">Editor action</text>
 </svg>
+</div>
 
 Expose current transformation names, world-axis Rotate options and typed aliases through the same longest-name command registry.
 
@@ -6154,7 +6218,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### Step 32 of 49 · Apply direct Scale and Rotate about the current selection center (`77m-apply-direct-scale-and-rotate-about-the-current-selection-center`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -6176,6 +6241,7 @@ Edit the existing block to match this code; keep unchanged lines:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">original transform</text>
 </svg>
+</div>
 
 Validate the direct factor or world-axis angle and apply it about the current gizmo center, falling back to the world origin when absent.
 
@@ -6197,7 +6263,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### Step 33 of 49 · Retain earlier selection checks with source part support (`77n-retain-earlier-selection-checks-with-source-part-support`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -6219,6 +6286,7 @@ Edit the existing block to match this code; keep unchanged lines:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">unchanged history on ca…</text>
 </svg>
+</div>
 
 Strengthen the earlier part-preview check: cancellation must restore the original placements. The selection and parent-deletion guards now change in 77k, alongside part Move.
 
@@ -6244,7 +6312,8 @@ Update the existing block with this supplied code; keep unchanged lines:
 
 ### Step 34 of 49 · Exercise original copy transforms history and exact persistence (`77o-exercise-original-copy-transforms-history-and-exact-persistence`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -6266,6 +6335,7 @@ Update the existing block with this supplied code; keep unchanged lines:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">original Save/Open</text>
 </svg>
+</div>
 
 Copy the current integrated creation, preview, source edit and nested placement fixtures, then use the registered commands to create the rendered exercise.
 
@@ -6307,7 +6377,8 @@ After that block, append this supplied code:
 
 ### Step 35 of 49 · Describe curve gathering answers (`77zza-describe-curve-gathering-answers`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -6329,6 +6400,7 @@ After that block, append this supplied code:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">Session kernel recipe</text>
 </svg>
+</div>
 
 Describe ordered curve questions and typed answers. Keep original curves and their placed corner data separate from command progress.
 
@@ -6360,7 +6432,8 @@ After that block, type:
 
 ### Step 36 of 49 · Read curve gathering values (`77zzb-read-curve-gathering-values`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -6382,6 +6455,7 @@ After that block, type:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">Session kernel recipe</text>
 </svg>
+</div>
 
 Read finite numbers, absolute points and distance vectors through the existing coordinate reader. Reject curve picks supplied as words.
 
@@ -6444,7 +6518,8 @@ impl Step {
 
 ### Step 37 of 49 · Connect gathering recipes (`77zzc-connect-gathering-recipes`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -6466,6 +6541,7 @@ impl Step {
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">Session kernel recipe</text>
 </svg>
+</div>
 
 Connect typed input to a recipe, its questions and kernel builder. Reuse the existing option matcher and expose typed point, number and axis helpers.
 
@@ -6550,7 +6626,8 @@ impl Recipe {
 
 ### Step 38 of 49 · Parse gathering command words (`77zzd-parse-gathering-command-words`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -6572,6 +6649,7 @@ impl Recipe {
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">Session kernel recipe</text>
 </svg>
+</div>
 
 Read options anywhere in a command and consume other answers in order. Apply remaining numeric defaults only when the typed prefix permits it.
 
@@ -6637,7 +6715,8 @@ pub fn read(recipe: &Recipe, words: &[&str]) -> Result<(usize, Vec<Answer>), Str
 
 ### Step 39 of 49 · Track ordered curve picks (`77zze-track-ordered-curve-picks`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -6659,6 +6738,7 @@ pub fn read(recipe: &Recipe, words: &[&str]) -> Result<(usize, Vec<Answer>), Str
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">Session kernel recipe</text>
 </svg>
+</div>
 
 Track preselected curve rows and skip answers already typed. Keep curve-pick order while advancing only after the required minimum.
 
@@ -6680,7 +6760,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### Step 40 of 49 · Advance and cancel curve picks (`77zzf-advance-and-cancel-curve-picks`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -6702,6 +6783,7 @@ Edit the existing block to match this code; keep unchanged lines:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">Session kernel recipe</text>
 </svg>
+</div>
 
 Toggle a picked curve, reject duplicates across groups, and advance on a full group or Enter. Accept defaults and typed answers through one progress state.
 
@@ -6781,7 +6863,8 @@ After that block, type:
 
 ### Step 41 of 49 · Prepare placed kernel curves (`77zzg-prepare-placed-kernel-curves`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -6803,6 +6886,7 @@ After that block, type:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">Session kernel recipe</text>
 </svg>
+</div>
 
 Convert lines, polylines and NURBS curves to placed kernel curves. Remove repeated polyline corners, clamp periodic input and normalize the domain for shared surfacing recipes.
 
@@ -6838,7 +6922,8 @@ After that block, append this supplied code:
 
 ### Step 42 of 49 · Check original loops and surface controls (`77zzh-check-original-loops-and-surface-controls`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -6860,6 +6945,7 @@ After that block, append this supplied code:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">validated kernel surface</text>
 </svg>
+</div>
 
 Find a loop’s unit normal and scale-aware planarity tolerance. Check that a resulting surface is valid and has finite control points before wrapping it as original geometry. Reuse the curve collector instead of another sampling path.
 
@@ -6892,7 +6978,8 @@ pub mod surfacing;
 
 ### Step 43 of 49 · Align original sections and loft through them (`77zzi-align-original-sections-and-loft-through-them`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -6914,6 +7001,7 @@ pub mod surfacing;
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">validated kernel surface</text>
 </svg>
+</div>
 
 Align open curve directions and closed curve seams before asking the Session kernel for a loft. Keep section count and degree rules in the same helper. Supply the original validation fixtures separately; the construction recipes connect this owner next.
 
@@ -6949,7 +7037,8 @@ After that block, append this supplied code:
 
 ### Step 44 of 49 · Find extrusion axes and cap eligibility (`77zzj-find-extrusion-axes-and-cap-eligibility`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -6971,6 +7060,7 @@ After that block, append this supplied code:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">shared BRep topology</text>
 </svg>
+</div>
 
 Reuse the original loop normal and planarity helpers to choose an extrusion axis. Orient that axis with the construction plane. Classify open, bent and flat outlines before building a cap, keeping the reason separate from geometry construction.
 
@@ -7003,7 +7093,8 @@ pub mod extrude_geometry;
 
 ### Step 45 of 49 · Map cap curves to surface parameters (`77zzk-map-cap-curves-to-surface-parameters`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -7025,6 +7116,7 @@ pub mod extrude_geometry;
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">shared BRep topology</text>
 </svg>
+</div>
 
 Build a planar cap patch around the original control points. Map its boundary into surface parameters, determine its winding and attach the boundary’s pcurve to the existing BRep edge. Reuse that edge when creating the cap face.
 
@@ -7127,7 +7219,8 @@ fn cap_face(brep: &mut BRep, patch: &NurbsSurface, curve: &NurbsCurve, edge: usi
 
 ### Step 46 of 49 · Build closed curved extrusion topology (`77zzl-build-closed-curved-extrusion-topology`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -7149,6 +7242,7 @@ fn cap_face(brep: &mut BRep, patch: &NurbsSurface, curve: &NurbsCurve, edge: usi
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">shared BRep topology</text>
 </svg>
+</div>
 
 Build the side surface from an oriented original curve. Share the lower, upper and seam edges, attach their surface-parameter curves, and join the side and both caps into one solid. Preserve the original curve precision throughout.
 
@@ -7240,7 +7334,8 @@ fn capped(curve: &NurbsCurve, offset: &Vector, normal: &Vector) -> Result<BRep, 
 
 ### Step 47 of 49 · Extrude original corners and curves (`77zzm-extrude-original-corners-and-curves`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -7262,6 +7357,7 @@ fn capped(curve: &NurbsCurve, offset: &Vector, normal: &Vector) -> Result<BRep, 
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">shared BRep topology</text>
 </svg>
+</div>
 
 Dispatch original corner chains and curved sections through the shared extrusion helpers. Build polygon sides from their original points, add eligible caps and validate the resulting BRep. Curved inputs use the kernel surface or the closed topology builder.
 
@@ -7337,7 +7433,8 @@ fn extrude(picked: &Picked, offset: &Vector, cap: bool) -> Result<(Geometry, Ski
 
 ### Step 48 of 49 · Connect the original extrusion recipe (`77zzn-connect-the-original-extrusion-recipe`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -7359,6 +7456,7 @@ fn extrude(picked: &Picked, offset: &Vector, cap: bool) -> Result<(Geometry, Ski
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">shared BRep topology</text>
 </svg>
+</div>
 
 Complete the original recipe with curve selection, signed distance and cap choices. Validate the offset before building every selected original as one result. Keep omitted-cap messages and the full output in the same undo transaction.
 
@@ -7500,7 +7598,8 @@ After that block, append this supplied code:
 
 ### Step 49 of 49 · Revolve original profiles around an axis (`77zzo-revolve-original-profiles-around-an-axis`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -7522,6 +7621,7 @@ After that block, append this supplied code:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">one result</text>
 </svg>
+</div>
 
 Describe one shared recipe for profile selection, two axis points and a bounded angle. Reject a zero-length axis before calling the kernel. Convert degrees to radians once, validate every resulting surface, and return all selected profiles in one undo transaction.
 

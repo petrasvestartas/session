@@ -6,7 +6,8 @@
 
 ## 1. Visual WebGPU Schematic
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="220" viewBox="0 0 840 220" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="220" viewBox="0 0 840 220" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -47,6 +48,7 @@
   <rect x="724" y="124" width="40" height="30" fill="url(#hatch)"/><text x="744" y="143" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">1.0</text>
   <text x="704" y="186" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#111111">0-Cells Blank</text>
 </svg>
+</div>
 
 | Layer | Construct | Role |
 | :--- | :--- | :--- |
@@ -63,7 +65,8 @@
 
 ### Step 1 of 19 · Keep depth and address samples separate (`96zzzzzzu-keep-depth-and-address-samples-separate`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -85,6 +88,7 @@
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">colour-only resolve</text>
 </svg>
+</div>
 
 Create matching depth and integer-address images for one or four samples. Resolve only the colour image. Keep the current browser renderer at one sample until every consuming pass supports the same count.
 
@@ -158,7 +162,8 @@ After that block, append this supplied code:
 
 ### Step 2 of 19 · Reuse coherent frame targets (`96zzzzzzv-reuse-coherent-frame-targets`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -180,6 +185,7 @@ After that block, append this supplied code:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">real resize replaces ma…</text>
 </svg>
+</div>
 
 Connect the frame-target owner to the existing renderer. Keep its depth and primitive images when the viewport is unchanged; replace them together when its size changes. Geometry, original sources, and the existing single-sample picture remain intact.
 
@@ -1346,7 +1352,8 @@ After that block, append this supplied code:
 
 ### Step 3 of 19 · Keep resolved colours in the canvas format (`96zzzzzzw-match-resolve-base-and-view-formats`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -1368,6 +1375,7 @@ After that block, append this supplied code:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">colour-only resolve</text>
 </svg>
+</div>
 
 Keep flat colours stable when adding multisampling. The canvas texture’s base format and the format of its rendering view are separate values; matching both ends of the resolve prevents large colour shifts.
 
@@ -2380,7 +2388,8 @@ Update the existing block with this supplied code; keep unchanged lines:
 
 ### Step 4 of 19 · Reuse surface pipelines for each sample count (`96zzzzzzx-reuse-count-specific-surface-pipelines`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -2402,6 +2411,7 @@ Update the existing block with this supplied code; keep unchanged lines:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">unchanged original geom…</text>
 </svg>
+</div>
 
 Reuse the existing surface drawing code at one and four samples. Move each descriptor into a factory, make its count explicit, and retain the alternate compiled recipe so switching back does not compile it again.
 
@@ -3752,7 +3762,8 @@ These actual GPU pictures show only the surface pass: two shared blue triangles 
 
 ### Step 5 of 19 · Generate ink shaders for physical samples (`96zzzzzzy-generate-ink-for-physical-samples`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -3774,6 +3785,7 @@ These actual GPU pictures show only the surface pass: two shared blue triangles 
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">count-specific shader a…</text>
 </svg>
+</div>
 
 Make finite-ink visibility read the same physical sample that produces its colour. Carry an explicit sample argument through the existing functions, generate the four-sample inputs when requested, and keep current colour and query owners at one sample until their layouts are connected.
 
@@ -4436,7 +4448,8 @@ let color=pipeline(device,format,stride,grid,false,varying,1,&view,&crop,&layout
 
 ### Step 6 of 19 · Cache matching ink pipelines and bindings (`96zzzzzzz-cache-ink-pipelines-with-independent-queries`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -4458,6 +4471,7 @@ let color=pipeline(device,format,stride,grid,false,varying,1,&view,&crop,&layout
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">fresh independent query…</text>
 </svg>
+</div>
 
 Give finite ink matching colour pipelines and image bindings at one and four samples. Cache the alternate recipe, release old image bindings on a real switch, and keep the independent query pipeline at one sample.
 
@@ -4967,7 +4981,8 @@ These actual isolated GPU pictures show two of four physical samples visible. Th
 
 ### Step 7 of 19 · Retarget existing overlay lanes (`96zzzzzzza-retarget-existing-overlay-lanes`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -4989,6 +5004,7 @@ These actual isolated GPU pictures show two of four physical samples visible. Th
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">existing overlay owners</text>
 </svg>
+</div>
 
 Retarget the existing overlay lanes without rebuilding their source data. Move the current colour descriptor into one factory, cache its alternate recipe, and let empty lanes remember the requested count until vertices arrive.
 
@@ -5603,7 +5619,8 @@ These actual isolated GPU pictures show complete four-sample overlay passes. The
 
 ### Step 8 of 19 · Read section crossings at each sample (`96zzzzzzzb-read-section-crossings-at-each-sample`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -5625,6 +5642,7 @@ These actual isolated GPU pictures show complete four-sample overlay passes. The
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">original cap owner query</text>
 </svg>
+</div>
 
 Read a section cap from its matching physical sample. Give crossing images and pipeline descriptors an explicit count, keep one direct fragment calculation for both counts, and retain original cap geometry when the active image changes.
 
@@ -5988,7 +6006,8 @@ These actual isolated Native GPU pictures show four-sample section caps from the
 
 ### Step 9 of 19 · Compose cloud colour, depth and queries (`96zzzzzzzc-compose-cloud-depth-with-physical-addresses`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -6010,6 +6029,7 @@ These actual isolated Native GPU pictures show four-sample section caps from the
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">fresh original-owner qu…</text>
 </svg>
+</div>
 
 Make the visible cloud and its original-owner queries agree with actual depth. A nearer cloud hides rear source ink, while a genuinely nearer line remains visible and pickable. Preserve full original point records and cached point images.
 
@@ -8108,7 +8128,8 @@ These actual Native GPU pictures show original cloud/face and section coverage, 
 
 ### Step 10 of 19 · Cache cloud and sheet sample recipes (`96zzzzzzzca-cache-cloud-and-sheet-samples`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -8130,6 +8151,7 @@ These actual Native GPU pictures show original cloud/face and section coverage, 
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">independent original ow…</text>
 </svg>
+</div>
 
 Cache the cloud and drawing-sheet colour recipes for each physical sample count. Retain original point images, source columns, drawing geometry, placements and IDs. Keep original-owner queries independently single-sample, including the preceding rear/front and wide-fringe corrections.
 
@@ -9839,7 +9861,8 @@ These actual Native GPU frames show cloud occlusion of original faces/sections, 
 
 ### Step 11 of 19 · Retarget cached text colour (`96zzzzzzzd-retarget-cached-text`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -9861,6 +9884,7 @@ These actual Native GPU frames show cloud occlusion of original faces/sections, 
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">independent original-ow…</text>
 </svg>
+</div>
 
 Retarget world text, nameplates and screen glyph colour to the frame sample count. Keep original text, shaping, fonts, atlas contents and world-plane raster images retained, and keep original-owner queries independently single-sample.
 
@@ -11800,7 +11824,8 @@ These actual Native GPU pictures show original world text, nameplates and screen
 
 ### Step 12 of 19 · Cache section masks and the final outline blend (`96zzzzzzze-cache-outline-section-recipes`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -11822,6 +11847,7 @@ These actual Native GPU pictures show original world text, nameplates and screen
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">one cached final blend</text>
 </svg>
+</div>
 
 Cache the section coverage and final outline blend for their requested sample count. Retain original integer addresses and the existing one-sample search images. This prepares the recipes; the outline coverage owner is connected in the next step.
 
@@ -12023,7 +12049,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### Step 13 of 19 · Resolve float outline coverage (`96zzzzzzzf-resolve-float-outline-coverage`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -12045,6 +12072,7 @@ Edit the existing block to match this code; keep unchanged lines:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">one matching final blend</text>
 </svg>
+</div>
 
 Render face and section coverage at the frame sample count, then resolve only its float mask for the existing outline search. Keep selected and global outlines coherent, retain the search resources and blend their result once.
 
@@ -13749,7 +13777,8 @@ These actual Native GPU pictures show original selected/global sections at one a
 
 ### Step 14 of 19 · Retarget original ambient properties (`96zzzzzzzg-retarget-original-ambient-properties`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -13771,6 +13800,7 @@ These actual Native GPU pictures show original selected/global sections at one a
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">retained one-sample amb…</text>
 </svg>
+</div>
 
 Match original ambient radius and normal sources to the frame sample count. Cache the ordinary and shared source recipes, and replace only their full-resolution source images when the count changes. Keep the coarse hierarchy and filters single-sample.
 
@@ -14461,7 +14491,8 @@ After that block, append this supplied code:
 
 ### Step 15 of 19 · Share ambient shader recipes (`96zzzzzzzh-share-ambient-shader-recipes`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -14483,6 +14514,7 @@ After that block, append this supplied code:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">retained composition in…</text>
 </svg>
+</div>
 
 Create each distinct ambient shader module once per recipe set and reuse it across the passes that need it. Give the common pipeline factory explicit vertex and fragment entries, and connect retained composition inputs before activating the physical-sample owner.
 
@@ -14602,7 +14634,8 @@ impl Ambient{
 
 ### Step 16 of 19 · Correct ambient at physical samples (`96zzzzzzzi-correct-ambient-at-physical-samples`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -14624,6 +14657,7 @@ impl Ambient{
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">indirect colour draw</text>
 </svg>
+</div>
 
 Connect matching original ambient properties to every physical sample and draw corrections only for samples that differ. Retain the existing coarse hierarchy and images, cache colour recipes and bound correction work by the viewport and its tile count.
 
@@ -14776,7 +14810,8 @@ These actual Native GPU pictures show the original ambient scene at one and four
 
 ### Step 17 of 19 · Cache physical depth-pyramid inputs (`96zzzzzzzj-cache-physical-depth-pyramid-inputs`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -14798,6 +14833,7 @@ These actual Native GPU pictures show the original ambient scene at one and four
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">six retained single-sam…</text>
 </svg>
+</div>
 
 Read the matching physical depth texture through a cached input recipe. Retain the six coarse pyramid levels, encoded radius/pixel addresses and one-sample reductions. A count change invalidates only the incompatible input binding and its prepared result.
 
@@ -14847,7 +14883,8 @@ Update the existing block with this supplied code; keep unchanged lines:
 
 ### Step 18 of 19 · Retarget the complete colour frame (`96zzzzzzzk-retarget-the-complete-colour-frame`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -14869,6 +14906,7 @@ Update the existing block with this supplied code; keep unchanged lines:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">matching attachments; i…</text>
 </svg>
+</div>
 
 Select one physical sample count for the complete colour frame. Retarget every active consumer and its attachments together, let later owners adopt that count, and retain independent original-owner query resources. Repeating the count does no work.
 
@@ -16814,7 +16852,8 @@ These actual Native GPU frames combine the original CAD bore, NURBS patch, share
 
 ### Step 19 of 19 · Choose bounded frame quality (`96zzzzzzzl-choose-bounded-frame-quality`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -16836,6 +16875,7 @@ These actual Native GPU frames combine the original CAD bore, NURBS patch, share
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">complete-frame count API</text>
 </svg>
+</div>
 
 Choose the colour sample count from the current geometry, physical viewport, device budget and recovery state. Read an optional `?msaa=` override once. Keep source and query ownership unchanged.
 

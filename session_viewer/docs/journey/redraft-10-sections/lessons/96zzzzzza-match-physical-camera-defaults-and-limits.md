@@ -6,7 +6,8 @@
 
 ## 1. Visual WebGPU Schematic
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="220" viewBox="0 0 840 220" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="220" viewBox="0 0 840 220" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -47,6 +48,7 @@
   <rect x="724" y="124" width="40" height="30" fill="url(#hatch)"/><text x="744" y="143" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">1.0</text>
   <text x="704" y="186" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#111111">0-Cells Blank</text>
 </svg>
+</div>
 
 | Layer | Construct | Role |
 | :--- | :--- | :--- |
@@ -63,7 +65,8 @@
 
 ### Step 1 of 6 · Match physical camera defaults and limits (`96zzzzzza-match-physical-camera-defaults-and-limits`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -85,6 +88,7 @@
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">existing camera and nam…</text>
 </svg>
+</div>
 
 Reuse the isometric orientation already taught for named views. The maintained default eye distance is three metres, so convert it to the file unit instead of using three scene units. A fresh camera has no scene extent. Zoom and tiny-object Fit use physical distance bounds rather than bounds tied to the last fitted object. The generic zoom factor API stays the same; command and wheel step mapping remain separate input work.
 
@@ -767,7 +771,8 @@ Update the existing block with this supplied code; keep unchanged lines:
 
 ### Step 2 of 6 · Omit unused background pick pipelines (`96zzzzzzb-omit-unused-background-pick-pipelines`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -789,6 +794,7 @@ Update the existing block with this supplied code; keep unchanged lines:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">unchanged original pick…</text>
 </svg>
+</div>
 
 The grid has no document pick IDs, yet the base lane currently compiles its integer shader and pipeline. Make that resource optional in the shared builder. Original stroke, chain and point lanes retain their existing pipeline. The grid still uses its previous finite color raster in this checkpoint; the next lesson replaces that raster and removes its finite resources.
 
@@ -1018,7 +1024,8 @@ After that block, append this supplied code:
 
 ### Step 3 of 6 · Draw the construction grid as physical lines (`96zzzzzzc-draw-the-construction-grid-as-physical-lines`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -1040,6 +1047,7 @@ After that block, append this supplied code:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">original surfaces</text>
 </svg>
+</div>
 
 Retain the precise endpoints and grid cache. Reuse the builder body already taught, then extend its target choice for a hardware line: one physical pixel at either density, physical color and background primitive zero. Draw it before surfaces without changing depth, so transparent faces reveal the grid behind them. Regular finite ink keeps CSS coverage and original owners. Default cells are 1000 scene units, with 5000-unit half extent; custom settings retain the same recipe.
 
@@ -1772,7 +1780,8 @@ After that block, append this supplied code:
 
 ### Step 4 of 6 · Build viewing rays without matrix inversion (`96zzzzzzd-build-viewing-rays-without-matrix-inversion`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -1794,6 +1803,7 @@ After that block, append this supplied code:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">precise world ray</text>
 </svg>
+</div>
 
 An orthographic projection may have a small determinant simply because its view is large. Construct the target-plane offset from the camera axes, frame shift and half field of view. Perspective rays pass through the eye; orthographic rays stay parallel. Keep the existing near origin and finite far endpoint used by learner queries. One depth-limit helper serves both the ray and projection. Its reach includes the scene and the default 5000-scene-unit ground square, or the fixed construction plane around its original origin. Hiding grid lines only changes drawing; it must not shorten the visible depth range or make a below-ground original disappear.
 
@@ -2401,7 +2411,8 @@ Update the existing block with this supplied code; keep unchanged lines:
 
 ### Step 5 of 6 · Grow camera depth from cached world bounds (`96zzzzzze-grow-camera-depth-from-cached-world-bounds`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -2423,6 +2434,7 @@ Update the existing block with this supplied code; keep unchanged lines:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">anchored frame</text>
 </svg>
+</div>
 
 Fit changes framing; receiving a deep original should not require fitting again just to make it visible. Cache the displayed scene’s numeric world bounds when its rows are adopted. Use one eight-corner helper for fitting and extent growth. Grow only the camera radius, leaving its target, distance, orientation and free frame alone. Camera-only frames then inspect eight corners rather than original vertices. The cache owns no Scene or original geometry. Text metrics can change after fonts arrive, so refresh those bounds only when their measured extent changes. Apply metrics to the scene currently being displayed, including editing previews, before preparing the anchored frame. The radius grows monotonically. The first original can replace the empty-scene distance fallback and change depth coefficients without moving the view.
 
@@ -4633,7 +4645,8 @@ After that block, append this supplied code:
 
 ### Step 6 of 6 · Match wheel input and framed projection (`96zzzzzzf-match-wheel-input-and-framed-projection`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -4655,6 +4668,7 @@ After that block, append this supplied code:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">existing Fit</text>
 </svg>
+</div>
 
 DOM pixel deltas are logical values. Convert them with the actual window density before the current f32 amount conversion. Line deltas already describe steps; page events are ignored. Keep the current f32 amount conversion and finite guard, then use a double-precision zoom factor through the existing action and camera. Render-density limits do not change wheel sensitivity. Projection changes also need deliberate framing. Switching into perspective can lose what an orthographic view showed. Clip the current world-box corners to the visible rectangle, preserve their forward depth and reuse Fit. Switching back, or requesting the active mode again, does not refit.
 

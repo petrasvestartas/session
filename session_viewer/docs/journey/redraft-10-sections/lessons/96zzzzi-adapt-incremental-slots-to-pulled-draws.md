@@ -6,7 +6,8 @@
 
 ## 1. Visual WebGPU Schematic
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="220" viewBox="0 0 840 220" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="220" viewBox="0 0 840 220" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -47,6 +48,7 @@
   <rect x="724" y="124" width="40" height="30" fill="url(#hatch)"/><text x="744" y="143" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">1.0</text>
   <text x="704" y="186" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#111111">0-Cells Blank</text>
 </svg>
+</div>
 
 | Layer | Construct | Role |
 | :--- | :--- | :--- |
@@ -63,7 +65,8 @@
 
 ### Step 1 of 16 · Adapt incremental slots to pulled draws (`96zzzzi-adapt-incremental-slots-to-pulled-draws`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -85,6 +88,7 @@
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">correct physical IDs</text>
 </svg>
+</div>
 
 The allocator originally subtracts the definition first triangle because its draw uses global arena indices. Our pulled draw begins at local occurrence zero. Add a local slot accessor from the existing texel instead of copying the allocator. Compare new definition rows with retained runs to report only changed member positions. The next connection will publish those changes to the existing GPU owners.
 
@@ -126,7 +130,8 @@ Update the existing block with this supplied code; keep unchanged lines:
 
 ### Step 2 of 16 · Prepare exact arena slot definitions (`96zzzzj-prepare-exact-arena-slot-definitions`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -148,6 +153,7 @@ Update the existing block with this supplied code; keep unchanged lines:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">existing slot allocator</text>
 </svg>
+</div>
 
 The allocator needs a stable integer definition key and a complete face range. A shared arena index offset already provides that exact identity. Group object rows at that offset and verify that every geometry belongs to the same arena. Standalone preview buffers retain the earlier drawing path. This adapter prepares the next live allocator connection without changing draws.
 
@@ -207,7 +213,8 @@ After that block, append this supplied code:
 
 ### Step 3 of 16 · Retain live allocator member runs (`96zzzzk-retain-live-allocator-member-runs`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -229,6 +236,7 @@ After that block, append this supplied code:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">bounded retained runs</text>
 </svg>
+</div>
 
 Keep the existing allocator in the surface lane. Build exact definitions from the grouped geometry and ordinary rows, detect changed member positions, and update retained runs. Check integer headroom before planning and release the allocator when no records remain. This checkpoint prepares live CPU allocation; GPU draws still use their earlier slots.
 
@@ -496,7 +504,8 @@ After that block, append this supplied code:
 
 ### Step 4 of 16 · Prepare one plan for draw slots and lookup (`96zzzzl-prepare-one-plan-for-draw-slots-and-lookup`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -518,6 +527,7 @@ After that block, append this supplied code:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">local draw-slot bytes a…</text>
 </svg>
+</div>
 
 The local slot accessor and lookup texel describe the same physical interval. Publish both through the existing changed-write helpers. A reused hole can change an inactive boundary that binary search still reads; merge those slot differences with the allocator report using its existing coalescer. Update the header when the retained range shrinks. Preserve the own-row sentinel and release empty plans. Live adoption follows in the next lesson.
 
@@ -574,7 +584,8 @@ Update the existing block with this supplied code; keep unchanged lines:
 
 ### Step 5 of 16 · Prepare one owner for live address updates (`96zzzzm-prepare-one-owner-for-live-address-updates`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -596,6 +607,7 @@ Update the existing block with this supplied code; keep unchanged lines:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">measured allocation par…</text>
 </svg>
+</div>
 
 The next connection must update both the shared record and its uniform fallback before projection. Pass the mesh slice and membership set to their existing lane owner, distinguishing source changes from style-only updates. Expose the existing record and slot allocations separately while deriving their total once. The drawing and address allocation remain unchanged here.
 
@@ -1547,7 +1559,8 @@ After that block, append this supplied code:
 
 ### Step 6 of 16 · Adopt retained GPU slots and physical bases (`96zzzzn-adopt-retained-gpu-slots-and-physical-bases`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -1569,6 +1582,7 @@ After that block, append this supplied code:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">coherent sparse GPU slo…</text>
 </svg>
+</div>
 
 Use the retained runs to locate each stable object row and batch. Synchronize original uniform addresses and shared records before uploading, then publish the matching local slots and inverse lookup. Source changes adopt current physical intervals; style-only explicit address overrides retain the earlier path. Measure every lookup allocation and upload once. Primitive lookup consumers follow next. Reactivating a retained member updates its lookup count even when its object row is unchanged.
 
@@ -2602,7 +2616,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### Step 7 of 16 · Separate projection rows and arena offsets (`96zzzzo-separate-projection-rows-and-arena-offsets`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -2624,6 +2639,7 @@ Edit the existing block to match this code; keep unchanged lines:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">unchanged projected rec…</text>
 </svg>
+</div>
 
 The inverse lookup returns a global arena triangle and an object row. The current projection starts from a local triangle and adds the object range. Pass the row and first index explicitly to the existing corner and polygon helpers, retaining the current local call. This prepares global inputs without copying the projection or clipping algorithm.
 
@@ -2898,7 +2914,8 @@ fn cs_main(@builtin(global_invocation_id) id: vec3<u32>) {
 
 ### Step 8 of 16 · Prepare lookup-selected triangle projection (`96zzzzp-prepare-lookup-selected-triangle-projection`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -2920,6 +2937,7 @@ fn cs_main(@builtin(global_invocation_id) id: vec3<u32>) {
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">shared projection</text>
 </svg>
+</div>
 
 Assemble a third compute source from the projection algorithm already written. The unsigned inverse lookup resolves a physical ID into an arena triangle and object row. Skip direct-arena and inactive entries, then project the resolved triangle with a zero extra offset. The existing uniform and per-mesh record sources remain available.
 
@@ -2962,7 +2980,8 @@ Update the existing block with this supplied code; keep unchanged lines:
 
 ### Step 9 of 16 · Prepare the lookup projection pipeline (`96zzzzq-prepare-the-lookup-projection-pipeline`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -2984,6 +3003,7 @@ Update the existing block with this supplied code; keep unchanged lines:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">prepared projection pip…</text>
 </svg>
+</div>
 
 Extend the current projection constructor with an unsigned texture entry and select the lookup-assembled shader. Keep uniform and per-mesh storage states built by the same constructor. The new pipeline is prepared under the existing tile lifetime; live dispatches remain unchanged until their bindings are connected.
 
@@ -3029,7 +3049,8 @@ impl Pipelines{
 
 ### Step 10 of 16 · Own current lookup projection bindings (`96zzzzr-own-current-lookup-projection-bindings`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -3051,6 +3072,7 @@ impl Pipelines{
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">output-aware immutable…</text>
 </svg>
+</div>
 
 Capture the current arena buffers, shared records and lookup view under one binding owner. Reject missing or stale records. Store the physical interval once and cache its bind group against the projected output buffer. A resized output needs a new immutable group. The live tile path adopts this owner next.
 
@@ -3099,7 +3121,8 @@ After that block, append this supplied code:
 
 ### Step 11 of 16 · Project live triangles through the lookup (`96zzzzs-project-live-triangles-through-the-lookup`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -3121,6 +3144,7 @@ After that block, append this supplied code:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">existing tile bins</text>
 </svg>
+</div>
 
 Adopt the current binding owner when every record is valid. Dispatch physical IDs once, resolve their original arena triangle and object row through the inverse lookup, and reuse the projection algorithm. Keep the existing per-mesh fallback. Include lookup-view identity in the cache witness and invalidate output groups on resize or release. Selection-only record bytes retain the cached projection.
 
@@ -3240,7 +3264,8 @@ After that block, append this supplied code:
 
 ### Step 12 of 16 · Plan reusable arena spans (`96zzzzt-plan-reusable-arena-spans`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -3262,6 +3287,7 @@ After that block, append this supplied code:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">take after both ranges…</text>
 </svg>
+</div>
 
 Plan a vertex span and an index span before taking either. Prefer a suitable free interval; otherwise extend the checked tail. Retirement merges free intervals through the coalescer already written and trims only an unused tail. These helpers are preparatory; the application still appends geometry until the following connection.
 
@@ -3310,7 +3336,8 @@ After that block, append this supplied code:
 
 ### Step 13 of 16 · Reuse retired arena record ranges (`96zzzzu-reuse-retired-arena-record-ranges`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -3332,6 +3359,7 @@ After that block, append this supplied code:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">current packed records</text>
 </svg>
+</div>
 
 Keep free vertex and index spans beside the existing source map. Plan both requests and validate rebased indices before taking either. A retired source loses its range association even when history still retains its precise mesh. Reuse holes and trim only unused tails. GPU retirement is connected after in-place uploads are prepared.
 
@@ -3412,7 +3440,8 @@ After that block, append this supplied code:
 
 ### Step 14 of 16 · Upload reused arena spans in place (`96zzzzv-upload-reused-arena-spans-in-place`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -3434,6 +3463,7 @@ After that block, append this supplied code:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">exact upload totals</text>
 </svg>
+</div>
 
 A reused span is inside the buffer, so appending its bytes would draw the old data. Add a bounded overwrite-and-tail operation to the growing buffer, sharing its existing device-limit calculation. Upload each arena range at its actual start, retain immutable groups for in-place writes and refresh them on growth. Count actual new geometry uploads and source bytes, including reused holes.
 
@@ -3640,7 +3670,8 @@ After that block, append this supplied code:
 
 ### Step 15 of 16 · Reclaim ranges after the last GPU lease (`96zzzzw-reclaim-ranges-after-the-last-gpu-lease`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -3662,6 +3693,7 @@ After that block, append this supplied code:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">later geometry reuses t…</text>
 </svg>
+</div>
 
 A source mesh can remain alive in Undo while no GPU geometry uses its range. Give every shared GPU geometry a strong range token; the arena retains weak tokens only. Prune expired leases, remove their source associations and return their spans. Keep surviving ranges fixed, reuse holes for later uploads and derive cache statistics from actual arena writes.
 
@@ -3981,7 +4013,8 @@ After that block, append this supplied code:
 
 ### Step 16 of 16 · Retire empty arena ranges after tail trimming (`96zzzzx-retire-empty-arena-ranges-after-tail-trimming`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -4003,6 +4036,7 @@ After that block, append this supplied code:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">keep the new end</text>
 </svg>
+</div>
 
 An empty geometry can receive a zero-length range at the old tail. Retiring another source may shorten the tail before that empty record expires. Since the empty range owns no bytes, return the current end without inserting a hole or checking its old endpoint against the new extent. Keep all bounds checks for nonempty ranges.
 

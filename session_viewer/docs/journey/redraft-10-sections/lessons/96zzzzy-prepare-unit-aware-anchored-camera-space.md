@@ -6,7 +6,8 @@
 
 ## 1. Visual WebGPU Schematic
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="220" viewBox="0 0 840 220" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="220" viewBox="0 0 840 220" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -47,6 +48,7 @@
   <rect x="724" y="124" width="40" height="30" fill="url(#hatch)"/><text x="744" y="143" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">1.0</text>
   <text x="704" y="186" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#111111">0-Cells Blank</text>
 </svg>
+</div>
 
 | Layer | Construct | Role |
 | :--- | :--- | :--- |
@@ -63,7 +65,8 @@
 
 ### Step 1 of 11 · Prepare unit-aware anchored camera space (`96zzzzy-prepare-unit-aware-anchored-camera-space`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -85,6 +88,7 @@
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">clip coordinate</text>
 </svg>
+</div>
 
 Move the unit already introduced for [measurement labels](../../84d-own-temporary-measurement-labels-without-scene-identities.md) to the camera. One camera value now drives measurement suffixes and projection. The document owns its coordinates and file unit. Convert scene distances to metres only while building the camera matrix. For a distant drawing, subtract the shared scene anchor in double precision before multiplying by the unit scale. Multiplying all clip components by one nonzero factor leaves their divided coordinates unchanged. Divide the perspective matrix by the unit scale so inverse consumers keep their numeric range. CPU rays invert around the precise target, form their direction locally and restore the world origin afterward. The ordinary matrix uses a zero anchor; later GPU consumers will adopt the same anchor together. Depth remains forward at this checkpoint.
 
@@ -2338,7 +2342,8 @@ Update the existing block with this supplied code; keep unchanged lines:
 
 ### Step 2 of 11 · Prepare precise anchor-relative object records (`96zzzzz-prepare-precise-anchor-relative-object-records`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -2360,6 +2365,7 @@ Update the existing block with this supplied code; keep unchanged lines:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">existing object record…</text>
 </svg>
+</div>
 
 The object record already owns the model matrix. Keep its translation in double precision beside the GPU mirror and subtract the current scene anchor before narrowing. An explicit rebase updates twelve translation bytes; ordinary selection and placement updates use the same helper and anchor. One origin policy moves after a quarter-view-distance drift clamped to 1,000–100,000 scene units, throttles moves for 200 ms and reports pending work. The original object and shared geometry remain unchanged. The application still uses the zero anchor until every consumer can adopt a common frame.
 
@@ -2677,7 +2683,8 @@ After that block, append this supplied code:
 
 ### Step 3 of 11 · Prepare anchor-relative original ink (`96zzzzza-prepare-anchor-relative-original-ink`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -2699,6 +2706,7 @@ After that block, append this supplied code:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">existing packed ink rec…</text>
 </svg>
+</div>
 
 Lines, paths, points and controls already retain precise source coordinates. Apply the original placement in double precision, subtract the anchor, then narrow the local position. Paths reuse their retained samples and form neighbours after local duplicate filtering. Keep the earlier zero-anchor methods as delegates so live drawing remains consistent until all consumers adopt the shared frame. Reuse the existing source table with that same anchor before filtering path duplicates, so drawn segments and compact pick addresses remain paired with original keys.
 
@@ -4012,7 +4020,8 @@ impl Sources {
 
 ### Step 4 of 11 · Prepare shared-origin frame inputs (`96zzzzzb-prepare-shared-origin-frame-inputs`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -4034,6 +4043,7 @@ impl Sources {
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">local GPU clipping + pr…</text>
 </svg>
+</div>
 
 Give the renderer one origin-policy owner. Pass its anchor into GPU clipping and text placement, and retain ambient floor height in double precision until relative packing. Text tests its original world anchor against world planes before subtracting the render origin, so keep that CPU predicate in world space. Reuse the existing clipping conversion and text engine; live browser origin changes remain deferred until every consumer is ready.
 
@@ -5414,7 +5424,8 @@ After that block, append this supplied code:
 
 ### Step 5 of 11 · Prepare cloud and sheet frame placements (`96zzzzzc-prepare-cloud-and-sheet-frame-placements`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -5436,6 +5447,7 @@ After that block, append this supplied code:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">existing LOD, records a…</text>
 </svg>
+</div>
 
 Extract precise anchor-relative model placement once and reuse it for object records, cloud projection and sheet uniforms. Cloud distance selection and its GPU eye must use that same local frame. Include the exact origin in the cloud cache witness: panning the camera and rebasing together can leave the local matrix and eye unchanged while original world data must move on screen. Reuse cached cloud columns and sheet geometry; update only their view and placement inputs.
 
@@ -7327,7 +7339,8 @@ After that block, append this supplied code:
 
 ### Step 6 of 11 · Prepare local temporary overlays (`96zzzzzd-prepare-local-temporary-overlays`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -7349,6 +7362,7 @@ After that block, append this supplied code:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">existing text frame</text>
 </svg>
+</div>
 
 Subtract the render origin while collecting precise draft, guide and measurement coordinates. Keep labels in world space for the existing text frame. Include the origin in measurement cache decisions even when their source values are unchanged. Trim and extension guides share the same collector; zero-origin entry points retain the earlier behavior until the complete browser frame adopts rebasing.
 
@@ -9469,7 +9483,8 @@ After that block, append this supplied code:
 
 ### Step 7 of 11 · Preserve local precision before source placement (`96zzzzze-preserve-local-precision-before-source-placement`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -9491,6 +9506,7 @@ After that block, append this supplied code:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">narrow once</text>
 </svg>
+</div>
 
 Keep local source coordinates separate from their placement until the scene anchor has been subtracted. Reuse the precise local model for line endpoints, path samples, points, controls and pick boundaries. World-coordinate accessors remain zero-origin delegates.
 
@@ -10855,7 +10871,8 @@ After that block, append this supplied code:
 
 ### Step 8 of 11 · Prepare precise construction-grid origins (`96zzzzzf-prepare-precise-construction-grid-origins`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -10877,6 +10894,7 @@ After that block, append this supplied code:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">GPU cache witness</text>
 </svg>
+</div>
 
 Reuse one double-precision construction-plane matrix. Subtract the scene origin from that placement before transforming grid-local coordinates. Include the origin in the grid cache so a rebase rebuilds vertices even when settings and the world plane stay fixed.
 
@@ -11666,7 +11684,8 @@ After that block, append this supplied code:
 
 ### Step 9 of 11 · Initialize object records in the local frame (`96zzzzzg-initialize-object-records-in-the-local-frame`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -11688,6 +11707,7 @@ After that block, append this supplied code:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">first draw</text>
 </svg>
+</div>
 
 Reuse the existing settings encoder when creating object records. Expose the scene origin at initialization and retain it for later settings updates. Existing callers delegate with zero origin; derived highlight faces can then initialize precisely without a second write.
 
@@ -11918,7 +11938,8 @@ After that block, append this supplied code:
 
 ### Step 10 of 11 · Prepare original highlights in the shared local frame (`96zzzzzh-prepare-anchor-relative-original-highlights`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -11940,6 +11961,7 @@ After that block, append this supplied code:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">derived highlight lanes</text>
 </svg>
+</div>
 
 Initialize derived face records with the precise scene origin. Reuse local placement and original-source accessors for selected boundaries, curves, controls and cloud points. Pass the same origin through whole-object ink selection.
 
@@ -12692,7 +12714,8 @@ After that block, append this supplied code:
 
 ### Step 11 of 11 · Verify the shared unit through original history (`96zzzzzi-share-one-camera-and-measurement-unit`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -12714,6 +12737,7 @@ After that block, append this supplied code:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">original history</text>
 </svg>
+</div>
 
 Use the [shared camera unit](../../96zzzzy-prepare-unit-aware-anchored-camera-space.md) already established with unit-aware projection. This checkpoint supplies an optional original-history fixture; it introduces no second unit definition or application implementation.
 

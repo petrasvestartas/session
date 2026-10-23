@@ -6,7 +6,8 @@
 
 ## 1. Visual WebGPU Schematic
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="220" viewBox="0 0 840 220" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="220" viewBox="0 0 840 220" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -47,6 +48,7 @@
   <rect x="724" y="124" width="40" height="30" fill="url(#hatch)"/><text x="744" y="143" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">1.0</text>
   <text x="704" y="186" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#111111">0-Cells Blank</text>
 </svg>
+</div>
 
 | Layer | Construct | Role |
 | :--- | :--- | :--- |
@@ -63,7 +65,8 @@
 
 ### Step 1 of 5 · Share one frame across color and ink (`96zzzzzzi-share-one-frame-across-color-and-ink`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -85,6 +88,7 @@
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">separate borrowed pick…</text>
 </svg>
+</div>
 
 Every ordinary ink lane currently builds and uploads another copy of the camera and viewport. These copies also belong to selection, preview, measurement and guide wrappers. Put the physical viewport, density and opacity immediately after the matrix in the shared frame. Existing ink shaders can read that eighty-byte prefix; surface display settings and the eye follow it. Use one explicit layout and pass borrowed groups into drawing. Color uses the renderer frame, and integer picking uses its existing request frame. The sheet lane has a different projection-scale field: keep that calibrated frame separate. This also makes the real viewport available for the coming contact-depth work without another camera owner.
 
@@ -2277,7 +2281,8 @@ After that block, append this supplied code:
 
 ### Step 2 of 5 · Fill original contact polygons (`96zzzzzzj-fill-original-contact-polygons`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -2299,6 +2304,7 @@ After that block, append this supplied code:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">original object owner</text>
 </svg>
+</div>
 
 A contact outline is an area on its original Element. Reuse the existing full-ring normal and kernel polygon triangulation, retaining mesh Parts so the existing source-ink collector supplies the complete black one-pixel perimeter. Keep contact preparation in the existing feature module; another retained boundary Polyline is unnecessary. Apply the contact marker explicitly to the derived display, because ordinary kernel conversion makes an opaque mesh. Surface records carry the original integer owner through the existing feature adapter. Color and integer vertex entries share the bounded camera-depth layer, leaving screen positions and original coordinates unchanged. Degenerate outlines retain their point/path fallback. Boundary depth, current ambient inputs and multisampling remain unfinished.
 
@@ -3276,7 +3282,8 @@ pub(crate) fn contact_fill(outline:&Polyline)->Result<Option<PreparedMesh>,&'sta
 
 ### Step 3 of 5 · Broadcast ordinary ink metadata (`96zzzzzzk-broadcast-ordinary-ink-metadata`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -3298,6 +3305,7 @@ pub(crate) fn contact_fill(outline:&Polyline)->Result<Option<PreparedMesh>,&'sta
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">unchanged color and GPU…</text>
 </svg>
+</div>
 
 Ordinary ink repeats a zero clipping flag for every instance. Choose metadata addressing when creating the lane: broadcast one record for lines, paths and markers; keep indexed records for mesh borders and mixed highlights. Color, picking and source geometry stay unchanged.
 
@@ -4457,7 +4465,8 @@ After that block, append this supplied code:
 
 ### Step 4 of 5 · Layer original contact boundaries (`96zzzzzzl-layer-original-contact-boundaries`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -4479,6 +4488,7 @@ After that block, append this supplied code:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">matching finite visibil…</text>
 </svg>
+</div>
 
 At steep angles, the contact fill can cover its own black border. Carry the original contact normal through the existing indexed mesh-ink record, apply the same bounded depth layer, and include that rise in the existing visibility tolerance. Ordinary ink keeps its four-byte record.
 
@@ -5553,7 +5563,8 @@ After that block, append this supplied code:
 
 ### Step 5 of 5 · Query original faces under contact overlays (`96zzzzzzm-query-original-faces-under-contact-overlays`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -5575,6 +5586,7 @@ After that block, append this supplied code:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">actual source key</text>
 </svg>
+</div>
 
 The contact selects its original parent as an object, but its generated face address cannot resolve as an original face. Exclude derived display rows from the face query and its depth pass. Keep original locked geometry as an occluder and preserve real source keys.
 

@@ -6,7 +6,8 @@
 
 ## 1. Visual WebGPU Schematic
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="220" viewBox="0 0 840 220" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="220" viewBox="0 0 840 220" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -47,6 +48,7 @@
   <rect x="724" y="124" width="40" height="30" fill="url(#hatch)"/><text x="744" y="143" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">1.0</text>
   <text x="704" y="186" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#111111">0-Cells Blank</text>
 </svg>
+</div>
 
 | Layer | Construct | Role |
 | :--- | :--- | :--- |
@@ -63,7 +65,8 @@
 
 ### Step 1 of 24 · Separate primitive addresses from selection (`96zzu-separate-primitive-addresses-from-selection`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -85,6 +88,7 @@
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">physical primitive image</text>
 </svg>
+</div>
 
 Selection is presentation, not part of a triangle address. Move the primitive base into the existing range record. Both color and first-pick shaders read that word, and instance slots reuse it. Keep the reserved cap interval outside ordinary geometry.
 
@@ -433,7 +437,8 @@ After that block, append this supplied code:
 
 ### Step 2 of 24 · Bind the own-row slot for ordinary surfaces (`96zzv-bind-the-own-row-slot-for-ordinary-surfaces`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -455,6 +460,7 @@ After that block, append this supplied code:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">shared surface vertex</text>
 </svg>
+</div>
 
 Ordinary surfaces use their own uniform record; placed instances use a storage row. Bind the reserved own-row slot for ordinary and temporary surface passes. Both pipelines now share one vertex entry and slot layout.
 
@@ -1331,7 +1337,8 @@ After that block, append this supplied code:
 
 ### Step 3 of 24 · Reload scenes through the existing publication owner (`96zzw-reload-scenes-through-the-existing-publication-owner`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -1353,6 +1360,7 @@ After that block, append this supplied code:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">Live adoption</text>
 </svg>
+</div>
 
 The reader already adopts complete live scenes and clears their history. Add the current reload_scene entry point instead of another loader. Update its stable control, cancel obsolete work and begin the existing candidate transaction. An empty manifest releases the document.
 
@@ -1683,7 +1691,8 @@ After that block, append this supplied code:
 
 ### Step 4 of 24 · Update only changed slot runs (`96zzx-update-only-changed-slot-runs`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -1705,6 +1714,7 @@ After that block, append this supplied code:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">unchanged draw slots</text>
 </svg>
+</div>
 
 A selection change can update one slot while its shared geometry remains untouched. Add bounded writes to the existing growing buffer. Compare slot rows, group adjacent changes and upload those runs. Keep the sentinel and reuse capacity when the active count shrinks.
 
@@ -1809,7 +1819,8 @@ After that block, append this supplied code:
 
 ### Step 5 of 24 · Share one slot buffer across surface draws (`96zzy-share-one-slot-buffer-across-surface-draws`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -1831,6 +1842,7 @@ After that block, append this supplied code:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">shared surface vertex e…</text>
 </svg>
+</div>
 
 Each batch currently owns another slot buffer. Move those slots into one lane owner. Keep the sentinel at row zero and record each batch’s starting row. Bind that range for placed draws and row zero for ordinary surfaces and temporary highlights.
 
@@ -2618,7 +2630,8 @@ After that block, append this supplied code:
 
 ### Step 6 of 24 · Prepare the integer primitive-slot texture (`96zzz-prepare-the-integer-primitive-slot-texture`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -2640,6 +2653,7 @@ After that block, append this supplied code:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">four exact integer words</text>
 </svg>
+</div>
 
 The vertex buffer selects placements. A lookup texture will let fragment passes find their original row and triangle interval. Prepare four integer words per texel, a fixed row width and partial writes that split at texture-row boundaries. The drawing remains unchanged until this table is connected.
 
@@ -2699,7 +2713,8 @@ After that block, append this supplied code:
 
 ### Step 7 of 24 · Describe slot and triangle runs (`96zzza-describe-slot-and-triangle-runs`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -2721,6 +2736,7 @@ After that block, append this supplied code:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">used members</text>
 </svg>
+</div>
 
 A definition needs slots for its placed members and IDs for their triangles. Describe both ranges in one run. Keep used length separate from capacity, and represent free room without a definition key. Reuse the existing sentinel and slot type.
 
@@ -2752,7 +2768,8 @@ mod slot_space;
 
 ### Step 8 of 24 · Read slot runs and lookup texels (`96zzzb-read-slot-runs-and-lookup-texels`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -2774,6 +2791,7 @@ mod slot_space;
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">vertex slot and fragmen…</text>
 </svg>
+</div>
 
 Read the row and triangle offset for a slot. Derive the four-word lookup texel from that same run, with zero triangles for unused room. Report draws in definition order and merge overlapping changed ranges.
 
@@ -2869,7 +2887,8 @@ fn coalesce(ranges: Vec<Range<u32>>, end: u32) -> Vec<Range<u32>> {
 
 ### Step 9 of 24 · Reuse and merge free slot ranges (`96zzzc-reuse-and-merge-free-slot-ranges`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -2891,6 +2910,7 @@ fn coalesce(ranges: Vec<Range<u32>>, end: u32) -> Vec<Range<u32>> {
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">retained remainder</text>
 </svg>
+</div>
 
 Find the first free run with enough slots and triangle IDs. Split its unused tail instead of discarding it. Fill the occupied run from its definition, then join neighbouring free runs and remove unused room at the end.
 
@@ -2970,7 +2990,8 @@ impl SlotSpace {
 
 ### Step 10 of 24 · Follow arena growth with slot headroom (`96zzzd-follow-arena-growth-with-slot-headroom`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -2992,6 +3013,7 @@ impl SlotSpace {
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">header update or renumb…</text>
 </svg>
+</div>
 
 A load or compaction places every definition again. Later arena growth should change only the lookup header while it fits before existing instance IDs. Renumber when the arena crosses that space, and retire runs whose definition or shared faces changed.
 
@@ -3085,7 +3107,8 @@ impl SlotSpace {
 
 ### Step 11 of 24 · Report only changed instance slots (`96zzze-report-only-changed-instance-slots`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -3107,6 +3130,7 @@ impl SlotSpace {
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">coalesced dirty ranges</text>
 </svg>
+</div>
 
 Connect the allocator helpers. Retire obsolete runs, patch touched members and reuse capacity for definitions that still fit. Move full runs into new room and compact excessive spare space. Return only the slot ranges that need GPU updates.
 
@@ -3231,7 +3255,8 @@ After that block, append this supplied code:
 
 ### Step 12 of 24 · Project triangles at their physical addresses (`96zzzf-project-triangles-at-their-physical-addresses`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -3253,6 +3278,7 @@ After that block, append this supplied code:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">finite tile references</text>
 </svg>
+</div>
 
 The color pass writes each object’s primitive base, while projection still assumes dense rows. Read that same base when placing projected triangles. Bound the largest interval by the device budget, include addresses in the cache key and clear unused records before projection.
 
@@ -3355,7 +3381,8 @@ After that block, append this supplied code:
 
 ### Step 13 of 24 · Clear the current Arctic background (`96zzzg-clear-the-current-arctic-background`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -3377,6 +3404,7 @@ After that block, append this supplied code:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">stored background pixel</text>
 </svg>
+</div>
 
 Change the existing render-pass clear to linear grey 0.94 when Arctic is enabled. Keep the ordinary background when it is disabled. The sRGB target converts that linear value when storing pixels; do not put its already encoded byte value into the clear colour.
 
@@ -3428,7 +3456,8 @@ Update the existing block with this supplied code; keep unchanged lines:
 
 ### Step 14 of 24 · Share changed record runs (`96zzzh-share-changed-record-runs`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -3450,6 +3479,7 @@ Update the existing block with this supplied code; keep unchanged lines:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">existing bounded buffer…</text>
 </svg>
+</div>
 
 Move the slot comparison into one generic helper. Keep the existing sentinel offset, tail append, shrink and release behavior. The next object table will use this same scan instead of teaching a second upload algorithm.
 
@@ -3522,7 +3552,8 @@ impl Slots {
 
 ### Step 15 of 24 · Prepare one shared object record table (`96zzzi-prepare-one-shared-object-record-table`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -3544,6 +3575,7 @@ impl Slots {
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">current immutable bindi…</text>
 </svg>
+</div>
 
 Use the existing aligned object record and growing GPU buffer. Update changed records through the shared scan, append new records, rebuild the immutable binding after buffer growth and release scene capacity when empty. Validate device limits before mutating either owner. This table is preparatory; the next lesson connects instance drawing.
 
@@ -3591,7 +3623,8 @@ After that block, append this supplied code:
 
 ### Step 16 of 24 · Share instance object records across definitions (`96zzzj-share-instance-object-records-across-definitions`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -3613,6 +3646,7 @@ After that block, append this supplied code:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">unchanged pulled surfac…</text>
 </svg>
+</div>
 
 Replace each definition batch’s storage buffer with the shared object table. Slot row numbers now address that table across all definitions. Keep geometry ownership, the ordinary sentinel and primitive bases unchanged. Check the complete table against the device storage limit before adopting a new drawing.
 
@@ -3718,7 +3752,8 @@ Update the existing block with this supplied code; keep unchanged lines:
 
 ### Step 17 of 24 · Reuse checked curve control coordinates (`96zzzk-reuse-checked-curve-control-coordinates`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -3740,6 +3775,7 @@ Update the existing block with this supplied code; keep unchanged lines:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">sampling or marker disp…</text>
 </svg>
+</div>
 
 The original curve sampler and control owner both decode the same rational coordinates. Extract the existing checked calculation into a borrowed helper. The control owner keeps its Rc; the sampler calls the helper without allocating another owner. Keep curve-domain, positive-weight and sampling guards in their existing owner.
 
@@ -3915,7 +3951,8 @@ pub fn sample(source: &NurbsCurve) -> Result<Vec<[f64; 3]>, &'static str> {
 
 ### Step 18 of 24 · Publish allocator texels through the integer table (`96zzzl-publish-allocator-texels-through-the-integer-table`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -3937,6 +3974,7 @@ pub fn sample(source: &NurbsCurve) -> Result<Vec<[f64; 3]>, &'static str> {
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">current texture view</text>
 </svg>
+</div>
 
 The CPU slot allocator and GPU lookup texture are already written. Publish full texels when the texture shape changes; otherwise write only the allocator’s changed ranges. Reuse the existing texture writer and preserve its exact integer words. This connects publication helpers; fragment lookup remains a later step.
 
@@ -4011,7 +4049,8 @@ After that block, append this supplied code:
 
 ### Step 19 of 24 · Resolve physical triangles with integer slots (`96zzzm-resolve-physical-triangles-with-integer-slots`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -4033,6 +4072,7 @@ After that block, append this supplied code:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">definition triangle and…</text>
 </svg>
+</div>
 
 An instance has its own physical triangle IDs while sharing geometry. Read the integer table header, keep ordinary triangles on their own rows, then find the last slot starting before the requested ID. Reject retired slots and spare ranges. Write this shader once so later GPU consumers share the same rule.
 
@@ -4070,7 +4110,8 @@ After that block, append this supplied code:
 
 ### Step 20 of 24 · Batch shared geometry with original ownership (`96zzzn-batch-shared-geometry-with-original-ownership`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -4092,6 +4133,7 @@ After that block, append this supplied code:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">original IDs</text>
 </svg>
+</div>
 
 Copying an original can reuse its GPU geometry without becoming a saved InstanceRef. Choose the GPU drawing path from shared geometry and declared instances, while leaving source ownership, editing, archives and original pick IDs in the scene. When only one ordinary original remains visible, use the existing ordinary draw path again. Keep copied originals on the ordinary path when their optional shared batch would exceed the existing record-table capacity.
 
@@ -4266,7 +4308,8 @@ fn shared_object_rows_keep_neighbours_growth_and_release() {
 
 ### Step 21 of 24 · Shrink record ranges without rewriting live prefixes (`96zzzo-shrink-record-ranges-without-rewriting-live-prefixes`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -4288,6 +4331,7 @@ fn shared_object_rows_keep_neighbours_growth_and_release() {
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">current draw count</text>
 </svg>
+</div>
 
 Removing a last record changes the live range without changing its prefix. Keep the allocation and immutable binding, shorten the logical count, and reuse the changed-run scan for records that really changed. An empty object table still follows the existing full-release path; ordinary slot zero remains available.
 
@@ -4366,7 +4410,8 @@ Update the existing block with this supplied code; keep unchanged lines:
 
 ### Step 22 of 24 · Share opaque ordinary surface records (`96zzzp-share-opaque-ordinary-surface-records`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -4388,6 +4433,7 @@ Update the existing block with this supplied code; keep unchanged lines:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">original pixels and pri…</text>
 </svg>
+</div>
 
 The shared record table already draws instances. Append ordinary visible mesh records when it has room and bind their draw slots in the existing scene order. Reuse the same storage shader. Keep the ordinary uniform path for transparency, temporary overlays and a table that cannot hold the optional ordinary records. A draw uses the shared record only while its packed snapshot matches the current mesh; otherwise restore slot zero and use the current uniform path.
 
@@ -5163,7 +5209,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### Step 23 of 24 · Blend ordinary surface records (`96zzzq-blend-ordinary-surface-records`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -5185,6 +5232,7 @@ Edit the existing block to match this code; keep unchanged lines:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">earlier scene order</text>
 </svg>
+</div>
 
 An ordinary surface uses alpha blending in the earlier renderer. Keep that exact policy while reading its shared storage record. Build the ordinary and instance pipeline states from one descriptor and shader, then preserve the earlier ordinary draw order. Temporary overlays and capacity or changed-record fallbacks still use their current uniform path.
 
@@ -5385,7 +5433,8 @@ Update the existing block with this supplied code; keep unchanged lines:
 
 ### Step 24 of 24 · Share transparent instance records (`96zzzr-share-transparent-instance-records`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -5407,6 +5456,7 @@ Update the existing block with this supplied code; keep unchanged lines:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">one blended draw in sce…</text>
 </svg>
+</div>
 
 An opaque placement can join a geometry batch. A translucent placement must retain the earlier individual scene order. Save the original object ID beside each packed record, then reuse the existing one-object draw lookup for both ordinary surfaces and placements. This changes the resource lookup without changing CAD ownership or introducing another shader.
 

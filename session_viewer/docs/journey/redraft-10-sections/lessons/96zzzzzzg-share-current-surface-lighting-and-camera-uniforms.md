@@ -6,7 +6,8 @@
 
 ## 1. Visual WebGPU Schematic
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="220" viewBox="0 0 840 220" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="220" viewBox="0 0 840 220" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -47,6 +48,7 @@
   <rect x="724" y="124" width="40" height="30" fill="url(#hatch)"/><text x="744" y="143" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">1.0</text>
   <text x="704" y="186" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#111111">0-Cells Blank</text>
 </svg>
+</div>
 
 | Layer | Construct | Role |
 | :--- | :--- | :--- |
@@ -63,7 +65,8 @@
 
 ### Step 1 of 2 · Share flat and Arctic surface frames (`96zzzzzzg-share-current-surface-lighting-and-camera-uniforms`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -85,6 +88,7 @@
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">ambient and depth pyram…</text>
 </svg>
+</div>
 
 A surface color should remain its original color when lighting is off. Arctic uses eye-facing soft sky light before its separate ambient compositor. Headlight and backface controls will connect to this same frame in the following lesson. Keep these modes in the existing shader so ordinary and placed originals agree. Extend the existing frame with the kernel-derived eye and projection kind, and share its size and byte encoder with original picking. Ink and sheet lanes retain their own frame owners. A wide orthographic camera also exposes a scale problem: the general kernel inverse rejects its small determinant. Reuse the row-scaled clipping inverse for ambient cameras and the depth pyramid rather than copying another inverse.
 
@@ -1258,7 +1262,8 @@ After that block, append this supplied code:
 
 ### Step 2 of 2 · Connect headlight and backface controls (`96zzzzzzh-connect-headlight-and-backface-controls`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -1280,6 +1285,7 @@ After that block, append this supplied code:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">the same surface shader</text>
 </svg>
+</div>
 
 The preceding lesson established one surface frame for flat and Arctic shading. Reuse its existing display fields for optional headlight and backface modes. A headlight follows the eye through either projection, with wrapped diffuse light and a soft highlight. Red backfaces use original face orientation, including mirrored placements. Contact and sheet fills keep their existing unlit behavior. Presentation commands must return before tool cancellation or history mutation, so a lighting change cannot consume a pending point or erase Redo.
 

@@ -6,7 +6,8 @@
 
 ## 1. Visual WebGPU Schematic
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="220" viewBox="0 0 840 220" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="220" viewBox="0 0 840 220" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -47,6 +48,7 @@
   <rect x="724" y="124" width="40" height="30" fill="url(#hatch)"/><text x="744" y="143" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">1.0</text>
   <text x="704" y="186" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#111111">0-Cells Blank</text>
 </svg>
+</div>
 
 | Layer | Construct | Role |
 | :--- | :--- | :--- |
@@ -63,7 +65,8 @@
 
 ### Step 1 of 7 · Project CPU queries around the precise target (`96zzzzzj-project-cpu-queries-around-the-precise-target`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -85,6 +88,7 @@
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">pixel query</text>
 </svg>
+</div>
 
 Give the existing screen-query owner a precise origin. Build its matrix around the camera target and subtract that same target before projection. Reuse it for snapping, extension, trimming and numeric-prompt placement. CPU queries keep double precision; the GPU origin can be throttled separately to limit buffer writes.
 
@@ -1486,7 +1490,8 @@ After that block, append this supplied code:
 
 ### Step 2 of 7 · Prepare precise text selection polygons (`96zzzzzk-prepare-precise-text-selection-polygons`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -1508,6 +1513,7 @@ After that block, append this supplied code:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">shared pixel projection</text>
 </svg>
+</div>
 
 Share the existing clip transform and pixel conversion between depth-clipped point queries and unclipped region queries. Keep their distinct visibility rules. For text bounds, derive the original row’s local placement before constructing plane corners, anchors, nameplates or billboard scale. The source label remains unchanged.
 
@@ -1611,7 +1617,8 @@ After that block, append this supplied code:
 
 ### Step 3 of 7 · Connect precise rectangle selection queries (`96zzzzzl-connect-precise-rectangle-selection-queries`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -1633,6 +1640,7 @@ After that block, append this supplied code:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">window/crossing predica…</text>
 </svg>
+</div>
 
 Pass the shared query frame to rectangle selection. Transform original mesh, cloud and sheet coordinates through a local placement; reuse the already written local line, path and point accessors. Project those local positions with a zero-origin view of the same matrix. Text bounds retain the original frame so their own placement helper subtracts the origin once.
 
@@ -1680,7 +1688,8 @@ After that block, append this supplied code:
 
 ### Step 4 of 7 · Finish precise lasso and handle queries (`96zzzzzm-finish-precise-lasso-and-handle-queries`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -1702,6 +1711,7 @@ After that block, append this supplied code:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">local GPU widget</text>
 </svg>
+</div>
 
 Reuse the query owner for lasso projection, placing originals locally before testing the loop. Share camera-relative handle sizing between hit testing and numeric prompts. Prepare the GPU widget with a pivot relative to the renderer origin and its matching local camera matrix.
 
@@ -3148,7 +3158,8 @@ After that block, append this supplied code:
 
 ### Step 5 of 7 · Stamp asynchronous picks with the scene origin (`96zzzzzn-stamp-asynchronous-picks-with-the-origin`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -3170,6 +3181,7 @@ After that block, append this supplied code:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">matching-frame acceptan…</text>
 </svg>
+</div>
 
 Extend the existing pick snapshot with exact origin bits. Queue and consume requests with the renderer’s current origin; retain zero-origin entry points for existing arbitrary-matrix callers. A camera pan and rebase can keep the local matrix identical while moving every original, so the matrix alone cannot identify a readback.
 
@@ -3878,7 +3890,8 @@ After that block, append this supplied code:
 
 ### Step 6 of 7 · Retry rebased picks with the latest cursor (`96zzzzzo-retry-rebased-picks-with-the-latest-cursor`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -3900,6 +3913,7 @@ After that block, append this supplied code:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">one fresh request</text>
 </svg>
+</div>
 
 Retain the latest cursor only after queueing succeeds. If a completed response is stale because its saved origin differs from the current origin, request that cursor in the current frame. Keep ordinary camera-change behavior and the existing newest-pending gate. Clear retained intent on completion, errors and every explicit cancellation boundary.
 
@@ -4768,7 +4782,8 @@ After that block, append this supplied code:
 
 ### Step 7 of 7 · Share derived inputs for origin refresh (`96zzzzzp-share-derived-inputs-for-origin-refresh`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -4790,6 +4805,7 @@ After that block, append this supplied code:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">synchronized ink/IDs an…</text>
 </svg>
+</div>
 
 Move the already written original-ink preparation into one helper. Use its precise source accessors and current origin for points, paths, strokes, controls and pick IDs. Initialize new object records in that same frame. Retain a selected face’s target identity so a rebase updates its placement while reusing the derived GPU geometry.
 

@@ -6,7 +6,8 @@
 
 ## 1. Visual WebGPU Schematic
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="220" viewBox="0 0 840 220" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="220" viewBox="0 0 840 220" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -47,6 +48,7 @@
   <rect x="724" y="124" width="40" height="30" fill="url(#hatch)"/><text x="744" y="143" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">1.0</text>
   <text x="704" y="186" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#111111">0-Cells Blank</text>
 </svg>
+</div>
 
 | Layer | Construct | Role |
 | :--- | :--- | :--- |
@@ -63,7 +65,8 @@
 
 ### Step 1 of 16 · Allocate stable object record rows (`96zzzs-allocate-stable-object-record-rows`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -85,6 +88,7 @@
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">retained rows and reuse…</text>
 </svg>
+</div>
 
 A packed table can retain a live object at the same row across edits. Preserve rows belonging to surviving IDs, then assign new objects to the lowest free rows. Retired holes are reusable. Bound every row by the same device capacity already used by the record writer. This lesson prepares the allocator; the next lesson connects it to drawing.
 
@@ -129,7 +133,8 @@ After that block, append this supplied code:
 
 ### Step 2 of 16 · Retain live surface record rows (`96zzzt-retain-live-surface-record-rows`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -151,6 +156,7 @@ After that block, append this supplied code:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">existing draw slots</text>
 </svg>
+</div>
 
 Rebuilding geometry batches must not renumber surviving object records. Use the allocator just written, store each packed record at its retained row, and let draw slots select that row. Retired holes contain zero records until a new original reuses them. Keep the existing scene order and geometry batches; release the whole table when the last surface leaves.
 
@@ -339,7 +345,8 @@ Update the existing block with this supplied code; keep unchanged lines:
 
 ### Step 3 of 16 · Prepare shared record pick consumers (`96zzzu-prepare-shared-record-pick-consumers`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -361,6 +368,7 @@ Update the existing block with this supplied code; keep unchanged lines:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">integer pick fragment</text>
 </svg>
+</div>
 
 The pick fragment needs the original owner, not an object buffer of its own. Carry that integer from the selected object record through a flat vertex output. Reuse one record layout and one shader adaptation for shared consumers. Add a slot-aware vertex entry beside the existing ordinary entry; both call the same geometry helper. The next lesson selects the storage entry when a current record exists.
 
@@ -548,7 +556,8 @@ struct PickFragment{@location(0) owner:vec2<u32>,@location(1) primitive:vec2<u32
 
 ### Step 4 of 16 · Pick originals through shared records (`96zzzv-pick-originals-through-shared-records`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -570,6 +579,7 @@ struct PickFragment{@location(0) owner:vec2<u32>,@location(1) primitive:vec2<u32
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">existing asynchronous r…</text>
 </svg>
+</div>
 
 Select the slot-aware pick vertex entry when the object has a current shared record. Bind the same record and slot already used for color drawing. Preserve the earlier uniform pick path for capacity or changed-record fallbacks. Both states use one pipeline descriptor, shader and pick fragment; readback and stale-request cancellation remain unchanged.
 
@@ -1049,7 +1059,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### Step 5 of 16 · Read source faces through shared records (`96zzzw-read-source-faces-through-shared-records`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -1071,6 +1082,7 @@ Edit the existing block to match this code; keep unchanged lines:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">existing face readback</text>
 </svg>
+</div>
 
 A source face needs its original face metadata as well as placement and owner. Bind the existing shared object row and slot, then retain the source-face buffers and crop group. Separate record binding from geometry drawing so each consumer can keep its own geometry layout. Both source-face pipeline states share one descriptor and shader; their owner travels through the same unsigned vertex result.
 
@@ -1335,7 +1347,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### Step 6 of 16 · Pack existing ambient radius in object records (`96zzzx-pack-existing-ambient-radius-in-object-records`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -1357,6 +1370,7 @@ Edit the existing block to match this code; keep unchanged lines:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">prepared property verte…</text>
 </svg>
+</div>
 
 The ambient radius is already computed from the placed source bounds. Preserve that one calculation and store its float bits in the spare range word. Keep it when selection updates rebuild the packed record. Refactor the property vertex stage into one helper and prepare a slot-aware entry. Property drawing still uses its earlier uniform pipeline until the next lesson connects the shared entry.
 
@@ -1583,7 +1597,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### Step 7 of 16 · Read ambient properties through shared records (`96zzzy-read-ambient-properties-through-shared-records`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -1605,6 +1620,7 @@ Edit the existing block to match this code; keep unchanged lines:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">existing ambient recipe</text>
 </svg>
+</div>
 
 Read the normal transform, flags and radius from the current shared object row. Pull positions and packed normals from the same arena already used for color and picks. Keep one property shader and descriptor for shared and uniform fallback states. The ambient algorithm and its cache remain unchanged; only its source resource path changes.
 
@@ -1721,7 +1737,8 @@ Update the existing block with this supplied code; keep unchanged lines:
 
 ### Step 8 of 16 · Share the object record shader schema (`96zzzz-share-the-object-record-shader-schema`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -1743,6 +1760,7 @@ Update the existing block with this supplied code; keep unchanged lines:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">unchanged GPU bytes</text>
 </svg>
+</div>
 
 Surface and cap shaders already read the same record bytes, while projection spells the equivalent fields separately. Extract the aligned declaration once and assemble each shader with that declaration. Keep every offset and resource binding unchanged. This avoids repeating the schema before the projection and cap consumers connect to shared records.
 
@@ -1853,7 +1871,8 @@ Update the existing block with this supplied code; keep unchanged lines:
 
 ### Step 9 of 16 · Prepare shared record triangle projection (`96zzzza-prepare-shared-record-triangle-projection`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -1875,6 +1894,7 @@ Update the existing block with this supplied code; keep unchanged lines:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">prepared projection sha…</text>
 </svg>
+</div>
 
 Projection needs the same model and arena range as color and picks. Expose the existing current-record lookup once, then let the projection shader select an object through the same shader adapter. Its interval already contains two spare unsigned words; reserve the third for the object row. This lesson prepares the storage compute source while ordinary projection keeps its existing uniform binding.
 
@@ -2161,7 +2181,8 @@ After that block, append this supplied code:
 
 ### Step 10 of 16 · Project triangles through shared records (`96zzzzb-project-triangles-through-shared-records`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -2183,6 +2204,7 @@ After that block, append this supplied code:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">unchanged finite visibi…</text>
 </svg>
+</div>
 
 The projection interval now names an object row in the same table used by color, picks and ambient properties. Select a storage compute state for current records and retain the earlier uniform state otherwise. Build both states from one layout recipe. Track arena offsets and row selectors in the existing projection witness, then refresh bindings after the object table updates.
 
@@ -2910,7 +2932,8 @@ Update the existing block with this supplied code; keep unchanged lines:
 
 ### Step 11 of 16 · Prepare shared record cap counting (`96zzzzc-prepare-shared-record-cap-counting`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -2932,6 +2955,7 @@ Update the existing block with this supplied code; keep unchanged lines:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">unchanged cap color and…</text>
 </svg>
+</div>
 
 Cap color and cap picking use the same closed-solid crossing function. Pass the selected object into that function and reuse the existing shader adapter. Keep one render-pipeline descriptor while allowing each consumer to specify its vertex format. Ordinary crossings retain their earlier object and plane behavior; the shared entry connects in the following lessons.
 
@@ -3134,7 +3158,8 @@ impl Pipelines{
 
 ### Step 12 of 16 · Prepare cap plane and arena bindings (`96zzzzd-prepare-cap-plane-and-arena-bindings`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -3156,6 +3181,7 @@ impl Pipelines{
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">reusable cap geometry g…</text>
 </svg>
+</div>
 
 A shared object slot selects a surface; the cap count also needs a plane. Keep those two inputs independent. Prepare a sixteen-byte plane parameter and a geometry group that reads the current arena buffers. Cache groups while those buffers remain identical, replace them after arena growth, and release the cache when inactive. This resource connects to cap color in the next lesson.
 
@@ -3204,7 +3230,8 @@ After that block, append this supplied code:
 
 ### Step 13 of 16 · Count cap color through shared records (`96zzzze-count-cap-color-through-shared-records`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -3226,6 +3253,7 @@ After that block, append this supplied code:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">unchanged cap color and…</text>
 </svg>
+</div>
 
 Bind the current object record and slot, pull its arena positions, and read the plane from the parameter just prepared. Draw one instance so the object slot is independent of plane numbering. Keep the same crossing function, additive target and final cap color/depth pass. Changed records retain the earlier exact uniform path.
 
@@ -3959,7 +3987,8 @@ Update the existing block with this supplied code; keep unchanged lines:
 
 ### Step 14 of 16 · Prepare shared record cap picks (`96zzzzf-prepare-shared-record-cap-picks`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -3981,6 +4010,7 @@ Update the existing block with this supplied code; keep unchanged lines:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">unchanged crossing frag…</text>
 </svg>
+</div>
 
 Cap color already pulls current records. Picking also needs atomic crossings, crop and frame resources in its fourth bind group. Extend that group with arena positions, indices and an explicit plane while retaining the existing entries. Prepare both crossing states using the same fragment algorithms. The next lesson connects the resource owner and draws.
 
@@ -4045,7 +4075,8 @@ Update the existing block with this supplied code; keep unchanged lines:
 
 ### Step 15 of 16 · Own shared record cap pick resources (`96zzzzg-own-shared-record-cap-pick-resources`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -4067,6 +4098,7 @@ Update the existing block with this supplied code; keep unchanged lines:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">existing pick lifetime</text>
 </svg>
+</div>
 
 Let the cap geometry owner append its bindings after the existing pick resources. Each pick preparation invalidates immutable groups because crossing buffers or the crop can change. Retain bounded plane parameters under the existing pick owner and account their bytes once. The next lesson connects both crossing draws.
 
@@ -4166,7 +4198,8 @@ Update the existing block with this supplied code; keep unchanged lines:
 
 ### Step 16 of 16 · Pick caps through shared records (`96zzzzh-pick-caps-through-shared-records`)
 
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;margin:14px 0;" role="img">
+<div class="webgpu-schematic" style="margin:14px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="64" viewBox="0 0 840 64" style="width:100%;max-width:840px;height:auto;display:block;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -4188,6 +4221,7 @@ Update the existing block with this supplied code; keep unchanged lines:
   <rect x="584" y="12" width="240" height="40" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text x="704" y="36" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">original integer cap ow…</text>
 </svg>
+</div>
 
 Prepare each eligible object and plane group once. Both counting and nearest-owner passes pull current arena positions through the object slot, with an explicit plane independent of instance numbering. Keep the atomic crossing algorithms and final integer-owner pass. Changed packed records use the existing uniform fallback.
 
