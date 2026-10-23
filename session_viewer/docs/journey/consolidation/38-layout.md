@@ -1,22 +1,91 @@
 # 5.4 · NURBS source ownership and derived samples
 
-Display a validated original NURBS curve and inspect its controls without replacing the source with a polyline.
+**Section 4: Screen-Space Ink, Point Markers, NURBS Curves, and GPU Integer Picking** · **Lesson 5.4** (Redraft `4.4`) · **5 checkpoints (`38-layout` → `38d-input`)**
 
-## Ownership and data flow
+> **Learning Goal:** Validate public kernel curve layout and domain before evaluating an original source.
 
-Validate dimensions, positive finite weights, ordered knots and a usable parameter domain before sampling. Bounded adaptive samples and knot breaks are derived caches retaining double coordinates. The source row owns the original curve; controls retain its parent/index identity. Placement applies at the display boundary, and history shares the immutable source/sample owners. A visible arch demonstrates sampling, while Save must retain exact original control and knot data.
+## Visual WebGPU & Architecture Schematic
 
-## The maintained implementation
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1px solid #cbd5e1;border-radius:10px;background:#f8fafc;">
+<svg viewBox="0 0 840 240" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#475569"/>
+    </marker>
+    <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+    <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#059669"/>
+    </marker>
+  </defs>
+  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#0f172a">Chapter 5 WebGPU Shader Geometry: Screen-Space Ribbon Extrusion (ribbon.wgsl), Joins & Point Discs</text>
+  <text x="20" y="46" font-size="11.5" fill="#475569">Why 1-pixel hardware GL_LINES fail in CAD—and how vertex shaders extrude 3D segments into crisp, constant-CSS-pixel screen quads.</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#e2e8f0" stroke-width="1"/>
+  
+    <rect x="18" y="68" width="215" height="145" rx="6" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
+    <text x="125" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1e40af">1. Homogeneous Near-Clip</text>
+    <text x="28" y="108" font-size="10.5" fill="#1e3a8a">• Input: 3D segment (A, B) + width</text>
+    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#1d4ed8">• Clip to w &gt; near BEFORE divide!</text>
+    <text x="28" y="143" font-size="10" fill="#1e3a8a">  (If B is behind camera, dividing</text>
+    <text x="28" y="158" font-size="10" fill="#1e3a8a">   xyz/w flips the line across screen!)</text>
+    <text x="28" y="178" font-size="10.5" fill="#1e3a8a">• Project clipped A', B' to physical</text>
+    <text x="28" y="193" font-size="10.5" fill="#1e3a8a">  viewport pixels: pA, pB</text>
 
-app/walk/curves.rs sample_nurbscurve and walk_nurbscurve prepare maintained curve display; app/walk/mod.rs dispatches geometry families. Source ownership remains in app/scene.rs FileDoc.session and its Session lookup, rather than a course-only Polyline replacement.
+    <line x1="233" y1="138" x2="263" y2="138" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
 
-All production paths above are relative to `session_viewer/src`. The implementation below preserves the runnable teaching sequence. Early `src/renderer.rs`, `src/browser.rs` and local WGSL are staged prerequisites; production drawing remains in `engine/gpu`, `engine/pipelines` and `src/shaders`. Later rendering lessons must converge to those maintained paths.
+    <rect x="265" y="68" width="285" height="145" rx="6" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5"/>
+    <text x="407" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#9a3412">2. Screen-Space Quad Extrusion (6 Verts)</text>
+    <!-- Mini Visual of Extruded Line Quad -->
+    <line x1="295" y1="135" x2="435" y2="115" stroke="#c2410c" stroke-width="2.5" stroke-dasharray="4,3"/>
+    <polygon points="292,120 432,100 438,130 298,150" fill="rgba(251,146,60,0.22)" stroke="#ea580c" stroke-width="1.5"/>
+    <circle cx="295" cy="135" r="3.5" fill="#9a3412"/>
+    <circle cx="435" cy="115" r="3.5" fill="#9a3412"/>
+    <text x="282" y="168" font-size="10" fill="#7c2d12">dir = normalize(pB - pA)</text>
+    <text x="282" y="183" font-size="10" font-weight="600" fill="#c2410c">perp = vec2(-dir.y, dir.x) * (half_w + AA)</text>
+    <text x="282" y="198" font-size="10" fill="#7c2d12">vector.wgsl adds miter/bevel joins &amp; arrows</text>
 
-Production source reference: [app/walk/curves.rs](../../../src/app/walk/curves.rs), [engine/gpu/segments.rs](../../../src/engine/gpu/segments.rs), [shaders/ribbon.wgsl](../../../src/shaders/ribbon.wgsl), [shaders/vector.wgsl](../../../src/shaders/vector.wgsl), [app/walk/points.rs](../../../src/app/walk/points.rs), [shaders/glyph.wgsl](../../../src/shaders/glyph.wgsl), [shaders/ink_visibility.wgsl](../../../src/shaders/ink_visibility.wgsl), [shaders/triangle.wgsl](../../../src/shaders/triangle.wgsl), [shaders/grid.wgsl](../../../src/shaders/grid.wgsl).
+    <line x1="550" y1="138" x2="580" y2="138" stroke="#059669" stroke-width="2" marker-end="url(#arrow-green)"/>
 
-## Build the capability
+    <rect x="582" y="68" width="238" height="145" rx="6" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1.5"/>
+    <text x="701" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#065f46">3. Analytical AA &amp; Point Discs</text>
+    <text x="594" y="108" font-size="10.5" fill="#064e3b">• ribbon.wgsl: smoothstep coverage</text>
+    <text x="594" y="123" font-size="10.5" fill="#064e3b">  from signed edge distance</text>
+    <text x="594" y="143" font-size="10.5" font-weight="600" fill="#047857">• glyph.wgsl (Point Markers):</text>
+    <text x="594" y="158" font-size="10" fill="#064e3b">  Screen quad around 3D point; discard</text>
+    <text x="594" y="173" font-size="10" fill="#064e3b">  outside radius r, feather 1px rim</text>
+    <text x="594" y="193" font-size="10.5" fill="#064e3b">• NURBS: evaluate spans -&gt; polyline</text>
+    
+</svg>
+</div>
 
-Apply these implementation checkpoints in order in the same `workspace/journey` project. Expand a block while typing; each retains its original complete Type section, including its snippet includes and locate/replace context. Intermediate IDs remain recoverable checkpoints within this lesson.
+### Lesson Data Flow (`Rust` → `WebGPU` → `WGSL`)
+
+```
+original NURBS curve → bounded checked layout → finite positive weights → ordered knots → nonempty domain.
+original NURBS Rc → validated shared double samples → path row and checked ID → placed display chords and conservative bounds.
+Example Curve input → original curve path row → real sampled arch → Controls On/Off → parent/index markers → history and Close.
+```
+
+- Validate public kernel curve layout and domain before evaluating an original source.
+- Retain original NURBS ownership, cached double samples and placed curve bounds in the existing path document.
+- Insert an original NURBS curve through real input and distinguish its actual curve pixels from its indexed control markers.
+- **Why it works (Why check public curve arrays before calling the kernel evaluator?):** Public fields may contain incomplete or overflowing layouts. The viewer must refuse malformed input before a kernel slice access or display allocation.
+
+### Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `Browser`)
+
+| Layer | Construct | First-Year Student Explanation |
+| :--- | :--- | :--- |
+| **WGSL (`ribbon.wgsl`)** | Homogeneous Near-Plane Clip (`w > near`) | Clips 3D line segments in 4D clip space BEFORE dividing by `w`, preventing lines with one endpoint behind the camera from flipping across the screen. |
+| **WGSL (`ribbon.wgsl` / `vector.wgsl`)** | Screen-Space Perpendicular Quad Extrusion | Expands each 3D segment into a 6-vertex screen-space quad along `perp = vec2(-dir.y, dir.x) * (half_width + aa)` for crisp, constant-CSS-pixel CAD strokes and miter/bevel joins. |
+| **WGSL (`glyph.wgsl`)** | Analytical Signed-Distance Coverage (`smoothstep`) | Computes pixel center distance to the stroke edge or point-marker radius in the fragment shader for smooth anti-aliased edges. |
+
+**Production source (`session_viewer/src`):** [app/walk/curves.rs](../../../src/app/walk/curves.rs), [engine/gpu/segments.rs](../../../src/engine/gpu/segments.rs), [shaders/ribbon.wgsl](../../../src/shaders/ribbon.wgsl), [shaders/vector.wgsl](../../../src/shaders/vector.wgsl), [app/walk/points.rs](../../../src/app/walk/points.rs), [shaders/glyph.wgsl](../../../src/shaders/glyph.wgsl), [shaders/ink_visibility.wgsl](../../../src/shaders/ink_visibility.wgsl), [shaders/triangle.wgsl](../../../src/shaders/triangle.wgsl), [shaders/grid.wgsl](../../../src/shaders/grid.wgsl).
+
+## Implementation Checkpoints
+
+Apply these checkpoints in order inside `workspace/journey`. Expand each block to view the Rust/WGSL/HTML edits:
 
 <a id="checkpoint-38-layout"></a>
 
@@ -3046,9 +3115,9 @@ Copy this supplied file:
 
 </details>
 
-## Run, check and save
+## Run, Check, and Save
 
-From `session_viewer`, after restoring any experimental edits:
+From `session_viewer`:
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 38d-input
@@ -3059,14 +3128,12 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running so saving rebuilds it. `check` compares your typed source with the selected endpoint without replacing your project; `save` records that source for recovery. The commands are learner instructions, not a claim that this consolidation batch has rerun GPU or browser acceptance. [Checkpoint recovery](../recovery.md) explains restoring a saved state.
+Open `http://127.0.0.1:8780/`. Use [checkpoint recovery](../recovery.md) to restore any saved checkpoint.
 
-## Result and experiment
+## Expected Visual Result & Experiment
 
 Close, type Example Curve, then Controls On. Inspect the sampled arch and its three original control markers.
 
-Toggle Controls Off, switch projection and zoom. The curve vertex payload remains unchanged; markers keep their screen diameter when enabled.
-
-Recorded screenshot paths are identified in the chapter coverage map as historical, pending fresh acceptance. No uninspected screenshot is embedded here. Source comparison, a successful build and visual behavior are separate checks.
+- **Try this:** Toggle Controls Off, switch projection and zoom. The curve vertex payload remains unchanged; markers keep their screen diameter when enabled.
 
 Continue with [One visibility policy and shared surface depth](39-visible.md).
