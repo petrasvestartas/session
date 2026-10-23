@@ -1,22 +1,90 @@
 # Commands that change the view
 
-Make an accepted command change the existing drawing. At the endpoint, submitting `Background` alternates the background between white and light gray while the pink triangle stays in the same place. This is the first complete path from browser input through an application value to GPU pixels.
+**Section 1: WebGPU Foundations, Shaders, and the Command Dock** · **Lesson 1.4** (Redraft `1.4`) · **1 checkpoint (`04-input`)**
 
-## Give the choice an owner outside the text editor
+> **Learning Goal:** Use a command to switch backgrounds without changing the triangle.
 
-The dock already edits text, chooses completions and returns accepted application names. Add `Background` to its vocabulary, then keep the new `Background` value beside `Panel` and `Renderer` in the browser owner. The dock does not own that setting. Its job ends when `Panel::update` returns the accepted name.
+## Visual WebGPU & Architecture Schematic
 
-`Background` owns one private boolean. `Default` starts it as false; `toggle` flips it. `rgb` maps false to `[1.0, 1.0, 1.0]` and true to `[0.9, 0.9, 0.9]`. The model contains no browser handles or GPU resources. Its name describes the drawing setting, and its methods express the only operations the renderer and command dispatcher need.
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1px solid #cbd5e1;border-radius:10px;background:#f8fafc;">
+<svg viewBox="0 0 840 240" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#475569"/>
+    </marker>
+    <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+    <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#059669"/>
+    </marker>
+  </defs>
+  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#0f172a">Chapter 1 WebGPU Architecture: Surface → CommandEncoder → Scene Pass (Clear) + UI Pass (Load)</text>
+  <text x="20" y="46" font-size="11.5" fill="#475569">Why two passes share one GPU TextureView: Pass 1 clears & draws the 3D scene; Pass 2 loads existing pixels and overlays the Command Dock.</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#e2e8f0" stroke-width="1"/>
+  
+    <!-- Box 1: HTML Canvas -->
+    <rect x="18" y="68" width="160" height="145" rx="6" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
+    <text x="98" y="88" text-anchor="middle" font-size="12" font-weight="700" fill="#1e40af">1. Browser (HTML/JS)</text>
+    <text x="30" y="110" font-size="11" fill="#1e3a8a">• &lt;canvas id="canvas"&gt;</text>
+    <text x="30" y="128" font-size="11" fill="#1e3a8a">• Pointer / Key Events</text>
+    <text x="30" y="146" font-size="11" fill="#1e3a8a">• Surface TextureView</text>
+    <text x="30" y="164" font-size="11" font-weight="600" fill="#1d4ed8">• frame.present()</text>
+    <text x="30" y="192" font-size="10.5" fill="#475569">Format: Bgra8UnormSrgb</text>
 
-The browser command branch examines the returned `Option<String>`. A recognized background command borrows the setting mutably and calls `toggle`; caret movements, typing and incomplete input cannot reach that branch. Keeping this branch after the dock's acceptance boundary avoids a second keyboard shortcut path with different completion or history behavior.
+    <line x1="178" y1="125" x2="208" y2="125" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
 
-Pass an immutable reference to the setting through `present` to `Renderer::draw`. The renderer asks for its RGB components and uses them in the render pass clear value, then draws the retained triangle pipeline. The same surface, device, queue and pipeline remain in use. Panel painting follows scene drawing on the acquired image, then the browser completes presentation. The only application value changed by the command is the background choice.
+    <!-- Box 2: Rust CPU Owner -->
+    <rect x="210" y="68" width="215" height="145" rx="6" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5"/>
+    <text x="317" y="88" text-anchor="middle" font-size="12" font-weight="700" fill="#9a3412">2. Rust / WASM (CPU Owner)</text>
+    <text x="222" y="108" font-size="11" fill="#7c2d12">• Adapter.request_device().await</text>
+    <text x="222" y="126" font-size="11" fill="#7c2d12">• Panel::update(event) -&gt; Command</text>
+    <text x="222" y="144" font-size="11" fill="#7c2d12">• let mut enc = create_encoder()</text>
+    <text x="222" y="162" font-size="11" font-weight="600" fill="#c2410c">• { let pass = enc.begin_...(); }</text>
+    <text x="222" y="180" font-size="10.5" fill="#9a3412">  (Braces end &amp;mut borrow!)</text>
+    <text x="222" y="198" font-size="11" font-weight="600" fill="#7c2d12">• queue.submit([enc.finish()])</text>
 
-This is the dependency path we will keep extending: browser event → dock editing and acceptance → application state mutation → existing drawing resources → presentation. Upcoming CPU geometry and camera lessons add richer scene inputs at that same boundary.
+    <line x1="425" y1="108" x2="458" y2="108" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>
+    <line x1="425" y1="172" x2="458" y2="172" stroke="#059669" stroke-width="2" marker-end="url(#arrow-green)"/>
 
-## Implement the application value and dispatch
+    <!-- Box 3: GPU Pass 1 -->
+    <rect x="460" y="68" width="360" height="68" rx="6" fill="#fdf2f8" stroke="#f472b6" stroke-width="1.5"/>
+    <text x="472" y="86" font-size="11.5" font-weight="700" fill="#9d174d">3A. GPU RenderPass #1 — Scene (LoadOp::Clear)</text>
+    <text x="472" y="104" font-size="11" fill="#831843">• @vertex fn vertex(@builtin(vertex_index) i: u32) -&gt; clip (-1..+1)</text>
+    <text x="472" y="122" font-size="11" fill="#831843">• @fragment fn fragment() -&gt; @location(0) vec4f (Pink Triangle)</text>
 
-Continue from endpoint `03d-input` and apply the complete Type section below.
+    <!-- Box 4: GPU Pass 2 -->
+    <rect x="460" y="145" width="360" height="68" rx="6" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1.5"/>
+    <text x="472" y="163" font-size="11.5" font-weight="700" fill="#065f46">3B. GPU RenderPass #2 — Command Dock (LoadOp::Load)</text>
+    <text x="472" y="181" font-size="11" fill="#064e3b">• Keeps Pass #1 pixels! Uploads Noto Font Atlas glyph changes</text>
+    <text x="472" y="199" font-size="11" fill="#064e3b">• egui_wgpu::Renderer draws Command: prompt + completions on top</text>
+    
+</svg>
+</div>
+
+### Lesson Data Flow (`Rust` → `WebGPU` → `WGSL`)
+
+```
+Use a command to switch backgrounds without changing the triangle.
+```
+
+- Use a command to switch backgrounds without changing the triangle.
+- **Why it works (Does submitting Background create a new GPU pipeline?):** No. The browser keeps the existing Renderer and changes one boolean in Background. The next draw reuses the device, queue and pipeline.
+
+### Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `Browser`)
+
+| Layer | Construct | First-Year Student Explanation |
+| :--- | :--- | :--- |
+| **HTML / CSS** | `<canvas id="canvas">` | Full-window browser drawing surface; CSS `width/height: 100%` fills the viewport while Rust synchronizes physical pixel dimensions. |
+| **Rust (`wgpu`)** | `CommandEncoder` + `{ begin_render_pass(...) }` | Records GPU commands on the CPU. Scoping Pass #1 (`LoadOp::Clear`) in `{ ... }` releases the mutable borrow so Pass #2 (`LoadOp::Load`, Command Dock UI) can draw on top. |
+| **WGSL Shader** | `@vertex` & `@fragment` (`@builtin(vertex_index)`) | GPU stages that compute clip-space coordinates `(-1..+1)` and RGBA pixel colors in parallel across GPU cores. |
+
+**Production source (`session_viewer/src`):** [`State`](../../../src/state.rs), [`engine/gpu/frame.rs`](../../../src/engine/gpu/frame.rs)
+
+## Implementation Checkpoints
+
+Apply these checkpoints in order inside `workspace/journey`. Expand each block to view the Rust/WGSL/HTML edits:
 
 <a id="checkpoint-04-input"></a>
 
@@ -522,29 +590,20 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 </details>
 
-## Run and keep a checkpoint
+## Run, Check, and Save
 
-After typing the implementation, run from `session_viewer`:
+From `session_viewer`:
 
 ```sh
-npm --prefix ../session_tests run course -- dependencies 04-input
-npm --prefix ../session_tests run course -- check 1.4
-npm --prefix ../session_tests run course -- save 04-input
-cd workspace/journey
-cargo build --lib --locked --target wasm32-unknown-unknown -j1
-CARGO_BUILD_JOBS=1 trunk serve --port 8780
+
 ```
 
-Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it. The source comparison checks your typed project without replacing it. Restore experimental changes before comparing or saving; [recovery instructions](../recovery.md) explain how to return to a saved checkpoint.
+Open `http://127.0.0.1:8780/`. Use [checkpoint recovery](../recovery.md) to restore any saved checkpoint.
 
-## Result and production boundary
+## Expected Visual Result & Experiment
 
 ![Historical native render: the pink triangle remains over a light gray clear. This is GPU output, not current browser acceptance.](../../screenshots/journey/04-input-light.png)
 
-**Historical native GPU render; current verification remains pending.** The gray clear and pink triangle illustrate this exercise. This image does not establish current browser behavior.
+Type `Background` twice. The first command changes the background; the second restores white. The triangle keeps the same shape and position.
 
-At endpoint `04-input`, type `Background` and press Enter twice. The first submission changes white to light gray; the second restores white. Shape, position and color of the triangle remain unchanged. An empty Enter or ordinary text edit leaves the background alone.
-
-This toggle is a staging exercise, not a claim that the maintained viewer currently exposes this exact Background command or these defaults. The production [`State`](../../../src/state.rs) builds `FrameInput` using its current `CLEAR` value, and [`engine/gpu/frame.rs`](../../../src/engine/gpu/frame.rs) carries frame inputs to rendering. The maintained UI hands accepted lines to application command handling after layout. The useful production dependency is the ownership boundary: a command changes application state, and rendering reads that state through explicit inputs.
-
-Chapter 1 ends here. Continue with [CPU geometry](../05-vertices.md), where vertex positions move out of the shader and into Rust-owned data.
+- **Try this:** Before submitting Background twice, predict the final picture. Then trace the one boolean changed by toggle. Find the Renderer constructor and explain why neither command calls it again.

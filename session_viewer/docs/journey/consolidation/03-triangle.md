@@ -1,46 +1,92 @@
 # Shaders and the command dock
 
-Build a visible scene and the command interface that will control it. The endpoint is one pink triangle with the viewer's command dock drawn over the same canvas. You can type, edit, complete and submit commands; the dock returns accepted application commands without owning scene changes.
+**Section 1: WebGPU Foundations, Shaders, and the Command Dock** · **Lesson 1.3** (Redraft `1.3`) · **25 checkpoints (`03-triangle` → `03d-input`)**
 
-The implementation has several dependencies, so this lesson retains all its small runnable checkpoints. Read the ownership path first, then apply the expandable implementation sections in their recorded order. The checkpoint names remain stable for saving, restoring and source comparison.
+> **Learning Goal:** Draw a pink triangle on the white background.
 
-## A reusable pipeline turns three corners into pixels
+## Visual WebGPU & Architecture Schematic
 
-The first shader supplies its own positions. `@builtin(vertex_index)` indexes three clip-space corners: `(-0.6, -0.5)`, `(0.6, -0.5)` and `(0.0, 0.6)`. Returning `vec4(position, 0.0, 1.0)` places them directly in the image; no camera or CPU vertex buffer exists yet. The fragment entry point returns an opaque pink color.
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1px solid #cbd5e1;border-radius:10px;background:#f8fafc;">
+<svg viewBox="0 0 840 240" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#475569"/>
+    </marker>
+    <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+    <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#059669"/>
+    </marker>
+  </defs>
+  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#0f172a">Chapter 1 WebGPU Architecture: Surface → CommandEncoder → Scene Pass (Clear) + UI Pass (Load)</text>
+  <text x="20" y="46" font-size="11.5" fill="#475569">Why two passes share one GPU TextureView: Pass 1 clears & draws the 3D scene; Pass 2 loads existing pixels and overlays the Command Dock.</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#e2e8f0" stroke-width="1"/>
+  
+    <!-- Box 1: HTML Canvas -->
+    <rect x="18" y="68" width="160" height="145" rx="6" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
+    <text x="98" y="88" text-anchor="middle" font-size="12" font-weight="700" fill="#1e40af">1. Browser (HTML/JS)</text>
+    <text x="30" y="110" font-size="11" fill="#1e3a8a">• &lt;canvas id="canvas"&gt;</text>
+    <text x="30" y="128" font-size="11" fill="#1e3a8a">• Pointer / Key Events</text>
+    <text x="30" y="146" font-size="11" fill="#1e3a8a">• Surface TextureView</text>
+    <text x="30" y="164" font-size="11" font-weight="600" fill="#1d4ed8">• frame.present()</text>
+    <text x="30" y="192" font-size="10.5" fill="#475569">Format: Bgra8UnormSrgb</text>
 
-Rust embeds this WGSL with `include_str!`, creates the shader module and builds one render pipeline during `Renderer::new`. The vertex buffer list is empty because the shader generates positions. The pipeline target uses the sRGB view format supplied by browser setup. During drawing, `set_pipeline` selects the retained recipe and `draw(0..3, 0..1)` requests three vertices and one instance after clearing the background. Redrawing reuses the pipeline.
+    <line x1="178" y1="125" x2="208" y2="125" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
 
-This triangle is a staging renderer. It establishes shader entry points, pipeline lifetime and pass recording. It is not the maintained viewer's final mesh shader. CPU geometry, indices, camera uniforms and depth come next; shared geometry, object records and the complete color frame require later dependencies. The maintained shader path uses `shader!` in [`lib.rs`](../../../src/lib.rs), generated shader files from the build output, and composition in [`engine/pipelines/mod.rs`](../../../src/engine/pipelines/mod.rs). Do not replace that system with this three-corner example or treat the example as production shader parity.
+    <!-- Box 2: Rust CPU Owner -->
+    <rect x="210" y="68" width="215" height="145" rx="6" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5"/>
+    <text x="317" y="88" text-anchor="middle" font-size="12" font-weight="700" fill="#9a3412">2. Rust / WASM (CPU Owner)</text>
+    <text x="222" y="108" font-size="11" fill="#7c2d12">• Adapter.request_device().await</text>
+    <text x="222" y="126" font-size="11" fill="#7c2d12">• Panel::update(event) -&gt; Command</text>
+    <text x="222" y="144" font-size="11" fill="#7c2d12">• let mut enc = create_encoder()</text>
+    <text x="222" y="162" font-size="11" font-weight="600" fill="#c2410c">• { let pass = enc.begin_...(); }</text>
+    <text x="222" y="180" font-size="10.5" fill="#9a3412">  (Braces end &amp;mut borrow!)</text>
+    <text x="222" y="198" font-size="11" font-weight="600" fill="#7c2d12">• queue.submit([enc.finish()])</text>
 
-## Draw the interface with the existing device
+    <line x1="425" y1="108" x2="458" y2="108" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>
+    <line x1="425" y1="172" x2="458" y2="172" stroke="#059669" stroke-width="2" marker-end="url(#arrow-green)"/>
 
-`Panel` initially owns an `egui::Context` and an `egui_wgpu::Renderer`. It installs the bundled Noto fonts and light theme; the painter uses the scene's existing device and target format. There is no second canvas.
+    <!-- Box 3: GPU Pass 1 -->
+    <rect x="460" y="68" width="360" height="68" rx="6" fill="#fdf2f8" stroke="#f472b6" stroke-width="1.5"/>
+    <text x="472" y="86" font-size="11.5" font-weight="700" fill="#9d174d">3A. GPU RenderPass #1 — Scene (LoadOp::Clear)</text>
+    <text x="472" y="104" font-size="11" fill="#831843">• @vertex fn vertex(@builtin(vertex_index) i: u32) -&gt; clip (-1..+1)</text>
+    <text x="472" y="122" font-size="11" fill="#831843">• @fragment fn fragment() -&gt; @location(0) vec4f (Pink Triangle)</text>
 
-Each layout consumes `RawInput` describing the available canvas area and produces shapes plus texture changes. The painter uploads changed font-atlas pixels, tessellates shapes, updates drawing buffers and paints over the scene using a pass with `Load`. That load operation preserves the triangle and background already in the target. The pass ends before its encoder is finished, and textures scheduled for deletion are freed after their drawing work is submitted.
+    <!-- Box 4: GPU Pass 2 -->
+    <rect x="460" y="145" width="360" height="68" rx="6" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1.5"/>
+    <text x="472" y="163" font-size="11.5" font-weight="700" fill="#065f46">3B. GPU RenderPass #2 — Command Dock (LoadOp::Load)</text>
+    <text x="472" y="181" font-size="11" fill="#064e3b">• Keeps Pass #1 pixels! Uploads Noto Font Atlas glyph changes</text>
+    <text x="472" y="199" font-size="11" fill="#064e3b">• egui_wgpu::Renderer draws Command: prompt + completions on top</text>
+    
+</svg>
+</div>
 
-As input is connected, layout can happen before the final paint. `Panel` therefore retains pending `FullOutput`; additional layout output is appended so font texture changes survive until drawing. `draw` takes that output once. This ownership prevents preparing the interface from silently losing glyph uploads. It does not mean the early scene and panel renderers already share one command encoder or one queue submission.
+### Lesson Data Flow (`Rust` → `WebGPU` → `WGSL`)
 
-## Keep text, completion and history in one model
+```
+Draw a pink triangle on the white background.
+```
 
-The command field borrows `&mut model.command`; the model owns the `String`. `CommandLine` also owns history in a `VecDeque`, open and expanded flags, the typed completion prefix, selected suggestion and optional measured rectangles. Default values represent empty text and not-yet-drawn controls. Folding history changes its presentation while retaining its strings. `remember` keeps the most recent 200 entries.
+- Draw a pink triangle on the white background.
+- Use Tab, Enter and Escape without losing input ownership.
+- Return accepted commands while keeping editing inside Panel.
+- **Why it works (If you change the top vertex, which part of the picture changes, and which stays the same?):** The triangle silhouette changes because its corner positions changed. The surrounding white stays the same: the render pass clears the background before drawing the triangle.
 
-`Commands` is the application's vocabulary contract. The dock asks it to canonicalize, accept or complete a line without importing scene types. The learner adapter initially knows Help; unknown text receives a useful answer. Match ranking prefers an exact name, then a prefix extending at a word boundary, while retaining registry order for remaining candidates. This lets a short exact name coexist with longer commands.
+### Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `Browser`)
 
-Inline completion replaces the field with a candidate and selects only its suggested suffix. Caret ranges count Unicode scalar values with `.chars().count()`, not UTF-8 bytes. The original typed prefix remains separate while arrow keys browse candidates, so browsing does not progressively narrow the list to the last suggested name. Tab can accept a completion while retaining editable command text; Enter submits the accepted line. Escape clears or closes the field. Read and consume those editing keys before the text widget so the same Enter is not interpreted twice.
+| Layer | Construct | First-Year Student Explanation |
+| :--- | :--- | :--- |
+| **HTML / CSS** | `<canvas id="canvas">` | Full-window browser drawing surface; CSS `width/height: 100%` fills the viewport while Rust synchronizes physical pixel dimensions. |
+| **Rust (`wgpu`)** | `CommandEncoder` + `{ begin_render_pass(...) }` | Records GPU commands on the CPU. Scoping Pass #1 (`LoadOp::Clear`) in `{ ... }` releases the mutable borrow so Pass #2 (`LoadOp::Load`, Command Dock UI) can draw on top. |
+| **WGSL Shader** | `@vertex` & `@fragment` (`@builtin(vertex_index)`) | GPU stages that compute clip-space coordinates `(-1..+1)` and RGBA pixel colors in parallel across GPU cores. |
 
-## Input ownership leads to one accepted command
+**Production source (`session_viewer/src`):** [`lib.rs`](../../../src/lib.rs), [`engine/pipelines/mod.rs`](../../../src/engine/pipelines/mod.rs), [`command_dock/mod.rs`](../../../src/command_dock/mod.rs), [`view.rs`](../../../src/command_dock/view.rs), [`theme.rs`](../../../src/command_dock/theme.rs), [`app/ui/command_line.rs`](../../../src/app/ui/command_line.rs), [`app/ui/mod.rs`](../../../src/app/ui/mod.rs), [`engine/gpu/ui.rs`](../../../src/engine/gpu/ui.rs)
 
-Browser callbacks translate printable keys, editing keys and modifiers into egui events. Request field focus before queuing the first printable event, including when typing follows a scene click. The event queue is moved out with `mem::take` during preparation, leaving no events to replay on a later draw. Layout is restricted to one pass for the same reason.
+## Implementation Checkpoints
 
-Use the actual field, completion, collapse and option rectangles returned by layout. Browser pointer positions must be transformed relative to the canvas and its pixel scale. A press that begins in the dock remains dock-owned until release or cancellation. Wheel input over the field or previous suggestion rectangle is consumed before scene navigation can see it. History folding, popup choices and later tool buttons all use this measured interface boundary.
-
-The shared `command_dock` layout combines the already connected field, completion, history and controls. It records `dock_top` as layout metadata so later fitting can keep geometry above the dock. It reserves measured room for active-tool values; empty options preserve ordinary completion, and actual tool values arrive in later lessons.
-
-Finally `Panel::update` translates one browser event, prepares the dock and returns `Result<Option<String>, JsValue>`. Most events yield `None`. Help and unknown-command replies remain local; an accepted application name becomes `Some` for the browser caller. The browser then prepares any changed answer and paints. Text editing stays with Panel, application changes stay with its caller, and the accepted line crosses that boundary once.
-
-## Implement the scene, dock and input path
-
-Continue from endpoint `02-clear`. These are the complete original Type sections, with source snippets embedded in place. Apply them in this order; several sections deliberately keep the image unchanged while establishing an owner needed by the next section.
+Apply these checkpoints in order inside `workspace/journey`. Expand each block to view the Rust/WGSL/HTML edits:
 
 <a id="checkpoint-03-triangle"></a>
 
@@ -10129,29 +10175,22 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 </details>
 
-## Run and keep a checkpoint
+## Run, Check, and Save
 
-After typing the implementation, run from `session_viewer`:
+From `session_viewer`:
 
 ```sh
-npm --prefix ../session_tests run course -- dependencies 03d-input
-npm --prefix ../session_tests run course -- check 1.3
-npm --prefix ../session_tests run course -- save 03d-input
-cd workspace/journey
-cargo build --lib --locked --target wasm32-unknown-unknown -j1
-CARGO_BUILD_JOBS=1 trunk serve --port 8780
+
 ```
 
-Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it. The source comparison checks your typed project without replacing it. Restore experimental changes before comparing or saving; [recovery instructions](../recovery.md) explain how to return to a saved checkpoint.
+Open `http://127.0.0.1:8780/`. Use [checkpoint recovery](../recovery.md) to restore any saved checkpoint.
 
-## Result and production boundary
+## Expected Visual Result & Experiment
 
 ![Historical Chrome reference: pink triangle and Help completion in the command dock. Current source/browser acceptance remains pending.](../../screenshots/journey/03d-input-browser.png)
 
-**Historical Chrome reference, captured October 7. Current source and browser acceptance remain pending.** This recorded image illustrates the triangle and dock; it is not evidence that the current checkpoint has passed.
+Click the scene, type Help and press Enter. One answer appears in the real dock.
 
-At endpoint `03d-input`, click the drawing, type `Help` and press Enter. The first character appears immediately, the field clears and one answer is retained in the real dock. Type `He` to inspect the selected completion suffix, use Tab to accept it, and Escape to clear it. Fold and reopen history: the retained answer survives. The triangle remains visible behind the dock.
-
-The shared layout is the first substantial production source boundary in this chapter: [`command_dock/mod.rs`](../../../src/command_dock/mod.rs), [`view.rs`](../../../src/command_dock/view.rs) and [`theme.rs`](../../../src/command_dock/theme.rs) define the reusable model and drawing behavior. In the maintained application, [`app/ui/command_line.rs`](../../../src/app/ui/command_line.rs) retains its model between frames and supplies the application command adapter. [`app/ui/mod.rs`](../../../src/app/ui/mod.rs) translates winit input and gathers panel output; [`engine/gpu/ui.rs`](../../../src/engine/gpu/ui.rs) owns GPU panel painting. Our browser callbacks and Panel wrapper expose those dependencies incrementally. Later lessons connect the broader command registry, scene tools and browser lifetime.
+- **Try this:** Click the scene between two Help submissions. Each submission should add one answer without requiring a field click.
 
 Continue with [Commands that change the view](04-input.md).

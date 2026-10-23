@@ -1,22 +1,91 @@
 # Rust and the first GPU frame
 
-Build a browser page whose drawing can be owned by Rust, then submit its first GPU frame. The visible result is a white canvas. The important change is who produced those pixels: first the page background, then a render pass submitted to a real GPU.
+**Section 1: WebGPU Foundations, Shaders, and the Command Dock** · **Lesson 1.1** (Redraft `1.1`) · **2 checkpoints (`01-canvas` → `01a-gpu`)**
 
-## From a page to an owned drawing operation
+> **Learning Goal:** Fill the browser window with a canvas and let Rust signal that it has started.
 
-Create one project and keep it throughout the course. From `session_viewer`, run `npm --prefix ../session_tests run course -- init`, then create `workspace/journey/src`. The initialization supplies the dependency lock; the implementation below supplies the manifest, page and Rust modules.
+## Visual WebGPU & Architecture Schematic
 
-`index.html` owns the canvas and its full-window CSS. Its hidden status element is a separate startup signal. `Cargo.toml` declares a `cdylib` for WebAssembly and an `rlib` so the same drawing code can be called natively. Rust's `#[wasm_bindgen(start)]` entry point looks up the document and writes the status. `Result<(), JsValue>` makes a missing element an explicit failure; `?` returns that failure to the caller.
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1px solid #cbd5e1;border-radius:10px;background:#f8fafc;">
+<svg viewBox="0 0 840 240" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#475569"/>
+    </marker>
+    <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+    <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#059669"/>
+    </marker>
+  </defs>
+  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#0f172a">Chapter 1 WebGPU Architecture: Surface → CommandEncoder → Scene Pass (Clear) + UI Pass (Load)</text>
+  <text x="20" y="46" font-size="11.5" fill="#475569">Why two passes share one GPU TextureView: Pass 1 clears & draws the 3D scene; Pass 2 loads existing pixels and overlays the Command Dock.</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#e2e8f0" stroke-width="1"/>
+  
+    <!-- Box 1: HTML Canvas -->
+    <rect x="18" y="68" width="160" height="145" rx="6" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
+    <text x="98" y="88" text-anchor="middle" font-size="12" font-weight="700" fill="#1e40af">1. Browser (HTML/JS)</text>
+    <text x="30" y="110" font-size="11" fill="#1e3a8a">• &lt;canvas id="canvas"&gt;</text>
+    <text x="30" y="128" font-size="11" fill="#1e3a8a">• Pointer / Key Events</text>
+    <text x="30" y="146" font-size="11" fill="#1e3a8a">• Surface TextureView</text>
+    <text x="30" y="164" font-size="11" font-weight="600" fill="#1d4ed8">• frame.present()</text>
+    <text x="30" y="192" font-size="10.5" fill="#475569">Format: Bgra8UnormSrgb</text>
 
-This proves that the page can load Rust. It does not prove that a GPU has written the image. To cross that boundary, the entry point starts an asynchronous browser setup future. Adapter and device requests use `.await`, leaving the browser available while they complete. The canvas becomes a wgpu surface; the requested adapter must support that surface. The device creates resources and the queue accepts work.
+    <line x1="178" y1="125" x2="208" y2="125" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
 
-We separate two owners immediately. `src/browser.rs` connects browser objects to a surface and obtains a surface image. `src/renderer.rs` owns the device and queue and borrows an image view for `draw`. That renderer is a learner module created here; the maintained viewer has no `src/renderer.rs` file.
+    <!-- Box 2: Rust CPU Owner -->
+    <rect x="210" y="68" width="215" height="145" rx="6" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5"/>
+    <text x="317" y="88" text-anchor="middle" font-size="12" font-weight="700" fill="#9a3412">2. Rust / WASM (CPU Owner)</text>
+    <text x="222" y="108" font-size="11" fill="#7c2d12">• Adapter.request_device().await</text>
+    <text x="222" y="126" font-size="11" fill="#7c2d12">• Panel::update(event) -&gt; Command</text>
+    <text x="222" y="144" font-size="11" fill="#7c2d12">• let mut enc = create_encoder()</text>
+    <text x="222" y="162" font-size="11" font-weight="600" fill="#c2410c">• { let pass = enc.begin_...(); }</text>
+    <text x="222" y="180" font-size="10.5" fill="#9a3412">  (Braces end &amp;mut borrow!)</text>
+    <text x="222" y="198" font-size="11" font-weight="600" fill="#7c2d12">• queue.submit([enc.finish()])</text>
 
-The renderer creates a command encoder and opens a render pass whose color attachment clears to white and stores the result. The pass borrows the encoder. Its inner scope ends that borrow before `encoder.finish()` consumes the encoder to produce a command buffer. `queue.submit` sends the buffer to the GPU. The browser-side owner then calls `frame.present()` to finish the surface frame. These are distinct operations: recording, submission and presentation.
+    <line x1="425" y1="108" x2="458" y2="108" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>
+    <line x1="425" y1="172" x2="458" y2="172" stroke="#059669" stroke-width="2" marker-end="url(#arrow-green)"/>
 
-## Implement the startup and first clear
+    <!-- Box 3: GPU Pass 1 -->
+    <rect x="460" y="68" width="360" height="68" rx="6" fill="#fdf2f8" stroke="#f472b6" stroke-width="1.5"/>
+    <text x="472" y="86" font-size="11.5" font-weight="700" fill="#9d174d">3A. GPU RenderPass #1 — Scene (LoadOp::Clear)</text>
+    <text x="472" y="104" font-size="11" fill="#831843">• @vertex fn vertex(@builtin(vertex_index) i: u32) -&gt; clip (-1..+1)</text>
+    <text x="472" y="122" font-size="11" fill="#831843">• @fragment fn fragment() -&gt; @location(0) vec4f (Pink Triangle)</text>
 
-Apply the following implementation sections in order. They retain every original edit and snippet; an intermediate checkpoint is a useful place to save, not a separate reading assignment.
+    <!-- Box 4: GPU Pass 2 -->
+    <rect x="460" y="145" width="360" height="68" rx="6" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1.5"/>
+    <text x="472" y="163" font-size="11.5" font-weight="700" fill="#065f46">3B. GPU RenderPass #2 — Command Dock (LoadOp::Load)</text>
+    <text x="472" y="181" font-size="11" fill="#064e3b">• Keeps Pass #1 pixels! Uploads Noto Font Atlas glyph changes</text>
+    <text x="472" y="199" font-size="11" fill="#064e3b">• egui_wgpu::Renderer draws Command: prompt + completions on top</text>
+    
+</svg>
+</div>
+
+### Lesson Data Flow (`Rust` → `WebGPU` → `WGSL`)
+
+```
+Fill the browser window with a canvas and let Rust signal that it has started.
+```
+
+- Fill the browser window with a canvas and let Rust signal that it has started.
+- Open a browser GPU and paint the whole canvas white.
+- **Why it works (Does seeing the canvas prove that the GPU has drawn anything?):** No. HTML creates the canvas and CSS gives it a background. The status proves Rust ran; GPU commands begin in the next lesson.
+
+### Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `Browser`)
+
+| Layer | Construct | First-Year Student Explanation |
+| :--- | :--- | :--- |
+| **HTML / CSS** | `<canvas id="canvas">` | Full-window browser drawing surface; CSS `width/height: 100%` fills the viewport while Rust synchronizes physical pixel dimensions. |
+| **Rust (`wgpu`)** | `CommandEncoder` + `{ begin_render_pass(...) }` | Records GPU commands on the CPU. Scoping Pass #1 (`LoadOp::Clear`) in `{ ... }` releases the mutable borrow so Pass #2 (`LoadOp::Load`, Command Dock UI) can draw on top. |
+| **WGSL Shader** | `@vertex` & `@fragment` (`@builtin(vertex_index)`) | GPU stages that compute clip-space coordinates `(-1..+1)` and RGBA pixel colors in parallel across GPU cores. |
+
+**Production source (`session_viewer/src`):** [`lib.rs`](../../../src/lib.rs), [`engine/gpu/device.rs`](../../../src/engine/gpu/device.rs)
+
+## Implementation Checkpoints
+
+Apply these checkpoints in order inside `workspace/journey`. Expand each block to view the Rust/WGSL/HTML edits:
 
 <a id="checkpoint-01-canvas"></a>
 
@@ -111,25 +180,20 @@ Create the file and type:
 
 </details>
 
-## Run and keep a checkpoint
+## Run, Check, and Save
 
-After typing the implementation, run from `session_viewer`:
+From `session_viewer`:
 
 ```sh
-npm --prefix ../session_tests run course -- dependencies 01a-gpu
-npm --prefix ../session_tests run course -- check 1.1
-npm --prefix ../session_tests run course -- save 01a-gpu
-cd workspace/journey
-cargo build --lib --locked --target wasm32-unknown-unknown -j1
-CARGO_BUILD_JOBS=1 trunk serve --port 8780
+
 ```
 
-Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it. The source comparison checks your typed project without replacing it. Restore experimental changes before comparing or saving; [recovery instructions](../recovery.md) explain how to return to a saved checkpoint.
+Open `http://127.0.0.1:8780/`. Use [checkpoint recovery](../recovery.md) to restore any saved checkpoint.
 
-## Result and a useful experiment
+## Expected Visual Result & Experiment
 
-At endpoint `01a-gpu`, the canvas is white and startup reports “The GPU painted the canvas.” Temporarily change `wgpu::Color::WHITE` to `wgpu::Color::BLACK`: the canvas turns black. Restore white. The first page's white background could not establish this drawing path; changing the GPU clear does.
+The canvas stays white. Change `wgpu::Color::WHITE` to `wgpu::Color::BLACK`, save, and check that it turns black. Restore WHITE. These pixels now come from the GPU.
 
-The maintained dependency path begins at [`lib.rs`](../../../src/lib.rs): `run_web` starts the winit `App`; its `resumed` callback binds the page canvas and starts `app::loader::boot`; a `Msg::Ready` transfers the resulting `State` back into the event loop. Our small async setup teaches that handoff before introducing the event loop and recovery machinery. GPU opening lives in [`engine/gpu/device.rs`](../../../src/engine/gpu/device.rs), where surface, device, queue and configuration have explicit owners.
+- **Try this:** Remove the inner braces around the render pass and keep its named binding alive until finish. Read the borrow error, then restore the scope.
 
 Continue with [Browser presentation](02-clear.md).

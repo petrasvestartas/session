@@ -1,22 +1,90 @@
 # Browser presentation
 
-Keep the first GPU frame and give browser presentation a clear boundary. At the end of this lesson, setup chooses a valid drawing size and color configuration; `present` obtains an image, asks the renderer to draw it and completes the frame. Startup failures can reach the page instead of disappearing inside asynchronous setup.
+**Section 1: WebGPU Foundations, Shaders, and the Command Dock** · **Lesson 1.2** (Redraft `1.2`) · **1 checkpoint (`02-clear`)**
 
-## A surface image is a temporary drawing target
+> **Learning Goal:** Separate browser presentation from setup and add bounded sizing and error feedback.
 
-The device and queue survive between frames. A surface image does not: each presentation acquires a new frame through `surface.get_current_texture()`. The `present` function accepts a successful or suboptimal frame, builds its texture view, borrows that view for `Renderer::draw`, then calls `frame.present()`. Other acquisition results become a `JsValue` error. This deliberately small policy is enough to explain the boundary; later browser-lifetime lessons add recovery.
+## Visual WebGPU & Architecture Schematic
 
-Keep `surface` and its configuration in browser setup rather than giving the renderer a canvas. A renderer that only needs a `TextureView` can draw into an offscreen target as well. The browser owns where the image goes; the renderer owns how to record the drawing.
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1px solid #cbd5e1;border-radius:10px;background:#f8fafc;">
+<svg viewBox="0 0 840 240" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#475569"/>
+    </marker>
+    <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+    <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#059669"/>
+    </marker>
+  </defs>
+  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#0f172a">Chapter 1 WebGPU Architecture: Surface → CommandEncoder → Scene Pass (Clear) + UI Pass (Load)</text>
+  <text x="20" y="46" font-size="11.5" fill="#475569">Why two passes share one GPU TextureView: Pass 1 clears & draws the 3D scene; Pass 2 loads existing pixels and overlays the Command Dock.</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#e2e8f0" stroke-width="1"/>
+  
+    <!-- Box 1: HTML Canvas -->
+    <rect x="18" y="68" width="160" height="145" rx="6" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
+    <text x="98" y="88" text-anchor="middle" font-size="12" font-weight="700" fill="#1e40af">1. Browser (HTML/JS)</text>
+    <text x="30" y="110" font-size="11" fill="#1e3a8a">• &lt;canvas id="canvas"&gt;</text>
+    <text x="30" y="128" font-size="11" fill="#1e3a8a">• Pointer / Key Events</text>
+    <text x="30" y="146" font-size="11" fill="#1e3a8a">• Surface TextureView</text>
+    <text x="30" y="164" font-size="11" font-weight="600" fill="#1d4ed8">• frame.present()</text>
+    <text x="30" y="192" font-size="10.5" fill="#475569">Format: Bgra8UnormSrgb</text>
 
-Canvas CSS size and texture size are different quantities. Initially we take the window dimensions and clamp each axis to `1..=device.limits().max_texture_dimension_2d` before configuring the surface. A zero-sized surface cannot be configured, and an oversized texture exceeds the device contract. This is initial sizing; live resize and display density enter later in the course.
+    <line x1="178" y1="125" x2="208" y2="125" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
 
-Color configuration is another shared contract. Allow `config.format.add_srgb_suffix()` in `view_formats` and create that same sRGB view when presenting. The renderer's linear color values are encoded for display through this view. A future pipeline's color target must match the view format, not merely the surface's base format. Passing the selected format into the renderer in the next lesson makes that dependency explicit.
+    <!-- Box 2: Rust CPU Owner -->
+    <rect x="210" y="68" width="215" height="145" rx="6" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5"/>
+    <text x="317" y="88" text-anchor="middle" font-size="12" font-weight="700" fill="#9a3412">2. Rust / WASM (CPU Owner)</text>
+    <text x="222" y="108" font-size="11" fill="#7c2d12">• Adapter.request_device().await</text>
+    <text x="222" y="126" font-size="11" fill="#7c2d12">• Panel::update(event) -&gt; Command</text>
+    <text x="222" y="144" font-size="11" fill="#7c2d12">• let mut enc = create_encoder()</text>
+    <text x="222" y="162" font-size="11" font-weight="600" fill="#c2410c">• { let pass = enc.begin_...(); }</text>
+    <text x="222" y="180" font-size="10.5" fill="#9a3412">  (Braces end &amp;mut borrow!)</text>
+    <text x="222" y="198" font-size="11" font-weight="600" fill="#7c2d12">• queue.submit([enc.finish()])</text>
 
-The entry point reports failed setup through `browser::report`. The device's uncaptured-error callback is retained with `Arc`, and the page keeps a status element available for feedback. Ordinary success remains hidden; startup messages beginning with “Cannot” reveal it. This callback reports errors but does not recreate a failed device.
+    <line x1="425" y1="108" x2="458" y2="108" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>
+    <line x1="425" y1="172" x2="458" y2="172" stroke="#059669" stroke-width="2" marker-end="url(#arrow-green)"/>
 
-## Implement the presentation boundary
+    <!-- Box 3: GPU Pass 1 -->
+    <rect x="460" y="68" width="360" height="68" rx="6" fill="#fdf2f8" stroke="#f472b6" stroke-width="1.5"/>
+    <text x="472" y="86" font-size="11.5" font-weight="700" fill="#9d174d">3A. GPU RenderPass #1 — Scene (LoadOp::Clear)</text>
+    <text x="472" y="104" font-size="11" fill="#831843">• @vertex fn vertex(@builtin(vertex_index) i: u32) -&gt; clip (-1..+1)</text>
+    <text x="472" y="122" font-size="11" fill="#831843">• @fragment fn fragment() -&gt; @location(0) vec4f (Pink Triangle)</text>
 
-Continue from endpoint `01a-gpu` and apply the complete edit section below.
+    <!-- Box 4: GPU Pass 2 -->
+    <rect x="460" y="145" width="360" height="68" rx="6" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1.5"/>
+    <text x="472" y="163" font-size="11.5" font-weight="700" fill="#065f46">3B. GPU RenderPass #2 — Command Dock (LoadOp::Load)</text>
+    <text x="472" y="181" font-size="11" fill="#064e3b">• Keeps Pass #1 pixels! Uploads Noto Font Atlas glyph changes</text>
+    <text x="472" y="199" font-size="11" fill="#064e3b">• egui_wgpu::Renderer draws Command: prompt + completions on top</text>
+    
+</svg>
+</div>
+
+### Lesson Data Flow (`Rust` → `WebGPU` → `WGSL`)
+
+```
+Separate browser presentation from setup and add bounded sizing and error feedback.
+```
+
+- Separate browser presentation from setup and add bounded sizing and error feedback.
+- **Why it works (What starts the GPU work, and what makes its image appear in the canvas?):** queue.submit sends the recorded commands to the GPU. The browser presents its canvas image automatically. We still call frame.present to mark the end of our surface frame through wgpu’s shared API; native surface backends use that call to request presentation.
+
+### Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `Browser`)
+
+| Layer | Construct | First-Year Student Explanation |
+| :--- | :--- | :--- |
+| **HTML / CSS** | `<canvas id="canvas">` | Full-window browser drawing surface; CSS `width/height: 100%` fills the viewport while Rust synchronizes physical pixel dimensions. |
+| **Rust (`wgpu`)** | `CommandEncoder` + `{ begin_render_pass(...) }` | Records GPU commands on the CPU. Scoping Pass #1 (`LoadOp::Clear`) in `{ ... }` releases the mutable borrow so Pass #2 (`LoadOp::Load`, Command Dock UI) can draw on top. |
+| **WGSL Shader** | `@vertex` & `@fragment` (`@builtin(vertex_index)`) | GPU stages that compute clip-space coordinates `(-1..+1)` and RGBA pixel colors in parallel across GPU cores. |
+
+**Production source (`session_viewer/src`):** [`engine/gpu/device.rs`](../../../src/engine/gpu/device.rs), [`State`](../../../src/state.rs), [`engine/gpu/render.rs`](../../../src/engine/gpu/render.rs)
+
+## Implementation Checkpoints
+
+Apply these checkpoints in order inside `workspace/journey`. Expand each block to view the Rust/WGSL/HTML edits:
 
 <a id="checkpoint-02-clear"></a>
 
@@ -153,25 +221,20 @@ Edit the existing block to match this code; keep unchanged lines:
 
 </details>
 
-## Run and keep a checkpoint
+## Run, Check, and Save
 
-After typing the implementation, run from `session_viewer`:
+From `session_viewer`:
 
 ```sh
-npm --prefix ../session_tests run course -- dependencies 02-clear
-npm --prefix ../session_tests run course -- check 1.2
-npm --prefix ../session_tests run course -- save 02-clear
-cd workspace/journey
-cargo build --lib --locked --target wasm32-unknown-unknown -j1
-CARGO_BUILD_JOBS=1 trunk serve --port 8780
+
 ```
 
-Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it. The source comparison checks your typed project without replacing it. Restore experimental changes before comparing or saving; [recovery instructions](../recovery.md) explain how to return to a saved checkpoint.
+Open `http://127.0.0.1:8780/`. Use [checkpoint recovery](../recovery.md) to restore any saved checkpoint.
 
-## Result and a useful experiment
+## Expected Visual Result & Experiment
 
-At endpoint `02-clear`, the canvas still shows one opaque white GPU frame. Change the three clear components from `1.0` to `0.9`. The sRGB view displays a light gray. Restore white before continuing. This exercise checks the path from a linear clear value through the configured image view.
+The canvas remains white. Change its clear colour to `r: 0.9, g: 0.9, b: 0.9`: it becomes light grey through the sRGB view. Restore all three values to `1.0`.
 
-In the maintained viewer, [`engine/gpu/device.rs`](../../../src/engine/gpu/device.rs) chooses the surface configuration and prefers an sRGB format. [`State`](../../../src/state.rs) owns the GPU alongside application state, and [`engine/gpu/render.rs`](../../../src/engine/gpu/render.rs) organizes frame rendering. The exact configuration policy grows later; the enduring dependency is that acquisition, target format, drawing and presentation must agree.
+- **Try this:** Compare width and height with the device limit in run. Explain why a drawing buffer needs pixel dimensions even though CSS already fills the window.
 
 Continue with [Shaders and the command dock](03-triangle.md).
