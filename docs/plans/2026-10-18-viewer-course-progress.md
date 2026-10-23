@@ -231,3 +231,26 @@ Latest verification: all 29 original failing tests have now passed in focused ru
 - Recovery structure check PASS: 1,361 checkpoint reconstructions, 307 current viewer source files; 43 retained reference checkpoints and 351 archived final files. Prior exact-model native build PASS; focused native checks 12/12 and tooling 22/22 PASS.
 - Actual Sheet ingress comparisons PASS 32/32, zero full-frame differences. Corrected ordinary-family witness requires fresh Point/mesh reruns before accepting their placement/depth evidence.
 - Final full native suite, browser fixture contracts, five performance categories, four reload/grid combinations, 19 feature-evidence sets and five release gates remain open. Full-code checkpoint publication is authorized; unfinished gates must remain visible.
+
+
+### Checkpoint progress ? 2026-10-23
+
+- [x] Full-code Session checkpoint `b7cdd5dc` pushed to `codex/viewer-course-checkpoints-20261023`; GitHub viewer-check run39928419284 pending. Parent hook/pointer checkpoint follows after CI.
+- [x] Gemini/Argo ownership confirmed: existing sections1?10 in `session/session_viewer/docs/journey`; its concurrent prose/redraft files remain untouched. Codex chapters11?22:59 authored lessons,912 retained checkpoints, no missing snippet references.
+- [x] Corrected actual production initial GPU translation: Point8/8 and Mesh8/8 full-RGBA pairs pass at the recorded placement.193.448s,830099456-byte peak; four representative images individually inspected. New native records and Point figures are embedded in lesson22.6.
+- [x] Recovery docs build and visible browser check pass;111 reader lessons, latest Matrix code and decoded images verified.
+- [x] Reconciled23 stale chapter11?22 metadata statements, cloud extraction/LOD evidence, current Scene defaults and native reload/grid implementation status.
+- [x] Corrected transformed Plane16/16 full-RGBA comparisons PASS337.04s,982036480-byte peak; four representative images inspected. Plain/occlusion/print controls remain open.
+- [ ] Chapters11 and13?20 still need complete chapter-specific accepted visual sets:9 of our12 chapters. Existing partial native evidence does not close a whole chapter.
+- [ ] Four fixture callbacks; five measured performance categories; four reload/grid browser combinations; final clean native/WASM/optimized acceptance; runnable-checkpoint verification and all five release gates remain.
+
+
+### Native evidence checkpoint and ongoing full run
+
+- [x] Parent checkpointa574827 pushed; no configured branch workflow runs. Session runtime CI atb7cdd5dc is green:558native tests pass,61GPU tests ignored, plus WASM/native-all-target checks.
+- [x] Gemini/Argo has pushed ten section commits throughd4af0558 on the shared branch. Their files and commits are preserved. Runtime and tooling sources are unchanged from the green CI checkpoint.
+- [x] Source-bound native records/figures now cover Point8/8,Mesh8/8,and transformed Plane16/16 at the declared poses. Complete arbitrary depth/occlusion or browser acceptance is not inferred.
+- [x] Before/after performance sources prepared:710/713files, identical outside13declared scheduling edits; final fingerprinta45eada2fbdbd940d5e85b50e7e5fe12ccef69e794abd71111264cce0368fe2c. Measurements still pending.
+- [x] Portable pull launcher safety:8isolated Bash/cmd cases pass (help,invalid arguments,dirty worktree,unpublished commit). Every case preserves HEAD and payload.
+- [ ] Complete learner native suite running from correct fixture cwd:integrated-full-native-source-freeze,1800s/6GiB,twoCPUs,one test thread. No acceptance before completion.
+- [ ] Fresh strict docs build and browser review are required after Gemini and current visual/prose edits; previous successful docs evidence remains bound to its earlier inputs.

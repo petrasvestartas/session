@@ -354,7 +354,7 @@
         }
       ],
       "classification": "staged",
-      "remainingDefect": "Point sizing/crowding and pen controls still require production-path verification. Missing listed filenames must be resolved in source inventory, not read as absent functionality.",
+      "remainingDefect": "Corrected actual-production Point8/8 and mesh8/8 native full-RGBA pairs match at the recorded translated orthographic pose, including DPR1/2, samples1/4 and selection. These do not establish arbitrary occlusion or all marker/normal/control toggles; complete display controls and browser coverage remain pending.",
       "proposedLessons": [
         "35-stroke",
         "36-chain",
@@ -1093,7 +1093,7 @@
         }
       ],
       "classification": "staged",
-      "remainingDefect": "Latest-camera publication and held world-grid behavior are implemented in maintained/course runtimes; focused native checks and actual maintained-grid near/far/rebase frames pass. All four deferred-load browser reload/grid combinations remain unaccepted. Original Plane placement/depth evidence needs the corrected initial GPU translation witness.",
+      "remainingDefect": "Latest-camera publication and held world-grid behavior are implemented in maintained/course runtimes; focused native checks and actual grid near/far/rebase frames pass. Sixteen corrected-witness mirrored/nonuniform placed Plane pairs match all RGBA pixels across DPR1/2, samples1/4, halfsize50/100 and selection. Plain/covered/printed-fill Plane controls and all four deferred-load browser reload/grid combinations remain unaccepted.",
       "proposedLessons": [
         "46-tool-panel",
         "47-registry",

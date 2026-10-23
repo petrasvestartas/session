@@ -1,33 +1,41 @@
 {
-  "reviewedAt": "2026-10-23",
-  "scope": "Actual maintained/course Mesh full-colour frames on Windows WARP; native acceptance only, not browser or subpart-pick parity. Shader integer ownership was subsequently updated; these colour pairs predate that integer-only adapter change. Perspective pen-lens adaptation is also subsequent; these pairs use the recorded orthographic pose.",
+  "reviewedAt": "2026-10-23T09:00:40.266645+00:00",
+  "scope": "Actual maintained/course mesh full-colour orthographic frames on Windows WARP after the initial GPU translation correction. Native bounded comparison; browser and complete display-family acceptance remain open.",
+  "sourceFingerprint": "a45eada2fbdbd940d5e85b50e7e5fe12ccef69e794abd71111264cce0368fe2c",
   "comparison": "entire RGBA frame; zero tolerance; identical original Session bytes and production device",
   "pairs": 8,
   "changedPixels": 0,
   "failedPairs": [],
+  "currentPlacementDepthAccepted": true,
+  "placementDepthScope": "Recorded original placement translated -500 along Z, actual production GPU rebasing applied; no broad clipping/occlusion or arbitrary-pose claim.",
+  "binarySha256": "a20de02829264fb133be4eebacb94188c6bbbe9a82de0f92cd65f1ce8214e7d0",
+  "witnessSourceSha256": "ba5124762568cdcfe6a6cca79f7e74b501fd94237b4afd948ecb3087d341d580",
+  "runner": "target/course-windows-20261018/glyph-placement-corrected.json",
+  "runElapsedSeconds": 193.448,
+  "runPeakJobCommitBytes": 830099456,
   "images": [
     {
       "file": "screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-mesh-unselected-native-4x.png",
       "sha256": "3261a0976e3dace0a83007a6ad8dbcbcc9a2144ec44bf2fd63f7348bca9be0b8",
-      "pair": "mesh-dpr1-samples4-unselected"
+      "pair": "mesh-dpr1-samples4-unselected",
+      "unchangedFromPriorImage": true
     },
     {
       "file": "screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-mesh-selected-native-4x.png",
       "sha256": "8ff6a830dafa55259f632eea5e96f93dd0e229c08dcbd8f1a293ce0ba0ed54dd",
-      "pair": "mesh-dpr1-samples4-selected"
+      "pair": "mesh-dpr1-samples4-selected",
+      "unchangedFromPriorImage": true
     }
   ],
   "inspectedRepresentatives": [
+    "point-dpr1-samples4-unselected-course.png",
+    "point-dpr2-samples4-selected-production.png",
     "mesh-dpr1-samples4-selected-course.png",
-    "mesh-dpr1-samples4-unselected-production.png",
-    "mesh-dpr2-samples4-selected-production.png",
-    "mesh-dpr2-samples4-unselected-course.png",
-    "mesh-dpr1-samples1-selected-production.png",
     "mesh-dpr2-samples1-unselected-production.png"
   ],
   "cases": [
     {
-      "archive_sha256": "e679077e078a0a67e7b875532747ca2542feed7b52d9921694b770d253d660d4",
+      "archive_sha256": "05a902cc9896c8d3634da929eb44d845106f04e8bbd92ebf36abdcadd985dca2",
       "case": "mesh-dpr1-samples1-unselected",
       "changed_pixels": 0,
       "course": {
@@ -856,10 +864,10 @@
           "vectors": []
         }
       },
-      "source_sha256": "c58d15a28c15eb5cda71a8b9e4480ebd00db22e86f32f66239353107889792c7"
+      "source_sha256": "593f46256688b932ab353c11afeb17893cffcbdc8d95530edde17e330d15b6ae"
     },
     {
-      "archive_sha256": "2489b748aca1a66e6b98214e8cadbb7a051bb8c2c3f8fa195c9d148a40d9fbed",
+      "archive_sha256": "f29db6deb1580ca244696d25af383f2b997133bea917e9dfca24ef72fc17b713",
       "case": "mesh-dpr1-samples1-selected",
       "changed_pixels": 0,
       "course": {
@@ -1690,10 +1698,10 @@
           "vectors": []
         }
       },
-      "source_sha256": "c58d15a28c15eb5cda71a8b9e4480ebd00db22e86f32f66239353107889792c7"
+      "source_sha256": "593f46256688b932ab353c11afeb17893cffcbdc8d95530edde17e330d15b6ae"
     },
     {
-      "archive_sha256": "e4a394f4dd1845e5d1da803a08bb429218899db3ee533b5777d81a8bdfad971a",
+      "archive_sha256": "61522a58d3b3d517f69b8c7cacfc7cbd68f727dfde3e7488e5a787a53e060476",
       "case": "mesh-dpr1-samples4-unselected",
       "changed_pixels": 0,
       "course": {
@@ -2522,10 +2530,10 @@
           "vectors": []
         }
       },
-      "source_sha256": "c58d15a28c15eb5cda71a8b9e4480ebd00db22e86f32f66239353107889792c7"
+      "source_sha256": "593f46256688b932ab353c11afeb17893cffcbdc8d95530edde17e330d15b6ae"
     },
     {
-      "archive_sha256": "d6770afaffd087afba102f623d8a85aefbebbebe20dac02f22f1d0a66879b247",
+      "archive_sha256": "44bdd464ee5a0af0501fb728bdd44745ad6a7012a49a5149ee05d7e8b40aa61d",
       "case": "mesh-dpr1-samples4-selected",
       "changed_pixels": 0,
       "course": {
@@ -3356,10 +3364,10 @@
           "vectors": []
         }
       },
-      "source_sha256": "c58d15a28c15eb5cda71a8b9e4480ebd00db22e86f32f66239353107889792c7"
+      "source_sha256": "593f46256688b932ab353c11afeb17893cffcbdc8d95530edde17e330d15b6ae"
     },
     {
-      "archive_sha256": "aa440584cf1ab857961d79fc3f4c871f5c7741fc26946db1ed689b27d7ca7fa9",
+      "archive_sha256": "499657a473a856657b1902686dae8dc2c4526186d433a418667f80f4515183dd",
       "case": "mesh-dpr2-samples1-unselected",
       "changed_pixels": 0,
       "course": {
@@ -4188,10 +4196,10 @@
           "vectors": []
         }
       },
-      "source_sha256": "c58d15a28c15eb5cda71a8b9e4480ebd00db22e86f32f66239353107889792c7"
+      "source_sha256": "593f46256688b932ab353c11afeb17893cffcbdc8d95530edde17e330d15b6ae"
     },
     {
-      "archive_sha256": "3a7b329a884f224ca6755f88cf211cc2c96a89727032c7f012aa0991b75485b7",
+      "archive_sha256": "cf12c907a4e366a212ae2a3f7ccc6d72cc011721bcde2831e19e4a382d9b26e1",
       "case": "mesh-dpr2-samples1-selected",
       "changed_pixels": 0,
       "course": {
@@ -5022,10 +5030,10 @@
           "vectors": []
         }
       },
-      "source_sha256": "c58d15a28c15eb5cda71a8b9e4480ebd00db22e86f32f66239353107889792c7"
+      "source_sha256": "593f46256688b932ab353c11afeb17893cffcbdc8d95530edde17e330d15b6ae"
     },
     {
-      "archive_sha256": "a5b43a78d5451e4db88c82de277ee4876f82cf4272ee565cf5aaa5e82729ef50",
+      "archive_sha256": "96ce1e800fa6c7e4801b2d353911c0c79ff184d00cd71adf02d33e3dd7f747ca",
       "case": "mesh-dpr2-samples4-unselected",
       "changed_pixels": 0,
       "course": {
@@ -5854,10 +5862,10 @@
           "vectors": []
         }
       },
-      "source_sha256": "c58d15a28c15eb5cda71a8b9e4480ebd00db22e86f32f66239353107889792c7"
+      "source_sha256": "593f46256688b932ab353c11afeb17893cffcbdc8d95530edde17e330d15b6ae"
     },
     {
-      "archive_sha256": "c59188aa43d241e05222daf4b6587c6443f067c03f41c062007246c4a737cd17",
+      "archive_sha256": "f882e8ff9717df47ecc492b0e944d5597099f34e078a2272f8c3b5a644a8f247",
       "case": "mesh-dpr2-samples4-selected",
       "changed_pixels": 0,
       "course": {
@@ -6688,7 +6696,7 @@
           "vectors": []
         }
       },
-      "source_sha256": "c58d15a28c15eb5cda71a8b9e4480ebd00db22e86f32f66239353107889792c7"
+      "source_sha256": "593f46256688b932ab353c11afeb17893cffcbdc8d95530edde17e330d15b6ae"
     }
   ],
   "provenance": {
@@ -6696,15 +6704,16 @@
       "Original Point walk and mesh-marker incidence/facing/width algorithms are retained; local row collectors replace production lane owners.",
       "Prepared mesh glyph metadata retains only the radius and three facing words, sharing existing endpoint addresses/colors. GPU geometry owns no original Mesh reference.",
       "The complete shader programs change only object ownership in fs_id; active edit controls retain their separate course source queries.",
-      "Object flags, spacing, edge overrides and per-frame eye-inside flags use compact production object rows. Shader geometry, coverage, normal handling and pick cutoff are unchanged."
+      "Object flags, spacing, edge overrides and per-frame eye-inside flags use compact production object rows. Shader geometry, coverage, normal handling and pick cutoff are unchanged.",
+      "The ownership adapter retains course OBJECT_INK=1 so physical surfaces do not outrank an original glyph within the cursor window; the production DISC_ID_TAG class remains nonphysical."
     ],
     "composition": "shared(ink_source(shader!(entry))): expanded/minified entry, ink visibility, scene, clipping, normals, physical output.",
     "glyph": {
-      "compiled_sha256": "ef70548629912cc6933d372780c96505cec34cb3c05a6d65877ad3dd7c58aa1d",
+      "compiled_sha256": "4d96b5748ffe620415dfec814d6b978bc10e4e738500c2c284e47abe8220ef25",
       "ownership_adapter": {
         "declaration": "\n@group(3) @binding(1) var<storage, read> course_owners: array<u32>;\n",
         "original": "return vec2<u32>(in.inst_id + 1u, DISC_ID_TAG | (in.point_index + 1u));",
-        "replacement": "return vec2<u32>(course_owners[in.inst_id], 0u);"
+        "replacement": "return vec2<u32>(course_owners[in.inst_id], 1u);"
       },
       "pristine_sha256": "97080e42d0a87868a47acfa656f43f22f839efdbb41245bb6d015111bdf277a2"
     },
@@ -6728,17 +6737,13 @@
       "shaders/sphere.wgsl": "4a4bbdb2853a6525beab037611cb9b2135ce42ad881154b8ab1d46c8e2c24a4a"
     },
     "sphere": {
-      "compiled_sha256": "f5ca0bfeeb4c7f23ac315a68bb85687f9c593b1a64799fde644f6a7e72b198e4",
+      "compiled_sha256": "0a2886d5370e19345687104a7e4615b5f0ba20c7f46802c72c31c68f5f63a8a7",
       "ownership_adapter": {
         "declaration": "\n@group(3) @binding(1) var<storage, read> course_owners: array<u32>;\n",
         "original": "return vec2<u32>(in.inst_id + 1u, DISC_ID_TAG);",
-        "replacement": "return vec2<u32>(course_owners[in.inst_id], 0u);"
+        "replacement": "return vec2<u32>(course_owners[in.inst_id], 1u);"
       },
       "pristine_sha256": "d7026228dc4c9bc7c39650ea74924d0efb082dac1b8a5f87413651e82e47fe92"
     }
-  },
-  "currentAcceptance": "Pending corrected-witness rerun: the earlier production helper skipped the normal first-rebase lifecycle. Exact old RGBA comparisons remain recorded, but do not establish placement/depth fidelity.",
-  "witnessAudit": "target/course-windows-20261018/sheet-diagnosis/other-ingress-audit.json",
-  "acceptance": "Historical colour comparison only; corrected initial GPU translation update requires fresh placement/depth pairs.",
-  "currentPlacementDepthAccepted": false
+  }
 }

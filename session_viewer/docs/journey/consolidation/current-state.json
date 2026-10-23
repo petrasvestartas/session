@@ -86,7 +86,12 @@
     "nativeFocusedFinal": "PASS: checkpoint-native-focused.json,12/12 checks, including four prior failures,433-file source inventory and production shader/source contracts. Full clean final-suite pass remains pending.",
     "structuralCurrent": "PASS: recovery-structure.json;1361 course reconstructions,307 current viewer source files,43 reference checkpoints and351 archived final files.",
     "pairedWitnessLifecycle": "Audit found missing first rebase in ordinary matched-ingress helper too. Native-only helper corrected. Rerun affected Point/mesh/Plane comparisons before accepting placement/depth proof. Four original Line pairs have zero translations and remain unaffected by this specific issue.",
-    "docsRecovery": "PASS: recovery-docs-build.json,119.884s,2007429120-byte peak. Recovered course rendered in existing visible Chrome;111 lessons and latest Matrix code/images verified (recovery-browser.json). Later metadata corrections await subsequent strict rebuild."
+    "docsRecovery": "PASS: recovery-docs-build.json,119.884s,2007429120-byte peak. Recovered course rendered in existing visible Chrome;111 lessons and latest Matrix code/images verified (recovery-browser.json). Later metadata corrections await subsequent strict rebuild.",
+    "correctedPointMesh": "PASS: glyph-placement-corrected.json,16/16 Point/mesh full-RGBA comparisons after actual production initial GPU translation correction.193.448s,830099456-byte peak; four new representative images inspected. Orthographic recorded placement only; arbitrary occlusion, browser and full display groups remain pending.",
+    "correctedPlacedPlane": "PASS: plane-placed-corrected.json;16/16 entireRGBA matches at mirrored/nonuniform rotated original placement,DPR1/2,samples1/4,halfsize50/100,selected/unselected.337.04s,982036480-byte peak;four figures individually inspected. Plain/covered/print and browser remain pending.",
+    "publishedCi": "PASS atb7cdd5dc: run39928419284,WASM+native all-target checks,558 maintained native tests pass,61ignored GPU tests. This is separate from learner1059-test WARP suite.",
+    "performanceSourcePair": "Prepared: before710files06e41502d0de483b1d37c87bdca10c80db8be56ebfa744da9262c3a039f440ee;after713filesa45eada2fbdbd940d5e85b50e7e5fe12ccef69e794abd71111264cce0368fe2c. All files outside13declared scheduling edits byte-identical. No timing acceptance yet.",
+    "pullLauncherSafety": "PASS:pull-launcher-regression.json;8isolated Bash/cmd help/invalid/dirty/unpublished cases,HEADandpayload preserved. No destructive force run."
   },
   "resourceGuard": {
     "command": "../../../../session_tests/scripts/run-guarded.cmd",
@@ -103,10 +108,12 @@
     "Current chapter-specific feature images, coverage closure, checkpoint/tooling gates and final docs review remain open"
   ],
   "onlyHeavy": {
-    "category": "Corrected Point/mesh production comparisons",
-    "label": "glyph-placement-corrected",
-    "timeoutSeconds": 600,
-    "jobCommitLimitBytes": 6442450944
+    "category": "Complete source-frozen learner native suite",
+    "label": "integrated-full-native-source-freeze",
+    "timeoutSeconds": 1800,
+    "jobCommitLimitBytes": 6442450944,
+    "workingDirectory": "session/session_viewer",
+    "threads": 1
   },
   "next": "Finish full native regression; validate Windows capture ports; verify historical callbacks against their own checkpoints and current endpoint with its production contracts.",
   "localDocs": "http://127.0.0.1:8788/docs/#/course",
@@ -191,13 +198,17 @@
     "recordedAt": "2026-10-23T08:47:16.211Z"
   },
   "coordination": {
-    "gemini": "Owns existing chapters1?10. Do not edit its prose. Awaiting exact external working folder; preserve shared-file changes during integration.",
+    "gemini": "Owns sections1?10 in session/session_viewer/docs/journey, including active original chapter prose and redraft-10-sections files. Preserve those changes; stage only named owned paths.",
     "integrator": "Chapters11–22, runtime, shared metadata, builds, validation and Git integration."
   },
   "publication": {
     "branch": "codex/viewer-course-checkpoints-20261023",
-    "status": "Full-code work-in-progress checkpoint on the named branch; remaining release gates open. Git branch history records publication.",
-    "scope": "Course, runtime and Windows tooling; remaining release gates are explicitly open."
+    "status": "Full-code source checkpoints and ten Gemini section updates are pushed on the shared branch. Current native Point/mesh/Plane evidence is prepared for the next named-path checkpoint. Runtime code is unchanged from green CI atb7cdd5dc; final learner native suite and refreshed docs remain pending.",
+    "scope": "Course, runtime and Windows tooling; remaining release gates are explicitly open.",
+    "sessionCommit": "b7cdd5dcf6f3c8a923e262661327717a8beba739",
+    "parentCommit": "a574827",
+    "ci": "https://github.com/petrasvestartas/session/actions/runs/39928419284",
+    "geminiHead": "d4af0558e2a7017f53e4ad23904950ed1b27f17d"
   },
   "recovery": {
     "completedAt": "2026-10-23T08:50:38.128521+00:00",

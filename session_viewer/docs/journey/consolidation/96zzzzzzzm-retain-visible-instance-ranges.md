@@ -42,15 +42,25 @@ Keep presentation settings separate from source geometry. A pen width changes ri
 
 Contact polygons use the production joined outline walk. Its packed face normal and contact colour tag give the boundary the same depth layer as the red fill. Reusing ordinary mesh-edge rows misses that relationship when projected-triangle storage falls back.
 
-An explicitly sized Point uses the production glyph's physical-pixel diameter: a width of 12 remains 12 pixels at DPR 1 and 2. Editable control handles retain their separate interaction sizing policy. Selection changes the Point colour without enlarging its disc. Cloud scale, EDL and LOD remain cloud presentation settings, rather than edits to stored coordinates or point IDs.
+An explicitly sized Point uses the production glyph's physical-pixel diameter: a width of 12 remains 12 pixels at DPR 1 and 2. Editable control handles retain their separate interaction sizing policy. Selection changes the Point colour without enlarging its disc. Eight native production/course comparisons match every pixel across DPR 1/2, one/four samples and selection; the [Point comparison record](../release/point-native-review.json) retains the original source, archive and GPU settings. Cloud scale, EDL and LOD remain cloud presentation settings, rather than edits to stored coordinates or point IDs.
+
+![Original Point keeps its authored physical-pixel diameter](../../screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-point-unselected-native-4x.png)
+
+![Selected Point changes colour without increasing its diameter](../../screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-point-selected-native-4x.png)
 
 A mesh with exactly one zero line width is a printed fill. Draw its colour with read-only depth so it cannot hide an original line or take ownership of a physical triangle. Instance tint alpha multiplies the alpha emitted by the kernel's render vertices. Preserve the original source colour independently: the kernel currently emits opaque object-colour vertices even when that source colour stores alpha. Printed lettering has its own place after mesh spheres and before point glyphs.
 
-The mesh figures below use the actual production edge walk, facing words and pen rows. The earlier eight full-frame comparisons matched across DPR 1/2, one/four samples and selection. Their production witness omitted the initial GPU translation update, so they do not establish placed-mesh or depth parity. A corrected-witness rerun is required. With outlines disabled, selection retains the production yellow without adding a separate black contour. The [native comparison record](../release/mesh-native-review.json) contains the original bytes, pose, settings and source hashes; browser and subpart-picking acceptance remain separate.
+The mesh figures below use the actual production edge walk, facing words and pen rows. All eight native full-frame production/course comparisons match exactly across DPR 1/2, one/four samples and selection at the recorded original placement. With outlines disabled, selection retains the production yellow without adding a separate black contour. The [native comparison record](../release/mesh-native-review.json) contains the original bytes, pose, settings and source hashes; browser and subpart-picking acceptance remain separate.
 
 ![Unselected native mesh uses the production black border and blue fill](../../screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-mesh-unselected-native-4x.png)
 
 ![Selected native mesh matches production yellow with outlines disabled](../../screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-mesh-selected-native-4x.png)
+
+The original Plane keeps its authored frame separate from its display half-size. A mirrored, nonuniformly scaled and rotated placement matches the actual production Plane across sixteen native comparisons: DPR 1/2, one/four samples, half-sizes 50/100 and selection. The [Plane comparison record](../release/plane-placed-native-review.json) retains source, archive, settings and complete frame results; plain, covered and printed-fill controls remain separate pending checks.
+
+![Mirrored and nonuniformly scaled original Plane preserves its placed axes](../../screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-plane-placed-native-4x.png)
+
+![Selected original Plane retains the same placed frame at a larger display size](../../screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-plane-placed-selected-native-4x.png)
 
 ## Matrix cells and titles
 
