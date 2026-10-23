@@ -102,17 +102,21 @@ The final checkpoint also imports the current production Matrix program and its 
 
 The full composed shader includes the maintained scene, clipping and ink-visibility code. Keep the Matrix values and original ownership independent of these display programs.
 
-**Supporting Matrix evidence.** Provenance records the pushed Matrix source and the subsequent shared visibility correction. Native compilation and all five Matrix tests pass: actual digit/selection rendering, original object picking, sample-count returns and archive identity. The unselected and selected one/four-sample frames were individually inspected. The complete browser path remains under verification; these integration results do not complete visual acceptance.
+**Supporting Matrix evidence.** Eight native production/course comparisons match every pixel of the complete frame, including the independent title, at display densities one and two, one and four samples, and with selection cleared or active. The [native comparison record](../release/matrix-native-review.json) and [browser behavior record](../release/matrix-browser-review.json) retain the source, camera, archive and image hashes. All six browser cases pass selection, original-owner picking, display controls, save/reopen and the return from four samples to one.
 
-Actual native CPU/WARP fixture, 320 × 240: values \[-2, 1.2, 5; 0, 1.005, 5\], cell size 0.3, original placement (-0.3, 0.2, -0.4), fixed orthographic camera. The zero has no numeric glyph; the separate title has no plate. These are native renders, with [source/settings provenance](../release/matrix-native-review.json), and do not claim browser acceptance.
+The native WARP fixture uses a 320 by 240 logical viewport, values [-2, 1.2, 5; 0, 1.005, 5], cell size 0.3 and original placement (-0.3, 0.2, -0.4), with a fixed orthographic camera. Zero has no numeric glyph; the separate title has no plate. The figures below show the course at display density two and four samples; their complete images are identical to the corresponding production captures.
 
-**Unselected original Matrix, one sample.**
+**Unselected original Matrix, four samples at display density two.**
 
-![Native Matrix value colours, procedural digits, empty zero and plate-less title](../../screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-matrix-native-1x.png)
+![Native Matrix value colours, procedural digits, empty zero and plate-less title](../../screenshots/journey/review/96zzzzzzzq-matrix-paired-unselected-course-dpr2-msaa4.png)
 
 **Whole-object selection, four samples: yellow borders preserve cell contents.**
 
-![Native selected Matrix with yellow borders and unchanged cell digits](../../screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-matrix-selected-native-4x.png)
+![Native selected Matrix with yellow borders and unchanged cell digits](../../screenshots/journey/review/96zzzzzzzq-matrix-paired-selected-course-dpr2-msaa4.png)
+
+Hide the Matrix cells to see the title's independent lifetime. It remains visible and pickable as its own text object. Saving and reopening retains both the original Matrix values and placement and the separate title source.
+
+![Browser Matrix title remains visible when cells are hidden](../../screenshots/journey/review/96zzzzzzzq-matrix-browser-97d-title-only-dpr1.png)
 
 ## Build the capability
 

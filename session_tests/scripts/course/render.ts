@@ -355,12 +355,12 @@ function generatePages(selected?: Set<string>) {
         'Read in chapter order. Consolidated lessons use **chapter.lesson** numbering, such as **1.1**. Original chapter.section.checkpoint numbers and URLs remain available for recovery and source comparison. The [daily plan](daily-plan.md) keeps stopping points within each lesson.',
         `[Production source and coverage map](production-course-map.md) · **${consolidatedCount} / ${book.chapters.length} chapters consolidated; ${readerCount.toLocaleString('en-US')} reader-facing lessons on the current route**. All ${steps.length.toLocaleString('en-US')} old checkpoint IDs remain available; the final maintained-runtime comparison is a reference appendix.`,
         '[Progress and remaining work](roadmap.md) · [Visual review and known issues](visual-review.md). Existing lesson links and saved checkpoints remain valid.',
-        'Each chapter shows a recorded result from one linked checkpoint. **Current Chrome check** means that checkpoint’s source and browser checks match the recorded proof. **Recorded Chrome screenshot** means fresh acceptance is pending. **Native render** shows GPU output without proving browser interaction. These pictures do not establish that every lesson in a chapter works.'];
+        'Each chapter shows a recorded result from one linked checkpoint. **Current Chrome check** means that checkpoint’s source and browser checks match the recorded proof. **Recorded Chrome screenshot** means fresh acceptance is pending. **Native render** shows GPU output without proving browser interaction. These pictures do not establish that every lesson in a chapter works. These record counts do not require a fresh browser run for every retained checkpoint.'];
     for (const chapter of book.chapters) {
         contents.push(`## ${chapter.number} · ${chapter.title}`);
         const lessons = chapter.sections.flatMap(section => section.lessons).reverse();
         const checked = lessons.filter(lesson => verifiedIds.has(lesson.id)).length;
-        contents.push(`**Automated Chrome checks: ${checked} of ${lessons.length} checkpoints current.**${checked < lessons.length ? ' Remaining checkpoints need fresh Chrome acceptance.' : ''}`);
+        contents.push(`**Automated Chrome checks: ${checked} of ${lessons.length} checkpoints current.**${checked < lessons.length ? ' Other records remain historical or unverified; follow the [active validation queue](roadmap.md) and reuse matching proof.' : ''}`);
         const reviewed = lessons.filter(lesson => reviewedBrowserScene(stepsById.get(lesson.id)!)).length;
         contents.push(`**Critical browser-scene review: ${reviewed} of ${lessons.length} checkpoints recorded.** A supporting image is a reference, not approval of the entire chapter.`);
         const imageExists = (file: string) => fs.existsSync(path.join(docs, 'screenshots/journey', file));

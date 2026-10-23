@@ -6,11 +6,11 @@ Read in chapter order. Consolidated lessons use **chapter.lesson** numbering, su
 
 [Progress and remaining work](roadmap.md) · [Visual review and known issues](visual-review.md). Existing lesson links and saved checkpoints remain valid.
 
-Each chapter shows a recorded result from one linked checkpoint. **Current Chrome check** means that checkpoint’s source and browser checks match the recorded proof. **Recorded Chrome screenshot** means fresh acceptance is pending. **Native render** shows GPU output without proving browser interaction. These pictures do not establish that every lesson in a chapter works.
+Each chapter shows a recorded result from one linked checkpoint. **Current Chrome check** means that checkpoint’s source and browser checks match the recorded proof. **Recorded Chrome screenshot** means fresh acceptance is pending. **Native render** shows GPU output without proving browser interaction. These pictures do not establish that every lesson in a chapter works. These record counts do not require a fresh browser run for every retained checkpoint.
 
 ## 1 · Browser, Rust and the GPU
 
-**Automated Chrome checks: 0 of 29 checkpoints current.** Remaining checkpoints need fresh Chrome acceptance.
+**Automated Chrome checks: 0 of 29 checkpoints current.** Other records remain historical or unverified; follow the [active validation queue](roadmap.md) and reuse matching proof.
 
 **Critical browser-scene review: 0 of 29 checkpoints recorded.** A supporting image is a reference, not approval of the entire chapter.
 
@@ -40,7 +40,7 @@ Each chapter shows a recorded result from one linked checkpoint. **Current Chrom
 
 ## 2 · Geometry, camera and selection
 
-**Automated Chrome checks: 0 of 19 checkpoints current.** Remaining checkpoints need fresh Chrome acceptance.
+**Automated Chrome checks: 0 of 19 checkpoints current.** Other records remain historical or unverified; follow the [active validation queue](roadmap.md) and reuse matching proof.
 
 **Critical browser-scene review: 0 of 19 checkpoints recorded.** A supporting image is a reference, not approval of the entire chapter.
 
@@ -78,7 +78,7 @@ Each chapter shows a recorded result from one linked checkpoint. **Current Chrom
 
 ## 3 · Documents, editing and ownership
 
-**Automated Chrome checks: 0 of 96 checkpoints current.** Remaining checkpoints need fresh Chrome acceptance.
+**Automated Chrome checks: 0 of 96 checkpoints current.** Other records remain historical or unverified; follow the [active validation queue](roadmap.md) and reuse matching proof.
 
 **Critical browser-scene review: 0 of 96 checkpoints recorded.** A supporting image is a reference, not approval of the entire chapter.
 
@@ -120,7 +120,7 @@ Each chapter shows a recorded result from one linked checkpoint. **Current Chrom
 
 ## 4 · Browser lifetime and recovery
 
-**Automated Chrome checks: 0 of 40 checkpoints current.** Remaining checkpoints need fresh Chrome acceptance.
+**Automated Chrome checks: 0 of 40 checkpoints current.** Other records remain historical or unverified; follow the [active validation queue](roadmap.md) and reuse matching proof.
 
 **Critical browser-scene review: 0 of 40 checkpoints recorded.** A supporting image is a reference, not approval of the entire chapter.
 
@@ -154,7 +154,7 @@ Each chapter shows a recorded result from one linked checkpoint. **Current Chrom
 
 ## 5 · Lines, points and curves
 
-**Automated Chrome checks: 0 of 42 checkpoints current.** Remaining checkpoints need fresh Chrome acceptance.
+**Automated Chrome checks: 0 of 42 checkpoints current.** Other records remain historical or unverified; follow the [active validation queue](roadmap.md) and reuse matching proof.
 
 **Critical browser-scene review: 0 of 42 checkpoints recorded.** A supporting image is a reference, not approval of the entire chapter.
 
@@ -196,7 +196,7 @@ Each chapter shows a recorded result from one linked checkpoint. **Current Chrom
 
 ## 6 · Picking and selection
 
-**Automated Chrome checks: 0 of 34 checkpoints current.** Remaining checkpoints need fresh Chrome acceptance.
+**Automated Chrome checks: 0 of 34 checkpoints current.** Other records remain historical or unverified; follow the [active validation queue](roadmap.md) and reuse matching proof.
 
 **Critical browser-scene review: 0 of 34 checkpoints recorded.** A supporting image is a reference, not approval of the entire chapter.
 
@@ -226,7 +226,7 @@ Each chapter shows a recorded result from one linked checkpoint. **Current Chrom
 
 ## 7 · Drawing, snapping and transform tools
 
-**Automated Chrome checks: 0 of 57 checkpoints current.** Remaining checkpoints need fresh Chrome acceptance.
+**Automated Chrome checks: 0 of 57 checkpoints current.** Other records remain historical or unverified; follow the [active validation queue](roadmap.md) and reuse matching proof.
 
 **Critical browser-scene review: 0 of 57 checkpoints recorded.** A supporting image is a reference, not approval of the entire chapter.
 
@@ -264,7 +264,7 @@ Each chapter shows a recorded result from one linked checkpoint. **Current Chrom
 
 ## 8 · Hierarchy, layers and direct editing
 
-**Automated Chrome checks: 0 of 53 checkpoints current.** Remaining checkpoints need fresh Chrome acceptance.
+**Automated Chrome checks: 0 of 53 checkpoints current.** Other records remain historical or unverified; follow the [active validation queue](roadmap.md) and reuse matching proof.
 
 **Critical browser-scene review: 0 of 53 checkpoints recorded.** A supporting image is a reference, not approval of the entire chapter.
 
@@ -294,7 +294,7 @@ Each chapter shows a recorded result from one linked checkpoint. **Current Chrom
 
 ## 9 · CAD surfaces and topology
 
-**Automated Chrome checks: 0 of 26 checkpoints current.** Remaining checkpoints need fresh Chrome acceptance.
+**Automated Chrome checks: 0 of 26 checkpoints current.** Other records remain historical or unverified; follow the [active validation queue](roadmap.md) and reuse matching proof.
 
 **Critical browser-scene review: 0 of 26 checkpoints recorded.** A supporting image is a reference, not approval of the entire chapter.
 
@@ -328,7 +328,7 @@ Each chapter shows a recorded result from one linked checkpoint. **Current Chrom
 
 ## 10 · Text and labels
 
-**Automated Chrome checks: 0 of 52 checkpoints current.** Remaining checkpoints need fresh Chrome acceptance.
+**Automated Chrome checks: 0 of 52 checkpoints current.** Other records remain historical or unverified; follow the [active validation queue](roadmap.md) and reuse matching proof.
 
 **Critical browser-scene review: 0 of 52 checkpoints recorded.** A supporting image is a reference, not approval of the entire chapter.
 
@@ -358,7 +358,7 @@ Each chapter shows a recorded result from one linked checkpoint. **Current Chrom
 
 ## 11 · Outlines and point clouds
 
-**Automated Chrome checks: 0 of 41 checkpoints current.** Remaining checkpoints need fresh Chrome acceptance.
+**Automated Chrome checks: 0 of 41 checkpoints current.** Other records remain historical or unverified; follow the [active validation queue](roadmap.md) and reuse matching proof.
 
 **Critical browser-scene review: 0 of 41 checkpoints recorded.** A supporting image is a reference, not approval of the entire chapter.
 
@@ -388,7 +388,7 @@ Each chapter shows a recorded result from one linked checkpoint. **Current Chrom
 
 ## 12 · Files and streaming
 
-**Automated Chrome checks: 1 of 102 checkpoints current.** Remaining checkpoints need fresh Chrome acceptance.
+**Automated Chrome checks: 1 of 102 checkpoints current.** Other records remain historical or unverified; follow the [active validation queue](roadmap.md) and reuse matching proof.
 
 **Critical browser-scene review: 1 of 102 checkpoints recorded.** A supporting image is a reference, not approval of the entire chapter.
 
@@ -418,7 +418,7 @@ Each chapter shows a recorded result from one linked checkpoint. **Current Chrom
 
 ## 13 · Shared definitions and drawing sheets
 
-**Automated Chrome checks: 0 of 30 checkpoints current.** Remaining checkpoints need fresh Chrome acceptance.
+**Automated Chrome checks: 0 of 30 checkpoints current.** Other records remain historical or unverified; follow the [active validation queue](roadmap.md) and reuse matching proof.
 
 **Critical browser-scene review: 0 of 30 checkpoints recorded.** A supporting image is a reference, not approval of the entire chapter.
 
@@ -448,7 +448,7 @@ Each chapter shows a recorded result from one linked checkpoint. **Current Chrom
 
 ## 14 · Coordinates and geometry tools
 
-**Automated Chrome checks: 0 of 118 checkpoints current.** Remaining checkpoints need fresh Chrome acceptance.
+**Automated Chrome checks: 0 of 118 checkpoints current.** Other records remain historical or unverified; follow the [active validation queue](roadmap.md) and reuse matching proof.
 
 **Critical browser-scene review: 0 of 118 checkpoints recorded.** A supporting image is a reference, not approval of the entire chapter.
 
@@ -486,7 +486,7 @@ Each chapter shows a recorded result from one linked checkpoint. **Current Chrom
 
 ## 15 · Transforms and surface construction
 
-**Automated Chrome checks: 0 of 81 checkpoints current.** Remaining checkpoints need fresh Chrome acceptance.
+**Automated Chrome checks: 0 of 81 checkpoints current.** Other records remain historical or unverified; follow the [active validation queue](roadmap.md) and reuse matching proof.
 
 **Critical browser-scene review: 0 of 81 checkpoints recorded.** A supporting image is a reference, not approval of the entire chapter.
 
@@ -516,7 +516,7 @@ Each chapter shows a recorded result from one linked checkpoint. **Current Chrom
 
 ## 16 · Geometry editing and measurement
 
-**Automated Chrome checks: 0 of 132 checkpoints current.** Remaining checkpoints need fresh Chrome acceptance.
+**Automated Chrome checks: 0 of 132 checkpoints current.** Other records remain historical or unverified; follow the [active validation queue](roadmap.md) and reuse matching proof.
 
 **Critical browser-scene review: 0 of 132 checkpoints recorded.** A supporting image is a reference, not approval of the entire chapter.
 
@@ -550,7 +550,7 @@ Each chapter shows a recorded result from one linked checkpoint. **Current Chrom
 
 ## 17 · GPU visibility, clipping and sections
 
-**Automated Chrome checks: 0 of 122 checkpoints current.** Remaining checkpoints need fresh Chrome acceptance.
+**Automated Chrome checks: 0 of 122 checkpoints current.** Other records remain historical or unverified; follow the [active validation queue](roadmap.md) and reuse matching proof.
 
 **Critical browser-scene review: 0 of 122 checkpoints recorded.** A supporting image is a reference, not approval of the entire chapter.
 
@@ -580,7 +580,7 @@ Each chapter shows a recorded result from one linked checkpoint. **Current Chrom
 
 ## 18 · Lighting, render quality and comparison
 
-**Automated Chrome checks: 0 of 89 checkpoints current.** Remaining checkpoints need fresh Chrome acceptance.
+**Automated Chrome checks: 0 of 89 checkpoints current.** Other records remain historical or unverified; follow the [active validation queue](roadmap.md) and reuse matching proof.
 
 **Critical browser-scene review: 0 of 89 checkpoints recorded.** A supporting image is a reference, not approval of the entire chapter.
 
@@ -622,7 +622,7 @@ Each chapter shows a recorded result from one linked checkpoint. **Current Chrom
 
 ## 19 · Integration and original ownership
 
-**Automated Chrome checks: 0 of 34 checkpoints current.** Remaining checkpoints need fresh Chrome acceptance.
+**Automated Chrome checks: 0 of 34 checkpoints current.** Other records remain historical or unverified; follow the [active validation queue](roadmap.md) and reuse matching proof.
 
 **Critical browser-scene review: 0 of 34 checkpoints recorded.** A supporting image is a reference, not approval of the entire chapter.
 
@@ -652,7 +652,7 @@ Each chapter shows a recorded result from one linked checkpoint. **Current Chrom
 
 ## 20 · Shared GPU rendering
 
-**Automated Chrome checks: 11 of 95 checkpoints current.** Remaining checkpoints need fresh Chrome acceptance.
+**Automated Chrome checks: 11 of 95 checkpoints current.** Other records remain historical or unverified; follow the [active validation queue](roadmap.md) and reuse matching proof.
 
 **Critical browser-scene review: 0 of 95 checkpoints recorded.** A supporting image is a reference, not approval of the entire chapter.
 
@@ -724,7 +724,7 @@ Each chapter shows a recorded result from one linked checkpoint. **Current Chrom
 
 ## 22 · Surface lighting, contact and display quality
 
-**Automated Chrome checks: 37 of 38 checkpoints current.** Remaining checkpoints need fresh Chrome acceptance.
+**Automated Chrome checks: 37 of 38 checkpoints current.** Other records remain historical or unverified; follow the [active validation queue](roadmap.md) and reuse matching proof.
 
 **Critical browser-scene review: 37 of 38 checkpoints recorded.** A supporting image is a reference, not approval of the entire chapter.
 

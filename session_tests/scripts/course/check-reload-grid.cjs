@@ -101,7 +101,7 @@ async function command(page, kind, text) {
     assert(control,'Actual command input control must be exposed');
     const box=await page.locator('#canvas').boundingBox(), [x,y,right,bottom]=control.rect;
     await page.mouse.click(box.x+(x+right)/2,box.y+(y+bottom)/2);
-    await page.keyboard.press('ControlOrMeta+A');
+    if(ui.command) await page.keyboard.press('ControlOrMeta+A');
     await page.keyboard.type(text,{delay:12});
     await page.waitForFunction(({attribute,text})=>JSON.parse(document.querySelector('#canvas').getAttribute(attribute)).command===text,{attribute,text});
     const history=await page.locator('#canvas').getAttribute(attribute).then(raw=>JSON.parse(raw).history);
@@ -153,7 +153,7 @@ function fixtures(page, address, bytes) {
     const arrived=new Promise(resolve=>{arrive=resolve;});
     const held=new Promise(resolve=>{release=resolve;});
     const requests=[];
-    const manifest=next=>JSON.stringify({name:next?'B3 replacement':'B3 initial',view:'Top',grid:true,
+    const manifest=next=>JSON.stringify({name:next?'B3 replacement':'B3 initial',view:'top',grid:true,
         items:[{file:origin+prefix+'/base.pb'},...(next?[{file:origin+prefix+'/next.pb',at:[500,0,0]}]:[])]});
     const handler=async route=>{
         const request=route.request(), url=new URL(request.url()), next=url.pathname.endsWith('/replacement.yaml')||version===2;
@@ -199,7 +199,7 @@ async function gridCommands(page,kind) {
 }
 
 async function farGrid(page,kind) {
-    const origin=[1e12+0.125,-1e12+0.25,1e12+0.5];
+    const origin=[1e12-4+0.125,-1e12+4+0.25,1e12-4+0.5];
     const expected={origin,x:[1,0,0],y:[0,0,1]};
     const points=[origin,origin.map((v,i)=>v+(i===0?1:0)),origin.map((v,i)=>v+(i===2?1:0))];
     await command(page,kind,'Construction Plane 3 Point');

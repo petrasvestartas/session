@@ -21,7 +21,7 @@
     "nativeFixtureSourceChecks": "Four deterministic original inputs generated. Current96y focused feature_pick_tests2/2 and full native831/831 pass at their recorded source; complete feature-original-pick browser callback passes after approved live-count correction. Historical fixture callbacks1/4 accepted;94c,96h,96v remain pending.",
     "normalDependencies": "PASS: locked normal native dependency tree excludes session_viewer; normal-dependency-tree.json. Diagnostic/dev examples still compile.",
     "nativeSoftwareWitness": "PASS: exact current84016b80shader, all8 ordinary DPR/sample pairs identical (ribbon-final-stroke-run.json);16 PNGs match individually inspected prior frames. Seven focused native CPU/WARP semantic tests pass, including coplanar owner/full width and moved/mirrored/rebased fresh-Line picks. Full ink group remains open.",
-    "matrix": "Scoped native tests and six browser cases pass at recorded sources; all24 saved browser images independently reviewed. Original cells/digits/zero/selection/picks/title/Hide-Show/archive and1/4/1 sample returns covered. Current actual-production/course eight-pair run remains pending; feature row stays partial.",
+    "matrix": "COMPLETE finite Matrix feature at97d: native8/8 exact fullRGBA production/course pairs plus browser6/6 PASS599.714s/993091584B; all24unique saved PNGs individually reviewed. Independent titles, original-owner picks, controls and archive returns covered within recorded fixture/settings; global release remains separate.",
     "compactMatrix": "PASS: 3/3 storage/provenance/GPU regressions, including ObjectId 16777217, identical dense/sparse pixels and original-owner picks at 1x/4x; matrix-compact-native-tests-fixed.json.",
     "cloudLineAfter": "PASS: unchanged cloud/Line regression139.279s; actual-production/course12/12 focused occlusion controls149.108s,915349504bytes. All expected hidden/front colors correct. Representative DPR2/4x images inspected; mesh-border image differences remain explicitly outside this focused claim.",
     "cloudProductionLod": "PASS: 18 actual production/course LOD pairs on original 2,000,064-point source, resident counts around 2M and mirrored/nonuniform placements; cloud-lod-production-pairs.json.",
@@ -36,33 +36,33 @@
     "publishedCi": "PASS atb7cdd5dc: run39928419284,WASM+native all-target checks,558 maintained native tests pass,61ignored GPU tests. This is separate from learner1059-test WARP suite.",
     "pullLauncherSafety": "PASS:pull-launcher-regression.json;8isolated Bash/cmd help/invalid/dirty/unpublished cases,HEADandpayload preserved. No destructive force run.",
     "nativeFullCurrent": "HISTORICAL1059/1059 PASS at a45; source/resource bindings unchanged. Current97d includes later native hierarchy and TextPlane4x changes; full final native acceptance pending.",
-    "nativeSourceAfterDisposal": "a45-to64 reuse proof remains historical. Current97d retains native hierarchy/tree/layer changes sincea45 and now changes TextPlane4x shader interpolation fromc54.96y831 native proof remains bound to its checkpoint; fresh final native/inventory and Matrix paired verification pending.",
+    "nativeSourceAfterDisposal": "Historicala45 full1059 and96y831 retain their source bindings. Current97d includes hierarchy and TextPlane4x changes; one final integrated native regression remains pending. Matrix8/8 current native pairs are complete.",
     "svgRendering": "PASS: shared SVG tokenizer, five focused parser tests, svg-docs-build.json (123.144s), and svg-visible.json. Complete Gemini diagram visually inspected after full reload; original authored Markdown unchanged.",
     "frameSchedule": "PASS: three native CPU semantics plus unchanged browser coalescing/disposal contract at63acaf79. Ordered input, one pending frame, geometry reuse, idle0 and no late disposal submissions; cached-page browser resume remains separate.",
     "performance": "PASS: performance-disposal resources/manifest and public runtime-performance-review.json. Five categories measured on same small demo; resize burst56->1frames,uploads283136->5056bytes,idle0. Raw warm timings retained, no steady-frame or hardware speedup claim. Unchanged lifecycle callback passes.",
     "disposalFix": "PASS: optimized disposal-web182.878s and unchanged browser lifecycle callback; final teardown has no late submissions. Original failed run retained.",
-    "docsCurrent": "PASS at the built combined-docs source: final-combined-docs.resources.json, 115.112 s; combined-approved-review-v6-manifest.json records 10 individually inspected PNGs, 111 links, Gemini SVG at desktop/390px phone, 14 images, all five Plane JSON records covering 80 native pairs, and Matrix provenance. Zero page errors; widths 1280/1280 desktop and 390/390 phone. Latest hierarchy/progress metadata edits await rebuild; no current-source visual rebinding.",
+    "docsCurrent": "PASS at v7 built source:15 decoded images and12 individually inspected screenshots,111 links,Gemini SVG,desktop/phone layout and evidence navigation. Subsequent v8 wording docs build PASS111.033s. Current Gemini chapter01 source changed after these builds; defer current combined-book acceptance and handoff until rebuilt and visibly reviewed with these progress edits. Preserve prior built-source proof.",
     "historicalLock": "Cached94c lock was stale (missing getrandom dependency edge only). Current canonical94-Cargo.lock already correct; exact canonical bytes restored to ignored cache, no canonical lock or test assertion changes. Initial --locked abort retained.",
     "historicalVulkanProbe": "PASS: unchanged94c glyph-atlas GPU test, canonical lock SHA1df9f908 restored, explicit pinned Vulkan SwiftShader ICD environment; historical-vulkan-probe-current-lock.json. Full checkpoint/callback acceptance remains separate.",
     "structuralCurrent": "PASS: recovery-structure.json;1361 course reconstructions,307 current viewer source files,43 reference checkpoints and351 archived final files.",
     "historicalArchive": "history/2026-10-23-before-progress-reconciliation.json; previous repairs and superseded source/build statements retained with their evidence.",
     "productionSources": "PASS: all fetched upstream root source merged at e2ed12f and clean Wood fast-forwarded to5318ba20; Session origin/main ancestor retained. Tutorial work preserved. Wood Rust/proto/data/generated inputs match tested07c57552 exactly.",
-    "endpointWasm": "PASS at recordedc54: optimized web184.718s/1368760320B; root verified generated WASM byte-identical to34d. Current97d TextPlane shader-policy change requires fresh optimized WASM/browser evidence.",
-    "endpointOptimizedWeb": "Recordedc54 optimized build PASS184.718s/1368760320B, byte-identical WASM to34d. Reload/grid preflight refused stalec54 after canonical97d changed: no reload execution or acceptance artifacts. Current97d optimized/full browser acceptance pending.",
+    "endpointWasm": "PASS optimized97d WASM through final-97d-web-build182.487s; source/artifact hashes recorded. Reuse matching compiler proof; remaining canonical obligations are separate.",
+    "endpointOptimizedWeb": "PASS at97d: final-97d-web-build/resources.json,182.487s,1374347264B. Served bundle windows-original-owners-final-97d has source and artifact hashes recorded. Browser acceptance remains separate.",
     "sheetIngressWitness": "PASS32/32 actual resident Sheet ingress RGBA pairs: sheet-actual-ingress-camera-fixed. Projection,placement,DPR,samples,selection checked; network streaming and full joined-family acceptance remain separate.",
     "fixtures": "Historical fixture callbacks1/4 accepted:96y complete original-feature callback passes at its recorded checkpoint/checker.94c earlier full run failed in layers; focused approved affected modules now pass, complete94c retest pending.96h/96v remain pending.",
     "windowsTooling": "PASS: guarded argument transport,root completion/descendant cleanup,docs lock,and memory override regressions. Two CPUs/one heavy job;2GiB default,4GiB builds,6GiB software-browser override. Windows has no separate zero-swap quota.",
     "currentCheckpointInventory": "Checkpoint acceptance requires matching source, fixtures and checker. Current97d changes TextPlane runtime inputs; neither c54 build nor earlier1059 native/browser results are rebound.",
-    "historical94cVerification": "Recorded source3f02a2d8 passes WASM,800/800 native,optimized web and inspected WARP frame. Full browser later failed at layers.cjs33 after earlier checks passed; four approved shortcut corrections now pass focused affected-module checks, but complete94c acceptance remains pending.",
-    "publicProgress": "PASS at built source: progress/release desktop inspected, phone overflow absent; combined v6 review also passes. This metadata reconciliation and the latest hierarchy edits await rebuilding the docs bundle.",
+    "historical94cVerification": "PASS current94c native800/800:guard188.26s,actual tests87.26s;fresh WARP frame inspected,SHA256 D57B09B12F4239A6203C0E8AD14E850C71B59DE102A302CA1DC9639912C179F8. Original WASM57.334s and optimized web152.536s reused only under unchanged native-only dependency-graph proof. Complete canonical94c browser callback remains pending.",
+    "publicProgress": "PASS at v7 built source:15 decoded images and12 individually inspected screenshots,111 links,Gemini SVG,desktop/phone layout and evidence navigation. Subsequent v8 wording docs build PASS111.033s. Current Gemini chapter01 source changed after these builds; defer current combined-book acceptance and handoff until rebuilt and visibly reviewed with these progress edits. Preserve prior built-source proof.",
     "cadSelectionDiagnostic": "PASS: one exact canonical wire archivec5ae22c6/embedded PB816e9f38 selected native pair,0 RGBA differences,0 black/372 yellow pixels; source/archive/course Object-pick checks pass. The production-aligned outlines-off yellow/zero-black browser assertion is user-approved and applied. Full CAD browser acceptance remains pending.",
-    "docsAfterGemini": "PASS: complete combined-book review at the built source, combined-approved-review-v6-manifest.json. Gemini diagrams, Plane figures and Matrix provenance were inspected. Latest hierarchy and progress metadata edits require a docs rebuild before their current rendering is accepted.",
+    "docsAfterGemini": "PASS at v7 built source:15 decoded images and12 individually inspected screenshots,111 links,Gemini SVG,desktop/phone layout and evidence navigation. Subsequent v8 wording docs build PASS111.033s. Current Gemini chapter01 source changed after these builds; defer current combined-book acceptance and handoff until rebuilt and visibly reviewed with these progress edits. Preserve prior built-source proof.",
     "historical94cBrowser": "Retained full-run failure:1547.193s/1133228032B at layers.cjs33, Escape cleared the selected Hide target. User approved four corrections in layers/delete-selection/labels; all affected bodies now pass focused checks. Complete94c callback retest remains pending.",
     "maintainedWindowsHook": "PASS: portableNode Windows docs prehook and maintained optimized bundle; maintained-grid-web-tools.resources.json exit0. Cargo lock unchanged; matching wasm-bindgen0.2.128 fetched. Linux/macOS dispatch retains Bash but not executed here.",
     "escapeAuthoring": "PASS22/22 and structure/replay. Four user-approved shortcut corrections pass focused actual layers/labels/delete helper checks; complete enclosing94c/final callbacks remain pending.",
     "escapeBrowserRegression": "PASS: gpu-pick-escape-smoke-browser.resources.json,7.633s,506716160B. RealDPR1 Point sameoriginalObjectId3 selectedbefore/afterzoom; ordinaryEscapeclearsselection andsecondGPUsubmissioncompletes. FullcanonicalDPR1/2 matrix remains separate/running.",
     "historicalMetadataBackport": "PASS: dated inventory,count312 and UTF8-LF audit at96h/96v/96y, plus96zzzzf/g refresh. Current one-entry witness refresh producedc54a9960; no runtime/assertion changes in this refresh. Historical Opacity behavior and old source-proof bindings retained.",
-    "productionCoverageAccounting": "All 307 production source modules, 111 lessons and 1361 checkpoint mappings are accounted for. All 18 feature rows remain partial and 0 complete; each lists bounded evidence and remaining acceptance.",
+    "productionCoverageAccounting": "All307production modules,111lessons and1361checkpoint mappings are accounted for. Matrix1/18 finite feature complete;17partial; final release0/5. Module inventory is separate from behavior acceptance.",
     "nativeReuseAudit": "Historical64e13 reuse boundary excludes later hierarchy and97d TextPlane runtime changes.433-entry source inventory preflight remains separate from native execution;1059 result remains bound toa45.",
     "generatedCoveredPlane": "PASS: 16/16 exact full-RGBA pairs, 288.067 s, peak 995,434,496 B. Public plane-generated-covered-native-review.json and four individually inspected figures. Production and course axes remain visible over the opaque lid; no owner-pick or browser acceptance is claimed.",
     "generatedPrintPlane": "PASS: 16/16 exact full-RGBA pairs, 272.855 s, peak 973,623,296 B. Public plane-generated-print-native-review.json and four individually inspected figures. Generated 2,215-byte input is distinct from the historical 2,223-byte covered source; no owner-pick or browser acceptance is claimed.",
@@ -73,12 +73,16 @@
     "planeNativeMatrices": "PASS: 80/80 exact production/course native RGBA pairs across plain, placed, generated covered, generated print and unchanged original covered matrices. Public per-matrix records retain exact source/pose scope and inspected figures. These comparisons establish neither owner-pick nor browser acceptance.",
     "approvedHarnesses": "Approved/applied: additive-selection input correction, outlines-off CAD production color contract, four live segment-count corrections, and four selection-preserving shortcut preparations. All assertions retain their approved contracts; scoped affected-module checks pass, complete94c/full final callbacks remain pending.",
     "approvedMultiSelection": "PASS: focused canonical multi-selection helper at DPR1/2 and both projections; multi-selection-approved-smoke-warp.resources.json exit0,94.869 s, peak758722560 B. Full affected callbacks remain pending. Earlier non-WARP launcher ExecutionPolicy failure is retained separately.",
-    "finiteAcceptanceInventory": "Read-only audit produced28deduplicated actions/39feature requirements. Of111reader endpoints,1has current storedbuild acceptance,1stale and109absent;96y is an intermediate with currentbuild acceptance. Retained1361 IDs:2current,1stale,1358absent. Historical980 summary cannot be reused without original input-matching records. Ignored remaining-acceptance-actions.json and stored-acceptance-light-audit.json retain exact commands/scopes.",
+    "finiteAcceptanceInventory": "Finite actualcall audit:18source-specific callbacks (13historical,learnerfinalCAD,3existinglate display entries,maintained97) plus3noncallback integration/proof/publication groups=21named groups overlapping17partial feature checklists. No111freshGPU/1361freshfullbuild mandate; nativecontrolmatrices remain scopedreviews.",
     "featureOwnerCountContract": "User-approved four fixture-specific live segment assertions use data-path-gpu[0], expected2/1/2/2 and all ownership/archive assertions retained. History-inclusive CPU memory unchanged. Complete96y browser rerun passed98.554s/497008640B; screenshot inspected.",
     "readerInventoryPreflight": "PASS at97d:21/21reader and5/5queued gates verify433 external entries,unchanged493e57a9 witness hash;zero stale.22/22authoring and structure/reconstruction pass.713stagefiles exact; onlytext_plane.rs changed fromc54.",
-    "matrixPairedWitness": "PASS8/8 actual production/course Matrix native pairs at97d:zero whole-frame RGBA differences including independent titles,DPR1/2,samples1/4,selected/unselected.112.052s,810409984B; semantic-v6-production-interpolation. Public matrix-native-review.json and inspected figures retain course-only owner-pick scope. Corrected-source browser/full feature acceptance pending.",
+    "matrixPairedWitness": "PASS8/8 actual production/course Matrix native pairs at97d: exact entireRGBA including independent titles,DPR1/2,samples1/4,selection;112.052s,810409984B. Together with current browser6/6 and image review, both finite Matrix requirements are complete. No production-pick or arbitrary-placement claim.",
     "selectedShortcuts": "PASS focused: layers actual body and labels.focused retain all assertions/DPR1/2; exact delete-selection helper passes1/2objects xDPR1/2. selected-shortcuts-affected-modules.resources.json,143.238s,780898304B. Recursive prerequisites skipped explicitly; not complete94c acceptance. Prior failed resize smoke retained; approved Command-label handoff used.",
-    "matrixBrowser": "PASS:release/matrix-browser-review.json, sixDPR/sample cases,594.58s/1003307008B;24 saved images reviewed. Source34d5e443/fixtureb44c5b9c retained.8e32 differs only by external witness inventory metadata; no old browser proof rebound."
+    "matrixBrowser": "PASS corrected97d browser6/6,599.714s,993091584B;24unique PNGs individually inspected. Public matrix-browser-review.json and six new97d representative figures retain exact1746B/b44...2646 fixture. Earlier34d evidence remains historical.",
+    "reloadGrid": "PASS 4/4 maintained/course by route/live reload-grid browser cases at current97d: 75.783s,626356224B. Conditional Ctrl+A helper is approved and applied; supported view:top and valid near-cap origin fixtures corrected. All camera, deferred-load, grid-command, collinear-error and far-coordinate assertions retained. Four saved images individually inspected; no cross-runtime pixel-parity or visible far-grid claim. Public release/reload-grid-browser-review.json.",
+    "proportionalValidation": "Saved plan section4 applied: focused affected behavior first, fullsuite only integration boundaries/finalfreeze, prose-only docs checks, exact relevant-input reuse. Old agent-generated all-history mandates and false exactquote are inactive; original records remain preserved.",
+    "cadBaselineNative": "PASS 5/5 actual production/course full-RGBA native CAD baseline pairs at97d: wire,mixed,bore,hole-face,surface;31.945s,750256128B. DPR1,samples1,unselected,all families; mirrored/nonuniform placements and original source/archive/course Object-pick checks retained. Five figures inspected. Named display controls and browser acceptance remain pending; the supported60-case Cartesian matrix is not an automatic requirement. Public release/cad-baseline-native-review.json.",
+    "remainingFeatureAudit": "Inputrequire closure is not executionclosure. mesh-markers39-file dependencygraph calls exportedfeaturehelpers;96zzzzzzm source-faces DEFAULTentry executes fullcontact/shared-view/surface-controls/isometric networkcontinuity prerequisites. Additionalqualityentry checks MSAA/lifecycle. No furtherfeaturecompleteclaim; Camera latestownerpick scope still needs exactproductioncontract."
   },
   "resourceGuard": {
     "command": "../../../../session_tests/scripts/run-guarded.cmd",
@@ -89,20 +93,14 @@
     "authorization": "User requested more memory on 2026-10-20. Browser jobs now use -MemoryLimitMiB 6144 after 4 GiB startup stalls; builds may use 4096. Default stays 2048 for other callers. Two CPUs and one heavy job retained."
   },
   "currentDefects": [
-    "Complete94c callback remains pending after its retained layers failure; approved four-site shortcut correction passes focused affected modules only.",
+    "Current94c full callback reached drawing-sheet selection and timed out at sheets.cjs:33 after2171.988s. Earlier shortcut/hierarchy/cloud checks progressed successfully; exact child selection/metadata state needs focused capture. No build phase is invalidated.",
     "96y fixture callback passes;96h and96v callbacks remain pending. Chapter19 is not complete because its96h inventory entry remains open.",
-    "Matrix native8/8 exact and inspected public figures pass at97d; corrected-source browser rerun and full feature acceptance remain pending. Prior six browser cases/24-image review stay at34d.",
     "All80 Plane native RGBA pairs pass within recorded scopes; owner-pick/browser/full display-family acceptance remains open.",
-    "Currentc54a final native/inventory and optimized-browser acceptance, four route/live reload-grid combinations, remaining chapter callbacks and coverage/release closure remain pending. Combined-book v6 review belongs to its prior built source."
+    "Final integrated native suite, remaining historical/canonical callbacks and17 partial feature checklists remain pending. Current97d optimized web,Matrix finite acceptance,reload/grid4/4 and CAD baseline5 pass within their scopes. Current combined-book acceptance/handoff is deferred for new Gemini chapter01 and progress edits; v7/v8 proof retains its built-source scope.",
+    "Matrix is1/18 complete;17 features remain partial and global release0/5. CAD baseline5 does not accept all named controls/browser checks; all80 Plane native pairs do not accept original owner-pick/browser/full controls."
   ],
-  "onlyHeavy": {
-    "task": "fresh97d optimized Trunk browser build",
-    "rootSession": 92292,
-    "resources": "target/course-windows-20261018/final-97d-web-build.resources.json",
-    "output": "target/course-checks/windows-original-owners-final-97d",
-    "status": "running at last root update"
-  },
-  "next": "Finish current97d optimized build, then run four maintained/course route/live reload-grid cases. Rerun corrected-source Matrix browser and complete94c/96h/96v callbacks, final native/inventory and remaining chapter/coverage/release gates.",
+  "onlyHeavy": null,
+  "next": "Publish/review current root docs checkpoint; diagnose the94c sheet metadata selection using the unchanged fixture and child-page state. Continue the18source-specific callbacks and bounded101reader compiler lane; currentacceptedMatrix/Plane80/CAD5/reload4 scopes remain separate. Preserve ongoingGemini ownership.",
   "localDocs": "http://127.0.0.1:8788/docs/#/course",
   "progressPlan": "../../../../docs/plans/2026-10-18-viewer-course-progress.md",
   "stages": {
@@ -148,6 +146,18 @@
       },
       "joinedVectorSheets": {
         "status": "Resident Sheet ingress32/32, headed Line4/4 and all80 Plane native RGBA pairs pass within their recorded scopes. Complete family controls, owner-pick and browser acceptance remain open."
+      },
+      "featuresComplete": 1,
+      "featuresTotal": 18,
+      "featuresPartial": 17,
+      "cadBaseline": {
+        "status": "passed-bounded-native-baseline",
+        "passed": 5,
+        "total": 5,
+        "elapsedSeconds": 31.945,
+        "peakJobCommitBytes": 750256128,
+        "record": "release/cad-baseline-native-review.json",
+        "remaining": "Named CAD display controls,source-specific browser and curve-continuity requirements remain; feature partial."
       }
     },
     "runtime": {
@@ -158,17 +168,20 @@
       "implementationGroupsTotal": 3
     },
     "reloadGrid": {
-      "status": "Both runtimes implemented; focused native checks pass. Stalec54 bundle correctly refused by preflight after97d runtime change; no reload jobs or acceptance artifacts,0/4.",
-      "combinationsAccepted": 0,
-      "combinationsTotal": 4
+      "status": "PASS 4/4 maintained/course by route/live reload-grid browser cases at current97d: 75.783s,626356224B. Conditional Ctrl+A helper is approved and applied; supported view:top and valid near-cap origin fixtures corrected. All camera, deferred-load, grid-command, collinear-error and far-coordinate assertions retained. Four saved images individually inspected; no cross-runtime pixel-parity or visible far-grid claim. Public release/reload-grid-browser-review.json.",
+      "combinationsAccepted": 4,
+      "combinationsTotal": 4,
+      "elapsedSeconds": 75.783,
+      "peakJobCommitBytes": 626356224,
+      "record": "release/reload-grid-browser-review.json"
     },
     "finalIntegration": {
-      "status": "Current97d final native/inventory and optimized/browser acceptance pending after TextPlane4x correction. Recorded96y native/browser and focused affected shortcuts/Matrix browser remain scoped;18partial/0complete,release0/5.",
+      "status": "Current97d optimized web,finite Matrix native/browser acceptance,reload/grid4/4 and CAD baseline5 pass within recorded scopes.17 partial features remain; final integrated native/canonical/reader-proof/current-docs release gates0/5.",
       "gatesDone": 0,
       "gatesTotal": 5
     }
   },
-  "remainingBatches": 5,
+  "remainingBatches": 4,
   "visibleBrowser": "Owned visible Chrome155 at Matrix lesson; CDP http://127.0.0.1:9228; Node PID49760. Current local docs http://127.0.0.1:8788/docs/",
   "latestSourceSync": {
     "date": "2026-10-20",
@@ -201,21 +214,21 @@
   "coordination": {
     "gemini": "Owns sections 1-10 in session/session_viewer/docs/journey, including original chapter prose and redraft-10-sections. Preserve changes; stage only named owned paths.",
     "integrator": "Chapters11–22, runtime, shared metadata, builds, validation and Git integration.",
-    "geminiLatestCommit": "72303aa4, including d03afa09 and253ec420: schematic/notebook edits preserved. Combined v6 built-source review passes; latest hierarchy/progress metadata awaits rebuild.",
+    "geminiLatestCommit": "72303aa4, including d03afa09 and253ec420: Gemini first-ten chapter ownership preserved. v7 built-source review and v8 wording build pass within their saved scopes; new chapter01 edits require rebuilding and visible review before current combined-book handoff.",
     "activeAgents": {
       "browser_startup_memory": "Reconciles source/progress bindings in production map,current state,roadmap and native source review; no heavy jobs.",
-      "plane_completion": "All80 native Plane comparisons and built-source combined v6 review complete; figures/evidence retain their recorded scope.",
-      "chapter_browser_queue": "Remaining canonical chapter browser queue prepared; no feature acceptance implied."
+      "plane_completion": "Completed bounded native Matrix,CAD baseline5 and reload/grid evidence/image reviews; updating four public progress files only. No heavy job ownership.",
+      "chapter_browser_queue": "Owns only current proportional validation queue and finite Matrix closure in four public progress files; no heavy jobs."
     }
   },
   "publication": {
     "branch": "codex/viewer-course-checkpoints-20261023",
-    "status": "Pushed hierarchy original-target regression, both approved production-aligned harness corrections and all80Plane native records. Subsequent96y four-phase verification passes; browser found a history-inclusive memory assertion mismatch.",
+    "status": "Latest checkpoint pushed with Gemini work preserved. Current proportional-queue/Matrix-closure metadata edits await next publication.",
     "scope": "Course, runtime and Windows tooling; remaining release gates are explicitly open.",
-    "sessionCommit": "1cf8ec42",
-    "parentCommit": "679699d",
+    "sessionCommit": "d9e90bb3",
+    "parentCommit": "8a274ab",
     "ci": "https://github.com/petrasvestartas/session/actions/runs/39928419284",
-    "geminiHead": "47272ab3"
+    "geminiHead": "45aa"
   },
   "recovery": {
     "completedAt": "2026-10-23T08:50:38.128521+00:00",
@@ -273,6 +286,220 @@
       "assertions": "All selected IDs,visibility,Delete/Undo,archive and DPR assertions retained. Intentional tool-cancel Escape tests unchanged.",
       "focusedResources": "target/course-windows-20261018/selected-shortcuts-affected-modules.resources.json",
       "status": "PASS focused143.238s/780898304B; enclosing full callback pending."
+    },
+    "conditionalCommandInput": {
+      "approved": true,
+      "applied": true,
+      "change": "Send Ctrl+A only when command input is nonempty; retain actual collinear-error and every other assertion.",
+      "fixtureCorrections": [
+        "supported view:top spelling",
+        "valid near-cap origin1e12-4 plus exact fractions"
+      ],
+      "record": "release/reload-grid-browser-review.json",
+      "status": "PASS complete4/4; no pending harness choice."
+    }
+  },
+  "validationQueue": {
+    "status": "Active proportional queue; supersedes unconditional all-history execution proposals.",
+    "basis": "Saved consolidation plan section4: focused semantic/affected visual checks after runtime changes; full suite at integration boundaries/final freeze; prose-only docs/link/build/visible-page checks; reuse only matching relevant inputs.",
+    "historicalPlanCorrection": "The old ignored remaining-acceptance-actions.json attributed Compile every runnable checkpoint from its canonical snippets to the user as an exact quote. That sentence is absent from the saved plan; it and the1361fresh four-phase/1173full-suite expansion were agent-generated. Preserve the old record as historical, not an active mandate.",
+    "preservedHistory": {
+      "checkpointReconstructions": 1361,
+      "readerEndpoints": 111,
+      "readerEndpointsWithDeclaredTests": 101,
+      "readerEndpointsWithBrowserCallbacks": 85,
+      "meaning": "Counts describe authored declarations, not required new GPU jobs. Preserve canonical source reconstruction, reproducibility and all actual declared lesson/feature assertions; retain old proof honestly. A missing aggregate record alone does not mandate fresh full execution for every historical ID."
+    },
+    "pendingHistoricalCallbacks": [
+      {
+        "checkpoint": "65c-cloud-point",
+        "callback": "journey/checks/browser/cloud-points.cjs",
+        "chapter": 11
+      },
+      {
+        "checkpoint": "70d-exercise-rotated-and-mirrored-original-references",
+        "callback": "journey/checks/browser/nested-placements.cjs",
+        "chapter": 13
+      },
+      {
+        "checkpoint": "76d-exercise-exact-curves-and-rational-control-edits",
+        "callback": "journey/checks/browser/freeform.cjs",
+        "chapter": 14
+      },
+      {
+        "checkpoint": "80d-exercise-networks-corner-retries-and-exact-original-archives",
+        "callback": "journey/checks/browser/network.cjs",
+        "chapter": 15
+      },
+      {
+        "checkpoint": "85ay-exercise-current-original-commands-together",
+        "callback": "journey/checks/browser/current-commands.cjs",
+        "chapter": 16
+      },
+      {
+        "checkpoint": "88ad-exercise-original-sections-bores-and-ink",
+        "callback": "journey/checks/browser/caps.cjs",
+        "chapter": 17
+      },
+      {
+        "checkpoint": "95f-prove-cache-invalidation-and-honest-performance-reports",
+        "callback": "journey/checks/browser/performance.cjs",
+        "chapter": 18
+      },
+      {
+        "checkpoint": "96h-prove-current-source-grammar-and-explicit-differences",
+        "callback": "journey/checks/browser/inventory.cjs",
+        "chapter": 19
+      },
+      {
+        "checkpoint": "96zzo-read-instance-properties-through-draw-slots",
+        "callback": "journey/checks/browser/slot-pipeline.cjs",
+        "chapter": 20
+      },
+      {
+        "checkpoint": "96zzq-open-files-through-one-measured-session-reader",
+        "callback": "journey/checks/browser/measured-file-reader.cjs",
+        "chapter": 20
+      },
+      {
+        "checkpoint": "96zzzzx-retire-empty-arena-ranges-after-tail-trimming",
+        "callback": "journey/checks/browser/arena-empty.cjs",
+        "chapter": 20
+      },
+      {
+        "checkpoint": "94c-prove-the-original-comparison-and-inspect-differences",
+        "callback": "journey/checks/browser/comparison.cjs"
+      },
+      {
+        "checkpoint": "96v-project-definition-and-per-instance-features",
+        "callback": "journey/checks/browser/instance-features.cjs"
+      }
+    ],
+    "pendingIntegrationActions": [
+      {
+        "id": "final-native-and-compiler-proof",
+        "requirement": "One final integrated native regression plus required source-matching compiler/frame proof; reuse completed97d web where inputs match."
+      },
+      {
+        "id": "final-canonical-browser",
+        "requirement": "Complete final source canonical callback; focused modules do not substitute for it."
+      },
+      {
+        "id": "declared-reader-checkpoint-proof-accounting",
+        "requirement": "Resolve actual required111reader and source-specific historical lesson proofs with phase reuse or necessary execution; do not queue111fresh fullGPU suites or1361fresh builds automatically."
+      },
+      {
+        "id": "final-docs-navigation-publication",
+        "requirement": "Build changed docs once, verify routes/aliases/history and inspect current local desktop/phone publication."
+      }
+    ],
+    "counting": {
+      "pendingHistoricalEntryCallbacks": 13,
+      "additionalDeclaredCallbackEntries": 4,
+      "pendingIntegrationActions": 4,
+      "distinctSourceSpecificCallbackEntries": 18,
+      "nonCallbackIntegrationActions": 3,
+      "namedActions": 21,
+      "remainingFeatureChecklists": 17,
+      "meaning": "13historical+3existinglate display entries+maintained97+learnerfinalCAD=18source-specific callbacks. Three noncallback native/proof/publication groups make21named groups, overlapping17feature checklists. Importedhelper presence is not execution:source-faces defaultentry invokes surface-lighting parentassertions skipped bymesh-markers.feature calls.",
+      "eta": "No total ETA; missing successful callback durations and unscopednative tuples prevent an honest walltime estimate."
+    },
+    "phaseReuse94c": {
+      "reusableForTwoNativeHelperLines": [
+        "WASM57.334s",
+        "optimized web152.536s"
+      ],
+      "savedSeconds": 209.87,
+      "affectedNativeProof": "PASS current94c native800/800:guard188.26s,actual tests87.26s;fresh WARP frame inspected,SHA256 D57B09B12F4239A6203C0E8AD14E850C71B59DE102A302CA1DC9639912C179F8. Original WASM57.334s and optimized web152.536s reused only under unchanged native-only dependency-graph proof. Complete canonical94c browser callback remains pending.",
+      "sourceProof": "current_viewer dependency in94cCargo.toml and maintained selftest module are cfg(not wasm32). Exact old signature is reproduced by removing only the two diagnostic lines in-memory.",
+      "audit": "target/course-windows-20261018/canonical-94c-signature-cause.json"
+    },
+    "reuseLimits": "Preserve frozen assertions and exactsource scopes. Execute96zzzzzzm source-faces defaultentry for contact/shared-view/surface-controls/surface-lighting parentassertions; mesh-markers onlycalls selectedexported helpers and cannot replace that chain. No standalone96zzzzzzg required for currentfeature assertions alreadyexecuted bym. OptionalCartesianrunner profiles remain capabilities, not mandates.",
+    "acceptedIntegrationActions": [
+      {
+        "id": "reload-grid-four-combinations",
+        "passed": 4,
+        "total": 4,
+        "record": "release/reload-grid-browser-review.json",
+        "elapsedSeconds": 75.783,
+        "peakJobCommitBytes": 626356224
+      }
+    ],
+    "additionalDeclaredCallbacks": [
+      {
+        "checkpoint": "97-finish-with-the-maintained-browser-runtime",
+        "callback": "journey/checks/browser/final.cjs",
+        "command": [
+          "node",
+          "docs/capture_journey.cjs",
+          "97-finish-with-the-maintained-browser-runtime"
+        ]
+      },
+      {
+        "checkpoint": "96zzzzzzp-draw-default-mesh-vertex-dots",
+        "callback": "journey/checks/browser/mesh-markers.cjs",
+        "command": [
+          "node",
+          "docs/capture_journey.cjs",
+          "96zzzzzzp-draw-default-mesh-vertex-dots"
+        ]
+      },
+      {
+        "checkpoint": "96zzzzzzzl-choose-bounded-frame-quality",
+        "callback": "journey/checks/browser/quality-target-reuse-with-policy.cjs",
+        "command": [
+          "node",
+          "docs/capture_journey.cjs",
+          "96zzzzzzzl-choose-bounded-frame-quality"
+        ]
+      },
+      {
+        "checkpoint": "96zzzzzzm-query-original-faces-under-contact-overlays",
+        "callback": "journey/checks/browser/source-faces.cjs",
+        "command": [
+          "node",
+          "docs/capture_journey.cjs",
+          "96zzzzzzm-query-original-faces-under-contact-overlays"
+        ]
+      }
+    ],
+    "nativeScopeReviews": [
+      {
+        "id": "joined-production-controls",
+        "requirement": "Actualproduction joined/headed/CAD width/AA/clipping/visibility controls.",
+        "next": "Review exactnamedcontrols covered by these and17callbackassertions. Select only truly missingexistingwitness mode; optional joined20/selected24 profiles are capabilities, not mandatory44jobs."
+      },
+      {
+        "id": "cross-family-production-control-proof",
+        "requirement": "Materials/lighting,markers/normals,finite/depth,ambient,transparency/Xray andcloud/textstreamcontrols are grouped in existingrows but no exactremainingnativeCartesianmatrix is declared.",
+        "next": "Reconcile actualsource/pair/assertions before inventing additionalnativefixtures. No newcontrols or allfamilyproduct."
+      },
+      {
+        "id": "legible-isolines",
+        "requirement": "Savedplan explicitly asks legible NURBSisolines. CAD5roof TOP savedcurves alone isnot automaticisolines or3Dinteriorcontinuity.",
+        "next": "Run80dnetwork and96zzzzzzm defaultsource-faces chain, which actually executes surface-lighting isometric perlinechecks. Only then decide whether one obliqueexistingroof pair is genuinely missing."
+      }
+    ],
+    "finiteAudit": "target/course-windows-20261018/remaining17-finite-feature-audit.json",
+    "readerCompilerProof": {
+      "status": "Prepared, not executed",
+      "readerEndpoints": 111,
+      "compilerOnlyEndpoints": 101,
+      "maximumCompilerPhases": 202,
+      "excludedEndpoints": 10,
+      "scope": "Separate Native cargo check --tests --examples and WASM lib builds for missing reader compilation proof. Ten reader endpoints have matching scoped proof or separately scheduled canonical work. These exclusions remain obligations until scheduled work passes. Native typechecking does not run/link tests or frames; no optimized packaging, screenshot or browser acceptance claim.",
+      "localPlan": "target/course-windows-20261018/reader-compile-lane-plan.json",
+      "belongsTo": "Existing final integration/runnable-proof group; not an additional browser entry or101 full GPU suites."
+    },
+    "latest94cBrowserAttempt": {
+      "status": "FAILED; preserved, not accepted",
+      "seconds": 2171.988,
+      "peakJobCommitBytes": 1682427904,
+      "location": "journey/checks/browser/sheets.cjs:33",
+      "reason": "Timed out waiting for Select Edge metadata history after a sheet-axis click. No browser page errors were reported. Earlier rendering/picking/hierarchy/cloud prerequisites completed; full enclosing callback remains unaccepted.",
+      "evidence": "target/course-windows-20261018/canonical-94c-phase-native-v1-browser.log",
+      "diagnosticLimit": "Canonical catch captures the original page after the failing child context closes. Its image does not show the failing child-page click; focused child-state capture is next.",
+      "phaseReuse": "Successful native800/frame and unchanged WASM/web evidence remains valid; no rebuild is required for this browser diagnosis."
     }
   }
 }

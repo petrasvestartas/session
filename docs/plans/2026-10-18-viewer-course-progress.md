@@ -6,21 +6,40 @@ The book now has **22 chapters and 111 reader-facing lessons**. All **1,360 codi
 
 Open the locally built tutorials at **http://127.0.0.1:8788/docs/#/course**. An isolated, visible Chrome window has been opened there. The local preview server must remain running.
 
+- [ ] Current94c full browser callback:sheet metadata selection timed out at `sheets.cjs:33` after2171.988s,peak1,682,427,904B. Earlier shortcut/hierarchy/cloud prerequisites progressed; focused child-page diagnosis is next. Successful native800/frame and unaffectedWASM/web evidence is retained.
+
 ## Current stage totals - authoritative 2026-10-23
 
 | Stage | Done | Left | Status |
 | --- | --- | --- | --- |
 | Source synchronization | All fetched source integrated safely; tutorial edits and Gemini commits preserved; eight isolated pull-launcher safety tests pass | 0 repositories awaiting the authorized pull | Done |
 | Course consolidation | 22/22 chapters, 111/111 reader lessons, 1,360 coding checkpoints plus reference preserved | 0 reader lessons awaiting initial drafting | Draft structure done |
-| Native and browser builds | Current learner native 1,059/1,059 pass; latest Matrix included; optimized WASM passes; maintained CI 558 native tests plus WASM/all-targets passes | Rebuild WASM/browser after the scoped Escape fix; historical own-checkpoint contracts remain separate | In progress |
+| Native and browser builds | Historicala45native1,059/1,059 retained; current97d optimized bundle PASS182.487s; finite Matrix native8/8 and browser6/6 complete | One final integrated native regression and remaining named canonical/source-specific proofs; reuse unchanged compiler phases | In progress |
 | Performance | 5/5 categories measured on the same small demo; unchanged ordered-input/coalescing/idle/disposal callback passes | Remaining startup/feature lifecycle acceptance; no hardware performance claim | Measurements done; full implementation groups open |
-| Original fixture browser contracts | 4/4 deterministic inputs generated; first historical checkpoint passes WASM, 800 native tests, optimized web and native frame | 0/4 full browser callbacks accepted; first exposes a confirmed Escape-selection handoff defect, now being fixed without changing assertions | In progress |
-| Display comparisons | Exact native Point8/8, Mesh8/8, placedPlane16/16, plainPlane16/16, originalcoveredPlane1/1, residentSheet32/32, headedLine4/4, cloudLOD18 pairs and other scoped controls | Generated covered/print and full original covered Plane matrices; CAD/joined/display controls and browser acceptance; full groups remain open | In progress |
-| Reload and held grid | Course and maintained native regressions pass | 0/4 route/live browser combinations accepted; maintained optimized build running | In progress |
-| Chapter visual acceptance | Drafts and earlier partial visual proofs retained | Nine owned chapter sets (11,13-20), twelve canonical entry callbacks; Gemini owns1-10 | In progress |
+| Original fixture browser contracts | Four deterministic inputs generated;96y complete callback accepted; approved affected shortcut checks pass | Three fixture entries94c/96h/96v remain;96h is already in the chapter queue | In progress |
+| Display comparisons | Matrix finite feature complete: native8/8 exact and corrected97d browser6/6, all24PNG reviewed; all80Plane native pairs,CAD baseline5 exact pairs and other scoped witnesses retained |17partial feature checklists; Matrix1/18complete; owner-pick/browser limits remain explicit | In progress |
+| Reload and held grid |4/4 maintained/course x route/live PASS75.783s/626,356,224B; approved conditional Ctrl+A plus supported top/valid near-cap fixtures; all assertions retained |0 combinations left in this finite batch; Plane owner/control acceptance remains separate | Done within recorded scope |
+| Chapter visual acceptance |96ycomplete; prior bounded native/visual proofs retained | Eleven pending chapter entries across nine sets; add distinct94c/96v for thirteen historical callbacks; preserve Gemini1-10 | In progress |
 | Final release | Local docs/navigation/SVG/desktop/phone proofs and source-history checks pass within their recorded scopes | 0/5 final gates closed: matching final source/builds, runnable checkpoints, feature coverage, navigation/history, final browser inspection/publication | In progress |
 
-These counts overlap and are not a completion percentage or session estimate. Check `session_viewer/docs/journey/consolidation/current-state.json` for current manifests. Root integrates and publishes; three agents handle the Escape fix, Plane evidence and chapter-browser preparation. Only one heavy build/GPU/browser job runs at once, with two CPUs and the authorized memory overrides.
+These counts overlap and are not a completion percentage or session estimate. Check `session_viewer/docs/journey/consolidation/current-state.json` for current manifests. Root integrates and publishes; agents own bounded non-overlapping evidence and progress tasks. Only one heavy build/GPU/browser job runs at once, with two CPUs and the authorized memory overrides.
+
+### Active proportional validation queue
+
+- [x] Matrix finite feature complete at97d:8/8exact fullRGBA native production/course pairs and6/6browser cases,599.714s,993,091,584B; all24unique browser PNGs individually reviewed. Exact1746-byte fixtureSHA b44c5b9c...2646 and supported-behavior limits retained. Global release remains0/5.
+- [x] Current97d optimized bundle passes182.487s. Reuse this build while its relevant inputs match.
+- [ ] Resolve18distinct source-specific callback entries:13historical, learnerfinalCAD, existinglate `96zzzzzzp` mesh-marker assertions, existinglate `96zzzzzzm` default source-face/surface-control prerequisites, existinglate `96zzzzzzzl` quality/MSAA/lifecycle assertions, and maintained97reference. Three noncallback native/proof/publication groups make21named groups overlapping17partial feature checklists; validmatchingproof may close them without newexecution.
+- [x] Reload/grid4/4 accepted75.783s/626,356,224B. Conditional Ctrl+A is approved/applied; supported view:top and valid near-cap fixture corrections preserve every camera/grid/collinear assertion. Four PNGs inspected; no cross-runtime pixel-parity claim. See `session_viewer/docs/journey/release/reload-grid-browser-review.json`.
+- [x] CAD baseline5/5 exact native pairs31.945s/750,256,128B with five inspected figures:wire,mixed,bore,hole-face,surface;DPR1,sample1,unselected,all families. Named CAD controls/browser remain partial;60 supported combinations are not an automatic requirement. See `session_viewer/docs/journey/release/cad-baseline-native-review.json`.
+- [ ] Rebuild and inspect current combined docs after these progress edits and Gemini chapter01 changes; defer current-book acceptance/handoff. Preserve v7 built-source15image/12screenshot PASS and v8 wording build111.033s.
+
+Three residual native scope reviews remain: joined production controls, cross-family production-control proof and legible NURBS isolines. The existing source-faces default callback invokes isometric per-line network continuity; use that before inventing an oblique nativecase. No optional60CAD/44joined Cartesianprofile is automatically required. Camera's originalPlane/reload/frame criteria have proof, while newlyadded owner-pick/browser controls require supported-production contract confirmation; it stays partial pending that exact boundary.
+
+The saved plan's section4 requires focused semantic/affected visual checks and one full suite at actual integration boundaries/finalfreeze. It does not mandate1,361fresh full validations,1,173historical fullnative suites, or111fresh reader GPU runs. Preserve all1,361canonical reconstructions/reproducible histories and actual declared lesson/feature checks, frozen assertions, canonical capture coverage and honest evidence bindings. The111reader endpoints contain101test declarations and85browser callback entries; declaration counts are not a fresh job queue.
+
+The earlier ignored plan falsely presented "Compile every runnable checkpoint from its canonical snippets" as an exact user quote. That sentence is absent from the saved plan; the all-history four-phase expansion was agent-generated. Preserve those old records as history, with this active queue taking precedence. Missing historical proof must remain unverified, not be re-signed or converted automatically into thousands of redundant runs.
+
+94c's precise two-line native diagnostic delta leaves its WASM dependency graph unchanged. Reuse originalWASM57.334s and optimizedweb152.536s, saving209.870s; current94c native800/800 passes188.26s guarded/87.26s tests and a fresh WARP frame is inspected (SHA256 D57B09B12F4239A6203C0E8AD14E850C71B59DE102A302CA1DC9639912C179F8). Complete canonical94c browser remains pending. Current final fullnative acceptance remains pending. Previous 24 to 48 hour ETA is withdrawn; no total estimate is asserted before the scoped work is resolved. Latest pushed checkpoint: Sessiond9e90bb3/parent8a274ab, including Gemini45aa; subsequent progress edits await publication.
 
 The sections below are the retained chronological work log. Earlier unchecked boxes and failure counts are historical snapshots; the current table above supersedes them.
 
@@ -100,14 +119,14 @@ Implementation and regression checks:
 
 Software GPU measurements must be labelled as such; they are not hardware FPS claims.
 
-## B3. Reload and grid — 0/4 combinations accepted
+## B3. Reload and grid - 4/4 combinations accepted
 
-- [ ] Maintained viewer: reload retains the latest camera, including motion during loading.
-- [ ] Course viewer: the same camera guarantee.
-- [ ] Maintained viewer: the world base grid changes only after an explicit plane-changing construction command.
-- [ ] Course viewer: the same grid guarantee, including floating-origin rebases.
+- [x] Maintained viewer: route/live reload retains the latest camera, including motion during loading.
+- [x] Course viewer: the same route/live camera guarantee.
+- [x] Maintained viewer: the world base grid changes only after an explicit plane-changing construction command.
+- [x] Course viewer: the same held-grid and exact valid near-cap coordinate guarantee. Saved images precede the far-grid commands; no visible far-grid claim.
 
-Complete implementation coverage before this batch; update existing lessons instead of adding repair-history tutorials.
+Completed finite browser batch:75.783s,626,356,224B; all original assertions retained after approved input-helper and valid fixture corrections. Remaining original Plane owner/control acceptance is separate.
 
 ## C. Final integration — 0/5 final gates passed
 
@@ -341,3 +360,6 @@ These run at their own checkpoint. Docs layout captures and partial native pairs
 - [x] Repaired two obsolete inventory restore boundaries at96zzzzf/g without changing any final runtime byte. All21 reader inventory gates and5 queued gates verify433 entries; zero stale inventories.22/22authoring tests and1361checkpoint/reference structure checks pass. Final fingerprint remains34d5e443.
 - [x] Finite acceptance audit records28deduplicated actions/39feature requirements and exact available commands. Historical980summary remains historical; only source-matching records count toward current runnable acceptance.111reader endpoints currently have1current,1stale and109absent stored build records;96y is an additional current intermediate.
 - [ ] Full94c browser still running with the approved additive-pick helper. MissingMatrix native paired/browser runners are authored and syntax-checked, awaiting single-job execution.
+
+
+Reader compilation is a separate part of the existing integration proof group:101 endpoints need up to202 compiler-only Native/WASM phases after10 proven or separately scheduled exclusions. These checks compile tests/examples but execute none. They do not establish optimized packaging, rendered frames or browser acceptance, and they are not101 full GPU suites.
