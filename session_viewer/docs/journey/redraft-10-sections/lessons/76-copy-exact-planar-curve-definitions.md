@@ -1,8 +1,8 @@
 # 14.6 · Exact parabola recipes and editable freeform controls
 
-**Section 8: Precision Coordinate Frames, Solid Primitives, Surfacing, and CAD Editing** · **Checkpoints:** `76-copy-exact-planar-curve-definitions` → `76d-exercise-exact-curves-and-rational-control-edits` (5 steps) · **Production `session_viewer/src` target:** [app/walk/sheet.rs](../../../../src/app/walk/sheet.rs) · [app/sheet_query.rs](../../../../src/app/sheet_query.rs) · [app/stream.rs](../../../../src/app/stream.rs) · [app/cplane.rs](../../../../src/app/cplane.rs) · [app/coords.rs](../../../../src/app/coords.rs) · [app/command/tool/shape.rs](../../../../src/app/command/tool/shape.rs) · [app/command/tool/gather.rs](../../../../src/app/command/tool/gather.rs) · [app/deform.rs](../../../../src/app/deform.rs) (`session_viewer/src/lib.rs`) · **Goal:** Exercise exact curves and rational control edits.
+**Goal:** Exercise exact curves and rational control edits. · **Checkpoints:** `76-copy-exact-planar-curve-definitions` → `76d-exercise-exact-curves-and-rational-control-edits` (5 steps) · **Source:** [app/walk/sheet.rs](../../../../src/app/walk/sheet.rs) · [app/sheet_query.rs](../../../../src/app/sheet_query.rs) · [app/stream.rs](../../../../src/app/stream.rs) · [app/cplane.rs](../../../../src/app/cplane.rs) · [app/coords.rs](../../../../src/app/coords.rs) · [app/command/tool/shape.rs](../../../../src/app/command/tool/shape.rs) · [app/command/tool/gather.rs](../../../../src/app/command/tool/gather.rs) · [app/deform.rs](../../../../src/app/deform.rs) (`session_viewer/src/lib.rs`)
 
-<div class="webgpu-schematic" style="width:100%;margin:8px auto;">
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="200" viewBox="0 0 1120 200" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
@@ -17,60 +17,54 @@
     <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
     </marker>
-    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
-      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
-    </pattern>
-    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
-      <circle cx="2" cy="2" r="1" fill="#111111"/>
-    </pattern>
   </defs>
   <rect x="2" y="2" width="1116" height="196" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
   <rect x="16" y="14" width="248" height="172" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text x="140" y="34" text-anchor="middle" font-family="monospace" font-size="11.5" font-weight="700" fill="#111111">1. Lesson 14.6 Code</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="34" text-anchor="middle" font-family="monospace" font-size="11.5" font-weight="700" fill="#111111">1. Lesson 14.6 Code</text>
   <rect x="34" y="48" width="212" height="24" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.25"/>
-  <text x="140" y="64" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">src/freeform_parabola.rs</text>
-  <rect x="34" y="78" width="212" height="24" rx="4" fill="url(#hatch)" stroke="#111111" stroke-width="1.25"/>
-  <text x="140" y="94" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">src/primitive_registry.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="64" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">src/freeform_parabola.rs</text>
+  <rect x="34" y="78" width="212" height="24" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="94" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">src/primitive_registry.rs</text>
   <rect x="34" y="108" width="212" height="24" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.25"/>
-  <text x="140" y="124" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">src/freeform_curve.rs</text>
-  <text x="140" y="172" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#111111">76-copy-exact-planar-curve-definitions -&gt; 76d-exercise-exact-curves-and-rational-control-edits</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="124" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">src/freeform_curve.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="172" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#111111">76-copy-exact-planar-curve-definitions -&gt; 76d-exercise-exact-curves-and-rational-control-edits</text>
   <line x1="264" y1="100" x2="292" y2="100" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
   <rect x="296" y="14" width="248" height="172" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text x="420" y="34" text-anchor="middle" font-family="monospace" font-size="11.5" font-weight="700" fill="#111111">2. session_viewer/src</text>
-  <rect x="314" y="48" width="212" height="26" rx="4" fill="url(#dots)" stroke="#111111" stroke-width="1.5"/>
-  <text x="420" y="65" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="420" y="34" text-anchor="middle" font-family="monospace" font-size="11.5" font-weight="700" fill="#111111">2. session_viewer/src</text>
+  <rect x="314" y="48" width="212" height="26" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="420" y="65" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">src/lib.rs</text>
   <rect x="314" y="80" width="212" height="26" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="420" y="97" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">src/engine/gpu/device.rs</text>
-  <rect x="314" y="112" width="212" height="24" rx="4" fill="url(#hatch)" stroke="#111111" stroke-width="1.25"/>
-  <text x="420" y="128" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">✓ cargo check (wasm32)</text>
-  <text x="420" y="172" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#111111">Read original parabola in…</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="420" y="97" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">src/engine/gpu/device.rs</text>
+  <rect x="314" y="112" width="212" height="24" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="420" y="128" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">✓ cargo check (wasm32)</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="420" y="172" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#111111">Read original parabola in…</text>
   <line x1="544" y1="100" x2="572" y2="100" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
   <rect x="576" y="14" width="248" height="172" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text x="700" y="34" text-anchor="middle" font-family="monospace" font-size="11.5" font-weight="700" fill="#111111">3. Tab Visibility &amp; Drop</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="700" y="34" text-anchor="middle" font-family="monospace" font-size="11.5" font-weight="700" fill="#111111">3. Tab Visibility &amp; Drop</text>
   <rect x="598" y="66" width="84" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="640" y="96" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Active</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="640" y="96" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Active</text>
   <path d="M 682 82 L 718 82" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <path d="M 722 102 L 686 102" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
-  <rect x="722" y="66" width="84" height="52" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
-  <text x="764" y="96" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Paused</text>
-  <text x="700" y="172" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#111111">Exact parabola recipes and…</text>
+  <rect x="722" y="66" width="84" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="764" y="96" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Paused</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="700" y="172" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#111111">Exact parabola recipes and…</text>
   <line x1="824" y1="100" x2="852" y2="100" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
   <rect x="856" y="14" width="248" height="172" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text x="980" y="34" text-anchor="middle" font-family="monospace" font-size="11.5" font-weight="700" fill="#111111">4. Fault Ring &amp; 1x Recovery</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="980" y="34" text-anchor="middle" font-family="monospace" font-size="11.5" font-weight="700" fill="#111111">4. Fault Ring &amp; 1x Recovery</text>
   <circle cx="934" cy="96" r="36" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <circle cx="934" cy="96" r="20" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
-  <text x="934" y="100" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Ring</text>
+  <circle cx="934" cy="96" r="22" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="100" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Ring</text>
   <rect x="986" y="72" width="86" height="48" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="1029" y="94" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1x Safe</text>
-  <text x="1029" y="108" text-anchor="middle" font-family="sans-serif" font-size="9" fill="#111111">Rebuild</text>
-  <text x="980" y="172" text-anchor="middle" font-family="sans-serif" font-size="10" font-weight="700" fill="#111111">Exercise exact curves and…</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="1029" y="94" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1x Safe</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="1029" y="108" text-anchor="middle" font-family="sans-serif" font-size="9" fill="#111111">Rebuild</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="980" y="172" text-anchor="middle" font-family="sans-serif" font-size="10" font-weight="700" fill="#111111">Exercise exact curves and…</text>
 </svg>
 </div>
 
 ## <a id="checkpoint-76-copy-exact-planar-curve-definitions"></a>Step 1 of 5 · Read original parabola inputs in a checked frame (`76-copy-exact-planar-curve-definitions`)
 
-<div class="webgpu-schematic" style="width:100%;margin:8px auto;">
-<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="76" viewBox="0 0 1120 76" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="72" viewBox="0 0 1120 72" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -84,39 +78,37 @@
     <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
     </marker>
-    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
-      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
-    </pattern>
-    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
-      <circle cx="2" cy="2" r="1" fill="#111111"/>
-    </pattern>
   </defs>
-  <rect x="2" y="2" width="1116" height="72" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
-  <rect x="14" y="12" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="140" y="32" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Step 1/5: 76-copy-exact-pla…</text>
-  <text x="140" y="50" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#111111">src/freeform_parabola.rs</text>
-  <line x1="266" y1="38" x2="292" y2="38" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
-  <rect x="296" y="12" width="252" height="52" rx="6" fill="url(#dots)" stroke="#111111" stroke-width="1.5"/>
-  <text x="422" y="32" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1. CPU / Rust Input</text>
-  <text x="422" y="50" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">shared questions and frame</text>
-  <line x1="548" y1="38" x2="574" y2="38" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
-  <rect x="578" y="12" width="252" height="52" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
-  <text x="704" y="32" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2. WebGPU / WGSL</text>
-  <text x="704" y="50" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">original exact curve</text>
-  <line x1="830" y1="38" x2="856" y2="38" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
-  <rect x="860" y="12" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text x="983" y="32" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
-  <text x="983" y="50" text-anchor="middle" font-family="sans-serif" font-size="9.5" font-weight="700" fill="#111111">derived preview</text>
+  <rect x="2" y="2" width="1116" height="68" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Step 1/5: 76-copy-exact-pla…</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="48" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#111111">src/freeform_parabola.rs</text>
+  <line x1="266" y1="36" x2="292" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="296" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1. CPU / Rust Input</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">shared questions and frame</text>
+  <line x1="548" y1="36" x2="574" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="578" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2. WebGPU / WGSL</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">original exact curve</text>
+  <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">derived preview</text>
 </svg>
 </div>
 
-Complete the original parabola questions and input reader. Orient the frame along its chord, retain the apex location in that frame, and reuse the preview and exact source builders from the previous checkpoint. The following registry connects the completed curve family.
-
-> **Check:** *Why retain the apex in the chord frame?* — The original curve can use the same input interpretation in any construction plane. Its display samples remain derived from that source.
+**What this code does:** Complete the original parabola questions and input reader.
 
 ### 1. `src/freeform_parabola.rs`
 
 Extend this original owner with the day’s complete input helpers.
+
+**Locate this existing block:**
+
+```rust
+const SAMPLES: usize = 32; // preview segments
+```
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -132,18 +124,125 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Supply only the unchanged original curve validation fixtures.
 
+**Locate this existing block:**
+
+```text
+use crate::primitive_shape::{ Answer, Ask, CURVE, Frame, Part, Shape, positive};
+use session_rust::{Geometry, Point, Primitives};
+use std::rc::Rc;
+
+pub static SHAPE: Shape = Shape {
+    name: "Nurbs Curve Parabola",
+    options: CURVE,
+    upfront: false,
+    ask,
+    read,
+    outline,
+    build,
+};
+
+const SAMPLES: usize = 32; // preview segments
+
+/// Start, end, then the apex.
+fn ask(answers: &[Answer], _part: &Part, _option: &str) -> Option<Ask> {
+    match answers.len() {
+        0 => Some(Ask::point("Start")),
+        1 => Some(Ask::size("End or length")),
+        2 => Some(Ask::size("Apex or height")),
+        _ => None,
+    }
+}
+
+/// The frame runs from start to end; the apex is where the curve passes half way, off the chord.
+fn read(frame: &Frame, answers: &[Answer], _option: &str) -> Result<Part, String> {
+    let mut part = Part::new(frame.clone());
+    let Some(end) = answers.get(1) else {
+        return Ok(part);
+    };
+
+    if let Answer::Point(end) = end {
+        let [u, v, _] = frame.local(end);
+        part.frame = frame.turned(u, v);
+    }
+
+    let length = positive(frame.size(end), "The length")?; // a click lands on the plane
+    part.sizes.push(length);
+
+    if let Some(apex) = answers.get(2) {
+        let [u, v, w] = match apex {
+            Answer::Number(height) => [length * 0.5, *height, 0.0], // to the left of start → end
+            Answer::Point(p) => part.frame.local(p),
+        };
+
+        if v.hypot(w) <= 1e-9 * length {
+            return Err("The apex must lie off the line from start to end".into());
+        }
+
+        part.sizes.extend([u, w, v]); // the height last: the cursor readout shows it
+    }
+
+    Ok(part)
+}
+
+/// Start, apex and end in the world.
+fn points(part: &Part) -> Option<[Point; 3]> {
+    let [length, u, w, v] = part.sizes[..] else {
+        return None;
+    };
+    let frame = &part.frame;
+    Some([
+        frame.at(0.0, 0.0, 0.0),
+        frame.at(u, v, w),
+        frame.at(length, 0.0, 0.0),
+    ])
+}
+
+/// The chord, then the parabola.
+fn outline(part: &Part) -> Vec<Vec<Point>> {
+    let Some([start, apex, end]) = points(part) else {
+        return part.sizes.first().map_or_else(Vec::new, |length| {
+            vec![vec![
+                part.frame.at(0.0, 0.0, 0.0),
+                part.frame.at(*length, 0.0, 0.0),
+            ]]
+        });
+    };
+    // the Bezier control that makes the curve pass the apex half way
+    let control = [0, 1, 2].map(|i| 2.0 * apex[i] - 0.5 * (start[i] + end[i]));
+    let curve = (0..=SAMPLES)
+        .map(|i| {
+            let t = i as f64 / SAMPLES as f64;
+            let (a, b, c) = ((1.0 - t) * (1.0 - t), 2.0 * t * (1.0 - t), t * t);
+            Point::new(
+                a * start[0] + b * control[0] + c * end[0],
+                a * start[1] + b * control[1] + c * end[1],
+                a * start[2] + b * control[2] + c * end[2],
+            )
+        })
+        .collect();
+    vec![curve]
+}
+
+/// The kernel parabola through start, apex and end.
+fn build(part: &Part, _option: &str) -> Result<Geometry, String> {
+    let [start, apex, end] =
+        points(part).ok_or("Nurbs Curve Parabola needs a start, an end and an apex")?;
+    let mut curve = Primitives::parabola(&start, &apex, &end);
+    curve.name = "parabola".into();
+    Ok(Geometry::NurbsCurve(Rc::new(curve)))
+}
+```
+
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/76-copy-exact-planar-curve-definitions-2.rs" skip=3319
 ```
 
-**Result after `76-copy-exact-planar-curve-definitions`:** The original round solids remain visible while exact curves connect. The final exercise displays original Circle, Ellipse, Arc, Parabola and a freeform Curve.
-
 ## <a id="checkpoint-76a-expose-exact-curve-choices-in-the-existing-registry"></a>Step 2 of 5 · Expose exact curve choices in the existing registry (`76a-expose-exact-curve-choices-in-the-existing-registry`)
 
-<div class="webgpu-schematic" style="width:100%;margin:8px auto;">
-<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="76" viewBox="0 0 1120 76" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="72" viewBox="0 0 1120 72" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -157,39 +256,40 @@ After that block, append this supplied code:
     <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
     </marker>
-    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
-      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
-    </pattern>
-    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
-      <circle cx="2" cy="2" r="1" fill="#111111"/>
-    </pattern>
   </defs>
-  <rect x="2" y="2" width="1116" height="72" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
-  <rect x="14" y="12" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="140" y="32" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Step 2/5: 76a-expose-exact-…</text>
-  <text x="140" y="50" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#111111">src/primitive_registry.rs</text>
-  <line x1="266" y1="38" x2="292" y2="38" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
-  <rect x="296" y="12" width="252" height="52" rx="6" fill="url(#dots)" stroke="#111111" stroke-width="1.5"/>
-  <text x="422" y="32" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1. CPU / Rust Input</text>
-  <text x="422" y="50" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">registered curve name</text>
-  <line x1="548" y1="38" x2="574" y2="38" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
-  <rect x="578" y="12" width="252" height="52" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
-  <text x="704" y="32" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2. WebGPU / WGSL</text>
-  <text x="704" y="50" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">current option</text>
-  <line x1="830" y1="38" x2="856" y2="38" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
-  <rect x="860" y="12" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text x="983" y="32" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
-  <text x="983" y="50" text-anchor="middle" font-family="sans-serif" font-size="9.5" font-weight="700" fill="#111111">shared answer owner</text>
+  <rect x="2" y="2" width="1116" height="68" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Step 2/5: 76a-expose-exact-…</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="48" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#111111">src/primitive_registry.rs</text>
+  <line x1="266" y1="36" x2="292" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="296" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1. CPU / Rust Input</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">registered curve name</text>
+  <line x1="548" y1="36" x2="574" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="578" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2. WebGPU / WGSL</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">current option</text>
+  <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">shared answer owner</text>
 </svg>
 </div>
 
-Register current multiword names and the Arc Center and3 Points options. The shared question owner already validates dimensions and preserves accepted answers after failure.
-
-> **Check:** *How does a three point arc choose its side?* — The curve runs from the first point through the third point to the second point. Collinear points cannot determine a circle and are refused.
+**What this code does:** Expose exact curve choices in the existing registry.
 
 ### 1. `src/primitive_registry.rs`
 
 Register all current exact planar curve names and supported Arc options.
+
+**Locate this existing block:**
+
+```rust
+    ("Quad Sphere",&crate::round_quad_sphere::SHAPE,0),
+    ("Quad Sphere Mesh",&crate::round_quad_sphere::SHAPE,0),
+    ("bo",&crate::primitive_box::SHAPE,0),
+];
+```
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -199,8 +299,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-76b-retain-editable-freeform-controls-in-the-point-collector"></a>Step 3 of 5 · Create editable freeform curves (`76b-retain-editable-freeform-controls-in-the-point-collector`)
 
-<div class="webgpu-schematic" style="width:100%;margin:8px auto;">
-<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="76" viewBox="0 0 1120 76" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="72" viewBox="0 0 1120 72" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -214,35 +314,27 @@ Edit the existing block to match this code; keep unchanged lines:
     <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
     </marker>
-    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
-      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
-    </pattern>
-    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
-      <circle cx="2" cy="2" r="1" fill="#111111"/>
-    </pattern>
   </defs>
-  <rect x="2" y="2" width="1116" height="72" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
-  <rect x="14" y="12" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="140" y="32" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Step 3/5: 76b-retain-editab…</text>
-  <text x="140" y="50" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#111111">src/freeform_curve.rs, src/…</text>
-  <line x1="266" y1="38" x2="292" y2="38" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
-  <rect x="296" y="12" width="252" height="52" rx="6" fill="url(#dots)" stroke="#111111" stroke-width="1.5"/>
-  <text x="422" y="32" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1. CPU / Rust Input</text>
-  <text x="422" y="50" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">collected original contro…</text>
-  <line x1="548" y1="38" x2="574" y2="38" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
-  <rect x="578" y="12" width="252" height="52" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
-  <text x="704" y="32" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2. WebGPU / WGSL</text>
-  <text x="704" y="50" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">NURBS curve</text>
-  <line x1="830" y1="38" x2="856" y2="38" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
-  <rect x="860" y="12" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text x="983" y="32" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
-  <text x="983" y="50" text-anchor="middle" font-family="sans-serif" font-size="9.5" font-weight="700" fill="#111111">one history edit</text>
+  <rect x="2" y="2" width="1116" height="68" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Step 3/5: 76b-retain-editab…</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="48" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#111111">src/freeform_curve.rs, src/…</text>
+  <line x1="266" y1="36" x2="292" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="296" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1. CPU / Rust Input</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">collected original contro…</text>
+  <line x1="548" y1="36" x2="574" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="578" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2. WebGPU / WGSL</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">NURBS curve</text>
+  <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">one history edit</text>
 </svg>
 </div>
 
-Write the original degree and closure rules for collected control points. Connect the resulting original NURBS curve to the existing point collector and command path.
-
-> **Check:** *What makes the collected curve closed?* — A final point coincident with the first closes it. Remove that repeated control and limit the degree to three while retaining the original editable controls.
+**What this code does:** Write the original degree and closure rules for collected control points.
 
 ### 1. `src/freeform_curve.rs`
 
@@ -258,6 +350,13 @@ Create the file and type:
 
 Register the original freeform-curve constructor.
 
+**Locate this existing block:**
+
+```rust
+
+pub mod freeform_parabola;
+```
+
 After that block, type:
 
 ```rust
@@ -271,6 +370,23 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 ### 3. `src/freeform_curve.rs`
 
 Supply only the unchanged original validation fixtures.
+
+**Locate this existing block:**
+
+```text
+use session_rust::{NurbsCurve,Point};
+/// A curve through control points; ending on the start closes it smoothly.
+pub fn curve(points: &[Point]) -> NurbsCurve {
+    let count = points.len();
+    let closed = count >= 4 && points[0].distance(&points[count - 1], None) <= 1e-12;
+
+    if closed {
+        return NurbsCurve::create(true, (count - 2).min(3), &points[..count - 1]);
+    }
+
+    NurbsCurve::create(false, (count - 1).min(3), points)
+}
+```
 
 After that block, append this supplied code:
 
@@ -368,126 +484,6 @@ impl Tool for Shape {
         if !(3..MAX_POINTS).contains(&value) {return Err("Polygon sides must be between 3 and 4095");}
 ```
 
-**Complete updated block reference:**
-
-```rust
-use crate::{marker::PreparedPoint, stroke::PreparedLine};
-use std::rc::Rc;
-
-pub enum Built { Point(PreparedPoint), Line(PreparedLine), Move([f64; 3]), Polyline(crate::chain::PreparedChain), Geometry(session_rust::Geometry) }
-
-pub trait Tool: std::fmt::Debug {
-    fn name(&self) -> &'static str;
-    fn count(&self) -> usize;
-    fn build(&self, points: &[[f64; 3]]) -> Result<Built, &'static str>;
-    fn build_on_plane(&self,points:&[[f64;3]],_plane:crate::cplane::CPlane)->Result<Built,&'static str> {self.build(points)}
-    fn outline(&self,points:&[[f64;3]],_plane:crate::cplane::CPlane)->Vec<[f64;3]> {points.to_vec()}
-    fn sides(&self)->Option<usize> {None}
-    fn set_sides(&mut self,_sides:usize)->Result<(),&'static str> {Err("Sides works while drawing a polygon")}
-    fn buttons(&self) -> Vec<(String, String)> { vec![("Cancel".into(), "Escape".into())] }
-}
-
-#[derive(Clone, Copy, Debug)]
-pub enum Shape { Point, Line, Move, Polyline, Curve, Rectangle, Polygon {sides:usize}, Primitive(&'static crate::primitive_shape::Shape) }
-
-impl Tool for Shape {
-    fn name(&self) -> &'static str { match self { Self::Point => "Point", Self::Line => "Line", Self::Move => "Move", Self::Polyline => "Polyline",Self::Curve=>"Curve", Self::Rectangle=>"Polyline Rectangle",Self::Polygon {..}=>"Polyline Polygon",Self::Primitive(shape)=>shape.name } }
-    fn count(&self) -> usize { match self { Self::Point => 1, Self::Line | Self::Move => 2, Self::Polyline|Self::Curve => 0,Self::Rectangle|Self::Polygon {..}=>2,Self::Primitive(_)=>0 } }
-    fn sides(&self)->Option<usize> {if let Self::Polygon {sides}=self {Some(*sides)}else{None}}
-    fn set_sides(&mut self,value:usize)->Result<(),&'static str> {
-        if !(3..MAX_POINTS).contains(&value) {return Err("Polygon sides must be between 3 and 4095");}
-        let Self::Polygon {sides}=self else {return Err("Sides works while drawing a polygon")};*sides=value;Ok(())
-    }
-    fn build_on_plane(&self,points:&[[f64;3]],plane:crate::cplane::CPlane)->Result<Built,&'static str> {
-        let (kind,sides)=match self {Self::Rectangle=>("rectangle",4),Self::Polygon {sides}=>("polygon",*sides),_=>return self.build(points)};
-        let points=crate::planar::points(kind,plane,sides,points)?;Self::Polyline.build(&points)
-    }
-    fn outline(&self,points:&[[f64;3]],plane:crate::cplane::CPlane)->Vec<[f64;3]> {
-        match self {Self::Rectangle if points.len()==2=>crate::planar::points("rectangle",plane,4,points).unwrap_or_default(),
-            Self::Polygon {sides} if points.len()==2=>crate::planar::points("polygon",plane,*sides,points).unwrap_or_default(),_=>points.to_vec()}
-    }
-    fn buttons(&self)->Vec<(String,String)> {
-        if let Self::Primitive(shape)=self {return shape.options.iter().map(|(label,line)|((*label).into(),(*line).into())).collect();}
-        let mut buttons=vec![("Cancel".into(),"Escape".into())];
-        if matches!(self,Self::Polyline|Self::Rectangle|Self::Polygon {..}) {
-            for name in ["Points","Rectangle","Polygon"] {buttons.push((name.into(),format!("Polyline {name}")));}
-        }
-        if matches!(self,Self::Polyline|Self::Curve) {buttons.insert(0,("Close".into(),"Close".into()));}buttons
-    }
-    fn build(&self, points: &[[f64; 3]]) -> Result<Built, &'static str> {
-        match (self, points) {
-            (Self::Point, [p]) => Ok(Built::Point(PreparedPoint::new(Rc::new(session_rust::Point::new(p[0], p[1], p[2])))?)),
-            (Self::Line, [a, b]) => {
-                if a.iter().zip(b).all(|(a, b)| (a-b).abs() < 1e-12) { return Err("Line endpoints must differ"); }
-                Ok(Built::Line(PreparedLine::new(Rc::new(session_rust::Line::new(a[0], a[1], a[2], b[0], b[1], b[2])))?))
-            }
-            (Self::Move, [a,b]) => Ok(Built::Move(std::array::from_fn(|i| b[i]-a[i]))),
-            (Self::Polyline, points) if (2..=MAX_POINTS).contains(&points.len()) => {
-                if !points.windows(2).any(|p| p[0] != p[1]) { return Err("Polyline points must differ"); }
-                let points=points.iter().map(|p|session_rust::Point::new(p[0],p[1],p[2])).collect();
-                Ok(Built::Polyline(crate::chain::PreparedChain::polyline(Rc::new(session_rust::Polyline::new(points)))?))
-            }
-            (Self::Curve,points) if (2..=MAX_POINTS).contains(&points.len())=>{
-                if !points.windows(2).any(|p|p[0]!=p[1]) {return Err("Curve controls must differ");}
-                let controls=points.iter().map(|p|session_rust::Point::new(p[0],p[1],p[2])).collect::<Vec<_>>();
-                let source=crate::freeform_curve::curve(&controls);
-                Ok(Built::Geometry(session_rust::Geometry::NurbsCurve(Rc::new(source))))
-            },
-            (Self::Rectangle|Self::Polygon {..},_)=>self.build_on_plane(points,crate::cplane::CPlane::Xy),
-            _ => Err("The tool needs more points"),
-        }
-    }
-}
-
-pub const MAX_POINTS: usize = 4096;
-
-// A draft owns unfinished points and a cursor, so preview motion cannot become saved geometry or an Undo transaction.
-pub struct Draft { pub tool: Box<dyn Tool>, pub points: Vec<[f64; 3]>, pub cursor: Option<[f64; 3]>, pub snapped: Option<crate::snap::Kind>, pub frame: crate::cplane::CPlane, pub plane_points: Option<Vec<[f64;3]>>, pub primitive:Option<crate::primitive_draft::Draft> }
-
-impl Draft {
-    pub fn new(shape: Shape) -> Self { Self { tool: Box::new(shape), points: Vec::new(), cursor: None, snapped: None, frame: crate::cplane::CPlane::Xy, plane_points: None, primitive:if let Shape::Primitive(shape)=shape {Some(crate::primitive_draft::Draft::new(shape,crate::cplane::CPlane::Xy,0).expect("Registered primitive option"))}else{None} } }
-    pub fn prompt(&self) -> String {
-        if self.plane_points.is_none() {if let Some(primitive)=&self.primitive {return primitive.prompt();}}
-        let mut prompt=if let Some(points)=&self.plane_points {format!("CPlane 3 Point · point {} of 3 · Esc cancels",points.len()+1)}
-            else if self.tool.count()==0 {format!("{} point {} · Enter finishes · Esc cancels",self.tool.name(),self.points.len()+1)}
-            else {format!("{} point {} of {} · Esc cancels", self.tool.name(), self.points.len()+1, self.tool.count())};
-        if let Some(sides)=self.tool.sides() {prompt.push_str(&format!(" · Sides {sides}"));}
-        if let Some(kind)=self.snapped { prompt.push_str(&format!(" · Snap {kind:?}")); }
-        prompt
-    }
-    pub fn submit(&mut self, point: [f64; 3]) -> Result<Option<Built>, &'static str> { self.submit_many(&[point]) }
-    pub fn submit_many(&mut self, added: &[[f64;3]]) -> Result<Option<Built>, &'static str> {
-        let mut points=self.points.clone();
-        for &point in added { points.push(crate::tool_coords::checked(point)?); }
-        let count=self.tool.count(); let limit=if count==0 {MAX_POINTS} else {count};
-        if points.len()>limit {return Err("The tool has enough points");}
-        let built=if count>0 && points.len()==count {Some(self.build_world(&points)?)} else {None};
-        self.points=points;self.cursor=None;self.snapped=None;Ok(built)
-    }
-    pub fn finish(&self) -> Result<Built,&'static str> { self.build_world(&self.points) }
-    // Finished coordinates already belong to the world; their prefix prevents applying a fixed plane a second time during replay.
-    pub fn command(&self, points:&[[f64;3]]) -> String {
-        let mut line=self.tool.name().to_owned();
-        for p in points {line.push_str(&format!(" w{},{},{}",p[0],p[1],p[2]));}line
-    }
-    pub fn build_world(&self, points:&[[f64;3]]) -> Result<Built,&'static str> {
-        let command=self.command(points);let text=&command[self.tool.name().len()..];
-        let world=crate::drawing_input::points(text,crate::drawing_coords::plane(),self.frame,&[],None)?;
-        self.tool.build_on_plane(&world,self.frame)
-    }
-    pub fn outlines(&self)->Vec<Vec<[f64;3]>> {
-        if let Some(primitive)=&self.primitive {primitive.outline(self.cursor)}else{vec![self.outline()]}
-    }
-    pub fn outline(&self)->Vec<[f64;3]> {
-        let mut points=self.points.clone();if let Some(cursor)=self.cursor {points.push(cursor);}
-        self.tool.outline(&points,self.frame)
-    }
-    pub fn hover(&mut self, point: Option<[f64; 3]>) -> Result<(), &'static str> {
-        self.cursor = point.map(crate::tool_coords::checked).transpose()?; Ok(())
-    }
-}
-```
-
 ### 5. `src/commands.rs`
 
 Route current Curve invocation and direct controls through the existing world-point collector.
@@ -543,172 +539,10 @@ Replace it with:
     ("Polyline Rectangle",||Action::BeginTool(crate::tool::Shape::Rectangle)),
 ```
 
-**Complete updated block reference:**
-
-```rust
-use crate::editor::Action;
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum Host { TextDemo, Help, Open, Replace, CancelOpen, Reload, CancelReload, Save, Report, PreviousReport, Selection, LayersOn, LayersOff, LayersAll }
-
-pub enum Command { Editor(Action), Host(Host) }
-
-pub type Factory = fn() -> Action;
-pub const ACTIONS: &[(&str, Factory)] = &[
-    ("Snap", || Action::Snap(crate::snap::Setting::Objects(None))),
-    ("Snap On", || Action::Snap(crate::snap::Setting::Objects(Some(true)))),
-    ("Snap Off", || Action::Snap(crate::snap::Setting::Objects(Some(false)))),
-    ("Grid Snap", || Action::Snap(crate::snap::Setting::Grid(None))),
-    ("Grid Snap On", || Action::Snap(crate::snap::Setting::Grid(Some(true)))),
-    ("Grid Snap Off", || Action::Snap(crate::snap::Setting::Grid(Some(false)))),
-    ("Snap End", || Action::Snap(crate::snap::Setting::Mode(crate::snap::END))),
-    ("Snap Near", || Action::Snap(crate::snap::Setting::Mode(crate::snap::NEAR))),
-    ("Snap Mid", || Action::Snap(crate::snap::Setting::Mode(crate::snap::MID))),
-    ("Snap Center", || Action::Snap(crate::snap::Setting::Mode(crate::snap::CENTER))),
-    ("Snap Perp", || Action::Snap(crate::snap::Setting::Mode(crate::snap::PERP))),
-    ("Move", || Action::BeginTool(crate::tool::Shape::Move)),
-    ("Point", || Action::BeginTool(crate::tool::Shape::Point)),
-    ("Line", || Action::BeginTool(crate::tool::Shape::Line)),
-    ("Curve",||Action::BeginTool(crate::tool::Shape::Curve)),
-    ("Polyline",||Action::BeginTool(crate::tool::Shape::Polyline)),
-    ("Polyline Points",||Action::BeginTool(crate::tool::Shape::Polyline)),
-    ("Polyline Rectangle",||Action::BeginTool(crate::tool::Shape::Rectangle)),
-    ("Polyline Polygon",||Action::BeginTool(crate::tool::Shape::Polygon {sides:6})),
-    ("CPlane",||Action::PlaneMenu),
-    ("Hide",||Action::Hide),
-    ("Show",||Action::Show),
-    ("Example Box", || Action::AddBox),
-    ("Example Cloud LOD",||Action::AddCloudLod),
-    ("Example Cloud",||Action::AddCloud),
-    ("Example CAD",||Action::AddCad),
-    ("Example Instances",||Action::AddInstances),
-    ("Example Shape Reuse",||Action::AddShapeReuse),
-    ("Example Nested Instances",||Action::AddNestedInstances),
-    ("Example Sheet",||Action::AddSheet),
-    ("Example Scene Text",||Action::AddText(crate::text::TextPlacement::WorldPlane {world:[-1.5,0.,1.],right:[1.,0.,0.],up:[0.,1.,0.],world_height:0.22})),
-    ("Example Billboard",||Action::AddText(crate::text::TextPlacement::WorldBillboard {world:[-1.5,0.,1.],world_height:0.22})),
-    ("Example Anchor",||Action::AddText(crate::text::TextPlacement::Anchor {world:[0.,0.,1.],offset:[8.,-12.]})),
-    ("Example Nameplate",||Action::AddText(crate::text::TextPlacement::Nameplate {world:[0.,0.,1.],padding:[17.,4.],rounded:true})),
-    ("Example Surface",||Action::AddSurface),
-    ("Example Nested",||Action::AddNested),
-    ("Example Line", || Action::AddLine),
-    ("Example Point", || Action::AddPoint),
-    ("Example Curve", || Action::AddCurve),
-    ("Example Object Color", || Action::AddColours(crate::colour::Mode::Object)),
-    ("Example Point Colors", || Action::AddColours(crate::colour::Mode::Points)),
-    ("Example Face Colors", || Action::AddColours(crate::colour::Mode::Faces)),
-    ("View Normals On", || Action::NormalView(true)),
-    ("View Normals Off", || Action::NormalView(false)),
-    ("View Grid On", || Action::Grid(Some(crate::grid::Settings::default()))),
-    ("View Grid Off", || Action::Grid(None)),
-    ("Example Sharp", || Action::AddNormals(crate::normal_example::Mode::Sharp)),
-    ("Example Smooth", || Action::AddNormals(crate::normal_example::Mode::Smooth)),
-    ("Example Winding", || Action::AddNormals(crate::normal_example::Mode::Winding)),
-    ("Controls", || Action::Controls(true)),
-    ("Controls On", || Action::Controls(true)),
-    ("Controls Off", || Action::Controls(false)),
-    ("Example Polyline", || Action::AddPolyline),
-    ("Example Arrow", || Action::AddArrow),
-    ("Example Triangle", || Action::ToggleExtra),
-    ("Select Next", || Action::SelectNext),
-    ("Select All", || Action::SelectAll),
-    ("Select None", || Action::Picked(None)),
-    ("Select Object", || Action::PickMode(crate::pick_sources::Mode::Object)),
-    ("Select Face", || Action::PickMode(crate::pick_sources::Mode::Face)),
-    ("Select Edge", || Action::PickMode(crate::pick_sources::Mode::Edge)),
-    ("Select Control", || Action::PickMode(crate::pick_sources::Mode::Control)),
-    ("Delete", || Action::Delete),
-    ("Undo", || Action::Undo),
-    ("Redo", || Action::Redo),
-    ("Background", || Action::Background),
-    ("Zoom In", || Action::Zoom(2.0)),
-    ("Zoom Out", || Action::Zoom(0.5)),
-    ("Pan Left", || Action::Pan(-0.25, 0.0)),
-    ("Pan Right", || Action::Pan(0.25, 0.0)),
-    ("Orbit Right", || Action::Orbit(std::f64::consts::FRAC_PI_4, 0.0)),
-    ("Orbit Up", || Action::Orbit(0.0, std::f64::consts::FRAC_PI_6)),
-    ("View Isometric", || Action::Isometric),
-    ("Fit", || Action::Fit),
-    ("Fit Selected", || Action::FitSelected),
-    ("View Reset", || Action::ResetView),
-    ("View Perspective", || Action::Projection(crate::camera::Projection::Perspective)),
-    ("View Orthographic", || Action::Projection(crate::camera::Projection::Orthographic)),
-    ("Close", || Action::Close),
-    ("Unload Sources", || Action::UnloadSources),
-];
-
-pub const HOSTS: &[(&str, Host)] = &[
-    ("Layers On",Host::LayersOn),("Layers Off",Host::LayersOff),("Layers All",Host::LayersAll),
-    ("Help", Host::Help),
-    ("Open", Host::Open),
-    ("Open Replace", Host::Replace),
-    ("Cancel Open", Host::CancelOpen),
-    ("Reload Sources", Host::Reload),
-    ("Cancel Reload", Host::CancelReload),
-    ("Save", Host::Save),
-    ("Example Text",Host::TextDemo),
-    ("Report", Host::Report),
-    ("Report Previous", Host::PreviousReport),
-    ("Selection", Host::Selection),
-];
-
-pub fn names() -> Vec<&'static str> {
-    HOSTS.iter().map(|(name, _)| *name).chain(ACTIONS.iter().map(|(name, _)| *name)).chain(crate::primitive_registry::ENTRIES.iter().map(|(name,_,_)|*name)).collect()
-}
-
-// Choose the longest known name so Open Replace cannot become Open with an unwanted argument.
-fn matched(words: &[&str]) -> Option<(&'static str, usize)> {
-    names().into_iter().filter_map(|name| {
-        let compact = name.split_whitespace().collect::<String>().to_ascii_lowercase();
-        let mut rest = compact.as_str();
-        for (index, word) in words.iter().enumerate() {
-            let word = word.to_ascii_lowercase();
-            rest = rest.strip_prefix(&word)?;
-            if rest.is_empty() { return Some((name, index + 1, compact.len())); }
-        }
-        None
-    }).max_by_key(|(_, _, letters)| *letters).map(|(name, count, _)| (name, count))
-}
-
-pub fn canonical(line: &str) -> String {
-    let words: Vec<_> = line.split_whitespace().collect();
-    matched(&words).map_or_else(|| line.trim().to_owned(), |(name, count)| {
-        std::iter::once(name).chain(words[count..].iter().copied()).collect::<Vec<_>>().join(" ")
-    })
-}
-
-pub fn parse(line: &str) -> Result<Command, String> {
-    let words: Vec<_> = line.split_whitespace().collect();
-    let (name, count) = matched(&words).ok_or("Unknown command. Type Help.")?;
-    if let Some(action)=crate::primitive_registry::command(name,&words[count..].join(" ")) {return Ok(Command::Editor(action));}
-    if name=="CPlane" && words.len()>count {return crate::drawing_input::choice(&words[count..].join(" ")).map(Command::Editor).ok_or_else(||"CPlane (XY XZ YZ 3 Point View Cancel)".into());}
-    if matches!(name,"Point"|"Line"|"Curve"|"Polyline"|"Polyline Points"|"Polyline Rectangle"|"Polyline Polygon") && words.len()>count {
-        let shape=match name {"Point"=>crate::tool::Shape::Point,"Curve"=>crate::tool::Shape::Curve,"Line"=>crate::tool::Shape::Line,"Polyline Rectangle"=>crate::tool::Shape::Rectangle,"Polyline Polygon"=>crate::tool::Shape::Polygon {sides:6},_=>crate::tool::Shape::Polyline};
-        return Ok(Command::Editor(Action::Draw {shape,text:words[count..].join(" ")}));
-    }
-    if name == "Move" && words.len()>count {
-        return crate::offset::parse(&format!("Move {}", words[count..].join(" ")))
-            .map(|offset| Command::Editor(Action::Translate(offset))).map_err(str::to_owned);
-    }
-    if name == "Grid Snap" && words.len() > count {
-        if words.len() != count+1 { return Err("Grid Snap (On Off) or a spacing".into()); }
-        let step = words[count].parse::<f64>().map_err(|_| "Grid Snap (On Off) or a spacing")?;
-        if !step.is_finite() || step<=0. { return Err("The grid spacing must be above zero · Example: Grid Snap 50".into()); }
-        return Ok(Command::Editor(Action::Snap(crate::snap::Setting::Spacing(step))));
-    }
-    if words.len() != count { return Err(format!("{name} takes no arguments")); }
-    if let Some((_, make)) = ACTIONS.iter().find(|(key, _)| *key == name) { return Ok(Command::Editor(make())); }
-    let (_, host) = HOSTS.iter().find(|(key, _)| *key == name).ok_or("Command registry is incomplete")?;
-    Ok(Command::Host(*host))
-}
-```
-
-**Result after `76b-retain-editable-freeform-controls-in-the-point-collector`:** Create a freeform curve through the existing browser command dock. Its original control points remain available for later editing.
-
 ## <a id="checkpoint-76c-inspect-original-curve-data-through-the-browser-contract"></a>Step 4 of 5 · Inspect original curve data through the browser contract (`76c-inspect-original-curve-data-through-the-browser-contract`)
 
-<div class="webgpu-schematic" style="width:100%;margin:8px auto;">
-<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="76" viewBox="0 0 1120 76" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="72" viewBox="0 0 1120 72" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -722,39 +556,40 @@ pub fn parse(line: &str) -> Result<Command, String> {
     <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
     </marker>
-    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
-      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
-    </pattern>
-    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
-      <circle cx="2" cy="2" r="1" fill="#111111"/>
-    </pattern>
   </defs>
-  <rect x="2" y="2" width="1116" height="72" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
-  <rect x="14" y="12" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="140" y="32" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Step 4/5: 76c-inspect-origi…</text>
-  <text x="140" y="50" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#111111">src/browser.rs</text>
-  <line x1="266" y1="38" x2="292" y2="38" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
-  <rect x="296" y="12" width="252" height="52" rx="6" fill="url(#dots)" stroke="#111111" stroke-width="1.5"/>
-  <text x="422" y="32" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1. CPU / Rust Input</text>
-  <text x="422" y="50" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">original curve owner</text>
-  <line x1="548" y1="38" x2="574" y2="38" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
-  <rect x="578" y="12" width="252" height="52" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
-  <text x="704" y="32" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2. WebGPU / WGSL</text>
-  <text x="704" y="50" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">explicit diagnostic facts</text>
-  <line x1="830" y1="38" x2="856" y2="38" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
-  <rect x="860" y="12" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text x="983" y="32" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
-  <text x="983" y="50" text-anchor="middle" font-family="sans-serif" font-size="9.5" font-weight="700" fill="#111111">browser assertions</text>
+  <rect x="2" y="2" width="1116" height="68" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Step 4/5: 76c-inspect-origi…</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="48" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#111111">src/browser.rs</text>
+  <line x1="266" y1="36" x2="292" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="296" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1. CPU / Rust Input</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">original curve owner</text>
+  <line x1="548" y1="36" x2="574" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="578" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2. WebGPU / WGSL</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">explicit diagnostic facts</text>
+  <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">browser assertions</text>
 </svg>
 </div>
 
-Expose original control storage, knot storage, rational flag and GUID for the existing browser acceptance checks.
-
-> **Check:** *Does a browser diagnostic change saved geometry?* — No. It reads the original source for acceptance checks. The command input and geometry owner remain the same.
+**What this code does:** Inspect original curve data through the browser contract.
 
 ### 1. `src/browser.rs`
 
 Expose original curve identity, weighted controls and knots for current browser acceptance.
+
+**Locate this existing block:**
+
+```rust
+    canvas.set_attribute("data-edit-preview", &editor.edit_preview.as_ref().map_or_else(|| "null".into(),|p| serde_json::json!({"ids":p.ids().iter().map(|id| id.value()).collect::<Vec<_>>(),"matrix":p.matrix()}).to_string()))?;
+    let originals=serde_json::json!({"points":editor.scene.points().iter().map(|row|(0..3).map(|i|row.prepared.source[i]).collect::<Vec<_>>()).collect::<Vec<_>>(),"lines":editor.scene.lines().iter().map(|row|{let s=&row.prepared.source;[s.start(),s.end()].map(|p|[p[0],p[1],p[2]])}).collect::<Vec<_>>(),"polylines":editor.scene.paths().iter().filter(|row|matches!(row.prepared.source,crate::chain::Source::Polyline(_))).map(|row|row.prepared.source.coordinates()).collect::<Vec<_>>()});
+    canvas.set_attribute("data-drawing-originals",&originals.to_string())?;
+    canvas.set_attribute("data-cplane",&serde_json::json!({"fixed":editor.construction_plane.is_some(),"mode":format!("{:?}",editor.construction_plane),"chooser":editor.plane_menu}).to_string())?;
+```
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -764,8 +599,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-76d-exercise-exact-curves-and-rational-control-edits"></a>Step 5 of 5 · Exercise exact curves and rational control edits (`76d-exercise-exact-curves-and-rational-control-edits`)
 
-<div class="webgpu-schematic" style="width:100%;margin:8px auto;">
-<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="76" viewBox="0 0 1120 76" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="72" viewBox="0 0 1120 72" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
@@ -779,35 +614,27 @@ Edit the existing block to match this code; keep unchanged lines:
     <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
     </marker>
-    <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
-      <line x1="0" y1="0" x2="0" y2="6" stroke="#111111" stroke-width="1"/>
-    </pattern>
-    <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse">
-      <circle cx="2" cy="2" r="1" fill="#111111"/>
-    </pattern>
   </defs>
-  <rect x="2" y="2" width="1116" height="72" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
-  <rect x="14" y="12" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text x="140" y="32" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Step 5/5: 76d-exercise-exac…</text>
-  <text x="140" y="50" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#111111">src/freeform_tests.rs, src/…</text>
-  <line x1="266" y1="38" x2="292" y2="38" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
-  <rect x="296" y="12" width="252" height="52" rx="6" fill="url(#dots)" stroke="#111111" stroke-width="1.5"/>
-  <text x="422" y="32" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1. CPU / Rust Input</text>
-  <text x="422" y="50" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">original curve</text>
-  <line x1="548" y1="38" x2="574" y2="38" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
-  <rect x="578" y="12" width="252" height="52" rx="6" fill="url(#hatch)" stroke="#111111" stroke-width="1.5"/>
-  <text x="704" y="32" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2. WebGPU / WGSL</text>
-  <text x="704" y="50" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">one transaction</text>
-  <line x1="830" y1="38" x2="856" y2="38" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
-  <rect x="860" y="12" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text x="983" y="32" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
-  <text x="983" y="50" text-anchor="middle" font-family="sans-serif" font-size="9.5" font-weight="700" fill="#111111">exact restoration</text>
+  <rect x="2" y="2" width="1116" height="68" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Step 5/5: 76d-exercise-exac…</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="48" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#111111">src/freeform_tests.rs, src/…</text>
+  <line x1="266" y1="36" x2="292" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="296" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1. CPU / Rust Input</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">original curve</text>
+  <line x1="548" y1="36" x2="574" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="578" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2. WebGPU / WGSL</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">one transaction</text>
+  <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">exact restoration</text>
 </svg>
 </div>
 
-Verify current original builders, failed input, world replay, history and exact archive reopening. Reuse the existing source-edit preview for a created rational arc.
-
-> **Check:** *What must moving a rational control preserve?* — Keep its weight and the knot vector. Convert the edited Euclidean point back to homogeneous coordinates using the same weight, leaving other controls unchanged.
+**What this code does:** Exercise exact curves and rational control edits.
 
 **Supplied validation fixture:**
 
@@ -831,15 +658,20 @@ Copy this supplied authoring fixture once. Continue with the browser build below
 
 Register the current curve component.
 
+**Locate this existing block:**
+
+```text
+
+pub mod freeform_curve;
+```
+
 After that block, append this supplied code:
 
 ```text
 --8<-- "journey/code/76d-exercise-exact-curves-and-rational-control-edits-02.rs" skip=25
 ```
 
-**Result after `76d-exercise-exact-curves-and-rational-control-edits`:** Five original NURBS curve families render on white. Curve controls remain editable; rational edits preserve weights and knots. Failed input keeps accepted answers and original source identity survives archive reopening.
-
-## Build, Verify & Visual Result
+## Build & Run
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 14.6
@@ -850,7 +682,5 @@ cd ../..
 npm --prefix ../session_tests run course -- check 14.6
 npm --prefix ../session_tests run course -- save 14.6
 ```
-
-Open `http://127.0.0.1:8780/` to inspect the live WebGPU canvas, or use [checkpoint recovery](../../recovery.md).
 
 Continue with [15.1 · Original transforms, part edits and solid recipes](../../consolidation/77-copy-current-transformation-and-source-edit-algorithms.md).
