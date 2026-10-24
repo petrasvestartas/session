@@ -3,7 +3,7 @@
   "scope": "Initial production-to-course source/coverage audit; proposals are not completed consolidation or rendering acceptance.",
   "sourceAuthority": "session_viewer/src",
   "endpoint": "96zzzzzzzq-draw-original-cad-wire-curves",
-  "endpointStatus": "Current555/b5 seven compiler/package/frame phases and current713/714 browser checks PASS. Actual4x ambient-off matches exactly; ambient-on111pixels/max10 remains open. Full1064/source freeze pending; release0/5, callbacks8/18, features4/18, fixtures2/4. Preserve all Gemini Vue changes.",
+  "endpointStatus": "Current694/b031 applies exact production MSAA selector: actual4x Off/On both0RGBA;22authoring/1361structure PASS. New full1064 and compiler/docs qualification pending; counts8/18callbacks,4/18features,2/4fixtures,0/5release unchanged. All Gemini Vue preserved.",
   "courseSha256": "05b031571b9b18b4e2740898af6782e2c746cb6b1fcf35c73adb86c957869374",
   "chapters": 22,
   "existingSteps": 1361,
@@ -1102,7 +1102,9 @@
         "records": [
           "consolidation/current-state.json",
           "release/ambient-pedestal-qualified-native-review.json",
-          "release/ambient-authored-source-integration-review.json"
+          "release/ambient-authored-source-integration-review.json",
+          "release/ambient-selector-authored-source-review.json",
+          "release/ambient-four-sample-selector-parity-review.json"
         ],
         "remainingAcceptance": [
           "Run chapter11 cloud/outline and chapter18 performance/render-quality entry callbacks.",
@@ -1137,6 +1139,17 @@
           "matchedPairSamples": 1,
           "groundContactPixelsBoth": 10273,
           "remaining": "Full declared outline/depth/GTAO multisample production and source-specific browser criteria remain open."
+        },
+        "ambientMultisampleComparison": {
+          "status": "PASS bounded exact4x native production/course Off/On; declared source-specific browser criteria remain open",
+          "source713": "6947664b26863adf65ef7bfc879694bfedee853852bc2c7660d59f31d2e36ca9",
+          "source714": "b0313bae6b71646b9424776561375ffc4306125317e1686c5894e0ef618701bf",
+          "record": "release/ambient-four-sample-selector-parity-review.json",
+          "productionPairs": 2,
+          "samples": 4,
+          "changedPixels": 0,
+          "maxChannelDelta": 0,
+          "groundContactPixelsBoth": 10023
         }
       }
     },

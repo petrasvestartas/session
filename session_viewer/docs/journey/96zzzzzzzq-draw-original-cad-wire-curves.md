@@ -46330,7 +46330,7 @@ Update that block with the supplied code; keep unchanged surrounding lines:
 
 ### Keep ambient contact reconstruction consistent
 
-Sample the full depth and radius pyramid, use a coarser occupancy level, and pass the half-resolution ground dimensions to the camera uniform so the shadow reaches the intended area. Compute geometric contact normals from transformed original triangle edges and retain full-precision XYZ through full-resolution reconstruction; encode them once for the reduced normal texture. Three R32Float normal targets plus the radius target use the guaranteed four attachments and 16 bytes per sample, including the four-sample path. The retained pedestal check protects visible ground shading, repeated-frame reuse and exact restoration without changing original geometry.
+Sample the full depth and radius pyramid, use a coarser occupancy level, and pass the half-resolution ground dimensions to the camera uniform so the shadow reaches the intended area. Compute geometric contact normals from transformed original triangle edges and retain full-precision XYZ through full-resolution reconstruction; encode them once for the reduced normal texture. Three R32Float normal targets plus the radius target use the guaranteed four attachments and 16 bytes per sample, including the four-sample path. The retained pedestal check protects visible ground shading, repeated-frame reuse and exact restoration without changing original geometry. Reconstruct a separate multisample ambient value only when coverage or depth differs sufficiently from sample zero; a primitive identity change alone does not trigger reconstruction.
 
 ### 401. `src/ambient_camera.rs`
 

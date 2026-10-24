@@ -1,0 +1,101 @@
+{
+  "status": "PASS actual fresh unique course+production rustc/extern/metadata/shader binding; no rendered sample4 acceptance",
+  "folder": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\ambient-pedestal-four-sample-selector-candidate-v2\\build-four-sample-selector-v2",
+  "buildLogSha256": "304e9f16ec6a502731649f4903a8c4acd47a684da3212903eb6bc6dff35ad5ed",
+  "metadataSha256": "f59bb92f11704153399c585c796ac15b1f1c24ac1438e4966377f0a974014c1c",
+  "sourceFingerprint": "6947664b26863adf65ef7bfc879694bfedee853852bc2c7660d59f31d2e36ca9",
+  "bindings": [
+    {
+      "name": "viewer_journey_ambient_pedestal_four_scope2",
+      "artifact": {
+        "reason": "compiler-artifact",
+        "package_id": "path+file:///C:/pc/3_code/code_rust/wood_research/session/session_viewer/target/course-windows-20261018/ambient-pedestal-four-sample-selector-candidate-v2/course-native-frame#viewer_journey_ambient_pedestal_four_scope2@0.1.0",
+        "manifest_path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\ambient-pedestal-four-sample-selector-candidate-v2\\course-native-frame\\Cargo.toml",
+        "target": {
+          "kind": [
+            "rlib"
+          ],
+          "crate_types": [
+            "rlib"
+          ],
+          "name": "viewer_journey_ambient_pedestal_four_scope2",
+          "src_path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\ambient-pedestal-four-sample-selector-candidate-v2\\source\\src\\lib.rs",
+          "edition": "2024",
+          "doc": true,
+          "doctest": true,
+          "test": true
+        },
+        "profile": {
+          "opt_level": "0",
+          "debuginfo": 2,
+          "debug_assertions": true,
+          "overflow_checks": true,
+          "test": false
+        },
+        "features": [],
+        "filenames": [
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-build\\x86_64-pc-windows-msvc\\debug\\deps\\libviewer_journey_ambient_pedestal_four_scope2-5e3181b9fc54d552.rlib",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-build\\x86_64-pc-windows-msvc\\debug\\deps\\libviewer_journey_ambient_pedestal_four_scope2-5e3181b9fc54d552.rmeta"
+        ],
+        "executable": null,
+        "fresh": false
+      },
+      "rlib": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-build\\x86_64-pc-windows-msvc\\debug\\deps\\libviewer_journey_ambient_pedestal_four_scope2-5e3181b9fc54d552.rlib",
+      "rlibSha256": "574a4c490791c87994bd21b7f954a127fd30539907581879805451025dbb6de6",
+      "depInfo": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-build\\x86_64-pc-windows-msvc\\debug\\deps\\viewer_journey_ambient_pedestal_four_scope2-5e3181b9fc54d552.d",
+      "depInfoSha256": "a59c861eae30d14b9c932054026b65a1e0a0953e9c1afd85678701436284053d"
+    },
+    {
+      "name": "session_viewer_ambient_pedestal_four_scope2",
+      "artifact": {
+        "reason": "compiler-artifact",
+        "package_id": "path+file:///C:/pc/3_code/code_rust/wood_research/session/session_viewer/target/course-windows-20261018/ambient-pedestal-four-sample-selector-candidate-v2/maintained#session_viewer_ambient_pedestal_four_scope2@0.1.0",
+        "manifest_path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\ambient-pedestal-four-sample-selector-candidate-v2\\maintained\\Cargo.toml",
+        "target": {
+          "kind": [
+            "cdylib",
+            "rlib"
+          ],
+          "crate_types": [
+            "cdylib",
+            "rlib"
+          ],
+          "name": "session_viewer_ambient_pedestal_four_scope2",
+          "src_path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\ambient-pedestal-four-sample-selector-candidate-v2\\maintained\\src\\lib.rs",
+          "edition": "2024",
+          "doc": true,
+          "doctest": true,
+          "test": true
+        },
+        "profile": {
+          "opt_level": "0",
+          "debuginfo": 2,
+          "debug_assertions": true,
+          "overflow_checks": true,
+          "test": false
+        },
+        "features": [],
+        "filenames": [
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-build\\x86_64-pc-windows-msvc\\debug\\deps\\session_viewer_ambient_pedestal_four_scope2.dll",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-build\\x86_64-pc-windows-msvc\\debug\\deps\\session_viewer_ambient_pedestal_four_scope2.dll.lib",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-build\\x86_64-pc-windows-msvc\\debug\\deps\\session_viewer_ambient_pedestal_four_scope2.dll.exp",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-build\\x86_64-pc-windows-msvc\\debug\\deps\\session_viewer_ambient_pedestal_four_scope2.pdb",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-build\\x86_64-pc-windows-msvc\\debug\\deps\\libsession_viewer_ambient_pedestal_four_scope2.rlib"
+        ],
+        "executable": null,
+        "fresh": false
+      },
+      "rlib": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-build\\x86_64-pc-windows-msvc\\debug\\deps\\libsession_viewer_ambient_pedestal_four_scope2.rlib",
+      "rlibSha256": "eabcc04a92fb30754e98a5248b00cf0afd8a20ea5d88bb3450e834dbd99758b9",
+      "depInfo": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-build\\x86_64-pc-windows-msvc\\debug\\deps\\session_viewer_ambient_pedestal_four_scope2.d",
+      "depInfoSha256": "4a2bf3d3c1b164ea44d253dbf4a1ffc40c4c464922dc6dfb16bd26d3e899de6e"
+    }
+  ],
+  "witnessLine": "     Running `set CARGO='C:\\Users\\Petras\\.rustup\\toolchains\\stable-x86_64-pc-windows-msvc\\bin\\cargo.exe'&& set CARGO_BIN_NAME=ambient-pedestal-four-sample-selector-v2&& set CARGO_CRATE_NAME=ambient_pedestal_four_sample_selector_v2&& set CARGO_MANIFEST_DIR='C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\ambient-pedestal-four-sample-selector-candidate-v2'&& set CARGO_MANIFEST_PATH='C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\ambient-pedestal-four-sample-selector-candidate-v2\\Cargo.toml'&& set CARGO_PKG_AUTHORS=''&& set CARGO_PKG_DESCRIPTION=''&& set CARGO_PKG_HOMEPAGE=''&& set CARGO_PKG_LICENSE=''&& set CARGO_PKG_LICENSE_FILE=''&& set CARGO_PKG_NAME=ambient-pedestal-four-sample-selector-v2&& set CARGO_PKG_README=''&& set CARGO_PKG_REPOSITORY=''&& set CARGO_PKG_RUST_VERSION=''&& set CARGO_PKG_VERSION=0.1.0&& set CARGO_PKG_VERSION_MAJOR=0&& set CARGO_PKG_VERSION_MINOR=1&& set CARGO_PKG_VERSION_PATCH=0&& set CARGO_PKG_VERSION_PRE=''&& set CARGO_PRIMARY_PACKAGE=1&& set PATH='C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-build\\debug\\deps;C:\\Users\\Petras\\.codex\\tmp\\arg0-windows\\codex-arg0BnckMm;C:\\Users\\Petras\\AppData\\Roaming\\npm\\node_modules\\@openai\\codex\\node_modules\\@openai\\codex-win32-x64\\vendor\\x86_64-pc-windows-msvc\\codex-path;C:\\Users\\Petras\\.opencode\\bin;C:\\Users\\Petras\\.local\\bin;C:\\Users\\Petras\\.cargo\\bin;C:\\Users\\Petras\\bin;C:\\Program Files\\Git\\mingw64\\bin;C:\\Program Files\\Git\\usr\\local\\bin;C:\\Program Files\\Git\\usr\\bin;C:\\Program Files\\Git\\usr\\bin;C:\\Program Files\\Git\\mingw64\\bin;C:\\Program Files\\Git\\usr\\bin;C:\\Users\\Petras\\bin;C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v13.2\\bin\\x64;C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v13.2\\bin;C:\\WINDOWS\\system32;C:\\WINDOWS;C:\\WINDOWS\\System32\\Wbem;C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0;C:\\WINDOWS\\System32\\OpenSSH;C:\\Program Files\\dotnet;C:\\Program Files (x86)\\Windows Kits\\10\\Windows Performance Toolkit;C:\\Program Files\\Git\\cmd;C:\\Program Files\\CMake\\bin;C:\\Program Files\\nodejs;C:\\Program Files\\GitHub CLI;C:\\Program Files (x86)\\ZeroTier\\One;C:\\Program Files\\PowerToys\\DSCModules;C:\\Program Files\\NVIDIA Corporation\\NVIDIA App\\NvDLISR;C:\\Program Files (x86)\\NVIDIA Corporation\\PhysX\\Common;C:\\Program Files\\NVIDIA Corporation\\Nsight Compute 2026.1.1;C:\\Users\\Petras\\.cargo\\bin;C:\\Users\\Petras\\.local\\bin;C:\\Users\\Petras\\AppData\\Local\\Microsoft\\WindowsApps;C:\\Users\\Petras\\AppData\\Local\\Programs\\Windsurf\\bin;C:\\Users\\Petras\\.dotnet\\tools;C:\\Users\\Petras\\AppData\\Local\\Programs\\Microsoft VS Code\\bin;C:\\Users\\Petras\\AppData\\Roaming\\npm;C:\\Users\\Petras\\AppData\\Local\\Python\\bin;C:\\Users\\Petras\\.bun\\bin;C:\\Users\\Petras\\.bun\\bin;C:\\Program Files\\Git\\usr\\bin\\vendor_perl;C:\\Program Files\\Git\\usr\\bin\\core_perl'&& set RUST_TEST_THREADS=4&& rustc --crate-name ambient_pedestal_four_sample_selector_v2 --edition=2024 witness.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts,future-incompat --crate-type bin --emit=dep-info,link -C embed-bitcode=no -C debuginfo=2 --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values())' -C metadata=fb828ffb769da97c --out-dir 'C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-build\\x86_64-pc-windows-msvc\\debug\\deps' --target x86_64-pc-windows-msvc -L 'dependency=C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-build\\x86_64-pc-windows-msvc\\debug\\deps' -L 'dependency=C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-build\\debug\\deps' --extern 'anyhow=C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-build\\x86_64-pc-windows-msvc\\debug\\deps\\libanyhow-ba4093baa10183c1.rlib' --extern 'log=C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-build\\x86_64-pc-windows-msvc\\debug\\deps\\liblog-68952185a6ca9e88.rlib' --extern 'pollster=C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-build\\x86_64-pc-windows-msvc\\debug\\deps\\libpollster-993c63381e8b0fa0.rlib' --extern 'prost=C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-build\\x86_64-pc-windows-msvc\\debug\\deps\\libprost-57c783418ab2cb72.rlib' --extern 'serde_json=C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-build\\x86_64-pc-windows-msvc\\debug\\deps\\libserde_json-a0d1acae9d0fc533.rlib' --extern 'session_rust=C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-build\\x86_64-pc-windows-msvc\\debug\\deps\\libsession_rust-63d4b311b10da408.rlib' --extern 'current_viewer=C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-build\\x86_64-pc-windows-msvc\\debug\\deps\\libsession_viewer_ambient_pedestal_four_scope2.rlib' --extern 'sha2=C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-build\\x86_64-pc-windows-msvc\\debug\\deps\\libsha2-693b9c3ec5a37fac.rlib' --extern 'viewer_journey=C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-build\\x86_64-pc-windows-msvc\\debug\\deps\\libviewer_journey_ambient_pedestal_four_scope2-5e3181b9fc54d552.rlib' --extern 'wgpu=C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-build\\x86_64-pc-windows-msvc\\debug\\deps\\libwgpu-5a50628e916e4c86.rlib' -L 'native=C:\\Users\\Petras\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\windows_x86_64_msvc-0.52.6\\lib'`",
+  "binary": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\ambient-pedestal-four-sample-selector-candidate-v2\\ambient-pedestal-four-sample-selector-v2.exe",
+  "binarySha256": "cc75a8db2e9d7226dbd5b406d5b0d16964167f1f352bfa3688c0087236a53c03",
+  "sourceNormalShaderLiterals": [
+    "source_normal_y",
+    "source_normal_z"
+  ]
+}

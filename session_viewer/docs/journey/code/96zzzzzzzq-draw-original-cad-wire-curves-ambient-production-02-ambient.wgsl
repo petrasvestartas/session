@@ -378,14 +378,13 @@ fn reconstruct(at: vec2<f32>, sample: i32, z: f32, values: vec4<f32>) -> f32 {
     }
     if all(values==vec4<f32>(0.0)) { return 0.0; }
     let center = depth_sample(pixel.xy,0);
-    let primitive=source_primitive(source_at(pixel.xy),0);
     let first = reconstruct(pixel.xy,0,center,values);
     if !MSAA { return first; }
     var ao = vec4<f32>(first);
     var different = false;
     for (var i=1; i<4; i++) {
         let z = depth_sample(pixel.xy,i);
-        if (z>0.0)!=(center>0.0) || abs(z-center)>max(center*0.001,1e-7) || source_primitive(source_at(pixel.xy),i)!=primitive {
+        if (z>0.0)!=(center>0.0) || abs(z-center)>max(center*0.001,1e-7) {
             ao[i] = reconstruct(pixel.xy,i,z,values);
             different = different || ao[i]!=first;
         }
