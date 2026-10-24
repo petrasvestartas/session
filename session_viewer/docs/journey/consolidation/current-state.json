@@ -522,6 +522,12 @@
         "scope": "Originalunchangedfinal.cjs DPR1/2+capture_currentpresentation; all18freshHTTPpayloads/actualNVIDIA verified."
       },
       "limits": "Currentfinaldeltaqualification only; original8/18source-specificcallbackcountunchanged. PriorV1edge-only/oldV2semanticfailure/06359presentationproofs retainownscope."
+    },
+    "nativeMarkerControlComparison": {
+      "status": "PASS scoped five native modes: four retained completed cases plus one actual Xray candidate",
+      "record": "release/marker-control-native-qualified-review.json",
+      "scope": "Five bounded closedMesh Sphere marker control comparisons are accepted through four historical V6 completed zero-RGBA cases plus one actual V10 Xray candidate pair, with current65f0013 source/control qualification. The whole V6 run remains FAILED; this is not five fresh current executions. Fixed opacity/thickness/feather, source/MVP/production rows and original-owner query limits are recorded. All ten original PNG sides match five root-reviewed image hashes. Each run independently preserves its complete decoded source and metadata; cross-run saved archive bytes differ. Broad authored normal/glyph controls, arbitrary placement and the full source-specific635 browser callback remain separate.",
+      "wholeFeatureComplete": false
     }
   },
   "resourceGuard": {
@@ -544,8 +550,8 @@
   ],
   "onlyHeavy": {
     "status": "none",
-    "task": "Allreportednative/compiler/current713+714browser jobs terminal; V7docs notyetstarted",
-    "scope": "Rootconfirmednoactiveheavy; no docsbuild/probeacceptance yet."
+    "task": "Current native, compiler, browser and docs jobs are terminal and accepted within their recorded scopes.",
+    "scope": "No active heavy process. Independent marker evidence and ambient-comparison preparation are read-only; five canonical harness corrections still await user answer."
   },
   "next": "Current1063 native integration, seven compiler/package/frame phases, strict713 Sphere browser and complete714 DPR1/2 browser PASS. Currentf23 docs build/probe PASS; root reviewed desktop/390phone and changed22.6Rust section, ownedroadmap refreshed/front. Noactiveheavy. Await consolidated user decision on five prepared frozen-harness corrections before remaining10 sourcecallbacks; Gemini1-10 remains owned elsewhere. Callbacks8/18/features4/18complete14partial/fixtures2/4/release1/5done4remain; scoped proofs and earlier failures preserved.",
   "currentDocsReview": {
@@ -620,6 +626,13 @@
         "peakJobCommitBytes": 750256128,
         "record": "release/cad-baseline-native-review.json",
         "remaining": "Named CAD display controls,source-specific browser and curve-continuity requirements remain; feature partial."
+      },
+      "markerControls": {
+        "status": "bounded-native-comparison-accepted",
+        "nativeModesQualified": 5,
+        "nativeModesTotal": 5,
+        "record": "release/marker-control-native-qualified-review.json",
+        "remaining": "Normal/glyph controls and complete635 recursive browser contract; no whole feature or display-group closure."
       }
     },
     "runtime": {

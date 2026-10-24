@@ -1,0 +1,573 @@
+{
+  "status": "PASS scoped native marker-control comparison: four historical completed cases plus one actual isolated Xray pass, source relevance qualified to integrated713",
+  "current713SourceFingerprint": "65f0013ae13365244de0baf69d29fd84c0219450573f86e5884eb0413dd6ae30",
+  "oldFourSourceFingerprint": "fef4c7bdb6f4c0a6f7a7701b0ba5581469dd757a34eefbab030a06e92ce4e5a1",
+  "isolatedXrayCandidateFingerprint": "c94ce2dd42b8aaaafcbf82338462696a8055dd3c884253be885ba829760aebb1",
+  "courseSha256AtPublication": "f23fe2c84e633849f9b9fad00a0ecdb87b2d40b0d4165fd7561d702626cc7537",
+  "scope": "Original closed-Mesh Sphere markers in one oblique perspective pose: opaque baseline, thickness, feather/AA, glass and Xray, source-facing/depth occlusion and original owners. These are qualified4+1 retained executions, not five fresh integrated-source cases or full feature4 acceptance.",
+  "featureLiteral": [
+    "Validate marker/normal/glyph/sphere controls, depth occlusion and original-owner picks beyond the recorded orthographic pose.",
+    "Inspect current browser feature images after the unchanged recursive marker/normal/pick checks pass."
+  ],
+  "executionTruth": {
+    "v6": {
+      "manifest": {
+        "path": "target/course-windows-20261018/marker-control-pairs-preparation/diagnostic-v6/baseline-20261024T053604538Z/manifest.json",
+        "sha256": "1ca60f24d43c6d9f32b629d3573be9402b4fdf82c881a0f5fe91ad907831f882"
+      },
+      "resources": {
+        "path": "target/course-windows-20261018/marker-control-pairs-preparation/marker-id-diagnostic-v6-run-20261024T053604539Z/resources.json",
+        "sha256": "64fd5c265ebfa49cdc40918f5678a714d19284baec43aa4a1f386d601fda2892"
+      },
+      "log": {
+        "path": "target/course-windows-20261018/marker-control-pairs-preparation/marker-id-diagnostic-v6-run-20261024T053604539Z/output.log",
+        "sha256": "1bb49189ac26de8f570094b3bc75100328ddb6dcf52c83d630219d500412ac7d"
+      },
+      "exitCode": 1,
+      "elapsedSeconds": 33.747,
+      "completedCases": 4,
+      "reason": "Four actual cases completed with zeroRGBA and all per-case source/owner/control assertions. Later whole run failed the old incorrect Xray far-hidden expectation. Preserve FAILED whole run, never call V6suitePASS."
+    },
+    "v10": {
+      "manifest": {
+        "path": "target/course-windows-20261018/marker-control-pairs-preparation/xray-opacity-candidate-v10/baseline-20261024T064239648Z/manifest.json",
+        "sha256": "c06a9edf68f8b16deac04adb29b5f181a6513c20ff03d286ba29df77d53b2310"
+      },
+      "resources": {
+        "path": "target/course-windows-20261018/marker-control-pairs-preparation/marker-id-xray-opacity-candidate-v10-run-20261024T064239659Z/resources.json",
+        "sha256": "e2f851a37a39235561eaf2816ada48e28c38c7ff2218fb53634dc362c1b9af23"
+      },
+      "log": {
+        "path": "target/course-windows-20261018/marker-control-pairs-preparation/marker-id-xray-opacity-candidate-v10-run-20261024T064239659Z/output.log",
+        "sha256": "610b2b3f5c9ad44e0d7435d824b77815b807280b30b0832aabe294383b3fc9c8"
+      },
+      "exitCode": 0,
+      "elapsedSeconds": 9.342,
+      "completedCases": 1,
+      "result": {
+        "path": "target/course-windows-20261018/marker-control-pairs-preparation/xray-opacity-candidate-v10/baseline-result-20261024T064239648Z.json",
+        "sha256": "cd208f1afef9bc0cfc81673454ba6baf70b83292e0a0fe343648c0dfb817354b"
+      },
+      "reason": "Actual isolated candidate strict Xray zeroRGBA and near/rear owners. No four other fresh candidate or five fresh integrated executions."
+    }
+  },
+  "commonInputs": {
+    "sourcePB": {
+      "path": "target/course-windows-20261018/marker-control-pairs-preparation/closed-hidden-line.pb",
+      "sha256": "028ed693423209e7a6365d5a45b3a167cc97397bcfdad32d3281def7afd6b52a"
+    },
+    "meshGuid": "material-closed-original-mesh",
+    "retainedHiddenLineGuid": "material-hidden-original-line",
+    "placement": "Original identity f64 placement; separate retained Line masked for rendering, not deleted from archive",
+    "matrixF32": [
+      0.001125000067986548,
+      0.0004330127267166972,
+      -5.688487007826648e-12,
+      0.0004330127267166972,
+      -0.0006495190318673849,
+      0.000750000006519258,
+      -9.852748825145419e-12,
+      0.000750000006519258,
+      0.0,
+      0.001500000013038516,
+      6.5684987830827435e-12,
+      -0.0005000000237487257,
+      1.4084200079726678e-19,
+      0.0008250000537373126,
+      1.8578882077235903e-07,
+      0.0015830961056053638
+    ],
+    "matrixContract": "Same16-word actual unit-correct homogeneous0.001 MVP on both native implementations; same NDC/pose and correct production marker-spacing units.",
+    "viewport": [
+      640,
+      480
+    ],
+    "density": 1,
+    "samples": 1,
+    "sourceOwner": 2,
+    "nearVertex": {
+      "index": 0,
+      "originalWorld": [
+        -0.6,
+        -0.6,
+        -0.8
+      ],
+      "pixel": [
+        248,
+        444
+      ]
+    },
+    "rearVertex": {
+      "index": 2,
+      "originalWorld": [
+        0.6,
+        0.6,
+        -0.8
+      ],
+      "pixel": [
+        353,
+        210
+      ]
+    },
+    "renderSettings": "Markers and mesh edges enabled; original separate Lines/Points disabled; lighting/backfaces/grid/SSAO/outlines off, clearwhite, sRGB target. Thickness/feather/opacity changes are listed percase.",
+    "adapter": {
+      "backend": "Dx12",
+      "device": 140,
+      "device_type": "Cpu",
+      "driver": "10.0.26100.9711",
+      "driver_info": "",
+      "name": "Microsoft Basic Render Driver",
+      "vendor": 5140
+    },
+    "productionSourceComparison": {
+      "maintainedSourceFilesCompared": 307,
+      "onlyDifference": [
+        "selftest/stroke_witness.rs"
+      ],
+      "qualification": "Production engine/GPU algorithms and shaders unchanged; only diagnostic witness differs. Retain exact V6 diagnostic uploaded identity/MVP/control/rawID records, not live root witness execution."
+    },
+    "productionBoundary": "307 actual maintained source files retain their source inventory binding. The isolated comparator mirror differs only in selftest/stroke_witness.rs diagnostic settings/identity forwarding; production engine/GPU algorithms and shaders are unchanged. No mock renderer or current-source five-case execution is claimed."
+  },
+  "cases": [
+    {
+      "case": "opaque-markers",
+      "executionBinding": "V6 fef4 completed case within failed full run",
+      "settings": {
+        "density": 1,
+        "samples": 1,
+        "thickness": 4.0,
+        "feather": 1.0,
+        "opacity": 1.0,
+        "markers": true
+      },
+      "courseOwnerQueries": [
+        {
+          "at": [
+            248,
+            444
+          ],
+          "original_owner": 2,
+          "raw": [
+            2,
+            1
+          ],
+          "vertex": 0
+        },
+        {
+          "at": [
+            353,
+            210
+          ],
+          "original_owner": 2,
+          "raw": [
+            2,
+            0
+          ],
+          "vertex": 2
+        }
+      ],
+      "actualProductionNearRaw": [
+        2,
+        1073741824
+      ],
+      "actualProductionRearRaw": [
+        2,
+        0
+      ],
+      "changedPixels": 0,
+      "maxChannelDelta": 0,
+      "courseRGBA": {
+        "path": "target/course-windows-20261018/marker-control-pairs-preparation/diagnostic-v6/baseline-20261024T053604538Z/opaque-markers-course.rgba",
+        "sha256": "91806896396d151ebc6aceb952b93445cacc837d27cf5de5d2b775aed3d7bb11"
+      },
+      "productionRGBA": {
+        "path": "target/course-windows-20261018/marker-control-pairs-preparation/diagnostic-v6/baseline-20261024T053604538Z/opaque-markers-production.rgba",
+        "sha256": "91806896396d151ebc6aceb952b93445cacc837d27cf5de5d2b775aed3d7bb11"
+      },
+      "nearPatchChangedPixels": null,
+      "rearPatchChangedPixels": null,
+      "perRunCompleteSavedArchiveSha256": "e399a990b485b9482bf6337a8dc9d35c890303f3dc2af23e1be93c7a4b494d91"
+    },
+    {
+      "case": "thickness",
+      "executionBinding": "V6 fef4 completed case within failed full run",
+      "settings": {
+        "density": 1,
+        "samples": 1,
+        "thickness": 8.0,
+        "feather": 1.0,
+        "opacity": 1.0,
+        "markers": true
+      },
+      "courseOwnerQueries": [
+        {
+          "at": [
+            248,
+            444
+          ],
+          "original_owner": 2,
+          "raw": [
+            2,
+            1
+          ],
+          "vertex": 0
+        },
+        {
+          "at": [
+            353,
+            210
+          ],
+          "original_owner": 2,
+          "raw": [
+            2,
+            0
+          ],
+          "vertex": 2
+        }
+      ],
+      "actualProductionNearRaw": [
+        2,
+        1073741824
+      ],
+      "actualProductionRearRaw": [
+        2,
+        0
+      ],
+      "changedPixels": 0,
+      "maxChannelDelta": 0,
+      "courseRGBA": {
+        "path": "target/course-windows-20261018/marker-control-pairs-preparation/diagnostic-v6/baseline-20261024T053604538Z/thickness-course.rgba",
+        "sha256": "fcc109d8bc0b9fd273fa82953ecc18b396e66c21793cd069ba0cb78b9ef4c56a"
+      },
+      "productionRGBA": {
+        "path": "target/course-windows-20261018/marker-control-pairs-preparation/diagnostic-v6/baseline-20261024T053604538Z/thickness-production.rgba",
+        "sha256": "fcc109d8bc0b9fd273fa82953ecc18b396e66c21793cd069ba0cb78b9ef4c56a"
+      },
+      "nearPatchChangedPixels": 133,
+      "rearPatchChangedPixels": 0,
+      "perRunCompleteSavedArchiveSha256": "e399a990b485b9482bf6337a8dc9d35c890303f3dc2af23e1be93c7a4b494d91"
+    },
+    {
+      "case": "feather",
+      "executionBinding": "V6 fef4 completed case within failed full run",
+      "settings": {
+        "density": 1,
+        "samples": 1,
+        "thickness": 4.0,
+        "feather": 4.0,
+        "opacity": 1.0,
+        "markers": true
+      },
+      "courseOwnerQueries": [
+        {
+          "at": [
+            248,
+            444
+          ],
+          "original_owner": 2,
+          "raw": [
+            2,
+            1
+          ],
+          "vertex": 0
+        },
+        {
+          "at": [
+            353,
+            210
+          ],
+          "original_owner": 2,
+          "raw": [
+            2,
+            0
+          ],
+          "vertex": 2
+        }
+      ],
+      "actualProductionNearRaw": [
+        2,
+        1073741824
+      ],
+      "actualProductionRearRaw": [
+        2,
+        0
+      ],
+      "changedPixels": 0,
+      "maxChannelDelta": 0,
+      "courseRGBA": {
+        "path": "target/course-windows-20261018/marker-control-pairs-preparation/diagnostic-v6/baseline-20261024T053604538Z/feather-course.rgba",
+        "sha256": "039575959648d2438e483bb250f913ffb54a26a1a22bf1b1099fde9b86f6997c"
+      },
+      "productionRGBA": {
+        "path": "target/course-windows-20261018/marker-control-pairs-preparation/diagnostic-v6/baseline-20261024T053604538Z/feather-production.rgba",
+        "sha256": "039575959648d2438e483bb250f913ffb54a26a1a22bf1b1099fde9b86f6997c"
+      },
+      "nearPatchChangedPixels": 46,
+      "rearPatchChangedPixels": 0,
+      "perRunCompleteSavedArchiveSha256": "e399a990b485b9482bf6337a8dc9d35c890303f3dc2af23e1be93c7a4b494d91"
+    },
+    {
+      "case": "glass",
+      "executionBinding": "V6 fef4 completed case within failed full run",
+      "settings": {
+        "density": 1,
+        "samples": 1,
+        "thickness": 4.0,
+        "feather": 1.0,
+        "opacity": 0.5,
+        "markers": true
+      },
+      "courseOwnerQueries": [
+        {
+          "at": [
+            248,
+            444
+          ],
+          "original_owner": 2,
+          "raw": [
+            2,
+            1
+          ],
+          "vertex": 0
+        },
+        {
+          "at": [
+            353,
+            210
+          ],
+          "original_owner": 2,
+          "raw": [
+            2,
+            0
+          ],
+          "vertex": 2
+        }
+      ],
+      "actualProductionNearRaw": [
+        2,
+        1073741824
+      ],
+      "actualProductionRearRaw": [
+        2,
+        0
+      ],
+      "changedPixels": 0,
+      "maxChannelDelta": 0,
+      "courseRGBA": {
+        "path": "target/course-windows-20261018/marker-control-pairs-preparation/diagnostic-v6/baseline-20261024T053604538Z/glass-course.rgba",
+        "sha256": "466e8448a76a5b9b6865ba2d76fa1ac3a213da999a7bfa8516010149019d6cbe"
+      },
+      "productionRGBA": {
+        "path": "target/course-windows-20261018/marker-control-pairs-preparation/diagnostic-v6/baseline-20261024T053604538Z/glass-production.rgba",
+        "sha256": "466e8448a76a5b9b6865ba2d76fa1ac3a213da999a7bfa8516010149019d6cbe"
+      },
+      "nearPatchChangedPixels": 36,
+      "rearPatchChangedPixels": 289,
+      "perRunCompleteSavedArchiveSha256": "e399a990b485b9482bf6337a8dc9d35c890303f3dc2af23e1be93c7a4b494d91"
+    },
+    {
+      "case": "xray",
+      "executionBinding": "V10 isolatedc94 one-case PASS",
+      "settings": {
+        "density": 1,
+        "samples": 1,
+        "thickness": 4.0,
+        "feather": 1.0,
+        "opacity": 0.0,
+        "markers": true
+      },
+      "courseOwnerQueries": [
+        {
+          "at": [
+            248,
+            444
+          ],
+          "original_owner": 2,
+          "raw": [
+            2,
+            1
+          ],
+          "vertex": 0
+        },
+        {
+          "at": [
+            353,
+            210
+          ],
+          "original_owner": 2,
+          "raw": [
+            2,
+            1
+          ],
+          "vertex": 2
+        }
+      ],
+      "actualProductionNearRaw": [
+        2,
+        1073741824
+      ],
+      "actualProductionRearRaw": [
+        2,
+        1073741824
+      ],
+      "changedPixels": 0,
+      "maxChannelDelta": 0,
+      "courseRGBA": {
+        "path": "target/course-windows-20261018/marker-control-pairs-preparation/xray-opacity-candidate-v10/baseline-20261024T064239648Z/xray-course.rgba",
+        "sha256": "859854d67facd69c791cd534f0c2a4accd0665952b0dcbe37fe8adc0de91ebd8"
+      },
+      "productionRGBA": {
+        "path": "target/course-windows-20261018/marker-control-pairs-preparation/xray-opacity-candidate-v10/baseline-20261024T064239648Z/xray-production.rgba",
+        "sha256": "859854d67facd69c791cd534f0c2a4accd0665952b0dcbe37fe8adc0de91ebd8"
+      },
+      "nearPatchChangedPixels": 36,
+      "rearPatchChangedPixels": 289,
+      "perRunCompleteSavedArchiveSha256": "1dcd6f5a2c1faca69d127489f932ad974f2b4160927b11c6f94366650a921bca"
+    }
+  ],
+  "images": [
+    {
+      "path": "docs/journey/release/marker-control-native-opaque.png",
+      "sha256": "fa4ef0d527aa64db5b5a9635c6115672612f8f079b6e525b44d85cb6f018d043",
+      "width": 640,
+      "height": 480,
+      "case": "opaque-markers",
+      "copiedSide": "course; exact zeroRGBA and samePNGhash as actual production side",
+      "originalCourse": {
+        "path": "target/course-windows-20261018/marker-control-pairs-preparation/diagnostic-v6/baseline-20261024T053604538Z/opaque-markers-course.png",
+        "sha256": "fa4ef0d527aa64db5b5a9635c6115672612f8f079b6e525b44d85cb6f018d043"
+      },
+      "originalProduction": {
+        "path": "target/course-windows-20261018/marker-control-pairs-preparation/diagnostic-v6/baseline-20261024T053604538Z/opaque-markers-production.png",
+        "sha256": "fa4ef0d527aa64db5b5a9635c6115672612f8f079b6e525b44d85cb6f018d043"
+      },
+      "rootIndividualOriginalResolutionReviewReusedByExactHash": true
+    },
+    {
+      "path": "docs/journey/release/marker-control-native-thickness.png",
+      "sha256": "c59b0a6b0c2f12f477b012845e7c958d3cd81a58b25cc2d1a453726dd4dbf2c0",
+      "width": 640,
+      "height": 480,
+      "case": "thickness",
+      "copiedSide": "course; exact zeroRGBA and samePNGhash as actual production side",
+      "originalCourse": {
+        "path": "target/course-windows-20261018/marker-control-pairs-preparation/diagnostic-v6/baseline-20261024T053604538Z/thickness-course.png",
+        "sha256": "c59b0a6b0c2f12f477b012845e7c958d3cd81a58b25cc2d1a453726dd4dbf2c0"
+      },
+      "originalProduction": {
+        "path": "target/course-windows-20261018/marker-control-pairs-preparation/diagnostic-v6/baseline-20261024T053604538Z/thickness-production.png",
+        "sha256": "c59b0a6b0c2f12f477b012845e7c958d3cd81a58b25cc2d1a453726dd4dbf2c0"
+      },
+      "rootIndividualOriginalResolutionReviewReusedByExactHash": true
+    },
+    {
+      "path": "docs/journey/release/marker-control-native-feather.png",
+      "sha256": "ff70d11cb34767a1f1b36c4b4e7730513308ed7498bcbb7f55f00f1cfe759d19",
+      "width": 640,
+      "height": 480,
+      "case": "feather",
+      "copiedSide": "course; exact zeroRGBA and samePNGhash as actual production side",
+      "originalCourse": {
+        "path": "target/course-windows-20261018/marker-control-pairs-preparation/diagnostic-v6/baseline-20261024T053604538Z/feather-course.png",
+        "sha256": "ff70d11cb34767a1f1b36c4b4e7730513308ed7498bcbb7f55f00f1cfe759d19"
+      },
+      "originalProduction": {
+        "path": "target/course-windows-20261018/marker-control-pairs-preparation/diagnostic-v6/baseline-20261024T053604538Z/feather-production.png",
+        "sha256": "ff70d11cb34767a1f1b36c4b4e7730513308ed7498bcbb7f55f00f1cfe759d19"
+      },
+      "rootIndividualOriginalResolutionReviewReusedByExactHash": true
+    },
+    {
+      "path": "docs/journey/release/marker-control-native-glass.png",
+      "sha256": "780085955f8f25d134f60f14891baf9ea759d2d4541f0cf5b2e50ade9e4882dd",
+      "width": 640,
+      "height": 480,
+      "case": "glass",
+      "copiedSide": "course; exact zeroRGBA and samePNGhash as actual production side",
+      "originalCourse": {
+        "path": "target/course-windows-20261018/marker-control-pairs-preparation/diagnostic-v6/baseline-20261024T053604538Z/glass-course.png",
+        "sha256": "780085955f8f25d134f60f14891baf9ea759d2d4541f0cf5b2e50ade9e4882dd"
+      },
+      "originalProduction": {
+        "path": "target/course-windows-20261018/marker-control-pairs-preparation/diagnostic-v6/baseline-20261024T053604538Z/glass-production.png",
+        "sha256": "780085955f8f25d134f60f14891baf9ea759d2d4541f0cf5b2e50ade9e4882dd"
+      },
+      "rootIndividualOriginalResolutionReviewReusedByExactHash": true
+    },
+    {
+      "path": "docs/journey/release/marker-control-native-xray.png",
+      "sha256": "6628bf9e40001c3ade94a18f7e78df470457284e7cc9d4acd4ab2a36a9104ee9",
+      "width": 640,
+      "height": 480,
+      "case": "xray",
+      "copiedSide": "course; exact zeroRGBA and samePNGhash as actual production side",
+      "originalCourse": {
+        "path": "target/course-windows-20261018/marker-control-pairs-preparation/xray-opacity-candidate-v10/baseline-20261024T064239648Z/xray-course.png",
+        "sha256": "6628bf9e40001c3ade94a18f7e78df470457284e7cc9d4acd4ab2a36a9104ee9"
+      },
+      "originalProduction": {
+        "path": "target/course-windows-20261018/marker-control-pairs-preparation/xray-opacity-candidate-v10/baseline-20261024T064239648Z/xray-production.png",
+        "sha256": "6628bf9e40001c3ade94a18f7e78df470457284e7cc9d4acd4ab2a36a9104ee9"
+      },
+      "rootIndividualOriginalResolutionReviewReusedByExactHash": true
+    }
+  ],
+  "sourceRelevance": {
+    "audit": {
+      "path": "target/course-windows-20261018/marker-v6-current-relevance-audit/report.json",
+      "sha256": "61159693df1e1fa8442f7eefa63b3596d949ec27c93351ade4cfd53821261f57"
+    },
+    "receiptAudit": {
+      "path": "target/course-windows-20261018/marker-control-relevant-input-audit/receipt-fixture-settings-review.json",
+      "sha256": "495d159aa7e081d96552249ad7a8b8fdbad7a119ff606a98ebf1207d2b0d1ac3"
+    },
+    "application": {
+      "path": "target/course-windows-20261018/marker-control-pairs-preparation/xray-authoring-integration-preparation/application.json",
+      "sha256": "6350f9fe3a655fb649d40362ab05a4100a052c361098db9827738e97f79e5f9f"
+    },
+    "fourColorResults": "All four runtime edits are pick-call parameter plumbing and pick-only line_uniform substitution. No color path, display thickness/feather/color uniform, shader, source fixture, placement, camera, viewport, density1/sample1 changes. cfg(test) regression addition does not alter this production color path. All four actual V6 fullRGBA equalities remain original old-source executions, current relevance explicitly qualified.",
+    "pickQualification": {
+      "opaqueThicknessFeather": "None: exact1.0 input retained.",
+      "glass": "Raw opacity parameter changed. For recorded fixed non-smooth opaque-depth Object-mode probes, reachable sphere/ribbon ID branch results are equivalent; retain this qualification explicitly. Do not extend to smooth geometry, color-alpha, other modes/poses or arbitrary material scenes.",
+      "xray": "Actual behavior changes1.0\u21920.0: back-facing sphere culling branch opens. Old V6 Xray failed and is NEVER retained as pass; V10 strict Xray actual candidate execution and new1063/browser records supply their own scoped evidence."
+    },
+    "candidateIntegration": "Four runtime candidate files are exact integrated runtime bytes; only the meaningful cfg(test) regression differs in src. Candidate Xray execution remains c94 source-bound; it is relevance-qualified to integrated65, not relabelled as a fresh65 execution.",
+    "actualIntegratedBrowser": {
+      "path": "docs/journey/release/xray-current-browser-relevance-review.json",
+      "sha256": "9d95b50db514ba0e48b78f9b8a3c99d7444c9843d868910739b0d40a1e5f9122"
+    }
+  },
+  "archiveBoundary": {
+    "inputPBIdenticalAcrossFive": true,
+    "v6CompleteSavedArchiveSha256": "e399a990b485b9482bf6337a8dc9d35c890303f3dc2af23e1be93c7a4b494d91",
+    "v10CompleteSavedArchiveSha256": "1dcd6f5a2c1faca69d127489f932ad974f2b4160927b11c6f94366650a921bca",
+    "completeSavedArchivesEqualAcrossRuns": false,
+    "integrity": "Each case independently checks every decoded source/protobuf record and its own complete metadata return. Cross-run fullSESSION hashes differ and stay at their original bindings. No GUID/field dropping or cross-run archive equality claim."
+  },
+  "rootImageReview": {
+    "recordedV6": {
+      "path": "target/course-windows-20261018/marker-control-pairs-preparation/diagnostic-v6/baseline-20261024T053604538Z/root-four-case-images.json",
+      "sha256": "12de640db780aededf50224001e62e98beb61c4fcc1ec7ccc0be65748fa2f3eb"
+    },
+    "recordedV10": {
+      "path": "target/course-windows-20261018/marker-control-pairs-preparation/xray-opacity-candidate-v10/baseline-20261024T064239648Z/root-images.json",
+      "sha256": "69adc2d0031a7fa3f6ea38f1c5ce7e1d31c9b66f8b87a600884b1a945e8ee620"
+    },
+    "sourceSides": 10,
+    "uniqueImageHashes": 5,
+    "reuse": "Parent individually viewed four unique V6 state images plus both V10 Xray originals. All10 original PNG side hashes and all5 copied PNGs were verified; exact pairs share imagehashes. This reuses those actual inspections, not a new viewing session."
+  },
+  "queryLimits": [
+    "Opaque/thickness/feather/glass nearSphere returns course[2,1] and production[2,DISC0x40000000]; rear query resolves original owner through occluding source face[2,0], not a rear Sphere pick.",
+    "Xray near/rear return course[2,1] and production[2,DISC0x40000000]; actual source faces no longer occlude markers. Course owner-only ABI and production DISC ABI remain distinct.",
+    "Glass queryuniform changes1->.5; it is not byte-identical. Only this fixed non-smooth Object-mode through_faces=false branch equivalence is qualified. Do not generalize to smooth geometry, other modes/poses or arbitrary material scenes."
+  ],
+  "remainingFeatureBoundary": "Independent authored normal/glyph/Point controls and the source-specific635 full default recursive marker/normal/pick browser acceptance remain separate. Feature4 stays partial unless those exact remaining criteria are independently accepted. No extra control/DPR/MSAA Cartesian mandate is introduced.",
+  "notClaimed": [
+    "WholeV6suitePASS: its original whole run remains exit1 at later Xray expectation",
+    "Five fresh/current-source native executions",
+    "Fresh current four-case GPU jobs",
+    "General clipping/selection/smooth/placement/DPR/MSAA parity",
+    "Full feature4 or global release closure"
+  ]
+}
