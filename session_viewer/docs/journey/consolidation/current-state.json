@@ -73,7 +73,7 @@
     "escapeAuthoring": "PASS22/22 and structure/replay. Four user-approved shortcut corrections pass focused actual layers/labels/delete helper checks; complete enclosing94c/final callbacks remain pending.",
     "escapeBrowserRegression": "PASS: gpu-pick-escape-smoke-browser.resources.json,7.633s,506716160B. RealDPR1 Point sameoriginalObjectId3 selectedbefore/afterzoom; ordinaryEscapeclearsselection andsecondGPUsubmissioncompletes. FullcanonicalDPR1/2 matrix remains separate/running.",
     "historicalMetadataBackport": "PASS: dated inventory,count312 and UTF8-LF audit at96h/96v/96y, plus96zzzzf/g refresh. Current one-entry witness refresh producedc54a9960; no runtime/assertion changes in this refresh. Historical Opacity behavior and old source-proof bindings retained.",
-    "productionCoverageAccounting": "All307productionmodules,111lessons and1361checkpointmappings accounted. Matrix,Camera/Plane,Joined andfiniteSheet4/18complete;14partial. Sourcecallbacks3/18accepted15pending;finalrelease0/5. Moduleinventory remains separatefrombehavioracceptance.",
+    "productionCoverageAccounting": "All307productionmodules,111lessons and1361checkpointmappings accounted. Matrix,Camera/Plane,Joined andfiniteSheet4/18complete;14partial. Sourcecallbacks4/18accepted14pending;finalrelease0/5. Moduleinventory remains separatefrombehavioracceptance.",
     "nativeReuseAudit": "Historical64e13 reuse boundary excludes later hierarchy and97d TextPlane runtime changes.433-entry source inventory preflight remains separate from native execution;1059 result remains bound toa45.",
     "generatedCoveredPlane": "PASS: 16/16 exact full-RGBA pairs, 288.067 s, peak 995,434,496 B. Public plane-generated-covered-native-review.json and four individually inspected figures. Production and course axes remain visible over the opaque lid; no owner-pick or browser acceptance is claimed.",
     "generatedPrintPlane": "PASS: 16/16 exact full-RGBA pairs, 272.855 s, peak 973,623,296 B. Public plane-generated-print-native-review.json and four individually inspected figures. Generated 2,215-byte input is distinct from the historical 2,223-byte covered source; no owner-pick or browser acceptance is claimed.",
@@ -185,6 +185,18 @@
         }
       ],
       "scope": "Only76callbackaccepted; old60306failedrun/nativecriterionoriginalsource remain preserved."
+    },
+    "chapter13FullBrowser": {
+      "status": "PASS complete current source-specific original70d browser callback; root final image reviewed",
+      "record": "release/70d-browser-review.json",
+      "sourceFingerprint": "325b027ccad541a7c4285ee436c8b3a1c7778b16a836664fe6b1fcaa21f7005a",
+      "sourceSignature": "2b4d816f7b388dfbdc7fb7d8a84770d2be2ed2f1ed263e1e23413ccbd76a279b",
+      "elapsedSeconds": 1726.259,
+      "peakJobCommitBytes": 1743896576,
+      "priorFailure": "release/70d-browser-failure-review.json",
+      "focusedRepair": "release/70d-mask-projection-repair-review.json",
+      "figure": "journey/release/70d-current-mirrored-final.png",
+      "scope": "Current331-source325b fullcanonicalNVIDIA callback. No SharedArena or otherfeature closure; original failures and four diagnostic frames retain their scopes."
     }
   },
   "resourceGuard": {
@@ -198,23 +210,26 @@
   "currentDefects": [
     "All three approved browser input corrections are applied. The 2603.825-second full94c replay passed those sites, then failed Split setup with inherited Control mode. The tested Object-mode correction and full replay/qualified phase-reuse choice await their separate saved-plan exception.",
     "Reader compiler lane complete101/101endpoints202/202phases:85retained170qualifiedphases plus16fresh32actualphases. Original source-bound records and mask-invalidation history retained; no all202new execution or test/browser claim.",
-    "Original18source-specificcallbacks:finalCAD,maintained97,current76accepted3;15remain including12historical+3late display. Historicalfixture1/4unchanged;65clegacyerrorfailure retained.",
+    "Original18source-specificcallbacks:finalCAD,maintained97,current76,current70 accepted4;14remain including11historical+3late display. Historicalfixture1/4unchanged;65clegacyerrorfailure retained.",
     "Matrix,Camera/Plane,Joined andfiniteSheet are4/18complete;14partial. Globalrelease0/5; Gemini first10/redraft andcombinedbookhandoff remain deferred.",
     "Production ribbon guide fix: two CPU regressions and four strict full-RGBA pairs accepted; eight original images inspected. Separate current qualified native recovery, frame/WASM/web/boot and scoped lesson publication records pass. Full callbacks and global release remain pending.",
-    "Original70d nested callback returned, then outer final-status equality failed; originalstripedPNG remains preserved. A subsequent focused historical mask repair passes nativeframe and four individually reviewed NVIDIA/WARP images. The complete70d callback is still unaccepted.",
+    "Original70d failed outer status and striped frame remain immutable. Applied mask projection fix now passes actual fullcanonical70 at331-source325b; fresh final PNG individually reviewed clean. No automatic SharedArena feature closure.",
     "Old60306/c65976run failedouterstatus and remainsimmutable. Subsequentcurrentbe28476fullcallback nowPASS withfreshSheet/finalcurve rootreview;finiteSheet complete via separate recordednative/browser scopes.",
-    "Maintained97 duplicate-export packagingfailure retained. Corrected06359f77 wrapper freshWASM/optimizedpackage and completeoriginalDPR1/2NVIDIAbrowser nowPASS; bothoriginalimagesreviewed. Maintained97 callback accepted; currenttotal3/18accepted15left after separate76acceptance. Feature/globalscope remains separately recorded."
+    "Maintained97 duplicate-export packagingfailure retained. Corrected06359f77 wrapper freshWASM/optimizedpackage and completeoriginalDPR1/2NVIDIAbrowser nowPASS; bothoriginalimagesreviewed. Maintained97 callback accepted; currenttotal4/18accepted14left after separate76/70 acceptance. Feature/globalscope remains separately recorded."
   ],
   "onlyHeavy": {
-    "task": "Original current70d fullcanonicalNVIDIAbrowser callback",
-    "rootSession": 43071,
-    "status": "running-unaccepted",
-    "checkpoint": "70d-exercise-rotated-and-mirrored-original-references",
-    "memoryLimitMiB": 6144,
-    "processors": 2,
-    "scope": "Canonical60ms unchanged. Correctedmask source and freshsample-qualified phase record; no full70acceptance yet."
+    "status": "none",
+    "task": "No active heavy job",
+    "previousCompleted70Session": 43071,
+    "boundedShortcutFailure": {
+      "rootSession": 51544,
+      "status": "failed-under-diagnosis",
+      "record": "target/startup-finite-criteria-preparation/shortcuts-fef4-v1/report.json",
+      "scope": "Earlierfocus/text/history assertions passed; finaluppercase-F exactpixels failed. No wholebody orStartup acceptance."
+    },
+    "processors": 2
   },
-  "next": "Finish actual43071 current70fullcanonicalNVIDIAcallback, then remaining15source-specific entries according to currentqueue. Compiler101/101endpoints202/202phasescomplete; finitefeatures4/18complete14partial; callbacks3/18accepted15pending;fixtures1/4;release0/5. TypingV3operationalexception remains pending.",
+  "next": "No active heavy job. Actual70 fullcallback accepted. Bounded unchanged shortcut body failed final uppercase-F pixel equality after earlier focus/text/history sites passed; diagnosis pending, no Startup or whole-body acceptance and no blanket artifact-defect claim. Remaining14 source-specific callbacks and final unfiltered native1062 pending runtime decision.",
   "localDocs": "http://127.0.0.1:8788/docs/#/course",
   "progressPlan": "../../../../docs/plans/2026-10-18-viewer-course-progress.md",
   "stages": {
@@ -290,7 +305,7 @@
       "record": "release/reload-grid-browser-review.json"
     },
     "finalIntegration": {
-      "status": "FinalCAD,maintained97 andcurrent76 originalsource-specificcallbacks accepted3/18;15remain. Matrix,Camera/Plane,Joined andfiniteSheetfeatures4/18complete14partial;finalrelease0/5. Allnative/compiler/artifact/docsproofsretainoriginalsourcebindings.",
+      "status": "FinalCAD,maintained97,current76 andcurrent70 originalsource-specificcallbacks accepted4/18;14remain. Finitefeatures4/18complete14partial;finalrelease0/5. Native/compiler/artifact/docs proofs retain original source bindings.",
       "gatesDone": 0,
       "gatesTotal": 5
     }
@@ -591,11 +606,6 @@
         "chapter": 11
       },
       {
-        "checkpoint": "70d-exercise-rotated-and-mirrored-original-references",
-        "callback": "journey/checks/browser/nested-placements.cjs",
-        "chapter": 13
-      },
-      {
         "checkpoint": "80d-exercise-networks-corner-retries-and-exact-original-archives",
         "callback": "journey/checks/browser/network.cjs",
         "chapter": 15
@@ -662,18 +672,18 @@
       }
     ],
     "counting": {
-      "pendingHistoricalEntryCallbacks": 12,
+      "pendingHistoricalEntryCallbacks": 11,
       "additionalDeclaredCallbackEntries": 4,
       "pendingIntegrationActions": 3,
       "distinctSourceSpecificCallbackEntries": 18,
       "nonCallbackIntegrationActions": 3,
       "namedActions": 21,
       "remainingFeatureChecklists": 14,
-      "meaning": "Original18source-specific entries retained: finalCAD,maintained97 andcurrent76 accepted3;pending15=12historical+3late display. Original21named denominator retained;18pending groups overlap14partial finitefeatures.70d remains independent and unaccepted while its currentfullcallbackruns.",
+      "meaning": "Original18source-specific entries retained: finalCAD,maintained97,current76 andcurrent70 accepted4;pending14=11historical+3late display. Original21named denominator retained;17pending groups overlap14partial finitefeatures. Feature and global gates remain separate.",
       "eta": "No total ETA; missing successful callback durations and unscopednative tuples prevent an honest walltime estimate.",
-      "acceptedSourceSpecificCallbackEntries": 3,
-      "pendingSourceSpecificCallbackEntries": 15,
-      "pendingNamedActions": 18,
+      "acceptedSourceSpecificCallbackEntries": 4,
+      "pendingSourceSpecificCallbackEntries": 14,
+      "pendingNamedActions": 17,
       "pendingAdditionalDeclaredCallbackEntries": 3
     },
     "phaseReuse94c": {
@@ -951,6 +961,21 @@
         "record": "release/76d-browser-review.json",
         "sourceFingerprint": "be284802487701c94923dad393cec3b6cc3ba230bbffd61e949ceb62d8247482",
         "sourceSignature": "96d355a623497a4a0a56eed9ab3ce0a4b60f6eedd1ec3e84107c70eedd0d3697"
+      },
+      {
+        "checkpoint": "70d-exercise-rotated-and-mirrored-original-references",
+        "callback": "journey/checks/browser/nested-placements.cjs",
+        "chapter": 13,
+        "status": "PASS complete current source-specific original70d browser callback; root final image reviewed",
+        "record": "release/70d-browser-review.json",
+        "sourceFingerprint": "325b027ccad541a7c4285ee436c8b3a1c7778b16a836664fe6b1fcaa21f7005a",
+        "sourceSignature": "2b4d816f7b388dfbdc7fb7d8a84770d2be2ed2f1ed263e1e23413ccbd76a279b",
+        "elapsedSeconds": 1726.259,
+        "peakJobCommitBytes": 1743896576,
+        "priorFailure": "release/70d-browser-failure-review.json",
+        "focusedRepair": "release/70d-mask-projection-repair-review.json",
+        "figure": "journey/release/70d-current-mirrored-final.png",
+        "scope": "Current331-source325b fullcanonicalNVIDIA callback. No SharedArena or otherfeature closure; original failures and four diagnostic frames retain their scopes."
       }
     ]
   },
@@ -1006,16 +1031,28 @@
       "scope": "Actual application NVIDIA/nonfallback adapter; no callback, feature, performance or global release acceptance"
     },
     "chapter13": {
-      "status": "FAILED original outer capture; no acceptance",
-      "record": "release/70d-browser-failure-review.json",
-      "actualFinalStatus": "Document closed.",
-      "expectedFinalStatus": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
-      "visualCounterexample": "Original failed source had black striping. Focused historical mask projection repair is now clean in all four root-reviewed NVIDIA/WARP images; original fullcallback remains failed/unaccepted.",
-      "currentAttempt": {
-        "status": "running-unaccepted",
-        "rootSession": 43071,
-        "checkpoint": "70d-exercise-rotated-and-mirrored-original-references",
-        "scope": "Original canonical60msNVIDIAfullcallback after correctedmask+freshsample qualification; no acceptance yet."
+      "status": "PASS complete current source-specific original70d browser callback; root final image reviewed",
+      "record": "release/70d-browser-review.json",
+      "sourceFingerprint": "325b027ccad541a7c4285ee436c8b3a1c7778b16a836664fe6b1fcaa21f7005a",
+      "sourceSignature": "2b4d816f7b388dfbdc7fb7d8a84770d2be2ed2f1ed263e1e23413ccbd76a279b",
+      "elapsedSeconds": 1726.259,
+      "peakJobCommitBytes": 1743896576,
+      "priorFailure": "release/70d-browser-failure-review.json",
+      "focusedRepair": "release/70d-mask-projection-repair-review.json",
+      "figure": "journey/release/70d-current-mirrored-final.png",
+      "scope": "Current331-source325b fullcanonicalNVIDIA callback. No SharedArena or otherfeature closure; original failures and four diagnostic frames retain their scopes.",
+      "originalFailure": {
+        "status": "FAILED original outer capture; no acceptance",
+        "record": "release/70d-browser-failure-review.json",
+        "actualFinalStatus": "Document closed.",
+        "expectedFinalStatus": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+        "visualCounterexample": "Original failed source had black striping. Focused historical mask projection repair is now clean in all four root-reviewed NVIDIA/WARP images; original fullcallback remains failed/unaccepted.",
+        "currentAttempt": {
+          "status": "running-unaccepted",
+          "rootSession": 43071,
+          "checkpoint": "70d-exercise-rotated-and-mirrored-original-references",
+          "scope": "Original canonical60msNVIDIAfullcallback after correctedmask+freshsample qualification; no acceptance yet."
+        }
       }
     },
     "counts": {
@@ -1024,14 +1061,14 @@
       "draftingRemaining": 0,
       "featuresComplete": 4,
       "featuresPartial": 14,
-      "callbacksAccepted": 3,
-      "callbacksRemaining": 15,
+      "callbacksAccepted": 4,
+      "callbacksRemaining": 14,
       "historicalFixturesAccepted": 1,
       "historicalFixturesTotal": 4,
       "releaseGatesDone": 0,
       "releaseGatesTotal": 5
     },
-    "next": "Finish actual43071 current70fullcanonicalNVIDIAcallback, then remaining15source-specific entries according to currentqueue. Compiler101/101endpoints202/202phasescomplete; finitefeatures4/18complete14partial; callbacks3/18accepted15pending;fixtures1/4;release0/5. TypingV3operationalexception remains pending.",
+    "next": "No active heavy job. Actual70 fullcallback accepted. Bounded unchanged shortcut body failed final uppercase-F pixel equality after earlier focus/text/history sites passed; diagnosis pending, no Startup or whole-body acceptance and no blanket artifact-defect claim. Remaining14 source-specific callbacks and final unfiltered native1062 pending runtime decision.",
     "chapter14": {
       "status": "PASS complete current76originalcanonicalbrowser callback",
       "record": "release/76d-browser-review.json",

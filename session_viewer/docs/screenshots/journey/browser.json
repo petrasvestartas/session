@@ -10856,6 +10856,34 @@
       "bundle": "ee988d00d040375cb16cb1271579b5c17f37334e2857aa6173dac2cc687f2cd9",
       "commands": [],
       "keyboardRoundtrip": false
+    },
+    "70d-exercise-rotated-and-mirrored-original-references": {
+      "source": "2b4d816f7b388dfbdc7fb7d8a84770d2be2ed2f1ed263e1e23413ccbd76a279b",
+      "checker": "ecbc4c716aa91a7aedc2532132c4b08e0a7d1e7511c380b0dbbba0152325a733",
+      "extraChecker": "d0a52a22e0ef59c7e036702273ba7812afb8ae11a3b214907b86c69db16629b8",
+      "browser": "145.0.7632.6",
+      "headless": true,
+      "captured": "2026-10-24T03:27:54.612Z",
+      "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "canvas": "570494e0fbca159ed3f4e76dc47dfff1eba3548c6c9f593b5b3f54ec52065d79",
+      "file": "70d-exercise-rotated-and-mirrored-original-references-browser.png",
+      "initialViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "initialCanvas": {
+        "x": 0,
+        "y": 0,
+        "width": 900,
+        "height": 760
+      },
+      "screenshotViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "bundle": "002f86d4cba3ed4dfa550d5c1efd51f40ddfa98701364033bdde497c5b063e41",
+      "commands": [],
+      "keyboardRoundtrip": false
     }
   }
 }
