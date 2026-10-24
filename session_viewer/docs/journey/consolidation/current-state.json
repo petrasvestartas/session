@@ -37,7 +37,7 @@
     "publishedCi": "PASS atb7cdd5dc: run39928419284,WASM+native all-target checks,558 maintained native tests pass,61ignored GPU tests. This is separate from learner1059-test WARP suite.",
     "pullLauncherSafety": "PASS:pull-launcher-regression.json;8isolated Bash/cmd help/invalid/dirty/unpublished cases,HEADandpayload preserved. No destructive force run.",
     "nativeFullCurrent": {
-      "status": "PENDING newfinal65f0013 unfiltered1063nativeintegration; oldfef4full1062 historical",
+      "status": "RUNNING: unchanged current1063 executable from corrected viewer cwd; no whole-suite PASS yet",
       "sourceFingerprint": "65f0013ae13365244de0baf69d29fd84c0219450573f86e5884eb0413dd6ae30",
       "courseSha256": "f23fe2c84e633849f9b9fad00a0ecdb87b2d40b0d4165fd7561d702626cc7537",
       "sourceFiles": 713,
@@ -46,7 +46,12 @@
       "previousAcceptedRecord": "release/native-final-two-fixture-integration-review.json",
       "previousAcceptedSource": "fef4c7bdb6f4c0a6f7a7701b0ba5581469dd757a34eefbab030a06e92ce4e5a1",
       "previousPassed": 1062,
-      "scope": "OneactualnewfocusedregressionPASS only; 1062filtered. No newfullsuiteacceptance."
+      "scope": "Corrected full unfiltered1063 is running. Focused1PASS is not whole-suite acceptance. No source, fixture, assertion or binary changes.",
+      "runDirectory": "target/course-windows-20261018/xray-native-publication-preparation/cwd-recovery-v1/full-v1",
+      "originalAttempt": "target/course-windows-20261018/xray-final-refreeze-preparation/713-native-full1063-v2",
+      "originalAttemptStatus": "ABORTED after observed grid fixture NotFound failure caused by isolated-stage cwd; original raw evidence preserved",
+      "cwdDiagnostic": "Original unchanged grid test fails with NotFound from stage cwd and passes1/1 from viewer cwd;1062 filtered in both diagnostics",
+      "executableSha256": "dbe184530bdb58b0af6426b2ee06c4d4c7d18e9cc1c26461054ea75225a9ecd3"
     },
     "nativeSourceAfterDisposal": "PASS latest fef4 handwritten713 unfiltered1062/1062;0failed/ignored/filtered. Suite1399.52s,guard1401.26s,peak1499983872B. Original97d1060 and qualified1060+2/failed1062 records retain historical source scopes. release/native-final-two-fixture-integration-review.json",
     "svgRendering": "PASS: shared SVG tokenizer, five focused parser tests, svg-docs-build.json (123.144s), and svg-visible.json. Complete Gemini diagram visually inspected after full reload; original authored Markdown unchanged.",
