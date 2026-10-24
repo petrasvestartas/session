@@ -281,15 +281,15 @@
     "Maintained97 duplicate-export packagingfailure retained. Corrected06359f77 wrapper freshWASM/optimizedpackage and completeoriginalDPR1/2NVIDIAbrowser nowPASS; bothoriginalimagesreviewed. Maintained97 callback accepted; currenttotal4/18accepted14left after separate76/70 acceptance. Feature/globalscope remains separately recorded."
   ],
   "onlyHeavy": {
-    "status": "running-unaccepted",
-    "rootSession": 42947,
-    "task": "Final713 fef4 unchanged default quality callback plus actual prerequisites on existing optimizedbundle",
-    "startedUtcApprox": "2026-10-24T04:01:00Z",
-    "memoryLimitMiB": 6144,
+    "status": "running",
+    "rootSession": 76683,
+    "task": "96v source-specific build/frame lane via prepared future7 runner",
+    "stem": "96v-nvidia-current367-v1",
+    "memoryLimitMiB": 4096,
     "processors": 2,
-    "scope": "Actual final lost-device/frame-owner recovery criterion under execution. No Startup feature or historical656 callback acceptance before terminalPASS and root actualimage review."
+    "scope": "Current96v build is active; no browser or feature acceptance before its actual required phases/callback and root image review. Previous final713 quality42947 completed PASS281.988s/942997504B with allfive actualimages reviewed within its narrow recovery scope."
   },
-  "next": "Actual final713 quality callback/prerequisites42947 running; await terminal result and root image review. Fullnative1062 and readercompiler101/202 are complete. Original sourcecallbacks4/18accepted14left; finitefeatures4/18complete14partial; fixture1/4; release0/5. First10/redraft handoff remains separate.",
+  "next": "Continue actual96v build76683 (96v-nvidia-current367-v1), one heavy job,4GiB/twoCPUs. Finalfef4 native1062/1062 and bounded complete current713 quality/recovery callback PASS; expectedtinydefaultrecovery image reviewed. Historical656 quality entry remains independently pending. Four of18 callbacks andfour of18 finitefeatures accepted;14callbacks/14partialfeatures remain. Finalrelease0/5; no wholeStartup closure. Scoped recovery record: release/final-quality-recovery-review.json",
   "currentDocsReview": {
     "status": "PASS scoped current3670 publication before this progress metadata update",
     "record": "release/docs-progress-current-visible-review.json",

@@ -73,11 +73,12 @@
       "currentVerification": {
         "status": "partial",
         "integration": "#/currentIntegration",
-        "acceptedScope": "Ordered input and presentation coalescing, disposal and idle assertions passed on the measured browser source. Approved selection-preserving dock handoff and affected layers/labels/delete checks also pass in focused94c execution. Qualified final fef4 focused/unfocused Escape and text/document ownership observations are recorded separately; both complete legacy 26a shortcut-body attempts remain failed at their later mismatched Fit baseline, with runtime and canonical harness unchanged.",
+        "acceptedScope": "Ordered input and presentation coalescing, disposal and idle assertions passed on the measured browser source. Approved selection-preserving dock handoff and affected layers/labels/delete checks also pass in focused94c execution. Qualified final fef4 focused/unfocused Escape and text/document ownership observations are recorded separately; both complete legacy 26a shortcut-body attempts remain failed at their later mismatched Fit baseline, with runtime and canonical harness unchanged. Actual final fef4/713 default quality callback now proves real device-loss recovery with a fresh ready runtime, reduced one-sample canvas, preserved URL and ordinary reload restoring four samples; the tiny default-scene image and retained loss-reason notice are intentional. This accepts only the recorded recovery component. Existing lifecycle/disposal/idle and qualified Escape assertions retain their separately recorded scopes; no unsaved-document preservation or whole Startup closure.",
         "records": [
           "release/runtime-performance-review.json",
           "../../target/course-windows-20261018/selected-shortcuts-affected-modules/manifest.json",
-          "release/startup-escape-focus-review.json"
+          "release/startup-escape-focus-review.json",
+          "release/final-quality-recovery-review.json"
         ],
         "remainingAcceptance": [
           "Validate actual final lifecycle,recovery and focused/unfocused Escape handoff using declared callback checks or relevant-input proof; the unchanged97d optimized bundle already passes and is reusable.",
@@ -1515,9 +1516,10 @@
       "currentVerification": {
         "status": "partial",
         "integration": "#/currentIntegration",
-        "acceptedScope": "Measured browser scheduling preserves ordered input and coalesces a56-event burst to one frame with zero idle frames; lifecycle/disposal callback passed on63acaf79.",
+        "acceptedScope": "Measured browser scheduling preserves ordered input and coalesces a56-event burst to one frame with zero idle frames; lifecycle/disposal callback passed on63acaf79. Actual final fef4/713 quality prerequisites prove same-extent attachment retention, coherent depth/address resize-pair replacement, source/archive/original-owner stability under the existing quality and resize controls, and zero old-lost-device GPU calls during actual recovery. Streaming cancellation/generation/deferred-load criteria remain separate; no plate or unsaved-document restoration claim.",
         "records": [
-          "release/runtime-performance-review.json"
+          "release/runtime-performance-review.json",
+          "release/final-quality-recovery-review.json"
         ],
         "remainingAcceptance": [
           "Run measured-file-reader.cjs at96zzq and arena-empty.cjs at96zzzzx for their declared file/resource contracts.",
@@ -1731,9 +1733,10 @@
       "currentVerification": {
         "status": "partial",
         "integration": "#/currentIntegration",
-        "acceptedScope": "All five categories are measured on the same small demo: cold load, input-to-frame, warm submit-to-GPU-fence, uploads/allocations and idle. Coalescing assertions pass; this is not a steady-frame or hardware speedup claim.",
+        "acceptedScope": "All five categories are measured on the same small demo: cold load, input-to-frame, warm submit-to-GPU-fence, uploads/allocations and idle. Coalescing assertions pass; this is not a steady-frame or hardware speedup claim. The complete unchanged quality-target-reuse-with-policy default callback and prerequisites now pass on actual final fef4/713: automatic DPR1/2 policy, forced/repeated sample counts, invalid-value handling, attachment dimensions, original-owner/archive/pixel returns, real device-loss reduced mode and ordinary reload restoration. All five original images were individually reviewed, including the expected tiny unfitted default scene with its intentional recovery notice. Historical656 source-specific callback and performance/cache criteria remain pending; no FPS claim.",
         "records": [
-          "release/runtime-performance-review.json"
+          "release/runtime-performance-review.json",
+          "release/final-quality-recovery-review.json"
         ],
         "remainingAcceptance": [
           "Run the distinct95f canonical performance/cache-invalidation callback and inspect its actual feature output.",
