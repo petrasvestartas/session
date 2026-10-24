@@ -1,0 +1,165 @@
+{
+  "status": "PASS complete source402 original network callback and root-reviewed meaningful surface image; phase-qualified acceptance",
+  "checkpoint": "80d-exercise-networks-corner-retries-and-exact-original-archives",
+  "sourceFiles": 402,
+  "sourceFingerprint": "1242d7f59d38d42a9e69d5d3551502dce821c0c9947849f3108946f18ed7c068",
+  "sourceSignature": "c9d349f0a6bd89e9241943d249a271de39cf8dab6af4891530c653dd72b03481",
+  "courseSha256": "05b031571b9b18b4e2740898af6782e2c746cb6b1fcf35c73adb86c957869374",
+  "callback": {
+    "path": "journey/checks/browser/network.cjs",
+    "recursiveFingerprint": "8c31cf6ee011a8cc5c045dbd46d167909bd63f3dc260272b982fd4ffdd1a64ca",
+    "capture": "docs/capture_journey.cjs",
+    "captureSha256": "ecbc4c716aa91a7aedc2532132c4b08e0a7d1e7511c380b0dbbba0152325a733",
+    "original60msTypingUnchanged": true,
+    "approvedCorrections": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\five-canonical-harness-corrections-review\\approved-application-v1\\application.json",
+      "sha256": "fed07cfec0bad47a5e2bd404aaba76e06b732938596cd0986b2778f2cf2ec829"
+    }
+  },
+  "build": {
+    "record": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\next-source-aware-callback-preparation\\80d-nvidia-current367-v1\\proof.json",
+      "sha256": "9a16219c59248d101f16fc57915e631c5c4328b17b680b1052ed5b639aab05e6"
+    },
+    "phases": [
+      "native-check",
+      "wasm",
+      "web",
+      "frame",
+      "sample"
+    ],
+    "qualification": {
+      "path": "target/course-windows-20261018/network80d-approved-five-browser-preparation/prepared.json",
+      "sha256": "540749f46c33a536c54c30b589ee4cff1f02caaec75f00fee388b4f894fc1fc9"
+    },
+    "scope": "Original actual compiler/frame/sample evidence retained at exact source/tool/dependency/lock/assets/environment. New checker identity is browser only; no failed callback or tail reuse."
+  },
+  "browser": {
+    "raw": {
+      "path": "target/course-windows-20261018/network80d-approved-five-browser-preparation/network80d-approved-five-v1/browser-20261024T131355661Z.json",
+      "sha256": "7b7393ea96104161871fa0a4e6209aa175bd3ad436a36b8e6bcd72fe97fe2fb5"
+    },
+    "frozenCapture": {
+      "path": "target/course-windows-20261018/network80d-acceptance-publication-preparation/raw/browser-snapshot.json",
+      "sha256": "35fba1c0afa5c89b15c0152b7c25bb824d9c306d8b0315dd1dc2a2130ee4691a"
+    },
+    "entry": {
+      "source": "c9d349f0a6bd89e9241943d249a271de39cf8dab6af4891530c653dd72b03481",
+      "checker": "ecbc4c716aa91a7aedc2532132c4b08e0a7d1e7511c380b0dbbba0152325a733",
+      "extraChecker": "8c31cf6ee011a8cc5c045dbd46d167909bd63f3dc260272b982fd4ffdd1a64ca",
+      "browser": "145.0.7632.6",
+      "headless": true,
+      "captured": "2026-10-24T13:48:02.665Z",
+      "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "canvas": "27e2744d62e0da34959cafc0289ddaab19dbfe47e63e7fa5532931ac68b6ba20",
+      "file": "80d-exercise-networks-corner-retries-and-exact-original-archives-browser.png",
+      "initialViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "initialCanvas": {
+        "x": 0,
+        "y": 0,
+        "width": 900,
+        "height": 760
+      },
+      "screenshotViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "bundle": "1c94ddbc2c0f1a33f507a1c9d9d9adf12bba88626b8963692e92ae5b9fe520d0",
+      "commands": [],
+      "keyboardRoundtrip": false
+    },
+    "log": {
+      "path": "target/course-windows-20261018/network80d-approved-five-v1-proportional-browser-20261024T131356216Z.log",
+      "sha256": "49c01bf3ff7c066863f7ad180a4a0a88abc51471897a9b9a21bdf462713cf73d"
+    },
+    "resources": {
+      "path": "target/course-windows-20261018/network80d-approved-five-v1-proportional-browser-20261024T131356216Z.resources.json",
+      "sha256": "f741a5842bbbd86e124b670ddc619761ae66c7a6d5d5fa13c437bf0a016ab762",
+      "elapsedSeconds": 2046.106,
+      "peakJobCommitBytes": 1778094080,
+      "processors": 2,
+      "jobCommitLimitBytes": 6442450944
+    },
+    "actualServedPayloads": 12,
+    "served": {
+      "index.html": "1c94ddbc2c0f1a33f507a1c9d9d9adf12bba88626b8963692e92ae5b9fe520d0",
+      "snippets/session_viewer-568dd7ccbb8842dd/inline0.js": "bcd603923161001987d238655bc702c35aa98920d69d7c9793006792bd030104",
+      "snippets/viewer_journey-7519825317df163d/src/adapter_info.js": "3d87da73f9a18dd579c0e96f207899630a600a7839ff4d9857a87fe1211091bb",
+      "text/NotoSans-Regular.subset.ttf": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09",
+      "text/NotoSans-Regular.ttf": "b85c38ecea8a7cfb39c24e395a4007474fa5a4fc864f6ee33309eb4948d232d5",
+      "text/NotoSansSymbols-Regular.subset.ttf": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3",
+      "text/NotoSansSymbols-Regular.ttf": "8f02f31959bbdf6061547a188248e13f84dc5fdd940326ec494675f453f072bb",
+      "text/NotoSansSymbols2-Regular.subset.ttf": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed",
+      "text/NotoSansSymbols2-Regular.ttf": "630846d528dbe4c4981370a4d0a9475a1fd1491a129bb411f8e157cdb5de13c6",
+      "text/OFL.txt": "0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb",
+      "viewer_journey-3085311255ff1724.js": "685b8b9c1f4e141fd79e3563e12aa48f0223046d0dae1cdb98c460a73b7ab8fd",
+      "viewer_journey-3085311255ff1724_bg.wasm": "bd6b7195ded43314a2a7cfd9c7d091a2ba30706137c883f34e07f9e5b37dfbe2"
+    },
+    "adapter": {
+      "index": 0,
+      "name": "NVIDIA GeForce RTX 4080 Laptop GPU",
+      "vendor": 4318,
+      "device": 10208,
+      "luid": "0,86780",
+      "luidHigh": 0,
+      "luidLow": 86780,
+      "dedicatedVideoMemoryBytes": 12577669120,
+      "flags": 0,
+      "scope": "Browser NVIDIA DXGI selection only; original native build/frame remain WARP",
+      "bootProofPath": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\nvidia-hardware-browser-preparation\\nvidia-current-fef4-boot-v1\\proof.json",
+      "bootProofSha256": "1f47e818b919455adeb18bd96126cc316c09adf4b84513e6c05cb0c405578558",
+      "bootBrowserSha256": "2ab1e6da5eb50ce14f5053dfebd782e99ad50ea6d28081694877c2f2f9da981e"
+    },
+    "originalDefaultBodyComplete": true
+  },
+  "image": {
+    "file": "network-current-browser.png",
+    "sha256": "ef7d3fd72796ae8a27ca944853518ba59526e8ca1d3979c8c291da5ccb4d0066",
+    "rootPersonallyReviewed": true,
+    "review": "Two grey NURBS surfaces including a large bent patch, black boundaries and visible internal dashed original curve geometry; meaningful nonempty source402 output."
+  },
+  "nativeFrame": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\next-source-aware-callback-preparation\\80d-nvidia-current367-v1\\native-frame.png",
+    "sha256": "31b321050fb4da147c171aa089573168900c67b3a29cf48179d932b5eea6c651",
+    "ppmSha256": "865254845d70f10d3c3452c5f734ff00ed16b5899393dfe5a88653e6a04ffe32",
+    "pixelsSha256": "50956f01206c2904178465f8bcae5b2cc9d465719725b8fa0ef12d8ffc9f4df3",
+    "width": 640,
+    "height": 480,
+    "inspection": "Root explicitly supplied exact frame PNG SHA",
+    "rootPersonallyReviewed": true,
+    "scope": "Exact previously root-reviewed source402 native frame retained, not a new native execution."
+  },
+  "preservedFailure": {
+    "browsers": [
+      {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\next-source-aware-callback-preparation\\80d-nvidia-current367-v1\\browser-20261024T043650543Z.json",
+        "sha256": "98871aa19d7ba8f25787b91dce5324fc053c3d81e2d6b069825319841b3da9e3"
+      }
+    ],
+    "proof": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\next-source-aware-callback-preparation\\80d-nvidia-current367-v1\\proof.json",
+      "sha256": "9a16219c59248d101f16fc57915e631c5c4328b17b680b1052ed5b639aab05e6"
+    },
+    "reason": "Original GPU origin-pick intercepted by selected gizmo after Escape is preserved. Approved Select None input correction now passes the complete original recursive callback."
+  },
+  "finiteCriteria": {
+    "decision": "No whole-feature closure; features remain5/18 complete and13 partial.",
+    "accepted": "Original network callback, invalid collinear corner gather retention/cancellation, original curves/network construction, second four-point patch, two surfaces, Undo/Redo and source/archive assertions complete at source402.",
+    "retainedInputCurveContinuity": {
+      "record": {
+        "path": "docs/journey/release/source-faces-browser-review.json",
+        "sha256": "012cc5b95e01c991aa76d98e04d6ed4409dcd0668ba0c1035c40dc2579e60e61"
+      },
+      "checker": {
+        "path": "docs/journey/checks/browser/surface-lighting.cjs",
+        "sha256": "04c84347253d20a161fcd0bc6ea007b4bd6fb5d32c6bb2e2d316c4866de630ab"
+      },
+      "scope": "Inherited accepted source-faces surface-lighting checks sample original network INPUT curves across surface interiors, with flat/Arctic/archive restoration. This does not equate input curves with generated curved NURBS isolines."
+    },
+    "remaining": "Generated curved NURBS isoline continuity/legibility and any source-specific CAD ownership/display requirements outside recorded contracts remain separate; no new Cartesian matrix is added."
+  },
+  "scope": "Only source402 original full network callback with approved checker, recursive prerequisites, unchanged assertions and meaningful reviewed image. No historical full native suite, universal current694 identity or blanket production GPU parity."
+}

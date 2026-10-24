@@ -10912,6 +10912,34 @@
       "bundle": "4c326c7124a97b6ab85d562f3acfc8f09f42c71ab1024ad61805780a43720a45",
       "commands": [],
       "keyboardRoundtrip": false
+    },
+    "80d-exercise-networks-corner-retries-and-exact-original-archives": {
+      "source": "c9d349f0a6bd89e9241943d249a271de39cf8dab6af4891530c653dd72b03481",
+      "checker": "ecbc4c716aa91a7aedc2532132c4b08e0a7d1e7511c380b0dbbba0152325a733",
+      "extraChecker": "8c31cf6ee011a8cc5c045dbd46d167909bd63f3dc260272b982fd4ffdd1a64ca",
+      "browser": "145.0.7632.6",
+      "headless": true,
+      "captured": "2026-10-24T13:48:02.665Z",
+      "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "canvas": "27e2744d62e0da34959cafc0289ddaab19dbfe47e63e7fa5532931ac68b6ba20",
+      "file": "80d-exercise-networks-corner-retries-and-exact-original-archives-browser.png",
+      "initialViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "initialCanvas": {
+        "x": 0,
+        "y": 0,
+        "width": 900,
+        "height": 760
+      },
+      "screenshotViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "bundle": "1c94ddbc2c0f1a33f507a1c9d9d9adf12bba88626b8963692e92ae5b9fe520d0",
+      "commands": [],
+      "keyboardRoundtrip": false
     }
   }
 }
