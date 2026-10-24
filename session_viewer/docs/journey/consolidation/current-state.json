@@ -623,12 +623,12 @@
   ],
   "onlyHeavy": {
     "status": "running",
-    "task": "Full96h source grammar and original-owner browser callback; all five phase proofs passed",
-    "sessionId": 15880,
-    "memoryLimitMiB": 6144,
+    "task": "Measured reader591 first native/WASM/optimized/frame/sample phases",
+    "sessionId": 34591,
+    "memoryLimitMiB": 4096,
     "processors": 2
   },
-  "next": "Finish the remaining85ay,96h and measured-reader96zzq callbacks, each with its own first build phases.94c full comparison and fixture are accepted. Then integrate exact BRep/kernel changes and complete the final affected verification/publication batch.",
+  "next": "Finish reader591 build phases and full browser callback. Then apply exact BRep/kernel transition, verify focused regressions and three representatives, and complete the final native/build/recovery/docs batch.",
   "currentDocsReview": {
     "status": "PASS current694/b031 book publication snapshot: desktop/390px phone roadmap and changed22.6 Rust/WGSL section; all three original PNGs root-reviewed",
     "record": "release/docs-progress-ambient-selector-current-visible-review.json",
@@ -650,11 +650,11 @@
       "repositoriesLeft": 0
     },
     "windowsInputs": {
-      "status": "in progress;3/4 semanticallyaccepted",
+      "status": "complete within4originalfixturecontracts",
       "fixturesGenerated": 4,
       "fixturesTotal": 4,
-      "softwareWebGpu": "RecordedWARP scopes retained;96y,96v and94c completefixturebrowsercontractsaccepted3/4.94cactualNVIDIAfullPASS+reviewedcomparisonpedestal;96h remains.",
-      "fixturesSemanticallyAccepted": 3
+      "softwareWebGpu": "All4original96y/96v/94c/96h fixturebrowsercontractsactualaccepted atrecordedsource/environment. No newestkernel/fullruntimeinference.",
+      "fixturesSemanticallyAccepted": 4
     },
     "consolidation": {
       "status": "editorial structure done",
@@ -664,8 +664,8 @@
       "readerFacingLessonsRemaining": 0
     },
     "display": {
-      "status": "in progress: ordinary ribbon extracted and native semantic checks pass; full groups open",
-      "groupsAccepted": 0,
+      "status": "Finite feature closure in progress:10/18 complete,8 partial; current detailed scopes are in production-course-map.json",
+      "groupsAccepted": 4,
       "groupsTotal": 5,
       "ordinaryLines": {
         "matchedScenariosPassed": 8,
@@ -673,8 +673,8 @@
         "focusedSemanticChecksPassed": 7,
         "focusedSemanticChecksTotal": 7,
         "nativeCompilation": "pass",
-        "webValidation": "pending new optimized bundle",
-        "remaining": "Optimized browser proof; sheet promotion, joins, arrowheads and other ink families remain open",
+        "webValidation": "PASS recorded source-specific and final browser scopes",
+        "remaining": "Finite line/ink criteria complete; final BRep source integration remains separate.",
         "matchedShader": "84016b80479316feab4369b2c679b760074622cb2c0bbe1652a17b64f1e4ac2d"
       },
       "clouds": {
@@ -683,14 +683,14 @@
         "newFocusedTestsPassed": 3,
         "existingCloudRegressionsPassed": 8,
         "existingCloudRegressionsTotal": 8,
-        "remaining": "Final integrated browser proof and final rerun after display-control integration; both original 2M GPU checks and eighteen production LOD pairs pass"
+        "remaining": "Finite Cloud criteria complete through actual65c browser, native controls and recorded production pairs."
       },
       "joinedVectorSheets": {
         "status": "Joined and Sheet/text finite criteria complete through their separately scoped native and browser proofs. Other family and source-specific callback obligations remain pending. See release/joined-line-finite-review.json and release/sheet-text-finite-review.json."
       },
-      "featuresComplete": 9,
+      "featuresComplete": 10,
       "featuresTotal": 18,
-      "featuresPartial": 9,
+      "featuresPartial": 8,
       "cadBaseline": {
         "status": "passed-bounded-native-baseline",
         "passed": 5,
@@ -698,20 +698,20 @@
         "elapsedSeconds": 31.945,
         "peakJobCommitBytes": 750256128,
         "record": "release/cad-baseline-native-review.json",
-        "remaining": "Named CAD display controls,source-specific browser and curve-continuity requirements remain; feature partial."
+        "remaining": "Integrate exact production BRep/kernel changes and verify the queued curve, curved-border and section-cap representatives."
       },
       "markerControls": {
-        "status": "bounded-native-comparison-accepted",
+        "status": "complete finite Marker criteria",
         "nativeModesQualified": 5,
         "nativeModesTotal": 5,
         "record": "release/marker-control-native-qualified-review.json",
-        "remaining": "Independent authored Point/glyph/control reconciliation beyond recorded5 Sphere andPoint/Mesh scopes; accepted Slot590 normal-view assertions do not need repeating. No whole feature closure.",
+        "remaining": "Finite Point/Mesh/Sphere/normal controls complete at their recorded source scopes.",
         "browserRecord": "release/mesh-markers-browser-review.json",
         "browserStatus": "PASS complete original635 default body and all7 reviewed images"
       }
     },
     "runtime": {
-      "status": "Five performance categories measured and unchanged coalescing/disposal browser contract passes on small demo. Full startup/feature and reference-runtime lifecycle remain separate.",
+      "status": "Finite performance criteria complete at recorded source scopes; final new-source startup recovery remains pending.",
       "measurementCategoriesDone": 5,
       "measurementCategoriesTotal": 5,
       "implementationGroupsAccepted": 0,
@@ -726,7 +726,7 @@
       "record": "release/reload-grid-browser-review.json"
     },
     "finalIntegration": {
-      "status": "Three of five final gates complete at current694/b031/course05b: runtime build, navigation/history and local publication/report. Remaining:7 source-specific callbacks and13 partial finite features. Eleven accepted callbacks and2/4 fixtures retain their recorded scopes. Source635 full original mesh-marker callback and all7 meaningful images accepted; no whole marker feature closure. Final native/runtime proofs unchanged.",
+      "status": "3/5 final gates complete;17/18 callbacks,4/4 fixtures,10/18 finite features accepted. Reader callback and final BRep/kernel integration, recovery and publication remain.",
       "gatesDone": 3,
       "gatesTotal": 5,
       "gatesRemaining": 2,
@@ -1419,11 +1419,6 @@
     },
     "pendingHistoricalCallbacks": [
       {
-        "checkpoint": "96h-prove-current-source-grammar-and-explicit-differences",
-        "callback": "journey/checks/browser/inventory.cjs",
-        "chapter": 19
-      },
-      {
         "checkpoint": "96zzq-open-files-through-one-measured-session-reader",
         "callback": "journey/checks/browser/measured-file-reader.cjs",
         "chapter": 20
@@ -1452,18 +1447,18 @@
       }
     ],
     "counting": {
-      "pendingHistoricalEntryCallbacks": 2,
+      "pendingHistoricalEntryCallbacks": 1,
       "additionalDeclaredCallbackEntries": 4,
       "pendingIntegrationActions": 3,
       "distinctSourceSpecificCallbackEntries": 18,
       "nonCallbackIntegrationActions": 3,
       "namedActions": 21,
-      "remainingFeatureChecklists": 9,
-      "meaning": "Original18 source entries:16 actual accepted;2 historical callbacks96h and measured-reader96zzq remain. Original21 named denominator retained;3 independently scoped noncallback integration groups remain. Fixtures3/4;features9/18;release3/5.",
+      "remainingFeatureChecklists": 8,
+      "meaning": "17/18originalsourcecallbacksaccepted;96zzqreader remains. All4originalWindowsfixtures accepted;10finitefeaturescomplete8partial. Original21nameddenominator/noncallback3groups independent.",
       "eta": "No total ETA; missing successful callback durations and unscopednative tuples prevent an honest walltime estimate.",
-      "acceptedSourceSpecificCallbackEntries": 16,
-      "pendingSourceSpecificCallbackEntries": 2,
-      "pendingNamedActions": 5,
+      "acceptedSourceSpecificCallbackEntries": 17,
+      "pendingSourceSpecificCallbackEntries": 1,
+      "pendingNamedActions": 4,
       "pendingAdditionalDeclaredCallbackEntries": 0
     },
     "phaseReuse94c": {
@@ -1933,17 +1928,17 @@
       "chaptersConsolidated": 22,
       "readerLessons": 111,
       "draftingRemaining": 0,
-      "featuresComplete": 9,
-      "featuresPartial": 9,
-      "callbacksAccepted": 16,
-      "callbacksRemaining": 2,
-      "historicalFixturesAccepted": 3,
+      "featuresComplete": 10,
+      "featuresPartial": 8,
+      "callbacksAccepted": 17,
+      "callbacksRemaining": 1,
+      "historicalFixturesAccepted": 4,
       "historicalFixturesTotal": 4,
       "releaseGatesDone": 3,
       "releaseGatesTotal": 5,
       "releaseGatesRemaining": 2
     },
-    "next": "16/18 callbacks accepted;2 remain:96h inventory and measured-reader96zzq. Features9/18,fixtures3/4,release3/5 unchanged.85full original callback and separately framed visible2mm measurement are accepted at own445source. Final BRep/kernel integration remains queued.",
+    "next": "17/18 callbacks accepted;1 remains (reader591).10/18 features complete;8 partial. All4/4 fixtures pass; final gates3/5. Reader build active.",
     "chapter14": {
       "status": "PASS complete current76originalcanonicalbrowser callback",
       "record": "release/76d-browser-review.json",
@@ -2390,6 +2385,15 @@
         "rootPersonallyReviewed": true,
         "description": "Root individually viewed fully readable black2mm pill, two endpoints and leader above well-framed gray slab."
       }
+    },
+    "inventory96h": {
+      "status": "PASS own558completeoriginalbody+metadatafixture+reviewedimage",
+      "record": "release/inventory96h-browser-review.json",
+      "sourceFingerprint": "dfe346a7d230533e917c6809932f2e643e7c519d3bd04163b21340fe51a8278f",
+      "sourceSignature": "181752f19a2eb7664f379d6f24426b917c3fe7380c77e5d8246cd35b35b1e9eb",
+      "recursiveCallbackFingerprint": "b298f5a6a0fe1e9c0710912bc16721d9036c2fbb706021a4e8fe115fa9c03961",
+      "elapsedSeconds": 625.367,
+      "peakJobCommitBytes": 1935478784
     }
   },
   "currentRuntimeDocsQualification": {

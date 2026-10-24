@@ -1610,21 +1610,19 @@
       "runnableCheckpoint": "96zzzzzzzq-draw-original-cad-wire-curves",
       "evidence": "docs/journey/visual-review.json; docs/screenshots/journey/browser.json; chapter source checkpoints. Existence is not current acceptance.",
       "currentVerification": {
-        "status": "partial",
+        "status": "complete",
         "integration": "#/currentIntegration",
-        "acceptedScope": "Historical a45 native1059 plus recorded96y831 suite and complete96y feature-owner browser pass. Focused affected layers/labels/delete modules pass with approved production-aligned input preparation; other complete enclosing callbacks remain pending. Source402 network original recursive callback and Undo/Redo/archive/gather contracts are accepted separately in network-browser-review.json.",
+        "acceptedScope": "Historical a45 native1059 plus recorded96y831 suite and complete96y feature-owner browser pass. Focused affected layers/labels/delete modules pass with approved production-aligned input preparation; other complete enclosing callbacks remain pending. Source402 network original recursive callback and Undo/Redo/archive/gather contracts are accepted separately in network-browser-review.json. Own44585 current-commands and55896h inventory completeoriginal entries now accepted withfullyreadable2mmmeasurement beforecancellation, existingnativeannotation, actualUndoRedo/hierarchy/saveopen andmenu/rename/numberownership bodies. Finite declaredcriterion complete; oldproofsources remainexplicit.",
         "records": [
           "consolidation/current-state.json",
           "release/cad-selected-native-review.json",
           "../../target/course-windows-20261018/selected-shortcuts-affected-modules/manifest.json",
           "release/76d-browser-review.json",
           "release/network-browser-review.json",
-          "release/current85ay-browser-review.json"
+          "release/current85ay-browser-review.json",
+          "release/inventory96h-browser-review.json"
         ],
-        "remainingAcceptance": [
-          "Run current-commands and inventory entry callbacks at their declared checkpoints with recursive prerequisites. Source402 network callback is accepted at its own recorded scope.",
-          "Inspect edit/Undo/Redo, hierarchy, original save/open and measurements before Escape removes their annotations; preserve menu/rename/number input ownership."
-        ],
+        "remainingAcceptance": [],
         "chapterBrowserEntries": [
           {
             "chapter": 14,
@@ -1673,6 +1671,18 @@
           "actualFullCallbackPassed": true,
           "visibleMeasurementRootReviewed": true,
           "remainingOwnCallback": "96h-prove-current-source-grammar-and-explicit-differences"
+        },
+        "satisfiedCriteria": {
+          "original": [
+            "Run current-commands and inventory entry callbacks at their declared checkpoints with recursive prerequisites. Source402 network callback is accepted at its own recorded scope.",
+            "Inspect edit/Undo/Redo, hierarchy, original save/open and measurements before Escape removes their annotations; preserve menu/rename/number input ownership."
+          ],
+          "record": "release/inventory96h-browser-review.json",
+          "priorCurrentCommandsRecord": {
+            "path": "docs/journey/release/current85ay-browser-review.json",
+            "sha256": "1a09eac1c87fa38a319ce27e5bffa079ef5998f4a1097f7def3d264d83428c57"
+          },
+          "visibleMeasurementSha256": "31b5b714a622595fa2b2c6a499c1d51e0d43b5d134af196ba009938888961e2c"
         }
       }
     },
@@ -21962,8 +21972,8 @@
     "chaptersTotal": 22,
     "readerFacingLessons": 111,
     "preservedCheckpoints": 1361,
-    "featuresComplete": 9,
-    "featuresPartial": 9,
+    "featuresComplete": 10,
+    "featuresPartial": 8,
     "featuresTotal": 18
   },
   "authoredReaderLessons": 111,
@@ -22048,8 +22058,8 @@
       "hashPolicy": "Valid UTF-8 text hashes normalize CRLF to LF; invalid UTF-8 remains raw. All307 current src paths/hashes matched the dated inventory during this audit. Existing301 row sha256/classification/basis values remain historical; current hashes come from the dated inventory. Six appended rows use the dated current hash and explicitly scoped staged basis. Complete path accounting is not verified extraction or feature parity."
     },
     "featureStatusCounts": {
-      "complete": 9,
-      "partial": 9,
+      "complete": 10,
+      "partial": 8,
       "open": 0,
       "meaning": "Complete accepts the named finite feature requirements at recorded source/fixture/settings; it does not close global release. Partial rows retain specific unaccepted requirements."
     },
