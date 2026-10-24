@@ -1,0 +1,192 @@
+{
+  "status": "QUALIFIED observed focused/unfocused Escape handoff only; both complete shortcut-body runs remain FAILED",
+  "recordedUtc": "2026-10-24T03:39:42.741299+00:00",
+  "sourceFingerprint": "fef4c7bdb6f4c0a6f7a7701b0ba5581469dd757a34eefbab030a06e92ce4e5a1",
+  "sourceFiles": 713,
+  "artifact": {
+    "preparation": {
+      "path": "target/startup-finite-criteria-preparation/shortcuts-preparation.json",
+      "sha256": "86aa20300cc7b66df35bd59ce89486939201ee98db2aaed9c2355e594fae3ea1"
+    },
+    "provenance": {
+      "path": "target/course-checks/windows-final-two-fixture-isolation-v2/final-two-fixture-build-provenance.json",
+      "sha256": "1f65fdeb19dccba1441e281c46dfd51feb9cf09d46241fe94a4e0596bf852416"
+    },
+    "url": "http://127.0.0.1:8781/windows-final-two-fixture-isolation-v2/",
+    "bundleHashes": {
+      "assets/pb/course-comparison.pb": "8d952b0ac17ebf0bb7c20704b45b95acbe5b4395ff809a38baacaad93de4bed5",
+      "assets/pb/course-feature-pick.pb": "e05c864d93c99b700665508eb8ddc630c637cec24b51558de97f26f05762387d",
+      "assets/pb/course-instance-features.pb": "3b9a0d162728849ff09fe9b8e77b877a4565e66b77b5c73d09422f362e816500",
+      "assets/pb/course-metadata.pb": "2cfe2ad9becff37d0fcca23f71e47b1c6e674d7934327120a9233efd0c2faf55",
+      "index.html": "a91b9852f4725275554de8057a2535e234f1dafc9c6b9b8912a1b43143b4ca61",
+      "snippets/session_viewer-568dd7ccbb8842dd/inline0.js": "bcd603923161001987d238655bc702c35aa98920d69d7c9793006792bd030104",
+      "snippets/viewer_journey-7519825317df163d/src/adapter_info.js": "3d87da73f9a18dd579c0e96f207899630a600a7839ff4d9857a87fe1211091bb",
+      "text/NotoSans-Regular.subset.ttf": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09",
+      "text/NotoSans-Regular.ttf": "b85c38ecea8a7cfb39c24e395a4007474fa5a4fc864f6ee33309eb4948d232d5",
+      "text/NotoSansSymbols-Regular.subset.ttf": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3",
+      "text/NotoSansSymbols-Regular.ttf": "8f02f31959bbdf6061547a188248e13f84dc5fdd940326ec494675f453f072bb",
+      "text/NotoSansSymbols2-Regular.subset.ttf": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed",
+      "text/NotoSansSymbols2-Regular.ttf": "630846d528dbe4c4981370a4d0a9475a1fd1491a129bb411f8e157cdb5de13c6",
+      "text/OFL.txt": "0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb",
+      "viewer_journey-b3c83b4035018d2c.js": "69e3e4777b9d6e318cf1d4c9db310a0205a24c15415b44e4b521fe07e8494eda",
+      "viewer_journey-b3c83b4035018d2c_bg.wasm": "fdab1b238b17f08ce37c608594d35ed748299b7a7fb01ca369706ffcdafdaba3"
+    },
+    "stage": "target/course-final-clipping-guide-two-fixture-isolation",
+    "integrityScope": "Original runner verified local pinned713 source/helper/callback and served payload hashes before each body. Failure skipped its success-only HTTP postflight; current local713/payload hashes independently rechecked for this record."
+  },
+  "callback": {
+    "path": "docs/journey/checks/browser/shortcuts.cjs",
+    "sha256": "0d0c0412872210f791cb941666a1b7c36b9c651d21f9fe2d7f42502c37cd11fa"
+  },
+  "helper": {
+    "path": "docs/capture_journey.cjs",
+    "sha256": "ecbc4c716aa91a7aedc2532132c4b08e0a7d1e7511c380b0dbbba0152325a733"
+  },
+  "observer": {
+    "path": "target/startup-finite-criteria-preparation/observe-shortcuts.cjs",
+    "sha256": "175f758d5a231b0344f64a37f785c9c7c8572510b0ef4cb746f5b94be2581dfb"
+  },
+  "observation": {
+    "path": "target/startup-finite-criteria-preparation/shortcuts-fef4-passive-diagnostic-v1-passive-states/observation.json",
+    "sha256": "2b8f6046f4df4eefd1bca0d4549eeacb06c8102cd86a738792bc51b7dd2d2089"
+  },
+  "runs": [
+    {
+      "status": "FAILED complete historical26a shortcut body on finalfef4; lateFitcomparison failure retained",
+      "exitCode": 1,
+      "report": {
+        "path": "target/startup-finite-criteria-preparation/shortcuts-fef4-v1/report.json",
+        "sha256": "0ac0f160a78c508ebf1c43d86ee41c35db0864b3fa71dcabb7af07aa307c63a9"
+      },
+      "log": {
+        "path": "target/startup-finite-criteria-preparation/shortcuts-fef4-v1.log",
+        "sha256": "b3c9c5f73207645cba212e9ef31460e230c286273bb0148182b373585a218460"
+      },
+      "resources": {
+        "path": "target/startup-finite-criteria-preparation/shortcuts-fef4-v1.resources.json",
+        "sha256": "f62fffa44510ebca28bb2ce2234898944ced6e5045315ad126c9098116cca026"
+      },
+      "elapsedSeconds": 16.97,
+      "peakJobCommitBytes": 562876416
+    },
+    {
+      "status": "FAILED complete historical26a shortcut body on finalfef4; lateFitcomparison failure retained",
+      "exitCode": 1,
+      "report": {
+        "path": "target/startup-finite-criteria-preparation/shortcuts-fef4-passive-diagnostic-v1/report.json",
+        "sha256": "147621a2df23a1770eee634d313e41a34b06af431a4f700f4963b2733050a327"
+      },
+      "log": {
+        "path": "target/startup-finite-criteria-preparation/shortcuts-fef4-passive-diagnostic-v1.log",
+        "sha256": "1ecb442bfc92579bc7ca6539c2debcc4fb4d5da70fd9aece9131e69f316eec46"
+      },
+      "resources": {
+        "path": "target/startup-finite-criteria-preparation/shortcuts-fef4-passive-diagnostic-v1.resources.json",
+        "sha256": "e3117560177c5827454144f4ac271a05032c1c9c03ccee9a751267d22fe335c8"
+      },
+      "elapsedSeconds": 16.882,
+      "peakJobCommitBytes": 598532096
+    }
+  ],
+  "qualifiedObservations": [
+    "Every original canvas() Escape call before line60 completed its focused=false assertion. Calls included focused command/text release and already-unfocused modifier-loop handoff.",
+    "Original focused fhs text retention, text-owned undo/document-history invariance, platform document Undo/Redo and modified/repeated/composing F checks completed before the late failure.",
+    "Recorded focused=true tofalse at the4,4 click retained Object2; later Escape cleared its selection without changing any original row placement. These are bounded finalfef4 observations, not a complete shortcut-body PASS."
+  ],
+  "failure": {
+    "assertion": "shortcuts.cjs:60 uppercaseF whole-frame equality",
+    "baselineHash": "9dd09dddebd846ad0ff15d9362d4648deb160d42a3023418ef6c3c8538609916",
+    "actualHash": "6e64f00d01204601a4127a6902fb8550034c0dfab68537d1be85a48ed4e5d359",
+    "baselineSelectedIds": [
+      2
+    ],
+    "beforeAndAfterShiftFSelectedIds": [],
+    "baselineCameraScale0": 0.9284290389078628,
+    "actualCameraScale0": 0.47226752269379535,
+    "cause": "The assumed empty4,4 click released focus but did not clear Object2 selection, even120ms later. TypedFit correctly fitted that selected object. After Escape cleared selection, uppercaseF correctly fitted all4 objects. The legacy comparison therefore used different selection scopes."
+  },
+  "setup": {
+    "commands": [
+      "Close",
+      "Example Box",
+      "View Isometric",
+      "Layers Off",
+      "Fit"
+    ],
+    "actualInitialRows": 3,
+    "actualCloseHistory": "> Close\nNo point tool is running",
+    "meaning": "Current and maintained Close closes a drawn curve/polyline. No active tool yields the recorded error; it did not clear the default2triangle scene. ExampleBox appended a third object. No clean-single-object setup claim is made."
+  },
+  "historicalScope": {
+    "owner": "26a-keys",
+    "historicalEditorSha256": "5e93d21aec2103d8a7af330f8e773cc78b62ef9b6fbb3eba2aa97f3d4425fa00",
+    "historicalTypedFit": "Reconstructed26a Action::Fit uses self.scene.bounds() unconditionally.",
+    "finalTypedFit": "Current final Action::Fit uses selected bounds, otherwise all bounds, matching maintained selection-or-all policy. F anduppercaseF map to the same command.",
+    "decision": "Keep runtime and historical canonical26a harness unchanged. Reusing the earlier body on later source does not make its late Fit oracle a new mandatory wholebody acceptance gate for the bounded Escape criterion."
+  },
+  "policySources": [
+    {
+      "path": "target/course-final-clipping-guide-two-fixture-isolation/src/browser.rs",
+      "sha256": "45f8de305deeeadc094fb0b7f3bbc384c5f8abf1500fdfdafbb1d6f6fe211d15"
+    },
+    {
+      "path": "target/course-final-clipping-guide-two-fixture-isolation/src/editor.rs",
+      "sha256": "b2d084febb6830e0ec8afe6b195fac5ec902db5eec76d67c2a671d84ffd25dfd"
+    },
+    {
+      "path": "target/course-final-clipping-guide-two-fixture-isolation/src/shortcuts.rs",
+      "sha256": "adf3929870005a2ed6e617369304ad1e778e68451d780bbf22ba3db054149bef"
+    },
+    {
+      "path": "target/course-final-clipping-guide-two-fixture-isolation/src/panel.rs",
+      "sha256": "7c25c04e774388bb12eb4df7abb16b8d6edeb0a15d41621fd9e71912de1c801c"
+    },
+    {
+      "path": "target/course-final-clipping-guide-two-fixture-isolation/src/commands.rs",
+      "sha256": "2a17d4118a9edc4fd97788c77281da8b360b0f885c59b309752c9c0e7c4ee127"
+    },
+    {
+      "path": "src/app/keys.rs",
+      "sha256": "28abcbf79f108564e48b4c61ee96b8521b69062d467d2c5c2ad787e6c230289a"
+    },
+    {
+      "path": "src/app/command/verbs/fit.rs",
+      "sha256": "b1181698ef63b6facb5c50203928959d9b5f54087dea0e0e76cf065567ec719d"
+    },
+    {
+      "path": "src/state.rs",
+      "sha256": "8bd89dd783fc205afd1cd8abb4e0323a7f61a9569514227a315557cc0038558a"
+    },
+    {
+      "path": "src/app/command/verbs/close.rs",
+      "sha256": "6ecb9cf60556c359550c1c85dab54700a98b31f9883dd9317e6d1129241a24c5"
+    }
+  ],
+  "reviewedImages": [
+    {
+      "state": "whole-fit-baseline",
+      "image": {
+        "path": "target/startup-finite-criteria-preparation/shortcuts-fef4-passive-diagnostic-v1-passive-states/05-whole-fit-baseline.png",
+        "sha256": "a7265895b4c4fbe44703adfb2047b51e2bb814f9d4d8f3ef63a40226ee8060bc"
+      },
+      "rootInspection": "Root individually inspected original resolution; selected-object baseline, deselected panned state and whole-scene result confirmed."
+    },
+    {
+      "state": "before-shift-f",
+      "image": {
+        "path": "target/startup-finite-criteria-preparation/shortcuts-fef4-passive-diagnostic-v1-passive-states/06-before-shift-f.png",
+        "sha256": "d4228c3aa317c31440a4f352a1e10b90598e27d4489da496e9a13547c90a1573"
+      },
+      "rootInspection": "Root individually inspected original resolution; selected-object baseline, deselected panned state and whole-scene result confirmed."
+    },
+    {
+      "state": "after-shift-f-drawing",
+      "image": {
+        "path": "target/startup-finite-criteria-preparation/shortcuts-fef4-passive-diagnostic-v1-passive-states/08-after-shift-f-drawing.png",
+        "sha256": "6c7f53227d8d5f0b39190dbd5418e790bdaec689b88059be348062209e751d25"
+      },
+      "rootInspection": "Root individually inspected original resolution; selected-object baseline, deselected panned state and whole-scene result confirmed."
+    }
+  ],
+  "scope": "Only actual observed Escape/input ownership subcriterion at finalhandwritten713fef4 optimized bundle, DPR1/900x760/NVIDIA under2CPU6GiB. No complete shortcutbody PASS, Startup feature completion, maintained714 native parity, lifecycle/device-recovery closure, historicalcallback acceptance or globalrelease/counter changes. Remaining quality/device/lifecycle and separately declared historical obligations stay pending or retain their own scoped proofs."
+}

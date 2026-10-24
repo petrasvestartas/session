@@ -73,10 +73,11 @@
       "currentVerification": {
         "status": "partial",
         "integration": "#/currentIntegration",
-        "acceptedScope": "Ordered input and presentation coalescing, disposal and idle assertions passed on the measured browser source. Approved selection-preserving dock handoff and affected layers/labels/delete checks also pass in focused94c execution.",
+        "acceptedScope": "Ordered input and presentation coalescing, disposal and idle assertions passed on the measured browser source. Approved selection-preserving dock handoff and affected layers/labels/delete checks also pass in focused94c execution. Qualified final fef4 focused/unfocused Escape and text/document ownership observations are recorded separately; both complete legacy 26a shortcut-body attempts remain failed at their later mismatched Fit baseline, with runtime and canonical harness unchanged.",
         "records": [
           "release/runtime-performance-review.json",
-          "../../target/course-windows-20261018/selected-shortcuts-affected-modules/manifest.json"
+          "../../target/course-windows-20261018/selected-shortcuts-affected-modules/manifest.json",
+          "release/startup-escape-focus-review.json"
         ],
         "remainingAcceptance": [
           "Validate actual final lifecycle,recovery and focused/unfocused Escape handoff using declared callback checks or relevant-input proof; the unchanged97d optimized bundle already passes and is reusable.",
