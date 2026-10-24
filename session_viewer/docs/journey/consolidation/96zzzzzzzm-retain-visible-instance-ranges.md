@@ -44863,6 +44863,165 @@ Update the existing block with this supplied code; keep unchanged lines:
 --8<-- "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ordinary-plane-guide-lane-contract.rs"
 ```
 
+### Keep marker queries consistent with the view
+
+A query can run before the next color frame. Pass the current renderer opacity through query submission and encoding into the ordinary ribbon pick uniform; do not depend on a previous draw to initialize it. In Xray, hidden faces no longer occlude rear mesh markers, so a visible rear marker must still resolve to its original mesh owner. Opaque and glass views keep their own occlusion rules.
+
+### 252. `src/production_ribbon_gpu.rs`
+
+Accept the current view opacity when preparing ordinary ink queries.
+
+**Locate this existing block:**
+
+```rust
+    pub fn prepare_pick(
+        &self,
+        device: &wgpu::Device,
+        queue: &wgpu::Queue,
+        matrix: [f32; 16],
+        window: crate::pick_window::Window,
+        density: f32,
+
+```
+
+Update that block with the supplied code; keep unchanged surrounding lines:
+
+```rust
+--8<-- "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-xray-pick-opacity-01.rs"
+```
+
+### 253. `src/production_ribbon_gpu.rs`
+
+Use that opacity in the pick uniform instead of an opaque constant.
+
+**Locate this existing block:**
+
+```rust
+self.line_uniform(matrix,window.full,density,1.0)
+```
+
+Update that block with the supplied code; keep unchanged surrounding lines:
+
+```rust
+--8<-- "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-xray-pick-opacity-02.rs"
+```
+
+### 254. `src/pick_encode.rs`
+
+Carry the current opacity through the query encoder.
+
+**Locate this existing block:**
+
+```rust
+transform:[f32;16],density:f32) -> wgpu::CommandBuffer
+```
+
+Update that block with the supplied code; keep unchanged surrounding lines:
+
+```rust
+--8<-- "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-xray-pick-opacity-03.rs"
+```
+
+### 255. `src/pick_encode.rs`
+
+Forward it to the ordinary production lane.
+
+**Locate this existing block:**
+
+```rust
+ordinary.prepare_pick(device,&ctx.queue,transform,window,density,clipping_buffer
+```
+
+Update that block with the supplied code; keep unchanged surrounding lines:
+
+```rust
+--8<-- "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-xray-pick-opacity-04.rs"
+```
+
+### 256. `src/pick_gpu.rs`
+
+Keep the legacy query path opaque when no ordinary lane is present.
+
+**Locate this existing block:**
+
+```rust
+None,&group,&buffer,None,None,None,None)}
+```
+
+Update that block with the supplied code; keep unchanged surrounding lines:
+
+```rust
+--8<-- "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-xray-pick-opacity-05.rs"
+```
+
+### 257. `src/pick_gpu.rs`
+
+Accept opacity on the finite query submission path.
+
+**Locate this existing block:**
+
+```rust
+matrices:Option<&crate::production_matrix_gpu::Lane>) {
+```
+
+Update that block with the supplied code; keep unchanged surrounding lines:
+
+```rust
+--8<-- "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-xray-pick-opacity-06.rs"
+```
+
+### 258. `src/pick_gpu.rs`
+
+Pass it from query submission into encoding.
+
+**Locate this existing block:**
+
+```rust
+ordinary,matrices,request.transform,request.density)]);
+```
+
+Update that block with the supplied code; keep unchanged surrounding lines:
+
+```rust
+--8<-- "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-xray-pick-opacity-07.rs"
+```
+
+### 259. `src/renderer.rs`
+
+Read opacity from the renderer when the request is submitted.
+
+**Locate this existing block:**
+
+```rust
+Some(&self.strokes),Some(&self.matrices)); }
+```
+
+Update that block with the supplied code; keep unchanged surrounding lines:
+
+```rust
+--8<-- "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-xray-pick-opacity-08.rs"
+```
+
+### 260. `src/mesh_marker_tests.rs`
+
+Check original-owner queries before the first color frame in each opacity state, then restore exact opaque pixels and unchanged source data.
+
+Supplied validation fixture.
+
+**Locate this existing block:**
+
+```rust
+cement(id).unwrap();s.place(id,Xform::translation(1_000_000_000.125,0.,0.)).unwrap();let prepared=Sources::anchored(&s,[1_000_000_000.,0.,0.]).unwrap();assert_eq!(prepared.mesh_markers[0].center[0],0.125,"Transform after anchoring preserves the source endpoint fraction");s.place(id,old).unwrap();
+}
+
+```
+
+Update that block with the supplied code; keep unchanged surrounding lines:
+
+```rust
+--8<-- "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-xray-marker-query-regression.rs"
+```
+
 ## Build & Run
 
 ![Recorded visual output for Lesson 22.6 (96zzzzzzc)](../../screenshots/journey/96zzzzzzc-draw-the-construction-grid-as-physical-lines-browser.png)

@@ -1,0 +1,1 @@
+ordinary.prepare_pick(device,&ctx.queue,transform,window,density,opacity,clipping_buffer

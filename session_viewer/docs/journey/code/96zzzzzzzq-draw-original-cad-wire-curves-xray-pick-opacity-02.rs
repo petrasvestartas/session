@@ -1,0 +1,1 @@
+self.line_uniform(matrix,window.full,density,opacity)

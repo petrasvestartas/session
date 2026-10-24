@@ -1,0 +1,204 @@
+{
+  "status": "APPLIED source-only Xray original-owner opacity fix; bounded candidate/native regression PASS; new final integration pending",
+  "courseBefore": "367065739cee3cbf01e1b240c9eca4a1e0c12092eccab2fe2345cbc783a55197",
+  "courseAfter": "f23fe2c84e633849f9b9fad00a0ecdb87b2d40b0d4165fd7561d702626cc7537",
+  "source": {
+    "id": "96zzzzzzzq-draw-original-cad-wire-curves",
+    "files": 713,
+    "before": "fef4c7bdb6f4c0a6f7a7701b0ba5581469dd757a34eefbab030a06e92ce4e5a1",
+    "fingerprint": "65f0013ae13365244de0baf69d29fd84c0219450573f86e5884eb0413dd6ae30",
+    "changedFiles": [
+      "src/renderer.rs",
+      "src/pick_gpu.rs",
+      "src/pick_encode.rs",
+      "src/mesh_marker_tests.rs",
+      "src/production_ribbon_gpu.rs"
+    ]
+  },
+  "maintained": {
+    "id": "97-finish-with-the-maintained-browser-runtime",
+    "files": 714,
+    "before": "06359f77b5c26901e6d6e155808ce05946282865b10fffdf4e36e07c494ba3ce",
+    "fingerprint": "b9f70ac28efa5ff434a2e479f5d5374160c7c5e05eb5833ae7edd32f8b882321",
+    "sameMaintainedLib": true,
+    "sameMaintainedRuntime": true
+  },
+  "application": {
+    "path": "target/course-windows-20261018/marker-control-pairs-preparation/xray-authoring-integration-preparation/application.json",
+    "sha256": "6350f9fe3a655fb649d40362ab05a4100a052c361098db9827738e97f79e5f9f"
+  },
+  "preservation": {
+    "unchangedPriorCheckpoints": 1359,
+    "checkedSourcePostflight": 1361,
+    "firstTenUnchanged": true,
+    "scope": "Only final handwritten713 and maintained714 reconstructed sources changed; all1359 priorcheckpoints retainedexactly. Actualmaintainedexternal433 andselectedWASMrun_web entry unchanged; inheritedhandwrittenmodule change stillrequires integrationqualification."
+  },
+  "fix": "Pass active view opacity into the original ribbon GPU-pick preparation instead of hardcoded opaque1.0, matching visible opaque/glass/Xray ownership policy. Add one meaningful regression that performs owner queries before color rendering and restores source/archive/upload/pixels.",
+  "candidate": {
+    "result": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\marker-control-pairs-preparation\\xray-opacity-candidate-v10\\baseline-result-20261024T064239648Z.json",
+      "sha256": "cd208f1afef9bc0cfc81673454ba6baf70b83292e0a0fe343648c0dfb817354b"
+    },
+    "manifest": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\marker-control-pairs-preparation\\xray-opacity-candidate-v10\\baseline-20261024T064239648Z/manifest.json",
+      "sha256": "c06a9edf68f8b16deac04adb29b5f181a6513c20ff03d286ba29df77d53b2310"
+    },
+    "resources": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\marker-control-pairs-preparation\\marker-id-xray-opacity-candidate-v10-run-20261024T064239659Z/resources.json",
+      "sha256": "e2f851a37a39235561eaf2816ada48e28c38c7ff2218fb53634dc362c1b9af23"
+    },
+    "log": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\marker-control-pairs-preparation\\marker-id-xray-opacity-candidate-v10-run-20261024T064239659Z/output.log",
+      "sha256": "610b2b3f5c9ad44e0d7435d824b77815b807280b30b0832aabe294383b3fc9c8"
+    },
+    "elapsedSeconds": 9.342,
+    "peakJobCommitBytes": 751329280,
+    "changedPixels": 0,
+    "maxChannelDelta": 0,
+    "ownerQueries": [
+      {
+        "at": [
+          248,
+          444
+        ],
+        "original_owner": 2,
+        "raw": [
+          2,
+          1
+        ],
+        "vertex": 0
+      },
+      {
+        "at": [
+          353,
+          210
+        ],
+        "original_owner": 2,
+        "raw": [
+          2,
+          1
+        ],
+        "vertex": 2
+      }
+    ],
+    "sourceArchive": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\marker-control-pairs-preparation\\xray-opacity-candidate-v10\\baseline-20261024T064239648Z/source.pb",
+      "sha256": "028ed693423209e7a6365d5a45b3a167cc97397bcfdad32d3281def7afd6b52a"
+    },
+    "beforeArchive": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\marker-control-pairs-preparation\\xray-opacity-candidate-v10\\baseline-20261024T064239648Z/before.session",
+      "sha256": "1dcd6f5a2c1faca69d127489f932ad974f2b4160927b11c6f94366650a921bca"
+    },
+    "afterArchive": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\marker-control-pairs-preparation\\xray-opacity-candidate-v10\\baseline-20261024T064239648Z/xray-after.session",
+      "sha256": "ac3402030674e51f4c34681d4cb724d126203e952f4f6c8105ad7fb923fca8e0"
+    },
+    "courseQuery0": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\marker-control-pairs-preparation\\xray-opacity-candidate-v10\\baseline-20261024T064239648Z/xray-course-query-vertex-0.json",
+      "sha256": "c9a23743325c002d15541fcc3fd15786a784c9ba6e1bcbd4bb25a491fb33724f"
+    },
+    "courseQuery2": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\marker-control-pairs-preparation\\xray-opacity-candidate-v10\\baseline-20261024T064239648Z/xray-course-query-vertex-2.json",
+      "sha256": "61318be8eb816a76e0da5244af95860464d9cd824f5e0fd4bd4d67172d758b68"
+    },
+    "scope": "One actualV10 isolatedXraypair only; oldfourV6cases remain atoriginalfef4inputscope. No newfullfivecasePASS claimed."
+  },
+  "focusedNative": {
+    "record": {
+      "path": "target/course-windows-20261018/marker-control-pairs-preparation/xray-authoring-integration-preparation/focused-native-pass-v3.json",
+      "sha256": "ce339cd9c9225aec1018b3be03f03e6fec141539afee1499b4c66cb22e6c63df"
+    },
+    "log": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\marker-control-pairs-preparation\\xray-focused-regression-native-path-v3-20261024T064338175Z/output.log",
+      "sha256": "bc81788eddaf8a59470b6695781c59d3239d6ee3bcda22aab6abb9a072085cf1"
+    },
+    "resources": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\marker-control-pairs-preparation\\xray-focused-regression-native-path-v3-20261024T064338175Z/resources.json",
+      "sha256": "e102e06071ada4be7df899ea58b40093c954e2f0b6cbbea2ed795b8fc14f1202"
+    },
+    "testName": "renderer::mesh_marker_tests::actual_xray_rear_marker_queries_follow_opacity_before_color_and_restore",
+    "passed": 1,
+    "failed": 0,
+    "ignored": 0,
+    "filtered": 1062,
+    "elapsedSeconds": 52.62,
+    "peakJobCommitBytes": 3269521408,
+    "sourcePostflight": true,
+    "scope": "New exactregression proves firstqueries BEFOREcolor acrossopaque/glass/Xray/restoredopaque andsource/archive/upload/pixel restoration; not full1063suite."
+  },
+  "image": {
+    "figure": "journey/release/xray-original-owner-candidate.png",
+    "sha256": "6628bf9e40001c3ade94a18f7e78df470457284e7cc9d4acd4ab2a36a9104ee9",
+    "course": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\marker-control-pairs-preparation\\xray-opacity-candidate-v10\\baseline-20261024T064239648Z/xray-course.png",
+      "sha256": "6628bf9e40001c3ade94a18f7e78df470457284e7cc9d4acd4ab2a36a9104ee9"
+    },
+    "production": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\marker-control-pairs-preparation\\xray-opacity-candidate-v10\\baseline-20261024T064239648Z/xray-production.png",
+      "sha256": "6628bf9e40001c3ade94a18f7e78df470457284e7cc9d4acd4ab2a36a9104ee9"
+    },
+    "visualReview": "Root personally viewed both actualcandidatePNGs, identical6628...ee9: cleanwirecube/graycorners. Ownership nowpassesbothstrictoriginalowner2queries."
+  },
+  "priorFailure": "release/quality-and-marker-failure-review.json",
+  "priorRuntimeNative": "release/native-final-two-fixture-integration-review.json",
+  "priorBuildGate": "release/final-runtime-build-gate-review.json",
+  "currentBuildGate": {
+    "status": "REOPENED pending atnew65f0013/b9f70acruntime",
+    "gatesDone": 0,
+    "gatesTotal": 5,
+    "remaining": "One integrated1063native andsource-matching refreshed713/714 Native/WASM/optimizedweb/frame/browser qualification; originalfef4/06359build/nativeproofs preservedhistorically."
+  },
+  "currentChecks": {
+    "status": "PASS actual22/22authoring and1361checkpoint/43reference structure afterbounded2page docsrepair",
+    "courseSha256": "f23fe2c84e633849f9b9fad00a0ecdb87b2d40b0d4165fd7561d702626cc7537",
+    "units": {
+      "log": {
+        "path": "target/course-windows-20261018/xray-authoring-checks/units.log",
+        "sha256": "db99f3e78ff30a2194801ed6181d8580b41748a535a4a131d02433534d87e7bf"
+      },
+      "resources": {
+        "path": "target/course-windows-20261018/xray-authoring-checks/units.resources.json",
+        "sha256": "d8aaa000e0193cd591146d08c28b46ab0816faceebc50ca4e756359c343835f8"
+      },
+      "passed": 22,
+      "elapsedSeconds": 10.388,
+      "peakJobCommitBytes": 478183424
+    },
+    "initialStructureFailure": {
+      "log": {
+        "path": "target/course-windows-20261018/xray-authoring-checks/structure.log",
+        "sha256": "a8a6736d188204be2ec53fde7ccc2d6767beaaf5799b18dbbf78515e9e71d609"
+      },
+      "resources": {
+        "path": "target/course-windows-20261018/xray-authoring-checks/structure.resources.json",
+        "sha256": "b44e6eb5db936097648ba36a952649b22f54d4a5617f768db64450d4eff5958d"
+      },
+      "status": "PreservedFAILmissingninecode references; nofirstattemptPASS claim."
+    },
+    "docsRepair": {
+      "path": "target/course-windows-20261018/marker-control-pairs-preparation/xray-authoring-integration-preparation/docs-snippet-reference-repair.json",
+      "sha256": "ca57b07b917a7541868803b6f5c11a5f4a0b6686a98524588840f9797faf57da"
+    },
+    "structure": {
+      "log": {
+        "path": "target/course-windows-20261018/marker-control-pairs-preparation/xray-authoring-integration-preparation/structure-after-docs-repair.log",
+        "sha256": "f67d61e2545f41eecc39f4532f95ea95b090ee7f1b9238033cc676d07284d0d2"
+      },
+      "checkpoints": 1361,
+      "references": 43,
+      "scope": "Actualsuccessfulstructure-after-docs-repair invocation; no newguardresources invented."
+    },
+    "scope": "Only additive finalreference+Chapter22lesson includes; allpriorimplementationbytes preserved. No runtime/native1063/buildacceptance from authoring."
+  },
+  "acceptedCallbacks": {
+    "count": 8,
+    "total": 18,
+    "remaining": 10,
+    "qualification": "All8source-bound priorrecords retain originalsource; finalruntime delta requires explicit integrationqualification, not silentrelabelling."
+  },
+  "limits": [
+    "Features4/18complete14partial,fixtures2/4 and10remainingcallbackentries unchanged; no finitefeature closure inferred.",
+    "No current65f0013 full1063/WASM/Trunk/browser/docs acceptance; old8/18docs snapshot remains boundtocourse3670.",
+    "All historicalfailures/inputexceptionstates andGemini first10 ownership retained."
+  ]
+}

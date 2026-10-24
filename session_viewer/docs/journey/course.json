@@ -91732,6 +91732,60 @@
           "snippet": "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ordinary-plane-guide-lane-contract.rs",
           "why": "Validate the unchanged ordinary Plane row alongside its separate production clipping-guide ribbons and real capacity limit.",
           "copy": true
+        },
+        {
+          "path": "src/production_ribbon_gpu.rs",
+          "before": "    pub fn prepare_pick(\n        &self,\n        device: &wgpu::Device,\n        queue: &wgpu::Queue,\n        matrix: [f32; 16],\n        window: crate::pick_window::Window,\n        density: f32,\n",
+          "snippet": "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-xray-pick-opacity-01.rs",
+          "why": "Keep original ink and vertex owner queries consistent with the active opaque, glass and Xray view."
+        },
+        {
+          "path": "src/production_ribbon_gpu.rs",
+          "before": "self.line_uniform(matrix,window.full,density,1.0)",
+          "snippet": "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-xray-pick-opacity-02.rs",
+          "why": "Keep original ink and vertex owner queries consistent with the active opaque, glass and Xray view."
+        },
+        {
+          "path": "src/pick_encode.rs",
+          "before": "transform:[f32;16],density:f32) -> wgpu::CommandBuffer",
+          "snippet": "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-xray-pick-opacity-03.rs",
+          "why": "Keep original ink and vertex owner queries consistent with the active opaque, glass and Xray view."
+        },
+        {
+          "path": "src/pick_encode.rs",
+          "before": "ordinary.prepare_pick(device,&ctx.queue,transform,window,density,clipping_buffer",
+          "snippet": "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-xray-pick-opacity-04.rs",
+          "why": "Keep original ink and vertex owner queries consistent with the active opaque, glass and Xray view."
+        },
+        {
+          "path": "src/pick_gpu.rs",
+          "before": "None,&group,&buffer,None,None,None,None)}",
+          "snippet": "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-xray-pick-opacity-05.rs",
+          "why": "Keep original ink and vertex owner queries consistent with the active opaque, glass and Xray view."
+        },
+        {
+          "path": "src/pick_gpu.rs",
+          "before": "matrices:Option<&crate::production_matrix_gpu::Lane>) {",
+          "snippet": "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-xray-pick-opacity-06.rs",
+          "why": "Keep original ink and vertex owner queries consistent with the active opaque, glass and Xray view."
+        },
+        {
+          "path": "src/pick_gpu.rs",
+          "before": "ordinary,matrices,request.transform,request.density)]);",
+          "snippet": "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-xray-pick-opacity-07.rs",
+          "why": "Keep original ink and vertex owner queries consistent with the active opaque, glass and Xray view."
+        },
+        {
+          "path": "src/renderer.rs",
+          "before": "Some(&self.strokes),Some(&self.matrices)); }",
+          "snippet": "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-xray-pick-opacity-08.rs",
+          "why": "Keep original ink and vertex owner queries consistent with the active opaque, glass and Xray view."
+        },
+        {
+          "path": "src/mesh_marker_tests.rs",
+          "before": "cement(id).unwrap();s.place(id,Xform::translation(1_000_000_000.125,0.,0.)).unwrap();let prepared=Sources::anchored(&s,[1_000_000_000.,0.,0.]).unwrap();assert_eq!(prepared.mesh_markers[0].center[0],0.125,\"Transform after anchoring preserves the source endpoint fraction\");s.place(id,old).unwrap();\n}\n",
+          "snippet": "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-xray-marker-query-regression.rs",
+          "why": "Check first original-owner queries before a color frame through opaque, glass, Xray and restored opaque settings without changing source/history."
         }
       ],
       "frame": "journey/checks/94-comparison.rs",
