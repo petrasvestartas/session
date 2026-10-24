@@ -1,0 +1,154 @@
+{
+  "status": "PASS eight focused comparisons; explicitly approved and applied one-line typing speedup",
+  "userAnswer": "Apply the tested speedup",
+  "authorizedUtc": "2026-10-24T17:18:22.8494873Z",
+  "appliedUtc": "2026-10-24T17:18:39.774Z",
+  "change": {
+    "file": "docs/capture_journey.cjs",
+    "before": "keyboard.type(line, {delay: 60})",
+    "after": "keyboard.type(line, {delay: 0})",
+    "beforeSha256": "ecbc4c716aa91a7aedc2532132c4b08e0a7d1e7511c380b0dbbba0152325a733",
+    "afterSha256": "730a2c8618175efe53a93be8f837fc14f91b5422375d8d0e699804d0c17e593a",
+    "allOtherSourceBytesIdentical": true
+  },
+  "comparison": {
+    "path": "target/course-windows-20261018/command-typing-delay-current694-preparation/typing-delay60-vs0-current694-v2/comparison.json",
+    "sha256": "0c2ff14066769490b0263b28d9d5e890f9a67577e90f47f984fb57083a311d2e",
+    "cases": 8,
+    "groups": [
+      {
+        "target": "old70d",
+        "density": 1,
+        "originalMilliseconds": 18593.559499999996,
+        "candidateMilliseconds": 3887.594500000014,
+        "savedMilliseconds": 14705.964999999982,
+        "ratio": 0.20908285473795454,
+        "exactGeometry": true,
+        "exactFullDecodedArchiveAndMetadata": true,
+        "exactHistory": true,
+        "exactCamera": true,
+        "exactCanonicalDrawingHash": true
+      },
+      {
+        "target": "old70d",
+        "density": 2,
+        "originalMilliseconds": 18774.3277,
+        "candidateMilliseconds": 3933.1246000000065,
+        "savedMilliseconds": 14841.203099999995,
+        "ratio": 0.20949483053925846,
+        "exactGeometry": true,
+        "exactFullDecodedArchiveAndMetadata": true,
+        "exactHistory": true,
+        "exactCamera": true,
+        "exactCanonicalDrawingHash": true
+      },
+      {
+        "target": "current713",
+        "density": 1,
+        "originalMilliseconds": 18572.91150000003,
+        "candidateMilliseconds": 3945.159900000086,
+        "savedMilliseconds": 14627.751599999945,
+        "ratio": 0.21241472560724145,
+        "exactGeometry": true,
+        "exactFullDecodedArchiveAndMetadata": true,
+        "exactHistory": true,
+        "exactCamera": true,
+        "exactCanonicalDrawingHash": true
+      },
+      {
+        "target": "current713",
+        "density": 2,
+        "originalMilliseconds": 18612.061,
+        "candidateMilliseconds": 3901.187699999995,
+        "savedMilliseconds": 14710.873300000007,
+        "ratio": 0.20960535751521525,
+        "exactGeometry": true,
+        "exactFullDecodedArchiveAndMetadata": true,
+        "exactHistory": true,
+        "exactCamera": true,
+        "exactCanonicalDrawingHash": true
+      }
+    ]
+  },
+  "images": [
+    {
+      "file": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\command-typing-delay-current694-preparation\\typing-delay60-vs0-current694-v2\\old70d-dpr1-original.png",
+      "sha256": "d79264bea31f8e43b4d334f690454a4cc319db578a1d5430d4226d774ee840c6",
+      "rootPersonallyReviewed": true
+    },
+    {
+      "file": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\command-typing-delay-current694-preparation\\typing-delay60-vs0-current694-v2\\old70d-dpr1-candidate.png",
+      "sha256": "d79264bea31f8e43b4d334f690454a4cc319db578a1d5430d4226d774ee840c6",
+      "rootPersonallyReviewed": true
+    },
+    {
+      "file": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\command-typing-delay-current694-preparation\\typing-delay60-vs0-current694-v2\\old70d-dpr2-candidate.png",
+      "sha256": "f93a5fe0ee6abb2849c746b385fa13ace6f0a817fb361aaf022f67374b6d46ee",
+      "rootPersonallyReviewed": true
+    },
+    {
+      "file": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\command-typing-delay-current694-preparation\\typing-delay60-vs0-current694-v2\\old70d-dpr2-original.png",
+      "sha256": "f93a5fe0ee6abb2849c746b385fa13ace6f0a817fb361aaf022f67374b6d46ee",
+      "rootPersonallyReviewed": true
+    },
+    {
+      "file": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\command-typing-delay-current694-preparation\\typing-delay60-vs0-current694-v2\\current713-dpr1-original.png",
+      "sha256": "fc3bde8f1be8ae8f2d5cd011bf79e4b8578f70df37fe3170b633bf0b8f03384a",
+      "rootPersonallyReviewed": true
+    },
+    {
+      "file": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\command-typing-delay-current694-preparation\\typing-delay60-vs0-current694-v2\\current713-dpr1-candidate.png",
+      "sha256": "fc3bde8f1be8ae8f2d5cd011bf79e4b8578f70df37fe3170b633bf0b8f03384a",
+      "rootPersonallyReviewed": true
+    },
+    {
+      "file": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\command-typing-delay-current694-preparation\\typing-delay60-vs0-current694-v2\\current713-dpr2-candidate.png",
+      "sha256": "46fed6760b578cdfa07d7f79e959c4fd15c51af727bebf6df802b6fd371d19fd",
+      "rootPersonallyReviewed": true
+    },
+    {
+      "file": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\command-typing-delay-current694-preparation\\typing-delay60-vs0-current694-v2\\current713-dpr2-original.png",
+      "sha256": "46fed6760b578cdfa07d7f79e959c4fd15c51af727bebf6df802b6fd371d19fd",
+      "rootPersonallyReviewed": true
+    }
+  ],
+  "resources": {
+    "platform": "windows-job-object",
+    "startedUtc": "2026-10-24T16:59:00.1570944Z",
+    "executable": "C:\\Program Files\\nodejs\\node.exe",
+    "arguments": [
+      "--require",
+      "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\warp-browser-timeout.cjs",
+      "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\command-typing-delay-current694-preparation\\compare.cjs",
+      "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\command-typing-delay-current694-preparation\\typing-delay60-vs0-current694-v2\\config.json"
+    ],
+    "workingDirectory": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer",
+    "timeoutSeconds": 1200,
+    "jobCommitLimitBytes": 6442450944,
+    "swapCapSupported": false,
+    "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+    "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+    "exitCode": 0,
+    "timedOut": false,
+    "elapsedSeconds": 100.507,
+    "peakJobCommitBytes": 751976448,
+    "affinityMask": "0x3",
+    "processors": 2,
+    "processId": 62316,
+    "descendantsAtCleanup": 1
+  },
+  "approval": {
+    "path": "target/course-windows-20261018/typing-delay-pin-qualification-preparation/approval-record.json",
+    "sha256": "533d03c9f9f1edd3862e60a46922946eceb1127cb3051e3f9c5baa57b3f6e3e8"
+  },
+  "application": {
+    "path": "target/course-windows-20261018/typing-delay-pin-qualification-preparation/application.json",
+    "sha256": "a6ed369b8b04ecaefbca7f8302ee22ce5ffc330fc6603504e00ecaca137447e9"
+  },
+  "preserved": [
+    "All command assertions, trusted keyboard input, rendering waits, submit pause, original callback bodies and recursive prerequisites.",
+    "Runtime source, compiler inputs, fixtures, Gemini content and all Vue files.",
+    "The eleven accepted callbacks retain their original source/checker evidence."
+  ],
+  "limits": "Measured command sequences at two recorded runtimes and DPR1/2, not a whole-callback speed claim. Remaining full callbacks still require actual execution. The first dual-root HTTP preflight failure is preserved; only target-prefix parsing was corrected before this successful run."
+}

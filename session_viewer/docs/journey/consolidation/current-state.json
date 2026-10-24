@@ -599,7 +599,8 @@
     "approvedFiveHarnessCorrections": {
       "status": "APPLIED all five explicitly user-approved production-aligned harness corrections; full callbacks pending",
       "record": "release/five-approved-harness-corrections-review.json"
-    }
+    },
+    "typingDelayComparison": "PASS8/8 focused cases at source331/694 and DPR1/2; exact geometry/archive/metadata/history/camera/drawing. Command sequences18.57-18.77s become3.89-3.95s. User explicitly approved exact one-line60ms-to0ms helper change; applied at completed17794 heavy boundary. No whole-callback timing claim."
   },
   "resourceGuard": {
     "command": "../../../../session_tests/scripts/run-guarded.cmd",
@@ -622,12 +623,12 @@
   ],
   "onlyHeavy": {
     "status": "running",
-    "task": "Eight isolated original60ms/candidate0ms typing cases; no operational helper change",
-    "evidence": "target/course-windows-20261018/command-typing-delay-current694-preparation/typing-delay60-vs0-current694-v2",
+    "task": "Full95f browser callback with approved zero-delay command helper",
+    "sessionId": 85528,
     "memoryLimitMiB": 6144,
     "processors": 2
   },
-  "next": "Continue seven remaining source-specific callbacks using source-qualified compiler phases and approved corrections. Mesh635 complete original default body passes640.406s/827396096B with all7 images reviewed. Root is comparing original60ms/candidate0ms input in eight cases; operational helper unchanged until explicit exception. Corrected95f continuation is ready; preserve every source-bound proof and Gemini Vue/styles/structure.",
+  "next": "Finish the seven pending full source-specific callbacks using the approved zero-delay helper and qualified compiler phases.95f is running;88ad now has all five phases passed. Preserve eleven accepted historical scopes. Then integrate exact production BRep/kernel corrections in finalq and run the affected final integration batch, preserving all Gemini and Vue content.",
   "currentDocsReview": {
     "status": "PASS current694/b031 book publication snapshot: desktop/390px phone roadmap and changed22.6 Rust/WGSL section; all three original PNGs root-reviewed",
     "record": "release/docs-progress-ambient-selector-current-visible-review.json",
@@ -1375,6 +1376,15 @@
       "allBehaviorAssertionsRetained": true,
       "preserveGeminiVue": true,
       "scope": "No typing-delay0 or optional callback phase/tail reuse approval inferred."
+    },
+    "typingDelaySpeedup": {
+      "approved": true,
+      "applied": true,
+      "userAnswer": "Apply the tested speedup",
+      "record": "release/typing-delay-speedup-review.json",
+      "beforeSha256": "ecbc4c716aa91a7aedc2532132c4b08e0a7d1e7511c380b0dbbba0152325a733",
+      "afterSha256": "730a2c8618175efe53a93be8f837fc14f91b5422375d8d0e699804d0c17e593a",
+      "allAssertionsAndRenderingWaitsRetained": true
     }
   },
   "validationQueue": {

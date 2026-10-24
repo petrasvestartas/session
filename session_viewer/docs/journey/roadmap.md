@@ -18,7 +18,7 @@
 
 - [ ] **8. Final release: 3/5 gates closed; 2 remain.** Current694/b031 build checks, final navigation/aliases/source history and local publication/report are independently complete. Remaining gates are declared runnable-checkpoint checks and finite feature closure:7 source-specific callbacks and13 partial feature rows. All existing source scopes and Gemini content are preserved. [Independent navigation/publication review](release/final-navigation-publication-gates-review.json). [Current build-gate review](release/ambient-selector-final-runtime-build-gate-review.json).
 
-Current guarded job: isolated eight-case typing-delay comparison; operational helper unchanged. Three of five final gates complete at current694/b031/course05b: runtime build, navigation/history and local publication/report. Remaining:7 source-specific callbacks and13 partial finite features. The user approved all five prepared frozen-harness corrections; their application and actual callback verification retain separate evidence. Eleven accepted callbacks and2/4 fixtures remain source-bound. The historical notes below retain their original sources and counts.
+Current guarded job: full95f browser callback with the approved zero-delay helper. Three of five final gates complete at current694/b031/course05b: runtime build, navigation/history and local publication/report. Remaining:7 source-specific callbacks and13 partial finite features. The user approved all five prepared frozen-harness corrections; their application and actual callback verification retain separate evidence. Eleven accepted callbacks and2/4 fixtures remain source-bound. The historical notes below retain their original sources and counts.
 
 [Current browser proof 1](release/ambient-selector-final713-marker-browser-review.json), [Current browser proof 2](release/ambient-selector-maintained714-browser-review.json).
 
@@ -27,6 +27,8 @@ Slot checkpoint 590 passes its complete callback, and Shared Arena satisfies its
 Source402 Network passes its full original callback (2046.106s; peak1778094080B), with meaningful reviewed NURBS surfaces. CAD remains partial for its separate generated-isoline criterion. [Network acceptance](release/network-browser-review.json).
 
 Source635 Mesh markers passes its complete original callback (640.406s; peak827396096B), with all six actual feature images and the final canonical image reviewed. Marker controls remain partial within their separate recorded criteria. [Mesh-marker acceptance](release/mesh-markers-browser-review.json).
+
+Approved typing speedup: all8 focused cases pass with identical geometry, archives, history, camera and drawing pixels. The explicitly approved one-line change removes the60ms typing delay; command sequences fall from about18.6s to3.9s. Every assertion and rendering wait remains. [Measured review](release/typing-delay-speedup-review.json).
 
 ## Earlier checkpoint notes (historical counts)
 

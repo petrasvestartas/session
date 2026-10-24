@@ -56,7 +56,7 @@ async function command(page, line, options = {}) {
     const before = JSON.parse(await page.locator('canvas').getAttribute('data-command-ui'));
     const previous = before.history.length;
     if (before.command) await page.keyboard.press('ControlOrMeta+A');
-    await page.keyboard.type(line, {delay: 60});
+    await page.keyboard.type(line, {delay: 0});
     await page.waitForFunction(line => JSON.parse(document.querySelector('canvas').getAttribute('data-command-ui')).command === line, line).catch(async error => {
         const actual = JSON.parse(await page.locator('canvas').getAttribute('data-command-ui')).command;
         throw new Error(`Typed ${JSON.stringify(line)}, but the command field contains ${JSON.stringify(actual)}; key trace: ${JSON.stringify(await page.evaluate(() => window.courseKeyTrace))}`, {cause: error});
