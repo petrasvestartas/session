@@ -1,0 +1,724 @@
+{
+  "status": "PASS compiler-only101 endpoints/202 phases:85 retained+16 freshly compiled",
+  "courseSha256": "367065739cee3cbf01e1b240c9eca4a1e0c12092eccab2fe2345cbc783a55197",
+  "aggregate": {
+    "path": "target/course-windows-20261018/reader-compile-mask-refresh/reader-mask-refresh-v1/review-20261024T021817465Z.json",
+    "sha256": "a4103a65bc60c0818f98190f34c8972fa25cf702571bee353ea11397b2dcd6fd"
+  },
+  "plan": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\reader-compile-mask-refresh\\plan.json",
+    "sha256": "160b2cbe05f5c4ba11a9fa9c14d758bdeaba7e1100a4ec0abccba039e67cb775"
+  },
+  "compilerPins": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\reader-compile-mask-refresh\\reader-mask-refresh-v1\\compiler-pins.json",
+    "sha256": "468ecaccc92dba802a5fa5a49499d9900560c7326d41cc7f3138fe5211fa74d1"
+  },
+  "retained": {
+    "endpoints": 85,
+    "phases": 170,
+    "sourceBoundOriginalRows": 170,
+    "scope": "Existing root-reviewed aggregate verifies relevant current inputs against each retained original phase/compiler configuration/log/resource binding; original hashes and execution dates stay in the aggregate. No retained phase was rerun or relabeled.",
+    "originalPublicReview": {
+      "path": "docs/journey/release/reader-compilation-review.json",
+      "sha256": "bd5cc63246a164589fbf560e34c260318f608aa0bd9d14bd328ab42cc3109167"
+    },
+    "archivedPlanInputReview": {
+      "path": "target/course-windows-20261018/reader-compile-mask-refresh/original-reader-compilation-review.bin",
+      "sha256": "bd5cc63246a164589fbf560e34c260318f608aa0bd9d14bd328ab42cc3109167"
+    }
+  },
+  "fresh": {
+    "endpoints": 16,
+    "phases": 32,
+    "executedThisInvocation": 32,
+    "resumedThisInvocation": 0,
+    "sumPhaseElapsedSeconds": 353.57,
+    "maximumPhasePeakJobCommitBytes": 1452670976,
+    "entries": [
+      {
+        "id": "70za-read-original-sheet-metadata-records",
+        "sourceFingerprint": "bba7d9f82de5a5e77c17d3a4d5e7dac3e40b43646230d328dd4fa7ea47b8a459",
+        "sourceSignature": "4a8a86ac0c71aaafa7c502565033b20849f71aaf0697c89e888d20d9c124e6f6",
+        "lockSha256": "f5295652adef20e61beafb5776445d44044a670b94774bf9b7273986cdd6c1ef",
+        "phases": [
+          {
+            "phase": "native",
+            "record": {
+              "path": "target/course-windows-20261018/reader-compile-mask-refresh/reader-mask-refresh-v1/063-native.json",
+              "sha256": "89dfa1682fd1956af21ddf3db2893df0db49de1b435b4699e35893b2d36e5c71"
+            },
+            "log": {
+              "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\reader-mask-refresh-v1-063-native.log",
+              "sha256": "718e39891e726c02449c3b1a327b46256447ff86c4b30b3f7788bbf634e67bf8"
+            },
+            "resources": {
+              "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\reader-mask-refresh-v1-063-native.resources.json",
+              "sha256": "c22ca6c040cab0568a019535568109d988661b4898f115e3b759212559ce9837"
+            },
+            "elapsedSeconds": 8.636,
+            "peakJobCommitBytes": 830271488
+          },
+          {
+            "phase": "wasm",
+            "record": {
+              "path": "target/course-windows-20261018/reader-compile-mask-refresh/reader-mask-refresh-v1/063-wasm.json",
+              "sha256": "745871e7a794759cf26061c56fc12e362656b381361e5eab52066dfba5bdb92c"
+            },
+            "log": {
+              "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\reader-mask-refresh-v1-063-wasm.log",
+              "sha256": "3c4c53feecc00892b231ed6338c92a20445583a5ebc744ec9a14afc08f81e242"
+            },
+            "resources": {
+              "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\reader-mask-refresh-v1-063-wasm.resources.json",
+              "sha256": "b091fd050d5d75cfd79857c8f844880dc0b9368bb7b6e2320dc7635dbf7f1411"
+            },
+            "elapsedSeconds": 11.163,
+            "peakJobCommitBytes": 1233879040
+          }
+        ]
+      },
+      {
+        "id": "71ze-resolve-original-relative-and-polar-coordinates",
+        "sourceFingerprint": "6ad351779e913a392209ffc10781c94d25baff21d112acd8736ae18263d084ff",
+        "sourceSignature": "ab7b65d1d74fd71f95509f7502c62843b2ed8a3cfabd3d0018a7623dcd28df79",
+        "lockSha256": "f5295652adef20e61beafb5776445d44044a670b94774bf9b7273986cdd6c1ef",
+        "phases": [
+          {
+            "phase": "native",
+            "record": {
+              "path": "target/course-windows-20261018/reader-compile-mask-refresh/reader-mask-refresh-v1/064-native.json",
+              "sha256": "980c1fa763ccf0c1847c797bd3f7594aba3eab66648dc54bff0541a4fa1fe18e"
+            },
+            "log": {
+              "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\reader-mask-refresh-v1-064-native.log",
+              "sha256": "45b29bedf362ce8f338bc2efc8ce9598e9c9d85edd4eb0d0c9be0b58ebf3f0f8"
+            },
+            "resources": {
+              "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\reader-mask-refresh-v1-064-native.resources.json",
+              "sha256": "e2cf98df621bd1485d7de5c737cb4dc095d1c08ab53580432ecce641a9741f6d"
+            },
+            "elapsedSeconds": 7.544,
+            "peakJobCommitBytes": 853647360
+          },
+          {
+            "phase": "wasm",
+            "record": {
+              "path": "target/course-windows-20261018/reader-compile-mask-refresh/reader-mask-refresh-v1/064-wasm.json",
+              "sha256": "35c5d82252c9087de1621a8c841389a6a4c8c220c5400d5ed3ef18b973356856"
+            },
+            "log": {
+              "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\reader-mask-refresh-v1-064-wasm.log",
+              "sha256": "f363cc669d2c4cfc8f329381313f04bf7d0fc9c05c1bc8a48c784aa645fc7efc"
+            },
+            "resources": {
+              "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\reader-mask-refresh-v1-064-wasm.resources.json",
+              "sha256": "be29d613d0e313b318a5e0fa57be45643ef445ecf587a5432259adee8c949830"
+            },
+            "elapsedSeconds": 11.799,
+            "peakJobCommitBytes": 1272594432
+          }
+        ]
+      },
+      {
+        "id": "72s-exercise-current-drawing-tools-and-original-persistence",
+        "sourceFingerprint": "72c90367fafacefef2f9a1613213678d420c68cb3cade75b45c6c6014d9b8da3",
+        "sourceSignature": "8c783c93bac6099cca6790c701527ab4f3ea783323061b63be292883b27321e5",
+        "lockSha256": "f5295652adef20e61beafb5776445d44044a670b94774bf9b7273986cdd6c1ef",
+        "phases": [
+          {
+            "phase": "native",
+            "record": {
+              "path": "target/course-windows-20261018/reader-compile-mask-refresh/reader-mask-refresh-v1/065-native.json",
+              "sha256": "a5deb44738e3c81d665169f8b56cfdcd88840242988fde7797616134b24a324f"
+            },
+            "log": {
+              "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\reader-mask-refresh-v1-065-native.log",
+              "sha256": "45bd260e36773cc2e73b22bb43574a5ed1045d70810d6ee5b69b0b23a352f65b"
+            },
+            "resources": {
+              "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\reader-mask-refresh-v1-065-native.resources.json",
+              "sha256": "53710983431006be000bf41f739e2f66605352688496e408fc101dee6d51a7c7"
+            },
+            "elapsedSeconds": 7.492,
+            "peakJobCommitBytes": 860389376
+          },
+          {
+            "phase": "wasm",
+            "record": {
+              "path": "target/course-windows-20261018/reader-compile-mask-refresh/reader-mask-refresh-v1/065-wasm.json",
+              "sha256": "b9b9fd482f0e93b909a1d60d8fd99b3fc25515d54f63d719d984c955cab773b8"
+            },
+            "log": {
+              "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\reader-mask-refresh-v1-065-wasm.log",
+              "sha256": "98bb06189d7701d2abd841ca1dfe2365477a855b1b75e76fe6094e4279c81122"
+            },
+            "resources": {
+              "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\reader-mask-refresh-v1-065-wasm.resources.json",
+              "sha256": "3d64f8251e66c8c6485f5a440b092b84f4f1f733f8f4a4e3519a5a9987aa14cf"
+            },
+            "elapsedSeconds": 11.873,
+            "peakJobCommitBytes": 1278509056
+          }
+        ]
+      },
+      {
+        "id": "73t-build-regular-kernel-polyhedra",
+        "sourceFingerprint": "de345aae7061cac80ac52dc9af79d9952cc37ca725447065fda93de71aaa958c",
+        "sourceSignature": "0bb250f029919cc0d06bef654fd548c0c1b26e15f2d9652cbdb52e86c87adf51",
+        "lockSha256": "f5295652adef20e61beafb5776445d44044a670b94774bf9b7273986cdd6c1ef",
+        "phases": [
+          {
+            "phase": "native",
+            "record": {
+              "path": "target/course-windows-20261018/reader-compile-mask-refresh/reader-mask-refresh-v1/066-native.json",
+              "sha256": "654f830e1ce1acc9eefe022188db16ab00a46dfcba31dc3c88f8b689926a71e3"
+            },
+            "log": {
+              "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\reader-mask-refresh-v1-066-native.log",
+              "sha256": "6283f944e9b05b3131cf63246b1c7f7349cc9d9f402fba6e18e05d9605c9d1d8"
+            },
+            "resources": {
+              "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\reader-mask-refresh-v1-066-native.resources.json",
+              "sha256": "638246e0f16eb1ae49277721d7ce5fcd545fa8df4dbc668e191430a91f5a35d8"
+            },
+            "elapsedSeconds": 7.748,
+            "peakJobCommitBytes": 867614720
+          },
+          {
+            "phase": "wasm",
+            "record": {
+              "path": "target/course-windows-20261018/reader-compile-mask-refresh/reader-mask-refresh-v1/066-wasm.json",
+              "sha256": "0ae322cb9b304c1a644bd6f726016d2f77d6258bac2888504b6f8405d20d6269"
+            },
+            "log": {
+              "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\reader-mask-refresh-v1-066-wasm.log",
+              "sha256": "3cc362b155f6ffa5d81458fd615ae48aafaab1ed93fb12eb11f83b8041541577"
+            },
+            "resources": {
+              "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\reader-mask-refresh-v1-066-wasm.resources.json",
+              "sha256": "683fb81a1cf0dc398baff72ac38582c8d975b3ad7c30366d0e4386bf06eb9a0f"
+            },
+            "elapsedSeconds": 12.009,
+            "peakJobCommitBytes": 1270255616
+          }
+        ]
+      },
+      {
+        "id": "74zb-build-original-cones-and-spheres",
+        "sourceFingerprint": "6f03b3f7f7cb9cc8d30b0ad50dc665fa3bc6ce32869422d3b02f60f03c6c3754",
+        "sourceSignature": "6116b97bc6d12c198615b3050dba03e08d120e6987ab514390ade7953c87252b",
+        "lockSha256": "f5295652adef20e61beafb5776445d44044a670b94774bf9b7273986cdd6c1ef",
+        "phases": [
+          {
+            "phase": "native",
+            "record": {
+              "path": "target/course-windows-20261018/reader-compile-mask-refresh/reader-mask-refresh-v1/067-native.json",
+              "sha256": "9cd3800e87ba111cd90ade216245a005352eb6b06b864d0c6561349db0bbf827"
+            },
+            "log": {
+              "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\reader-mask-refresh-v1-067-native.log",
+              "sha256": "3c19290c5ce0369efa06b941296c61db2fca4c262ab3ac43d9b2b273f407ed45"
+            },
+            "resources": {
+              "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\reader-mask-refresh-v1-067-native.resources.json",
+              "sha256": "a204fb9a82c5d1468e6a23339473f77ee0757d556fb1f1daa29621927471f6b3"
+            },
+            "elapsedSeconds": 7.856,
+            "peakJobCommitBytes": 873594880
+          },
+          {
+            "phase": "wasm",
+            "record": {
+              "path": "target/course-windows-20261018/reader-compile-mask-refresh/reader-mask-refresh-v1/067-wasm.json",
+              "sha256": "0104589163f8298cba3a9c2b9952e8825822de4b351386198b9c596cda99f085"
+            },
+            "log": {
+              "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\reader-mask-refresh-v1-067-wasm.log",
+              "sha256": "2a31d774a46f5c3bbfdb98e3d5e6878353d2dac778b67e2090889439ae2370e0"
+            },
+            "resources": {
+              "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\reader-mask-refresh-v1-067-wasm.resources.json",
+              "sha256": "80f2097fbd195cf0064c6f4a3203e2cf0dfb19d6dbb93b0145c35121e6556f48"
+            },
+            "elapsedSeconds": 12.254,
+            "peakJobCommitBytes": 1286782976
+          }
+        ]
+      },
+      {
+        "id": "75zf-build-original-parabola-previews-and-sources",
+        "sourceFingerprint": "051847afb5644ee75676f02696188f0e3927e2100ca0ec116940219cf8bdaab7",
+        "sourceSignature": "2e2bcfbf10c8c5098bc8cc3af8bb4cbe56c15b3f37c379fbb2a422d30cb509cf",
+        "lockSha256": "f5295652adef20e61beafb5776445d44044a670b94774bf9b7273986cdd6c1ef",
+        "phases": [
+          {
+            "phase": "native",
+            "record": {
+              "path": "target/course-windows-20261018/reader-compile-mask-refresh/reader-mask-refresh-v1/068-native.json",
+              "sha256": "1395530ccf814f6932e032037d90a484969261ae42d4b6db6ac2ef63d807501a"
+            },
+            "log": {
+              "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\reader-mask-refresh-v1-068-native.log",
+              "sha256": "fde909e7e165d39de8d7da5e61c2c24df35bd7311a0419ef5785876d9aedb9a4"
+            },
+            "resources": {
+              "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\reader-mask-refresh-v1-068-native.resources.json",
+              "sha256": "93715002f4f015378700248f907bcf4e37eee7e84c3ca6304e19bae0ac2e7d32"
+            },
+            "elapsedSeconds": 8.009,
+            "peakJobCommitBytes": 878522368
+          },
+          {
+            "phase": "wasm",
+            "record": {
+              "path": "target/course-windows-20261018/reader-compile-mask-refresh/reader-mask-refresh-v1/068-wasm.json",
+              "sha256": "132d0f12187d220f9b88fd3c01a68dcdc8e42a53327a4920943223ab641e0c40"
+            },
+            "log": {
+              "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\reader-mask-refresh-v1-068-wasm.log",
+              "sha256": "b4ca49c441f58f46466f8c88a26a97932590f379fad88baff5c0a91cbf502a0e"
+            },
+            "resources": {
+              "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\reader-mask-refresh-v1-068-wasm.resources.json",
+              "sha256": "64c7baa4a501021be998ca84cc18d0391791acbbd6276adc790e1b7521a088a0"
+            },
+            "elapsedSeconds": 12.129,
+            "peakJobCommitBytes": 1294327808
+          }
+        ]
+      },
+      {
+        "id": "77zzo-revolve-original-profiles-around-an-axis",
+        "sourceFingerprint": "26f49d8343e7b896aac73f539feb1a0b3b44a86f2799823af8b4383b41c6f659",
+        "sourceSignature": "226ccbf87a22c94180ba0f84c92f91048a9adc9f6fef71feba6519dfd3059d24",
+        "lockSha256": "f5295652adef20e61beafb5776445d44044a670b94774bf9b7273986cdd6c1ef",
+        "phases": [
+          {
+            "phase": "native",
+            "record": {
+              "path": "target/course-windows-20261018/reader-compile-mask-refresh/reader-mask-refresh-v1/069-native.json",
+              "sha256": "7c527e57d3018e9de007ffc3b75b66c818cd9e5ef6d50bfa3c556c48a14e78df"
+            },
+            "log": {
+              "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\reader-mask-refresh-v1-069-native.log",
+              "sha256": "f9a4b2c95942fc979d6e2cad15bbe6f82469c0f0e8cf69c071accb8a39bdd52e"
+            },
+            "resources": {
+              "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\reader-mask-refresh-v1-069-native.resources.json",
+              "sha256": "d41480b9daa0d9f62182145a1c821d8bb3b54afe98ae2f47d609d2d1a2d03212"
+            },
+            "elapsedSeconds": 8.654,
+            "peakJobCommitBytes": 914309120
+          },
+          {
+            "phase": "wasm",
+            "record": {
+              "path": "target/course-windows-20261018/reader-compile-mask-refresh/reader-mask-refresh-v1/069-wasm.json",
+              "sha256": "6c2ce4964276dc182e2f330b5ef021b7c1ab175027f4878411e9460bc57c842d"
+            },
+            "log": {
+              "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\reader-mask-refresh-v1-069-wasm.log",
+              "sha256": "67e52fb66648c7dfad3abeee18ccb7879633950a8628288495d8f1a48add60ae"
+            },
+            "resources": {
+              "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\reader-mask-refresh-v1-069-wasm.resources.json",
+              "sha256": "b741f16521baafa219fcd662b8ee8801ab14b9f1fbbfb22a40bd426f32bc5c9d"
+            },
+            "elapsedSeconds": 12.845,
+            "peakJobCommitBytes": 1318039552
+          }
+        ]
+      },
+      {
+        "id": "78m-exercise-profiles-exact-surfaces-and-one-undo-transaction",
+        "sourceFingerprint": "49e61b3fe02146769939326de94e0b9541f7e2aa626acde35f79efcc898f2e4e",
+        "sourceSignature": "adefc3c708764b67255110ca00e89fbc8a5a2d7bcddfe1d91a6499b5ca25bf08",
+        "lockSha256": "f5295652adef20e61beafb5776445d44044a670b94774bf9b7273986cdd6c1ef",
+        "phases": [
+          {
+            "phase": "native",
+            "record": {
+              "path": "target/course-windows-20261018/reader-compile-mask-refresh/reader-mask-refresh-v1/070-native.json",
+              "sha256": "3d2db428d234fde584ab1e9cb12b585adb6f0f7f1cb9eafe96b290b79b32521c"
+            },
+            "log": {
+              "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\reader-mask-refresh-v1-070-native.log",
+              "sha256": "e16e30dfbcb04a18b6200758f37793d196dbf2d8c26bead95ed27fe12d6ad4df"
+            },
+            "resources": {
+              "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\reader-mask-refresh-v1-070-native.resources.json",
+              "sha256": "afd1b87457dddd3ce99efa04977c467fb71d5e1fc8c156ab0dafffc006e2dca1"
+            },
+            "elapsedSeconds": 8.687,
+            "peakJobCommitBytes": 925913088
+          },
+          {
+            "phase": "wasm",
+            "record": {
+              "path": "target/course-windows-20261018/reader-compile-mask-refresh/reader-mask-refresh-v1/070-wasm.json",
+              "sha256": "e22b88e8fd244af769ca202d4c46050abef84af0710b5afb53b048bd5ff5b4cb"
+            },
+            "log": {
+              "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\reader-mask-refresh-v1-070-wasm.log",
+              "sha256": "6172050654f4d976624ccccceecd2829753d724ad47792a68d761c6f2a98a29f"
+            },
+            "resources": {
+              "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\reader-mask-refresh-v1-070-wasm.resources.json",
+              "sha256": "26bc49d60422fa31d603531672bb2375b9fe51471f00c127c7fa00ace486fe51"
+            },
+            "elapsedSeconds": 12.944,
+            "peakJobCommitBytes": 1318559744
+          }
+        ]
+      },
+      {
+        "id": "79zze-fit-the-original-gordon-surface",
+        "sourceFingerprint": "ec3a41ef21efb4d9dcf059e7886a9a43d1a93632df338a389e01c905774b9502",
+        "sourceSignature": "d033b46101adca716714d5e011b005e1dc301a2b2583230108add4b777ffad11",
+        "lockSha256": "f5295652adef20e61beafb5776445d44044a670b94774bf9b7273986cdd6c1ef",
+        "phases": [
+          {
+            "phase": "native",
+            "record": {
+              "path": "target/course-windows-20261018/reader-compile-mask-refresh/reader-mask-refresh-v1/071-native.json",
+              "sha256": "15402d76b8cf996f8f4a1010a280e102827dc1dce33659eed114047a1fb98b08"
+            },
+            "log": {
+              "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\reader-mask-refresh-v1-071-native.log",
+              "sha256": "d08ca5a828b69bf881f99cdf11587a3c2bbf56e4df0f8102c4c73400bd82990e"
+            },
+            "resources": {
+              "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\reader-mask-refresh-v1-071-native.resources.json",
+              "sha256": "5fc2f408f18b85847fa0d9421c8218d8523324f7eaf005022579602c3aa27d43"
+            },
+            "elapsedSeconds": 8.718,
+            "peakJobCommitBytes": 932892672
+          },
+          {
+            "phase": "wasm",
+            "record": {
+              "path": "target/course-windows-20261018/reader-compile-mask-refresh/reader-mask-refresh-v1/071-wasm.json",
+              "sha256": "180da3d322bba9f53f33804e261bf4fc5884c09222fbec3b75e4dbe5ab21c8e8"
+            },
+            "log": {
+              "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\reader-mask-refresh-v1-071-wasm.log",
+              "sha256": "d80c96b7fd8e79fe621f2a4393006eed6938b0a0539f1281bb8af4df42ff5262"
+            },
+            "resources": {
+              "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\reader-mask-refresh-v1-071-wasm.resources.json",
+              "sha256": "2e981e2c2c8c04c4dd32dfa362f8311218f178daa72ce1ac8d54a74646cc65ef"
+            },
+            "elapsedSeconds": 13.1,
+            "peakJobCommitBytes": 1309757440
+          }
+        ]
+      },
+      {
+        "id": "80za-read-original-projection-planes",
+        "sourceFingerprint": "cb7603850f1b6bc02da0469dbf7eb91893ec158c92a1e45a4321c37192849163",
+        "sourceSignature": "fb37648dd3d5a438c1b74264d5a47eb232f7627daee5c53a254532f8a2ded5f1",
+        "lockSha256": "f5295652adef20e61beafb5776445d44044a670b94774bf9b7273986cdd6c1ef",
+        "phases": [
+          {
+            "phase": "native",
+            "record": {
+              "path": "target/course-windows-20261018/reader-compile-mask-refresh/reader-mask-refresh-v1/072-native.json",
+              "sha256": "b0b95ddc80aaa81036b56bde02ff1402f1d0ad9b1b506db3eb89075d6c6443bc"
+            },
+            "log": {
+              "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\reader-mask-refresh-v1-072-native.log",
+              "sha256": "94f81aa13638435c0ffbadd072f66d83cf5a29adec8a6f6ac438a84d353e0d43"
+            },
+            "resources": {
+              "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\reader-mask-refresh-v1-072-native.resources.json",
+              "sha256": "1051337fb13358223b9cfa8d873b6c31cfd4e50a3e704170e105706057df305f"
+            },
+            "elapsedSeconds": 8.885,
+            "peakJobCommitBytes": 935649280
+          },
+          {
+            "phase": "wasm",
+            "record": {
+              "path": "target/course-windows-20261018/reader-compile-mask-refresh/reader-mask-refresh-v1/072-wasm.json",
+              "sha256": "20313ca97cf1606e9b389cc73d9394deff213806e022a421e116395fe40a802c"
+            },
+            "log": {
+              "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\reader-mask-refresh-v1-072-wasm.log",
+              "sha256": "2234d4aa12c787bf197f6deae3d0b47e602fe11b34bcc0160bf36b62a0d68680"
+            },
+            "resources": {
+              "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\reader-mask-refresh-v1-072-wasm.resources.json",
+              "sha256": "8e44c4bb184941326be4b4ffb8dbe60cb3d68dd55960e3a7fa03ae3854bb2ab0"
+            },
+            "elapsedSeconds": 13.27,
+            "peakJobCommitBytes": 1317445632
+          }
+        ]
+      },
+      {
+        "id": "81za-validate-original-split-inputs-and-name-pieces",
+        "sourceFingerprint": "1f8b7d2f80e5c7bc9dca817c6713cfca7846e28db41656962b52a1977f276c28",
+        "sourceSignature": "63ffd2e4ca9ac7015d4a582643cb8ea8cbb424f7ed4f91608850f4069717aa7e",
+        "lockSha256": "f5295652adef20e61beafb5776445d44044a670b94774bf9b7273986cdd6c1ef",
+        "phases": [
+          {
+            "phase": "native",
+            "record": {
+              "path": "target/course-windows-20261018/reader-compile-mask-refresh/reader-mask-refresh-v1/073-native.json",
+              "sha256": "26c05d70556d81fb2b6fc29669a9e14ee574d5bc746dfcba9bcfbcc6733542b8"
+            },
+            "log": {
+              "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\reader-mask-refresh-v1-073-native.log",
+              "sha256": "ad3686bc0a77729ff2dce5d2d099fe78252fe99614c6bb6b7bc86945bc60fd34"
+            },
+            "resources": {
+              "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\reader-mask-refresh-v1-073-native.resources.json",
+              "sha256": "49b25154b1cff52aa73743c1cbb9e90b179be8b1e21bd9808165114eae38cbb7"
+            },
+            "elapsedSeconds": 9.385,
+            "peakJobCommitBytes": 956780544
+          },
+          {
+            "phase": "wasm",
+            "record": {
+              "path": "target/course-windows-20261018/reader-compile-mask-refresh/reader-mask-refresh-v1/073-wasm.json",
+              "sha256": "26cae19df17ee0546f61bf600a17c8e7a3c0d33c4a87132feecd250d0432bb98"
+            },
+            "log": {
+              "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\reader-mask-refresh-v1-073-wasm.log",
+              "sha256": "1b2c6fac8f81d161bdf62f0baa2a437b60911537e24174c8278577c5fcb2b4b8"
+            },
+            "resources": {
+              "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\reader-mask-refresh-v1-073-wasm.resources.json",
+              "sha256": "b8b1b7d5048a76c6f993ce1f6d699dbf87f2356813d079343ba83cd3d2019f71"
+            },
+            "elapsedSeconds": 13.707,
+            "peakJobCommitBytes": 1359540224
+          }
+        ]
+      },
+      {
+        "id": "82g-exercise-curve-pieces-source-inheritance-and-one-step-undo",
+        "sourceFingerprint": "bc99f08ec2f57632ecfc9f11f82583f4f9036dbbe318f9195cdae7907f75e053",
+        "sourceSignature": "ddabf423cb4c6ad008e58c7a0871fd189c3a2b5d61887f78220bc2e8ba35ba53",
+        "lockSha256": "f5295652adef20e61beafb5776445d44044a670b94774bf9b7273986cdd6c1ef",
+        "phases": [
+          {
+            "phase": "native",
+            "record": {
+              "path": "target/course-windows-20261018/reader-compile-mask-refresh/reader-mask-refresh-v1/074-native.json",
+              "sha256": "4189b41202a91ddd27c577f66175c9a58c5a8b97300a7900465d16b2ff375a6f"
+            },
+            "log": {
+              "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\reader-mask-refresh-v1-074-native.log",
+              "sha256": "71f39e38f9607aee654c20fbee4051bd6e5f0b03476c39509e42ef9a0d37da22"
+            },
+            "resources": {
+              "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\reader-mask-refresh-v1-074-native.resources.json",
+              "sha256": "5b0ffb61ecfea0b79a4a69ff9f30dc8ca218e898dabbc03633a6ee1b443c3305"
+            },
+            "elapsedSeconds": 9.493,
+            "peakJobCommitBytes": 964395008
+          },
+          {
+            "phase": "wasm",
+            "record": {
+              "path": "target/course-windows-20261018/reader-compile-mask-refresh/reader-mask-refresh-v1/074-wasm.json",
+              "sha256": "a1d27583e8644c8291998f43e62ce37609091d72b5e1e088df453f474e40898a"
+            },
+            "log": {
+              "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\reader-mask-refresh-v1-074-wasm.log",
+              "sha256": "6783e0413419f6360d9989154a3e927a09f342c6bb70c53db649b977f706b7d7"
+            },
+            "resources": {
+              "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\reader-mask-refresh-v1-074-wasm.resources.json",
+              "sha256": "9fe8ed9d09247fff3e99822fe3f40f910c6f3b737e4da7e7d782c0e1e646b3eb"
+            },
+            "elapsedSeconds": 13.791,
+            "peakJobCommitBytes": 1375084544
+          }
+        ]
+      },
+      {
+        "id": "83ze-integrate-original-surface-area",
+        "sourceFingerprint": "6438f11d4beeb8e25fc102608abc802aac2c8f9871d05c77d504eabbc5af4698",
+        "sourceSignature": "740647bba752dfaa04f94584b08240f78430dca3996534d934097e74fc3eb096",
+        "lockSha256": "f5295652adef20e61beafb5776445d44044a670b94774bf9b7273986cdd6c1ef",
+        "phases": [
+          {
+            "phase": "native",
+            "record": {
+              "path": "target/course-windows-20261018/reader-compile-mask-refresh/reader-mask-refresh-v1/075-native.json",
+              "sha256": "5d6defd1ec845bbedd699e5ead9c3c906239fee3b1c05f8f3d69e6083697994f"
+            },
+            "log": {
+              "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\reader-mask-refresh-v1-075-native.log",
+              "sha256": "3a6f90b6d965706b701d25665779f30ef10b7fd8f264fcd792d76d40423eb34d"
+            },
+            "resources": {
+              "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\reader-mask-refresh-v1-075-native.resources.json",
+              "sha256": "ea8377bb64bfa082c4b29b13c70b3e1787ea5889597b9bc6ccda76ff8625fbcc"
+            },
+            "elapsedSeconds": 9.528,
+            "peakJobCommitBytes": 971046912
+          },
+          {
+            "phase": "wasm",
+            "record": {
+              "path": "target/course-windows-20261018/reader-compile-mask-refresh/reader-mask-refresh-v1/075-wasm.json",
+              "sha256": "eb75b5415bb601f158b0f6282c32b18fef4d5ce7d418b1f4db8f38fda7bd51f6"
+            },
+            "log": {
+              "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\reader-mask-refresh-v1-075-wasm.log",
+              "sha256": "5fa29feed0d9b03dfbb4d7c98b2561081d2ca84b5ecfc7a37b0a5f221fd54fe3"
+            },
+            "resources": {
+              "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\reader-mask-refresh-v1-075-wasm.resources.json",
+              "sha256": "6aab6b132e081f61c99cd88638aa28409b4e23fc2fd47be95def337321808ea8"
+            },
+            "elapsedSeconds": 13.879,
+            "peakJobCommitBytes": 1399889920
+          }
+        ]
+      },
+      {
+        "id": "84zod-explode-supported-original-families",
+        "sourceFingerprint": "994e2698dd08555fbf8963c0af97bbd646f7e7a11938153777fbf0644fc28141",
+        "sourceSignature": "9dca8a809874ffe405b6210e6fd7631ada75671c44238b9f412c47a372e2b26c",
+        "lockSha256": "f5295652adef20e61beafb5776445d44044a670b94774bf9b7273986cdd6c1ef",
+        "phases": [
+          {
+            "phase": "native",
+            "record": {
+              "path": "target/course-windows-20261018/reader-compile-mask-refresh/reader-mask-refresh-v1/076-native.json",
+              "sha256": "d1ebc56a2d3095f55beca31f944c078b1a6044e53693f165099bd8a5ea550b5f"
+            },
+            "log": {
+              "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\reader-mask-refresh-v1-076-native.log",
+              "sha256": "65d123084a3287c76762f061118640c03db1e3587d07faa6cfe18fae5a731706"
+            },
+            "resources": {
+              "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\reader-mask-refresh-v1-076-native.resources.json",
+              "sha256": "10263bf411c10d64a422d77db430dfbecb35cc2413720cc3e6b077c8f7ef8eae"
+            },
+            "elapsedSeconds": 10.153,
+            "peakJobCommitBytes": 994820096
+          },
+          {
+            "phase": "wasm",
+            "record": {
+              "path": "target/course-windows-20261018/reader-compile-mask-refresh/reader-mask-refresh-v1/076-wasm.json",
+              "sha256": "7d04c6a04127f1b476e1766e7583c5b3411619e3ffc9d5a34736f8fa955df103"
+            },
+            "log": {
+              "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\reader-mask-refresh-v1-076-wasm.log",
+              "sha256": "61beaaaff135d9771d0c824b5f1afd9d4e7629d8a231ba4f29cfc75f01d7ce47"
+            },
+            "resources": {
+              "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\reader-mask-refresh-v1-076-wasm.resources.json",
+              "sha256": "6ba72c3844b5dc56b1e8a84ccfc58f5037a5ba487b348aa94d751dfdc71d1371"
+            },
+            "elapsedSeconds": 14.416,
+            "peakJobCommitBytes": 1387618304
+          }
+        ]
+      },
+      {
+        "id": "86r-cache-projection-and-finish-current-reports",
+        "sourceFingerprint": "38b64c84626b9655313f17c637b0d35b15980aae09af8d11612fb661fb34c130",
+        "sourceSignature": "c4d6145180e10eac8dd86380f412612d206b22ae46e1cc596d47031e16b365d3",
+        "lockSha256": "f5295652adef20e61beafb5776445d44044a670b94774bf9b7273986cdd6c1ef",
+        "phases": [
+          {
+            "phase": "native",
+            "record": {
+              "path": "target/course-windows-20261018/reader-compile-mask-refresh/reader-mask-refresh-v1/077-native.json",
+              "sha256": "03717d2cbc8138981333c46dc6540a98abcaf464df42208d85e2482811a2d48a"
+            },
+            "log": {
+              "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\reader-mask-refresh-v1-077-native.log",
+              "sha256": "b5c8a2ef54e3985d9391327d7a96c74a0da2f8bb395116c4f5545601991ecfc8"
+            },
+            "resources": {
+              "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\reader-mask-refresh-v1-077-native.resources.json",
+              "sha256": "bd2d955a615ef90e4dcd68611618d81a340fce4a0fc8eda73ece1c3c7bcf48ba"
+            },
+            "elapsedSeconds": 11.313,
+            "peakJobCommitBytes": 1057193984
+          },
+          {
+            "phase": "wasm",
+            "record": {
+              "path": "target/course-windows-20261018/reader-compile-mask-refresh/reader-mask-refresh-v1/077-wasm.json",
+              "sha256": "2b7811b807605f7619e1806683147b2f4c66c201cd5a1ffb7c55e6cfcc891e4d"
+            },
+            "log": {
+              "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\reader-mask-refresh-v1-077-wasm.log",
+              "sha256": "1e7778517ab94cfdc63e043f73f3061353024eae32a6d8cdfc5ba758f014d950"
+            },
+            "resources": {
+              "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\reader-mask-refresh-v1-077-wasm.resources.json",
+              "sha256": "fba33cd9d82107da4d0db59068bee6b681fcddcb0930e4cf9d69ffa0fb9fb066"
+            },
+            "elapsedSeconds": 15.557,
+            "peakJobCommitBytes": 1434939392
+          }
+        ]
+      },
+      {
+        "id": "86aq-exercise-finite-color-and-original-picking",
+        "sourceFingerprint": "2e25b3b575b088af90f09ec850b763fbbd60763e19f2d43d2d03e61adc6a3930",
+        "sourceSignature": "cd16a36c6b2336429adfe15762d6084e58c6e215e4169e7b5e2aa81d298f528f",
+        "lockSha256": "f5295652adef20e61beafb5776445d44044a670b94774bf9b7273986cdd6c1ef",
+        "phases": [
+          {
+            "phase": "native",
+            "record": {
+              "path": "target/course-windows-20261018/reader-compile-mask-refresh/reader-mask-refresh-v1/078-native.json",
+              "sha256": "d907f717af962a12b30436268ecbf1b5120d7e32e5839e36cf0969f0501e7460"
+            },
+            "log": {
+              "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\reader-mask-refresh-v1-078-native.log",
+              "sha256": "1e49f328f09f95f76a15815d5cd6c15fd6a460b10024f7717338d6e4a20fbf15"
+            },
+            "resources": {
+              "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\reader-mask-refresh-v1-078-native.resources.json",
+              "sha256": "6175f83b9e364e88b18bb83e0b0537a8a4d1b61b56a9169c9039d4412e831416"
+            },
+            "elapsedSeconds": 11.269,
+            "peakJobCommitBytes": 1062023168
+          },
+          {
+            "phase": "wasm",
+            "record": {
+              "path": "target/course-windows-20261018/reader-compile-mask-refresh/reader-mask-refresh-v1/078-wasm.json",
+              "sha256": "827eed1cbf72c9b1732248cafc755329840258dd84d0a86f6c76ba46c9926a07"
+            },
+            "log": {
+              "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\reader-mask-refresh-v1-078-wasm.log",
+              "sha256": "68d2e691866d34d2aab326a28079562e6a1e5e1e52acbc597b9f7c681fd0d88a"
+            },
+            "resources": {
+              "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\reader-mask-refresh-v1-078-wasm.resources.json",
+              "sha256": "42762931d24b4b4b214db720c5a73bbea7cf442055792d6908e4066e7acd4793"
+            },
+            "elapsedSeconds": 15.464,
+            "peakJobCommitBytes": 1452670976
+          }
+        ]
+      }
+    ]
+  },
+  "current": {
+    "endpoints": 101,
+    "phases": 202,
+    "pendingEndpoints": 0,
+    "pendingPhases": 0
+  },
+  "scope": [
+    "Compiler-only Native cargo check --tests --examples and WASM library builds. Exactly32affected phases executed;170prior phases reused only through recorded current relevant-input qualification.",
+    "No all202fresh execution claim; no native test/GPU/frame/optimizedweb/browser acceptance.",
+    "Original full202phase review,53u failed phase history and mask-invalidation audit remain immutable under original source bindings.",
+    "This completes the101endpoint compiler lane; source-specific callbacks remain2/18accepted16pending,feature3/18complete15partial,fixture1/4,release0/5."
+  ]
+}

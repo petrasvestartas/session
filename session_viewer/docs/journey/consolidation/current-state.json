@@ -149,6 +149,19 @@
       "record": "release/maintained97-export-recovery-review.json",
       "sourceFingerprint": "06359f77b5c26901e6d6e155808ce05946282865b10fffdf4e36e07c494ba3ce",
       "scope": "97source-specificcallbackonly; nativecfg/frame reuse and fullnative notexecuted remain separatelyqualified."
+    },
+    "readerCompilerProof": {
+      "status": "PASS compiler-only101 endpoints/202 phases:85 retained+16 freshly compiled",
+      "record": "release/reader-compilation-mask-refresh-review.json",
+      "courseSha256": "367065739cee3cbf01e1b240c9eca4a1e0c12092eccab2fe2345cbc783a55197",
+      "retainedEndpoints": 85,
+      "retainedQualifiedPhases": 170,
+      "freshEndpoints": 16,
+      "freshPhases": 32,
+      "currentEndpoints": 101,
+      "currentPhases": 202,
+      "pendingPhases": 0,
+      "scope": "Only32affected compiler phases newlyexecuted; original170remain scoped/reused, no test/GPU/browser proof."
     }
   },
   "resourceGuard": {
@@ -161,7 +174,7 @@
   },
   "currentDefects": [
     "All three approved browser input corrections are applied. The 2603.825-second full94c replay passed those sites, then failed Split setup with inherited Control mode. The tested Object-mode correction and full replay/qualified phase-reuse choice await their separate saved-plan exception.",
-    "Current compiler proof retains85/101endpoints and170/202phases after historical70d mask correction;16endpoints/32phases before87p require qualification. Original202phase receipt stays historical. Final713 proof unchanged; maintained714 native-cfg proof has scoped reuse, fresh WASM/web/browser required after97-onlyexport annotation correction.",
+    "Reader compiler lane complete101/101endpoints202/202phases:85retained170qualifiedphases plus16fresh32actualphases. Original source-bound records and mask-invalidation history retained; no all202new execution or test/browser claim.",
     "Original18source-specificcallbackentries: finalCAD andmaintained97 accepted2;16remain including13historical+3late display.65clegacy document-error failure retained; historicalfixtures1/4.",
     "Matrix, Camera/Plane and Joined finite features are3/18 complete;15remain partial. Global release0/5. Native1060 and scoped docs content/layout proofs pass; Gemini first10/redraft and current combined-book handoff remain deferred.",
     "Production ribbon guide fix: two CPU regressions and four strict full-RGBA pairs accepted; eight original images inspected. Separate current qualified native recovery, frame/WASM/web/boot and scoped lesson publication records pass. Full callbacks and global release remain pending.",
@@ -172,12 +185,10 @@
   "onlyHeavy": {
     "task": "Exact32affectedreader compiler phases",
     "rootSession": 43900,
-    "status": "running-unaccepted",
-    "memoryLimitMiB": 4096,
-    "processors": 2,
-    "scope": "reader-mask-refresh-v1 CPU/compilerlane, noGUI. Currentcompiler85/101endpoints170/202phases untilactualcompletion;16endpoints32phasespending."
+    "status": "completed-pass",
+    "scope": "All32actualphasesPASS. Current101/101compilerendpoints202/202phases=170retained+32fresh. No active newheavy job asserted by this publication snapshot."
   },
-  "next": "Finish actual43900 exact32affectedreader compiler phases; retain85/101current untilcompletedproof. Continue remaining16source-specificcallbacks; typingV3 frozen-harness exception pending. Feature3/18complete15partial,fixture1/4,release0/5 unchanged.",
+  "next": "Continue source-matching chapter14(76d) artifacts and its original browser callback, then remaining16source-specificcallbacks. Readercompiler101/101current; features3/18complete15partial,fixtures1/4,release0/5 unchanged. TypingV3 operational frozen-harness exception remains pending.",
   "localDocs": "http://127.0.0.1:8788/docs/#/course",
   "progressPlan": "../../../../docs/plans/2026-10-18-viewer-course-progress.md",
   "stages": {
@@ -763,19 +774,19 @@
     "executionWaitRecord": "docs/journey/release/warp-browser-wait-review.json",
     "executionWaitHelper": "session_tests/scripts/course/warp-browser-timeout.cjs",
     "readerCompilerProof": {
-      "status": "Current source-qualified compiler proof:85/101 endpoints,170/202 phases;16endpoints/32phases pending after historical70d mask runtime correction",
+      "status": "PASS current compiler-only101/101endpoints202/202phases:85retained170qualifiedphases+16fresh32actualphases",
       "readerEndpoints": 111,
       "compilerOnlyEndpoints": 101,
       "maximumCompilerPhases": 202,
       "excludedEndpoints": 10,
-      "scope": "Separate Native cargo check --tests --examples and WASM lib builds for missing reader compilation proof. Ten reader endpoints have matching scoped proof or separately scheduled canonical work. These exclusions remain obligations until scheduled work passes. Native typechecking does not run/link tests or frames; no optimized packaging, screenshot or browser acceptance claim. Historical source changed from70d until87p convergence. Old202phase evidence is retained under original bindings; only the16affected endpoints/32phases need fresh qualification.",
+      "scope": "101reader compiler endpoints current:170originalNative/WASMphase results retained through exact relevant-input qualification and32affected phases freshlypassed. No all202new execution, native-test/GPU/frame/optimizedweb/browser acceptance. Ten excludedreader endpoints retain their separate scheduled/proved obligations.",
       "localPlan": "target/course-windows-20261018/reader-compile-lane-plan.json",
       "belongsTo": "Existing final integration/runnable-proof group; not an additional browser entry or101 full GPU suites.",
-      "successfulEndpoints": 85,
-      "remainingEndpoints": 16,
-      "successfulPhases": 170,
-      "record": "docs/journey/release/70d-mask-projection-repair-review.json",
-      "remainingPhases": 32,
+      "successfulEndpoints": 101,
+      "remainingEndpoints": 0,
+      "successfulPhases": 202,
+      "record": "docs/journey/release/reader-compilation-mask-refresh-review.json",
+      "remainingPhases": 0,
       "originalCompletedProof": {
         "status": "Compiler-only lane:101/101 endpoints,202/202 phases passed",
         "readerEndpoints": 111,
@@ -792,7 +803,21 @@
         "reusedPriorPhases": 82,
         "newV2Phases": 120
       },
-      "currentAdjustmentRecord": "release/70d-mask-projection-repair-review.json"
+      "currentAdjustmentRecord": "release/70d-mask-projection-repair-review.json",
+      "retainedQualifiedEndpoints": 85,
+      "retainedQualifiedPhases": 170,
+      "freshEndpoints": 16,
+      "freshPhases": 32,
+      "courseSha256": "367065739cee3cbf01e1b240c9eca4a1e0c12092eccab2fe2345cbc783a55197",
+      "previousMaskInvalidationState": {
+        "status": "Current source-qualified compiler proof:85/101 endpoints,170/202 phases;16endpoints/32phases pending after historical70d mask runtime correction",
+        "successfulEndpoints": 85,
+        "successfulPhases": 170,
+        "remainingEndpoints": 16,
+        "remainingPhases": 32,
+        "record": "docs/journey/release/70d-mask-projection-repair-review.json",
+        "scope": "Separate Native cargo check --tests --examples and WASM lib builds for missing reader compilation proof. Ten reader endpoints have matching scoped proof or separately scheduled canonical work. These exclusions remain obligations until scheduled work passes. Native typechecking does not run/link tests or frames; no optimized packaging, screenshot or browser acceptance claim. Historical source changed from70d until87p convergence. Old202phase evidence is retained under original bindings; only the16affected endpoints/32phases need fresh qualification."
+      }
     },
     "latest94cTailAttempt": {
       "status": "failed-historical-command-echo-assertion",
@@ -958,7 +983,7 @@
       "releaseGatesDone": 0,
       "releaseGatesTotal": 5
     },
-    "next": "Finish actual43900 exact32affectedreader compiler phases; retain85/101current untilcompletedproof. Continue remaining16source-specificcallbacks; typingV3 frozen-harness exception pending. Feature3/18complete15partial,fixture1/4,release0/5 unchanged.",
+    "next": "Continue source-matching chapter14(76d) artifacts and its original browser callback, then remaining16source-specificcallbacks. Readercompiler101/101current; features3/18complete15partial,fixtures1/4,release0/5 unchanged. TypingV3 operational frozen-harness exception remains pending.",
     "chapter14": {
       "status": "FAIL original76d outer final-status assertion after complete canonical callback returned",
       "record": "release/76d-browser-failure-review.json",
@@ -1065,6 +1090,19 @@
         "sha256": "aac938089e0d335c40bf3f287491b760216caa9b30364a99f86d1c293b9d5b6b"
       },
       "courseSha256": "367065739cee3cbf01e1b240c9eca4a1e0c12092eccab2fe2345cbc783a55197"
+    },
+    "readerCompilerRefresh": {
+      "status": "PASS compiler-only101 endpoints/202 phases:85 retained+16 freshly compiled",
+      "record": "release/reader-compilation-mask-refresh-review.json",
+      "courseSha256": "367065739cee3cbf01e1b240c9eca4a1e0c12092eccab2fe2345cbc783a55197",
+      "retainedEndpoints": 85,
+      "retainedQualifiedPhases": 170,
+      "freshEndpoints": 16,
+      "freshPhases": 32,
+      "currentEndpoints": 101,
+      "currentPhases": 202,
+      "pendingPhases": 0,
+      "scope": "Only32affected compiler phases newlyexecuted; original170remain scoped/reused, no test/GPU/browser proof."
     }
   }
 }
