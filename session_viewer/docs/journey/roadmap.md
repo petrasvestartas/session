@@ -1,8 +1,12 @@
 - [x] Source integration complete: 59 late-chapter teaching introductions and 20 figures now accompany the committed Argo diagrams from `d1d0871f`; all diagram and checkpoint code bytes retained. [Integration record](release/concurrent-teaching-integration-review.json).
 
-- [ ] Current e432 integration: full1,062-test native suite running; current native frame/WASM/web bundle and changed lesson desktop/phone publication pending.
+- [x] Final fixture-source authoring22/22, structure1,361/reference43, and lesson22.6 six-block desktop/phone publication pass; four original-resolution views inspected.
+- [x] Current-source native frame, WASM compilation, optimized web packaging and browser boot/render pass; both saved frames individually inspected. [Artifact review](release/final-fef4-artifact-review.json).
+- [ ] Full tutorial callbacks: 1/18 accepted, 17 left. Historical fixture callbacks: 1/4 accepted, 3 left. Final release: 0/5 gates closed. Counts overlap; current chapter13 nested-placement full browser callback is running.
 
-- [x] Clipping-guide authoring22/22 and structure1,361/reference43 pass. Initial pen-update docs publication passed at its recorded source; fresh ribbon-update publication remains pending.
+- [x] Native integration has qualified recovery: original fullrun1,060PASS/2FAIL, followed by two exact corrected authored-fixture passes with unchanged production inputs. No single unfiltered1,062PASS claimed.
+
+- [x] Clipping-guide authoring22/22 and structure1,361/reference43 pass. Updated ribbon and authored-fixture lesson additions pass scoped desktop/phone publication; four original views inspected.
 - [x] Clipping-guide focused repair: two CPU regressions and all four unchanged full-RGBA pairs pass at zero tolerance. All eight original PNGs inspected. Prior72/264-pixel failures remain preserved.
 
 - [x] Published and reviewed the integrated teaching content: 59 introductions, 111 links, 21 decoded images and 17 inspected views. Duplicate navigation and phone overflow fixes pass four additional views. [UI proof](release/docs-navigation-overflow-review.json). Gemini first 10/redraft and current whole-book handoff remain deferred.
@@ -15,7 +19,7 @@
 
 - [x] Lesson 22.6 now teaches lighting, backface color and opaque/glass/Xray behavior with six actual production figures. The 48.251 s docs build and changed-page check pass: 27 images decode, eight desktop/phone views individually inspected. [Material teaching review](release/material-teaching-visible-review.json).
 
-## Current completion stages - 2026-10-23
+## Current completion stages - 2026-10-24
 
 - [x] Applied the three approved browser input corrections: visible command-field click and two physical Escape cancellations. All assertions retained; focused candidates pass at DPR 1/2. The full replay passed those sites, then failed Split setup because Control mode was retained. The tested Object-mode correction awaits the separate saved-plan exception; full acceptance remains pending.
 

@@ -1,5 +1,5 @@
 {
-  "updated": "2026-10-23",
+  "updated": "2026-10-24",
   "platform": "windows",
   "scope": "Complete the 22-chapter viewer course and production reconciliation plan",
   "chaptersConsolidated": 22,
@@ -17,7 +17,7 @@
     "finalCadNativeFrame": "PASS: canonical640x480 native frame at97d, exactPNG individually reviewed; release/final-cad-native-frame-review.json. Full browser and whole-checkpoint acceptance remain separate.",
     "finalChapterAudit": "PASS: 21 lessons, 197 checkpoints, 4840 original code blocks, 2346 snippet includes, 247 relative links",
     "navigation": "PASS: 111 lessons in contents/daily plan; 1360 aliases and all local links retained",
-    "courseTools": "PASS current22/22 authoring; target/course-windows-20261018/clipping-guide-ribbon-v4-preparation/authoring/authoring.log",
+    "courseTools": "PASS current22/22 authoring and1361structure/43reference gates; clipping-guide-two-fixture-isolation-v5/authoring/.",
     "softwareWebGpu": "PASS: Windows WARP selected by verified currentLUID, strict Microsoft/warp/fallback identity,16exacttexturepixels, canvascompletion+sRGBscreenshot; software-warp-check.resources.json exit0,1.795s,422383616bytes. Earlier SwiftShaderoffscreen result is not presentation proof.",
     "nativeFixtureSourceChecks": "Four deterministic original inputs generated. Current96y focused feature_pick_tests2/2 and full native831/831 pass at their recorded source; complete feature-original-pick browser callback passes after approved live-count correction. Historical fixture callbacks1/4 accepted;94c,96h,96v remain pending.",
     "normalDependencies": "PASS: locked normal native dependency tree excludes session_viewer; normal-dependency-tree.json. Diagnostic/dev examples still compile.",
@@ -36,7 +36,17 @@
     "printedFills": "HISTORICAL PASS: printed-fill tests passed within the a45 learner1059/1059 suite. Generated-print and retained-original Plane matrices also have bounded native RGBA evidence. Current full native, owner-pick and browser/display-family acceptance remain separate.",
     "publishedCi": "PASS atb7cdd5dc: run39928419284,WASM+native all-target checks,558 maintained native tests pass,61ignored GPU tests. This is separate from learner1059-test WARP suite.",
     "pullLauncherSafety": "PASS:pull-launcher-regression.json;8isolated Bash/cmd help/invalid/dirty/unpublished cases,HEADandpayload preserved. No destructive force run.",
-    "nativeFullCurrent": "PASS current97d:1060/1060 unfiltered native tests, zero failures/ignored/filtered; guarded 1385.144s, peak 1512873984B. Native integration acceptance only; compiler/browser/publication work remains.",
+    "nativeFullCurrent": {
+      "status": "qualified-recovery-after-failed-full-run",
+      "sourceFingerprint": "fef4c7bdb6f4c0a6f7a7701b0ba5581469dd757a34eefbab030a06e92ce4e5a1",
+      "courseSha256": "d4ab046ec86c32ca3524afdf9f665dac30821367ce0bf5899f61ab7baf2f026e",
+      "originalPassed": 1060,
+      "originalFailed": 2,
+      "exactFocusedRecovered": 2,
+      "singleUnfiltered1062Pass": false,
+      "record": "release/native-ribbon-v4-qualified-recovery-review.json",
+      "scope": "Qualified native recovery only; not one unfiltered1062PASS. Current frame/WASM/optimizedweb/bootrender and scoped lesson publication have separate records.17fullcallbacks and global release remain pending."
+    },
     "nativeSourceAfterDisposal": "PASS current97d:1060/1060 unfiltered native tests, zero failures/ignored/filtered; guarded 1385.144s, peak 1512873984B. Native integration acceptance only; compiler/browser/publication work remains. Historical a45/1059 and96y/831 proofs retain their original source bindings.",
     "svgRendering": "PASS: shared SVG tokenizer, five focused parser tests, svg-docs-build.json (123.144s), and svg-visible.json. Complete Gemini diagram visually inspected after full reload; original authored Markdown unchanged.",
     "frameSchedule": "PASS: three native CPU semantics plus unchanged browser coalescing/disposal contract at63acaf79. Ordered input, one pending frame, geometry reuse, idle0 and no late disposal submissions; cached-page browser resume remains separate.",
@@ -63,7 +73,7 @@
     "escapeAuthoring": "PASS22/22 and structure/replay. Four user-approved shortcut corrections pass focused actual layers/labels/delete helper checks; complete enclosing94c/final callbacks remain pending.",
     "escapeBrowserRegression": "PASS: gpu-pick-escape-smoke-browser.resources.json,7.633s,506716160B. RealDPR1 Point sameoriginalObjectId3 selectedbefore/afterzoom; ordinaryEscapeclearsselection andsecondGPUsubmissioncompletes. FullcanonicalDPR1/2 matrix remains separate/running.",
     "historicalMetadataBackport": "PASS: dated inventory,count312 and UTF8-LF audit at96h/96v/96y, plus96zzzzf/g refresh. Current one-entry witness refresh producedc54a9960; no runtime/assertion changes in this refresh. Historical Opacity behavior and old source-proof bindings retained.",
-    "productionCoverageAccounting": "All307production modules,111lessons and1361checkpoint mappings are accounted for. Matrix+Camera2/18 finite feature complete;16partial; final release0/5. Module inventory is separate from behavior acceptance.",
+    "productionCoverageAccounting": "All307production modules,111lessons and1361checkpoint mappings accounted for. Matrix,Camera/Plane,Joined3/18 finite features complete;15partial; final release0/5. Module inventory is separate from behavior acceptance.",
     "nativeReuseAudit": "Historical64e13 reuse boundary excludes later hierarchy and97d TextPlane runtime changes.433-entry source inventory preflight remains separate from native execution;1059 result remains bound toa45.",
     "generatedCoveredPlane": "PASS: 16/16 exact full-RGBA pairs, 288.067 s, peak 995,434,496 B. Public plane-generated-covered-native-review.json and four individually inspected figures. Production and course axes remain visible over the opaque lid; no owner-pick or browser acceptance is claimed.",
     "generatedPrintPlane": "PASS: 16/16 exact full-RGBA pairs, 272.855 s, peak 973,623,296 B. Public plane-generated-print-native-review.json and four individually inspected figures. Generated 2,215-byte input is distinct from the historical 2,223-byte covered source; no owner-pick or browser acceptance is claimed.",
@@ -115,15 +125,24 @@
       "record": "release/clipping-guide-ribbon-native-review.json",
       "priorPartialRecord": "release/clipping-guide-source-fix-partial-review.json",
       "expectedFullNativeTests": 1062,
-      "fullNativeAcceptance": "pending;not accepted by focused proof"
+      "fullNativeAcceptance": "QUALIFIED1060 unchanged namedPASS plus2exactfocusedrecovery; originalunfiltered fullrun remainsFAIL1060/1062"
     },
     "clippingGuideRibbonFullNative": {
-      "status": "pending-not-accepted",
-      "expectedTests": 1062,
-      "prepared": {
-        "path": "target/course-windows-20261018/native-ribbon-v4-integration-preparation/prepared-20261023T232308585Z.json",
-        "sha256": "77775f519f3115f940f006be32c3a656e1f6ec190ffbaaac17b58ff55274e9c5"
-      }
+      "status": "qualified-recovery-after-failed-full-run",
+      "sourceFingerprint": "fef4c7bdb6f4c0a6f7a7701b0ba5581469dd757a34eefbab030a06e92ce4e5a1",
+      "courseSha256": "d4ab046ec86c32ca3524afdf9f665dac30821367ce0bf5899f61ab7baf2f026e",
+      "originalPassed": 1060,
+      "originalFailed": 2,
+      "exactFocusedRecovered": 2,
+      "singleUnfiltered1062Pass": false,
+      "record": "release/native-ribbon-v4-qualified-recovery-review.json",
+      "scope": "Qualified native recovery only; not one unfiltered1062PASS. Current frame/WASM/optimizedweb/bootrender and scoped lesson publication have separate records.17fullcallbacks and global release remain pending."
+    },
+    "finalCurrentArtifacts": {
+      "status": "PASS finite current-source native frame, WASM, optimized web and actual browser boot/render",
+      "sourceFingerprint": "fef4c7bdb6f4c0a6f7a7701b0ba5581469dd757a34eefbab030a06e92ce4e5a1",
+      "record": "release/final-fef4-artifact-review.json",
+      "scope": "Both saved frames individually inspected. Debug WASM compile output was subsequently replaced by the next tutorial build; its original successful compilation evidence and recorded hash remain. Optimized runtime payloads are retained. No full callback/global release acceptance inferred."
     }
   },
   "resourceGuard": {
@@ -139,17 +158,18 @@
     "Reader compiler checks pass101/101 endpoints and202/202 phases.53u prerequisite move is applied and its unchanged CPU focus regression passes. Source converges exactly at54a; Reader execution prefixes remain unchanged; final source is now e432 at its separate source proof. Generated checkpoint references are updated;2consolidated Gemini reader code proposals remain prepared and its chapters untouched.",
     "Original18 source-specific callback entries: finalCAD accepted1;17remain including13historical.65c complete browser failed at legacy document-error wording after successful file/read phases; failure preserved and source-aware candidate prepared.96y fixture proof remains accepted within its scope; historical fixture set1/4.",
     "Matrix, Camera/Plane and Joined finite features are3/18 complete;15remain partial. Global release0/5. Native1060 and scoped docs content/layout proofs pass; Gemini first10/redraft and current combined-book handoff remain deferred.",
-    "Clipping-guide ribbon fix:current e432/course7aee has focusedCPU2 and four strict zero-difference original pairs accepted;prior partial failures retained. Fullnative1062/browser17/fresh affected docs publication remain pending."
+    "Production ribbon guide fix: two CPU regressions and four strict full-RGBA pairs accepted; eight original images inspected. Separate current qualified native recovery, frame/WASM/web/boot and scoped lesson publication records pass. Full callbacks and global release remain pending."
   ],
   "onlyHeavy": {
-    "task": "Full ribbon-v4 native integration",
-    "rootSession": 97584,
-    "status": "running-root-confirmed-at-publish",
-    "expectedTests": 1062,
-    "accepted": false,
-    "prepared": "target/course-windows-20261018/native-ribbon-v4-integration-preparation/prepared-20261023T232308585Z.json"
+    "task": "Chapter13 nested-placement full source-specific browser callback",
+    "rootSession": 24033,
+    "status": "running-unaccepted",
+    "checkpoint": "70d-exercise-rotated-and-mirrored-original-references",
+    "memoryLimitMiB": 6144,
+    "processors": 2,
+    "scope": "Native compile, WASM, optimized web, frame and sample passed; frame individually inspected. Original complete callback running, no acceptance yet."
   },
-  "next": "Repair guide coverage and cap-visibility residuals using exact production semantics; retain zero-tolerance original4pairs. Run1061integration once after focusedPASS. Continue17browsercallbacks and remainingreleasechecks; preserveGemini1-10ownership.",
+  "next": "Finish70d original complete browser callback, then76d/80d and other ready entries.17callbacks/15partialfeatures/5releasegates remain; counts overlap. Preserve Gemini1-10 ownership and pending saved-plan exceptions.",
   "localDocs": "http://127.0.0.1:8788/docs/#/course",
   "progressPlan": "../../../../docs/plans/2026-10-18-viewer-course-progress.md",
   "stages": {
@@ -243,10 +263,10 @@
   },
   "currentSource": {
     "id": "96zzzzzzzq-draw-original-cad-wire-curves",
-    "fingerprint": "e432b904b457958d0162c0acece4adebd97494934e793062dcaa56217637edf6",
+    "fingerprint": "fef4c7bdb6f4c0a6f7a7701b0ba5581469dd757a34eefbab030a06e92ce4e5a1",
     "files": 713,
-    "recordedAt": "2026-10-23T17:02:35.831075+00:00",
-    "courseSha256": "7aee0b146b7804e1bb5db44b6e229131f16d5041033f4e82dbf5cc3250054544",
+    "recordedAt": "2026-10-24T00:19:19.009Z",
+    "courseSha256": "d4ab046ec86c32ca3524afdf9f665dac30821367ce0bf5899f61ab7baf2f026e",
     "metadataRefreshAtC54": "Only src/current_inventory.json changes one external witness hash after native helper registers Matrix titles and publishes visible labels. All other712 learner files are byte-identical; old execution proofs retain recorded fingerprints.",
     "deltaFromC54": {
       "fromFingerprint": "c54a9960f80340aa9d01aa7c0e0eaf5920b18fefa360656a123e6ccb8ad09f91",
@@ -267,7 +287,18 @@
         "src/plane_original.rs",
         "src/production_joined.rs"
       ],
-      "scope": "Production ribbon guide fix:CPU2 and four fixed-source strict pairs accepted; root8image review separately explicit. Fullnative1062, current browser/WASM and fresh docs build/visible publication remain pending."
+      "scope": "Production ribbon guide fix: two CPU regressions and four strict full-RGBA pairs accepted; eight original images inspected. Separate current qualified native recovery, frame/WASM/web/boot and scoped lesson publication records pass. Full callbacks and global release remain pending."
+    },
+    "qualifiedNativeRecovery": {
+      "status": "qualified-recovery-after-failed-full-run",
+      "sourceFingerprint": "fef4c7bdb6f4c0a6f7a7701b0ba5581469dd757a34eefbab030a06e92ce4e5a1",
+      "courseSha256": "d4ab046ec86c32ca3524afdf9f665dac30821367ce0bf5899f61ab7baf2f026e",
+      "originalPassed": 1060,
+      "originalFailed": 2,
+      "exactFocusedRecovered": 2,
+      "singleUnfiltered1062Pass": false,
+      "record": "release/native-ribbon-v4-qualified-recovery-review.json",
+      "scope": "Qualified native recovery only; not one unfiltered1062PASS. Current frame/WASM/optimizedweb/bootrender and scoped lesson publication have separate records.17fullcallbacks and global release remain pending."
     }
   },
   "coordination": {
@@ -275,9 +306,8 @@
     "integrator": "Chapters11â€“22, runtime, shared metadata, builds, validation and Git integration.",
     "geminiLatestCommit": "bc861507 reformats all111 lessons and changes docs presentation. That commit and first-ten chapter ownership are preserved. Root restored59 authored introductions additively in chapters11â€“22 without changing formatted checkpoint code. Current combined-book acceptance requires rebuilt visible review and Gemini handoff; prior v7/v9 reviews keep their original built-source scopes.",
     "activeAgents": {
-      "browser_startup_memory": "Prepares remaining canonical callback inputs and maintained97/finalCAD build-reuse audits; no heavy jobs.",
-      "plane_completion": "Completed bounded native Matrix,CAD baseline5 and reload/grid evidence/image reviews; updating four public progress files only. No heavy job ownership.",
-      "chapter_browser_queue": "Audits chapters11-22 prose and prepares additive restoration of missing teaching material; no heavy jobs."
+      "plane_completion": "Completed final artifact publication preparation; root owns execution and public writes.",
+      "chapter_browser_queue": "Prepared source-bound70d/76d/80d build and full-callback launchers; no heavy execution."
     }
   },
   "publication": {
@@ -773,12 +803,12 @@
     "record": "release/clipping-guide-ribbon-native-review.json",
     "finding": "Production ribbon coverage/cap visibility matches all four retained scenes exactly; duplicate legacy drawing suppressed while source queries remain.",
     "rootImageReview": "All8 actual lossless originals individually inspected",
-    "finiteBoundary": "Narrow clipping-guide repair; ordinaryPlane80 unchanged; full1062native/currentbundle/browser/docs pending.",
+    "finiteBoundary": "Narrow clipping-guide repair; ordinaryPlane80 retained. Qualified native recovery and current final artifacts/scoped lesson publication now have separate source-bound records. Full browser/global release remain pending.",
     "previousPartialRecord": "release/clipping-guide-source-fix-partial-review.json"
   },
   "clippingGuideDocsPublication": {
-    "status": "PASS scoped changed lesson22.6 publication",
-    "record": "release/clipping-guide-docs-visible-review.json",
-    "currentSourceUpdate": "Two additional ribbon-path instructions applied; fresh build/browser at e432 pending. Existing visible proof remains at4466."
+    "status": "PASS scoped22.6 six source additions and corrected authored fixtures",
+    "record": "release/clipping-guide-two-fixture-docs-visible-review.json",
+    "sourceFingerprint": "fef4c7bdb6f4c0a6f7a7701b0ba5581469dd757a34eefbab030a06e92ce4e5a1"
   }
 }

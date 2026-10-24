@@ -1,8 +1,12 @@
 - [x] Source integration complete: 59 late-chapter teaching introductions and 20 figures now accompany the committed Argo diagrams from `d1d0871f`; all diagram and checkpoint code bytes retained. [Integration record](../../session_viewer/docs/journey/release/concurrent-teaching-integration-review.json).
 
-- [ ] Current e432 integration: full1,062-test native suite running; current native frame/WASM/web bundle and changed lesson desktop/phone publication pending.
+- [x] Final fixture-source authoring22/22, structure1,361/reference43, and lesson22.6 six-block desktop/phone publication pass; four original-resolution views inspected.
+- [x] Current-source native frame, WASM compilation, optimized web packaging and browser boot/render pass; both saved frames individually inspected. [Artifact review](../../session_viewer/docs/journey/release/final-fef4-artifact-review.json).
+- [ ] Full tutorial callbacks: 1/18 accepted, 17 left. Historical fixture callbacks: 1/4 accepted, 3 left. Final release: 0/5 gates closed. Counts overlap; current chapter13 nested-placement full browser callback is running.
 
-- [x] Clipping-guide authoring22/22 and structure1,361/reference43 pass. Initial pen-update docs publication passed at its recorded source; fresh ribbon-update publication remains pending.
+- [x] Native integration has qualified recovery: original fullrun1,060PASS/2FAIL, followed by two exact corrected authored-fixture passes with unchanged production inputs. No single unfiltered1,062PASS claimed.
+
+- [x] Clipping-guide authoring22/22 and structure1,361/reference43 pass. Updated ribbon and authored-fixture lesson additions pass scoped desktop/phone publication; four original views inspected.
 - [x] Clipping-guide focused repair: two CPU regressions and all four unchanged full-RGBA pairs pass at zero tolerance. All eight original PNGs inspected. Prior72/264-pixel failures remain preserved.
 
 - [x] Published and reviewed the integrated teaching content: 59 introductions, 111 links, 21 decoded images and 17 inspected views. Duplicate navigation and phone overflow fixes pass four additional views. [UI proof](../../session_viewer/docs/journey/release/docs-navigation-overflow-review.json). Gemini first 10/redraft and current whole-book handoff remain deferred.
@@ -23,13 +27,13 @@ Open the locally built tutorials at **http://127.0.0.1:8788/docs/#/course**. An 
 
 - [ ] Full 94c remains unaccepted. The three approved input corrections passed in the 2603.825 s full replay, which then failed Split setup with inherited Control mode. The tested Object-mode correction and full replay/qualified phase-reuse choice await their separate approval. Matching Native/WASM/web proof is retained. Final native integration passes 1,060/1,060; [source-bound review](../../session_viewer/docs/journey/release/native-97d-integration-review.json).
 
-## Current stage totals - authoritative 2026-10-23
+## Current stage totals - authoritative 2026-10-24
 
 | Stage | Done | Left | Status |
 | --- | --- | --- | --- |
 | Source synchronization | All fetched source integrated safely; tutorial edits and Gemini commits preserved; eight isolated pull-launcher safety tests pass | 0 repositories awaiting the authorized pull | Done |
 | Course consolidation | 22/22 chapters, 111/111 reader lessons, 1,360 coding checkpoints plus reference preserved | 0 reader lessons awaiting initial drafting | Draft structure done |
-| Native and browser builds | Historicala45native1,059/1,059 retained; current97d optimized bundle PASS182.487s; finite Matrix native8/8 and browser6/6 complete | Remaining compiler and named canonical/source-specific browser proofs; final native1,060/1,060 is complete | In progress |
+| Native and browser builds | Reader compiler202/202 phases; current final native frame, WASM, optimized bundle and browser boot/render pass. Native integration has1,060 original passes plus2 focused recoveries | 17 source-specific full browser callbacks; final release integration remains open. No single unfiltered1,062PASS claimed | In progress |
 | Performance | 5/5 categories measured on the same small demo; unchanged ordered-input/coalescing/idle/disposal callback passes | Remaining startup/feature lifecycle acceptance; no hardware performance claim | Measurements done; full implementation groups open |
 | Original fixture browser contracts | Four deterministic inputs generated;96y complete callback accepted; approved affected shortcut checks pass | Three fixture entries94c/96h/96v remain;96h is already in the chapter queue | In progress |
 | Display comparisons | Matrix, Camera/Plane and Joined finite features complete; Plane80, CAD baseline5, native ink controls14 and finalCAD browser/images accepted within their exact scopes | 15partial feature checklists; source-specific callbacks, unproved controls and CAD/NURBS isolines remain | In progress |

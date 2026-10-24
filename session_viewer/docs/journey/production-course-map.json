@@ -21675,12 +21675,12 @@
       "scope": "640x480 94-comparison native frame only; full browser and whole-checkpoint acceptance remain separate."
     },
     "id": "96zzzzzzzq-draw-original-cad-wire-curves",
-    "fingerprint": "e432b904b457958d0162c0acece4adebd97494934e793062dcaa56217637edf6",
+    "fingerprint": "fef4c7bdb6f4c0a6f7a7701b0ba5581469dd757a34eefbab030a06e92ce4e5a1",
     "files": 713,
     "recordedAt": "2026-10-23T17:02:35.831075+00:00",
-    "courseSha256": "7aee0b146b7804e1bb5db44b6e229131f16d5041033f4e82dbf5cc3250054544",
+    "courseSha256": "d4ab046ec86c32ca3524afdf9f665dac30821367ce0bf5899f61ab7baf2f026e",
     "historicalCourseSha256": "8453513dc6d5ae34d081becc435ee893bbb82cc89d31386ed6fa7141e7576b1b",
-    "scope": "Current e432 source713files has focusedCPU2/four strict ribbon guide pairs accepted. Prior97d/f739 native1060/material8/Plane80/browser proofs retain original scopes.3complete/15partial,17callbacks unchanged; fullnative1062/browser/docs publication pending.",
+    "scope": "Current fef4 cfg-test source713files is production-equivalent to e432. Original fullrun remainsFAIL1060/1062;two exact correctedfixturefocused cases qualify recovery. No singleunfiltered1062PASS. Feature3/15 andcallback17 unchanged;current frame/WASM/Trunk/browser/docs acceptance separate.",
     "state": "consolidation/current-state.json",
     "evidencePaths": "Paths in currentIntegration/currentVerification are relative to docs/journey; target evidence is local and is not a public hosted artifact.",
     "authoring": {
@@ -22195,20 +22195,32 @@
       "fullCanonicalAcceptance": "pending"
     },
     "clippingGuideDefect": {
-      "status": "actualcoursecolor/widthpreservationrepairprepared-not-applied",
+      "status": "Repair applied and four exact pairs pass; prior failure finding retained",
       "sourceFingerprint": "97d4a9ff577fe4e932ee9561260e4bd0adbc2a82943883d111949038af33fd23",
       "finding": "All4newpairedframesdiffer766pixelsatblueproductionvsgraycourseclippingguide;materialpixelsoutsideguideexact. Originalvisiblepose retained.",
       "proposedFile": "src/plane_original.rs",
       "proposal": "target/course-windows-20261018/material-owner-clip-preparation/clipping-guide-pen-fix-proposal",
       "predictedFingerprint": "e6d10c7a48b96107ef90c99d45e698f72a59051099886fe3b7316150dcdc281f",
       "rootImageReview": "All8failedpairedforensicPNGsindividuallyviewed;notaccepted",
-      "finiteBoundary": "OrdinaryPlane80criterionretainsitsexactscope;guidebugbelongsstillpartialClipping/globaldisplay."
+      "finiteBoundary": "OrdinaryPlane80criterionretainsitsexactscope;guidebugbelongsstillpartialClipping/globaldisplay.",
+      "currentRepairRecord": "release/clipping-guide-ribbon-native-review.json"
     },
     "clippingGuideSourceFix": {
-      "status": "PASS focusedCPU2 and four strict full-RGBA pairs;full integration/browser/docs pending",
+      "status": "PASS focused repair; current qualified native/artifact/docs proof recorded separately; global callbacks pending",
       "record": "release/clipping-guide-ribbon-native-review.json",
       "priorFingerprint": "446614c6db2da06557279eea716834a8d8b66de4978d1c374b410ac8a0107f9e",
-      "scope": "Production ribbon guide fix:CPU2 and four fixed-source strict pairs accepted; root8image review separately explicit. Fullnative1062, current browser/WASM and fresh docs build/visible publication remain pending."
+      "scope": "Production ribbon guide fix: two CPU regressions and four strict full-RGBA pairs accepted; eight original images inspected. Separate current qualified native recovery, frame/WASM/web/boot and scoped lesson publication records pass. Full callbacks and global release remain pending."
+    },
+    "nativeQualifiedRecovery": {
+      "status": "qualified-recovery-after-failed-full-run",
+      "sourceFingerprint": "fef4c7bdb6f4c0a6f7a7701b0ba5581469dd757a34eefbab030a06e92ce4e5a1",
+      "courseSha256": "d4ab046ec86c32ca3524afdf9f665dac30821367ce0bf5899f61ab7baf2f026e",
+      "originalPassed": 1060,
+      "originalFailed": 2,
+      "exactFocusedRecovered": 2,
+      "singleUnfiltered1062Pass": false,
+      "record": "release/native-ribbon-v4-qualified-recovery-review.json",
+      "scope": "Qualified native recovery only; not one unfiltered1062PASS. Current frame/WASM/optimizedweb/bootrender and scoped lesson publication have separate records.17fullcallbacks and global release remain pending."
     }
   },
   "authoringPrerequisiteRepair": {
@@ -22217,5 +22229,10 @@
     "priorProofMetadataCourseSha256": "f739c713178ed6d98d91f6f6f33165e18880a4f5effecc153c269e6c23709d9c",
     "finalRuntimeUnchanged": true,
     "first10CodeHandoff": "Two generated checkpoint references updated; two consolidated reader code proposals remain under Gemini ownership"
+  },
+  "currentFinalArtifactReview": {
+    "sourceFingerprint": "fef4c7bdb6f4c0a6f7a7701b0ba5581469dd757a34eefbab030a06e92ce4e5a1",
+    "record": "release/final-fef4-artifact-review.json",
+    "status": "PASS finite nativeframe/WASM/web/boot; fullcallbacks/globalrelease separate"
   }
 }

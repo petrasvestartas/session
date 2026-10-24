@@ -44789,6 +44789,80 @@ Update the existing block with this supplied code; keep unchanged lines:
 --8<-- "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-clipping-guide-no-duplicate-ink.rs"
 ```
 
+### 250. `src/global_outline_tests.rs`
+
+Keep the cap-origin fixture isolated from guide Lines through the actual family visibility control.
+
+Supplied validation fixture.
+
+**Locate this existing block:**
+
+```rust
+fn actual_derived_frame_origin_keeps_cap_pixels_world_text_clips_and_precise_ground(){
+ let mut scene=Scene::empty();let mut prepared=PreparedMesh::new(session_rust::Mesh::create_box(0.5,0.5,0.5)).unwrap();prepared.model=session_rust::Xform::translation(0.,0.,-0.5);let owner=scene.insert(prepared).unwrap();let plane=crate::clipping_geometry::plane_from(crate::clipping_geometry::Mode::Xy,&[[0.,0.,-0.5]],1.).unwrap();let plane_id=crate::plane_original::insert(&mut scene,Rc::new(plane)).unwrap();let mut gpu=renderer(&scene);gpu.set_opacity(1.);gpu.mesh_ink.set(&gpu.device,std::iter::empty()).unwrap();gpu.markers.set_points(&gpu.device,std::iter::empty()).unwrap();let baseline=pixels(&gpu);assert!(crate::cap_gpu_tests::at(&baseline,160,120)[..3].iter().all(|v|(150..=156).contains(v)));let ground=gpu.ambient_rows.ground_at([0.;3]);let source=scene.objects()[0].geometry().unwrap().to_proto();let uploads=gpu.stats()[0];
+ let anchor=[1e9,-1e9,1e9];let mut far=scene.clone();for id in [owner,plane_id]{far.translate(id,anchor).unwrap();}gpu.set_scene(&far,None);gpu.mesh_ink.set(&gpu.device,std::iter::empty()).unwrap();gpu.markers.set_points(&gpu.device,std::iter::empty()).unwrap();assert!(gpu.space.update(anchor,1.,0.).unwrap().moved);for mesh in &mut gpu.meshes {mesh.rebase(&gpu.queue,anchor);}gpu.instances.set(&gpu.device,&gpu.queue,&mut gpu.meshes,&gpu.instance_rows,false).unwrap();gpu.tiles.borrow_mut().set_records(&gpu.device,&gpu.meshes,Some(&gpu.instances));assert_eq!(gpu.anchor(),anchor);assert_eq!(gpu.ambient_rows.ground_at(anchor),ground);assert_eq!(gpu.ambient_rows.ground[0]-anchor[2],-0.75);let frame=gpu.text_frame(matrix());assert_eq!(frame.origin,anchor);assert!(!frame.cut([anchor[0],anchor[1],anchor[2]-0.75]));assert!(frame.cut([anchor[0],anchor[1],anchor[2]-0.25]));assert_eq!(pixels(&gpu),baseline);let writes=gpu.clipping.borrow().writes;assert_eq!(pixels(&gpu),baseline);assert_eq!(gpu.clipping.borrow().writes,writes);assert_eq!(gpu.stats()[0],uploads);assert_eq!(far.objects()[0].geometry().unwrap().to_proto(),source);
+}
+```
+
+Update the existing block with this supplied code; keep unchanged lines:
+
+```rust
+--8<-- "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-cap-origin-line-isolation.rs"
+```
+
+### 251. `src/production_plane_tests.rs`
+
+Validate the unchanged ordinary Plane row alongside its separate production clipping-guide ribbons and real capacity limit.
+
+Supplied validation fixture.
+
+**Locate this existing block:**
+
+```rust
+fn ordinary_plane_uses_exact_compact_frame_and_keeps_clipping_plane_separate() {
+    let mut scene = Scene::empty();
+    scene.next_id = 16_777_217;
+    let mut source = Plane::xy_plane();
+    source.width = 7.0;
+    let source = Rc::new(source);
+    let _ = source.guid();
+    let original = source.to_proto();
+    let id = crate::plane_original::insert(&mut scene, source.clone()).unwrap();
+    let anchor = [1_000_000_000.0, -1_000_000_000.0, 0.0];
+    scene.place(id, Xform::translation(anchor[0] + 0.125, anchor[1], -500.0)).unwrap();
+    let clip = crate::clipping_geometry::plane_from(crate::clipping_geometry::Mode::Xy, &[[0.0, 0.0, -10.0]], 100.0).unwrap();
+    let clipping = crate::plane_original::insert(&mut scene, Rc::new(clip)).unwrap();
+    assert!(scene.objects()[0].mesh.parts.edges.is_empty());
+    assert_eq!(scene.objects()[1].mesh.parts.edges.len(), 7);
+    assert_eq!(crate::clipping_rows::owners(&scene), [clipping]);
+    let sources = crate::pick_sources::Sources::anchored(&scene, anchor).unwrap();
+    let rows = joined::rows(&scene, &sources, anchor, &[id], 256).unwrap();
+    assert_eq!(rows.planes.len(), 48);
+    assert_eq!(rows.objects.len(), 96);
+    assert!(rows.segments.is_empty() && rows.heads.is_empty());
+    assert_eq!(rows.object_ids, [id]);
+    assert_eq!(rows.pick_owners, [id.value()]);
+    let words: Vec<u32> = rows.planes.chunks_exact(4).map(|b|u32::from_ne_bytes(b.try_into().unwrap())).collect();
+    assert_eq!(words[3], 0);
+    assert_eq!(words[4..8], [1.0f32.to_bits(), 0, 0, (-3.5f32).to_bits()]);
+    assert_eq!(f32::from_ne_bytes(rows.translations[..4].try_into().unwrap()), 0.125);
+    assert_eq!(u32::from_ne_bytes(rows.objects[80..84].try_into().unwrap()), 1);
+    let mut output = plane::PlaneRows::default();
+    let walked = plane::walk_plane(&mut output, &source, 13);
+    assert_eq!(walked.flags, 0);
+    assert_eq!(output.rows[0].instance_id, 13);
+    assert_eq!(walked.bounds.min_point().to_f32(), [-100.0, -100.0, 0.0]);
+    assert_eq!(walked.bounds.max_point().to_f32(), [100.0, 100.0, 100.0]);
+    assert_eq!(source.to_proto(), original);
+}
+```
+
+Update the existing block with this supplied code; keep unchanged lines:
+
+```rust
+--8<-- "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ordinary-plane-guide-lane-contract.rs"
+```
+
 ## Build & Run
 
 ![Recorded visual output for Lesson 22.6 (96zzzzzzc)](../../screenshots/journey/96zzzzzzc-draw-the-construction-grid-as-physical-lines-browser.png)

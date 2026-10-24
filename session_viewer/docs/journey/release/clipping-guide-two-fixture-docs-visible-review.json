@@ -1,0 +1,104 @@
+{
+  "status": "PASS scoped22.6 six source additions and corrected authored fixtures",
+  "recordedUtc": "2026-10-24T00:02:56.405Z",
+  "sourceFingerprint": "fef4c7bdb6f4c0a6f7a7701b0ba5581469dd757a34eefbab030a06e92ce4e5a1",
+  "courseSha256": "d4ab046ec86c32ca3524afdf9f665dac30821367ce0bf5899f61ab7baf2f026e",
+  "pages": {
+    "docs/journey/96zzzzzzzq-draw-original-cad-wire-curves.md": "81cbd35cd994554b673a4e963a351af6f0f7920a838282e5459fce99199ce44b",
+    "docs/journey/consolidation/96zzzzzzzm-retain-visible-instance-ranges.md": "aeb9b36ca92c0e7cbcac8f3bea762058d28f42f668f9d579de1637da95e9f6b9"
+  },
+  "browser": {
+    "served": {
+      "indexURL": "http://localhost:8788/docs/",
+      "scriptURL": "http://localhost:8788/docs/assets/main-NJigi8nX.js",
+      "lessonURL": "http://localhost:8788/docs/assets/course-journey-consolidation-96zzzzzzzm-retain-visible-instance-ranges-CO_yPyOc.json",
+      "lessonSha256": "28fc33c07362dca6913bfff1d681d4c9635aa9023c232b3d7c48d5fc264b30e5",
+      "details": 0
+    },
+    "scope": "Changed22.6 six authored source additions including cap Lines isolation and mixed Plane capacity contract + root generated-route alias only; no runtime/WebGPU/fullcourse sweep",
+    "cases": [
+      {
+        "name": "desktop",
+        "size": {
+          "width": 1400,
+          "height": 900
+        },
+        "fit": {
+          "width": 1400,
+          "document": 1400,
+          "mainClient": 1095,
+          "mainScroll": 1095,
+          "articleClient": 793,
+          "articleScroll": 793
+        },
+        "sourcePenRendered": true,
+        "newTestRendered": true,
+        "aliasRetainedCheckpoint": true,
+        "errors": []
+      },
+      {
+        "name": "phone",
+        "size": {
+          "width": 390,
+          "height": 844
+        },
+        "fit": {
+          "width": 390,
+          "document": 390,
+          "mainClient": 375,
+          "mainScroll": 375,
+          "articleClient": 343,
+          "articleScroll": 343
+        },
+        "sourcePenRendered": true,
+        "newTestRendered": true,
+        "aliasRetainedCheckpoint": true,
+        "errors": []
+      }
+    ],
+    "status": "passed"
+  },
+  "browserReviewSha256": "19a47fc499d18396e0cacf1c28544ec157fb0f710701bbb059f6a369ff05bf02",
+  "rootImageReview": {
+    "status": "All4 actual original-resolution screenshots individually inspected",
+    "images": {
+      "desktop-cap-origin-line-isolation.png": "3b8becdcd8b5a060580aa2c09bbe7be0660fa88a51e4f6478d48a80829c9fbf8",
+      "desktop-ordinary-plane-guide-lane-contract.png": "350fad9caf33ff2b85699a402af9650e41ffe2e7991e9e815bc308bd7872d94b",
+      "phone-cap-origin-line-isolation.png": "28b4b18995e8d58bc57890558af38fe745a6ebc0c24cc1f73843c007998c4118",
+      "phone-ordinary-plane-guide-lane-contract.png": "fa8ea65978e7a3093428f1864ccb41ef07350f3f42d4fa22f13ab1f1e594e344"
+    }
+  },
+  "docsBuild": {
+    "resources": {
+      "platform": "windows-job-object",
+      "startedUtc": "2026-10-23T23:58:41.3644145Z",
+      "executable": "C:\\Program Files\\nodejs\\node.exe",
+      "arguments": [
+        "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\node_modules\\vite\\bin\\vite.js",
+        "build",
+        "--base",
+        "/docs/",
+        "--outDir",
+        "../session_viewer/target/docs/vue"
+      ],
+      "workingDirectory": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests",
+      "timeoutSeconds": 600,
+      "jobCommitLimitBytes": 4294967296,
+      "swapCapSupported": false,
+      "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+      "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+      "exitCode": 0,
+      "timedOut": false,
+      "elapsedSeconds": 42.725,
+      "peakJobCommitBytes": 1331277824,
+      "affinityMask": "0x3",
+      "processors": 2,
+      "processId": 53556,
+      "descendantsAtCleanup": 1
+    },
+    "resourcesSha256": "cdabd536694364cabbc28ca3c5062d1044d7975201953e1c890f1cf5ab627e54",
+    "stdoutSha256": "8f6ca0b7ec6b90104826a99d83d23b9d243f6fe99cfe44e8a78ccd7a01af2ea0"
+  },
+  "scope": "All six live supplied-source bodies render completely. Desktop/phone scrollers, original route/checkpoint alias and existing tabs retained. Earlier page content/prose/SVG preserved. No wholebook/first10/native-renderer/browser-callback acceptance inferred.",
+  "nativeQualification": "Original fullrun1060PASS2FAIL; two corrected authored-native-fixture exact focused cases PASS. No single unfiltered1062PASS claimed."
+}
