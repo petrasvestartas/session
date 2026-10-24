@@ -46438,7 +46438,7 @@ Sample the full depth and radius pyramid, use a coarser occupancy level, and pas
 ### 418. `src/cad_wire_tests.rs`
 
 ```rust
---8<-- "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-exact-production-04-cad_wire_tests.rs" skip=410
+--8<-- "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-exact-production-04-cad_wire_tests.rs" skip=16902
 ```
 
 ### 419. `src/production_mesh_ink_provenance.json`
