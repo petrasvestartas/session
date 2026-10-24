@@ -3,7 +3,7 @@
   "scope": "Initial production-to-course source/coverage audit; proposals are not completed consolidation or rendering acceptance.",
   "sourceAuthority": "session_viewer/src",
   "endpoint": "96zzzzzzzq-draw-original-cad-wire-curves",
-  "endpointStatus": "Actual final713 quality callback/prerequisites42947 running; await terminal result and root image review. Fullnative1062 and readercompiler101/202 are complete. Original sourcecallbacks4/18accepted14left; finitefeatures4/18complete14partial; fixture1/4; release0/5. First10/redraft handoff remains separate.",
+  "endpointStatus": "Continue current96zzo build77597 (96zzo-nvidia-current367-v1),4GiB/twoCPUs.96v fullcallback and native/finalimages accepted. Finalnative1062,readercompiler101/202 and boundedfinal713quality PASS. Sourcecallbacks5/18accepted13pending;finitefeatures4/18complete14partial;fixtures2/4;release0/5. Historical656 quality andfirst10handoff remain separate.",
   "courseSha256": "367065739cee3cbf01e1b240c9eca4a1e0c12092eccab2fe2345cbc783a55197",
   "chapters": 22,
   "existingSteps": 1361,
@@ -21699,7 +21699,7 @@
     "recordedAt": "2026-10-23T17:02:35.831075+00:00",
     "courseSha256": "367065739cee3cbf01e1b240c9eca4a1e0c12092eccab2fe2345cbc783a55197",
     "historicalCourseSha256": "8453513dc6d5ae34d081becc435ee893bbb82cc89d31386ed6fa7141e7576b1b",
-    "scope": "Current finalfef4 handwritten713 unfiltered1062/1062 native integration PASS;0failed/ignored/filtered. Original failed1060/1062 and qualified1060+2 records remain historical. Feature4/18complete14partial; sourcecallbacks4/18accepted14pending;compiler101/202. Distinct native/frame/WASM/Trunk/browser/docs proofs retain their source-specific scopes;release0/5.",
+    "scope": "Currentfinalfef4 handwritten713 unfiltered1062/1062 nativeintegration PASS; oldfailed/qualifiedrecords retainhistory. Originalsourcecallbacks5/18accepted13pending;features4/18complete14partial;fixtures2/4;compiler101/202;release0/5. Native/frame/WASM/web/browser/docs proofs retain source-specific scopes.",
     "state": "consolidation/current-state.json",
     "evidencePaths": "Paths in currentIntegration/currentVerification are relative to docs/journey; target evidence is local and is not a public hosted artifact.",
     "authoring": {
@@ -21911,7 +21911,7 @@
     },
     "remainingFinalGates": [
       "Current final fef4 unfiltered1062 native integration, retained scopedframe/artifacts and101/202readercompiler proof pass. Complete remaining runnable/source-specific proof accounting and finalpublication before closing the combinedrelease gate.",
-      "FinalCAD,maintained97,current76 andcurrent70 original source-specific callbacks accepted4/18;finish remaining14 without weakening frozenassertions.",
+      "FinalCAD,maintained97,current76,current70 and96v originalsource callbacks accepted5/18;finish remaining13 without weakening frozenassertions.",
       "Close remaining14 finitefeature checklists and actualdeclared lesson checks; Matrix,Camera/Plane,Joined andSheet/text arecomplete within recorded scopes.",
       "Finish required current reader/checkpoint proof accounting,sourceinventory,navigation/aliases,combinedbook/currentdocs publication andGemini first10handoff. CurrentV4fourimage docs snapshot is separately accepted at its measured prepublicationinputs."
     ],
@@ -22000,10 +22000,6 @@
         {
           "checkpoint": "94c-prove-the-original-comparison-and-inspect-differences",
           "callback": "journey/checks/browser/comparison.cjs"
-        },
-        {
-          "checkpoint": "96v-project-definition-and-per-instance-features",
-          "callback": "journey/checks/browser/instance-features.cjs"
         }
       ],
       "pendingIntegrationActions": [
@@ -22027,18 +22023,18 @@
         }
       ],
       "counting": {
-        "pendingHistoricalEntryCallbacks": 11,
+        "pendingHistoricalEntryCallbacks": 10,
         "additionalDeclaredCallbackEntries": 4,
         "pendingIntegrationActions": 3,
         "distinctSourceSpecificCallbackEntries": 18,
         "nonCallbackIntegrationActions": 3,
         "namedActions": 21,
         "remainingFeatureChecklists": 14,
-        "meaning": "Original18source-specific entries retained: finalCAD,maintained97,current76 andcurrent70 accepted4;pending14=11historical+3late display. Original21named denominator retained;17pending groups overlap14partial finitefeatures. Feature and global gates remain separate.",
+        "meaning": "Original18 source-specificentries retained: finalCAD,maintained97,current76,current70 and96v accepted5;pending13=10historical+3late display. Original21named denominator retained;16pending groups overlap14partial finitefeatures. Originalfixturecontracts2/4 accepted96y+96v;94c/96h remain.",
         "eta": "No total ETA; missing successful callback durations and unscopednative tuples prevent an honest walltime estimate.",
-        "acceptedSourceSpecificCallbackEntries": 4,
-        "pendingSourceSpecificCallbackEntries": 14,
-        "pendingNamedActions": 17,
+        "acceptedSourceSpecificCallbackEntries": 5,
+        "pendingSourceSpecificCallbackEntries": 13,
+        "pendingNamedActions": 16,
         "pendingAdditionalDeclaredCallbackEntries": 3
       },
       "phaseReuse94c": {
@@ -22234,6 +22230,18 @@
           "focusedRepair": "release/70d-mask-projection-repair-review.json",
           "figure": "journey/release/70d-current-mirrored-final.png",
           "scope": "Current331-source325b fullcanonicalNVIDIA callback. No SharedArena or otherfeature closure; original failures and four diagnostic frames retain their scopes."
+        },
+        {
+          "checkpoint": "96v-project-definition-and-per-instance-features",
+          "callback": "journey/checks/browser/instance-features.cjs",
+          "status": "PASS originalcomplete96v canonicalcallback; native/finalPNG individuallyreviewed",
+          "record": "release/96v-browser-review.json",
+          "sourceFingerprint": "6f8ba2c09ea70386c468a61a0752f6a32964fe320c900724ea6f5fa4d181c442",
+          "sourceSignature": "88727c836d2bcc0516333313764e334f2aabab80773252bd74ff2d0f0babf702",
+          "sourceFiles": 567,
+          "elapsedSeconds": 65.353,
+          "peakJobCommitBytes": 559063040,
+          "fixtureScope": "Second of four originalfixturebrowser contracts accepted;96y separate.94c/96h pending."
         }
       ]
     },
@@ -22410,14 +22418,14 @@
         "draftingRemaining": 0,
         "featuresComplete": 4,
         "featuresPartial": 14,
-        "callbacksAccepted": 4,
-        "callbacksRemaining": 14,
-        "historicalFixturesAccepted": 1,
+        "callbacksAccepted": 5,
+        "callbacksRemaining": 13,
+        "historicalFixturesAccepted": 2,
         "historicalFixturesTotal": 4,
         "releaseGatesDone": 0,
         "releaseGatesTotal": 5
       },
-      "next": "Actual final713 quality callback/prerequisites42947 running; await terminal result and root image review. Fullnative1062 and readercompiler101/202 are complete. Original sourcecallbacks4/18accepted14left; finitefeatures4/18complete14partial; fixture1/4; release0/5. First10/redraft handoff remains separate.",
+      "next": "Current96zzo source-specific build77597 running; complete actualphases/frame/rootreview before appending or browser.13sourcecallbacks/14partialfeatures remain;historicalfixtures2/4;release0/5.",
       "chapter14": {
         "status": "PASS complete current76originalcanonicalbrowser callback",
         "record": "release/76d-browser-review.json",
@@ -22609,13 +22617,23 @@
         "scope": "Actual prepublication snapshot with current4/18callbacks14left, chapter13desktop/390phone and corrected97reference instruction5. Newreview/copies and subsequentstatusupdates were not partof that build; no self-referential currentbuild claim. First10/redraft and combined-book handoff remain pending."
       },
       "currentFinalQuality": {
-        "status": "running-unaccepted",
+        "status": "PASS complete unchanged actualfinal713 quality/defaultprerequisites; allfive originalimages rootreviewed",
+        "record": "release/final-quality-recovery-review.json",
         "rootSession": 42947,
-        "task": "Final713 fef4 unchanged default quality callback plus actual prerequisites on existing optimizedbundle",
-        "startedUtcApprox": "2026-10-24T04:01:00Z",
-        "memoryLimitMiB": 6144,
-        "processors": 2,
-        "scope": "Actual final lost-device/frame-owner recovery criterion under execution. No Startup feature or historical656 callback acceptance before terminalPASS and root actualimage review."
+        "elapsedSeconds": 281.988,
+        "peakJobCommitBytes": 942997504,
+        "scope": "Expected tinyunfitteddefaultscene and intentional lossreason notice reviewed; actualready/reducedsamples/URL/no-old-lostcalls/normalreload only. No wholeStartup or historical656 entry acceptance."
+      },
+      "instanceFeatures96v": {
+        "status": "PASS originalcomplete96v canonicalcallback; native/finalPNG individuallyreviewed",
+        "record": "release/96v-browser-review.json",
+        "checkpoint": "96v-project-definition-and-per-instance-features",
+        "sourceFingerprint": "6f8ba2c09ea70386c468a61a0752f6a32964fe320c900724ea6f5fa4d181c442",
+        "sourceSignature": "88727c836d2bcc0516333313764e334f2aabab80773252bd74ff2d0f0babf702",
+        "sourceFiles": 567,
+        "elapsedSeconds": 65.353,
+        "peakJobCommitBytes": 559063040,
+        "fixtureScope": "Second of four originalfixturebrowser contracts accepted;96y separate.94c/96h pending."
       }
     },
     "sheetFiniteClosure": {

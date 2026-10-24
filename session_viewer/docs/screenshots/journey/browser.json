@@ -10884,6 +10884,34 @@
       "bundle": "002f86d4cba3ed4dfa550d5c1efd51f40ddfa98701364033bdde497c5b063e41",
       "commands": [],
       "keyboardRoundtrip": false
+    },
+    "96v-project-definition-and-per-instance-features": {
+      "source": "88727c836d2bcc0516333313764e334f2aabab80773252bd74ff2d0f0babf702",
+      "checker": "ecbc4c716aa91a7aedc2532132c4b08e0a7d1e7511c380b0dbbba0152325a733",
+      "extraChecker": "1f1fa8b8062aa7638ae8b632c84be7e35842e15898ba28d35278048d83256c9a",
+      "browser": "145.0.7632.6",
+      "headless": true,
+      "captured": "2026-10-24T04:14:18.651Z",
+      "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "canvas": "c4b60162d9225150adb40c3804128702dadd4e506c17d906a1d760b7873a09ce",
+      "file": "96v-project-definition-and-per-instance-features-browser.png",
+      "initialViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "initialCanvas": {
+        "x": 0,
+        "y": 0,
+        "width": 900,
+        "height": 760
+      },
+      "screenshotViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "bundle": "4c326c7124a97b6ab85d562f3acfc8f09f42c71ab1024ad61805780a43720a45",
+      "commands": [],
+      "keyboardRoundtrip": false
     }
   }
 }
