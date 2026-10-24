@@ -22064,10 +22064,22 @@
       "record": "release/ambient-selector-authored-source-review.json"
     },
     "native": {
-      "status": "PENDING actual new exact BRep source verification",
-      "source713": "f339c9ac8c75353caca48e1dba3c537a002f0e62726b19f58dcad7bdb324bf9e",
-      "source714": "40e317cc56bd558db438827de2ebfbc8b8be9be8453d2043fb54929a56d5baa0",
-      "previous": "beforeExactBrepTransition"
+      "status": "PASS:1068/1068 unfiltered finalBRephandwrittennative;0failed/ignored/filtered",
+      "record": "release/final-brep-final-native-integration-review.json",
+      "sourceFingerprint": "f339c9ac8c75353caca48e1dba3c537a002f0e62726b19f58dcad7bdb324bf9e",
+      "courseSha256": "2d589e8e0f45a9bd927ae63769c1186dc30e646466878b51858c491b18a1e190",
+      "sourceFiles": 713,
+      "tests": {
+        "passed": 1068,
+        "failed": 0,
+        "ignored": 0,
+        "measured": 0,
+        "filtered": 0,
+        "uniqueNames": 1068,
+        "threads": 1,
+        "exactBaselineNamesPlusDeclaredNewTests": true
+      },
+      "scope": "Actualnewfinal713nativeonly; historical1064proofretainsold694source."
     },
     "browser": {
       "status": "PENDING actual new exact BRep source verification",
@@ -22288,30 +22300,44 @@
       "scope": "OnlyfiniteSheet row; current76completebody+freshSheet/finalreview. Native97d+qualifiedfef4 andoriginal32pairs remain independentlysource-bound.70d/global22callbacks stillseparate."
     },
     "currentFullNative": {
-      "status": "PASS:1064/1064 unfiltered handwritten713 native integration;0failed/ignored/filtered",
-      "record": "release/ambient-selector-final-native-integration-review.json",
-      "sourceFingerprint": "6947664b26863adf65ef7bfc879694bfedee853852bc2c7660d59f31d2e36ca9",
-      "courseSha256": "05b031571b9b18b4e2740898af6782e2c746cb6b1fcf35c73adb86c957869374",
+      "status": "PASS:1068/1068 unfiltered finalBRephandwrittennative;0failed/ignored/filtered",
+      "record": "release/final-brep-final-native-integration-review.json",
+      "sourceFingerprint": "f339c9ac8c75353caca48e1dba3c537a002f0e62726b19f58dcad7bdb324bf9e",
+      "courseSha256": "2d589e8e0f45a9bd927ae63769c1186dc30e646466878b51858c491b18a1e190",
       "sourceFiles": 713,
-      "scope": "Current handwritten713 unfiltered1064 integration only; prior native records retain their original identities.",
       "tests": {
-        "passed": 1064,
+        "passed": 1068,
         "failed": 0,
         "ignored": 0,
         "measured": 0,
         "filtered": 0,
-        "uniqueNames": 1064,
+        "uniqueNames": 1068,
         "threads": 1,
-        "exactOriginal1063PlusOne": true
-      }
+        "exactBaselineNamesPlusDeclaredNewTests": true
+      },
+      "scope": "Actualnewfinal713nativeonly; historical1064proofretainsold694source."
     },
     "finalRuntimeBuildGate": {
-      "status": "DONE independent current694/b031 runtime build gate1",
-      "record": "release/ambient-selector-final-runtime-build-gate-review.json",
-      "literal": "Freeze the integrated runtime and pass the final Native/WASM/optimized build checks.",
-      "courseSha256": "05b031571b9b18b4e2740898af6782e2c746cb6b1fcf35c73adb86c957869374",
-      "source713": "6947664b26863adf65ef7bfc879694bfedee853852bc2c7660d59f31d2e36ca9",
-      "source714": "b0313bae6b71646b9424776561375ffc4306125317e1686c5894e0ef618701bf"
+      "status": "PASS independentactualfinalBRepbuildgate1",
+      "record": "release/final-brep-final-runtime-build-gate-review.json",
+      "sources": [
+        {
+          "id": "96zzzzzzzq-draw-original-cad-wire-curves",
+          "count": 713,
+          "fingerprint": "f339c9ac8c75353caca48e1dba3c537a002f0e62726b19f58dcad7bdb324bf9e",
+          "packageName": "viewer_journey_713_f339c9ac8c75353caca48e1d"
+        },
+        {
+          "id": "97-finish-with-the-maintained-browser-runtime",
+          "count": 714,
+          "fingerprint": "40e317cc56bd558db438827de2ebfbc8b8be9be8453d2043fb54929a56d5baa0",
+          "packageName": "viewer_journey_714_40e317cc56bd558db438827d"
+        }
+      ],
+      "courseSha256": "2d589e8e0f45a9bd927ae63769c1186dc30e646466878b51858c491b18a1e190",
+      "nativeRecord": "release/final-brep-final-native-integration-review.json",
+      "compilerRecord": "release/final-brep-final-compiler-integration-review.json",
+      "scope": "No othergate/featureclosureinferred."
     },
     "releaseGatesDone": 3,
     "releaseGatesTotal": 5,
@@ -22335,10 +22361,42 @@
       "scope": "Actualruntimechange: old1062fef4/06359buildproofs historical; current1063and713/714buildrefresh pending. Eightacceptedcallbacks keeporiginalsource; nofeature/countchange."
     },
     "compilerRefresh": {
-      "status": "PENDING actual new exact BRep source verification",
-      "source713": "f339c9ac8c75353caca48e1dba3c537a002f0e62726b19f58dcad7bdb324bf9e",
-      "source714": "40e317cc56bd558db438827de2ebfbc8b8be9be8453d2043fb54929a56d5baa0",
-      "previous": "beforeExactBrepTransition"
+      "status": "PASS7actualfinalBRepcompiler/package/framephases+qualified714nativeframe",
+      "record": "release/final-brep-final-compiler-integration-review.json",
+      "sources": [
+        {
+          "id": "96zzzzzzzq-draw-original-cad-wire-curves",
+          "count": 713,
+          "fingerprint": "f339c9ac8c75353caca48e1dba3c537a002f0e62726b19f58dcad7bdb324bf9e",
+          "packageName": "viewer_journey_713_f339c9ac8c75353caca48e1d"
+        },
+        {
+          "id": "97-finish-with-the-maintained-browser-runtime",
+          "count": 714,
+          "fingerprint": "40e317cc56bd558db438827de2ebfbc8b8be9be8453d2043fb54929a56d5baa0",
+          "packageName": "viewer_journey_714_40e317cc56bd558db438827d"
+        }
+      ],
+      "courseSha256": "2d589e8e0f45a9bd927ae63769c1186dc30e646466878b51858c491b18a1e190",
+      "retainedReaderDependencyScope": {
+        "record": {
+          "path": "target/course-windows-20261018/final-kernel-reader-relevance-audit/audit.json",
+          "sha256": "3cb393b213f0b3a69ad67873325e4247c9611d2848985d004454f38d1a330a32"
+        },
+        "actualRustHead": "8445d2149f59c5a1caebb1a3e605833bf21996f2",
+        "readerEndpoints": 101,
+        "kernelDependent": 93,
+        "kernelIndependent": 8,
+        "existingPublicAPIUnchanged": true,
+        "additiveTestEntrypoints": [
+          "pub fn run_brep_ruled_watertight() -> TestResult {",
+          "pub fn run_brep_volume_planar_curved_boundary() -> TestResult {",
+          "pub fn run_nurbssurface_mesh_planar_curved_boundary() -> TestResult {",
+          "pub fn run_primitives_nurbssurface_ruled_nearby_knots() -> TestResult {"
+        ],
+        "scope": "Original170+32actual historical compiler phases retain exactoldkernel/source/execution identities. Newkernel dependency relevance/API compatibility only for93rows;8nonkernelrows separate. No101newkernelcompile claim. Actualnewfinal713/714hostWASM phases compilechangedkernel separately."
+      },
+      "scope": "Old101/202executionsretainolddependencyidentities;separateAPIrelevanceonly;noallhistoryrebuildclaim."
     },
     "historicalNativeBeforeCurrent1063": {
       "status": "HISTORICAL fef4full1062PASS; current65f0013full1063pending",

@@ -727,13 +727,30 @@
     },
     "finalIntegration": {
       "status": "2/5 final gates retained during actual new-source integration;18/18 callbacks,4/4 fixtures,14/18 finite features accepted.",
-      "gatesDone": 2,
+      "gatesDone": 3,
       "gatesTotal": 5,
-      "gatesRemaining": 3,
+      "gatesRemaining": 2,
       "buildGate": {
-        "status": "REOPENED actual production BRep/kernel transition; source-bound final builds pending",
+        "status": "DONE actual source-bound final BRep Native/WASM/optimized independentgate1",
         "literal": "Freeze the integrated runtime and pass the final Native/WASM/optimized build checks.",
-        "previousAcceptedRecord": "release/ambient-selector-final-runtime-build-gate-review.json"
+        "record": "release/final-brep-final-runtime-build-gate-review.json",
+        "sources": [
+          {
+            "id": "96zzzzzzzq-draw-original-cad-wire-curves",
+            "count": 713,
+            "fingerprint": "f339c9ac8c75353caca48e1dba3c537a002f0e62726b19f58dcad7bdb324bf9e",
+            "packageName": "viewer_journey_713_f339c9ac8c75353caca48e1d"
+          },
+          {
+            "id": "97-finish-with-the-maintained-browser-runtime",
+            "count": 714,
+            "fingerprint": "40e317cc56bd558db438827de2ebfbc8b8be9be8453d2043fb54929a56d5baa0",
+            "packageName": "viewer_journey_714_40e317cc56bd558db438827d"
+          }
+        ],
+        "courseSha256": "2d589e8e0f45a9bd927ae63769c1186dc30e646466878b51858c491b18a1e190",
+        "previousAcceptedRecord": "release/ambient-selector-final-runtime-build-gate-review.json",
+        "scope": "Onlybuildgate1;otherreleasecriteria/browser/finitefeatureclosureseparate."
       },
       "previousBuildGateBeforeAmbient": {
         "status": "DONE independently audited current65f0013/b9f70ac runtime Native/WASM/optimizedbuild gate1",
@@ -1939,9 +1956,9 @@
       "callbacksRemaining": 0,
       "historicalFixturesAccepted": 4,
       "historicalFixturesTotal": 4,
-      "releaseGatesDone": 2,
+      "releaseGatesDone": 3,
       "releaseGatesTotal": 5,
-      "releaseGatesRemaining": 3
+      "releaseGatesRemaining": 2
     },
     "next": "17/18 callbacks accepted;1 remains (reader591).10/18 features complete;8 partial. All4/4 fixtures pass; final gates3/5. Reader build active.",
     "chapter14": {

@@ -1,0 +1,31 @@
+{
+  "status": "Qualified reuse actual new713 reviewed native canonical94 frame for714 native projection; not714 frame execution",
+  "sources": [
+    {
+      "id": "96zzzzzzzq-draw-original-cad-wire-curves",
+      "count": 713,
+      "fingerprint": "f339c9ac8c75353caca48e1dba3c537a002f0e62726b19f58dcad7bdb324bf9e",
+      "packageName": "viewer_journey_713_f339c9ac8c75353caca48e1d"
+    },
+    {
+      "id": "97-finish-with-the-maintained-browser-runtime",
+      "count": 714,
+      "fingerprint": "40e317cc56bd558db438827de2ebfbc8b8be9be8453d2043fb54929a56d5baa0",
+      "packageName": "viewer_journey_714_40e317cc56bd558db438827d"
+    }
+  ],
+  "equivalence": {
+    "path": "target/course-windows-20261018/final-brep-refreeze-v2-publication-preparation/native-frame-equivalence.json",
+    "sha256": "61797d9335570c86c72c7592fa1e2c0899eff4a903cf27fa745d4f5e0cb08699"
+  },
+  "frame": {
+    "path": "target/course-windows-20261018/final-brep-refreeze-v2-preparation/713-frame/frame.json",
+    "sha256": "e5a44366351e594200d64246201fc47e97944997530347c6493e11fea738e19f"
+  },
+  "image": {
+    "path": "target/course-windows-20261018/final-brep-refreeze-v2-preparation/713-frame/native-frame.png",
+    "sha256": "d7def00ea146454b0b18313ffd33e9aa1f9cff639406e25bf2d1146c2b84755b"
+  },
+  "rootPersonallyReviewedImageSha256": "d7def00ea146454b0b18313ffd33e9aa1f9cff639406e25bf2d1146c2b84755b",
+  "scope": "Qualifies relevance of one actual reviewed new713 native frame to714 native projection only; not714 frame execution/browser/fullsuite"
+}

@@ -1,0 +1,116 @@
+{
+  "status": "PASS:1068/1068 unfiltered handwritten713 native integration;0failed/ignored/filtered",
+  "sourceFingerprint": "f339c9ac8c75353caca48e1dba3c537a002f0e62726b19f58dcad7bdb324bf9e",
+  "courseSha256": "2d589e8e0f45a9bd927ae63769c1186dc30e646466878b51858c491b18a1e190",
+  "sourceFiles": 713,
+  "externalInventoryEntries": 433,
+  "tests": {
+    "passed": 1068,
+    "failed": 0,
+    "ignored": 0,
+    "measured": 0,
+    "filtered": 0,
+    "uniqueNames": 1068,
+    "threads": 1,
+    "exactBaselineNamesPlusDeclaredNewTests": true
+  },
+  "newTests": [
+    "cad_wire_tests::exact_straight_cad_curve_does_not_follow_displaced_mesh_vertices",
+    "cad_wire_tests::exact_curved_cad_anchors_split_at_projected_parameters_and_keep_span_depth",
+    "cad_wire_tests::foreign_cad_chain_ends_are_rejected_and_valid_curve_falls_back_without_facing",
+    "cad_wire_tests::cad_curve_facing_stays_with_flat_triangle_normals"
+  ],
+  "preservedEarlierNative": {
+    "path": "docs/journey/release/ambient-selector-final-native-integration-review.json",
+    "sha256": "536b6c1a5f0df6b99535bed3757921b173d99e63bbbc2c0dd8c33fe5b4e7b79e"
+  },
+  "oldNames": {
+    "path": "target/course-windows-20261018/ambient-selector-refreeze-publication-preparation/native1064-test-list.json",
+    "sha256": "37d7099a836cdfcc873da40f2c5717f6a3fd2e3915ac6ce87d83b65f80748665"
+  },
+  "testList": {
+    "path": "target/course-windows-20261018/final-brep-refreeze-v2-publication-preparation/native-current-test-list.json",
+    "sha256": "49660f94d767e926a0dd724899d69c41cd1baf88142a5f0397791aff5e207ae0"
+  },
+  "namedResults": {
+    "path": "target/course-windows-20261018/final-brep-refreeze-v2-publication-preparation/native-current-named-results.json",
+    "sha256": "7c0a846b793fed58122b0cc87973a15a761cc171300e6a1008ba7ddb1fb91397"
+  },
+  "nativePrepared": {
+    "path": "target/course-windows-20261018/final-brep-native-suite-v2-preparation/prepared.json",
+    "sha256": "8c713d42ced8409c3f28d7a617ca9554f7e1ea44820c176cbd1adfd2941662ed"
+  },
+  "compilerPreparation": {
+    "path": "target/course-windows-20261018/final-brep-refreeze-v2-preparation/prepared-v3.json",
+    "sha256": "8a22a381fca60dc7d1618b6ec607eb945cf2d2b0c917c71db616f27226d8275e"
+  },
+  "sourceBinding": {
+    "path": "target/course-windows-20261018/final-brep-native-suite-v2-preparation/built.json",
+    "sha256": "5304229ed9e7fc116cdef6fb5e245efe08e2b26a1b077977c25f8ac4ccd6c050"
+  },
+  "actualBinary": {
+    "path": "target/course-windows-20261018/final-brep-native-suite-v2-preparation/build/native-full-current.exe",
+    "sha256": "f99415b6b315cbbf7143fd58216021830116389c54e8c53253e67c3db800b577"
+  },
+  "depInfo": {
+    "path": "target/course-windows-20261018/final-brep-native-suite-v2-preparation/build/native-full-current.d",
+    "sha256": "26ad7d5e987b2cde1ec9680582338ac20f4e1c96d1b9e5ea1aad1af41eaca914"
+  },
+  "listOnly": {
+    "record": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\final-brep-native-suite-v2-preparation\\build\\test-list.txt",
+      "sha256": "86951c483477b580435369c661f06f4a66c5eb18f21521641b94b31189d5578f"
+    },
+    "qualification": "Existing one pre-run list reused; no second list or suite invocation"
+  },
+  "build": {
+    "command": {
+      "path": "target/course-windows-20261018/final-brep-native-suite-v2-preparation/build/command.json",
+      "sha256": "d20b628d699c8e16e40509e006fe665bd732543d2eac044e3484f62724c47c87"
+    },
+    "resources": {
+      "path": "target/course-windows-20261018/final-brep-native-suite-v2-preparation/build/resources.json",
+      "sha256": "04547fb9e6dc22b400aa0d43118db834d7570505acf9aa23456f3b29ea55d012"
+    },
+    "log": {
+      "path": "target/course-windows-20261018/final-brep-native-suite-v2-preparation/build/output.log",
+      "sha256": "adc6e1a31e91de6c08843e624c7de54850ecc25ece746eae0b00119691443a6b"
+    }
+  },
+  "run": {
+    "acceptance": {
+      "path": "target/course-windows-20261018/final-brep-native-suite-v2-preparation/acceptance.json",
+      "sha256": "905ca367fee3911875952b4700d7980f733c76c7ff564d18b406c18af28ba40f"
+    },
+    "command": {
+      "path": "target/course-windows-20261018/final-brep-native-suite-v2-preparation/full-current/command.json",
+      "sha256": "5de35f11cffefb27c702fabba5178877b7911d33f94803e43e4647545d79bd3b"
+    },
+    "resources": {
+      "path": "target/course-windows-20261018/final-brep-native-suite-v2-preparation/full-current/resources.json",
+      "sha256": "2a8ce89cddd0dfb791a9032a1f1ba07f99bd24ec6f59dc987c92a07eed4bd2a6"
+    },
+    "log": {
+      "path": "target/course-windows-20261018/final-brep-native-suite-v2-preparation/full-current/output.log",
+      "sha256": "511fd4d0f938131440dfc4e1576edb32e18894464728d4d8623695f1aa6b8ce9"
+    },
+    "elapsedSeconds": 1452.275,
+    "peakJobCommitBytes": 1481740288
+  },
+  "inventoryLookup": {
+    "path": "target/course-windows-20261018/final-brep-native-suite-v2-preparation/inventory-lookup-proof.json",
+    "sha256": "be9e9b400da76c11525880cb0e8b76e95dbbc3bd1dca1a8ebb299a0100aefdf5"
+  },
+  "workingDirectory": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\",
+  "scope": "One actual new final BRep-source full native suite only; no714 fullsuite/currentbrowser/tutorial feature closure. Source-relative Cargo lookup and external compiler namespace overlays are explicit, original inventory assertions unchanged.",
+  "recordedUtc": "2026-10-24T20:45:49.474Z",
+  "manifest": {
+    "path": "target/course-windows-20261018/final-brep-refreeze-v2-publication-preparation/frozen-native-current.json",
+    "sha256": "25bb19729023871cec3099b871fbd97b409f651033815f6bb92a78e75b0290be"
+  },
+  "independentBuildGateAudit": {
+    "path": "target/course-windows-20261018/final-brep-refreeze-v2-publication-preparation/native-current-build-gate-audit.json",
+    "sha256": "97b5ae685693930211dd21d04b13fe74fadb0297396ff1d333b4a7c65b798f67"
+  },
+  "actualTestCount": 1068
+}
