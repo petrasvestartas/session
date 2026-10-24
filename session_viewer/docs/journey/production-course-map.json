@@ -3,8 +3,8 @@
   "scope": "Initial production-to-course source/coverage audit; proposals are not completed consolidation or rendering acceptance.",
   "sourceAuthority": "session_viewer/src",
   "endpoint": "96zzzzzzzq-draw-original-cad-wire-curves",
-  "endpointStatus": "Current fef4 qualifiednative1060+2, compiler/artifact and scoped image proofs remain bound to their original inputs. Owned terminal-status metadata correction leaves runtime source unchanged. Both70d and76d outer captures FAILED; callbacks1/18accepted17left,features3/18complete15partial,fixtures1/4,release0/5.70d striping remains unresolved.",
-  "courseSha256": "7dc82d0cf71d86f7612e7b08dd2a9335394eebc79ce81a2b2bf136e3074be3d9",
+  "endpointStatus": "Currentcorrected97WASM/optimizedpackage and originalmaintainedDPR1/2NVIDIAbrowserPASS; oldpackaging/guardfailurespreserved. Nativecfg/713frame reuse scoped, fullnative notexecuted. Authoring22/22+1361/43 PASScurrent3670; V3docsPASS5779scope. Reader85/101endpoints170/202phasescurrent16/32pending during43900. Callbacks2/18accepted16left;features3/18complete15partial;fixtures1/4;release0/5.",
+  "courseSha256": "367065739cee3cbf01e1b240c9eca4a1e0c12092eccab2fe2345cbc783a55197",
   "chapters": 22,
   "existingSteps": 1361,
   "proposedReaderLessons": 111,
@@ -21678,7 +21678,7 @@
     "fingerprint": "fef4c7bdb6f4c0a6f7a7701b0ba5581469dd757a34eefbab030a06e92ce4e5a1",
     "files": 713,
     "recordedAt": "2026-10-23T17:02:35.831075+00:00",
-    "courseSha256": "7dc82d0cf71d86f7612e7b08dd2a9335394eebc79ce81a2b2bf136e3074be3d9",
+    "courseSha256": "367065739cee3cbf01e1b240c9eca4a1e0c12092eccab2fe2345cbc783a55197",
     "historicalCourseSha256": "8453513dc6d5ae34d081becc435ee893bbb82cc89d31386ed6fa7141e7576b1b",
     "scope": "Current fef4 cfg-test source713files is production-equivalent to e432. Original fullrun remainsFAIL1060/1062;two exact correctedfixturefocused cases qualify recovery. No singleunfiltered1062PASS. Feature3/15 andcallback17 unchanged;current frame/WASM/Trunk/browser/docs acceptance separate.",
     "state": "consolidation/current-state.json",
@@ -21696,7 +21696,26 @@
       "testsDurationMs": 9677.8855,
       "testsLog": "target/course-windows-20261018/argo-diagrams-teaching-authoring-tests.log",
       "structureLog": "target/course-windows-20261018/argo-diagrams-teaching-structure.log",
-      "recordedScope": "Current committed Argo diagrams plus restored authored introductions; 22 tests PASS and structure PASS. Docs build/visible publication remains pending."
+      "recordedScope": "Current committed Argo diagrams plus restored authored introductions; 22 tests PASS and structure PASS. Docs build/visible publication remains pending.",
+      "latestMaskAuthoring": {
+        "manifest": {
+          "path": "target/course-windows-20261018/70d-selected-mask-projection-preparation/authoring-20261024T015844306Z.json",
+          "sha256": "fa7150be06157781d366cea2d7243197b64a6ccad352fe1fec8c4b65715563f7"
+        },
+        "testsPassed": 22,
+        "checkpoints": 1361,
+        "referenceHistories": 43,
+        "courseSha256": "5779c3b35e9103a413a1fa5c4b5869ccfe8d4ff51927ae5d9dc67888121e5e17",
+        "scope": "Actualmasksourcechecks passed; later97export correction and new97instruction are subsequent inputs, not accepted by this historical execution."
+      },
+      "currentSourceRun": {
+        "status": "PASS22/22authoring+1361checkpoint/43reference structure atcurrent3670 including97newlesson",
+        "manifest": {
+          "path": "target/course-windows-20261018/70d-selected-mask-projection-preparation/authoring-20261024T021119983Z.json",
+          "sha256": "aac938089e0d335c40bf3f287491b760216caa9b30364a99f86d1c293b9d5b6b"
+        },
+        "courseSha256": "367065739cee3cbf01e1b240c9eca4a1e0c12092eccab2fe2345cbc783a55197"
+      }
     },
     "native": {
       "status": "passed-final-native-integration",
@@ -21983,11 +22002,12 @@
         "nonCallbackIntegrationActions": 3,
         "namedActions": 21,
         "remainingFeatureChecklists": 15,
-        "meaning": "Original18 source-specific entries retained: finalCAD accepted1, pending17 (13historical+3late display+maintained97). Three noncallback groups remain; original21named denominator is preserved,20pending groups overlap15partial finite features. No new GPU matrix.",
+        "meaning": "Original18source-specific entries retained: finalCAD andmaintained97 accepted2;pending16=13historical+3late display. Original4additionaldeclared entries remain listed, with97explicitlyaccepted. Three noncallback groups remain; original21named denominator retained,19pending groups overlap15partial features. No new GPU matrix.",
         "eta": "No total ETA; missing successful callback durations and unscopednative tuples prevent an honest walltime estimate.",
-        "acceptedSourceSpecificCallbackEntries": 1,
-        "pendingSourceSpecificCallbackEntries": 17,
-        "pendingNamedActions": 20
+        "acceptedSourceSpecificCallbackEntries": 2,
+        "pendingSourceSpecificCallbackEntries": 16,
+        "pendingNamedActions": 19,
+        "pendingAdditionalDeclaredCallbackEntries": 3
       },
       "phaseReuse94c": {
         "reusableForTwoNativeHelperLines": [
@@ -22029,7 +22049,15 @@
             "node",
             "docs/capture_journey.cjs",
             "97-finish-with-the-maintained-browser-runtime"
-          ]
+          ],
+          "status": "accepted-complete-original-maintained-browser-contract-DPR1/2",
+          "record": "release/maintained97-export-recovery-review.json",
+          "executedCommand": [
+            "node",
+            "docs/capture_current.cjs",
+            "97-finish-with-the-maintained-browser-runtime"
+          ],
+          "sourceFingerprint": "06359f77b5c26901e6d6e155808ce05946282865b10fffdf4e36e07c494ba3ce"
         },
         {
           "checkpoint": "96zzzzzzp-draw-default-mesh-vertex-dots",
@@ -22151,22 +22179,44 @@
         ]
       }
     },
-    "docsCurrent": "PASS scoped integrated content publication:59 introductions,111 links,21 images and17 inspected views at recorded source/build. Separate docs UI review resolves duplicate progress navigation and Matrix phone prose overflow; four inspected UI views retain their frontend source hashes. First10/current whole-book, SVG/runtime parity and global release acceptance remain separate.",
+    "docsCurrent": {
+      "status": "PASS actual5779 roadmap and changedChapter13desktop/phone; all3originalPNGindividuallyreviewed",
+      "record": "release/docs-progress-mask-visible-review.json",
+      "courseSha256": "5779c3b35e9103a413a1fa5c4b5869ccfe8d4ff51927ae5d9dc67888121e5e17",
+      "subsequent97EditNotAccepted": true,
+      "previousScopedRecord": "PASS scoped integrated content publication:59 introductions,111 links,21 images and17 inspected views at recorded source/build. Separate docs UI review resolves duplicate progress navigation and Matrix phone prose overflow; four inspected UI views retain their frontend source hashes. First10/current whole-book, SVG/runtime parity and global release acceptance remain separate."
+    },
     "readerCompilerProof": {
-      "status": "Compiler-only lane:101/101 endpoints,202/202 phases passed",
+      "status": "Current source-qualified compiler proof:85/101 endpoints,170/202 phases;16endpoints/32phases pending after historical70d mask runtime correction",
       "readerEndpoints": 111,
       "compilerOnlyEndpoints": 101,
       "maximumCompilerPhases": 202,
       "excludedEndpoints": 10,
-      "scope": "Separate Native cargo check --tests --examples and WASM lib builds for missing reader compilation proof. Ten reader endpoints have matching scoped proof or separately scheduled canonical work. These exclusions remain obligations until scheduled work passes. Native typechecking does not run/link tests or frames; no optimized packaging, screenshot or browser acceptance claim.",
+      "scope": "Separate Native cargo check --tests --examples and WASM lib builds for missing reader compilation proof. Ten reader endpoints have matching scoped proof or separately scheduled canonical work. These exclusions remain obligations until scheduled work passes. Native typechecking does not run/link tests or frames; no optimized packaging, screenshot or browser acceptance claim. Historical source changed from70d until87p convergence. Old202phase evidence is retained under original bindings; only the16affected endpoints/32phases need fresh qualification.",
       "localPlan": "target/course-windows-20261018/reader-compile-lane-plan.json",
       "belongsTo": "Existing final integration/runnable-proof group; not an additional browser entry or101 full GPU suites.",
-      "successfulEndpoints": 101,
-      "remainingEndpoints": 0,
-      "successfulPhases": 202,
-      "record": "docs/journey/release/reader-compilation-review.json",
-      "reusedPriorPhases": 82,
-      "newV2Phases": 120
+      "successfulEndpoints": 85,
+      "remainingEndpoints": 16,
+      "successfulPhases": 170,
+      "record": "docs/journey/release/70d-mask-projection-repair-review.json",
+      "remainingPhases": 32,
+      "originalCompletedProof": {
+        "status": "Compiler-only lane:101/101 endpoints,202/202 phases passed",
+        "readerEndpoints": 111,
+        "compilerOnlyEndpoints": 101,
+        "maximumCompilerPhases": 202,
+        "excludedEndpoints": 10,
+        "scope": "Separate Native cargo check --tests --examples and WASM lib builds for missing reader compilation proof. Ten reader endpoints have matching scoped proof or separately scheduled canonical work. These exclusions remain obligations until scheduled work passes. Native typechecking does not run/link tests or frames; no optimized packaging, screenshot or browser acceptance claim.",
+        "localPlan": "target/course-windows-20261018/reader-compile-lane-plan.json",
+        "belongsTo": "Existing final integration/runnable-proof group; not an additional browser entry or101 full GPU suites.",
+        "successfulEndpoints": 101,
+        "remainingEndpoints": 0,
+        "successfulPhases": 202,
+        "record": "docs/journey/release/reader-compilation-review.json",
+        "reusedPriorPhases": 82,
+        "newV2Phases": 120
+      },
+      "currentAdjustmentRecord": "release/70d-mask-projection-repair-review.json"
     },
     "lateChapterTeaching": {
       "status": "PASS scoped integrated content publication:59 introductions,111 links,21 images and17 inspected views at recorded source/build. Separate docs UI review resolves duplicate progress navigation and Matrix phone prose overflow; four inspected UI views retain their frontend source hashes. First10/current whole-book, SVG/runtime parity and global release acceptance remain separate.",
@@ -22236,7 +22286,7 @@
         "record": "release/70d-browser-failure-review.json",
         "actualFinalStatus": "Document closed.",
         "expectedFinalStatus": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
-        "visualCounterexample": "Root-reviewed black parallel striping near the lower selected yellow triangle remains unresolved; metadata correction alone cannot close the visual defect."
+        "visualCounterexample": "Original failed source had black striping. Focused historical mask projection repair is now clean in all four root-reviewed NVIDIA/WARP images; original fullcallback remains failed/unaccepted."
       },
       "counts": {
         "chaptersConsolidated": 22,
@@ -22251,7 +22301,7 @@
         "releaseGatesDone": 0,
         "releaseGatesTotal": 5
       },
-      "next": "Complete bounded common-original-archive input comparison and70d carried-state diagnosis under the root single-heavy-job lane, then original source-specific recovery with every assertion retained. Counts remain22/22authored,111lessons/0drafting,3/18finitefeatures,15partial,1/18callbacksaccepted17left,fixtures1/4,release0/5.",
+      "next": "Finish actual43900 exact32affectedreader compiler phases; retain85/101current untilcompletedproof. Continue remaining16source-specificcallbacks; typingV3 frozen-harness exception pending. Feature3/18complete15partial,fixture1/4,release0/5 unchanged.",
       "chapter14": {
         "status": "FAIL original76d outer final-status assertion after complete canonical callback returned",
         "record": "release/76d-browser-failure-review.json",
@@ -22263,6 +22313,101 @@
         "courseSha256": "7dc82d0cf71d86f7612e7b08dd2a9335394eebc79ce81a2b2bf136e3074be3d9",
         "previousCourseSha256": "d4ab046ec86c32ca3524afdf9f665dac30821367ce0bf5899f61ab7baf2f026e",
         "scope": "Metadata only; source/compiler/harness equivalence receipt, no successful browser replay inferred."
+      },
+      "historicalMaskRepair": {
+        "status": "PASS focused historical mask projection repair; complete callback remains unaccepted",
+        "record": "release/70d-mask-projection-repair-review.json",
+        "courseSha256": "5779c3b35e9103a413a1fa5c4b5869ccfe8d4ff51927ae5d9dc67888121e5e17",
+        "sourceFingerprint": "325b027ccad541a7c4285ee436c8b3a1c7778b16a836664fe6b1fcaa21f7005a",
+        "originalFailureRecord": "release/70d-browser-failure-review.json",
+        "reviewedBrowserImages": 4,
+        "nativeFrameReviewed": true,
+        "scope": "Historical outline mask model-then-view order matches visible geometry. NVIDIA/WARP selected and unselected images clean. Later87p/final713/maintained714 runtime unchanged; no complete callback claim."
+      },
+      "typingExperimentV3": {
+        "status": "PASS8focused cases; candidate remains unauthorized for operational frozen-harness use",
+        "proof": "target/course-windows-20261018/command-typing-delay-candidate-v3-preparation/typing-delay60-vs0-focused-v3/proof.json",
+        "sha256": "25719d35beb4f6c3057fe632fb569203bceb28a5b67b0870166732244646f436",
+        "scope": "Exact retained archive input, two runtime bundles,DPR1/2,original60ms/candidate0ms. Root individually inspected all8images. Canonical harness remains unchanged; explicit exception still pending."
+      },
+      "maintained97ExportRecovery": {
+        "status": "PASS current97 WASM/optimized package and complete original maintainedDPR1/2NVIDIAbrowser",
+        "application": {
+          "path": "target/course-windows-20261018/maintained97-proportional-phases/export-recovery/root-export-application.json",
+          "sha256": "a5f48a96883add006a40da6f6b65719cb6a587834c817b573475b2bdc61a8f14"
+        },
+        "originalFailedProof": {
+          "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\maintained97-proportional-phases\\maintained97-after-mask-nvidia-v1\\proof.json",
+          "sha256": "7a3e8a7fd8d58d4350847579d21a67efe62a938872df51185f8d75e1920bcc69"
+        },
+        "recoveryPreparation": {
+          "path": "target/course-windows-20261018/maintained97-proportional-phases/export-recovery/recovery.json",
+          "sha256": "523eae8501a6ee3f4aadeabd53b032e1fa3e1f5d10f1a2cd47910396ffe12140"
+        },
+        "nativeCfgEquivalence": {
+          "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\maintained97-proportional-phases\\export-recovery\\application-equivalence.json",
+          "sha256": "028c3549af71a7f01114427a74ade6142aa90a4d767afd27ea0b83d2606ce5c8"
+        },
+        "sourceBefore": "6e158a0a09964a89583d2fd9c60c8b29c5afc5abc25b7430ea3fb0a8753ecd9c",
+        "sourceAfter": "06359f77b5c26901e6d6e155808ce05946282865b10fffdf4e36e07c494ba3ce",
+        "signatureBefore": "19b8b5d55b065d8d0cedc0388942406ec0a0ee8f3a9d095a848c89f7bbca6b9a",
+        "signatureAfter": "c9091018e8d705c85767ce38f04b110eb091b88ff3abca4224aa47b9a64ed0d6",
+        "courseSha256": "367065739cee3cbf01e1b240c9eca4a1e0c12092eccab2fe2345cbc783a55197",
+        "nativeCheck": "Original714 native-check PASS; exact WASM-only module exclusion qualifies relevant-input reuse without relabeling original source.",
+        "wasm": "Fresh current06359f77 WASM compilation PASS in actual recovery build17348.",
+        "web": "Fresh current optimized Rust release, wasm-bindgen and package PASS; original duplicate-export packaging failure remains preserved separately.",
+        "browser": "PASS original fullcanonical maintainedDPR1/2NVIDIAbrowser47726; both originals individually reviewed clean. Accepts97callbackonly.",
+        "scope": "Only course97 src/browser_runtime.rs removes one wasm_bindgen annotation. Rust function body and maintained production source unchanged. Earlier teaching auto-start remains disabled; maintained viewer owns run_web. No new consolidated lesson.",
+        "freshBuild": {
+          "proof": {
+            "path": "target/course-windows-20261018/maintained97-proportional-phases/maintained97-export-recovery-v2/proof.json",
+            "sha256": "a22558948adfd8b7257b8cc06929c687e613e78293aff55fc6d979cfbac03c66"
+          },
+          "sourceFingerprint": "06359f77b5c26901e6d6e155808ce05946282865b10fffdf4e36e07c494ba3ce",
+          "sourceSignature": "c9091018e8d705c85767ce38f04b110eb091b88ff3abca4224aa47b9a64ed0d6",
+          "phases": {
+            "wasm": {
+              "resources": {
+                "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\maintained97-export-recovery-v2-wasm-20261024T020605169Z.resources.json",
+                "sha256": "14c00fba9767fcc15b74cb73bc12ba5d3ed75c8731e844e7fef88da8dc2bef69"
+              },
+              "elapsedSeconds": 25.419,
+              "peakJobCommitBytes": 1774637056
+            },
+            "web": {
+              "resources": {
+                "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\maintained97-export-recovery-v2-web-20261024T020638260Z.resources.json",
+                "sha256": "0d06cce5a6544ba609e5e14ad77ca3c246e88a8032e163416f0e9e699f880b14"
+              },
+              "elapsedSeconds": 77.016,
+              "peakJobCommitBytes": 1405726720
+            }
+          },
+          "canonicalVerifyComplete": false,
+          "nativeSuite": {
+            "status": "not-run",
+            "reason": "Saved plan section4: native full-suite execution belongs to integrated batches/final freeze; historical tests are preserved and typechecked here."
+          },
+          "nativeCheckReuse": "Original82197 native-check retained under exact native-cfg equivalence; no current714 fullnative-suite claim.",
+          "nativeFrameReuse": "Original713 canonical native frame reused under recorded relevant-input scope, not relabeled as a fresh714 execution."
+        },
+        "acceptanceRecord": "release/maintained97-export-recovery-review.json",
+        "browserElapsedSeconds": 15.704,
+        "browserPeakJobCommitBytes": 896905216
+      },
+      "latestDocsPublication": {
+        "record": "release/docs-progress-mask-visible-review.json",
+        "status": "PASS actual5779roadmap+Chapter13desktop/390phone; all3originalimagesrootreviewed",
+        "courseSha256": "5779c3b35e9103a413a1fa5c4b5869ccfe8d4ff51927ae5d9dc67888121e5e17",
+        "scope": "Pre97exportcorrection and before subsequent97teaching/currentprogressedits; no relabeling."
+      },
+      "currentAuthoring": {
+        "status": "PASS22/22authoring+1361checkpoint/43reference structure atcurrent3670 including97newlesson",
+        "manifest": {
+          "path": "target/course-windows-20261018/70d-selected-mask-projection-preparation/authoring-20261024T021119983Z.json",
+          "sha256": "aac938089e0d335c40bf3f287491b760216caa9b30364a99f86d1c293b9d5b6b"
+        },
+        "courseSha256": "367065739cee3cbf01e1b240c9eca4a1e0c12092eccab2fe2345cbc783a55197"
       }
     }
   },

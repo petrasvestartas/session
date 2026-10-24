@@ -6763,24 +6763,26 @@
       "keyboardRoundtrip": false
     },
     "97-finish-with-the-maintained-browser-runtime": {
-      "source": "79ec482c9433352e98aeab3b448be4f79ab5e6cb670d59b655c5c835145d045b",
-      "checker": "78acc6c184d8b3aea010b941e0c7857d4b1153483549b829ecbad5d780c98bc5",
+      "source": "c9091018e8d705c85767ce38f04b110eb091b88ff3abca4224aa47b9a64ed0d6",
+      "checker": "fe1c0deb8e6b410023c3813ee58365e721e0276db13e8ed652b9f61d55d918cc",
       "extraChecker": "62b84d01763fec03c2a9993f97017d5448c5daa9dcd1fd1110d4a010025908d4",
-      "browser": "153.0.8010.36",
-      "headless": false,
+      "browser": "145.0.7632.6",
+      "headless": true,
       "args": [
         "--enable-unsafe-webgpu",
-        "--enable-features=Vulkan,DefaultANGLEVulkan,VulkanFromANGLE",
-        "--disable-vulkan-surface",
-        "--ozone-platform=x11"
+        "--ignore-gpu-blocklist",
+        "--use-gl=angle",
+        "--use-angle=d3d11",
+        "--use-adapter-luid=0,86780",
+        "--enable-dawn-features=d3d_skip_shader_optimizations"
       ],
-      "captured": "2026-10-11T19:09:31.809Z",
+      "captured": "2026-10-24T02:08:52.344Z",
       "file": "97-finish-with-the-maintained-browser-runtime-browser.png",
       "images": [
         {
           "density": 1,
           "file": "97-finish-with-the-maintained-browser-runtime-browser.png",
-          "sha256": "87e7686e12fca81e24a43bb15f8950f568671894444f76baddec5b17e6f701e1",
+          "sha256": "ab519bd9ff19a16c73771ea73ee370111202fa1dd68f10e0ac08c03dcaf444ea",
           "viewport": {
             "width": 900,
             "height": 760
@@ -6789,13 +6791,13 @@
             900,
             760
           ],
-          "blue": 128641,
-          "black": 8023
+          "blue": 128639,
+          "black": 8028
         },
         {
           "density": 2,
           "file": "97-finish-with-the-maintained-browser-runtime-browser-dpr2.png",
-          "sha256": "e87462bb5a3f2c20d9e036ccd3403b8d0a2e93dd762d1df0f984e4dfbb14c0f8",
+          "sha256": "a7f9c87ac916a4e85e507d83b8b5038fdd4df5ed71cdc26c0188c75c3f2f6365",
           "viewport": {
             "width": 900,
             "height": 760
@@ -6804,11 +6806,11 @@
             1800,
             1520
           ],
-          "blue": 512033,
-          "black": 39655
+          "blue": 512031,
+          "black": 39653
         }
       ],
-      "bundle": "312c4d66b1c0a291f7359bc6a645c40e6be8a7f585dca1439f8d8137fa49921b",
+      "bundle": "f743544556934bf298e0218b47685bf89c8c6ee2883d39a67aee28722c1d2250",
       "scope": "Maintained runtime: original scene, Element/box deletion, history, command ownership, shortcuts, orbit/zoom, Close semantics and empty-manifest release, full canvas and actual original rendering at two pixel densities. Hardware performance and additional visual cases remain separate."
     },
     "96q-prove-imported-feature-ownership-and-roundtrips": {

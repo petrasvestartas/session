@@ -1422,6 +1422,19 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/97-finish-with-the-maintained-browser-runtime-06.html"
 ```
 
+### 5. `src/browser_runtime.rs`
+
+The maintained viewer owns the JavaScript `reload_scene` entry point. Keep the earlier teaching helper callable from Rust, but remove its `#[wasm_bindgen]` export attribute so packaging emits one JavaScript name. The function body stays unchanged. The maintained viewer also owns browser startup; the older teaching auto-start remains disabled.
+
+Replace the complete earlier `reload_scene` function and its export attribute with:
+
+```rust
+--8<-- "journey/code/97-finish-with-the-maintained-browser-runtime-07.rs"
+```
+
+The original native check and WASM compilation passed, but the optimized package failed while generating JavaScript because both crates exported the same name. The corrected wrapper passes fresh WASM compilation, optimized packaging and its complete original maintained browser contract at DPR 1 and 2 on the recorded NVIDIA adapter. Both actual pedestal images were individually reviewed. This accepts checkpoint 97; broader feature and final release gates remain separate. [Source-bound recovery and browser proof](release/maintained97-export-recovery-review.json).
+
+
 ## Run and check
 
 Run this from `session_viewer` to select the fixed dependency versions and install supplied binary assets. It updates Cargo.lock and preserves the previous lock. It does not write implementation code:
@@ -1495,13 +1508,13 @@ Source comparison leaves your project untouched. [Save and recovery instructions
 <details>
 <summary>Viewer coverage and verification</summary>
 
-The browser destination now links this checkout’s maintained viewer directly. Its reverse-depth renderer, camera, input, panels, command actions and original geometry owners execute without the earlier teaching adapters. [Source inventory](inventory.md) records the declared current Rust closure; [final handoff](final-handoff.md) separates native/build evidence, the passing final Chrome contract, and remaining browser/visual/hardware acceptance.
+The browser destination now links this checkout’s maintained viewer directly. Its reverse-depth renderer, camera, input, panels, command actions and original geometry owners execute without the earlier teaching adapters. [Source inventory](inventory.md) records the declared current Rust closure; [final handoff](final-handoff.md) separates native/build evidence, the historical final Chrome contract at its recorded source, and remaining current browser/visual/hardware acceptance.
 
 [October 9 behavior](current-viewer.md): independent layer lamps, panel selection Fit, Element Attributes Off and Element Interactions On. The dated comparison preserves the earlier baseline; browser and handwritten-runtime coverage remain separate. Read [remaining implementation differences](rendering-differences.md) before claiming cumulative handwritten parity.
 
-Keep all 809 supplied native fixtures. The native reference example renders the maintained pipeline from original scene bytes. The final browser contract now has source-matching Chrome evidence at both pixel densities. The remaining handwritten bridges and broader visual/device acceptance must pass before retiring the earlier reference.
+Keep all 809 supplied native fixtures. The native reference example renders the maintained pipeline from original scene bytes. The historical final browser contract has Chrome evidence at both pixel densities for its original source; it does not accept the current export-corrected wrapper. The remaining handwritten bridges and broader visual/device acceptance must pass before retiring the earlier reference.
 
-The final maintained-runtime contract passed in visible Chrome 153.0.8010.36 at DPR 1 and 2: command ownership, shortcuts, Element and bounding-box history, panel width, orbit/zoom, Close rejection outside drawing, three-point Close with a 1,200 mm perimeter and identity-preserving Undo/Redo, empty-manifest release, and actual blue geometry with black boundaries. Broader visual parity and Lenovo performance remain separate.
+The historical maintained-runtime record, before the 2026-10-24 export correction, passed in visible Chrome 153.0.8010.36 at DPR 1 and 2: command ownership, shortcuts, Element and bounding-box history, panel width, orbit/zoom, Close rejection outside drawing, three-point Close with a 1,200 mm perimeter and identity-preserving Undo/Redo, empty-manifest release, and actual blue geometry with black boundaries. Broader visual parity and Lenovo performance remain separate.
 
 [Full validation scope](release.md).
 

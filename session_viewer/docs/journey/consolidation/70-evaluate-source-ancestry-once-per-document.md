@@ -1096,6 +1096,28 @@ fn actual_nested_rotated_and_mirrored_definition_placements_keep_independent_int
 }
 ```
 
+### 5. `src/outline_mask.wgsl`
+
+Project the local position through the model matrix first, then through the view matrix, exactly as the visible surface does. Reassociating these f32 multiplications can change the depth result and produce stripes on a selected rotated or mirrored instance. Keep geometry, instance owners and selection unchanged.
+
+Replace this shader with the matching projection order:
+
+```wgsl
+struct View {transform:mat4x4<f32>,display:vec4<f32>}
+struct Object {model:mat4x4<f32>,selection:vec4<u32>,normal_matrix:mat4x4<f32>,face_colour:vec4<f32>}
+@group(0) @binding(0) var<uniform> view:View;
+@group(1) @binding(0) var<uniform> object:Object;
+@vertex fn vertex(@location(0) position:vec3<f32>)->@builtin(position) vec4<f32> {let world=object.model*vec4<f32>(position,1.0);return view.transform*world;}
+@fragment fn fragment()->@location(0) vec4<f32> {return vec4<f32>(1.0);}
+```
+
+The focused selected/unselected comparison is clean on both recorded adapters. This repair does not accept the complete chapter browser callback. [Focused repair and source scope](../release/70d-mask-projection-repair-review.json).
+
+![Selected rotated and mirrored instances after the matching mask projection repair on NVIDIA.](../release/70d-mask-projection-nvidia-selected.png)
+
+[The same repaired selected state on WARP](../release/70d-mask-projection-warp-selected.png).
+
+
 ## <a id="checkpoint-70za-read-original-sheet-metadata-records"></a>6. Read sheet metadata records
 
 **What this code does:** Describe the original sheet side-table layout and entity identity fields.

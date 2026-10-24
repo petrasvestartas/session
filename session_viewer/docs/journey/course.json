@@ -37709,6 +37709,12 @@
           "snippet": "journey/code/70d-exercise-rotated-and-mirrored-original-references-05.rs",
           "why": "Copy actual high integer owner, rotated/mirrored rendering and nested Save/Open GPU fixtures.",
           "copy": true
+        },
+        {
+          "path": "src/outline_mask.wgsl",
+          "before": "struct View {transform:mat4x4<f32>,display:vec4<f32>}\nstruct Object {model:mat4x4<f32>,selection:vec4<u32>,normal_matrix:mat4x4<f32>,face_colour:vec4<f32>}\n@group(0) @binding(0) var<uniform> view:View;\n@group(1) @binding(0) var<uniform> object:Object;\n@vertex fn vertex(@location(0) position:vec3<f32>)->@builtin(position) vec4<f32> {return view.transform*object.model*vec4<f32>(position,1.0);}\n@fragment fn fragment()->@location(0) vec4<f32> {return vec4<f32>(1.0);}\n",
+          "snippet": "journey/code/70d-exercise-rotated-and-mirrored-original-references-matching-mask-projection.rs",
+          "why": "Use the same model-then-view projection as visible geometry so selected coverage tests the same surface depth."
         }
       ],
       "image_result": "Independently placed blue rotated and selected yellow mirrored references to the original source definition.",
@@ -59517,7 +59523,7 @@
       "edits": [
         {
           "path": "src/outline_mask.wgsl",
-          "before": "@group(0) @binding(0) var<uniform> view:View;\n@group(1) @binding(0) var<uniform> object:Object;\n@vertex fn vertex(@location(0) position:vec3<f32>)->@builtin(position) vec4<f32> {return view.transform*object.model*vec4<f32>(position,1.0);}\n@fragment fn fragment()->@location(0) vec4<f32> {return vec4<f32>(1.0);}\n",
+          "before": "@group(0) @binding(0) var<uniform> view:View;\n@group(1) @binding(0) var<uniform> object:Object;\n@vertex fn vertex(@location(0) position:vec3<f32>)->@builtin(position) vec4<f32> {let world=object.model*vec4<f32>(position,1.0);return view.transform*world;}\n@fragment fn fragment()->@location(0) vec4<f32> {return vec4<f32>(1.0);}\n",
           "snippet": "journey/code/87p-invalidate-selected-masks-on-clipping-changes-01.rs",
           "why": "Connect matching source ownership and derived clipping."
         },
@@ -91798,6 +91804,12 @@
           "before": "<head>\n  <meta charset=\"utf-8\">\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n  <title>Session Viewer</title>\n  <link data-trunk rel=\"rust\">\n  <link data-trunk rel=\"copy-dir\" href=\"assets/text\" data-target-path=\"text\">\n  <link data-trunk rel=\"copy-dir\" href=\"assets/pb\" data-target-path=\"assets/pb\">\n  <style>\n    html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; }\n    canvas { display: block; width: 100%; height: 100%; outline: none; background: #fff; }\n    #status:not([hidden]) { position: fixed; bottom: 32px; left: 8px; right: 8px; margin: 0; padding: 8px; background: white; font: 14px system-ui; }\n  </style>\n</head>\n<body>\n  <p id=\"status\" role=\"status\" hidden>Waiting for Rust…</p>\n  <canvas id=\"canvas\" tabindex=\"0\" width=\"640\" height=\"480\" aria-label=\"Viewer drawing\"></canvas>\n  <input id=\"open\" type=\"file\" accept=\".pb,.session\" hidden>\n</body>\n</html>\n",
           "snippet": "journey/code/97-finish-with-the-maintained-browser-runtime-06.html",
           "why": "Connect maintained browser inputs, diagnostics, status and local assets."
+        },
+        {
+          "path": "src/browser_runtime.rs",
+          "before": "#[wasm_bindgen::prelude::wasm_bindgen]\npub fn reload_scene(url:Option<String>)->Result<(),wasm_bindgen::JsValue>{\n    let control=ACTIVE.with(|slot| {\n        let mut active=slot.borrow_mut();let runtime=active.as_mut().ok_or(\"Viewer runtime is not running\")?;\n        let publication=match url {Some(path)=>crate::browser_publication::Publication::at(runtime.document.clone(),runtime.fault.clone(),&path)?,None=>crate::browser_publication::Publication::new(runtime.document.clone(),runtime.fault.clone())?};\n        if !publication.has_route(){return Ok(None);}\n        runtime.request.borrow_mut().cancel();runtime.reload.borrow_mut().cancel();\n        runtime._publication.replace(publication);let control=runtime._publication.control();\n        Ok::<_,wasm_bindgen::JsValue>(Some(control))\n    })?;\n    if let Some(control)=control{control.begin();}Ok(())\n}\n",
+          "snippet": "journey/code/97-finish-with-the-maintained-browser-runtime-07.rs",
+          "why": "Keep the JavaScript reload entry point with the maintained viewer; retain the earlier Rust helper internally."
         }
       ],
       "image_result": "The native teaching comparison retains its original blue pedestal and black boundaries. This illustration is not a browser screenshot or a pixel-equivalence claim.",
