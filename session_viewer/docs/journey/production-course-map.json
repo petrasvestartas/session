@@ -1162,20 +1162,18 @@
       "runnableCheckpoint": "96zzzzzzzq-draw-original-cad-wire-curves",
       "evidence": "docs/journey/visual-review.json; docs/screenshots/journey/browser.json; chapter source checkpoints. Existence is not current acceptance.",
       "currentVerification": {
-        "status": "partial",
+        "status": "complete",
         "integration": "#/currentIntegration",
-        "acceptedScope": "Historical a45 native1059 suite passed and selected source matches remain recorded; no complete current browser GTAO/outline acceptance is inferred. Applied final555/b5 geometric-normal/full-pyramid reconciliation has two strict original-pedestal ambientOff/On production pairs atDPR1/sample1 with zeroRGBA differences and five focused native checks; whole feature remains partial.",
+        "acceptedScope": "Finite declared cloud/outline and performance browser criteria now accepted at actualsource282/549. Retained strict production/course pedestal ambientOff/On pairs at1x/4x prove exactRGBA with originalPB/MVP/GTAOinputs and inspectedoutputs. Current6941064 namedglobaloutline width/alpha/visibility/capmask andfour-sample section/owner assertions are accepted separately. Nooutline-only productionfullRGBA orfuturekernelquality-recovery claim.",
         "records": [
           "consolidation/current-state.json",
           "release/ambient-pedestal-qualified-native-review.json",
           "release/ambient-authored-source-integration-review.json",
           "release/ambient-selector-authored-source-review.json",
-          "release/ambient-four-sample-selector-parity-review.json"
+          "release/ambient-four-sample-selector-parity-review.json",
+          "release/performance95f-browser-review.json"
         ],
-        "remainingAcceptance": [
-          "Run chapter11 cloud/outline and chapter18 performance/render-quality entry callbacks.",
-          "Inspect actual outline/ambient-depth/GTAO inputs and multisample pass outputs with production-bound feature images."
-        ],
+        "remainingAcceptance": [],
         "chapterBrowserEntries": [
           {
             "chapter": 11,
@@ -1189,7 +1187,7 @@
           }
         ],
         "previousNativeFailure": {
-          "status": "FAIL observed current native ambient comparison; candidate correction pending",
+          "status": "FAIL retained original36492pixel comparison; superseded only by separately recorded strict1x/4xPASS",
           "record": "release/ambient-pedestal-native-failure-review.json",
           "offChangedPixels": 0,
           "onChangedPixels": 36492,
@@ -1204,10 +1202,10 @@
           "productionPairs": 2,
           "matchedPairSamples": 1,
           "groundContactPixelsBoth": 10273,
-          "remaining": "Retain these exact1x original-pedestal pairs and the separately accepted694 strict4x Off/On pairs. Source-specific65c/95f callbacks and explicit remaining outline input/output reconciliation remain open; no repeated ambient multisample comparison is required."
+          "remaining": "No remaining declared finite ambientcriterion within recorded1x/4x andnamedoutline scopes; futureaffectedruntimequality/recovery remainsseparateglobalintegration."
         },
         "ambientMultisampleComparison": {
-          "status": "PASS bounded exact4x native production/course Off/On; declared source-specific browser criteria remain open",
+          "status": "PASS bounded exact4x nativeOff/On; declared65/95source-specificbrowsercriteria nowacceptedseparately.",
           "source713": "6947664b26863adf65ef7bfc879694bfedee853852bc2c7660d59f31d2e36ca9",
           "source714": "b0313bae6b71646b9424776561375ffc4306125317e1686c5894e0ef618701bf",
           "record": "release/ambient-four-sample-selector-parity-review.json",
@@ -1216,6 +1214,57 @@
           "changedPixels": 0,
           "maxChannelDelta": 0,
           "groundContactPixelsBoth": 10023
+        },
+        "satisfiedCriteria": {
+          "original": [
+            "Run chapter11 cloud/outline and chapter18 performance/render-quality entry callbacks.",
+            "Inspect actual outline/ambient-depth/GTAO inputs and multisample pass outputs with production-bound feature images."
+          ],
+          "record": "release/performance95f-browser-review.json",
+          "scope": {
+            "declaredBrowserEntries": [
+              "65c-cloud-point",
+              "95f-prove-cache-invalidation-and-honest-performance-reports"
+            ],
+            "sourceBoundRecords": [
+              {
+                "path": "docs/journey/release/cloud65c-browser-review.json",
+                "sha256": "89f353dd144b2e9f3145618974afd1e018522d270f391dad484f84fef9fe70a5"
+              },
+              {
+                "path": "docs/journey/release/ambient-pedestal-qualified-native-review.json",
+                "sha256": "17890910bbf6cc1cfdabebdbc1698093809efc1924844ea007c13ea66d8f40ed"
+              },
+              {
+                "path": "docs/journey/release/ambient-four-sample-selector-parity-review.json",
+                "sha256": "3200abccca564d88546c21a14ce2887f98e9ee99da1ddc8e80f4d66a6fc3468d"
+              },
+              {
+                "path": "docs/journey/release/ambient-selector-final-native-integration-review.json",
+                "sha256": "536b6c1a5f0df6b99535bed3757921b173d99e63bbbc2c0dd8c33fe5b4e7b79e"
+              }
+            ],
+            "outlineInputs": "Actual65inheritedoutline.cjs DPR1/2 selectedCAD maskbytes/blackcontour/goldpixels/originaluploads/MoveUndo/release.",
+            "nativeOutline": {
+              "record": {
+                "path": "docs/journey/release/ambient-selector-final-native-integration-review.json",
+                "sha256": "536b6c1a5f0df6b99535bed3757921b173d99e63bbbc2c0dd8c33fe5b4e7b79e"
+              },
+              "namedResults": {
+                "path": "target/course-windows-20261018/ambient-selector-refreeze-publication-preparation/native1064-named-results.json",
+                "sha256": "dec2d168cef96bbf5e89d3648800425f90214cd9798cc49e641ba7eb0fbdcac8"
+              },
+              "alreadyPassed": [
+                "renderer::global_outline_tests::actual_global_curved_and_flat_silhouettes_keep_the_same_css_width_at_two_densities",
+                "renderer::global_outline_tests::actual_global_and_selected_outlines_share_alpha_and_one_black_blend",
+                "renderer::global_outline_tests::actual_visible_cap_coverage_keeps_selected_and_global_masks_equal",
+                "renderer::global_outline_tests::actual_global_outline_includes_locked_and_releases_hidden_originals",
+                "renderer::sample_tests::actual_four_sample_outline_and_section_masks_keep_single_blend_and_original_owners"
+              ]
+            },
+            "ambient": "Retained strict originalpedestal production/course Off/On pairs at1sample and4samples remain actual0RGBA, measuredpositivecontactsignal with exactPB/MVP/radius/normal inputs androotreviewedimages.",
+            "limits": "Outline namednative/browsersource assertions are not a new outline-only productionfullRGBA comparison. No new matrix, old ambientpair source relabel or finalnewkernelquality/recovery acceptance."
+          }
         }
       }
     },
@@ -1919,18 +1968,16 @@
       "runnableCheckpoint": "96zzzzzzzq-draw-original-cad-wire-curves",
       "evidence": "docs/journey/visual-review.json; docs/screenshots/journey/browser.json; chapter source checkpoints. Existence is not current acceptance.",
       "currentVerification": {
-        "status": "partial",
+        "status": "complete",
         "integration": "#/currentIntegration",
-        "acceptedScope": "All five categories are measured on the same small demo: cold load, input-to-frame, warm submit-to-GPU-fence, uploads/allocations and idle. Coalescing assertions pass; this is not a steady-frame or hardware speedup claim. The complete unchanged quality-target-reuse-with-policy default callback and prerequisites now pass on actual final fef4/713: automatic DPR1/2 policy, forced/repeated sample counts, invalid-value handling, attachment dimensions, original-owner/archive/pixel returns, real device-loss reduced mode and ordinary reload restoration. All five original images were individually reviewed, including the expected tiny unfitted default scene with its intentional recovery notice. The distinct95f source-specific performance/cache callback remains pending; accepted own656 quality controls retain their recorded source scope; no FPS claim.",
+        "acceptedScope": "All five categories are measured on the same small demo: cold load, input-to-frame, warm submit-to-GPU-fence, uploads/allocations and idle. Coalescing assertions pass; this is not a steady-frame or hardware speedup claim. The complete unchanged quality-target-reuse-with-policy default callback and prerequisites now pass on actual final fef4/713: automatic DPR1/2 policy, forced/repeated sample counts, invalid-value handling, attachment dimensions, original-owner/archive/pixel returns, real device-loss reduced mode and ordinary reload restoration. All five original images were individually reviewed, including the expected tiny unfitted default scene with its intentional recovery notice. The distinct source54995f fulloriginal callback and root-reviewed meaningful pedestal now pass; accepted own656 quality controls retain their recorded source scope; no FPS claim.",
         "records": [
           "release/runtime-performance-review.json",
           "release/final-quality-recovery-review.json",
-          "release/quality656-browser-review.json"
+          "release/quality656-browser-review.json",
+          "release/performance95f-browser-review.json"
         ],
-        "remainingAcceptance": [
-          "Run the distinct95f canonical performance/cache-invalidation callback and inspect its actual feature output.",
-          "Retain63acaf79 timing measurements at their recorded source. The97d optimized bundle already passes. Global finalnative/release gates remain separate."
-        ],
+        "remainingAcceptance": [],
         "chapterBrowserEntries": [
           {
             "chapter": 18,
@@ -1954,7 +2001,32 @@
             "recursiveCallbackFingerprint": "75158ad4c1082b014b27a83c69fc14a111dc46e48abdc889a7a8a9909fc742eb",
             "scope": "Complete original callback at this exact recorded historical source/environment; no new final694/b031 execution or whole-feature acceptance."
           }
-        ]
+        ],
+        "satisfiedCriteria": {
+          "original": [
+            "Run the distinct95f canonical performance/cache-invalidation callback and inspect its actual feature output.",
+            "Retain63acaf79 timing measurements at their recorded source. The97d optimized bundle already passes. Global finalnative/release gates remain separate."
+          ],
+          "record": "release/performance95f-browser-review.json",
+          "scope": {
+            "criterion": "Run distinct95f canonical performance/cache-invalidation callback and inspect actual feature output.",
+            "retainedTimingScope": "Five63ac small-demo timingcategories coldload/inputframe/warmGPUfence/uploadsallocations/idle remain exactoldsource/WARPmeasurements; nohardwareFPS ornew549timingclaim.",
+            "retainedRecords": [
+              {
+                "path": "docs/journey/release/runtime-performance-review.json",
+                "sha256": "06941394b8794640e51aea35e422ca03b14ce1001c3ef364bd324d6a539c854a"
+              },
+              {
+                "path": "docs/journey/release/final-quality-recovery-review.json",
+                "sha256": "54cb090abe1a441e0f026929aeccdc2723a756618137ba24bb7a264ffe77f032"
+              },
+              {
+                "path": "docs/journey/release/quality656-browser-review.json",
+                "sha256": "e84cb8b4ddcab47842ba94979511920d59581d613aec995910d78485acc969dc"
+              }
+            ]
+          }
+        }
       }
     },
     {
@@ -21872,8 +21944,8 @@
     "chaptersTotal": 22,
     "readerFacingLessons": 111,
     "preservedCheckpoints": 1361,
-    "featuresComplete": 7,
-    "featuresPartial": 11,
+    "featuresComplete": 9,
+    "featuresPartial": 9,
     "featuresTotal": 18
   },
   "authoredReaderLessons": 111,
@@ -21958,8 +22030,8 @@
       "hashPolicy": "Valid UTF-8 text hashes normalize CRLF to LF; invalid UTF-8 remains raw. All307 current src paths/hashes matched the dated inventory during this audit. Existing301 row sha256/classification/basis values remain historical; current hashes come from the dated inventory. Six appended rows use the dated current hash and explicitly scoped staged basis. Complete path accounting is not verified extraction or feature parity."
     },
     "featureStatusCounts": {
-      "complete": 7,
-      "partial": 11,
+      "complete": 9,
+      "partial": 9,
       "open": 0,
       "meaning": "Complete accepts the named finite feature requirements at recorded source/fixture/settings; it does not close global release. Partial rows retain specific unaccepted requirements."
     },

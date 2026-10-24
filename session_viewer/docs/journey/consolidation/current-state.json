@@ -623,12 +623,12 @@
   ],
   "onlyHeavy": {
     "status": "running",
-    "task": "Full95f corrected browser callback; retained five phase proofs",
-    "sessionId": 60660,
+    "task": "Full94c comparison browser callback; retained native800 and qualified compiler phases",
+    "sessionId": 83951,
     "memoryLimitMiB": 6144,
     "processors": 2
   },
-  "next": "Finish five remaining source-specific callbacks.95f runs with the corrected measurement helper;65c is accepted and Cloud finite criteria are complete. Then integrate exact BRep/kernel changes, run final bounded comparisons/recovery and complete publication.",
+  "next": "Finish four remaining callbacks:94c runs, then85ay,96h and measured reader96zzq.95f full callback and visible pedestal are accepted; finite performance and outline/ambient criteria complete. Then integrate exact BRep/kernel changes and execute the final affected verification/publication batch.",
   "currentDocsReview": {
     "status": "PASS current694/b031 book publication snapshot: desktop/390px phone roadmap and changed22.6 Rust/WGSL section; all three original PNGs root-reviewed",
     "record": "release/docs-progress-ambient-selector-current-visible-review.json",
@@ -688,9 +688,9 @@
       "joinedVectorSheets": {
         "status": "Joined and Sheet/text finite criteria complete through their separately scoped native and browser proofs. Other family and source-specific callback obligations remain pending. See release/joined-line-finite-review.json and release/sheet-text-finite-review.json."
       },
-      "featuresComplete": 7,
+      "featuresComplete": 9,
       "featuresTotal": 18,
-      "featuresPartial": 11,
+      "featuresPartial": 9,
       "cadBaseline": {
         "status": "passed-bounded-native-baseline",
         "passed": 5,
@@ -1424,11 +1424,6 @@
         "chapter": 16
       },
       {
-        "checkpoint": "95f-prove-cache-invalidation-and-honest-performance-reports",
-        "callback": "journey/checks/browser/performance.cjs",
-        "chapter": 18
-      },
-      {
         "checkpoint": "96h-prove-current-source-grammar-and-explicit-differences",
         "callback": "journey/checks/browser/inventory.cjs",
         "chapter": 19
@@ -1947,17 +1942,17 @@
       "chaptersConsolidated": 22,
       "readerLessons": 111,
       "draftingRemaining": 0,
-      "featuresComplete": 7,
-      "featuresPartial": 11,
-      "callbacksAccepted": 13,
-      "callbacksRemaining": 5,
+      "featuresComplete": 9,
+      "featuresPartial": 9,
+      "callbacksAccepted": 14,
+      "callbacksRemaining": 4,
       "historicalFixturesAccepted": 2,
       "historicalFixturesTotal": 4,
       "releaseGatesDone": 3,
       "releaseGatesTotal": 5,
       "releaseGatesRemaining": 2
     },
-    "next": "13/18 callbacks accepted;5 remain. Features7/18, fixtures2/4, releasegates3/5.65c and Cloud finite criteria accepted;95f running. Original execution scopes retained.",
+    "next": "14/18 callbacks accepted;4 remain.9/18 features complete;9 partial. Fixtures2/4, releasegates3/5.95f performance and bounded outline/ambient criteria accepted at recorded scopes;94c active.",
     "chapter14": {
       "status": "PASS complete current76originalcanonicalbrowser callback",
       "record": "release/76d-browser-review.json",
@@ -2371,6 +2366,15 @@
       "recursiveCallbackFingerprint": "48f4ae90fce2a5cf45a35bb60741b3403ff381b737723e9868a57763ec2eb8b6",
       "elapsedSeconds": 480.293,
       "peakJobCommitBytes": 1406726144
+    },
+    "performance95f": {
+      "status": "PASS completeoriginal549body+reviewedbluepedestal",
+      "record": "release/performance95f-browser-review.json",
+      "sourceFingerprint": "3caa88eb8496ece322ed6f8caa48500aa9487ae2d5fde68c86825ac33b5b6148",
+      "sourceSignature": "9720b0172de028846a42d2f3e07dc7e107a179a91f2c4237204da3f865169430",
+      "recursiveCallbackFingerprint": "e7394b63132216251770f924d4d60a1a929bcbe7e882410ce32cb1a29f87bab4",
+      "elapsedSeconds": 644.073,
+      "peakJobCommitBytes": 2212790272
     }
   },
   "currentRuntimeDocsQualification": {

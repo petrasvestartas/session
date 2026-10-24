@@ -10996,6 +10996,34 @@
       "bundle": "925b534698616d750414a363b6bcc88709ff78d15e57e061b404df7f1b49930b",
       "commands": [],
       "keyboardRoundtrip": false
+    },
+    "95f-prove-cache-invalidation-and-honest-performance-reports": {
+      "source": "9720b0172de028846a42d2f3e07dc7e107a179a91f2c4237204da3f865169430",
+      "checker": "730a2c8618175efe53a93be8f837fc14f91b5422375d8d0e699804d0c17e593a",
+      "extraChecker": "e7394b63132216251770f924d4d60a1a929bcbe7e882410ce32cb1a29f87bab4",
+      "browser": "145.0.7632.6",
+      "headless": true,
+      "captured": "2026-10-24T18:24:11.513Z",
+      "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "canvas": "7e3c2f8ae11c0bd7acd34a0493f32c47947601486f98babcb7bef0f0163053f0",
+      "file": "95f-prove-cache-invalidation-and-honest-performance-reports-browser.png",
+      "initialViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "initialCanvas": {
+        "x": 0,
+        "y": 0,
+        "width": 900,
+        "height": 760
+      },
+      "screenshotViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "bundle": "99862f6913e70cc698326145346561b90093bf157ab399ef093ae74a46369cf3",
+      "commands": [],
+      "keyboardRoundtrip": false
     }
   }
 }
