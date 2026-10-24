@@ -1,0 +1,257 @@
+{
+  "status": "PASS measured five-callback roadmap desktop/390phone publication; source-bound prepublication snapshot",
+  "source": {
+    "courseSha256": "367065739cee3cbf01e1b240c9eca4a1e0c12092eccab2fe2345cbc783a55197",
+    "roadmapSha256": "2fe5750275b3665effa79fd47dedc11d3a13eb312125d26bdd0827705182df8b",
+    "stateSha256": "202271fc58a9043b6153eff5d1aa5be6cfa0b5424de6dc718d16e087c5e033d7",
+    "mapSha256": "8928ed9619f2242931cb5f5ca77e517038d1ad450d6f14a834a7bfa7020d5303",
+    "inputManifest": {
+      "path": "target/course-windows-20261018/fef4-progress-publication-preparation/progress-publication-v5-current-retry1/inputs.json",
+      "sha256": "078241feb4eae5a1767b7664b2231a645c4a83e046a0c96e83b966e807e1ce11"
+    },
+    "frozenExistingInputsVerified": 26551
+  },
+  "build": {
+    "result": {
+      "path": "target/course-windows-20261018/fef4-progress-publication-preparation/progress-publication-v5-current-retry1/build-pass.json",
+      "sha256": "435d9850c0201f40eb709ca74d7054b918e00a5263b382a331ef3a59f42713f7"
+    },
+    "resources": {
+      "path": "target/course-windows-20261018/fef4-progress-publication-preparation/progress-publication-v5-current-retry1/resources.json",
+      "sha256": "2102ab4f3baab5614a226adbbe96ba49623b6b7a6814fba61d4591ceb46a2e7f"
+    },
+    "log": {
+      "path": "target/course-windows-20261018/fef4-progress-publication-preparation/progress-publication-v5-current-retry1/build.log",
+      "sha256": "c41dd9720479ce82e02397babe0073c35bdb2ed552578969e5e056852bc433bb"
+    },
+    "command": {
+      "path": "target/course-windows-20261018/fef4-progress-publication-preparation/progress-publication-v5-current-retry1/command.json",
+      "sha256": "a69503bdc3830bf576103b1a4a614d3ca3215965a8b96ac909f72b03cd5266ff"
+    },
+    "guardSeconds": 38.306,
+    "peakBytes": 1411788800,
+    "viteReportedSeconds": 37.8,
+    "base": "/docs/"
+  },
+  "probe": {
+    "review": {
+      "path": "target/course-windows-20261018/fef4-progress-publication-preparation/progress-publication-v5-current-retry1/visible-roadmap-v5-v2/review.json",
+      "sha256": "a533a5aba158180d5c9a1d6f12fdfc1f756885ab36df6cd9368c8c99f7ddfdc3"
+    },
+    "resources": {
+      "path": "target/course-windows-20261018/fef4-progress-publication-preparation/progress-publication-v5-current-retry1/probe-v5-progress-v2.resources.json",
+      "sha256": "b743362917e1c28dfbb1cc290a48591317efe2a06f47abda7899f1e3d57cfa8d"
+    },
+    "log": {
+      "path": "target/course-windows-20261018/fef4-progress-publication-preparation/progress-publication-v5-current-retry1/probe-v5-progress-v2.log",
+      "sha256": "4e22e59b4904ec3c917c1c311b4bfc798658ab5291dcc4dd9989b33bd63751e9"
+    },
+    "guardSeconds": 12.333,
+    "peakBytes": 255913984,
+    "helperHashes": {
+      "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\fef4-progress-publication-preparation\\probe-v5-progress-v2.cjs": "7dd609f1d3552d162bc94a23eefff138904ed3b27f2b36b682432eded284b2d6",
+      "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\fef4-progress-publication-preparation\\launch-probe-v5-progress-v2.cjs": "b06feac6aeb49841c25ed113b83396b5e614d07212eb19c46615d9abf5b87c6d",
+      "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\fef4-progress-publication-preparation\\common-v5.cjs": "6183b1245309bc305cbe29f95128292d3bdaf18cb470560bafcf5278281b63a5",
+      "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\fef4-progress-publication-preparation\\build-v5.cjs": "9cfed14aa823ae180e1b83cb9d47d211e854ff7de0991b6291d91f981f44c4fc"
+    },
+    "counts": {
+      "pendingHistoricalEntryCallbacks": 10,
+      "additionalDeclaredCallbackEntries": 4,
+      "pendingIntegrationActions": 3,
+      "distinctSourceSpecificCallbackEntries": 18,
+      "nonCallbackIntegrationActions": 3,
+      "namedActions": 21,
+      "remainingFeatureChecklists": 14,
+      "meaning": "Original18 source-specificentries retained: finalCAD,maintained97,current76,current70 and96v accepted5;pending13=10historical+3late display. Original21named denominator retained;16pending groups overlap14partial finitefeatures. Originalfixturecontracts2/4 accepted96y+96v;94c/96h remain.",
+      "eta": "No total ETA; missing successful callback durations and unscopednative tuples prevent an honest walltime estimate.",
+      "acceptedSourceSpecificCallbackEntries": 5,
+      "pendingSourceSpecificCallbackEntries": 13,
+      "pendingNamedActions": 16,
+      "pendingAdditionalDeclaredCallbackEntries": 3
+    },
+    "fixtures": {
+      "accepted": 2,
+      "total": 4
+    },
+    "proofLinks": [
+      {
+        "file": "native-final-two-fixture-integration-review.json",
+        "url": "http://localhost:8788/docs/course/docs/journey/release/native-final-two-fixture-integration-review.json?v=766ac193897d",
+        "sha256": "766ac193897db4bd633201967358fe4f4a7dd19a712bb6e73f72226ee3ee965f",
+        "status": "PASS:1062/1062 unfiltered handwritten713 native integration;0failed/ignored/filtered"
+      },
+      {
+        "file": "final-quality-recovery-review.json",
+        "url": "http://localhost:8788/docs/course/docs/journey/release/final-quality-recovery-review.json?v=54cb090abe1a",
+        "sha256": "54cb090abe1a441e0f026929aeccdc2723a756618137ba24bb7a264ffe77f032",
+        "status": "PASS scoped currentfef4 complete originaldefault quality/attachment/device-recovery callback plus individually reviewed5images; no wholefeature closure"
+      },
+      {
+        "file": "docs-progress-current-visible-review.json",
+        "url": "http://localhost:8788/docs/course/docs/journey/release/docs-progress-current-visible-review.json?v=c1b84deee6c0",
+        "sha256": "c1b84deee6c0300ce07d947468b246775cf77e56c14d7f4512133c7ed3d86c9b",
+        "status": "PASS current source-bound docs publication: roadmap, changed chapter13 desktop/390phone and existing97 reference desktop"
+      },
+      {
+        "file": "96v-browser-review.json",
+        "url": "http://localhost:8788/docs/course/docs/journey/release/96v-browser-review.json?v=e3d67262cbd3",
+        "sha256": "e3d67262cbd3c63eee563b7b19d4b2719fb740f551419ed90bc4eeba3c65df1b",
+        "status": "PASS complete original96v canonical browser and independently reviewed actual native/final images; phase-qualified source-specific acceptance"
+      }
+    ],
+    "qualityFigures": [
+      {
+        "file": "docs/journey/release/final-quality-automatic-dpr1.png",
+        "url": "http://localhost:8788/docs/course/docs/journey/release/final-quality-automatic-dpr1.png?v=f5da22df153a",
+        "sha256": "f5da22df153ad2fa2fcf6b440373008224a90a2c093067e4665afa6256bc7929",
+        "width": 480,
+        "height": 360
+      },
+      {
+        "file": "docs/journey/release/final-quality-automatic-dpr2.png",
+        "url": "http://localhost:8788/docs/course/docs/journey/release/final-quality-automatic-dpr2.png?v=bfbf01e57a66",
+        "sha256": "bfbf01e57a661ea68bd02c76ecddf78bfe10d08ce1e288ba8d98493dbdbb041e",
+        "width": 960,
+        "height": 720
+      },
+      {
+        "file": "docs/journey/release/final-quality-forced-four-dpr1.png",
+        "url": "http://localhost:8788/docs/course/docs/journey/release/final-quality-forced-four-dpr1.png?v=f5da22df153a",
+        "sha256": "f5da22df153ad2fa2fcf6b440373008224a90a2c093067e4665afa6256bc7929",
+        "width": 480,
+        "height": 360
+      },
+      {
+        "file": "docs/journey/release/final-quality-forced-four-dpr2.png",
+        "url": "http://localhost:8788/docs/course/docs/journey/release/final-quality-forced-four-dpr2.png?v=9420bf48b850",
+        "sha256": "9420bf48b85092cff9ca03a879f5c455fa8524b8d8ae9d369d2007892eb81dc9",
+        "width": 960,
+        "height": 720
+      },
+      {
+        "file": "docs/journey/release/final-quality-recovered-forced-four.png",
+        "url": "http://localhost:8788/docs/course/docs/journey/release/final-quality-recovered-forced-four.png?v=90a428adc12d",
+        "sha256": "90a428adc12d4287bbdc268477e8cf381d4aed738975236b49686c1c7ad39537",
+        "width": 960,
+        "height": 720
+      }
+    ],
+    "views": [
+      {
+        "name": "desktop",
+        "requestedViewport": {
+          "width": 1400,
+          "height": 900
+        },
+        "fit": {
+          "viewport": 1400,
+          "height": 900,
+          "dpr": 1.0000000149011612,
+          "document": 1400,
+          "articleClient": 793,
+          "articleScroll": 793,
+          "mainClient": 1095,
+          "mainScroll": 1095
+        },
+        "drawer": null,
+        "checkboxes": {
+          "count": 1468,
+          "allDisabled": true,
+          "exactStates": true
+        },
+        "image": {
+          "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\fef4-progress-publication-preparation\\progress-publication-v5-current-retry1\\visible-roadmap-v5-v2\\roadmap-desktop.png",
+          "sha256": "b87e55087d02fb808df26052d7f436eacec9a62d3545b8e88cb8ba85859e8288",
+          "width": 1400,
+          "height": 900
+        }
+      },
+      {
+        "name": "phone",
+        "requestedViewport": {
+          "width": 390,
+          "height": 844
+        },
+        "fit": {
+          "viewport": 390,
+          "height": 844,
+          "dpr": 1.0000000149011612,
+          "document": 390,
+          "articleClient": 343,
+          "articleScroll": 343,
+          "mainClient": 375,
+          "mainScroll": 375
+        },
+        "drawer": {
+          "closed": true,
+          "inert": true,
+          "right": 0,
+          "expanded": "false"
+        },
+        "checkboxes": {
+          "count": 1468,
+          "allDisabled": true,
+          "exactStates": true
+        },
+        "image": {
+          "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\fef4-progress-publication-preparation\\progress-publication-v5-current-retry1\\visible-roadmap-v5-v2\\roadmap-phone.png",
+          "sha256": "2887f2474a720fc14ea405e6b3998fb2e1a1c4e520c48e289e49ebfa342b98bf",
+          "width": 390,
+          "height": 844
+        }
+      }
+    ],
+    "servedIndex": {
+      "url": "http://localhost:8788/docs/",
+      "sha256": "d21bd9565b1b4029f8454c7e0463a864503b95cbf5aabb9692047e850034e82c"
+    },
+    "servedRoadmap": {
+      "url": "http://localhost:8788/docs/assets/course-journey-roadmap-D3V4EWYV.json",
+      "sha256": "aa0725a6d00578a4468d39e84ee3cf00cf9698288fd25ddd5ef7fc97b66d8163",
+      "entry": {
+        "url": "http://localhost:8788/docs/assets/main-DPSs4Xc8.js",
+        "sha256": "5f7369b20160cf057861ff112fb3c08b59318cc3057242a7d9414b4bab623db0"
+      }
+    },
+    "pageErrors": []
+  },
+  "priorAttempts": {
+    "failedProbe": {
+      "path": "target/course-windows-20261018/fef4-progress-publication-preparation/progress-publication-v5-current-retry1/visible-roadmap-v5/review.json",
+      "sha256": "7bfa2fb68b26bd5072550e2e46a048195613436d5e5258c5d15a097b95f06d86"
+    },
+    "failedResources": {
+      "path": "target/course-windows-20261018/fef4-progress-publication-preparation/progress-publication-v5-current-retry1/probe-v5-progress.resources.json",
+      "sha256": "29f87bfad2584f7804cf1b14fbed39fe2b620fbf7e6601576be51edb196605db"
+    },
+    "failedLog": {
+      "path": "target/course-windows-20261018/fef4-progress-publication-preparation/progress-publication-v5-current-retry1/probe-v5-progress.log",
+      "sha256": "ff404d6b83dbb7e90cef4ba054ed34ece6b9bbeeae94dc7cf0af3b6236f4a8fa"
+    },
+    "qualification": "Plugin asset links include exact ?v=sha12 revision; prior literal href suffix selector failed. No build/source change or prior successful browser assertion acceptance reused.",
+    "buildAttemptScope": "ActualVitePASS is retry1 only. Earlier helper/build-preparation attempt is not counted as a successful build or inferred current acceptance."
+  },
+  "images": [
+    {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\fef4-progress-publication-preparation\\progress-publication-v5-current-retry1\\visible-roadmap-v5-v2\\roadmap-desktop.png",
+      "sha256": "b87e55087d02fb808df26052d7f436eacec9a62d3545b8e88cb8ba85859e8288",
+      "width": 1400,
+      "height": 900,
+      "figure": "journey/release/docs-five-callback-roadmap-desktop.png",
+      "review": "Root individually viewed original desktop roadmap screenshot: current5/18callbackcounts,Native1062/quality links,allcheckboxes,fit and realclosedphone drawer."
+    },
+    {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\fef4-progress-publication-preparation\\progress-publication-v5-current-retry1\\visible-roadmap-v5-v2\\roadmap-phone.png",
+      "sha256": "2887f2474a720fc14ea405e6b3998fb2e1a1c4e520c48e289e49ebfa342b98bf",
+      "width": 390,
+      "height": 844,
+      "figure": "journey/release/docs-five-callback-roadmap-phone.png",
+      "review": "Root individually viewed original phone roadmap screenshot: current5/18callbackcounts,Native1062/quality links,allcheckboxes,fit and realclosedphone drawer."
+    }
+  ],
+  "scope": [
+    "Currentfive-of-eighteen roadmap and native1062/actualquality proof/PNG links verified at recorded prepublication source3670. No runtime or feature acceptance from docs.",
+    "Only changedroadmap desktop/phone observed; priorV4 chapter13/97 views remain at originalsource/build, not rerun or relabelled.",
+    "Newreview/PNGcopies and subsequentSlotfailure/currentjob status edits were not inside this measured build. Wholefirst10/combinedbookhandoff remains pending."
+  ]
+}

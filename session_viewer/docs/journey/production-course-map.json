@@ -3,7 +3,7 @@
   "scope": "Initial production-to-course source/coverage audit; proposals are not completed consolidation or rendering acceptance.",
   "sourceAuthority": "session_viewer/src",
   "endpoint": "96zzzzzzzq-draw-original-cad-wire-curves",
-  "endpointStatus": "Continue current96zzo build77597 (96zzo-nvidia-current367-v1),4GiB/twoCPUs.96v fullcallback and native/finalimages accepted. Finalnative1062,readercompiler101/202 and boundedfinal713quality PASS. Sourcecallbacks5/18accepted13pending;finitefeatures4/18complete14partial;fixtures2/4;release0/5. Historical656 quality andfirst10handoff remain separate.",
+  "endpointStatus": "Current80d source402 allfivebuildphasesPASS/nativeframe reviewed; originalNVIDIAbrowser21936 running-unaccepted,6GiB/twoCPUs. Slot58233 originalcallback failed atvertex-pulling selectedpixelcomparison; focusedone-linecandidate passes butfrozenharness exception remains pending,notapplied. Callbacks5/18accepted13left;features4/18complete14partial;fixtures2/4;Native1062/readercompiler101/202;release0/5 unchanged.",
   "courseSha256": "367065739cee3cbf01e1b240c9eca4a1e0c12092eccab2fe2345cbc783a55197",
   "chapters": 22,
   "existingSteps": 1361,
@@ -22246,36 +22246,45 @@
       ]
     },
     "docsCurrent": {
-      "status": "PASS current3670 V4 docs prepublication snapshot; all4originalPNG individually reviewed",
-      "record": "release/docs-progress-current-visible-review.json",
+      "status": "PASS measured5/18roadmap desktop/390phone publication; bothoriginalPNGrootreviewed",
+      "record": "release/docs-progress-five-callback-visible-review.json",
       "courseSha256": "367065739cee3cbf01e1b240c9eca4a1e0c12092eccab2fe2345cbc783a55197",
-      "roadmapSha256": "eedb87e026c25a6799993656e2be1683aff0cb6c214ae8a764a8a2b237840f87",
-      "currentStateSha256": "801a7610c3f9a0b0ec024ff61abd0694b308287a9791e36b470d8a7fc6073b4f",
-      "images": [
-        {
-          "figure": "journey/release/docs-current-roadmap-desktop.png",
-          "sha256": "30136b9be59edd132f929c9db5686d007db271b49b26a84c7624c3c5225326db"
-        },
-        {
-          "figure": "journey/release/docs-current-chapter13-desktop.png",
-          "sha256": "c199e0ffc87f61174660f3a4a60de34f44f097024ea49650ed41bc4c16b1a372"
-        },
-        {
-          "figure": "journey/release/docs-current-chapter13-phone.png",
-          "sha256": "ca098917381a6e3ebb970061b781537094cc2da34ddef3dc1ab39219da88b98b"
-        },
-        {
-          "figure": "journey/release/docs-current-maintained97-desktop.png",
-          "sha256": "86b168a184098e2efb1f68bcd26c78d457732cf0e0af03b1ab48b9081c82faf0"
-        }
-      ],
-      "scope": "Actual prepublication snapshot with current4/18callbacks14left, chapter13desktop/390phone and corrected97reference instruction5. Newreview/copies and subsequentstatusupdates were not partof that build; no self-referential currentbuild claim. First10/redraft and combined-book handoff remain pending.",
+      "roadmapSha256": "2fe5750275b3665effa79fd47dedc11d3a13eb312125d26bdd0827705182df8b",
+      "currentStateSha256": "202271fc58a9043b6153eff5d1aa5be6cfa0b5424de6dc718d16e087c5e033d7",
+      "mapSha256": "8928ed9619f2242931cb5f5ca77e517038d1ad450d6f14a834a7bfa7020d5303",
+      "scope": "Measuredprepublication5callback/Native1062/qualityprooflink snapshot only. Newreview/images andsubsequentSlotfailure/currentjob updates are outside thatbuild. PreviousV4chapter13/97 views retain originalsource/build; first10/combinedbookhandoff pending.",
       "previousScopedRecord": {
-        "status": "PASS actual5779 roadmap and changedChapter13desktop/phone; all3originalPNGindividuallyreviewed",
-        "record": "release/docs-progress-mask-visible-review.json",
-        "courseSha256": "5779c3b35e9103a413a1fa5c4b5869ccfe8d4ff51927ae5d9dc67888121e5e17",
-        "subsequent97EditNotAccepted": true,
-        "previousScopedRecord": "PASS scoped integrated content publication:59 introductions,111 links,21 images and17 inspected views at recorded source/build. Separate docs UI review resolves duplicate progress navigation and Matrix phone prose overflow; four inspected UI views retain their frontend source hashes. First10/current whole-book, SVG/runtime parity and global release acceptance remain separate."
+        "status": "PASS current3670 V4 docs prepublication snapshot; all4originalPNG individually reviewed",
+        "record": "release/docs-progress-current-visible-review.json",
+        "courseSha256": "367065739cee3cbf01e1b240c9eca4a1e0c12092eccab2fe2345cbc783a55197",
+        "roadmapSha256": "eedb87e026c25a6799993656e2be1683aff0cb6c214ae8a764a8a2b237840f87",
+        "currentStateSha256": "801a7610c3f9a0b0ec024ff61abd0694b308287a9791e36b470d8a7fc6073b4f",
+        "images": [
+          {
+            "figure": "journey/release/docs-current-roadmap-desktop.png",
+            "sha256": "30136b9be59edd132f929c9db5686d007db271b49b26a84c7624c3c5225326db"
+          },
+          {
+            "figure": "journey/release/docs-current-chapter13-desktop.png",
+            "sha256": "c199e0ffc87f61174660f3a4a60de34f44f097024ea49650ed41bc4c16b1a372"
+          },
+          {
+            "figure": "journey/release/docs-current-chapter13-phone.png",
+            "sha256": "ca098917381a6e3ebb970061b781537094cc2da34ddef3dc1ab39219da88b98b"
+          },
+          {
+            "figure": "journey/release/docs-current-maintained97-desktop.png",
+            "sha256": "86b168a184098e2efb1f68bcd26c78d457732cf0e0af03b1ab48b9081c82faf0"
+          }
+        ],
+        "scope": "Actual prepublication snapshot with current4/18callbacks14left, chapter13desktop/390phone and corrected97reference instruction5. Newreview/copies and subsequentstatusupdates were not partof that build; no self-referential currentbuild claim. First10/redraft and combined-book handoff remain pending.",
+        "previousScopedRecord": {
+          "status": "PASS actual5779 roadmap and changedChapter13desktop/phone; all3originalPNGindividuallyreviewed",
+          "record": "release/docs-progress-mask-visible-review.json",
+          "courseSha256": "5779c3b35e9103a413a1fa5c4b5869ccfe8d4ff51927ae5d9dc67888121e5e17",
+          "subsequent97EditNotAccepted": true,
+          "previousScopedRecord": "PASS scoped integrated content publication:59 introductions,111 links,21 images and17 inspected views at recorded source/build. Separate docs UI review resolves duplicate progress navigation and Matrix phone prose overflow; four inspected UI views retain their frontend source hashes. First10/current whole-book, SVG/runtime parity and global release acceptance remain separate."
+        }
       }
     },
     "readerCompilerProof": {
@@ -22425,7 +22434,7 @@
         "releaseGatesDone": 0,
         "releaseGatesTotal": 5
       },
-      "next": "Current96zzo source-specific build77597 running; complete actualphases/frame/rootreview before appending or browser.13sourcecallbacks/14partialfeatures remain;historicalfixtures2/4;release0/5.",
+      "next": "Current80d allfive402sourcephasesPASS/nativeframereviewed; originalNVIDIAbrowser21936 running-unaccepted; SlotfullcallbackFAIL preserved andone-linevertexcandidate pendingexception.13sourcecallbacks/14partialfeatures remain;fixtures2/4,release0/5.",
       "chapter14": {
         "status": "PASS complete current76originalcanonicalbrowser callback",
         "record": "release/76d-browser-review.json",
@@ -22591,30 +22600,13 @@
         "scope": "Actual unfiltered current handwritten713 native integration with exact1062test inventory and successful source postflight. Native integration only; historical callbacks, finitefeaturecontrols, whole714maintained suite and global release gates remain separate."
       },
       "currentDocs": {
-        "status": "PASS current3670 V4 docs prepublication snapshot; all4originalPNG individually reviewed",
-        "record": "release/docs-progress-current-visible-review.json",
+        "status": "PASS measured5/18roadmap desktop/390phone publication; bothoriginalPNGrootreviewed",
+        "record": "release/docs-progress-five-callback-visible-review.json",
         "courseSha256": "367065739cee3cbf01e1b240c9eca4a1e0c12092eccab2fe2345cbc783a55197",
-        "roadmapSha256": "eedb87e026c25a6799993656e2be1683aff0cb6c214ae8a764a8a2b237840f87",
-        "currentStateSha256": "801a7610c3f9a0b0ec024ff61abd0694b308287a9791e36b470d8a7fc6073b4f",
-        "images": [
-          {
-            "figure": "journey/release/docs-current-roadmap-desktop.png",
-            "sha256": "30136b9be59edd132f929c9db5686d007db271b49b26a84c7624c3c5225326db"
-          },
-          {
-            "figure": "journey/release/docs-current-chapter13-desktop.png",
-            "sha256": "c199e0ffc87f61174660f3a4a60de34f44f097024ea49650ed41bc4c16b1a372"
-          },
-          {
-            "figure": "journey/release/docs-current-chapter13-phone.png",
-            "sha256": "ca098917381a6e3ebb970061b781537094cc2da34ddef3dc1ab39219da88b98b"
-          },
-          {
-            "figure": "journey/release/docs-current-maintained97-desktop.png",
-            "sha256": "86b168a184098e2efb1f68bcd26c78d457732cf0e0af03b1ab48b9081c82faf0"
-          }
-        ],
-        "scope": "Actual prepublication snapshot with current4/18callbacks14left, chapter13desktop/390phone and corrected97reference instruction5. Newreview/copies and subsequentstatusupdates were not partof that build; no self-referential currentbuild claim. First10/redraft and combined-book handoff remain pending."
+        "roadmapSha256": "2fe5750275b3665effa79fd47dedc11d3a13eb312125d26bdd0827705182df8b",
+        "currentStateSha256": "202271fc58a9043b6153eff5d1aa5be6cfa0b5424de6dc718d16e087c5e033d7",
+        "mapSha256": "8928ed9619f2242931cb5f5ca77e517038d1ad450d6f14a834a7bfa7020d5303",
+        "scope": "Measuredprepublication5callback/Native1062/qualityprooflink snapshot only. Newreview/images andsubsequentSlotfailure/currentjob updates are outside thatbuild. PreviousV4chapter13/97 views retain originalsource/build; first10/combinedbookhandoff pending."
       },
       "currentFinalQuality": {
         "status": "PASS complete unchanged actualfinal713 quality/defaultprerequisites; allfive originalimages rootreviewed",
@@ -22634,6 +22626,17 @@
         "elapsedSeconds": 65.353,
         "peakJobCommitBytes": 559063040,
         "fixtureScope": "Second of four originalfixturebrowser contracts accepted;96y separate.94c/96h pending."
+      },
+      "slot96zzo": {
+        "status": "FAILED complete originalSlotcallback; noacceptance",
+        "checkpoint": "96zzo-read-instance-properties-through-draw-slots",
+        "record": "release/96zzo-browser-failure-review.json",
+        "rootSession": 58233,
+        "elapsedSeconds": 136.971,
+        "peakJobCommitBytes": 874393600,
+        "failedSite": "vertex-pulling.cjs16:76 selectedpixelhash inequality; quietEscape clearsselection",
+        "buildScope": "Fiveactual590source phasesPASS andnativeed800 image reviewed; browserentry remains unaccepted.",
+        "candidate": "Focused50466 baseline/candidateDPR1/2 diagnostic61.476s; originalIDs4->empty,candidateIDs4->4/alloriginalbodyassertionsPASS.16images/fourunique rootviewed. One-line frozenharness exception asked,pending/notapplied."
       }
     },
     "sheetFiniteClosure": {
