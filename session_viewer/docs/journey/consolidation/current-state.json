@@ -37,21 +37,60 @@
     "publishedCi": "PASS atb7cdd5dc: run39928419284,WASM+native all-target checks,558 maintained native tests pass,61ignored GPU tests. This is separate from learner1059-test WARP suite.",
     "pullLauncherSafety": "PASS:pull-launcher-regression.json;8isolated Bash/cmd help/invalid/dirty/unpublished cases,HEADandpayload preserved. No destructive force run.",
     "nativeFullCurrent": {
-      "status": "RUNNING: unchanged current1063 executable from corrected viewer cwd; no whole-suite PASS yet",
+      "status": "PASS current65f0013 handwritten713 unfiltered1063/1063 nativeintegration;0failed/ignored/filtered",
+      "record": "release/xray-final-native-integration-review.json",
       "sourceFingerprint": "65f0013ae13365244de0baf69d29fd84c0219450573f86e5884eb0413dd6ae30",
+      "sourceSignature": "48f23e94ec7b26bce70495ce6d8c1a56c4430a5026c812b8045d48c45fd3f966",
       "courseSha256": "f23fe2c84e633849f9b9fad00a0ecdb87b2d40b0d4165fd7561d702626cc7537",
       "sourceFiles": 713,
-      "expectedTests": 1063,
-      "focusedRegression": "release/xray-original-owner-source-fix-review.json",
+      "externalInventoryEntries": 433,
+      "passed": 1063,
+      "failed": 0,
+      "ignored": 0,
+      "filtered": 0,
+      "uniqueNames": 1063,
+      "singleUnfiltered1063Pass": true,
+      "suiteSeconds": 1442.64,
+      "guardElapsedSeconds": 1442.762,
+      "peakJobCommitBytes": 1485799424,
       "previousAcceptedRecord": "release/native-final-two-fixture-integration-review.json",
       "previousAcceptedSource": "fef4c7bdb6f4c0a6f7a7701b0ba5581469dd757a34eefbab030a06e92ce4e5a1",
-      "previousPassed": 1062,
-      "scope": "Corrected full unfiltered1063 is running. Focused1PASS is not whole-suite acceptance. No source, fixture, assertion or binary changes.",
-      "runDirectory": "target/course-windows-20261018/xray-native-publication-preparation/cwd-recovery-v1/full-v1",
-      "originalAttempt": "target/course-windows-20261018/xray-final-refreeze-preparation/713-native-full1063-v2",
-      "originalAttemptStatus": "ABORTED after observed grid fixture NotFound failure caused by isolated-stage cwd; original raw evidence preserved",
-      "cwdDiagnostic": "Original unchanged grid test fails with NotFound from stage cwd and passes1/1 from viewer cwd;1062 filtered in both diagnostics",
-      "executableSha256": "dbe184530bdb58b0af6426b2ee06c4d4c7d18e9cc1c26461054ea75225a9ecd3"
+      "cwdRecovery": {
+        "preparation": {
+          "path": "target/course-windows-20261018/xray-native-publication-preparation/cwd-recovery-v1/prepared.json",
+          "sha256": "bb73971dca25ca9a7e97d113256579f9bac2e7b5edc74a570cec21a33321a0b8"
+        },
+        "wrongCwdDiagnostic": {
+          "path": "target/course-windows-20261018/xray-native-publication-preparation/cwd-recovery-v1/old-stage-grid-v1/acceptance.json",
+          "sha256": "c405e7e08fe24a358e17507574be91d08733204a4795ad72b1c9cd11266dc5fd"
+        },
+        "correctCwdFocused": {
+          "path": "target/course-windows-20261018/xray-native-publication-preparation/cwd-recovery-v1/focused-v1/acceptance.json",
+          "sha256": "f2cba7fc693fa56d34064a41ed4c67b4a10c54840b191745d5f1d0eb38fd0936"
+        },
+        "controlledDifference": "Original same EXE,source,assertions,fixtures,tool/env/resource bindings; process cwd restored to viewer. Original aborted run remains non-PASS."
+      },
+      "preservedEarlierEvidence": [
+        {
+          "path": "docs/journey/release/native-final-two-fixture-integration-review.json",
+          "sha256": "766ac193897db4bd633201967358fe4f4a7dd19a712bb6e73f72226ee3ee965f"
+        },
+        {
+          "log": {
+            "path": "target/course-windows-20261018/xray-native-publication-preparation/cwd-recovery-v1/original-failed-output.log",
+            "sha256": "d7e1c168af3bdf0b0b5446c2966461fd568f1530a7584ec6b55f1dddb839e6ec"
+          },
+          "resources": {
+            "path": "target/course-windows-20261018/xray-native-publication-preparation/cwd-recovery-v1/original-failed-resources.json",
+            "sha256": "808aed15ecacfcb9c713fad29bf55c6561fbe8b0c7d97967e1395eb2c80a5275"
+          },
+          "command": {
+            "path": "target/course-windows-20261018/xray-native-publication-preparation/cwd-recovery-v1/original-failed-command.json",
+            "sha256": "153ba1a8b6c48f159bc76c0c3b7a57589f1208ccc8f5f22a561d5855595a3e10"
+          }
+        }
+      ],
+      "scope": "Actualunfilteredcurrent713suite fromcorrectedviewer cwd; unchangedbinary/tests. Originalisolatedcwd failure anddiagnostics retained; nativeintegrationonly, no714suite/currentbrowser acceptance."
     },
     "nativeSourceAfterDisposal": "PASS latest fef4 handwritten713 unfiltered1062/1062;0failed/ignored/filtered. Suite1399.52s,guard1401.26s,peak1499983872B. Original97d1060 and qualified1060+2/failed1062 records retain historical source scopes. release/native-final-two-fixture-integration-review.json",
     "svgRendering": "PASS: shared SVG tokenizer, five focused parser tests, svg-docs-build.json (123.144s), and svg-visible.json. Complete Gemini diagram visually inspected after full reload; original authored Markdown unchanged.",
@@ -113,7 +152,7 @@
     "escapeAuthoring": "PASS22/22 and structure/replay. Four user-approved shortcut corrections pass focused actual layers/labels/delete helper checks; complete enclosing94c/final callbacks remain pending.",
     "escapeBrowserRegression": "PASS: gpu-pick-escape-smoke-browser.resources.json,7.633s,506716160B. RealDPR1 Point sameoriginalObjectId3 selectedbefore/afterzoom; ordinaryEscapeclearsselection andsecondGPUsubmissioncompletes. FullcanonicalDPR1/2 matrix remains separate/running.",
     "historicalMetadataBackport": "PASS: dated inventory,count312 and UTF8-LF audit at96h/96v/96y, plus96zzzzf/g refresh. Current one-entry witness refresh producedc54a9960; no runtime/assertion changes in this refresh. Historical Opacity behavior and old source-proof bindings retained.",
-    "productionCoverageAccounting": "All307productionmodules,111lessons and1361checkpointmappings accounted. Features4/18complete14partial;sourcecallbacks8/18accepted10pending;fixtures2/4;finalrelease0/5. Historicalfef4native1062; current1063pending andreadercompiler101/202 retain separate proof.",
+    "productionCoverageAccounting": "All307productionmodules,111lessons and1361checkpointmappings accounted. Features4/18complete14partial;sourcecallbacks8/18accepted10pending;fixtures2/4;finalrelease1/5. Current65f0013native1063; historicalfef4native1062 andreadercompiler101/202 retain separate proof.",
     "nativeReuseAudit": "Historical64e13 reuse boundary excludes later hierarchy and97d TextPlane runtime changes.433-entry source inventory preflight remains separate from native execution;1059 result remains bound toa45.",
     "generatedCoveredPlane": "PASS: 16/16 exact full-RGBA pairs, 288.067 s, peak 995,434,496 B. Public plane-generated-covered-native-review.json and four individually inspected figures. Production and course axes remain visible over the opaque lid; no owner-pick or browser acceptance is claimed.",
     "generatedPrintPlane": "PASS: 16/16 exact full-RGBA pairs, 272.855 s, peak 973,623,296 B. Public plane-generated-print-native-review.json and four individually inspected figures. Generated 2,215-byte input is distinct from the historical 2,223-byte covered source; no owner-pick or browser acceptance is claimed.",
@@ -282,14 +321,35 @@
       "candidate": "Focused50466 baseline/candidateDPR1/2 diagnostic61.476s; originalIDs4->empty,candidateIDs4->4/alloriginalbodyassertionsPASS.16images/fourunique rootviewed. One-line frozenharness exception asked,pending/notapplied."
     },
     "finalRuntimeBuildGate": {
-      "status": "REOPENED pending afteractualXrayruntimechange",
-      "record": "release/xray-original-owner-source-fix-review.json",
-      "originalLiteral": "Freeze the integrated runtime and pass the final Native/WASM/optimized build checks.",
-      "source713": "65f0013ae13365244de0baf69d29fd84c0219450573f86e5884eb0413dd6ae30",
-      "maintained714": "b9f70ac28efa5ff434a2e479f5d5374160c7c5e05eb5833ae7edd32f8b882321",
+      "status": "DONE independently audited current65f0013/b9f70ac runtime Native/WASM/optimizedbuild gate1",
+      "record": "release/xray-final-runtime-build-gate-review.json",
+      "literal": "Freeze the integrated runtime and pass the final Native/WASM/optimized build checks.",
+      "sources": [
+        {
+          "id": "96zzzzzzzq-draw-original-cad-wire-curves",
+          "files": 713,
+          "sourceFingerprint": "65f0013ae13365244de0baf69d29fd84c0219450573f86e5884eb0413dd6ae30",
+          "sourceSignature": "48f23e94ec7b26bce70495ce6d8c1a56c4430a5026c812b8045d48c45fd3f966",
+          "dependencies": {
+            "dependencies": "eb5ecf3316a388c7e4cca3e4f0ef18682dbf1e52d27121f0098ed321da78324e",
+            "dependency_checker": "d32c7dbec5fd12dbd68a3adf36bccb60bdf5254cb890f1f8c5bff8a5b7e7d6d5"
+          }
+        },
+        {
+          "id": "97-finish-with-the-maintained-browser-runtime",
+          "files": 714,
+          "sourceFingerprint": "b9f70ac28efa5ff434a2e479f5d5374160c7c5e05eb5833ae7edd32f8b882321",
+          "sourceSignature": "1fb7d6470f356ac76e629a5b3358041dba99d6a52384c4b3ae6abdfe30fa5d32",
+          "dependencies": {
+            "dependencies": "eb5ecf3316a388c7e4cca3e4f0ef18682dbf1e52d27121f0098ed321da78324e",
+            "dependency_checker": "d32c7dbec5fd12dbd68a3adf36bccb60bdf5254cb890f1f8c5bff8a5b7e7d6d5"
+          }
+        }
+      ],
+      "courseSha256": "f23fe2c84e633849f9b9fad00a0ecdb87b2d40b0d4165fd7561d702626cc7537",
+      "scope": "Actualnew1063native+sevencompiler/package/frame phases+714nativecfg/graphreuse; independentbuildgateonly. Browserqualification andotherfourliteralreleasegates remainopen.",
       "previousAcceptedRecord": "release/final-runtime-build-gate-review.json",
-      "previousAcceptedSource": "fef4c7bdb6f4c0a6f7a7701b0ba5581469dd757a34eefbab030a06e92ce4e5a1",
-      "scope": "Oldfef4/06359freeze/buildgatehistory retained; new1063andrefreshed713/714buildqualification required."
+      "reopen": "Actualruntime/dependency/buildinputchange requires affectedproof reassessment; docs/status/harness-only edits do not invalidate frozenbuilds."
     },
     "arenaEmptyBrowser": {
       "status": "PASS complete originalArena source-specific defaultcallback plus root-reviewed restoredCAD DPR1/2/finalimages",
@@ -444,6 +504,24 @@
       "readerPhasesRetained": 202,
       "framePngSha256": "4c786c32b7fcbed3d6c3554637444ed580ee84bb09e643805e2bed534eb4f274",
       "scope": "FreshNative-check/WASM/optimizedweb713+714 andactual713canonicalframe;714nativecfg/graphreuse accepted. Reader101/202exactendpoint/source/records unchanged. V1browser onlyedge/source restoration; no marker/finaldelta acceptance."
+    },
+    "currentXrayBrowserQualification": {
+      "status": "PASS current713strictSphere/original-owner browser and714completeoriginalfinal.cjs DPR1/2/presentation; allfournewPNGrootreviewed",
+      "record": "release/xray-current-browser-relevance-review.json",
+      "courseSha256": "f23fe2c84e633849f9b9fad00a0ecdb87b2d40b0d4165fd7561d702626cc7537",
+      "source713": "65f0013ae13365244de0baf69d29fd84c0219450573f86e5884eb0413dd6ae30",
+      "source714": "b9f70ac28efa5ff434a2e479f5d5374160c7c5e05eb5833ae7edd32f8b882321",
+      "marker713": {
+        "elapsedSeconds": 37.695,
+        "peakJobCommitBytes": 579866624,
+        "scope": "ActualSphere rendering/rawABI andopacity0; bothnear/rear originalowner4 asserted, opaque/source restoration retained."
+      },
+      "maintained714": {
+        "elapsedSeconds": 12.031,
+        "peakJobCommitBytes": 871219200,
+        "scope": "Originalunchangedfinal.cjs DPR1/2+capture_currentpresentation; all18freshHTTPpayloads/actualNVIDIA verified."
+      },
+      "limits": "Currentfinaldeltaqualification only; original8/18source-specificcallbackcountunchanged. PriorV1edge-only/oldV2semanticfailure/06359presentationproofs retainownscope."
     }
   },
   "resourceGuard": {
@@ -458,22 +536,18 @@
     "All three approved browser input corrections are applied. The 2603.825-second full94c replay passed those sites, then failed Split setup with inherited Control mode. The tested Object-mode correction and full replay/qualified phase-reuse choice await their separate saved-plan exception.",
     "Reader compiler lane complete101/101endpoints202/202phases:85retained170qualifiedphases plus16fresh32actualphases. Original source-bound records and mask-invalidation history retained; no all202new execution or test/browser claim.",
     "Original18source-specificcallbacks:finalCAD,maintained97,current76,current70,96v,Arena-empty,sourcefaces,quality656 accepted8;10remain including9historical+1meshmarker. Fixtures2/4accepted96y+96v;94c/96h remaining;Slot/80d/635failures andpendingexceptions preserved.",
-    "Matrix,Camera/Plane,Joined andfiniteSheet are4/18complete;14partial. Globalrelease1/5(buildgate done;fourremain); Gemini first10/redraft andcombinedbookhandoff remain deferred.",
-    "Production ribbon guide fix retains focusedCPU/fourRGBA proof; latest finalfef4 unfiltered1062/1062 native integration nowPASS. Remaining10sourcecallbacks,14partialfeatures andfour remainingrelease gates stay open.",
+    "Matrix,Camera/Plane,Joined andfiniteSheet remain4/18complete;14partial. Globalrelease1/5current65f0013/b9f70acruntimebuildgateDONE;otherfourliteral gatesremain. Gemini first10/redraft andcombinedbookhandoff remain separate.",
+    "Productionribbonguide andXrayopacityfixes retainscopedproofs. Current65f0013handwritten713 unfiltered1063native andsource713strictSphereV2/714originalbrowser qualificationPASS. Oldfef4full1062/V1edge-only/oldV2failure remainhistorical. Ten sourcecallbacks,14partialfeatures andfourreleasegates remainopen.",
     "Original70d failed outer status and striped frame remain immutable. Applied mask projection fix now passes actual fullcanonical70 at331-source325b; fresh final PNG individually reviewed clean. No automatic SharedArena feature closure.",
     "Old60306/c65976run failedouterstatus and remainsimmutable. Subsequentcurrentbe28476fullcallback nowPASS withfreshSheet/finalcurve rootreview;finiteSheet complete via separate recordednative/browser scopes.",
-    "Maintained97 duplicate-export packagingfailure retained. Corrected06359f77 wrapper freshWASM/optimizedpackage and completeoriginalDPR1/2NVIDIAbrowser nowPASS; bothoriginalimagesreviewed. Maintained97 callback accepted; currenttotal6/18accepted12left after separate76/70/96v/Arena acceptance. Feature/globalscope remains separately recorded."
+    "Maintained97 duplicate-export failure andold06359browserPASS retainedhistorically. Currentb9f70ac compiler/packages/qualifiedframe andunchangedoriginalfinal.cjs DPR1/2/presentation nowPASS12.031s; bothnewimagesrootreviewed. Sourcecallbackaccounting8/18accepted10remaining unchanged; nofeature/globalclosure."
   ],
   "onlyHeavy": {
-    "status": "running-full-native-suite-unaccepted",
-    "rootSession": 57591,
-    "task": "One actualfinal handwritten713 unfiltered1063nativefreeze",
-    "folder": "target/course-windows-20261018/xray-final-refreeze-preparation/713-native-full1063-v2",
-    "memoryLimitMiB": 4096,
-    "processors": 2,
-    "scope": "Actualsource65f0013 fullsuite running; no terminal1063PASS preclaimed. Native-check phase alone is compilerproof only."
+    "status": "none",
+    "task": "Allreportednative/compiler/current713+714browser jobs terminal; V7docs notyetstarted",
+    "scope": "Rootconfirmednoactiveheavy; no docsbuild/probeacceptance yet."
   },
-  "next": "Currentonlyheavy57591 unfiltered1063nativefreeze at713-native-full1063-v2, running/no suitePASS. Actualseven713/714 compiler/package/frame phasesPASS;101readerendpoints/202phases retainedunderexactsource/hashrelevance. Strict713markerbrowserV2 andunchangedoriginal714final.cjs pending. Gate0/5 stays;callbacks8/18sourcebound/10remaining,features4/18complete14partial,fixtures2/4unchanged.",
+  "next": "Noactiveheavy: rootconfirmed713strictV2 and714originalfinal.cjs terminalPASS/allfourimages reviewed. Current1063native and713/714compiler/frame/buildgate1DONE; finalsourcebrowserdeltaqualified. Freezecompletedmetadata andrunpreparedV7 combineddocs once. Callbacks8/18sourcebound10remaining/features4/18complete14partial/fixtures2/4/release1/5unchanged; alloldfailures retained.",
   "currentDocsReview": {
     "status": "PASS scoped current3670 publication before this progress metadata update",
     "record": "release/docs-progress-current-visible-review.json",
@@ -559,19 +633,40 @@
       "record": "release/reload-grid-browser-review.json"
     },
     "finalIntegration": {
-      "status": "Actualseven713/714 compiler/package/framephasesPASS; source65f0013/b9f70ac and101/202readerretentionqualified. Currentunfiltered1063suite57591running,strict713markerV2/714originalbrowserpending; gate0/5. Callbacks8/18sourcebound10pending/features4/18complete14partial/fixtures2/4unchanged.",
-      "gatesDone": 0,
+      "status": "Current71365f0013 unfiltered1063PASS; seven713/714compiler/package/framephases andindependentbuildgate1DONE. Current713strictSphereV2and714originalfinal.cjs DPR1/2/presentationPASS/rootfourimages reviewed. Noactiveheavy; V7docs pending. Callbacks8/18sourcebound10remaining/features4/18complete14partial/fixtures2/4/release1/5unchanged.",
+      "gatesDone": 1,
       "gatesTotal": 5,
-      "gatesRemaining": 5,
+      "gatesRemaining": 4,
       "buildGate": {
-        "status": "REOPENED pending afteractualXrayruntimechange",
-        "record": "release/xray-original-owner-source-fix-review.json",
-        "originalLiteral": "Freeze the integrated runtime and pass the final Native/WASM/optimized build checks.",
-        "source713": "65f0013ae13365244de0baf69d29fd84c0219450573f86e5884eb0413dd6ae30",
-        "maintained714": "b9f70ac28efa5ff434a2e479f5d5374160c7c5e05eb5833ae7edd32f8b882321",
+        "status": "DONE independently audited current65f0013/b9f70ac runtime Native/WASM/optimizedbuild gate1",
+        "record": "release/xray-final-runtime-build-gate-review.json",
+        "literal": "Freeze the integrated runtime and pass the final Native/WASM/optimized build checks.",
+        "sources": [
+          {
+            "id": "96zzzzzzzq-draw-original-cad-wire-curves",
+            "files": 713,
+            "sourceFingerprint": "65f0013ae13365244de0baf69d29fd84c0219450573f86e5884eb0413dd6ae30",
+            "sourceSignature": "48f23e94ec7b26bce70495ce6d8c1a56c4430a5026c812b8045d48c45fd3f966",
+            "dependencies": {
+              "dependencies": "eb5ecf3316a388c7e4cca3e4f0ef18682dbf1e52d27121f0098ed321da78324e",
+              "dependency_checker": "d32c7dbec5fd12dbd68a3adf36bccb60bdf5254cb890f1f8c5bff8a5b7e7d6d5"
+            }
+          },
+          {
+            "id": "97-finish-with-the-maintained-browser-runtime",
+            "files": 714,
+            "sourceFingerprint": "b9f70ac28efa5ff434a2e479f5d5374160c7c5e05eb5833ae7edd32f8b882321",
+            "sourceSignature": "1fb7d6470f356ac76e629a5b3358041dba99d6a52384c4b3ae6abdfe30fa5d32",
+            "dependencies": {
+              "dependencies": "eb5ecf3316a388c7e4cca3e4f0ef18682dbf1e52d27121f0098ed321da78324e",
+              "dependency_checker": "d32c7dbec5fd12dbd68a3adf36bccb60bdf5254cb890f1f8c5bff8a5b7e7d6d5"
+            }
+          }
+        ],
+        "courseSha256": "f23fe2c84e633849f9b9fad00a0ecdb87b2d40b0d4165fd7561d702626cc7537",
+        "scope": "Actualnew1063native+sevencompiler/package/frame phases+714nativecfg/graphreuse; independentbuildgateonly. Browserqualification andotherfourliteralreleasegates remainopen.",
         "previousAcceptedRecord": "release/final-runtime-build-gate-review.json",
-        "previousAcceptedSource": "fef4c7bdb6f4c0a6f7a7701b0ba5581469dd757a34eefbab030a06e92ce4e5a1",
-        "scope": "Oldfef4/06359freeze/buildgatehistory retained; new1063andrefreshed713/714buildqualification required."
+        "reopen": "Actualruntime/dependency/buildinputchange requires affectedproof reassessment; docs/status/harness-only edits do not invalidate frozenbuilds."
       }
     }
   },
@@ -712,21 +807,65 @@
       "currentRuntimeDelta": {
         "fingerprint": "b9f70ac28efa5ff434a2e479f5d5374160c7c5e05eb5833ae7edd32f8b882321",
         "courseSha256": "f23fe2c84e633849f9b9fad00a0ecdb87b2d40b0d4165fd7561d702626cc7537",
-        "status": "New714native/WASM/optimizedpackagesPASS; actualNEW713framequalifiednativecfgreuse accepted; current714browserpending",
-        "record": "release/xray-final-compiler-refresh-review.json"
+        "status": "PASS current714compiler/package/frame-reuse andoriginalfinal.cjs DPR1/2/presentation",
+        "record": "release/xray-current-browser-relevance-review.json"
       }
     },
     "nativeFullIntegration": {
-      "status": "PENDING newfinal65f0013 unfiltered1063nativeintegration; oldfef4full1062 historical",
+      "status": "PASS current65f0013 handwritten713 unfiltered1063/1063 nativeintegration;0failed/ignored/filtered",
+      "record": "release/xray-final-native-integration-review.json",
       "sourceFingerprint": "65f0013ae13365244de0baf69d29fd84c0219450573f86e5884eb0413dd6ae30",
+      "sourceSignature": "48f23e94ec7b26bce70495ce6d8c1a56c4430a5026c812b8045d48c45fd3f966",
       "courseSha256": "f23fe2c84e633849f9b9fad00a0ecdb87b2d40b0d4165fd7561d702626cc7537",
       "sourceFiles": 713,
-      "expectedTests": 1063,
-      "focusedRegression": "release/xray-original-owner-source-fix-review.json",
+      "externalInventoryEntries": 433,
+      "passed": 1063,
+      "failed": 0,
+      "ignored": 0,
+      "filtered": 0,
+      "uniqueNames": 1063,
+      "singleUnfiltered1063Pass": true,
+      "suiteSeconds": 1442.64,
+      "guardElapsedSeconds": 1442.762,
+      "peakJobCommitBytes": 1485799424,
       "previousAcceptedRecord": "release/native-final-two-fixture-integration-review.json",
       "previousAcceptedSource": "fef4c7bdb6f4c0a6f7a7701b0ba5581469dd757a34eefbab030a06e92ce4e5a1",
-      "previousPassed": 1062,
-      "scope": "OneactualnewfocusedregressionPASS only; 1062filtered. No newfullsuiteacceptance."
+      "cwdRecovery": {
+        "preparation": {
+          "path": "target/course-windows-20261018/xray-native-publication-preparation/cwd-recovery-v1/prepared.json",
+          "sha256": "bb73971dca25ca9a7e97d113256579f9bac2e7b5edc74a570cec21a33321a0b8"
+        },
+        "wrongCwdDiagnostic": {
+          "path": "target/course-windows-20261018/xray-native-publication-preparation/cwd-recovery-v1/old-stage-grid-v1/acceptance.json",
+          "sha256": "c405e7e08fe24a358e17507574be91d08733204a4795ad72b1c9cd11266dc5fd"
+        },
+        "correctCwdFocused": {
+          "path": "target/course-windows-20261018/xray-native-publication-preparation/cwd-recovery-v1/focused-v1/acceptance.json",
+          "sha256": "f2cba7fc693fa56d34064a41ed4c67b4a10c54840b191745d5f1d0eb38fd0936"
+        },
+        "controlledDifference": "Original same EXE,source,assertions,fixtures,tool/env/resource bindings; process cwd restored to viewer. Original aborted run remains non-PASS."
+      },
+      "preservedEarlierEvidence": [
+        {
+          "path": "docs/journey/release/native-final-two-fixture-integration-review.json",
+          "sha256": "766ac193897db4bd633201967358fe4f4a7dd19a712bb6e73f72226ee3ee965f"
+        },
+        {
+          "log": {
+            "path": "target/course-windows-20261018/xray-native-publication-preparation/cwd-recovery-v1/original-failed-output.log",
+            "sha256": "d7e1c168af3bdf0b0b5446c2966461fd568f1530a7584ec6b55f1dddb839e6ec"
+          },
+          "resources": {
+            "path": "target/course-windows-20261018/xray-native-publication-preparation/cwd-recovery-v1/original-failed-resources.json",
+            "sha256": "808aed15ecacfcb9c713fad29bf55c6561fbe8b0c7d97967e1395eb2c80a5275"
+          },
+          "command": {
+            "path": "target/course-windows-20261018/xray-native-publication-preparation/cwd-recovery-v1/original-failed-command.json",
+            "sha256": "153ba1a8b6c48f159bc76c0c3b7a57589f1208ccc8f5f22a561d5855595a3e10"
+          }
+        }
+      ],
+      "scope": "Actualunfilteredcurrent713suite fromcorrectedviewer cwd; unchangedbinary/tests. Originalisolatedcwd failure anddiagnostics retained; nativeintegrationonly, no714suite/currentbrowser acceptance."
     },
     "previousFingerprintBeforeXray": "fef4c7bdb6f4c0a6f7a7701b0ba5581469dd757a34eefbab030a06e92ce4e5a1",
     "previousCourseSha256BeforeXray": "367065739cee3cbf01e1b240c9eca4a1e0c12092eccab2fe2345cbc783a55197",
@@ -780,6 +919,24 @@
       "readerPhasesRetained": 202,
       "framePngSha256": "4c786c32b7fcbed3d6c3554637444ed580ee84bb09e643805e2bed534eb4f274",
       "scope": "FreshNative-check/WASM/optimizedweb713+714 andactual713canonicalframe;714nativecfg/graphreuse accepted. Reader101/202exactendpoint/source/records unchanged. V1browser onlyedge/source restoration; no marker/finaldelta acceptance."
+    },
+    "currentBrowserQualification": {
+      "status": "PASS current713strictSphere/original-owner browser and714completeoriginalfinal.cjs DPR1/2/presentation; allfournewPNGrootreviewed",
+      "record": "release/xray-current-browser-relevance-review.json",
+      "courseSha256": "f23fe2c84e633849f9b9fad00a0ecdb87b2d40b0d4165fd7561d702626cc7537",
+      "source713": "65f0013ae13365244de0baf69d29fd84c0219450573f86e5884eb0413dd6ae30",
+      "source714": "b9f70ac28efa5ff434a2e479f5d5374160c7c5e05eb5833ae7edd32f8b882321",
+      "marker713": {
+        "elapsedSeconds": 37.695,
+        "peakJobCommitBytes": 579866624,
+        "scope": "ActualSphere rendering/rawABI andopacity0; bothnear/rear originalowner4 asserted, opaque/source restoration retained."
+      },
+      "maintained714": {
+        "elapsedSeconds": 12.031,
+        "peakJobCommitBytes": 871219200,
+        "scope": "Originalunchangedfinal.cjs DPR1/2+capture_currentpresentation; all18freshHTTPpayloads/actualNVIDIA verified."
+      },
+      "limits": "Currentfinaldeltaqualification only; original8/18source-specificcallbackcountunchanged. PriorV1edge-only/oldV2semanticfailure/06359presentationproofs retainownscope."
     }
   },
   "coordination": {
@@ -985,12 +1142,12 @@
       {
         "id": "final-native-and-compiler-proof",
         "requirement": "One final integrated native regression plus required source-matching compiler/frame proof; reuse completed97d web where inputs match.",
-        "nativeStatus": "PENDING current65f0013full1063integration; historicalfef4full1062PASS preserved.",
-        "nativeRecord": "release/xray-original-owner-source-fix-review.json",
+        "nativeStatus": "DONE current65f0013 handwritten713 unfiltered1063/1063PASS0failed/ignored/filtered; originalisolatedcwd failure preserved.",
+        "nativeRecord": "release/xray-final-native-integration-review.json",
         "qualifiedCurrentNativeRecord": "release/native-ribbon-v4-qualified-recovery-review.json",
         "previousNativeRecord": "release/native-97d-integration-review.json",
         "compilerStatus": "DONE current713/714 Native-check/WASM/optimizedpackages plusfresh713frame andqualified714frame reuse;101/101reader202/202retained exactsource/recordhashes, nochangedfinalendpointinreader101lane.",
-        "remainingGroupScope": "Currentfull1063integration andnarrowmarker/maintainedbrowser qualification pending. No newfullsuiteacceptance inferred fromcompilerphases.",
+        "remainingGroupScope": "Native/compiler portionsDONE; remainingrunnable/source-specific browser/publicationaccounting separate. Threeoriginalnoncallbackgroups retaincounts; noautomaticglobalclosure.",
         "previousAcceptedNativeRecord": "release/native-final-two-fixture-integration-review.json",
         "compilerRecord": "release/xray-final-compiler-refresh-review.json"
       },
@@ -1442,10 +1599,10 @@
       "callbacksRemaining": 10,
       "historicalFixturesAccepted": 2,
       "historicalFixturesTotal": 4,
-      "releaseGatesDone": 0,
+      "releaseGatesDone": 1,
       "releaseGatesTotal": 5
     },
-    "next": "Currentonlyheavy57591 unfiltered1063nativefreeze at713-native-full1063-v2, running/no suitePASS. Actualseven713/714 compiler/package/frame phasesPASS;101readerendpoints/202phases retainedunderexactsource/hashrelevance. Strict713markerbrowserV2 andunchangedoriginal714final.cjs pending. Gate0/5 stays;callbacks8/18sourcebound/10remaining,features4/18complete14partial,fixtures2/4unchanged.",
+    "next": "Noactiveheavy: rootconfirmed713strictV2 and714originalfinal.cjs terminalPASS/allfourimages reviewed. Current1063native and713/714compiler/frame/buildgate1DONE; finalsourcebrowserdeltaqualified. Freezecompletedmetadata andrunpreparedV7 combineddocs once. Callbacks8/18sourcebound10remaining/features4/18complete14partial/fixtures2/4/release1/5unchanged; alloldfailures retained.",
     "chapter14": {
       "status": "PASS complete current76originalcanonicalbrowser callback",
       "record": "release/76d-browser-review.json",
@@ -1628,16 +1785,60 @@
       "scope": "OnlyfiniteSheet row; current76completebody+freshSheet/finalreview. Native97d+qualifiedfef4 andoriginal32pairs remain independentlysource-bound.70d/global22callbacks stillseparate."
     },
     "currentFullNative": {
-      "status": "PENDING newfinal65f0013 unfiltered1063nativeintegration; oldfef4full1062 historical",
+      "status": "PASS current65f0013 handwritten713 unfiltered1063/1063 nativeintegration;0failed/ignored/filtered",
+      "record": "release/xray-final-native-integration-review.json",
       "sourceFingerprint": "65f0013ae13365244de0baf69d29fd84c0219450573f86e5884eb0413dd6ae30",
+      "sourceSignature": "48f23e94ec7b26bce70495ce6d8c1a56c4430a5026c812b8045d48c45fd3f966",
       "courseSha256": "f23fe2c84e633849f9b9fad00a0ecdb87b2d40b0d4165fd7561d702626cc7537",
       "sourceFiles": 713,
-      "expectedTests": 1063,
-      "focusedRegression": "release/xray-original-owner-source-fix-review.json",
+      "externalInventoryEntries": 433,
+      "passed": 1063,
+      "failed": 0,
+      "ignored": 0,
+      "filtered": 0,
+      "uniqueNames": 1063,
+      "singleUnfiltered1063Pass": true,
+      "suiteSeconds": 1442.64,
+      "guardElapsedSeconds": 1442.762,
+      "peakJobCommitBytes": 1485799424,
       "previousAcceptedRecord": "release/native-final-two-fixture-integration-review.json",
       "previousAcceptedSource": "fef4c7bdb6f4c0a6f7a7701b0ba5581469dd757a34eefbab030a06e92ce4e5a1",
-      "previousPassed": 1062,
-      "scope": "OneactualnewfocusedregressionPASS only; 1062filtered. No newfullsuiteacceptance."
+      "cwdRecovery": {
+        "preparation": {
+          "path": "target/course-windows-20261018/xray-native-publication-preparation/cwd-recovery-v1/prepared.json",
+          "sha256": "bb73971dca25ca9a7e97d113256579f9bac2e7b5edc74a570cec21a33321a0b8"
+        },
+        "wrongCwdDiagnostic": {
+          "path": "target/course-windows-20261018/xray-native-publication-preparation/cwd-recovery-v1/old-stage-grid-v1/acceptance.json",
+          "sha256": "c405e7e08fe24a358e17507574be91d08733204a4795ad72b1c9cd11266dc5fd"
+        },
+        "correctCwdFocused": {
+          "path": "target/course-windows-20261018/xray-native-publication-preparation/cwd-recovery-v1/focused-v1/acceptance.json",
+          "sha256": "f2cba7fc693fa56d34064a41ed4c67b4a10c54840b191745d5f1d0eb38fd0936"
+        },
+        "controlledDifference": "Original same EXE,source,assertions,fixtures,tool/env/resource bindings; process cwd restored to viewer. Original aborted run remains non-PASS."
+      },
+      "preservedEarlierEvidence": [
+        {
+          "path": "docs/journey/release/native-final-two-fixture-integration-review.json",
+          "sha256": "766ac193897db4bd633201967358fe4f4a7dd19a712bb6e73f72226ee3ee965f"
+        },
+        {
+          "log": {
+            "path": "target/course-windows-20261018/xray-native-publication-preparation/cwd-recovery-v1/original-failed-output.log",
+            "sha256": "d7e1c168af3bdf0b0b5446c2966461fd568f1530a7584ec6b55f1dddb839e6ec"
+          },
+          "resources": {
+            "path": "target/course-windows-20261018/xray-native-publication-preparation/cwd-recovery-v1/original-failed-resources.json",
+            "sha256": "808aed15ecacfcb9c713fad29bf55c6561fbe8b0c7d97967e1395eb2c80a5275"
+          },
+          "command": {
+            "path": "target/course-windows-20261018/xray-native-publication-preparation/cwd-recovery-v1/original-failed-command.json",
+            "sha256": "153ba1a8b6c48f159bc76c0c3b7a57589f1208ccc8f5f22a561d5855595a3e10"
+          }
+        }
+      ],
+      "scope": "Actualunfilteredcurrent713suite fromcorrectedviewer cwd; unchangedbinary/tests. Originalisolatedcwd failure anddiagnostics retained; nativeintegrationonly, no714suite/currentbrowser acceptance."
     },
     "currentDocs": {
       "status": "Historical8/18roadmappublicationPASS at3670 beforeXrayruntimechange",
@@ -1676,14 +1877,35 @@
       "candidate": "Focused50466 baseline/candidateDPR1/2 diagnostic61.476s; originalIDs4->empty,candidateIDs4->4/alloriginalbodyassertionsPASS.16images/fourunique rootviewed. One-line frozenharness exception asked,pending/notapplied."
     },
     "buildGate": {
-      "status": "REOPENED pending afteractualXrayruntimechange",
-      "record": "release/xray-original-owner-source-fix-review.json",
-      "originalLiteral": "Freeze the integrated runtime and pass the final Native/WASM/optimized build checks.",
-      "source713": "65f0013ae13365244de0baf69d29fd84c0219450573f86e5884eb0413dd6ae30",
-      "maintained714": "b9f70ac28efa5ff434a2e479f5d5374160c7c5e05eb5833ae7edd32f8b882321",
+      "status": "DONE independently audited current65f0013/b9f70ac runtime Native/WASM/optimizedbuild gate1",
+      "record": "release/xray-final-runtime-build-gate-review.json",
+      "literal": "Freeze the integrated runtime and pass the final Native/WASM/optimized build checks.",
+      "sources": [
+        {
+          "id": "96zzzzzzzq-draw-original-cad-wire-curves",
+          "files": 713,
+          "sourceFingerprint": "65f0013ae13365244de0baf69d29fd84c0219450573f86e5884eb0413dd6ae30",
+          "sourceSignature": "48f23e94ec7b26bce70495ce6d8c1a56c4430a5026c812b8045d48c45fd3f966",
+          "dependencies": {
+            "dependencies": "eb5ecf3316a388c7e4cca3e4f0ef18682dbf1e52d27121f0098ed321da78324e",
+            "dependency_checker": "d32c7dbec5fd12dbd68a3adf36bccb60bdf5254cb890f1f8c5bff8a5b7e7d6d5"
+          }
+        },
+        {
+          "id": "97-finish-with-the-maintained-browser-runtime",
+          "files": 714,
+          "sourceFingerprint": "b9f70ac28efa5ff434a2e479f5d5374160c7c5e05eb5833ae7edd32f8b882321",
+          "sourceSignature": "1fb7d6470f356ac76e629a5b3358041dba99d6a52384c4b3ae6abdfe30fa5d32",
+          "dependencies": {
+            "dependencies": "eb5ecf3316a388c7e4cca3e4f0ef18682dbf1e52d27121f0098ed321da78324e",
+            "dependency_checker": "d32c7dbec5fd12dbd68a3adf36bccb60bdf5254cb890f1f8c5bff8a5b7e7d6d5"
+          }
+        }
+      ],
+      "courseSha256": "f23fe2c84e633849f9b9fad00a0ecdb87b2d40b0d4165fd7561d702626cc7537",
+      "scope": "Actualnew1063native+sevencompiler/package/frame phases+714nativecfg/graphreuse; independentbuildgateonly. Browserqualification andotherfourliteralreleasegates remainopen.",
       "previousAcceptedRecord": "release/final-runtime-build-gate-review.json",
-      "previousAcceptedSource": "fef4c7bdb6f4c0a6f7a7701b0ba5581469dd757a34eefbab030a06e92ce4e5a1",
-      "scope": "Oldfef4/06359freeze/buildgatehistory retained; new1063andrefreshed713/714buildqualification required."
+      "reopen": "Actualruntime/dependency/buildinputchange requires affectedproof reassessment; docs/status/harness-only edits do not invalidate frozenbuilds."
     },
     "arenaEmpty": {
       "status": "PASS complete originalArena source-specific defaultcallback plus root-reviewed restoredCAD DPR1/2/finalimages",
@@ -1802,6 +2024,24 @@
       "readerPhasesRetained": 202,
       "framePngSha256": "4c786c32b7fcbed3d6c3554637444ed580ee84bb09e643805e2bed534eb4f274",
       "scope": "FreshNative-check/WASM/optimizedweb713+714 andactual713canonicalframe;714nativecfg/graphreuse accepted. Reader101/202exactendpoint/source/records unchanged. V1browser onlyedge/source restoration; no marker/finaldelta acceptance."
+    },
+    "currentXrayBrowserQualification": {
+      "status": "PASS current713strictSphere/original-owner browser and714completeoriginalfinal.cjs DPR1/2/presentation; allfournewPNGrootreviewed",
+      "record": "release/xray-current-browser-relevance-review.json",
+      "courseSha256": "f23fe2c84e633849f9b9fad00a0ecdb87b2d40b0d4165fd7561d702626cc7537",
+      "source713": "65f0013ae13365244de0baf69d29fd84c0219450573f86e5884eb0413dd6ae30",
+      "source714": "b9f70ac28efa5ff434a2e479f5d5374160c7c5e05eb5833ae7edd32f8b882321",
+      "marker713": {
+        "elapsedSeconds": 37.695,
+        "peakJobCommitBytes": 579866624,
+        "scope": "ActualSphere rendering/rawABI andopacity0; bothnear/rear originalowner4 asserted, opaque/source restoration retained."
+      },
+      "maintained714": {
+        "elapsedSeconds": 12.031,
+        "peakJobCommitBytes": 871219200,
+        "scope": "Originalunchangedfinal.cjs DPR1/2+capture_currentpresentation; all18freshHTTPpayloads/actualNVIDIA verified."
+      },
+      "limits": "Currentfinaldeltaqualification only; original8/18source-specificcallbackcountunchanged. PriorV1edge-only/oldV2semanticfailure/06359presentationproofs retainownscope."
     }
   },
   "currentRuntimeDocsQualification": {
