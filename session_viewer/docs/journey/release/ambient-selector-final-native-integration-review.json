@@ -1,0 +1,110 @@
+{
+  "status": "PASS:1064/1064 unfiltered handwritten713 native integration;0failed/ignored/filtered",
+  "sourceFingerprint": "6947664b26863adf65ef7bfc879694bfedee853852bc2c7660d59f31d2e36ca9",
+  "courseSha256": "05b031571b9b18b4e2740898af6782e2c746cb6b1fcf35c73adb86c957869374",
+  "sourceFiles": 713,
+  "externalInventoryEntries": 433,
+  "tests": {
+    "passed": 1064,
+    "failed": 0,
+    "ignored": 0,
+    "measured": 0,
+    "filtered": 0,
+    "uniqueNames": 1064,
+    "threads": 1,
+    "exactOriginal1063PlusOne": true
+  },
+  "newTest": "renderer::ambient_gpu_tests::actual_retained_pedestal_ambient_reaches_visible_ground_and_preserves_cache_and_sources",
+  "preservedEarlierNative": {
+    "path": "docs/journey/release/xray-final-native-integration-review.json",
+    "sha256": "406b115886c5bda20d41c3a6109b8f6b2b2129930b6f89a3800504d0ddd739af"
+  },
+  "oldNames": {
+    "path": "target/course-windows-20261018/xray-native-publication-preparation/corrected-cwd-v1-test-list.json",
+    "sha256": "02911176efaf3a55c98aead2faac0af02f20152fcb1d86a334fb48c8a73a8ffa"
+  },
+  "testList": {
+    "path": "target/course-windows-20261018/ambient-selector-refreeze-publication-preparation/native1064-test-list.json",
+    "sha256": "37d7099a836cdfcc873da40f2c5717f6a3fd2e3915ac6ce87d83b65f80748665"
+  },
+  "namedResults": {
+    "path": "target/course-windows-20261018/ambient-selector-refreeze-publication-preparation/native1064-named-results.json",
+    "sha256": "dec2d168cef96bbf5e89d3648800425f90214cd9798cc49e641ba7eb0fbdcac8"
+  },
+  "nativePrepared": {
+    "path": "target/course-windows-20261018/ambient-selector-native-suite-freeze-preparation/prepared.json",
+    "sha256": "378e1950a5364e3cdce435945a4f4776837ccb3870189e2d5b37d7ecbdc2eaed"
+  },
+  "compilerPreparation": {
+    "path": "target/course-windows-20261018/ambient-selector-refreeze-preparation/prepared-v3.json",
+    "sha256": "9cbdde336c5701c127febf696f34823a5b795ecf31fbae770403b152c83dc6be"
+  },
+  "sourceBinding": {
+    "path": "target/course-windows-20261018/ambient-selector-native-suite-freeze-preparation/built.json",
+    "sha256": "eb4eace96db096af3238b0ecefe25f58d7cc4e850ebab6faca284176a63b8c51"
+  },
+  "actualBinary": {
+    "path": "target/course-windows-20261018/ambient-selector-native-suite-freeze-preparation/build/native-full1064.exe",
+    "sha256": "1cc2cfb4845afa83d2cc82aa7572ffcb106dcfd2a7402d6322c936b7e409e64c"
+  },
+  "depInfo": {
+    "path": "target/course-windows-20261018/ambient-selector-native-suite-freeze-preparation/build/native-full1064.d",
+    "sha256": "ba979fa92204759ab2e62f5b7d7c4e9bcee72e9be4e82c395dc43cd325eade2d"
+  },
+  "listOnly": {
+    "record": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\ambient-selector-native-suite-freeze-preparation\\build\\test-list.txt",
+      "sha256": "9e3420dac424e894829f207bf1887f4fc2f2b58d2206799a1ee5ba8748df2768"
+    },
+    "qualification": "Existing one pre-run list reused; no second list or suite invocation"
+  },
+  "build": {
+    "command": {
+      "path": "target/course-windows-20261018/ambient-selector-native-suite-freeze-preparation/build/command.json",
+      "sha256": "2a54fdd4d8cbf93539fc336ed0cf9a9a1f3439b52a1eab70258c1ce2089af154"
+    },
+    "resources": {
+      "path": "target/course-windows-20261018/ambient-selector-native-suite-freeze-preparation/build/resources.json",
+      "sha256": "1d5da7acb510c596146f9df254782b326bf51ad12040578637a4b592033620c2"
+    },
+    "log": {
+      "path": "target/course-windows-20261018/ambient-selector-native-suite-freeze-preparation/build/output.log",
+      "sha256": "fe61e6a44ebbf4d1feba2dcb679679ab139c754197fed56e6c00aec9671263f0"
+    }
+  },
+  "run": {
+    "acceptance": {
+      "path": "target/course-windows-20261018/ambient-selector-native-suite-freeze-preparation/acceptance.json",
+      "sha256": "ea0dd16e00cf0f21fe88528bc41ee927225237f427086de63529ca3bd849734b"
+    },
+    "command": {
+      "path": "target/course-windows-20261018/ambient-selector-native-suite-freeze-preparation/full1064/command.json",
+      "sha256": "401ff0a4931da674bc973e36a00196e4ee4480143522e93936c1410fa7da2102"
+    },
+    "resources": {
+      "path": "target/course-windows-20261018/ambient-selector-native-suite-freeze-preparation/full1064/resources.json",
+      "sha256": "344c7e1ade7f79d97a4c520c2de0464a944ac503441c9fcdfa316d393e8ef9df"
+    },
+    "log": {
+      "path": "target/course-windows-20261018/ambient-selector-native-suite-freeze-preparation/full1064/output.log",
+      "sha256": "91e01616e0973c58b745a78e3a4f379b5de18050e04be4c5fb6e9b996d08b569"
+    },
+    "elapsedSeconds": 1489.541,
+    "peakJobCommitBytes": 1487900672
+  },
+  "inventoryLookup": {
+    "path": "target/course-windows-20261018/ambient-selector-native-suite-freeze-preparation/inventory-lookup-proof.json",
+    "sha256": "65cb9db1b8faf82d5c0c408abae5afa21a6e7cd914b947384af6843951dd4b65"
+  },
+  "workingDirectory": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\",
+  "scope": "One actual new694-source full native suite only; no714 fullsuite/currentbrowser/tutorial feature closure. Source-relative Cargo lookup and external compiler namespace overlays are explicit, original433 assertions unchanged.",
+  "recordedUtc": "2026-10-24T11:29:48.716Z",
+  "manifest": {
+    "path": "target/course-windows-20261018/ambient-selector-refreeze-publication-preparation/frozen-native1064.json",
+    "sha256": "507145484064720dc29f5bfcfec7bc195331f402e0a707fc3e91a0adbd7a15bc"
+  },
+  "independentBuildGateAudit": {
+    "path": "target/course-windows-20261018/ambient-selector-refreeze-publication-preparation/native1064-build-gate-audit.json",
+    "sha256": "0b02dd84a43621d94ca007f996cbc9061778c21297acb21e66a017075a8a3229"
+  }
+}

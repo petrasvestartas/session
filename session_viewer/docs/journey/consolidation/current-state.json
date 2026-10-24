@@ -36,7 +36,14 @@
     "printedFills": "HISTORICAL PASS: printed-fill tests passed within the a45 learner1059/1059 suite. Generated-print and retained-original Plane matrices also have bounded native RGBA evidence. Current full native, owner-pick and browser/display-family acceptance remain separate.",
     "publishedCi": "PASS atb7cdd5dc: run39928419284,WASM+native all-target checks,558 maintained native tests pass,61ignored GPU tests. This is separate from learner1059-test WARP suite.",
     "pullLauncherSafety": "PASS:pull-launcher-regression.json;8isolated Bash/cmd help/invalid/dirty/unpublished cases,HEADandpayload preserved. No destructive force run.",
-    "nativeFullCurrent": "PENDING actual final694/b031 unfiltered1064 integration. Current exact4x native ambient Off/On comparison, all22authoring tests and1361/43structure pass; old1063 remains historical.",
+    "nativeFullCurrent": {
+      "status": "PASS one actual final694 unfiltered1064/1064;0failed/ignored/measured/filtered",
+      "record": "release/ambient-selector-final-native-integration-review.json",
+      "sourceFingerprint": "6947664b26863adf65ef7bfc879694bfedee853852bc2c7660d59f31d2e36ca9",
+      "passed": 1064,
+      "elapsedSeconds": 1489.541,
+      "peakJobCommitBytes": 1487900672
+    },
     "nativeSourceAfterDisposal": "PASS latest fef4 handwritten713 unfiltered1062/1062;0failed/ignored/filtered. Suite1399.52s,guard1401.26s,peak1499983872B. Original97d1060 and qualified1060+2/failed1062 records retain historical source scopes. release/native-final-two-fixture-integration-review.json",
     "svgRendering": "PASS: shared SVG tokenizer, five focused parser tests, svg-docs-build.json (123.144s), and svg-visible.json. Complete Gemini diagram visually inspected after full reload; original authored Markdown unchanged.",
     "frameSchedule": "PASS: three native CPU semantics plus unchanged browser coalescing/disposal contract at63acaf79. Ordered input, one pending frame, geometry reuse, idle0 and no late disposal submissions; cached-page browser resume remains separate.",
@@ -266,10 +273,10 @@
       "candidate": "Focused50466 baseline/candidateDPR1/2 diagnostic61.476s; originalIDs4->empty,candidateIDs4->4/alloriginalbodyassertionsPASS.16images/fourunique rootviewed. One-line frozenharness exception asked,pending/notapplied."
     },
     "finalRuntimeBuildGate": {
-      "status": "REOPENED after actual ambient runtime change; final Native/WASM/optimized checks pending",
-      "source713": "555490d4cb3dd18014984afc15692d1ac14509f204061e26192633150d46f5ff",
-      "source714": "b5a415856167f657d7eb02e9efa32c66d0561a0e2c482ec36bbe17608b6c8d2d",
-      "previousAcceptedRecord": "release/xray-final-runtime-build-gate-review.json"
+      "status": "DONE independent source694/b031 Native/WASM/optimized build gate1",
+      "record": "release/ambient-selector-final-runtime-build-gate-review.json",
+      "source713": "6947664b26863adf65ef7bfc879694bfedee853852bc2c7660d59f31d2e36ca9",
+      "source714": "b0313bae6b71646b9424776561375ffc4306125317e1686c5894e0ef618701bf"
     },
     "arenaEmptyBrowser": {
       "status": "PASS complete originalArena source-specific defaultcallback plus root-reviewed restoredCAD DPR1/2/finalimages",
@@ -591,6 +598,10 @@
       ],
       "scope": "Current source qualification; existing callback counts unchanged",
       "applicability": "PASS at previous555/b5 source; current694/b031 relevance/package qualification pending."
+    },
+    "ambientSelectorCompilerRefresh": {
+      "status": "PASS seven actual source-matching Native/WASM/optimized/frame phases; native1064 separatelyPASS",
+      "record": "release/ambient-selector-final-compiler-integration-review.json"
     }
   },
   "resourceGuard": {
@@ -613,12 +624,10 @@
     "Ambient contact source fix is applied at555/b5. Two exact fullRGBA native pairs, five focused tests and1359earlier checkpoint preservation pass; broader ambient/outline/multisample production/browser criteria remain open."
   ],
   "onlyHeavy": {
-    "status": "running",
-    "task": "Current694766 native1064 harness build/list; focused existing4x test then single unfiltered suite queued",
-    "memoryLimitMiB": 4096,
-    "processors": 2
+    "status": "none",
+    "task": "All native/compiler/frame jobs terminal; source-matching browser qualification queued"
   },
-  "next": "Finish focused4x/native1064, final source-matching compiler/package qualification and docs browser verification. Preserve all Gemini Vue/frontend changes.",
+  "next": "Verify current713/714 browser endpoints and publish/review current tutorials in the existing browser. Remaining10 sourcecallbacks retain pending frozen-harness choices; all Vue design and Gemini ownership preserved.",
   "currentDocsReview": {
     "status": "PASS currentf23 roadmap desktop/390phone and changedChapter22.6 Rust section; root actualimages reviewed",
     "record": "release/docs-progress-xray-current-visible-review.json",
@@ -716,27 +725,31 @@
       "record": "release/reload-grid-browser-review.json"
     },
     "finalIntegration": {
-      "status": "Applied ambient source reconciliation; five focused native tests, two strict production pairs, all22authoring and1361/43structure checks PASS. Newfinal1064/native/WASM/web/frame/currentbrowser/docs refresh pending. Sourcecallbacks8/18,features4/18complete14partial,fixtures2/4 unchanged; release0/5 until newsource freeze qualification.",
-      "gatesDone": 0,
+      "status": "Final694/b031 native1064 and allseven source-matching build/frame phases PASS; independent build gate1/5 accepted. Four release gates remain, callbacks8/18/features4/18/fixtures2/4 unchanged.",
+      "gatesDone": 1,
       "gatesTotal": 5,
-      "gatesRemaining": 5,
+      "gatesRemaining": 4,
       "buildGate": {
-        "status": "PENDING new555490/b5a415 final runtime qualification",
+        "status": "DONE independent source694/b031 Native/WASM/optimized build gate1",
+        "record": "release/ambient-selector-final-runtime-build-gate-review.json",
+        "source713": "6947664b26863adf65ef7bfc879694bfedee853852bc2c7660d59f31d2e36ca9",
+        "source714": "b0313bae6b71646b9424776561375ffc4306125317e1686c5894e0ef618701bf",
         "literal": "Freeze the integrated runtime and pass the final Native/WASM/optimized build checks.",
         "courseSha256": "05b031571b9b18b4e2740898af6782e2c746cb6b1fcf35c73adb86c957869374",
         "sources": [
           {
             "id": "96zzzzzzzq-draw-original-cad-wire-curves",
-            "files": 713,
-            "sourceFingerprint": "555490d4cb3dd18014984afc15692d1ac14509f204061e26192633150d46f5ff"
+            "count": 713,
+            "fingerprint": "6947664b26863adf65ef7bfc879694bfedee853852bc2c7660d59f31d2e36ca9",
+            "packageName": "viewer_journey_713_6947664b26863adf65ef7bfc"
           },
           {
             "id": "97-finish-with-the-maintained-browser-runtime",
-            "files": 714,
-            "sourceFingerprint": "b5a415856167f657d7eb02e9efa32c66d0561a0e2c482ec36bbe17608b6c8d2d"
+            "count": 714,
+            "fingerprint": "b0313bae6b71646b9424776561375ffc4306125317e1686c5894e0ef618701bf",
+            "packageName": "viewer_journey_714_b0313bae6b71646b94247765"
           }
-        ],
-        "previousAcceptedRecord": "release/xray-final-runtime-build-gate-review.json"
+        ]
       },
       "previousBuildGateBeforeAmbient": {
         "status": "DONE independently audited current65f0013/b9f70ac runtime Native/WASM/optimizedbuild gate1",
@@ -990,38 +1003,8 @@
       "scope": "Actualruntimechange: old1062fef4/06359buildproofs historical; current1063and713/714buildrefresh pending. Eightacceptedcallbacks keeporiginalsource; nofeature/countchange."
     },
     "compilerRefresh": {
-      "status": "PASS seven current713/714 compiler/package/frame phases; full1063/strictmarkerV2/714browserpending",
-      "record": "release/xray-final-compiler-refresh-review.json",
-      "courseSha256": "f23fe2c84e633849f9b9fad00a0ecdb87b2d40b0d4165fd7561d702626cc7537",
-      "sources": [
-        {
-          "id": "96zzzzzzzq-draw-original-cad-wire-curves",
-          "files": 713,
-          "fingerprint": "65f0013ae13365244de0baf69d29fd84c0219450573f86e5884eb0413dd6ae30",
-          "signature": "48f23e94ec7b26bce70495ce6d8c1a56c4430a5026c812b8045d48c45fd3f966",
-          "dependencies": {
-            "dependencies": "eb5ecf3316a388c7e4cca3e4f0ef18682dbf1e52d27121f0098ed321da78324e",
-            "dependency_checker": "d32c7dbec5fd12dbd68a3adf36bccb60bdf5254cb890f1f8c5bff8a5b7e7d6d5"
-          }
-        },
-        {
-          "id": "97-finish-with-the-maintained-browser-runtime",
-          "files": 714,
-          "fingerprint": "b9f70ac28efa5ff434a2e479f5d5374160c7c5e05eb5833ae7edd32f8b882321",
-          "signature": "1fb7d6470f356ac76e629a5b3358041dba99d6a52384c4b3ae6abdfe30fa5d32",
-          "dependencies": {
-            "dependencies": "eb5ecf3316a388c7e4cca3e4f0ef18682dbf1e52d27121f0098ed321da78324e",
-            "dependency_checker": "d32c7dbec5fd12dbd68a3adf36bccb60bdf5254cb890f1f8c5bff8a5b7e7d6d5"
-          }
-        }
-      ],
-      "phaseCount": 7,
-      "preparedPinsChecked": 1478,
-      "readerEndpointsRetained": 101,
-      "readerPhasesRetained": 202,
-      "framePngSha256": "4c786c32b7fcbed3d6c3554637444ed580ee84bb09e643805e2bed534eb4f274",
-      "scope": "FreshNative-check/WASM/optimizedweb713+714 andactual713canonicalframe;714nativecfg/graphreuse accepted. Reader101/202exactendpoint/source/records unchanged. V1browser onlyedge/source restoration; no marker/finaldelta acceptance.",
-      "applicabilityAfterAmbient": "Historical at recorded65/f23 source; not a new555/b5 compiler, full native or browser execution."
+      "status": "PASS seven actual source-matching Native/WASM/optimized/frame phases; native1064 separatelyPASS",
+      "record": "release/ambient-selector-final-compiler-integration-review.json"
     },
     "currentBrowserQualification": {
       "status": "PASS current713strictSphere/original-owner browser and714completeoriginalfinal.cjs DPR1/2/presentation; allfournewPNGrootreviewed",
@@ -1059,7 +1042,7 @@
     },
     "previousFingerprintBeforeAmbientSelector": "555490d4cb3dd18014984afc15692d1ac14509f204061e26192633150d46f5ff",
     "ambientSelectorFix": {
-      "status": "APPLIED production multisample selector; strict native pair and authoring/source checks PASS; full1064/build refresh pending",
+      "status": "APPLIED; exact4x production comparison, full1064 and all7 final build phases PASS; browser/docs qualification pending",
       "record": "release/ambient-selector-authored-source-review.json",
       "source713": "6947664b26863adf65ef7bfc879694bfedee853852bc2c7660d59f31d2e36ca9",
       "source714": "b0313bae6b71646b9424776561375ffc4306125317e1686c5894e0ef618701bf",

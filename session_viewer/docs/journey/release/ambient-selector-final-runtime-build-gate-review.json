@@ -1,0 +1,326 @@
+{
+  "status": "PASS independent current-source final Native/WASM/optimized-build gate only",
+  "criterion": {
+    "gate": 1,
+    "literal": "Freeze the integrated runtime and pass the final Native/WASM/optimized build checks."
+  },
+  "sources": [
+    {
+      "id": "96zzzzzzzq-draw-original-cad-wire-curves",
+      "count": 713,
+      "fingerprint": "6947664b26863adf65ef7bfc879694bfedee853852bc2c7660d59f31d2e36ca9",
+      "packageName": "viewer_journey_713_6947664b26863adf65ef7bfc"
+    },
+    {
+      "id": "97-finish-with-the-maintained-browser-runtime",
+      "count": 714,
+      "fingerprint": "b0313bae6b71646b9424776561375ffc4306125317e1686c5894e0ef618701bf",
+      "packageName": "viewer_journey_714_b0313bae6b71646b94247765"
+    }
+  ],
+  "courseSha256": "05b031571b9b18b4e2740898af6782e2c746cb6b1fcf35c73adb86c957869374",
+  "native": {
+    "path": "target/course-windows-20261018/ambient-selector-refreeze-publication-preparation/frozen-native1064.json",
+    "sha256": "507145484064720dc29f5bfcfec7bc195331f402e0a707fc3e91a0adbd7a15bc"
+  },
+  "compilerReview": {
+    "path": "target/course-windows-20261018/ambient-selector-refreeze-publication-preparation/files/ambient-selector-final-compiler-integration-review.json",
+    "sha256": "7a0cb66fa8403a4a326401e2c7f917d6bb760d742e60f0035fad24bb7db64ef7"
+  },
+  "compilerFreeze": {
+    "path": "target/course-windows-20261018/ambient-selector-refreeze-publication-preparation/frozen-review.json",
+    "sha256": "e9b5165a239456bd0e6948cf71c360d07dc5c3d5210db82d9ce7ececcf612b48"
+  },
+  "actualSevenPhases": [
+    {
+      "name": "713-native",
+      "status": "PASS",
+      "sourceFingerprint": "6947664b26863adf65ef7bfc879694bfedee853852bc2c7660d59f31d2e36ca9",
+      "sourceCount": 713,
+      "command": {
+        "path": "target/course-windows-20261018/ambient-selector-refreeze-preparation/713-native/command.json",
+        "sha256": "f3ae3f6d6411644b6b5fde3eec9f17138d7c19c433043cf8f2fa9b5d2ac55382"
+      },
+      "resources": {
+        "path": "target/course-windows-20261018/ambient-selector-refreeze-preparation/713-native/resources.json",
+        "sha256": "7fca5de0d60d1887bb0c9029ca2eba73ed0a5bb883f51d0e9c1a726ff7528167"
+      },
+      "log": {
+        "path": "target/course-windows-20261018/ambient-selector-refreeze-preparation/713-native/output.log",
+        "sha256": "3dd6d083f19fc4924240ad7fc20fad22a06166bfc46537ab5a1688e6405ed843"
+      },
+      "receipts": [
+        {
+          "path": "target/course-windows-20261018/ambient-selector-refreeze-preparation/713-native/compiler-source-binding.json",
+          "sha256": "4bc4f9927c69ec5b8e8d02212c8fce4d78cc12693b1783dfd38bea605af347b7"
+        }
+      ],
+      "elapsedSeconds": 27.184,
+      "peakJobCommitBytes": 1416785920,
+      "scope": "Actual source-matching compiler phase only"
+    },
+    {
+      "name": "713-wasm",
+      "status": "PASS",
+      "sourceFingerprint": "6947664b26863adf65ef7bfc879694bfedee853852bc2c7660d59f31d2e36ca9",
+      "sourceCount": 713,
+      "command": {
+        "path": "target/course-windows-20261018/ambient-selector-refreeze-preparation/713-wasm/command.json",
+        "sha256": "0d48595b992e9db97ab889806bb8749efb9053276bd76e93f081fce497d9e690"
+      },
+      "resources": {
+        "path": "target/course-windows-20261018/ambient-selector-refreeze-preparation/713-wasm/resources.json",
+        "sha256": "881b1a64376fe352061c093f1b31f7af1d989f3ba01e5099568b3589b9c8efd7"
+      },
+      "log": {
+        "path": "target/course-windows-20261018/ambient-selector-refreeze-preparation/713-wasm/output.log",
+        "sha256": "1ff35f1637e3da0b3250baa9ad5a076817a9399608e3695201f76576eb48f4af"
+      },
+      "receipts": [
+        {
+          "path": "target/course-windows-20261018/ambient-selector-refreeze-preparation/713-wasm/compiler-source-binding.json",
+          "sha256": "9ae31f72e14d843df1ed2b916084722b9b8733cbd8bce3c3888b78222bce5235"
+        },
+        {
+          "path": "target/course-windows-20261018/ambient-selector-refreeze-preparation/713-wasm/wasm.json",
+          "sha256": "e8546c9bdf6886116ed4340c28ed79aa2e9d82c1d3fbf91ad43564d20ca49604"
+        }
+      ],
+      "elapsedSeconds": 24.252,
+      "peakJobCommitBytes": 1709596672,
+      "scope": "Actual source-matching compiler phase only"
+    },
+    {
+      "name": "713-web",
+      "status": "PASS",
+      "sourceFingerprint": "6947664b26863adf65ef7bfc879694bfedee853852bc2c7660d59f31d2e36ca9",
+      "sourceCount": 713,
+      "command": {
+        "path": "target/course-windows-20261018/ambient-selector-refreeze-preparation/713-web/command.json",
+        "sha256": "256e3afac4254eb8e79c633abfb59fc6a0a5823e9f33213452f6f8a9836f0368"
+      },
+      "resources": {
+        "path": "target/course-windows-20261018/ambient-selector-refreeze-preparation/713-web/resources.json",
+        "sha256": "2672744b33b52d2b6a5f42a2705f537d7cdaa0366cfc827e1326fe9aa26f7e59"
+      },
+      "log": {
+        "path": "target/course-windows-20261018/ambient-selector-refreeze-preparation/713-web/output.log",
+        "sha256": "1d1ce3f4c7f0ac2e97e79e3ff83a9cf98a93552e4b28400730909932b80c50cf"
+      },
+      "receipts": [
+        {
+          "path": "target/course-windows-20261018/ambient-selector-refreeze-preparation/713-web/compiler-source-binding.json",
+          "sha256": "0103759abceefd90ad117a71656e521c93ec612225f4b19ecfb09162dd60e06b"
+        },
+        {
+          "path": "target/course-windows-20261018/ambient-selector-refreeze-preparation/713-web/bundle.json",
+          "sha256": "5777bf4d9153741b5297cb9177907c01ded9b709296184efc880072b7211c04d"
+        },
+        {
+          "path": "target/course-windows-20261018/ambient-selector-refreeze-preparation/713-web/http-artifacts.json",
+          "sha256": "8ef9c2752874f39518873c10dca9d035047139701448f3211b8be23ba212b2c6"
+        },
+        {
+          "path": "target/course-windows-20261018/ambient-selector-refreeze-preparation/713-web/release-wasm.json",
+          "sha256": "eb27893c892b7ddca071058f4dd671be18efcdcf4a68f822da6af53c4337c64e"
+        }
+      ],
+      "elapsedSeconds": 193.442,
+      "peakJobCommitBytes": 1369767936,
+      "scope": "Actual optimized package and HTTP byte delivery; not browser"
+    },
+    {
+      "name": "714-native",
+      "status": "PASS",
+      "sourceFingerprint": "b0313bae6b71646b9424776561375ffc4306125317e1686c5894e0ef618701bf",
+      "sourceCount": 714,
+      "command": {
+        "path": "target/course-windows-20261018/ambient-selector-refreeze-preparation/714-native/command.json",
+        "sha256": "ee9ee06555d7a7e9f928638fe2fe8b84f476c5cf51bd29cf76e91619c41dcfd0"
+      },
+      "resources": {
+        "path": "target/course-windows-20261018/ambient-selector-refreeze-preparation/714-native/resources.json",
+        "sha256": "c932bff996038889c7e77b42d68253485821731c15937bcd9c027e8edefaa650"
+      },
+      "log": {
+        "path": "target/course-windows-20261018/ambient-selector-refreeze-preparation/714-native/output.log",
+        "sha256": "6e00cb06843cb02cf994d9d6992371c61981b7ab986dcff4451dd49f02c195b3"
+      },
+      "receipts": [
+        {
+          "path": "target/course-windows-20261018/ambient-selector-refreeze-preparation/714-native/compiler-source-binding.json",
+          "sha256": "726a717f46961f1370781e0dbfe9203feb6033b005f8a3bf3c462d9c33a0ea7e"
+        }
+      ],
+      "elapsedSeconds": 19.072,
+      "peakJobCommitBytes": 1417768960,
+      "scope": "Actual source-matching compiler phase only"
+    },
+    {
+      "name": "714-wasm",
+      "status": "PASS",
+      "sourceFingerprint": "b0313bae6b71646b9424776561375ffc4306125317e1686c5894e0ef618701bf",
+      "sourceCount": 714,
+      "command": {
+        "path": "target/course-windows-20261018/ambient-selector-refreeze-preparation/714-wasm/command.json",
+        "sha256": "32fc7e21b583a8647a5769701d6401c8f8cfc3f4f47ab96981f7c17260d21eeb"
+      },
+      "resources": {
+        "path": "target/course-windows-20261018/ambient-selector-refreeze-preparation/714-wasm/resources.json",
+        "sha256": "4bd2a095789df817eccc21be1043673b6f4266478f5560e5fb5a1a3ca73c0ef2"
+      },
+      "log": {
+        "path": "target/course-windows-20261018/ambient-selector-refreeze-preparation/714-wasm/output.log",
+        "sha256": "7e84e84e8cb8162f4ff6bac519652798951a31a646ba9a99c8495d355fdd84f5"
+      },
+      "receipts": [
+        {
+          "path": "target/course-windows-20261018/ambient-selector-refreeze-preparation/714-wasm/compiler-source-binding.json",
+          "sha256": "1185a3b9b0120306085aa213d527b563bd06f5e0c48cdaa48000a4da72f13ebe"
+        },
+        {
+          "path": "target/course-windows-20261018/ambient-selector-refreeze-preparation/714-wasm/wasm.json",
+          "sha256": "395249e603ca8cccc63235e9cc8ed7f0a8f2284f6d44703732946423ed67c99f"
+        }
+      ],
+      "elapsedSeconds": 36.916,
+      "peakJobCommitBytes": 1756852224,
+      "scope": "Actual source-matching compiler phase only"
+    },
+    {
+      "name": "714-web",
+      "status": "PASS",
+      "sourceFingerprint": "b0313bae6b71646b9424776561375ffc4306125317e1686c5894e0ef618701bf",
+      "sourceCount": 714,
+      "command": {
+        "path": "target/course-windows-20261018/ambient-selector-refreeze-preparation/714-web/command.json",
+        "sha256": "267ae51b59633ca12f43540a9c2bb30aa9001d182c57b47be7daab16f4ff69fd"
+      },
+      "resources": {
+        "path": "target/course-windows-20261018/ambient-selector-refreeze-preparation/714-web/resources.json",
+        "sha256": "116fa163283eccbfe4452c98376b6056166ab52f7e5ee809a0d92161b65696dc"
+      },
+      "log": {
+        "path": "target/course-windows-20261018/ambient-selector-refreeze-preparation/714-web/output.log",
+        "sha256": "6d5f59a133bcc54bddbf0bc4218e8f935f9573e6ae818a1510a378b42902ca57"
+      },
+      "receipts": [
+        {
+          "path": "target/course-windows-20261018/ambient-selector-refreeze-preparation/714-web/compiler-source-binding.json",
+          "sha256": "21890db74ffc9c127165e6939ab92e244f4b2cf652b74fa89a3691e8c4d1a49d"
+        },
+        {
+          "path": "target/course-windows-20261018/ambient-selector-refreeze-preparation/714-web/bundle.json",
+          "sha256": "fa16fd9d69cc1480eabac2b67d39e2e39946a154be76b73e445455ce51175ff0"
+        },
+        {
+          "path": "target/course-windows-20261018/ambient-selector-refreeze-preparation/714-web/http-artifacts.json",
+          "sha256": "3794ae75cbc2021c3c2f90a323801debbc13d3365ece779f7b7f5d25674d0844"
+        },
+        {
+          "path": "target/course-windows-20261018/ambient-selector-refreeze-preparation/714-web/release-wasm.json",
+          "sha256": "c2a91bf4e9da313b010d43371e938dc9f41b3503a4e017896851165f9c95a3f6"
+        }
+      ],
+      "elapsedSeconds": 140.042,
+      "peakJobCommitBytes": 1399595008,
+      "scope": "Actual optimized package and HTTP byte delivery; not browser"
+    },
+    {
+      "name": "713-frame",
+      "status": "PASS",
+      "sourceFingerprint": "6947664b26863adf65ef7bfc879694bfedee853852bc2c7660d59f31d2e36ca9",
+      "sourceCount": 713,
+      "command": {
+        "path": "target/course-windows-20261018/ambient-selector-refreeze-preparation/713-frame/command.json",
+        "sha256": "6df0ee7582d766552f6fffeeed6566b71772487500d71314164f41fed225fa5f"
+      },
+      "resources": {
+        "path": "target/course-windows-20261018/ambient-selector-refreeze-preparation/713-frame/resources.json",
+        "sha256": "242fb8086f4067bbbc9265b2980ae5bba7e886f21cebbccb382fa241d7d66967"
+      },
+      "log": {
+        "path": "target/course-windows-20261018/ambient-selector-refreeze-preparation/713-frame/output.log",
+        "sha256": "0b67da92c7477525c3e57eda5cf2c1ff286e8ba99b0a187d315f8d815a0098a8"
+      },
+      "receipts": [
+        {
+          "path": "target/course-windows-20261018/ambient-selector-refreeze-preparation/713-frame/frame.json",
+          "sha256": "c72f69eeb3b0c57e7fda18e9dc52470916b529d5740ff02c750f550c37c03523"
+        }
+      ],
+      "elapsedSeconds": 32.386,
+      "peakJobCommitBytes": 1850290176,
+      "scope": "Actual canonical94 native frame; root original image review required"
+    }
+  ],
+  "actual713Frame": {
+    "sha256": "4c786c32b7fcbed3d6c3554637444ed580ee84bb09e643805e2bed534eb4f274",
+    "rootPersonallyReviewed": true
+  },
+  "qualified714NativeFrameReuse": {
+    "path": "target/course-windows-20261018/ambient-selector-refreeze-publication-preparation/714-qualified-frame-reuse.json",
+    "sha256": "d1f384288ff88b4b539be36e282a88f447fa29f7671f1c7c367423461b259c47"
+  },
+  "externalInventory": {
+    "entries": 433,
+    "source": {
+      "path": "target/course-windows-20261018/ambient-selector-refreeze-preparation/source-713/src/current_inventory.json",
+      "sha256": "1985c938772ab0a0d3d719f38e7684536795a55e354d72d0d1975c503cdf5870"
+    },
+    "allCanonicalHashesAndSetVerified": true
+  },
+  "readerRetention": {
+    "endpoints": 101,
+    "phases": 202,
+    "originalRecordsOnly": true,
+    "currentSourceFingerprintsEqual": true,
+    "unaffectedCheckpoints": 1359
+  },
+  "actualCompilerNamespaces": {
+    "packageNames": [
+      "viewer_journey_713_6947664b26863adf65ef7bfc",
+      "viewer_journey_714_b0313bae6b71646b94247765"
+    ],
+    "stableLibraryName": "viewer_journey",
+    "frameAlias": "viewer_journey_frame_6947664b26863adf65ef7bfc",
+    "productionName": "session_viewer_freeze_d5dd5b80bb27fbf8bee367f3",
+    "productionFingerprint": "d5dd5b80bb27fbf8bee367f303a8629f024ed79db7cb48340b67eb7ed77e3314",
+    "scope": "Actual verbose rustc/JSON artifact/dep-info and immediate immutable artifact receipts bind each phase. Library name preserved for WASM filenames/examples; no global cache cleaning or shared-name alias reuse."
+  },
+  "compilerAndNativeResources": "Exact command/resource/log hashes checked0exit/no timeout/2CPU/4GiB; direct unfiltered native testEXE at canonical viewer cwd with1thread. Retained immutable artifacts bind executions, not mutable debug-cache files.",
+  "preservedEarlierNative": {
+    "path": "docs/journey/release/xray-final-native-integration-review.json",
+    "sha256": "406b115886c5bda20d41c3a6109b8f6b2b2129930b6f89a3800504d0ddd739af"
+  },
+  "old1063Qualification": "Historical65/f23 acceptance retained only; never relabeled new694/full1064.",
+  "excludedScope": [
+    "No currentbrowser/pixel/callback/gates2–5 acceptance inferred",
+    "No714 full native suite",
+    "No all1359compiler-run claim or replay of101/202 historical proofs",
+    "No progress/feature/tutorial count changes"
+  ],
+  "postflightSources": [
+    {
+      "id": "96zzzzzzzq-draw-original-cad-wire-curves",
+      "count": 713,
+      "fingerprint": "6947664b26863adf65ef7bfc879694bfedee853852bc2c7660d59f31d2e36ca9",
+      "packageName": "viewer_journey_713_6947664b26863adf65ef7bfc"
+    },
+    {
+      "id": "97-finish-with-the-maintained-browser-runtime",
+      "count": 714,
+      "fingerprint": "b0313bae6b71646b9424776561375ffc4306125317e1686c5894e0ef618701bf",
+      "packageName": "viewer_journey_714_b0313bae6b71646b94247765"
+    }
+  ],
+  "recordedUtc": "2026-10-24T11:29:48.718Z",
+  "nativeManifest": {
+    "path": "target/course-windows-20261018/ambient-selector-refreeze-publication-preparation/native-files/ambient-selector-final-native-integration-review.json",
+    "sha256": "536b6c1a5f0df6b99535bed3757921b173d99e63bbbc2c0dd8c33fe5b4e7b79e"
+  },
+  "independentAudit": {
+    "path": "target/course-windows-20261018/ambient-selector-refreeze-publication-preparation/native1064-build-gate-audit.json",
+    "sha256": "0b02dd84a43621d94ca007f996cbc9061778c21297acb21e66a017075a8a3229"
+  }
+}

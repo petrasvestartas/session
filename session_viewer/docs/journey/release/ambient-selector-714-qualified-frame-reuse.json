@@ -1,0 +1,31 @@
+{
+  "status": "Qualified reuse actual new713 reviewed native canonical94 frame for714 native projection; not714 frame execution",
+  "sources": [
+    {
+      "id": "96zzzzzzzq-draw-original-cad-wire-curves",
+      "count": 713,
+      "fingerprint": "6947664b26863adf65ef7bfc879694bfedee853852bc2c7660d59f31d2e36ca9",
+      "packageName": "viewer_journey_713_6947664b26863adf65ef7bfc"
+    },
+    {
+      "id": "97-finish-with-the-maintained-browser-runtime",
+      "count": 714,
+      "fingerprint": "b0313bae6b71646b9424776561375ffc4306125317e1686c5894e0ef618701bf",
+      "packageName": "viewer_journey_714_b0313bae6b71646b94247765"
+    }
+  ],
+  "equivalence": {
+    "path": "target/course-windows-20261018/ambient-selector-refreeze-publication-preparation/native-frame-equivalence.json",
+    "sha256": "5d3197c76842cfbe4398ab9bb7ae8892f8dca40450dc70ef34a3469400065b3d"
+  },
+  "frame": {
+    "path": "target/course-windows-20261018/ambient-selector-refreeze-preparation/713-frame/frame.json",
+    "sha256": "c72f69eeb3b0c57e7fda18e9dc52470916b529d5740ff02c750f550c37c03523"
+  },
+  "image": {
+    "path": "target/course-windows-20261018/ambient-selector-refreeze-preparation/713-frame/native-frame.png",
+    "sha256": "4c786c32b7fcbed3d6c3554637444ed580ee84bb09e643805e2bed534eb4f274"
+  },
+  "rootPersonallyReviewedImageSha256": "4c786c32b7fcbed3d6c3554637444ed580ee84bb09e643805e2bed534eb4f274",
+  "scope": "Qualifies relevance of one actual reviewed new713 native frame to714 native projection only; not714 frame execution/browser/fullsuite"
+}
