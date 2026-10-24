@@ -7,6 +7,7 @@ pub use crate::engine::gpu::clip::ClipPlane;
 
 pub struct Frame {
     pub rgba: Vec<u8>,
+    pub cap_ids: Option<Vec<[u32; 2]>>,
     pub identity: Value,
     pub ribbon_source: String,
     pub vector_source: String,
@@ -184,7 +185,7 @@ pub async fn render_clipped(
     thickness: f32,
     planes: &[ClipPlane],
 ) -> anyhow::Result<Frame> {
-    render_inner(source, matrix, viewport, density, samples, thickness, planes, &Families::default(), true).await
+    render_inner(source, matrix, viewport, density, samples, thickness, planes, &Families::default(), true, false).await
 }
 
 pub struct Families {
@@ -205,7 +206,13 @@ pub async fn render_families(
     source: &[u8], matrix: [f32; 16], viewport: [u32; 2], density: f32,
     samples: u32, thickness: f32, planes: &[ClipPlane], families: &Families,
 ) -> anyhow::Result<Frame> {
-    render_inner(source, matrix, viewport, density, samples, thickness, planes, families, false).await
+    render_inner(source, matrix, viewport, density, samples, thickness, planes, families, false, false).await
+}
+
+/// Diagnostic-only section witness: run the real production closedness and cap pass.
+pub async fn render_caps(source:&[u8],matrix:[f32;16],viewport:[u32;2],density:f32,samples:u32,thickness:f32,planes:&[ClipPlane],families:&Families)->anyhow::Result<Frame>{
+    anyhow::ensure!(planes.len()==1,"one bounded cap representative");
+    render_inner(source,matrix,viewport,density,samples,thickness,planes,families,false,true).await
 }
 
 /// Serial diagnostic call: use and restore the production plane-size setting.
@@ -220,7 +227,7 @@ pub async fn render_plane_size(
     }
     let _restore = Restore(crate::engine::gpu::planes::plane_size());
     crate::engine::gpu::planes::set_plane_size(size);
-    render_inner(source, matrix, viewport, density, samples, thickness, &[], families, false).await
+    render_inner(source, matrix, viewport, density, samples, thickness, &[], families, false, false).await
 }
 
 fn uploaded_plane_size(gpu: &Gpu) -> anyhow::Result<f32> {
@@ -265,7 +272,7 @@ fn walked_ink(scene: &Scene) -> Value {
 
 async fn render_inner(
     source: &[u8], matrix: [f32; 16], viewport: [u32; 2], density: f32,
-    samples: u32, thickness: f32, planes: &[ClipPlane], families: &Families, require_pen: bool,
+    samples: u32, thickness: f32, planes: &[ClipPlane], families: &Families, require_pen: bool, section_caps: bool,
 ) -> anyhow::Result<Frame> {
     anyhow::ensure!(viewport.iter().all(|v| *v > 0));
     anyhow::ensure!(matrix.iter().all(|v| v.is_finite()));
@@ -305,6 +312,7 @@ async fn render_inner(
         perf: false,
         spin: false,
     };
+    if section_caps { crate::app::clipping::verify_solids(); }
     let session = Session::pb_loads(source).map_err(|e| anyhow::anyhow!("{e:?}"))?;
     let mut scene = Scene::new();
     scene.add_file(FileDoc {
@@ -326,6 +334,7 @@ async fn render_inner(
         gpu.set_selected(row,true);
     }
     gpu.set_clip_planes(planes);
+    if section_caps { gpu.find_solids(|row| scene.solid_faces(row)); }
     eprintln!("stroke witness: rendering production frame");
     let rgba = gpu.render_offscreen(&FrameInput {
         view_proj: Xform::from_matrix(matrix.map(f64::from)),
@@ -333,6 +342,7 @@ async fn render_inner(
         now_ms: 0.0,
     });
     eprintln!("stroke witness: production readback completed");
+    let cap_ids = section_caps.then(|| gpu.render_ids_offscreen(&FrameInput { view_proj: Xform::from_matrix(matrix.map(f64::from)), clear: wgpu::Color::WHITE, now_ms: 0.0 }));
     let uploaded_pen = if require_pen || gpu.segments.first_ribbon_buffer().is_some() {uploaded_pen(&gpu)?} else {Value::Null};
     let uploaded_clip = uploaded_clip(&gpu)?;
     let uploaded_plane_size = if walked_ink["planes"].as_array().is_some_and(|rows|!rows.is_empty()) {Some(uploaded_plane_size(&gpu)?)} else {None};
@@ -367,12 +377,14 @@ async fn render_inner(
         "uploaded_clip": uploaded_clip,
         "walked_ink": walked_ink,
         "selected_guids": families.selected_guids,
+        "section_caps_enabled":section_caps,"verified_closed_rows":if section_caps {gpu.objects.closed_rows().to_vec()} else {Vec::<u32>::new()},
         "pen_required":require_pen,
         "uploaded_objects":uploaded_objects,
         "uploaded_plane_size":uploaded_plane_size,
     });
     Ok(Frame {
         rgba,
+        cap_ids,
         identity,
         ribbon_source: crate::engine::pipelines::shared(&crate::engine::pipelines::ink_source(
             shader!("ribbon.wgsl"),

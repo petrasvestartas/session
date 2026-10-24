@@ -22047,12 +22047,12 @@
       "scope": "640x480 94-comparison native frame only; full browser and whole-checkpoint acceptance remain separate."
     },
     "id": "96zzzzzzzq-draw-original-cad-wire-curves",
-    "fingerprint": "6947664b26863adf65ef7bfc879694bfedee853852bc2c7660d59f31d2e36ca9",
+    "fingerprint": "871b89b10757b1385d06878c1d560d65584acbbc5bffd5b8cef56088bb9a6f08",
     "files": 713,
     "recordedAt": "2026-10-24",
-    "courseSha256": "05b031571b9b18b4e2740898af6782e2c746cb6b1fcf35c73adb86c957869374",
+    "courseSha256": "2d589e8e0f45a9bd927ae63769c1186dc30e646466878b51858c491b18a1e190",
     "historicalCourseSha256": "8453513dc6d5ae34d081becc435ee893bbb82cc89d31386ed6fa7141e7576b1b",
-    "scope": "Current694/b031 native1064, seven build/frame phases, both final browser endpoints and V8 local publication PASS. Independently accepted final gates1,4,5; gates2/3 remain open. Historical nested snapshots are explicitly archived; no source-specific callback or feature acceptance inferred.",
+    "scope": "Actual exact production BRep and three-kernel transition applied; new final build/native/browser verification pending. All18historical callbacks retain actualoriginal source identities;14featurescomplete4partial. Original navigation/publication gates4/5 retained; buildgate1 reopened.",
     "state": "consolidation/current-state.json",
     "evidencePaths": "Paths in currentIntegration/currentVerification are relative to docs/journey; target evidence is local and is not a public hosted artifact.",
     "authoring": {
@@ -22064,41 +22064,22 @@
       "record": "release/ambient-selector-authored-source-review.json"
     },
     "native": {
-      "status": "PASS:1064/1064 unfiltered handwritten713 native integration;0failed/ignored/filtered",
-      "record": "release/ambient-selector-final-native-integration-review.json",
-      "sourceFingerprint": "6947664b26863adf65ef7bfc879694bfedee853852bc2c7660d59f31d2e36ca9",
-      "courseSha256": "05b031571b9b18b4e2740898af6782e2c746cb6b1fcf35c73adb86c957869374",
-      "sourceFiles": 713,
-      "scope": "Current handwritten713 unfiltered1064 integration only; prior native records retain their original identities.",
-      "tests": {
-        "passed": 1064,
-        "failed": 0,
-        "ignored": 0,
-        "measured": 0,
-        "filtered": 0,
-        "uniqueNames": 1064,
-        "threads": 1,
-        "exactOriginal1063PlusOne": true
-      }
+      "status": "PENDING actual new exact BRep source verification",
+      "source713": "871b89b10757b1385d06878c1d560d65584acbbc5bffd5b8cef56088bb9a6f08",
+      "source714": "58b0ef2cc71e8c31b17b692e6d5961450239a0db65062a5689675bae1c25de72",
+      "previous": "beforeExactBrepTransition"
     },
     "browser": {
-      "scope": "Current endpoint qualification; no additional historical callback acceptance.",
-      "status": "PASS current694 strict Sphere/original-owner witness and currentb031 original final.cjs DPR1/2/presentation",
-      "records": [
-        "release/ambient-selector-final713-marker-browser-review.json",
-        "release/ambient-selector-maintained714-browser-review.json"
-      ],
-      "source713": "6947664b26863adf65ef7bfc879694bfedee853852bc2c7660d59f31d2e36ca9",
-      "source714": "b0313bae6b71646b9424776561375ffc4306125317e1686c5894e0ef618701bf",
-      "courseSha256": "05b031571b9b18b4e2740898af6782e2c746cb6b1fcf35c73adb86c957869374"
+      "status": "PENDING actual new exact BRep source verification",
+      "source713": "871b89b10757b1385d06878c1d560d65584acbbc5bffd5b8cef56088bb9a6f08",
+      "source714": "58b0ef2cc71e8c31b17b692e6d5961450239a0db65062a5689675bae1c25de72",
+      "previous": "beforeExactBrepTransition"
     },
     "maintainedOptimizedBuild": {
-      "status": "PASS seven actual source-matching compiler/package/native-frame phases; full1064 and current browser remain separate",
-      "scope": "Current maintained714 actual WASM/optimized build and qualified native/frame reuse; see phase-specific record.",
-      "record": "release/ambient-selector-final-compiler-integration-review.json",
-      "source713": "6947664b26863adf65ef7bfc879694bfedee853852bc2c7660d59f31d2e36ca9",
-      "source714": "b0313bae6b71646b9424776561375ffc4306125317e1686c5894e0ef618701bf",
-      "courseSha256": "05b031571b9b18b4e2740898af6782e2c746cb6b1fcf35c73adb86c957869374"
+      "status": "PENDING actual new exact BRep source verification",
+      "source713": "871b89b10757b1385d06878c1d560d65584acbbc5bffd5b8cef56088bb9a6f08",
+      "source714": "58b0ef2cc71e8c31b17b692e6d5961450239a0db65062a5689675bae1c25de72",
+      "previous": "beforeExactBrepTransition"
     },
     "productionSourceInventory": {
       "path": "current-viewer-2026-10-23.json",
@@ -22123,6 +22104,7 @@
       "requirements": "Each entry needs its own checkpoint build signature, optimized bundle, original sample, unchanged recursive callback pass and individual feature-image review. Do not substitute the final runtime for historical layouts."
     },
     "remainingFinalGates": [
+      "Freeze the integrated runtime and pass the final Native/WASM/optimized build checks.",
       "Pass all declared runnable-checkpoint checks against their actual final inputs.",
       "Close every feature row in the production/lesson coverage map with truthful source and visual evidence."
     ],
@@ -22326,12 +22308,10 @@
       "scope": "Actualruntimechange: old1062fef4/06359buildproofs historical; current1063and713/714buildrefresh pending. Eightacceptedcallbacks keeporiginalsource; nofeature/countchange."
     },
     "compilerRefresh": {
-      "status": "PASS seven actual source-matching compiler/package/native-frame phases; full1064 and current browser remain separate",
-      "record": "release/ambient-selector-final-compiler-integration-review.json",
-      "courseSha256": "05b031571b9b18b4e2740898af6782e2c746cb6b1fcf35c73adb86c957869374",
-      "scope": "All seven actual current713/714 native/WASM/optimized/frame phases; exact phase and maintained frame/cfg qualification remain in record.",
-      "source713": "6947664b26863adf65ef7bfc879694bfedee853852bc2c7660d59f31d2e36ca9",
-      "source714": "b0313bae6b71646b9424776561375ffc4306125317e1686c5894e0ef618701bf"
+      "status": "PENDING actual new exact BRep source verification",
+      "source713": "871b89b10757b1385d06878c1d560d65584acbbc5bffd5b8cef56088bb9a6f08",
+      "source714": "58b0ef2cc71e8c31b17b692e6d5961450239a0db65062a5689675bae1c25de72",
+      "previous": "beforeExactBrepTransition"
     },
     "historicalNativeBeforeCurrent1063": {
       "status": "HISTORICAL fef4full1062PASS; current65f0013full1063pending",
@@ -22431,6 +22411,47 @@
       "source713": "6947664b26863adf65ef7bfc879694bfedee853852bc2c7660d59f31d2e36ca9",
       "source714": "b0313bae6b71646b9424776561375ffc4306125317e1686c5894e0ef618701bf",
       "courseSha256": "05b031571b9b18b4e2740898af6782e2c746cb6b1fcf35c73adb86c957869374"
+    },
+    "beforeExactBrepTransition": {
+      "fingerprint": "6947664b26863adf65ef7bfc879694bfedee853852bc2c7660d59f31d2e36ca9",
+      "courseSha256": "05b031571b9b18b4e2740898af6782e2c746cb6b1fcf35c73adb86c957869374",
+      "native": {
+        "status": "PASS:1064/1064 unfiltered handwritten713 native integration;0failed/ignored/filtered",
+        "record": "release/ambient-selector-final-native-integration-review.json",
+        "sourceFingerprint": "6947664b26863adf65ef7bfc879694bfedee853852bc2c7660d59f31d2e36ca9",
+        "courseSha256": "05b031571b9b18b4e2740898af6782e2c746cb6b1fcf35c73adb86c957869374",
+        "sourceFiles": 713,
+        "scope": "Current handwritten713 unfiltered1064 integration only; prior native records retain their original identities.",
+        "tests": {
+          "passed": 1064,
+          "failed": 0,
+          "ignored": 0,
+          "measured": 0,
+          "filtered": 0,
+          "uniqueNames": 1064,
+          "threads": 1,
+          "exactOriginal1063PlusOne": true
+        }
+      },
+      "compilerRefresh": {
+        "status": "PASS seven actual source-matching compiler/package/native-frame phases; full1064 and current browser remain separate",
+        "record": "release/ambient-selector-final-compiler-integration-review.json",
+        "courseSha256": "05b031571b9b18b4e2740898af6782e2c746cb6b1fcf35c73adb86c957869374",
+        "scope": "All seven actual current713/714 native/WASM/optimized/frame phases; exact phase and maintained frame/cfg qualification remain in record.",
+        "source713": "6947664b26863adf65ef7bfc879694bfedee853852bc2c7660d59f31d2e36ca9",
+        "source714": "b0313bae6b71646b9424776561375ffc4306125317e1686c5894e0ef618701bf"
+      },
+      "browser": {
+        "scope": "Current endpoint qualification; no additional historical callback acceptance.",
+        "status": "PASS current694 strict Sphere/original-owner witness and currentb031 original final.cjs DPR1/2/presentation",
+        "records": [
+          "release/ambient-selector-final713-marker-browser-review.json",
+          "release/ambient-selector-maintained714-browser-review.json"
+        ],
+        "source713": "6947664b26863adf65ef7bfc879694bfedee853852bc2c7660d59f31d2e36ca9",
+        "source714": "b0313bae6b71646b9424776561375ffc4306125317e1686c5894e0ef618701bf",
+        "courseSha256": "05b031571b9b18b4e2740898af6782e2c746cb6b1fcf35c73adb86c957869374"
+      }
     }
   },
   "authoringPrerequisiteRepair": {

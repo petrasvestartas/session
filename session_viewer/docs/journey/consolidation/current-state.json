@@ -622,8 +622,9 @@
     "Ambient contact source fixes and exact1x/4x production comparisons pass at their recorded identities; current694/b031 compiler/native1064/browser qualification is complete. Broader finite ambient controls and source-specific95f/measured-reader obligations retain their exact remaining criteria."
   ],
   "onlyHeavy": {
-    "status": "idle",
-    "task": "Reader591 accepted; preparing final production BRep/kernel transition",
+    "status": "running",
+    "task": "Compile and enumerate final source-bound native test executable",
+    "sessionId": 14662,
     "memoryLimitMiB": 4096,
     "processors": 2
   },
@@ -725,31 +726,14 @@
       "record": "release/reload-grid-browser-review.json"
     },
     "finalIntegration": {
-      "status": "3/5 final gates complete;18/18 callbacks,4/4 fixtures,14/18 finite features accepted. Final production BRep/kernel integration, recovery and publication remain.",
-      "gatesDone": 3,
+      "status": "2/5 final gates retained during actual new-source integration;18/18 callbacks,4/4 fixtures,14/18 finite features accepted.",
+      "gatesDone": 2,
       "gatesTotal": 5,
-      "gatesRemaining": 2,
+      "gatesRemaining": 3,
       "buildGate": {
-        "status": "DONE independent source694/b031 Native/WASM/optimized build gate1",
-        "record": "release/ambient-selector-final-runtime-build-gate-review.json",
-        "source713": "6947664b26863adf65ef7bfc879694bfedee853852bc2c7660d59f31d2e36ca9",
-        "source714": "b0313bae6b71646b9424776561375ffc4306125317e1686c5894e0ef618701bf",
+        "status": "REOPENED actual production BRep/kernel transition; source-bound final builds pending",
         "literal": "Freeze the integrated runtime and pass the final Native/WASM/optimized build checks.",
-        "courseSha256": "05b031571b9b18b4e2740898af6782e2c746cb6b1fcf35c73adb86c957869374",
-        "sources": [
-          {
-            "id": "96zzzzzzzq-draw-original-cad-wire-curves",
-            "count": 713,
-            "fingerprint": "6947664b26863adf65ef7bfc879694bfedee853852bc2c7660d59f31d2e36ca9",
-            "packageName": "viewer_journey_713_6947664b26863adf65ef7bfc"
-          },
-          {
-            "id": "97-finish-with-the-maintained-browser-runtime",
-            "count": 714,
-            "fingerprint": "b0313bae6b71646b9424776561375ffc4306125317e1686c5894e0ef618701bf",
-            "packageName": "viewer_journey_714_b0313bae6b71646b94247765"
-          }
-        ]
+        "previousAcceptedRecord": "release/ambient-selector-final-runtime-build-gate-review.json"
       },
       "previousBuildGateBeforeAmbient": {
         "status": "DONE independently audited current65f0013/b9f70ac runtime Native/WASM/optimizedbuild gate1",
@@ -954,10 +938,10 @@
   },
   "currentSource": {
     "id": "96zzzzzzzq-draw-original-cad-wire-curves",
-    "fingerprint": "6947664b26863adf65ef7bfc879694bfedee853852bc2c7660d59f31d2e36ca9",
+    "fingerprint": "871b89b10757b1385d06878c1d560d65584acbbc5bffd5b8cef56088bb9a6f08",
     "files": 713,
-    "recordedAt": "2026-10-24T10:49:38.600Z",
-    "courseSha256": "fd25625df40bee14e302a069448fa9510a87b90f80eee945f37b752fb1277726",
+    "recordedAt": "2026-10-24T19:41:50.001Z",
+    "courseSha256": "2d589e8e0f45a9bd927ae63769c1186dc30e646466878b51858c491b18a1e190",
     "metadataRefreshAtC54": "Only src/current_inventory.json changes one external witness hash after native helper registers Matrix titles and publishes visible labels. All other712 learner files are byte-identical; old execution proofs retain recorded fingerprints.",
     "deltaFromC54": {
       "fromFingerprint": "c54a9960f80340aa9d01aa7c0e0eaf5920b18fefa360656a123e6ccb8ad09f91",
@@ -1197,7 +1181,16 @@
       "source714": "b0313bae6b71646b9424776561375ffc4306125317e1686c5894e0ef618701bf",
       "earlierCheckpointsPreserved": 1359
     },
-    "previousCourseBeforeTwoContractCorrections": "05b031571b9b18b4e2740898af6782e2c746cb6b1fcf35c73adb86c957869374"
+    "previousCourseBeforeTwoContractCorrections": "05b031571b9b18b4e2740898af6782e2c746cb6b1fcf35c73adb86c957869374",
+    "exactBrepTransition": {
+      "status": "APPLIED, final validation running",
+      "productionCommit": "30c2b39da1950bb92abcd717aeac2bba296c2e52",
+      "kernel": "8445d2149f59c5a1caebb1a3e605833bf21996f2",
+      "source714": "58b0ef2cc71e8c31b17b692e6d5961450239a0db65062a5689675bae1c25de72",
+      "all1361Reconstructed": true,
+      "earlier1359Unchanged": true,
+      "vueAndGeminiProtected": true
+    }
   },
   "coordination": {
     "gemini": "Owns sections 1-10 in session/session_viewer/docs/journey, including original chapter prose and redraft-10-sections. Preserve changes; stage only named owned paths.",
@@ -1927,9 +1920,9 @@
       "callbacksRemaining": 0,
       "historicalFixturesAccepted": 4,
       "historicalFixturesTotal": 4,
-      "releaseGatesDone": 3,
+      "releaseGatesDone": 2,
       "releaseGatesTotal": 5,
-      "releaseGatesRemaining": 2
+      "releaseGatesRemaining": 3
     },
     "next": "17/18 callbacks accepted;1 remains (reader591).10/18 features complete;8 partial. All4/4 fixtures pass; final gates3/5. Reader build active.",
     "chapter14": {

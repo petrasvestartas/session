@@ -3512,7 +3512,7 @@ mod view_command_tests;
 
 ### 1. `src/cad_boundary.rs`
 
-Validate a face-free original wire without inventing a face. Preserve the general BRep validator and all coherent face-boundary guards.
+Validate original wire topology without inventing a face. Draw every valid edge from its original 3D NURBS curve, including straight edges. Split at the projected face-chain parameters; triangles provide only facing and depth tolerance. A chain with foreign ends supplies neither, so retain the curve ribbon without facet facing. Keep flat triangle normals. The kernel numbers ruled-face loops around the boundary so each ruling keeps its own ends.
 
 **Locate this existing block:**
 
@@ -45629,6 +45629,42 @@ Sample the full depth and radius pyramid, use a coarser occupancy level, and pas
 --8<-- "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ambient-retained-ground-regression.rs" skip=3337
 ```
 
+
+### 270. `src/cad_edges.rs`
+
+```rust
+--8<-- "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-exact-production-01-cad_edges.rs"
+```
+
+### 271. `src/production_brep_ink.rs`
+
+```rust
+--8<-- "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-exact-production-02-production_brep_ink.rs"
+```
+
+### 272. `src/cad_boundary.rs`
+
+```rust
+--8<-- "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-exact-production-03-cad_boundary.rs"
+```
+
+### 273. `src/cad_wire_tests.rs`
+
+```rust
+--8<-- "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-exact-production-04-cad_wire_tests.rs" skip=410
+```
+
+### 274. `src/production_mesh_ink_provenance.json`
+
+```json
+--8<-- "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-exact-production-05-production_mesh_ink_provenance.json"
+```
+
+### 275. `src/current_inventory.json`
+
+```json
+--8<-- "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-exact-production-06-current_inventory.json"
+```
 
 ## Build & Run
 

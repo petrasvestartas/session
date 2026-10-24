@@ -169,7 +169,24 @@ fn specimen(name: &str) -> Result<(Vec<u8>, f64, f64, [f64; 3])> {
             definitions.nurbssurfaces.push(source.to_proto());
             (3.0, 10.0, [0.5, 0.5, 0.2])
         }
-        _ => anyhow::bail!("case must be wire, mixed, bore, hole-face, or surface"),
+        "surface-curved-border" => {
+            let mut source = viewer_journey::surface::example();
+            source.set_guid("b6802f09-1be8-4cc6-a96c-bcae7869d908".into());
+            // Only this boundary control changes: the v-min border is genuinely curved in XY.
+            ensure!(source.set_cv(1, 0, &Point::new(0.0, -1.7, 0.45)));
+            let (u0, u1) = source.domain(0).unwrap();
+            let (v0, _) = source.domain(1).unwrap();
+            let a = source.point_at(u0, v0).unwrap();
+            let b = source.point_at(u1, v0).unwrap();
+            let middle = source.point_at((u0 + u1) * 0.5, v0).unwrap();
+            ensure!((a[1] + 1.0).abs() < 1e-12 && (b[1] + 1.0).abs() < 1e-12);
+            ensure!((middle[1] + 1.35).abs() < 1e-12 && (middle[2] - 0.225).abs() < 1e-12,
+                "fixture must retain its non-straight original boundary");
+            // No independent saved NurbsCurve: every visible edge belongs to the surface walker.
+            definitions.nurbssurfaces.push(source.to_proto());
+            (3.0, 10.0, [0.5, 0.5, 0.2])
+        }
+        _ => anyhow::bail!("case must be wire, mixed, bore, hole-face, surface, or surface-curved-border"),
     };
     let place = &Xform::translation(shift, 0.0, 0.0) * &Xform::scale_xyz(-1.0, 0.8, 1.3);
     let guids: Vec<_> = definitions
