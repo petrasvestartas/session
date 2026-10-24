@@ -18,7 +18,7 @@
 
 The detailed notes below preserve earlier source-bound results. The current counts above govern; later edits do not relabel those historical executions.
 
-## Current completion stages - 2026-10-24
+## Earlier checkpoint notes (historical counts)
 
 - [x] Applied the three approved browser input corrections: visible command-field click and two physical Escape cancellations. All assertions retained; focused candidates pass at DPR 1/2. The full replay passed those sites, then failed Split setup because Control mode was retained. The tested Object-mode correction awaits the separate saved-plan exception; full acceptance remains pending.
 
