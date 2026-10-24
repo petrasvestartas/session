@@ -44,20 +44,6 @@
 </svg>
 </div>
 
-Render and pick section caps only for original verified closed solids, retaining bores and correct ink occlusion.
-
-## Ownership and data flow
-
-Closedness and winding are source properties cached weakly, independently of whether clipping is active. Conservative world bounds find crossing planes while preserving f64 placement. Per-sample signed crossings derive closed-union cap coverage; hatch filtering uses a pixel footprint and bounded sample conventions. Integer cap picks count exact original candidates, choose the nearest valid owner and work even before a colour frame. Lazy section images/storage and finite visibility bindings share the same current plane/sample/source witnesses. Open surfaces must not acquire invented caps, and retained ink on a sloping cut must not appear through visible caps.
-
-## The maintained implementation
-
-engine/gpu/clip.rs owns crossings, per-plane images, exact pick records and placed-solid runs; src/shaders/cap.wgsl shades maintained sections and triangle.wgsl supplies crossing/count vertices. engine/gpu/pass.rs hooks run clipping before later ambient/outline work; triangle_tiles.rs and ink_visibility.wgsl consume section visibility. Current actual bore/section/ink images still need matched acceptance after staged finite-ink reconciliation.
-
-All production paths above are relative to `session_viewer/src`. The implementation below preserves the runnable teaching sequence. Early `src/renderer.rs`, `src/browser.rs` and local WGSL are staged prerequisites; production drawing remains in `engine/gpu`, `engine/pipelines` and `src/shaders`. Later rendering lessons must converge to those maintained paths.
-
-Production source reference: [engine/gpu/triangle_tiles.rs](../../../src/engine/gpu/triangle_tiles.rs), [shaders/project_triangles.wgsl](../../../src/shaders/project_triangles.wgsl), [shaders/ink_visibility.wgsl](../../../src/shaders/ink_visibility.wgsl), [shaders/ribbon.wgsl](../../../src/shaders/ribbon.wgsl), [shaders/vector.wgsl](../../../src/shaders/vector.wgsl), [engine/gpu/clip.rs](../../../src/engine/gpu/clip.rs), [shaders/cap.wgsl](../../../src/shaders/cap.wgsl), [engine/gpu/render.rs](../../../src/engine/gpu/render.rs), [engine/gpu/pass.rs](../../../src/engine/gpu/pass.rs), [build.rs](../../../build.rs).
-
 ## <a id="checkpoint-88-copy-original-closedness-and-winding"></a>1. Classify closedness and winding
 
 **What this code does:** Pair each original mesh edge with the opposite face direction to detect a closed shell.

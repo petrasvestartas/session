@@ -48,20 +48,6 @@
 </svg>
 </div>
 
-Evaluate original parent chains once and preserve local frames when displaying or saving nested sources.
-
-## Ownership and data flow
-
-Resolve source ancestry with cycle/bounds checks and cache canonical models per document rather than walking the same parent chain for every consumer. Retain original local, parent and world transforms distinctly; connect all geometry families to the same cached placement result. Save writes original nested local frames, not flattened world coordinates. Rotated and mirrored fixtures reveal multiplication-order and normal-orientation errors that translation-only examples conceal.
-
-## The maintained implementation
-
-app/hierarchy.rs, app/scene.rs placement and app/walk/mod.rs provide maintained tree/placement context. app/scene_instances.rs composes InstanceRef with definition placement; app/session_io.rs retains original Session trees and FileDoc.place. The teaching canonical-cache helpers are staged; do not infer identically named production fields.
-
-All production paths above are relative to `session_viewer/src`. The implementation below preserves the runnable teaching sequence. Early `src/renderer.rs`, `src/browser.rs` and local WGSL are staged prerequisites; production drawing remains in `engine/gpu`, `engine/pipelines` and `src/shaders`. Later rendering lessons must converge to those maintained paths.
-
-Production source reference: [app/scene_instances.rs](../../../src/app/scene_instances.rs), [engine/gpu/instanced.rs](../../../src/engine/gpu/instanced.rs), [engine/gpu/slots.rs](../../../src/engine/gpu/slots.rs), [app/walk/brep_shapes.rs](../../../src/app/walk/brep_shapes.rs), [app/hierarchy.rs](../../../src/app/hierarchy.rs), [app/sheet_query.rs](../../../src/app/sheet_query.rs).
-
 ## <a id="checkpoint-70-evaluate-source-ancestry-once-per-document"></a>1. Evaluate source ancestry once per document
 
 **What this code does:** Evaluate source ancestry once per document.
@@ -1098,25 +1084,23 @@ fn actual_nested_rotated_and_mirrored_definition_placements_keep_independent_int
 
 ### 5. `src/outline_mask.wgsl`
 
-Project the local position through the model matrix first, then through the view matrix, exactly as the visible surface does. Reassociating these f32 multiplications can change the depth result and produce stripes on a selected rotated or mirrored instance. Keep geometry, instance owners and selection unchanged.
+Use the same model-then-view projection as visible geometry so selected coverage tests the same surface depth.
 
-Replace this shader with the matching projection order:
+**Locate this existing block:**
 
 ```wgsl
-struct View {transform:mat4x4<f32>,display:vec4<f32>}
-struct Object {model:mat4x4<f32>,selection:vec4<u32>,normal_matrix:mat4x4<f32>,face_colour:vec4<f32>}
-@group(0) @binding(0) var<uniform> view:View;
+@group(1) @binding(0) var<uniform> object:Object;
+@vertex fn vertex(@location(0) position:vec3<f32>)->@builtin(position) vec4<f32> {return view.transform*object.model*vec4<f32>(position,1.0);}
+@fragment fn fragment()->@location(0) vec4<f32> {return vec4<f32>(1.0);}
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```wgsl
 @group(1) @binding(0) var<uniform> object:Object;
 @vertex fn vertex(@location(0) position:vec3<f32>)->@builtin(position) vec4<f32> {let world=object.model*vec4<f32>(position,1.0);return view.transform*world;}
 @fragment fn fragment()->@location(0) vec4<f32> {return vec4<f32>(1.0);}
 ```
-
-The focused selected/unselected comparison is clean on both recorded adapters. This repair does not accept the complete chapter browser callback. [Focused repair and source scope](../release/70d-mask-projection-repair-review.json).
-
-![Selected rotated and mirrored instances after the matching mask projection repair on NVIDIA.](../release/70d-mask-projection-nvidia-selected.png)
-
-[The same repaired selected state on WARP](../release/70d-mask-projection-warp-selected.png).
-
 
 ## <a id="checkpoint-70za-read-original-sheet-metadata-records"></a>6. Read sheet metadata records
 
@@ -1233,7 +1217,7 @@ pub mod sheet_entity;
 
 ## Build & Run
 
-![Recorded visual output for Lesson 13.3 (70d-exercise-rotated-and-mirrored-original-references)](../../screenshots/journey/70d-exercise-rotated-and-mirrored-original-references.png)
+![Recorded visual output for Lesson 13.3 (70d-exercise-rotated-and-mirrored-original-references)](../../screenshots/journey/70d-exercise-rotated-and-mirrored-original-references-browser.png)
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 13.3

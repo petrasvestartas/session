@@ -52,20 +52,6 @@
 </svg>
 </div>
 
-Outline the visible union of solid coverage at a stable CSS width without outlining internal seams.
-
-## Ownership and data flow
-
-Convert the requested CSS radius to physical pixels and build a bounded sorted tap table. A depth-visible mask represents selected or eligible solid coverage; coarse block maximum and neighbour dilation skip empty work conservatively. Outline alpha derives from the external union, then composites black ink over the loaded scene. Masks, coarse/dilated images, tap buffers and cached alpha have explicit owners and invalidation keys; unchanged camera, geometry, selection, size and samples reuse them.
-
-## The maintained implementation
-
-engine/gpu/surface_outline.rs owns SurfaceOutline, Mask, MaskKey, Table and Alpha. src/shaders/surface_outline.wgsl supplies maintained mask filtering/composition. This is derived presentation: original topology, source IDs and pick eligibility remain independent.
-
-All production paths above are relative to `session_viewer/src`. The implementation below preserves the runnable teaching sequence. Early `src/renderer.rs`, `src/browser.rs` and local WGSL are staged prerequisites; production drawing remains in `engine/gpu`, `engine/pipelines` and `src/shaders`. Later rendering lessons must converge to those maintained paths.
-
-Production source reference: [engine/gpu/surface_outline.rs](../../../src/engine/gpu/surface_outline.rs), [engine/gpu/cloud.rs](../../../src/engine/gpu/cloud.rs), [engine/gpu/lod.rs](../../../src/engine/gpu/lod.rs), [engine/gpu/splat.rs](../../../src/engine/gpu/splat.rs), [shaders/splat.wgsl](../../../src/shaders/splat.wgsl), [shaders/splat_resolve.wgsl](../../../src/shaders/splat_resolve.wgsl), [app/cloud_query.rs](../../../src/app/cloud_query.rs).
-
 ## <a id="checkpoint-63-radius"></a>1. Measure outline width in CSS pixels
 
 **What this code does:** Measure outline width in CSS pixels.

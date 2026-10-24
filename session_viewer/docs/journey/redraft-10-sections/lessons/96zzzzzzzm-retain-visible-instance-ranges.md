@@ -44563,6 +44563,988 @@ Edit the existing block to match this code; keep unchanged lines:
 }
 ```
 
+### 246. `src/plane_original.rs`
+
+Retain the original clipping-plane width and colour in its display pen. Check custom guide pens, original ownership and explicit display precedence.
+
+**Locate this existing block:**
+
+```rust
+    )?;
+    let endpoints = edges
+        .iter()
+        .map(|&(a, b)| [&points[a], &points[b]].map(|p| [p[0], p[1], p[2]]))
+        .collect();
+    display.parts = crate::mesh_parts::Parts {
+        dots: Vec::new(),
+        dot_styles: Vec::new(),
+        glyph_flags: 0,
+        ink: Default::default(),
+        dot_colours: Vec::new(),
+        pens: Vec::new(),
+        faces: Vec::new(),
+        triangles: Vec::new(),
+        edges,
+        endpoints,
+    };
+    Ok(crate::prepared::PreparedMesh {
+        geometry: Rc::new(source),
+        display,
+        source: None,
+        model: Xform::identity(),
+    })
+}
+pub fn placed(plane: &Plane, model: &Xform) -> Option<crate::bounds::Bounds> {
+    let points = points(plane).ok()?;
+    let p = points.first()?.transformed(model);
+    let mut bounds = crate::bounds::Bounds::point([p[0], p[1], p[2]]);
+    for p in points {
+        let p = p.transformed(model);
+        bounds.include([p[0], p[1], p[2]])
+    }
+    Some(bounds)
+}
+pub fn insert(
+    scene: &mut crate::scene::Scene,
+    plane: Rc<Plane>,
+) -> Result<crate::scene::ObjectId, &'static str> {
+    let id = scene.insert(prepared(&plane)?)?;
+    scene
+        .objects_mut()
+        .iter_mut()
+        .find(|r| r.id == id)
+        .unwrap()
+        .original = Some(Geometry::Plane(plane));
+    Ok(id)
+}
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```rust
+    )?;
+    let pens = if edges.is_empty() {
+        Vec::new()
+    } else {
+        vec![(
+            crate::mesh_pens::width(plane.width),
+            crate::production_ribbon::pack_rgba(plane.linecolor.to_f32()),
+        )]
+    };
+    let endpoints = edges
+        .iter()
+        .map(|&(a, b)| [&points[a], &points[b]].map(|p| [p[0], p[1], p[2]]))
+        .collect();
+    display.parts = crate::mesh_parts::Parts {
+        dots: Vec::new(),
+        dot_styles: Vec::new(),
+        glyph_flags: 0,
+        ink: Default::default(),
+        dot_colours: Vec::new(),
+        pens,
+        faces: Vec::new(),
+        triangles: Vec::new(),
+        edges,
+        endpoints,
+    };
+    Ok(crate::prepared::PreparedMesh {
+        geometry: Rc::new(source),
+        display,
+        source: None,
+        model: Xform::identity(),
+    })
+}
+pub fn placed(plane: &Plane, model: &Xform) -> Option<crate::bounds::Bounds> {
+    let points = points(plane).ok()?;
+    let p = points.first()?.transformed(model);
+    let mut bounds = crate::bounds::Bounds::point([p[0], p[1], p[2]]);
+    for p in points {
+        let p = p.transformed(model);
+        bounds.include([p[0], p[1], p[2]])
+    }
+    Some(bounds)
+}
+pub fn insert(
+    scene: &mut crate::scene::Scene,
+    plane: Rc<Plane>,
+) -> Result<crate::scene::ObjectId, &'static str> {
+    let id = scene.insert(prepared(&plane)?)?;
+    scene
+        .objects_mut()
+        .iter_mut()
+        .find(|r| r.id == id)
+        .unwrap()
+        .original = Some(Geometry::Plane(plane));
+    Ok(id)
+}
+
+#[cfg(test)]
+mod guide_pen_tests {
+    use super::*;
+    use crate::pick_sources::Sources;
+
+    #[test]
+    fn clipping_guide_keeps_source_pen_identity_and_override_precedence() {
+        let mut plane = crate::clipping_geometry::plane_from(
+            crate::clipping_geometry::Mode::Yz,
+            &[[1., 0., 0.]],
+            1.,
+        )
+        .unwrap();
+        plane.width = 7.;
+        plane.linecolor = session_rust::Color::new(0.2, 0.4, 0.8, 1.);
+        let plane = Rc::new(plane);
+        plane.guid();
+        let original = plane.to_proto();
+        let mut scene = crate::scene::Scene::empty();
+        let id = insert(&mut scene, plane.clone()).unwrap();
+        let initial = Sources::new(&scene).unwrap();
+        assert_eq!(initial.mesh_ink.len(), 7);
+        assert!(
+            initial.mesh_ink.iter().all(
+                |stroke| stroke.width == 7. && stroke.colour == [0.2, 0.4, 0.8, 1.]
+            ),
+            "The complete clipping rectangle and arrow keep the original custom CSS pen"
+        );
+        assert!(
+            initial
+                .mesh_ids
+                .iter()
+                .all(|hit| hit[0] == id.value())
+        );
+        assert!(
+            initial
+                .mesh_metadata
+                .chunks_exact(2)
+                .all(|row| row[0] == 4096),
+            "Guide ink retains its clipping-plane classification"
+        );
+        let original_pens = scene.objects()[0].mesh.parts.pens.clone();
+        Rc::make_mut(&mut scene.objects_mut()[0].mesh)
+            .parts
+            .pens = vec![(3., u32::from_le_bytes([17, 34, 51, 255]))];
+        assert!(
+            Sources::new(&scene)
+                .unwrap()
+                .mesh_ink
+                .iter()
+                .all(|stroke| stroke.width == 3.
+                    && stroke.colour == [17. / 255., 34. / 255., 51. / 255., 1.]),
+            "Explicit prepared pens retain their colour and width"
+        );
+        Rc::make_mut(&mut scene.view)
+            .edges
+            .insert(id, [201, 101, 51]);
+        assert!(
+            Sources::new(&scene)
+                .unwrap()
+                .mesh_ink
+                .iter()
+                .all(|stroke| stroke.width == 3.
+                    && stroke.colour == [201. / 255., 101. / 255., 51. / 255., 1.]),
+            "The existing display colour override keeps precedence"
+        );
+        Rc::make_mut(&mut scene.view)
+            .edges
+            .remove(&id);
+        Rc::make_mut(&mut scene.objects_mut()[0].mesh)
+            .parts
+            .pens = original_pens;
+        let restored = Sources::new(&scene).unwrap();
+        assert_eq!(restored.mesh_ids, initial.mesh_ids);
+        assert_eq!(restored.mesh_metadata, initial.mesh_metadata);
+        assert!(
+            restored
+                .mesh_ink
+                .iter()
+                .zip(&initial.mesh_ink)
+                .all(|(a, b)| a.start == b.start
+                    && a.end == b.end
+                    && a.width == b.width
+                    && a.colour == b.colour)
+        );
+        assert!(
+            matches!(&scene.objects()[0].original,Some(Geometry::Plane(actual)) if Rc::ptr_eq(actual,&plane))
+        );
+        assert_eq!(
+            plane.to_proto(),
+            original,
+            "Every original Plane field and owner identity must survive presentation preparation"
+        );
+        let ordinary = prepared(&Plane::xy_plane()).unwrap();
+        assert!(
+            ordinary.display.parts.edges.is_empty()
+                && ordinary.display.parts.pens.is_empty(),
+            "Ordinary procedural Plane packing is unchanged"
+        );
+    }
+
+    #[test]
+    fn clipping_guide_uses_production_ribbons_once_with_original_pens_and_owner() {
+        let mut plane = crate::clipping_geometry::plane_from(
+            crate::clipping_geometry::Mode::Yz,
+            &[[1., 0., 0.]],
+            1.,
+        )
+        .unwrap();
+        plane.width = 7.;
+        plane.linecolor = session_rust::Color::new(0.2, 0.4, 0.8, 1.);
+        let plane = Rc::new(plane);
+        plane.guid();
+        let original = plane.to_proto();
+        let mut scene = crate::scene::Scene::empty();
+        let id = insert(&mut scene, plane.clone()).unwrap();
+        let sources = Sources::new(&scene).unwrap();
+        assert_eq!(sources.mesh_ink.len(), 7);
+        assert!(
+            sources.mesh_legacy.iter().all(|v| *v == 0),
+            "Queries retain all seven source strokes; the legacy lane draws none"
+        );
+        let rows =
+            crate::production_joined::rows(&scene, &sources, [0.; 3], &[id], 4096)
+                .unwrap();
+        assert_eq!(rows.owners, vec![id.value(); 7]);
+        assert_eq!(
+            rows.ids,
+            vec![[id.value(), crate::sub_id::OBJECT_INK]; 7]
+        );
+        assert_eq!(rows.edges, vec![u32::MAX; 7]);
+        assert_eq!(rows.mesh_from, 7);
+        assert_eq!(rows.runs[3], [0..42]);
+        assert!(rows.runs[..3].iter().all(Vec::is_empty));
+        assert_eq!(
+            u32::from_ne_bytes(rows.objects[80..84].try_into().unwrap()),
+            4097
+        );
+        let expected = crate::production_ribbon::pack_rgba([0.2, 0.4, 0.8, 1.]);
+        for (segment, ends) in rows
+            .segments
+            .chunks_exact(52)
+            .zip(&scene.objects()[0].mesh.parts.endpoints)
+        {
+            assert_eq!(
+                f32::from_ne_bytes(segment[12..16].try_into().unwrap()),
+                -3.5
+            );
+            assert_eq!(
+                u32::from_ne_bytes(segment[32..36].try_into().unwrap()),
+                expected
+            );
+            for offset in [36, 40, 44] {
+                assert_eq!(
+                    u32::from_ne_bytes(
+                        segment[offset..offset + 4]
+                            .try_into()
+                            .unwrap()
+                    ),
+                    u32::MAX
+                );
+            }
+            for (offset, point) in [(0, ends[0]), (16, ends[1])] {
+                for axis in 0..3 {
+                    assert_eq!(
+                        f32::from_ne_bytes(
+                            segment[offset + axis * 4..offset + axis * 4 + 4]
+                                .try_into()
+                                .unwrap()
+                        ),
+                        point[axis] as f32
+                    );
+                }
+            }
+        }
+        let pens = scene.objects()[0].mesh.parts.pens.clone();
+        Rc::make_mut(&mut scene.objects_mut()[0].mesh)
+            .parts
+            .pens = vec![(3., u32::from_le_bytes([17, 34, 51, 255]))];
+        Rc::make_mut(&mut scene.view)
+            .edges
+            .insert(id, [201, 101, 51]);
+        let overridden = crate::production_joined::rows(
+            &scene,
+            &Sources::new(&scene).unwrap(),
+            [0.; 3],
+            &[id],
+            4096,
+        )
+        .unwrap();
+        assert!(
+            overridden
+                .segments
+                .chunks_exact(52)
+                .all(
+                    |s| f32::from_ne_bytes(s[12..16].try_into().unwrap()) == -1.5
+                        && u32::from_ne_bytes(s[32..36].try_into().unwrap())
+                            == u32::from_le_bytes([201, 101, 51, 255])
+                )
+        );
+        Rc::make_mut(&mut scene.view)
+            .edges
+            .remove(&id);
+        Rc::make_mut(&mut scene.objects_mut()[0].mesh)
+            .parts
+            .pens = pens;
+        let restored = crate::production_joined::rows(
+            &scene,
+            &Sources::new(&scene).unwrap(),
+            [0.; 3],
+            &[id],
+            4096,
+        )
+        .unwrap();
+        assert_eq!(restored.segments, rows.segments);
+        assert_eq!(restored.objects, rows.objects);
+        assert_eq!(restored.ids, rows.ids);
+        assert_eq!(plane.to_proto(), original);
+        let mut ordinary = crate::scene::Scene::empty();
+        insert(&mut ordinary, Rc::new(Plane::xy_plane())).unwrap();
+        let ordinary = crate::production_joined::rows(
+            &ordinary,
+            &Sources::new(&ordinary).unwrap(),
+            [0.; 3],
+            &[],
+            4096,
+        )
+        .unwrap();
+        assert!(ordinary.segments.is_empty());
+        assert!(
+            !ordinary.planes.is_empty(),
+            "Ordinary Plane retains its procedural lane"
+        );
+    }
+}
+```
+
+### 247. `src/production_joined.rs`
+
+Render clipping guides with the production ribbon coverage and section-cap visibility.
+
+**Locate this existing block:**
+
+```rust
+        if crate::clipping_geometry::is_clipping(source) {
+            continue;
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```rust
+        if crate::clipping_geometry::is_clipping(source) {
+            let index = out.object_ids.len() as u32;
+            add(&mut out, row.id, &row.model, 4096);
+            for (edge, ends) in row.mesh.parts.endpoints.iter().enumerate() {
+                let (width, colour) = row.mesh.parts.pen(edge);
+                if width == 0. {
+                    continue;
+                }
+                let colour = scene
+                    .view
+                    .edges
+                    .get(&row.id)
+                    .map_or(colour, |c| {
+                        [
+                            c[0] as f32 / 255.,
+                            c[1] as f32 / 255.,
+                            c[2] as f32 / 255.,
+                            1.,
+                        ]
+                    });
+                segments.ribbons.push(walk::CylinderSegment {
+                    p0: ends[0].map(|v| v as f32),
+                    p1: ends[1].map(|v| v as f32),
+                    radius: crate::production_ribbon::encode_width(width as f64),
+                    instance_id: index,
+                    color: crate::production_ribbon::pack_rgba(colour),
+                    facing: walk::FACING_UNKNOWN,
+                });
+                out.ids
+                    .push(pick(scene, sources, row.id, Part::Object)?);
+                out.edges.push(u32::MAX);
+                out.owners.push(row.id.value());
+            }
+            continue;
+```
+
+### 248. `src/pick_sources.rs`
+
+Retain clipping-guide query rows while drawing each guide once in the line family.
+
+**Locate this existing block:**
+
+```rust
+                sources.mesh_metadata.extend([flag, facing]);
+                sources
+                    .mesh_legacy
+                    .push(if row.mesh.parts.ink.active {
+                        0
+                    } else if line_frame {
+                        crate::ink_ranges::LINES
+                    } else {
+                        crate::ink_ranges::EDGES
+                    });
+            }
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```rust
+                sources.mesh_metadata.extend([flag, facing]);
+                sources.mesh_legacy.push(
+                    if row.mesh.parts.ink.active || (line_frame && flag == 4096) {
+                        0
+                    } else if line_frame {
+                        crate::ink_ranges::LINES
+                    } else {
+                        crate::ink_ranges::EDGES
+                    },
+                );
+            }
+```
+
+### 249. `src/global_outline_tests.rs`
+
+Keep the cap-origin fixture isolated from guide Lines through the actual family visibility control.
+
+**Locate this existing block:**
+
+```rust
+        .unwrap();
+    let baseline = pixels(&gpu);
+    assert!(
+        crate::cap_gpu_tests::at(&baseline, 160, 120)[..3]
+            .iter()
+            .all(|v| (150..=156).contains(v))
+    );
+    let ground = gpu.ambient_rows.ground_at([0.; 3]);
+    let source = scene.objects()[0]
+        .geometry()
+        .unwrap()
+        .to_proto();
+    let uploads = gpu.stats()[0];
+    let anchor = [1e9, -1e9, 1e9];
+    let mut far = scene.clone();
+    for id in [owner, plane_id] {
+        far.translate(id, anchor).unwrap();
+    }
+    gpu.set_scene(&far, None);
+    gpu.mesh_ink
+        .set(&gpu.device, std::iter::empty())
+        .unwrap();
+    gpu.markers
+        .set_points(&gpu.device, std::iter::empty())
+        .unwrap();
+    assert!(
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```rust
+        .unwrap();
+    gpu.set_ink_visibility(crate::ink_ranges::Visibility {
+        lines: false,
+        ..Default::default()
+    });
+    let baseline = pixels(&gpu);
+    assert!(
+        crate::cap_gpu_tests::at(&baseline, 160, 120)[..3]
+            .iter()
+            .all(|v| (150..=156).contains(v))
+    );
+    let ground = gpu.ambient_rows.ground_at([0.; 3]);
+    let source = scene.objects()[0]
+        .geometry()
+        .unwrap()
+        .to_proto();
+    let uploads = gpu.stats()[0];
+    let anchor = [1e9, -1e9, 1e9];
+    let mut far = scene.clone();
+    for id in [owner, plane_id] {
+        far.translate(id, anchor).unwrap();
+    }
+    gpu.set_scene(&far, None);
+    gpu.mesh_ink
+        .set(&gpu.device, std::iter::empty())
+        .unwrap();
+    gpu.markers
+        .set_points(&gpu.device, std::iter::empty())
+        .unwrap();
+    gpu.set_ink_visibility(crate::ink_ranges::Visibility {
+        lines: false,
+        ..Default::default()
+    });
+    assert!(
+```
+
+### 250. `src/production_plane_tests.rs`
+
+Validate the unchanged ordinary Plane row alongside its separate production clipping-guide ribbons and real capacity limit.
+
+**Locate this existing block:**
+
+```rust
+    .unwrap();
+    let clipping = crate::plane_original::insert(&mut scene, Rc::new(clip)).unwrap();
+    assert!(
+        scene.objects()[0]
+            .mesh
+            .parts
+            .edges
+            .is_empty()
+    );
+    assert_eq!(scene.objects()[1].mesh.parts.edges.len(), 7);
+    assert_eq!(
+        crate::clipping_rows::owners(&scene),
+        [clipping]
+    );
+    let sources = crate::pick_sources::Sources::anchored(&scene, anchor).unwrap();
+    let rows = joined::rows(&scene, &sources, anchor, &[id], 256).unwrap();
+    assert_eq!(rows.planes.len(), 48);
+    assert_eq!(rows.objects.len(), 96);
+    assert!(rows.segments.is_empty() && rows.heads.is_empty());
+    assert_eq!(rows.object_ids, [id]);
+    assert_eq!(rows.pick_owners, [id.value()]);
+    let words: Vec<u32> = rows
+        .planes
+        .chunks_exact(4)
+        .map(|b| u32::from_ne_bytes(b.try_into().unwrap()))
+        .collect();
+    assert_eq!(words[3], 0);
+    assert_eq!(
+        words[4..8],
+        [1.0f32.to_bits(), 0, 0, (-3.5f32).to_bits()]
+    );
+    assert_eq!(
+        f32::from_ne_bytes(rows.translations[..4].try_into().unwrap()),
+        0.125
+    );
+    assert_eq!(
+        u32::from_ne_bytes(rows.objects[80..84].try_into().unwrap()),
+        1
+    );
+    let mut output = plane::PlaneRows::default();
+    let walked = plane::walk_plane(&mut output, &source, 13);
+    assert_eq!(walked.flags, 0);
+    assert_eq!(output.rows[0].instance_id, 13);
+    assert_eq!(
+        walked.bounds.min_point().to_f32(),
+        [-100.0, -100.0, 0.0]
+    );
+    assert_eq!(
+        walked.bounds.max_point().to_f32(),
+        [100.0, 100.0, 100.0]
+    );
+    assert_eq!(source.to_proto(), original);
+}
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```rust
+    .unwrap();
+    let clip = Rc::new(clip);
+    let _ = clip.guid();
+    let original_clip = clip.to_proto();
+    let clipping = crate::plane_original::insert(&mut scene, clip.clone()).unwrap();
+    assert!(
+        scene.objects()[0]
+            .mesh
+            .parts
+            .edges
+            .is_empty()
+    );
+    assert_eq!(scene.objects()[1].mesh.parts.edges.len(), 7);
+    assert_eq!(
+        crate::clipping_rows::owners(&scene),
+        [clipping]
+    );
+    let sources = crate::pick_sources::Sources::anchored(&scene, anchor).unwrap();
+    match joined::rows(&scene, &sources, anchor, &[id], 256) {
+        Err(e) => assert_eq!(
+            e,
+            "Production joined rows exceed the storage limit"
+        ),
+        Ok(_) => {
+            panic!("Seven visible guide ribbons must respect the 256-byte capacity")
+        }
+    }
+    let rows = joined::rows(&scene, &sources, anchor, &[id], 1024).unwrap();
+    assert_eq!(rows.planes.len(), 48);
+    assert_eq!(rows.objects.len(), 192);
+    assert!(rows.heads.is_empty());
+    assert_eq!(rows.segments.len(), 7 * 52);
+    assert_eq!(rows.owners, vec![clipping.value(); 7]);
+    assert_eq!(
+        rows.ids,
+        vec![[clipping.value(), crate::sub_id::OBJECT_INK]; 7]
+    );
+    assert_eq!(rows.edges, vec![u32::MAX; 7]);
+    assert_eq!(rows.mesh_from, 7);
+    assert_eq!(rows.runs[1], [0..42]);
+    assert_eq!(
+        u32::from_ne_bytes(rows.objects[176..180].try_into().unwrap()),
+        4096
+    );
+    for segment in rows.segments.chunks_exact(52) {
+        assert_eq!(
+            u32::from_ne_bytes(segment[28..32].try_into().unwrap()),
+            1
+        );
+        for offset in [36, 40, 44] {
+            assert_eq!(
+                u32::from_ne_bytes(
+                    segment[offset..offset + 4]
+                        .try_into()
+                        .unwrap()
+                ),
+                u32::MAX
+            );
+        }
+    }
+    assert!(
+        sources
+            .mesh_legacy
+            .iter()
+            .all(|kind| *kind == 0),
+        "Ordinary Plane has no legacy edges; guide query rows draw only in the production Line lane"
+    );
+    assert_eq!(rows.object_ids, [id, clipping]);
+    assert_eq!(
+        rows.pick_owners,
+        [id.value(), clipping.value()]
+    );
+    let words: Vec<u32> = rows
+        .planes
+        .chunks_exact(4)
+        .map(|b| u32::from_ne_bytes(b.try_into().unwrap()))
+        .collect();
+    assert_eq!(words[3], 0);
+    assert_eq!(
+        words[4..8],
+        [1.0f32.to_bits(), 0, 0, (-3.5f32).to_bits()]
+    );
+    assert_eq!(
+        f32::from_ne_bytes(rows.translations[..4].try_into().unwrap()),
+        0.125
+    );
+    assert_eq!(
+        u32::from_ne_bytes(rows.objects[80..84].try_into().unwrap()),
+        1
+    );
+    let mut output = plane::PlaneRows::default();
+    let walked = plane::walk_plane(&mut output, &source, 13);
+    assert_eq!(walked.flags, 0);
+    assert_eq!(output.rows[0].instance_id, 13);
+    assert_eq!(
+        walked.bounds.min_point().to_f32(),
+        [-100.0, -100.0, 0.0]
+    );
+    assert_eq!(
+        walked.bounds.max_point().to_f32(),
+        [100.0, 100.0, 100.0]
+    );
+    assert_eq!(source.to_proto(), original);
+    assert_eq!(
+        scene.objects()[0].model.m,
+        Xform::translation(anchor[0] + 0.125, anchor[1], -500.).m
+    );
+    assert_eq!(clip.to_proto(), original_clip);
+    assert!(
+        matches!(&scene.objects()[1].original,Some(session_rust::Geometry::Plane(actual))if Rc::ptr_eq(actual,&clip))
+    );
+}
+```
+
+### 251. `src/production_ribbon_gpu.rs`
+
+Keep original ink and vertex owner queries consistent with the active opaque, glass and Xray view.
+
+**Locate this existing block:**
+
+```rust
+        density: f32,
+        clipping: &wgpu::Buffer,
+        tables: &crate::finite_ink::Tables,
+        depth: &wgpu::TextureView,
+    ) -> Frame {
+        if (self.visible || self.edges_visible) && !self.rows.owners.is_empty() {
+            self.pick
+                .borrow_mut()
+                .get_or_insert_with(|| {
+                    pipeline(
+                        device,
+                        &self.shader(device),
+                        &self.layouts,
+                        wgpu::TextureFormat::Rg32Uint,
+                        1,
+                        true,
+                    )
+                });
+        }
+        self.heads.prepare(device, 1, true);
+        self.planes.prepare(device, 1, true);
+        if self.points_visible {
+            self.dots.prepare(device, 1, true);
+        }
+        if self.vertices_visible {
+            self.spheres.prepare(device, 1, true);
+        }
+        self.update_inside(queue, matrix);
+        let line = self.line_uniform(matrix, window.full, density, 1.0);
+        let (matrix, line) = ribbon::pick_frame(matrix, line, window);
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```rust
+        density: f32,
+        opacity: f32,
+        clipping: &wgpu::Buffer,
+        tables: &crate::finite_ink::Tables,
+        depth: &wgpu::TextureView,
+    ) -> Frame {
+        if (self.visible || self.edges_visible) && !self.rows.owners.is_empty() {
+            self.pick
+                .borrow_mut()
+                .get_or_insert_with(|| {
+                    pipeline(
+                        device,
+                        &self.shader(device),
+                        &self.layouts,
+                        wgpu::TextureFormat::Rg32Uint,
+                        1,
+                        true,
+                    )
+                });
+        }
+        self.heads.prepare(device, 1, true);
+        self.planes.prepare(device, 1, true);
+        if self.points_visible {
+            self.dots.prepare(device, 1, true);
+        }
+        if self.vertices_visible {
+            self.spheres.prepare(device, 1, true);
+        }
+        self.update_inside(queue, matrix);
+        let line = self.line_uniform(matrix, window.full, density, opacity);
+        let (matrix, line) = ribbon::pick_frame(matrix, line, window);
+```
+
+### 252. `src/pick_encode.rs`
+
+Keep original ink and vertex owner queries consistent with the active opaque, glass and Xray view.
+
+Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
+
+**Locate this block:**
+
+```rust
+        let frame = ordinary.prepare_pick(
+            device,
+            &ctx.queue,
+            transform,
+            window,
+            density,
+            clipping_buffer,
+```
+
+Replace it with:
+
+```rust
+        let frame = ordinary.prepare_pick(
+            device,
+            &ctx.queue,
+            transform,
+            window,
+            density,
+            opacity,
+            clipping_buffer,
+```
+
+**Locate this block:**
+
+```rust
+    density: f32,
+) -> wgpu::CommandBuffer {
+    let mut encoder = device.create_command_encoder(&Default::default());
+    let mesh_crop =
+```
+
+Replace it with:
+
+```rust
+    density: f32,
+    opacity: f32,
+) -> wgpu::CommandBuffer {
+    let mut encoder = device.create_command_encoder(&Default::default());
+    let mesh_crop =
+```
+
+### 253. `src/pick_gpu.rs`
+
+Keep original ink and vertex owner queries consistent with the active opaque, glass and Xray view.
+
+Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
+
+**Locate this block:**
+
+```rust
+            matrices,
+            request.transform,
+            request.density,
+        )]);
+```
+
+Replace it with:
+
+```rust
+            matrices,
+            request.transform,
+            request.density,
+            opacity,
+        )]);
+```
+
+**Locate this block:**
+
+```rust
+        records: Option<&crate::instance_gpu::Lane>,
+        ordinary: Option<&crate::production_ribbon_gpu::Lane>,
+        matrices: Option<&crate::production_matrix_gpu::Lane>,
+    ) {
+        assert!(
+            self.active.is_none(),
+```
+
+Replace it with:
+
+```rust
+        records: Option<&crate::instance_gpu::Lane>,
+        ordinary: Option<&crate::production_ribbon_gpu::Lane>,
+        matrices: Option<&crate::production_matrix_gpu::Lane>,
+        opacity: f32,
+    ) {
+        assert!(
+            self.active.is_none(),
+```
+
+**Locate this block:**
+
+```rust
+            device, queue, queued, meshes, ink, faces, text, clouds, sheets, None,
+            &group, &buffer, None, None, None, None,
+        )
+    }
+    pub(crate) fn submit_finite(
+```
+
+Replace it with:
+
+```rust
+            device, queue, queued, meshes, ink, faces, text, clouds, sheets, None,
+            &group, &buffer, None, None, None, None, 1.0,
+        )
+    }
+    pub(crate) fn submit_finite(
+```
+
+### 254. `src/renderer.rs`
+
+Keep original ink and vertex owner queries consistent with the active opaque, glass and Xray view.
+
+**Locate this existing block:**
+
+```rust
+                Some(&self.matrices),
+            );
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```rust
+                Some(&self.matrices),
+                self.opacity.get(),
+            );
+```
+
+### 255. `src/mesh_marker_tests.rs`
+
+Check first original-owner queries before a color frame through opaque, glass, Xray and restored opaque settings without changing source/history.
+
+**Locate this existing block:**
+
+```rust
+    s.place(id, old).unwrap();
+}
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```rust
+    s.place(id, old).unwrap();
+}
+
+#[test]
+fn actual_xray_rear_marker_queries_follow_opacity_before_color_and_restore() {
+    let mut scene = Scene::empty();
+    let owner = scene
+        .insert(PreparedMesh::new(crate::cap_gpu_tests::source(false)).unwrap())
+        .unwrap();
+    let hidden = session_rust::Line::new(-0.4, 0., -0.9, 0.4, 0., -0.9);
+    scene
+        .insert_line(crate::stroke::PreparedLine::new(Rc::new(hidden)).unwrap())
+        .unwrap();
+    let original = source(&scene);
+    let mut camera = crate::camera::Camera::default();
+    camera.isometric();
+    camera.aspect = 4. / 3.;
+    camera.fit(&scene.bounds().unwrap());
+    let matrix = camera.uniform();
+    let mut gpu = renderer(&scene);
+    gpu.set_lighting(false, false);
+    gpu.set_outlines(false);
+    gpu.set_ambient(false);
+    gpu.set_ink_visibility(crate::ink_ranges::Visibility {
+        edges: true,
+        lines: false,
+        points: false,
+        vertices: true,
+    });
+    gpu.set_display_settings(crate::display_settings::Settings {
+        thickness: 4.,
+        feather: 1.,
+        ..Default::default()
+    });
+    let uploads = gpu.stats()[0];
+    let mut opaque = None;
+    for opacity in [1., 0.5, 0., 1.] {
+        gpu.set_opacity(opacity);
+        for point in [[-0.6, -0.6, -0.8], [0.6, 0.6, -0.8]] {
+            assert_eq!(
+                pick(&mut gpu, &scene, matrix, point, Mode::Object),
+                Some(Target {
+                    owner,
+                    part: Part::Object
+                }),
+                "First original query must follow actual opacity {opacity}"
+            );
+        }
+        let image = pixels_at(&gpu, matrix);
+        if opacity == 1. {
+            if let Some(before) = &opaque {
+                assert_eq!(
+                    &image, before,
+                    "Returning from Xray restores exact opaque pixels"
+                );
+            } else {
+                opaque = Some(image);
+            }
+        }
+        assert_eq!(source(&scene), original);
+        assert_eq!(gpu.stats()[0], uploads);
+    }
+}
+```
+
 ## Build & Run
 
 ![Recorded visual output for Lesson 22.6 (96zzzzzzc)](../../../screenshots/journey/96zzzzzzc-draw-the-construction-grid-as-physical-lines-browser.png)

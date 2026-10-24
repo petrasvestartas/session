@@ -54,20 +54,6 @@
 </svg>
 </div>
 
-Run only a few source reads at once and accept each exact revision-matched interval once.
-
-## Ownership and data flow
-
-A FIFO gate grants a permit whose lifetime releases one slot; waiting and active work have explicit cancellation ownership. Validate HTTP status, Content-Range, byte counts and revisions before decoding a page. Bound chunk accumulation and stalled-read duration rather than trusting a declared length. A current request owns the precise point/ID query and completion; runtime closure revokes queued and in-flight authority so a late body cannot revive a closed source.
-
-## The maintained implementation
-
-app/range_gate.rs RangeGate limits maintained range reads to three and closes waiting work; app/fetch.rs owns request/reply and body bounds. app/loader.rs owns load/generation lifetime, and app/cloud_query.rs consumes exact original point intervals. The course permit/request types stage this boundary; production signatures remain authoritative.
-
-All production paths above are relative to `session_viewer/src`. The implementation below preserves the runnable teaching sequence. Early `src/renderer.rs`, `src/browser.rs` and local WGSL are staged prerequisites; production drawing remains in `engine/gpu`, `engine/pipelines` and `src/shaders`. Later rendering lessons must converge to those maintained paths.
-
-Production source reference: [app/manifest.rs](../../../src/app/manifest.rs), [app/session_io.rs](../../../src/app/session_io.rs), [app/stream.rs](../../../src/app/stream.rs), [app/range_gate.rs](../../../src/app/range_gate.rs), [app/fetch.rs](../../../src/app/fetch.rs), [app/loader.rs](../../../src/app/loader.rs), [app/live.rs](../../../src/app/live.rs).
-
 ## <a id="checkpoint-66za-own-original-range-read-permits"></a>1. Own range-read permits
 
 **What this code does:** Write the per-scene gate, queued turn, waiting-read and permit types.

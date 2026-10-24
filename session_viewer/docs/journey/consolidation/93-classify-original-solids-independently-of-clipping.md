@@ -44,20 +44,6 @@
 </svg>
 </div>
 
-Adjust original solid opacity without weakening clipping, pick eligibility or open-surface display.
-
-## Ownership and data flow
-
-Classify closed/open source geometry independently of active clipping. Opacity belongs to shared view uniforms: closed faces blend while eligible open/single/printed surfaces retain their defined presentation. X-ray removes relevant solid faces from visible picking/masks; hidden ink fades according to shared visibility but clipped geometry stays absent. Invalidate presentation witnesses and preserve immutable geometry uploads. Strict commands reject unsupported values instead of silently changing source materials.
-
-## The maintained implementation
-
-src/shaders/triangle.wgsl applies opacity to closed faces and preserves open/contact rules; ink_visibility.wgsl computes hidden-ink alpha as 1−opacity only for translucent faces. engine/gpu/arena.rs chooses maintained face pipelines and engine/gpu/clip.rs disables sections for opacity≤0. This is the actual supported display mode, not a promise of arbitrary order-independent transparent-material rendering. Staged course finite-ink/AA fragments remain pending reconciliation.
-
-All production paths above are relative to `session_viewer/src`. The implementation below preserves the runnable teaching sequence. Early `src/renderer.rs`, `src/browser.rs` and local WGSL are staged prerequisites; production drawing remains in `engine/gpu`, `engine/pipelines` and `src/shaders`. Later rendering lessons must converge to those maintained paths.
-
-Production source reference: [engine/gpu/ssao.rs](../../../src/engine/gpu/ssao.rs), [engine/gpu/ssao/pipelines.rs](../../../src/engine/gpu/ssao/pipelines.rs), [shaders/ssao.wgsl](../../../src/shaders/ssao.wgsl), [shaders/triangle.wgsl](../../../src/shaders/triangle.wgsl), [shaders/ink_visibility.wgsl](../../../src/shaders/ink_visibility.wgsl), [engine/gpu/surface_outline.rs](../../../src/engine/gpu/surface_outline.rs), [engine/gpu/render.rs](../../../src/engine/gpu/render.rs), [engine/performance.rs](../../../src/engine/performance.rs), [engine/gpu/timing.rs](../../../src/engine/gpu/timing.rs), [app/command/tool/elements.rs](../../../src/app/command/tool/elements.rs), [build.rs](../../../build.rs).
-
 ## <a id="checkpoint-93-classify-original-solids-independently-of-clipping"></a>1. Classify solids independently of clipping
 
 **What this code does:** Classify original solids independently of clipping.

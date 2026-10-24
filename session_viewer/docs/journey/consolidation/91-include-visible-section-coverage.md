@@ -44,20 +44,6 @@
 </svg>
 </div>
 
-Combine selected and all-solid coverage with visible caps and ambient presentation without blending contour alpha twice.
-
-## Ownership and data flow
-
-Source scope and selection are distinct inputs: global outlines cover eligible solids while selected outlines retain their own mask/resources. Include actual section coverage in the same visibility contract, cache mask bindings and derive one combined black contour alpha. Repeated unchanged frames reuse it, and Outline/Arctic commands change view state without replacing original geometry or adding history. A local source-face highlight remains separate from whole-object contours.
-
-## The maintained implementation
-
-engine/gpu/surface_outline.rs owns separate mask/alpha resources and OutlineKind; engine/gpu/clip.rs supplies visible section data. engine/gpu/pass.rs runs clipping, ambient and outline hooks in declared order and render.rs composites ink after faces. First-frame/sample-count behavior must use current pipeline and image owners.
-
-All production paths above are relative to `session_viewer/src`. The implementation below preserves the runnable teaching sequence. Early `src/renderer.rs`, `src/browser.rs` and local WGSL are staged prerequisites; production drawing remains in `engine/gpu`, `engine/pipelines` and `src/shaders`. Later rendering lessons must converge to those maintained paths.
-
-Production source reference: [engine/gpu/ssao.rs](../../../src/engine/gpu/ssao.rs), [engine/gpu/ssao/pipelines.rs](../../../src/engine/gpu/ssao/pipelines.rs), [shaders/ssao.wgsl](../../../src/shaders/ssao.wgsl), [shaders/triangle.wgsl](../../../src/shaders/triangle.wgsl), [shaders/ink_visibility.wgsl](../../../src/shaders/ink_visibility.wgsl), [engine/gpu/surface_outline.rs](../../../src/engine/gpu/surface_outline.rs), [engine/gpu/render.rs](../../../src/engine/gpu/render.rs), [engine/performance.rs](../../../src/engine/performance.rs), [engine/gpu/timing.rs](../../../src/engine/gpu/timing.rs), [app/command/tool/elements.rs](../../../src/app/command/tool/elements.rs), [build.rs](../../../build.rs).
-
 ## <a id="checkpoint-91-include-visible-section-coverage"></a>1. Include visible section coverage
 
 **What this code does:** Include visible section coverage.

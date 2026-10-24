@@ -44,20 +44,6 @@
 </svg>
 </div>
 
-Use one near/far convention across surfaces, ink, points, sections and queries.
-
-## Ownership and data flow
-
-Reverse-Z makes the near endpoint depth 1 and far endpoint depth 0; clear values and comparison operators must change together. Homogeneous near clipping occurs before dividing by w or computing stroke directions, preserving finite projected geometry when an endpoint crosses the camera plane. All family shaders, first-pick targets, cap counts and sampled visibility must use matching endpoint/depth conventions; a local surface-only migration leaves incorrect hidden ink and integer picks.
-
-## The maintained implementation
-
-camera.rs swaps perspective far/near and uses reversed orthographic endpoints. engine/gpu/targets.rs and engine/pipelines/mod.rs select actual depth clear/compare behavior; src/shaders/scene.wgsl and ribbon.wgsl share maintained clip/depth helpers. Early forward-depth and alternate stroke implementations remain staged until this production convention is adopted coherently.
-
-All production paths above are relative to `session_viewer/src`. The implementation below preserves the runnable teaching sequence. Early `src/renderer.rs`, `src/browser.rs` and local WGSL are staged prerequisites; production drawing remains in `engine/gpu`, `engine/pipelines` and `src/shaders`. Later rendering lessons must converge to those maintained paths.
-
-Production source reference: [camera.rs](../../../src/camera.rs), [state.rs](../../../src/state.rs), [engine/gpu/objects.rs](../../../src/engine/gpu/objects.rs), [engine/gpu/frame.rs](../../../src/engine/gpu/frame.rs), [engine/gpu/targets.rs](../../../src/engine/gpu/targets.rs), [shaders/grid.wgsl](../../../src/shaders/grid.wgsl), [shaders/ribbon.wgsl](../../../src/shaders/ribbon.wgsl), [app/cplane.rs](../../../src/app/cplane.rs), [build.rs](../../../build.rs).
-
 ## <a id="checkpoint-96zzzzzt-share-depth-endpoints-and-comparisons"></a>1. Share depth endpoints and comparisons
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">

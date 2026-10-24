@@ -44,20 +44,6 @@
 </svg>
 </div>
 
-Create a surface from original curve networks or ordered corners and keep retry/cancel behavior atomic.
-
-## Ownership and data flow
-
-A checked network has two ordered, coherently oriented curve directions and stations that define the Gordon fit. Four-corner patches use their own question sequence and release unrelated profiles. Invalid corners or network answers keep accepted source state and allow a retry; final completion adopts one exact original surface. The final original-projection-plane helper is preparation for the next chapter, preserving the visible network/patch result rather than adding another feature here.
-
-## The maintained implementation
-
-app/command/verbs/nurbs_surface_network.rs and nurbs_surface_4_points.rs route maintained network/patch commands through command/tool/gather.rs and surfacing.rs. Original source data feeds app/walk/brep.rs for display; later projection operates on those originals in their placed frame.
-
-All production paths above are relative to `session_viewer/src`. The implementation below preserves the runnable teaching sequence. Early `src/renderer.rs`, `src/browser.rs` and local WGSL are staged prerequisites; production drawing remains in `engine/gpu`, `engine/pipelines` and `src/shaders`. Later rendering lessons must converge to those maintained paths.
-
-Production source reference: [app/deform.rs](../../../src/app/deform.rs), [state/edit.rs](../../../src/state/edit.rs), [app/command/tool/gather.rs](../../../src/app/command/tool/gather.rs), [app/command/tool/surfacing.rs](../../../src/app/command/tool/surfacing.rs), [app/walk/mesh.rs](../../../src/app/walk/mesh.rs), [app/walk/brep.rs](../../../src/app/walk/brep.rs), [build.rs](../../../build.rs).
-
 ## <a id="checkpoint-80-build-a-surface-through-two-directions-of-original-curves"></a>1. Build a surface through curve networks
 
 **What this code does:** Connect the complete network helpers and retain the four-boundary Coons path.

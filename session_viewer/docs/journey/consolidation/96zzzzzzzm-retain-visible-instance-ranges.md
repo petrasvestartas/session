@@ -54,160 +54,6 @@
 </svg>
 </div>
 
-Control what the viewer draws without changing the original document. This lesson connects family visibility, pen and glyph sizing, Plane frames and Matrix cells to their retained GPU owners.
-
-## Ownership and data flow
-
-A display control changes presentation, selection eligibility and dependent caches while retaining the original sources. Keep visible instance and member ranges current when a family is hidden or shown. Each point, line, curve, mesh edge, control and CAD wire must still reach its own drawing lane and original selection owner.
-
-The final runnable learner checkpoint is `96zzzzzzzq-draw-original-cad-wire-curves`. It integrates the production Plane, glyph, sphere, Matrix and joined/vector programs with compact original-owner tables. The maintained-browser comparison `97-finish-with-the-maintained-browser-runtime` remains a separate reference. The supporting records below distinguish native results from browser acceptance, which remains incomplete.
-
-## The maintained implementation
-
-engine/gpu/view.rs owns maintained show_points/show_lines/show_mesh_edges/markers and other settings; state.rs and app/command/mod.rs route current controls. app/walk/brep.rs and brep_edges.rs preserve original CAD borders/isoline display, and scene_instances.rs retains actual visible member ownership. Current production Scene defaults are Attributes Off and Interactions On (`attributes=false`, `interactions=true`), matching the historical course defaults. Original line and curve paths use the complete production ribbon program, joins and arrow closures. Cloud splat/resolve and LOD comparisons preserve source identities, including placed instances and sources above two million points. Ordinary Plane, Matrix, point glyph and mesh-marker lanes use their production layouts and algorithms. Printed fills retain their separate read-only depth behavior. The following sections explain presentation scheduling and held-grid/reload behavior; the progress plan distinguishes focused native checks from complete browser acceptance.
-
-All production paths above are relative to `session_viewer/src`. The implementation below preserves the runnable teaching sequence. Early `src/renderer.rs`, `src/browser.rs` and local WGSL are staged prerequisites; production drawing remains in `engine/gpu`, `engine/pipelines` and `src/shaders`. Later rendering lessons must converge to those maintained paths.
-
-Production source reference: [engine/gpu/render.rs](../../../src/engine/gpu/render.rs), [engine/gpu/pass.rs](../../../src/engine/gpu/pass.rs), [engine/gpu/targets.rs](../../../src/engine/gpu/targets.rs), [engine/gpu/frame.rs](../../../src/engine/gpu/frame.rs), [engine/gpu/view.rs](../../../src/engine/gpu/view.rs), [engine/pipelines/mod.rs](../../../src/engine/pipelines/mod.rs), [shaders/triangle.wgsl](../../../src/shaders/triangle.wgsl), [shaders/ribbon.wgsl](../../../src/shaders/ribbon.wgsl), [shaders/vector.wgsl](../../../src/shaders/vector.wgsl), [shaders/ink_visibility.wgsl](../../../src/shaders/ink_visibility.wgsl), [app/scene.rs](../../../src/app/scene.rs), [build.rs](../../../build.rs).
-
-## Ordered input and presentation
-
-Apply every input event to the document and camera in order. Request one animation frame to present the latest state after the previous GPU submission completes. A burst of wheel or resize events therefore changes the camera immediately while sharing one pending presentation. This keeps source geometry and its GPU buffers resident during navigation.
-
-The runtime owns that pending frame. Suspending the page cancels its callback while retaining one dirty frame for resumption; final disposal cancels it permanently. Late input and GPU completion callbacks cannot revive a disposed runtime. Stop final pagehide before preview uploads, retain cancellation state for a cached page, and check the runtime identity before deferred teardown.
-
-Native scheduler tests and the unchanged focused browser check pass ordered input, one pending frame and final disposal without late submissions. This focused result does not complete the remaining browser checks.
-
-### Measured scheduling behavior
-
-**Supporting measurements.** Use these observations to check how scheduling behaves; they do not promise faster individual frames.
-
-The [source-bound WARP record](../release/runtime-performance-review.json) compares the same small two-triangle demo and default grid/UI at 900 by 760, DPR 1. It records one fresh process per version and six warm wheel interactions.
-
-| Measurement | Before | After |
-| --- | ---: | ---: |
-| First frame ready | 11.772 s | 11.094 s |
-| Median input to presentation start | 14.60 ms | 34.15 ms |
-| Median warm frame submission to fence callback | 11.10 ms | 14.05 ms |
-| Burst upload writes / new buffers and textures | 283,136 bytes / 0 | 5,056 bytes / 0 |
-| Idle submissions | 0 | 0 |
-
-The resize/wheel burst falls from 56 frames and 112 submissions to one frame and two submissions. Individual interaction timings do not consistently improve. This small observation set does not establish a steady-frame speedup, CAD performance or hardware FPS. Queue fence timings include submission, prior queue work and callback scheduling, rather than isolated GPU execution. The record retains raw observations, exact settings and source identities; the initial failed disposal run remains separate historical evidence.
-
-The learner library keeps the maintained viewer in a development dependency for reference comparisons. Its normal native runtime does not depend on that reference application.
-
-## Reload and the shown grid
-
-Prepare a replacement document separately, then publish its source into the current editor. Keep the camera that exists at publication time, including motion made while loading. A captured camera from the start of a request is already stale if the user has navigated. Initial opening and an explicit Fit command retain their separate framing behavior.
-
-Treat the shown base grid as a held world plane. `Construction Plane View` resolves the current view once; later view changes leave that plane fixed. Drawing tools can still use a view-following construction plane. Store the held frame in double precision and subtract the floating origin before converting its translation to GPU floats. Reapplying the same plane makes no GPU update, and an incomplete or cancelled plane command keeps the previous frame.
-
-**Supporting native evidence.** Four focused course tests pass. The maintained viewer's actual GPU grid frames also agree exactly near the origin, at a 10¹²-unit world offset, and after returning. Removing the fractional offset changes 1,020 pixels. The [reload/grid browser record](../release/reload-grid-browser-review.json) now accepts all four maintained/course route/live cases, including the latest camera during held loads and explicitly held construction-plane behavior. This is behavioral acceptance, separate from native pixel equality and global release acceptance.
-
-The two native 256 × 256 frames below show the fractional grid and its zero-offset control. The near, far and return fractional frames have identical image hashes; [source and settings provenance](../release/grid-native-review.json) records the original double-precision plane and anchored camera matrices. This is a grid precision check, separate from moving the browser camera during reload.
-
-![Native held grid preserves the fractional origin near and far from the world origin](../../screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-grid-fractional-native.png)
-
-![Native grid with the fractional origin removed shows the changed axis positions](../../screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-grid-zero-native.png)
-
-## Pens, points and printed fills
-
-Keep presentation settings separate from source geometry. A pen width changes ribbon coverage; the production ribbon computes its AA analytically. The `aa` setting controls glyph feathering. Mesh edges and ordinary lines have separate visibility switches, while both keep original owner addresses for selection.
-
-Contact polygons use the production joined outline walk. Its packed face normal and contact colour tag give the boundary the same depth layer as the red fill. Reusing ordinary mesh-edge rows misses that relationship when projected-triangle storage falls back.
-
-An explicitly sized Point uses the production glyph's physical-pixel diameter: a width of 12 remains 12 pixels at DPR 1 and 2. Selection changes its colour without enlarging its disc. Editable control handles retain their separate interaction sizing policy. Cloud scale, EDL and LOD change cloud presentation while retaining stored coordinates and point IDs.
-
-**Supporting Point evidence.** Eight native production/course comparisons match every pixel across DPR 1/2, one/four samples and selection. The [Point comparison record](../release/point-native-review.json) retains the original source, archive and GPU settings.
-
-![Original Point keeps its authored physical-pixel diameter](../../screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-point-unselected-native-4x.png)
-
-![Selected Point changes colour without increasing its diameter](../../screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-point-selected-native-4x.png)
-
-A mesh with exactly one zero line width is a printed fill. Draw its colour with read-only depth so it cannot hide an original line or take ownership of a physical triangle. Instance tint alpha multiplies the alpha emitted by the kernel's render vertices. Preserve the original source colour independently: the kernel currently emits opaque object-colour vertices even when that source colour stores alpha. Printed lettering has its own place after mesh spheres and before point glyphs.
-
-**Supporting mesh evidence.** The figures below use the actual production edge walk, facing words and pen rows. All eight native full-frame production/course comparisons match exactly across DPR 1/2, one/four samples and selection at the recorded original placement. With outlines disabled, selection retains the production yellow without adding a separate black contour. The [native comparison record](../release/mesh-native-review.json) contains the original bytes, pose, settings and source hashes; browser and subpart-picking acceptance remain separate.
-
-![Unselected native mesh uses the production black border and blue fill](../../screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-mesh-unselected-native-4x.png)
-
-![Selected native mesh matches production yellow with outlines disabled](../../screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-mesh-selected-native-4x.png)
-
-The original Plane keeps its authored frame separate from its display half-size. Changing the display size must retain that frame; a mirrored, nonuniformly scaled placement must retain its placed axes.
-
-**Supporting Plane evidence.** The [plain Plane record](../release/plane-plain-native-review.json) and [placed Plane record](../release/plane-placed-native-review.json) each contain 16 exact native full-frame production/course pairs across DPR 1/2, one/four samples, half-sizes 50/100 and selection. Both retain original source bytes, archive, settings and complete frame results.
-
-![Mirrored and nonuniformly scaled original Plane preserves its placed axes](../../screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-plane-placed-native-4x.png)
-
-![Selected original Plane retains the same placed frame at a larger display size](../../screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-plane-placed-selected-native-4x.png)
-
-**Supporting covered Plane evidence.** The [generated covered Plane record](../release/plane-generated-covered-native-review.json) adds 16 exact native production/course pairs with an opaque blue lid. The axes remain visible over the lid in both renderers. This records their matching display behavior; it does not establish covered-owner picking. The [generated printed-fill record](../release/plane-generated-print-native-review.json) and [retained original covered-source record](../release/plane-original-covered-matrix-native-review.json) each add another 16 exact native pairs. All five declared Plane matrices now pass 80/80 full-frame comparisons. Generated and historical source bytes remain distinct; covered/printed cases make no owner-pick or browser acceptance claim.
-
-![Unselected covered Plane axes remain visible over the blue lid in the course renderer](../../screenshots/journey/review/96zzzzzzzq-plane-covered-unselected-course.png)
-
-![Unselected covered Plane axes remain visible over the blue lid in production](../../screenshots/journey/review/96zzzzzzzq-plane-covered-unselected-production.png)
-
-![Selected covered Plane retains its axes over the blue lid in the course renderer](../../screenshots/journey/review/96zzzzzzzq-plane-covered-selected-course.png)
-
-![Selected covered Plane retains its axes over the blue lid in production](../../screenshots/journey/review/96zzzzzzzq-plane-covered-selected-production.png)
-
-## Matrix cells and titles
-
-The final checkpoint also imports the current production Matrix program and its 16-word header plus three words per cell. Component-backed rows retain the original GUID, values and placement through archive reload. Cells run along +X and rows along -Y; nonzero values use procedural digits rounded to three decimals, while zero cells omit digits. Object picks select the whole Matrix, and selected borders use the production yellow. The world-plane title has its own text identity and lifetime, with no background plate.
-
-The full composed shader includes the maintained scene, clipping and ink-visibility code. Keep the Matrix values and original ownership independent of these display programs.
-
-**Supporting Matrix evidence.** Eight native production/course comparisons match every pixel of the complete frame, including the independent title, at display densities one and two, one and four samples, and with selection cleared or active. The [native comparison record](../release/matrix-native-review.json) and [browser behavior record](../release/matrix-browser-review.json) retain the source, camera, archive and image hashes. All six browser cases pass selection, original-owner picking, display controls, save/reopen and the return from four samples to one.
-
-The native WARP fixture uses a 320 by 240 logical viewport, values [-2, 1.2, 5; 0, 1.005, 5], cell size 0.3 and original placement (-0.3, 0.2, -0.4), with a fixed orthographic camera. Zero has no numeric glyph; the separate title has no plate. The figures below show the course at display density two and four samples; their complete images are identical to the corresponding production captures.
-
-**Unselected original Matrix, four samples at display density two.**
-
-![Native Matrix value colours, procedural digits, empty zero and plate-less title](../../screenshots/journey/review/96zzzzzzzq-matrix-paired-unselected-course-dpr2-msaa4.png)
-
-**Whole-object selection, four samples: yellow borders preserve cell contents.**
-
-![Native selected Matrix with yellow borders and unchanged cell digits](../../screenshots/journey/review/96zzzzzzzq-matrix-paired-selected-course-dpr2-msaa4.png)
-
-Hide the Matrix cells to see the title's independent lifetime. It remains visible and pickable as its own text object. Saving and reopening retains both the original Matrix values and placement and the separate title source.
-
-![Browser Matrix title remains visible when cells are hidden](../../screenshots/journey/review/96zzzzzzzq-matrix-browser-97d-title-only-dpr1.png)
-
-## Native family controls
-
-Visibility controls retain the original source while changing the lanes submitted for drawing. The [native family-control record](../release/ink-family-controls-native-review.json) contains 14 exact production/course full-frame pairs: mixed CAD with lines hidden or mesh edges hidden, plus open arrowed, closed headless and placed selected joined strokes. The joined cases cover the recorded display densities and sample counts. This evidence uses fixed widths, AA and camera settings; it does not establish clipping sweeps, browser behavior or production owner picking.
-
-![Mixed CAD with ordinary lines hidden retains the other visible families](../../screenshots/journey/review/96zzzzzzzq-ink-controls-97d-cad-no-lines.png)
-
-![Mixed CAD with mesh edges hidden retains the other visible families](../../screenshots/journey/review/96zzzzzzzq-ink-controls-97d-cad-no-edges.png)
-
-![Open joined stroke retains its arrowed ends at display density two and four samples](../../screenshots/journey/review/96zzzzzzzq-ink-controls-97d-joined-open-dpr2-msaa4.png)
-
-![Closed joined stroke has no endpoint arrows at display density two and four samples](../../screenshots/journey/review/96zzzzzzzq-ink-controls-97d-joined-closed-dpr2-msaa4.png)
-
-![Placed selected joined stroke retains its joins at display density two and four samples](../../screenshots/journey/review/96zzzzzzzq-ink-controls-97d-joined-placed-selected-dpr2-msaa4.png)
-
-## Lighting, backfaces and transparent surfaces
-
-Lighting and surface opacity change presentation while retaining the original geometry. Compare the same winding panels with lighting off, with the production headlight, and with backface colouring enabled. The headlight changes the shading; backface colouring exposes the reversed panel in red.
-
-![Original winding panels with lighting disabled](../release/material-pairs-97d-winding-unlit.png)
-
-![The same winding panels shaded by the production headlight](../release/material-pairs-97d-winding-headlight.png)
-
-![Backface colouring marks the reversed winding panel red](../release/material-pairs-97d-winding-backface.png)
-
-A separate closed red Mesh has an original green Line behind its front face. Opaque display hides the Line. At opacity 0.5, the glass surface reveals an attenuated Line; at opacity zero, Xray leaves the green Line visible without the surface. Closedness comes from the maintained solid verification before the source walk, rather than an assumed display flag.
-
-![Opaque closed red Mesh hides the original green Line behind its front face](../release/material-pairs-97d-closed-restored-opaque.png)
-
-![Glass at opacity 0.5 reveals the attenuated original green Line](../release/material-pairs-97d-closed-glass.png)
-
-![Xray at opacity zero shows the original green Line without the red surface](../release/material-pairs-97d-closed-xray.png)
-
-**Supporting material evidence.** The [material comparison record](../release/material-production-pairs-native-review.json) contains eight exact native production/course full-RGBA pairs: the three winding states and a return to unlit, plus opaque, glass, Xray and a return to opaque for the closed fixture. These six figures are the distinct production frames; the corresponding course frames match every pixel. The comparisons use display density one, one sample, fixed cameras and no selection. Winding frames are 640 by 480; closed-fixture frames are 320 by 240.
-
-The returned settings reproduce the earlier pixels, but each production case constructs a fresh instance; this is not a same-instance restoration or browser lifecycle proof. Complete decoded source documents and archive metadata remain equal through rendering and Save, even when protobuf map entries encode in a different order. These named cases do not cover AO, sky, clipping, copied or locked owners, picking, or an exhaustive material matrix.
-
 ## <a id="checkpoint-96zzzzzzzm-retain-visible-instance-ranges"></a>1. Retain visible instance ranges
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
@@ -44719,122 +44565,537 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 246. `src/plane_original.rs`
 
-Retain the original clipping-plane width and colour in its display pen.
-
-Copy this supplied source update.
+Retain the original clipping-plane width and colour in its display pen. Check custom guide pens, original ownership and explicit display precedence.
 
 **Locate this existing block:**
 
 ```rust
-    let endpoints=edges.iter().map(|&(a,b)|[&points[a],&points[b]].map(|p|[p[0],p[1],p[2]])).collect();display.parts=crate::mesh_parts::Parts{dots:Vec::new(),dot_styles:Vec::new(),glyph_flags:0,ink:Default::default(),dot_colours:Vec::new(),pens:Vec::new(),faces:Vec::new(),triangles:Vec::new(),edges,endpoints};
-```
-
-Update the existing block with this supplied code; keep unchanged lines:
-
-```rust
---8<-- "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-clipping-guide-source-pen.rs"
-```
-
-### 247. `src/plane_original.rs`
-
-Check custom guide pens, original ownership and explicit display precedence.
-
-Supplied validation fixture.
-
-**Locate this existing block:**
-
-```rust
-pub fn insert(scene:&mut crate::scene::Scene,plane:Rc<Plane>)->Result<crate::scene::ObjectId,&'static str>{let id=scene.insert(prepared(&plane)?)?;scene.objects_mut().iter_mut().find(|r|r.id==id).unwrap().original=Some(Geometry::Plane(plane));Ok(id)}
-```
-
-After that block, append this supplied code:
-
-```rust
---8<-- "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-clipping-guide-source-pen-test.rs" skip=251
-```
-
-### 248. `src/production_joined.rs`
-
-Render clipping guides with the production ribbon coverage and section-cap visibility.
-
-Copy this supplied source update.
-
-**Locate this existing block:**
-
-```rust
-        if crate::clipping_geometry::is_clipping(source) {continue;}
-```
-
-Update the existing block with this supplied code; keep unchanged lines:
-
-```rust
---8<-- "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-clipping-guide-production-ribbons.rs"
-```
-
-### 249. `src/pick_sources.rs`
-
-Retain clipping-guide query rows while drawing each guide once in the line family.
-
-Copy this supplied source update.
-
-**Locate this existing block:**
-
-```rust
-                sources.mesh_legacy.push(if row.mesh.parts.ink.active{0}else if line_frame{crate::ink_ranges::LINES}else{crate::ink_ranges::EDGES});
-```
-
-Update the existing block with this supplied code; keep unchanged lines:
-
-```rust
---8<-- "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-clipping-guide-no-duplicate-ink.rs"
-```
-
-### 250. `src/global_outline_tests.rs`
-
-Keep the cap-origin fixture isolated from guide Lines through the actual family visibility control.
-
-Supplied validation fixture.
-
-**Locate this existing block:**
-
-```rust
-fn actual_derived_frame_origin_keeps_cap_pixels_world_text_clips_and_precise_ground(){
- let mut scene=Scene::empty();let mut prepared=PreparedMesh::new(session_rust::Mesh::create_box(0.5,0.5,0.5)).unwrap();prepared.model=session_rust::Xform::translation(0.,0.,-0.5);let owner=scene.insert(prepared).unwrap();let plane=crate::clipping_geometry::plane_from(crate::clipping_geometry::Mode::Xy,&[[0.,0.,-0.5]],1.).unwrap();let plane_id=crate::plane_original::insert(&mut scene,Rc::new(plane)).unwrap();let mut gpu=renderer(&scene);gpu.set_opacity(1.);gpu.mesh_ink.set(&gpu.device,std::iter::empty()).unwrap();gpu.markers.set_points(&gpu.device,std::iter::empty()).unwrap();let baseline=pixels(&gpu);assert!(crate::cap_gpu_tests::at(&baseline,160,120)[..3].iter().all(|v|(150..=156).contains(v)));let ground=gpu.ambient_rows.ground_at([0.;3]);let source=scene.objects()[0].geometry().unwrap().to_proto();let uploads=gpu.stats()[0];
- let anchor=[1e9,-1e9,1e9];let mut far=scene.clone();for id in [owner,plane_id]{far.translate(id,anchor).unwrap();}gpu.set_scene(&far,None);gpu.mesh_ink.set(&gpu.device,std::iter::empty()).unwrap();gpu.markers.set_points(&gpu.device,std::iter::empty()).unwrap();assert!(gpu.space.update(anchor,1.,0.).unwrap().moved);for mesh in &mut gpu.meshes {mesh.rebase(&gpu.queue,anchor);}gpu.instances.set(&gpu.device,&gpu.queue,&mut gpu.meshes,&gpu.instance_rows,false).unwrap();gpu.tiles.borrow_mut().set_records(&gpu.device,&gpu.meshes,Some(&gpu.instances));assert_eq!(gpu.anchor(),anchor);assert_eq!(gpu.ambient_rows.ground_at(anchor),ground);assert_eq!(gpu.ambient_rows.ground[0]-anchor[2],-0.75);let frame=gpu.text_frame(matrix());assert_eq!(frame.origin,anchor);assert!(!frame.cut([anchor[0],anchor[1],anchor[2]-0.75]));assert!(frame.cut([anchor[0],anchor[1],anchor[2]-0.25]));assert_eq!(pixels(&gpu),baseline);let writes=gpu.clipping.borrow().writes;assert_eq!(pixels(&gpu),baseline);assert_eq!(gpu.clipping.borrow().writes,writes);assert_eq!(gpu.stats()[0],uploads);assert_eq!(far.objects()[0].geometry().unwrap().to_proto(),source);
+    )?;
+    let endpoints = edges
+        .iter()
+        .map(|&(a, b)| [&points[a], &points[b]].map(|p| [p[0], p[1], p[2]]))
+        .collect();
+    display.parts = crate::mesh_parts::Parts {
+        dots: Vec::new(),
+        dot_styles: Vec::new(),
+        glyph_flags: 0,
+        ink: Default::default(),
+        dot_colours: Vec::new(),
+        pens: Vec::new(),
+        faces: Vec::new(),
+        triangles: Vec::new(),
+        edges,
+        endpoints,
+    };
+    Ok(crate::prepared::PreparedMesh {
+        geometry: Rc::new(source),
+        display,
+        source: None,
+        model: Xform::identity(),
+    })
+}
+pub fn placed(plane: &Plane, model: &Xform) -> Option<crate::bounds::Bounds> {
+    let points = points(plane).ok()?;
+    let p = points.first()?.transformed(model);
+    let mut bounds = crate::bounds::Bounds::point([p[0], p[1], p[2]]);
+    for p in points {
+        let p = p.transformed(model);
+        bounds.include([p[0], p[1], p[2]])
+    }
+    Some(bounds)
+}
+pub fn insert(
+    scene: &mut crate::scene::Scene,
+    plane: Rc<Plane>,
+) -> Result<crate::scene::ObjectId, &'static str> {
+    let id = scene.insert(prepared(&plane)?)?;
+    scene
+        .objects_mut()
+        .iter_mut()
+        .find(|r| r.id == id)
+        .unwrap()
+        .original = Some(Geometry::Plane(plane));
+    Ok(id)
 }
 ```
 
-Update the existing block with this supplied code; keep unchanged lines:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-cap-origin-line-isolation.rs"
+    )?;
+    let pens = if edges.is_empty() {
+        Vec::new()
+    } else {
+        vec![(
+            crate::mesh_pens::width(plane.width),
+            crate::production_ribbon::pack_rgba(plane.linecolor.to_f32()),
+        )]
+    };
+    let endpoints = edges
+        .iter()
+        .map(|&(a, b)| [&points[a], &points[b]].map(|p| [p[0], p[1], p[2]]))
+        .collect();
+    display.parts = crate::mesh_parts::Parts {
+        dots: Vec::new(),
+        dot_styles: Vec::new(),
+        glyph_flags: 0,
+        ink: Default::default(),
+        dot_colours: Vec::new(),
+        pens,
+        faces: Vec::new(),
+        triangles: Vec::new(),
+        edges,
+        endpoints,
+    };
+    Ok(crate::prepared::PreparedMesh {
+        geometry: Rc::new(source),
+        display,
+        source: None,
+        model: Xform::identity(),
+    })
+}
+pub fn placed(plane: &Plane, model: &Xform) -> Option<crate::bounds::Bounds> {
+    let points = points(plane).ok()?;
+    let p = points.first()?.transformed(model);
+    let mut bounds = crate::bounds::Bounds::point([p[0], p[1], p[2]]);
+    for p in points {
+        let p = p.transformed(model);
+        bounds.include([p[0], p[1], p[2]])
+    }
+    Some(bounds)
+}
+pub fn insert(
+    scene: &mut crate::scene::Scene,
+    plane: Rc<Plane>,
+) -> Result<crate::scene::ObjectId, &'static str> {
+    let id = scene.insert(prepared(&plane)?)?;
+    scene
+        .objects_mut()
+        .iter_mut()
+        .find(|r| r.id == id)
+        .unwrap()
+        .original = Some(Geometry::Plane(plane));
+    Ok(id)
+}
+
+#[cfg(test)]
+mod guide_pen_tests {
+    use super::*;
+    use crate::pick_sources::Sources;
+
+    #[test]
+    fn clipping_guide_keeps_source_pen_identity_and_override_precedence() {
+        let mut plane = crate::clipping_geometry::plane_from(
+            crate::clipping_geometry::Mode::Yz,
+            &[[1., 0., 0.]],
+            1.,
+        )
+        .unwrap();
+        plane.width = 7.;
+        plane.linecolor = session_rust::Color::new(0.2, 0.4, 0.8, 1.);
+        let plane = Rc::new(plane);
+        plane.guid();
+        let original = plane.to_proto();
+        let mut scene = crate::scene::Scene::empty();
+        let id = insert(&mut scene, plane.clone()).unwrap();
+        let initial = Sources::new(&scene).unwrap();
+        assert_eq!(initial.mesh_ink.len(), 7);
+        assert!(
+            initial.mesh_ink.iter().all(
+                |stroke| stroke.width == 7. && stroke.colour == [0.2, 0.4, 0.8, 1.]
+            ),
+            "The complete clipping rectangle and arrow keep the original custom CSS pen"
+        );
+        assert!(
+            initial
+                .mesh_ids
+                .iter()
+                .all(|hit| hit[0] == id.value())
+        );
+        assert!(
+            initial
+                .mesh_metadata
+                .chunks_exact(2)
+                .all(|row| row[0] == 4096),
+            "Guide ink retains its clipping-plane classification"
+        );
+        let original_pens = scene.objects()[0].mesh.parts.pens.clone();
+        Rc::make_mut(&mut scene.objects_mut()[0].mesh)
+            .parts
+            .pens = vec![(3., u32::from_le_bytes([17, 34, 51, 255]))];
+        assert!(
+            Sources::new(&scene)
+                .unwrap()
+                .mesh_ink
+                .iter()
+                .all(|stroke| stroke.width == 3.
+                    && stroke.colour == [17. / 255., 34. / 255., 51. / 255., 1.]),
+            "Explicit prepared pens retain their colour and width"
+        );
+        Rc::make_mut(&mut scene.view)
+            .edges
+            .insert(id, [201, 101, 51]);
+        assert!(
+            Sources::new(&scene)
+                .unwrap()
+                .mesh_ink
+                .iter()
+                .all(|stroke| stroke.width == 3.
+                    && stroke.colour == [201. / 255., 101. / 255., 51. / 255., 1.]),
+            "The existing display colour override keeps precedence"
+        );
+        Rc::make_mut(&mut scene.view)
+            .edges
+            .remove(&id);
+        Rc::make_mut(&mut scene.objects_mut()[0].mesh)
+            .parts
+            .pens = original_pens;
+        let restored = Sources::new(&scene).unwrap();
+        assert_eq!(restored.mesh_ids, initial.mesh_ids);
+        assert_eq!(restored.mesh_metadata, initial.mesh_metadata);
+        assert!(
+            restored
+                .mesh_ink
+                .iter()
+                .zip(&initial.mesh_ink)
+                .all(|(a, b)| a.start == b.start
+                    && a.end == b.end
+                    && a.width == b.width
+                    && a.colour == b.colour)
+        );
+        assert!(
+            matches!(&scene.objects()[0].original,Some(Geometry::Plane(actual)) if Rc::ptr_eq(actual,&plane))
+        );
+        assert_eq!(
+            plane.to_proto(),
+            original,
+            "Every original Plane field and owner identity must survive presentation preparation"
+        );
+        let ordinary = prepared(&Plane::xy_plane()).unwrap();
+        assert!(
+            ordinary.display.parts.edges.is_empty()
+                && ordinary.display.parts.pens.is_empty(),
+            "Ordinary procedural Plane packing is unchanged"
+        );
+    }
+
+    #[test]
+    fn clipping_guide_uses_production_ribbons_once_with_original_pens_and_owner() {
+        let mut plane = crate::clipping_geometry::plane_from(
+            crate::clipping_geometry::Mode::Yz,
+            &[[1., 0., 0.]],
+            1.,
+        )
+        .unwrap();
+        plane.width = 7.;
+        plane.linecolor = session_rust::Color::new(0.2, 0.4, 0.8, 1.);
+        let plane = Rc::new(plane);
+        plane.guid();
+        let original = plane.to_proto();
+        let mut scene = crate::scene::Scene::empty();
+        let id = insert(&mut scene, plane.clone()).unwrap();
+        let sources = Sources::new(&scene).unwrap();
+        assert_eq!(sources.mesh_ink.len(), 7);
+        assert!(
+            sources.mesh_legacy.iter().all(|v| *v == 0),
+            "Queries retain all seven source strokes; the legacy lane draws none"
+        );
+        let rows =
+            crate::production_joined::rows(&scene, &sources, [0.; 3], &[id], 4096)
+                .unwrap();
+        assert_eq!(rows.owners, vec![id.value(); 7]);
+        assert_eq!(
+            rows.ids,
+            vec![[id.value(), crate::sub_id::OBJECT_INK]; 7]
+        );
+        assert_eq!(rows.edges, vec![u32::MAX; 7]);
+        assert_eq!(rows.mesh_from, 7);
+        assert_eq!(rows.runs[3], [0..42]);
+        assert!(rows.runs[..3].iter().all(Vec::is_empty));
+        assert_eq!(
+            u32::from_ne_bytes(rows.objects[80..84].try_into().unwrap()),
+            4097
+        );
+        let expected = crate::production_ribbon::pack_rgba([0.2, 0.4, 0.8, 1.]);
+        for (segment, ends) in rows
+            .segments
+            .chunks_exact(52)
+            .zip(&scene.objects()[0].mesh.parts.endpoints)
+        {
+            assert_eq!(
+                f32::from_ne_bytes(segment[12..16].try_into().unwrap()),
+                -3.5
+            );
+            assert_eq!(
+                u32::from_ne_bytes(segment[32..36].try_into().unwrap()),
+                expected
+            );
+            for offset in [36, 40, 44] {
+                assert_eq!(
+                    u32::from_ne_bytes(
+                        segment[offset..offset + 4]
+                            .try_into()
+                            .unwrap()
+                    ),
+                    u32::MAX
+                );
+            }
+            for (offset, point) in [(0, ends[0]), (16, ends[1])] {
+                for axis in 0..3 {
+                    assert_eq!(
+                        f32::from_ne_bytes(
+                            segment[offset + axis * 4..offset + axis * 4 + 4]
+                                .try_into()
+                                .unwrap()
+                        ),
+                        point[axis] as f32
+                    );
+                }
+            }
+        }
+        let pens = scene.objects()[0].mesh.parts.pens.clone();
+        Rc::make_mut(&mut scene.objects_mut()[0].mesh)
+            .parts
+            .pens = vec![(3., u32::from_le_bytes([17, 34, 51, 255]))];
+        Rc::make_mut(&mut scene.view)
+            .edges
+            .insert(id, [201, 101, 51]);
+        let overridden = crate::production_joined::rows(
+            &scene,
+            &Sources::new(&scene).unwrap(),
+            [0.; 3],
+            &[id],
+            4096,
+        )
+        .unwrap();
+        assert!(
+            overridden
+                .segments
+                .chunks_exact(52)
+                .all(
+                    |s| f32::from_ne_bytes(s[12..16].try_into().unwrap()) == -1.5
+                        && u32::from_ne_bytes(s[32..36].try_into().unwrap())
+                            == u32::from_le_bytes([201, 101, 51, 255])
+                )
+        );
+        Rc::make_mut(&mut scene.view)
+            .edges
+            .remove(&id);
+        Rc::make_mut(&mut scene.objects_mut()[0].mesh)
+            .parts
+            .pens = pens;
+        let restored = crate::production_joined::rows(
+            &scene,
+            &Sources::new(&scene).unwrap(),
+            [0.; 3],
+            &[id],
+            4096,
+        )
+        .unwrap();
+        assert_eq!(restored.segments, rows.segments);
+        assert_eq!(restored.objects, rows.objects);
+        assert_eq!(restored.ids, rows.ids);
+        assert_eq!(plane.to_proto(), original);
+        let mut ordinary = crate::scene::Scene::empty();
+        insert(&mut ordinary, Rc::new(Plane::xy_plane())).unwrap();
+        let ordinary = crate::production_joined::rows(
+            &ordinary,
+            &Sources::new(&ordinary).unwrap(),
+            [0.; 3],
+            &[],
+            4096,
+        )
+        .unwrap();
+        assert!(ordinary.segments.is_empty());
+        assert!(
+            !ordinary.planes.is_empty(),
+            "Ordinary Plane retains its procedural lane"
+        );
+    }
+}
 ```
 
-### 251. `src/production_plane_tests.rs`
+### 247. `src/production_joined.rs`
 
-Validate the unchanged ordinary Plane row alongside its separate production clipping-guide ribbons and real capacity limit.
-
-Supplied validation fixture.
+Render clipping guides with the production ribbon coverage and section-cap visibility.
 
 **Locate this existing block:**
 
 ```rust
-fn ordinary_plane_uses_exact_compact_frame_and_keeps_clipping_plane_separate() {
-    let mut scene = Scene::empty();
-    scene.next_id = 16_777_217;
-    let mut source = Plane::xy_plane();
-    source.width = 7.0;
-    let source = Rc::new(source);
-    let _ = source.guid();
-    let original = source.to_proto();
-    let id = crate::plane_original::insert(&mut scene, source.clone()).unwrap();
-    let anchor = [1_000_000_000.0, -1_000_000_000.0, 0.0];
-    scene.place(id, Xform::translation(anchor[0] + 0.125, anchor[1], -500.0)).unwrap();
-    let clip = crate::clipping_geometry::plane_from(crate::clipping_geometry::Mode::Xy, &[[0.0, 0.0, -10.0]], 100.0).unwrap();
+        if crate::clipping_geometry::is_clipping(source) {
+            continue;
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```rust
+        if crate::clipping_geometry::is_clipping(source) {
+            let index = out.object_ids.len() as u32;
+            add(&mut out, row.id, &row.model, 4096);
+            for (edge, ends) in row.mesh.parts.endpoints.iter().enumerate() {
+                let (width, colour) = row.mesh.parts.pen(edge);
+                if width == 0. {
+                    continue;
+                }
+                let colour = scene
+                    .view
+                    .edges
+                    .get(&row.id)
+                    .map_or(colour, |c| {
+                        [
+                            c[0] as f32 / 255.,
+                            c[1] as f32 / 255.,
+                            c[2] as f32 / 255.,
+                            1.,
+                        ]
+                    });
+                segments.ribbons.push(walk::CylinderSegment {
+                    p0: ends[0].map(|v| v as f32),
+                    p1: ends[1].map(|v| v as f32),
+                    radius: crate::production_ribbon::encode_width(width as f64),
+                    instance_id: index,
+                    color: crate::production_ribbon::pack_rgba(colour),
+                    facing: walk::FACING_UNKNOWN,
+                });
+                out.ids
+                    .push(pick(scene, sources, row.id, Part::Object)?);
+                out.edges.push(u32::MAX);
+                out.owners.push(row.id.value());
+            }
+            continue;
+```
+
+### 248. `src/pick_sources.rs`
+
+Retain clipping-guide query rows while drawing each guide once in the line family.
+
+**Locate this existing block:**
+
+```rust
+                sources.mesh_metadata.extend([flag, facing]);
+                sources
+                    .mesh_legacy
+                    .push(if row.mesh.parts.ink.active {
+                        0
+                    } else if line_frame {
+                        crate::ink_ranges::LINES
+                    } else {
+                        crate::ink_ranges::EDGES
+                    });
+            }
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```rust
+                sources.mesh_metadata.extend([flag, facing]);
+                sources.mesh_legacy.push(
+                    if row.mesh.parts.ink.active || (line_frame && flag == 4096) {
+                        0
+                    } else if line_frame {
+                        crate::ink_ranges::LINES
+                    } else {
+                        crate::ink_ranges::EDGES
+                    },
+                );
+            }
+```
+
+### 249. `src/global_outline_tests.rs`
+
+Keep the cap-origin fixture isolated from guide Lines through the actual family visibility control.
+
+**Locate this existing block:**
+
+```rust
+        .unwrap();
+    let baseline = pixels(&gpu);
+    assert!(
+        crate::cap_gpu_tests::at(&baseline, 160, 120)[..3]
+            .iter()
+            .all(|v| (150..=156).contains(v))
+    );
+    let ground = gpu.ambient_rows.ground_at([0.; 3]);
+    let source = scene.objects()[0]
+        .geometry()
+        .unwrap()
+        .to_proto();
+    let uploads = gpu.stats()[0];
+    let anchor = [1e9, -1e9, 1e9];
+    let mut far = scene.clone();
+    for id in [owner, plane_id] {
+        far.translate(id, anchor).unwrap();
+    }
+    gpu.set_scene(&far, None);
+    gpu.mesh_ink
+        .set(&gpu.device, std::iter::empty())
+        .unwrap();
+    gpu.markers
+        .set_points(&gpu.device, std::iter::empty())
+        .unwrap();
+    assert!(
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```rust
+        .unwrap();
+    gpu.set_ink_visibility(crate::ink_ranges::Visibility {
+        lines: false,
+        ..Default::default()
+    });
+    let baseline = pixels(&gpu);
+    assert!(
+        crate::cap_gpu_tests::at(&baseline, 160, 120)[..3]
+            .iter()
+            .all(|v| (150..=156).contains(v))
+    );
+    let ground = gpu.ambient_rows.ground_at([0.; 3]);
+    let source = scene.objects()[0]
+        .geometry()
+        .unwrap()
+        .to_proto();
+    let uploads = gpu.stats()[0];
+    let anchor = [1e9, -1e9, 1e9];
+    let mut far = scene.clone();
+    for id in [owner, plane_id] {
+        far.translate(id, anchor).unwrap();
+    }
+    gpu.set_scene(&far, None);
+    gpu.mesh_ink
+        .set(&gpu.device, std::iter::empty())
+        .unwrap();
+    gpu.markers
+        .set_points(&gpu.device, std::iter::empty())
+        .unwrap();
+    gpu.set_ink_visibility(crate::ink_ranges::Visibility {
+        lines: false,
+        ..Default::default()
+    });
+    assert!(
+```
+
+### 250. `src/production_plane_tests.rs`
+
+Validate the unchanged ordinary Plane row alongside its separate production clipping-guide ribbons and real capacity limit.
+
+**Locate this existing block:**
+
+```rust
+    .unwrap();
     let clipping = crate::plane_original::insert(&mut scene, Rc::new(clip)).unwrap();
-    assert!(scene.objects()[0].mesh.parts.edges.is_empty());
+    assert!(
+        scene.objects()[0]
+            .mesh
+            .parts
+            .edges
+            .is_empty()
+    );
     assert_eq!(scene.objects()[1].mesh.parts.edges.len(), 7);
-    assert_eq!(crate::clipping_rows::owners(&scene), [clipping]);
+    assert_eq!(
+        crate::clipping_rows::owners(&scene),
+        [clipping]
+    );
     let sources = crate::pick_sources::Sources::anchored(&scene, anchor).unwrap();
     let rows = joined::rows(&scene, &sources, anchor, &[id], 256).unwrap();
     assert_eq!(rows.planes.len(), 48);
@@ -44842,184 +45103,446 @@ fn ordinary_plane_uses_exact_compact_frame_and_keeps_clipping_plane_separate() {
     assert!(rows.segments.is_empty() && rows.heads.is_empty());
     assert_eq!(rows.object_ids, [id]);
     assert_eq!(rows.pick_owners, [id.value()]);
-    let words: Vec<u32> = rows.planes.chunks_exact(4).map(|b|u32::from_ne_bytes(b.try_into().unwrap())).collect();
+    let words: Vec<u32> = rows
+        .planes
+        .chunks_exact(4)
+        .map(|b| u32::from_ne_bytes(b.try_into().unwrap()))
+        .collect();
     assert_eq!(words[3], 0);
-    assert_eq!(words[4..8], [1.0f32.to_bits(), 0, 0, (-3.5f32).to_bits()]);
-    assert_eq!(f32::from_ne_bytes(rows.translations[..4].try_into().unwrap()), 0.125);
-    assert_eq!(u32::from_ne_bytes(rows.objects[80..84].try_into().unwrap()), 1);
+    assert_eq!(
+        words[4..8],
+        [1.0f32.to_bits(), 0, 0, (-3.5f32).to_bits()]
+    );
+    assert_eq!(
+        f32::from_ne_bytes(rows.translations[..4].try_into().unwrap()),
+        0.125
+    );
+    assert_eq!(
+        u32::from_ne_bytes(rows.objects[80..84].try_into().unwrap()),
+        1
+    );
     let mut output = plane::PlaneRows::default();
     let walked = plane::walk_plane(&mut output, &source, 13);
     assert_eq!(walked.flags, 0);
     assert_eq!(output.rows[0].instance_id, 13);
-    assert_eq!(walked.bounds.min_point().to_f32(), [-100.0, -100.0, 0.0]);
-    assert_eq!(walked.bounds.max_point().to_f32(), [100.0, 100.0, 100.0]);
+    assert_eq!(
+        walked.bounds.min_point().to_f32(),
+        [-100.0, -100.0, 0.0]
+    );
+    assert_eq!(
+        walked.bounds.max_point().to_f32(),
+        [100.0, 100.0, 100.0]
+    );
     assert_eq!(source.to_proto(), original);
 }
 ```
 
-Update the existing block with this supplied code; keep unchanged lines:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ordinary-plane-guide-lane-contract.rs"
+    .unwrap();
+    let clip = Rc::new(clip);
+    let _ = clip.guid();
+    let original_clip = clip.to_proto();
+    let clipping = crate::plane_original::insert(&mut scene, clip.clone()).unwrap();
+    assert!(
+        scene.objects()[0]
+            .mesh
+            .parts
+            .edges
+            .is_empty()
+    );
+    assert_eq!(scene.objects()[1].mesh.parts.edges.len(), 7);
+    assert_eq!(
+        crate::clipping_rows::owners(&scene),
+        [clipping]
+    );
+    let sources = crate::pick_sources::Sources::anchored(&scene, anchor).unwrap();
+    match joined::rows(&scene, &sources, anchor, &[id], 256) {
+        Err(e) => assert_eq!(
+            e,
+            "Production joined rows exceed the storage limit"
+        ),
+        Ok(_) => {
+            panic!("Seven visible guide ribbons must respect the 256-byte capacity")
+        }
+    }
+    let rows = joined::rows(&scene, &sources, anchor, &[id], 1024).unwrap();
+    assert_eq!(rows.planes.len(), 48);
+    assert_eq!(rows.objects.len(), 192);
+    assert!(rows.heads.is_empty());
+    assert_eq!(rows.segments.len(), 7 * 52);
+    assert_eq!(rows.owners, vec![clipping.value(); 7]);
+    assert_eq!(
+        rows.ids,
+        vec![[clipping.value(), crate::sub_id::OBJECT_INK]; 7]
+    );
+    assert_eq!(rows.edges, vec![u32::MAX; 7]);
+    assert_eq!(rows.mesh_from, 7);
+    assert_eq!(rows.runs[1], [0..42]);
+    assert_eq!(
+        u32::from_ne_bytes(rows.objects[176..180].try_into().unwrap()),
+        4096
+    );
+    for segment in rows.segments.chunks_exact(52) {
+        assert_eq!(
+            u32::from_ne_bytes(segment[28..32].try_into().unwrap()),
+            1
+        );
+        for offset in [36, 40, 44] {
+            assert_eq!(
+                u32::from_ne_bytes(
+                    segment[offset..offset + 4]
+                        .try_into()
+                        .unwrap()
+                ),
+                u32::MAX
+            );
+        }
+    }
+    assert!(
+        sources
+            .mesh_legacy
+            .iter()
+            .all(|kind| *kind == 0),
+        "Ordinary Plane has no legacy edges; guide query rows draw only in the production Line lane"
+    );
+    assert_eq!(rows.object_ids, [id, clipping]);
+    assert_eq!(
+        rows.pick_owners,
+        [id.value(), clipping.value()]
+    );
+    let words: Vec<u32> = rows
+        .planes
+        .chunks_exact(4)
+        .map(|b| u32::from_ne_bytes(b.try_into().unwrap()))
+        .collect();
+    assert_eq!(words[3], 0);
+    assert_eq!(
+        words[4..8],
+        [1.0f32.to_bits(), 0, 0, (-3.5f32).to_bits()]
+    );
+    assert_eq!(
+        f32::from_ne_bytes(rows.translations[..4].try_into().unwrap()),
+        0.125
+    );
+    assert_eq!(
+        u32::from_ne_bytes(rows.objects[80..84].try_into().unwrap()),
+        1
+    );
+    let mut output = plane::PlaneRows::default();
+    let walked = plane::walk_plane(&mut output, &source, 13);
+    assert_eq!(walked.flags, 0);
+    assert_eq!(output.rows[0].instance_id, 13);
+    assert_eq!(
+        walked.bounds.min_point().to_f32(),
+        [-100.0, -100.0, 0.0]
+    );
+    assert_eq!(
+        walked.bounds.max_point().to_f32(),
+        [100.0, 100.0, 100.0]
+    );
+    assert_eq!(source.to_proto(), original);
+    assert_eq!(
+        scene.objects()[0].model.m,
+        Xform::translation(anchor[0] + 0.125, anchor[1], -500.).m
+    );
+    assert_eq!(clip.to_proto(), original_clip);
+    assert!(
+        matches!(&scene.objects()[1].original,Some(session_rust::Geometry::Plane(actual))if Rc::ptr_eq(actual,&clip))
+    );
+}
 ```
 
-### Keep marker queries consistent with the view
+### 251. `src/production_ribbon_gpu.rs`
 
-A query can run before the next color frame. Pass the current renderer opacity through query submission and encoding into the ordinary ribbon pick uniform; do not depend on a previous draw to initialize it. In Xray, hidden faces no longer occlude rear mesh markers, so a visible rear marker must still resolve to its original mesh owner. Opaque and glass views keep their own occlusion rules.
-
-### 252. `src/production_ribbon_gpu.rs`
-
-Accept the current view opacity when preparing ordinary ink queries.
+Keep original ink and vertex owner queries consistent with the active opaque, glass and Xray view.
 
 **Locate this existing block:**
 
 ```rust
-    pub fn prepare_pick(
-        &self,
-        device: &wgpu::Device,
-        queue: &wgpu::Queue,
-        matrix: [f32; 16],
-        window: crate::pick_window::Window,
         density: f32,
-
+        clipping: &wgpu::Buffer,
+        tables: &crate::finite_ink::Tables,
+        depth: &wgpu::TextureView,
+    ) -> Frame {
+        if (self.visible || self.edges_visible) && !self.rows.owners.is_empty() {
+            self.pick
+                .borrow_mut()
+                .get_or_insert_with(|| {
+                    pipeline(
+                        device,
+                        &self.shader(device),
+                        &self.layouts,
+                        wgpu::TextureFormat::Rg32Uint,
+                        1,
+                        true,
+                    )
+                });
+        }
+        self.heads.prepare(device, 1, true);
+        self.planes.prepare(device, 1, true);
+        if self.points_visible {
+            self.dots.prepare(device, 1, true);
+        }
+        if self.vertices_visible {
+            self.spheres.prepare(device, 1, true);
+        }
+        self.update_inside(queue, matrix);
+        let line = self.line_uniform(matrix, window.full, density, 1.0);
+        let (matrix, line) = ribbon::pick_frame(matrix, line, window);
 ```
 
-Update that block with the supplied code; keep unchanged surrounding lines:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-xray-pick-opacity-01.rs"
+        density: f32,
+        opacity: f32,
+        clipping: &wgpu::Buffer,
+        tables: &crate::finite_ink::Tables,
+        depth: &wgpu::TextureView,
+    ) -> Frame {
+        if (self.visible || self.edges_visible) && !self.rows.owners.is_empty() {
+            self.pick
+                .borrow_mut()
+                .get_or_insert_with(|| {
+                    pipeline(
+                        device,
+                        &self.shader(device),
+                        &self.layouts,
+                        wgpu::TextureFormat::Rg32Uint,
+                        1,
+                        true,
+                    )
+                });
+        }
+        self.heads.prepare(device, 1, true);
+        self.planes.prepare(device, 1, true);
+        if self.points_visible {
+            self.dots.prepare(device, 1, true);
+        }
+        if self.vertices_visible {
+            self.spheres.prepare(device, 1, true);
+        }
+        self.update_inside(queue, matrix);
+        let line = self.line_uniform(matrix, window.full, density, opacity);
+        let (matrix, line) = ribbon::pick_frame(matrix, line, window);
 ```
 
-### 253. `src/production_ribbon_gpu.rs`
+### 252. `src/pick_encode.rs`
 
-Use that opacity in the pick uniform instead of an opaque constant.
+Keep original ink and vertex owner queries consistent with the active opaque, glass and Xray view.
+
+Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
+
+**Locate this block:**
+
+```rust
+        let frame = ordinary.prepare_pick(
+            device,
+            &ctx.queue,
+            transform,
+            window,
+            density,
+            clipping_buffer,
+```
+
+Replace it with:
+
+```rust
+        let frame = ordinary.prepare_pick(
+            device,
+            &ctx.queue,
+            transform,
+            window,
+            density,
+            opacity,
+            clipping_buffer,
+```
+
+**Locate this block:**
+
+```rust
+    density: f32,
+) -> wgpu::CommandBuffer {
+    let mut encoder = device.create_command_encoder(&Default::default());
+    let mesh_crop =
+```
+
+Replace it with:
+
+```rust
+    density: f32,
+    opacity: f32,
+) -> wgpu::CommandBuffer {
+    let mut encoder = device.create_command_encoder(&Default::default());
+    let mesh_crop =
+```
+
+### 253. `src/pick_gpu.rs`
+
+Keep original ink and vertex owner queries consistent with the active opaque, glass and Xray view.
+
+Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
+
+**Locate this block:**
+
+```rust
+            matrices,
+            request.transform,
+            request.density,
+        )]);
+```
+
+Replace it with:
+
+```rust
+            matrices,
+            request.transform,
+            request.density,
+            opacity,
+        )]);
+```
+
+**Locate this block:**
+
+```rust
+        records: Option<&crate::instance_gpu::Lane>,
+        ordinary: Option<&crate::production_ribbon_gpu::Lane>,
+        matrices: Option<&crate::production_matrix_gpu::Lane>,
+    ) {
+        assert!(
+            self.active.is_none(),
+```
+
+Replace it with:
+
+```rust
+        records: Option<&crate::instance_gpu::Lane>,
+        ordinary: Option<&crate::production_ribbon_gpu::Lane>,
+        matrices: Option<&crate::production_matrix_gpu::Lane>,
+        opacity: f32,
+    ) {
+        assert!(
+            self.active.is_none(),
+```
+
+**Locate this block:**
+
+```rust
+            device, queue, queued, meshes, ink, faces, text, clouds, sheets, None,
+            &group, &buffer, None, None, None, None,
+        )
+    }
+    pub(crate) fn submit_finite(
+```
+
+Replace it with:
+
+```rust
+            device, queue, queued, meshes, ink, faces, text, clouds, sheets, None,
+            &group, &buffer, None, None, None, None, 1.0,
+        )
+    }
+    pub(crate) fn submit_finite(
+```
+
+### 254. `src/renderer.rs`
+
+Keep original ink and vertex owner queries consistent with the active opaque, glass and Xray view.
 
 **Locate this existing block:**
 
 ```rust
-self.line_uniform(matrix,window.full,density,1.0)
+                Some(&self.matrices),
+            );
 ```
 
-Update that block with the supplied code; keep unchanged surrounding lines:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-xray-pick-opacity-02.rs"
+                Some(&self.matrices),
+                self.opacity.get(),
+            );
 ```
 
-### 254. `src/pick_encode.rs`
+### 255. `src/mesh_marker_tests.rs`
 
-Carry the current opacity through the query encoder.
+Check first original-owner queries before a color frame through opaque, glass, Xray and restored opaque settings without changing source/history.
 
 **Locate this existing block:**
 
 ```rust
-transform:[f32;16],density:f32) -> wgpu::CommandBuffer
+    s.place(id, old).unwrap();
+}
 ```
 
-Update that block with the supplied code; keep unchanged surrounding lines:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-xray-pick-opacity-03.rs"
-```
-
-### 255. `src/pick_encode.rs`
-
-Forward it to the ordinary production lane.
-
-**Locate this existing block:**
-
-```rust
-ordinary.prepare_pick(device,&ctx.queue,transform,window,density,clipping_buffer
-```
-
-Update that block with the supplied code; keep unchanged surrounding lines:
-
-```rust
---8<-- "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-xray-pick-opacity-04.rs"
-```
-
-### 256. `src/pick_gpu.rs`
-
-Keep the legacy query path opaque when no ordinary lane is present.
-
-**Locate this existing block:**
-
-```rust
-None,&group,&buffer,None,None,None,None)}
-```
-
-Update that block with the supplied code; keep unchanged surrounding lines:
-
-```rust
---8<-- "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-xray-pick-opacity-05.rs"
-```
-
-### 257. `src/pick_gpu.rs`
-
-Accept opacity on the finite query submission path.
-
-**Locate this existing block:**
-
-```rust
-matrices:Option<&crate::production_matrix_gpu::Lane>) {
-```
-
-Update that block with the supplied code; keep unchanged surrounding lines:
-
-```rust
---8<-- "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-xray-pick-opacity-06.rs"
-```
-
-### 258. `src/pick_gpu.rs`
-
-Pass it from query submission into encoding.
-
-**Locate this existing block:**
-
-```rust
-ordinary,matrices,request.transform,request.density)]);
-```
-
-Update that block with the supplied code; keep unchanged surrounding lines:
-
-```rust
---8<-- "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-xray-pick-opacity-07.rs"
-```
-
-### 259. `src/renderer.rs`
-
-Read opacity from the renderer when the request is submitted.
-
-**Locate this existing block:**
-
-```rust
-Some(&self.strokes),Some(&self.matrices)); }
-```
-
-Update that block with the supplied code; keep unchanged surrounding lines:
-
-```rust
---8<-- "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-xray-pick-opacity-08.rs"
-```
-
-### 260. `src/mesh_marker_tests.rs`
-
-Check original-owner queries before the first color frame in each opacity state, then restore exact opaque pixels and unchanged source data.
-
-Supplied validation fixture.
-
-**Locate this existing block:**
-
-```rust
-cement(id).unwrap();s.place(id,Xform::translation(1_000_000_000.125,0.,0.)).unwrap();let prepared=Sources::anchored(&s,[1_000_000_000.,0.,0.]).unwrap();assert_eq!(prepared.mesh_markers[0].center[0],0.125,"Transform after anchoring preserves the source endpoint fraction");s.place(id,old).unwrap();
+    s.place(id, old).unwrap();
 }
 
-```
-
-Update that block with the supplied code; keep unchanged surrounding lines:
-
-```rust
---8<-- "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-xray-marker-query-regression.rs"
+#[test]
+fn actual_xray_rear_marker_queries_follow_opacity_before_color_and_restore() {
+    let mut scene = Scene::empty();
+    let owner = scene
+        .insert(PreparedMesh::new(crate::cap_gpu_tests::source(false)).unwrap())
+        .unwrap();
+    let hidden = session_rust::Line::new(-0.4, 0., -0.9, 0.4, 0., -0.9);
+    scene
+        .insert_line(crate::stroke::PreparedLine::new(Rc::new(hidden)).unwrap())
+        .unwrap();
+    let original = source(&scene);
+    let mut camera = crate::camera::Camera::default();
+    camera.isometric();
+    camera.aspect = 4. / 3.;
+    camera.fit(&scene.bounds().unwrap());
+    let matrix = camera.uniform();
+    let mut gpu = renderer(&scene);
+    gpu.set_lighting(false, false);
+    gpu.set_outlines(false);
+    gpu.set_ambient(false);
+    gpu.set_ink_visibility(crate::ink_ranges::Visibility {
+        edges: true,
+        lines: false,
+        points: false,
+        vertices: true,
+    });
+    gpu.set_display_settings(crate::display_settings::Settings {
+        thickness: 4.,
+        feather: 1.,
+        ..Default::default()
+    });
+    let uploads = gpu.stats()[0];
+    let mut opaque = None;
+    for opacity in [1., 0.5, 0., 1.] {
+        gpu.set_opacity(opacity);
+        for point in [[-0.6, -0.6, -0.8], [0.6, 0.6, -0.8]] {
+            assert_eq!(
+                pick(&mut gpu, &scene, matrix, point, Mode::Object),
+                Some(Target {
+                    owner,
+                    part: Part::Object
+                }),
+                "First original query must follow actual opacity {opacity}"
+            );
+        }
+        let image = pixels_at(&gpu, matrix);
+        if opacity == 1. {
+            if let Some(before) = &opaque {
+                assert_eq!(
+                    &image, before,
+                    "Returning from Xray restores exact opaque pixels"
+                );
+            } else {
+                opaque = Some(image);
+            }
+        }
+        assert_eq!(source(&scene), original);
+        assert_eq!(gpu.stats()[0], uploads);
+    }
+}
 ```
 
 ## Build & Run

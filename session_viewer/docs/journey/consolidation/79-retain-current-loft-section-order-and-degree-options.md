@@ -44,20 +44,6 @@
 </svg>
 </div>
 
-Build exact surfaces from ordered original sections and rails while preserving their source precision.
-
-## Ownership and data flow
-
-Retain section order, orientation and degree options before lofting. One-rail and two-rail sweeps frame profiles on original rails, align corresponding shapes and blend without mutating picked source owners. Freshness and degeneracy checks precede one generated-source transaction. Network station sampling, direction classification, orientation and Gordon blending prepare the two-direction recipe connected in the next lesson; temporary samples remain derived construction data.
-
-## The maintained implementation
-
-app/command/tool/surfacing.rs performs maintained section alignment and surface recipes; verbs/nurbs_surface_loft.rs, nurbs_surface_sweep1.rs and nurbs_surface_sweep2.rs register actual commands. Original session_rust NurbsCurve/NurbsSurface outputs remain authoritative; no display mesh is promoted to the final editable surface.
-
-All production paths above are relative to `session_viewer/src`. The implementation below preserves the runnable teaching sequence. Early `src/renderer.rs`, `src/browser.rs` and local WGSL are staged prerequisites; production drawing remains in `engine/gpu`, `engine/pipelines` and `src/shaders`. Later rendering lessons must converge to those maintained paths.
-
-Production source reference: [app/deform.rs](../../../src/app/deform.rs), [state/edit.rs](../../../src/state/edit.rs), [app/command/tool/gather.rs](../../../src/app/command/tool/gather.rs), [app/command/tool/surfacing.rs](../../../src/app/command/tool/surfacing.rs), [app/walk/mesh.rs](../../../src/app/walk/mesh.rs), [app/walk/brep.rs](../../../src/app/walk/brep.rs), [build.rs](../../../build.rs).
-
 ## <a id="checkpoint-79-retain-current-loft-section-order-and-degree-options"></a>1. Retain current loft section order and degree options
 
 **What this code does:** Retain current loft section order and degree options.

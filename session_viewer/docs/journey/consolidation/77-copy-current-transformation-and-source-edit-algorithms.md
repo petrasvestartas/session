@@ -45,20 +45,6 @@
 </svg>
 </div>
 
-Transform or copy original geometry with precise placements, coherent topology and one reversible source edit.
-
-## Ownership and data flow
-
-Capture selected original identities and question answers before previewing. Whole-object transforms compose placement; exclusive part edits resolve original sparse mesh keys, controls, faces and shared BRep boundaries. Preserve rational weights and hole winding, rebuild derived display privately, and adopt only a valid complete candidate. Copy creates fresh row identity beside the original parent while immutable source owners remain shared when eligible. Subsequent curve-gathering, extrusion/cap and revolution helpers prepare exact kernel recipes; preview samples never replace mathematical sources.
-
-## The maintained implementation
-
-app/deform.rs resolves Target and source control/vertex edits; state/edit.rs and app/command/tool.rs own transient transforms and final adoption. app/command/tool/surfacing.rs and verbs/extrude.rs and nurbs_surface_revolve.rs build original surfaces/solids. app/walk/mesh.rs, mesh_topology.rs and brep.rs derive final display, original-face tables and boundary ink after source changes.
-
-All production paths above are relative to `session_viewer/src`. The implementation below preserves the runnable teaching sequence. Early `src/renderer.rs`, `src/browser.rs` and local WGSL are staged prerequisites; production drawing remains in `engine/gpu`, `engine/pipelines` and `src/shaders`. Later rendering lessons must converge to those maintained paths.
-
-Production source reference: [app/deform.rs](../../../src/app/deform.rs), [state/edit.rs](../../../src/state/edit.rs), [app/command/tool/gather.rs](../../../src/app/command/tool/gather.rs), [app/command/tool/surfacing.rs](../../../src/app/command/tool/surfacing.rs), [app/walk/mesh.rs](../../../src/app/walk/mesh.rs), [app/walk/brep.rs](../../../src/app/walk/brep.rs), [build.rs](../../../build.rs).
-
 ## <a id="checkpoint-77-copy-current-transformation-and-source-edit-algorithms"></a>1. Build directional scale transforms
 
 **What this code does:** Build directional scale transforms.

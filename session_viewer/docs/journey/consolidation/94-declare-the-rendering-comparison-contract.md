@@ -43,20 +43,6 @@
 </svg>
 </div>
 
-Compare actual maintained and course frames under declared identical inputs and preserve differences as evidence.
-
-## Ownership and data flow
-
-A comparison names original source bytes, camera, viewport/DPR, samples, settings, shader/source revision and output encoding before accepting images. Native reference capture reads the maintained renderer without mutating its source. A build or buffer-layout test cannot prove pixel parity, and a previously captured frame is historical when runtime dependencies change. Inspect feature-specific witnesses for real holes, borders, isolines, point density and stroke ends; record unresolved differences rather than inventing a substitute shader or relabeling proposals as results.
-
-## The maintained implementation
-
-selftest.rs and selftest/oracle.rs expose maintained native render reference behavior; engine/gpu/render.rs and actual src/shaders define the frame. build.rs and engine/pipelines/mod.rs control generated shader identity and variant composition. This prose batch captured no frames; current cloud/ink/CAD parity acceptance stays pending the integrator’s matched-witness queue.
-
-All production paths above are relative to `session_viewer/src`. The implementation below preserves the runnable teaching sequence. Early `src/renderer.rs`, `src/browser.rs` and local WGSL are staged prerequisites; production drawing remains in `engine/gpu`, `engine/pipelines` and `src/shaders`. Later rendering lessons must converge to those maintained paths.
-
-Production source reference: [engine/gpu/ssao.rs](../../../src/engine/gpu/ssao.rs), [engine/gpu/ssao/pipelines.rs](../../../src/engine/gpu/ssao/pipelines.rs), [shaders/ssao.wgsl](../../../src/shaders/ssao.wgsl), [shaders/triangle.wgsl](../../../src/shaders/triangle.wgsl), [shaders/ink_visibility.wgsl](../../../src/shaders/ink_visibility.wgsl), [engine/gpu/surface_outline.rs](../../../src/engine/gpu/surface_outline.rs), [engine/gpu/render.rs](../../../src/engine/gpu/render.rs), [engine/performance.rs](../../../src/engine/performance.rs), [engine/gpu/timing.rs](../../../src/engine/gpu/timing.rs), [app/command/tool/elements.rs](../../../src/app/command/tool/elements.rs), [build.rs](../../../build.rs).
-
 ## <a id="checkpoint-94-declare-the-rendering-comparison-contract"></a>1. Declare the rendering comparison contract
 
 **What this code does:** Declare the rendering comparison contract.

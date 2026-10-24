@@ -43,20 +43,6 @@
 </svg>
 </div>
 
-Build original typed Elements from ordered picks and validated dimensions, then retain their feature ownership through history and Save.
-
-## Ownership and data flow
-
-Beam, column, plate, support, variable beam and block builders share positive-length checks while preserving their distinct original geometry. The tool captures eligible source picks and accepts named/bare values as atomic batches; invalid values preserve accepted answers. Completion adopts one original Element and consumes intended sources once. Read-only attributes remain separately identifiable, independently visible and protected from accidental part editing. Archive snapshots write original Element records rather than flattening only their generated mesh.
-
-## The maintained implementation
-
-app/command/tool/elements.rs owns maintained Element input/recipes and app/command/verbs/element_beam.rs and related Element verbs register commands. app/modeling.rs and session_rust Element constructors supply original outputs; app/walk/mod.rs walks geometry/features under actual ancestry, and app/session_io.rs preserves source documents.
-
-All production paths above are relative to `session_viewer/src`. The implementation below preserves the runnable teaching sequence. Early `src/renderer.rs`, `src/browser.rs` and local WGSL are staged prerequisites; production drawing remains in `engine/gpu`, `engine/pipelines` and `src/shaders`. Later rendering lessons must converge to those maintained paths.
-
-Production source reference: [engine/gpu/ssao.rs](../../../src/engine/gpu/ssao.rs), [engine/gpu/ssao/pipelines.rs](../../../src/engine/gpu/ssao/pipelines.rs), [shaders/ssao.wgsl](../../../src/shaders/ssao.wgsl), [shaders/triangle.wgsl](../../../src/shaders/triangle.wgsl), [shaders/ink_visibility.wgsl](../../../src/shaders/ink_visibility.wgsl), [engine/gpu/surface_outline.rs](../../../src/engine/gpu/surface_outline.rs), [engine/gpu/render.rs](../../../src/engine/gpu/render.rs), [engine/performance.rs](../../../src/engine/performance.rs), [engine/gpu/timing.rs](../../../src/engine/gpu/timing.rs), [app/command/tool/elements.rs](../../../src/app/command/tool/elements.rs), [build.rs](../../../build.rs).
-
 ## <a id="checkpoint-92-link-current-wood-element-builders"></a>1. Link current Wood element builders
 
 **What this code does:** Link current Wood element builders.

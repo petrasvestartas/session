@@ -52,20 +52,6 @@
 </svg>
 </div>
 
-Resolve picked cloud pixels to exact original IDs/positions and retain independently placed manifest sources.
-
-## Ownership and data flow
-
-A compact GPU address is not the original u32 point ID. Resolve it through the current original parent and complete resident run before deriving placed f64 coordinates or a local highlight marker. Controls mode selects one original parent; cancelled queries must not retain obsolete sources. Manifest records then validate source keys, names and placements as value data before a later loader adopts them. This separates source version, original point identity and display placement.
-
-## The maintained implementation
-
-app/cloud_query.rs owns maintained original-point queries; app/selection.rs and engine/gpu/pick.rs coordinate point selection, while app/manifest.rs parses source entries and placements. CloudLane Chunk mapping supplies resident rows. The final manifest checkpoints are preparation and do not yet create an additional browser loading workflow.
-
-All production paths above are relative to `session_viewer/src`. The implementation below preserves the runnable teaching sequence. Early `src/renderer.rs`, `src/browser.rs` and local WGSL are staged prerequisites; production drawing remains in `engine/gpu`, `engine/pipelines` and `src/shaders`. Later rendering lessons must converge to those maintained paths.
-
-Production source reference: [engine/gpu/surface_outline.rs](../../../src/engine/gpu/surface_outline.rs), [engine/gpu/cloud.rs](../../../src/engine/gpu/cloud.rs), [engine/gpu/lod.rs](../../../src/engine/gpu/lod.rs), [engine/gpu/splat.rs](../../../src/engine/gpu/splat.rs), [shaders/splat.wgsl](../../../src/shaders/splat.wgsl), [shaders/splat_resolve.wgsl](../../../src/shaders/splat_resolve.wgsl), [app/cloud_query.rs](../../../src/app/cloud_query.rs).
-
 ## <a id="checkpoint-65-originals"></a>1. Resolve source point identities and precise positions
 
 **What this code does:** Resolve source point identities and precise positions.

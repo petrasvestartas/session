@@ -48,20 +48,6 @@
 </svg>
 </div>
 
-Build a demand-sized GPU index of original projected triangles without unbounded allocation or blocking readback.
-
-## Ownership and data flow
-
-A physical tile grid grows its span until the tile count fits. Clip source triangles before perspective division, emit bounded projected records, count conservative tile coverage, scan counts/blocks and fill bounded original-triangle references. Resource owners retain explicit buffers, layouts and pipelines; asynchronous demand reports wake only on completion and justify bounded growth. A source/model/camera witness reuses valid projection and retires obsolete bindings when resources change.
-
-## The maintained implementation
-
-engine/gpu/triangle_tiles.rs owns maintained 96-byte projected records, bounded TileLayout, reference pools and PoolReport readback. src/shaders/project_triangles.wgsl, triangle_tiles.wgsl and scan_triangle_tiles.wgsl supply actual projection/count/scan/fill. build.rs expands each shader include once per output, strips line comments/whitespace and writes OUT_DIR/shaders; pipeline composition must consume that generated source instead of compiling raw #include directives.
-
-All production paths above are relative to `session_viewer/src`. The implementation below preserves the runnable teaching sequence. Early `src/renderer.rs`, `src/browser.rs` and local WGSL are staged prerequisites; production drawing remains in `engine/gpu`, `engine/pipelines` and `src/shaders`. Later rendering lessons must converge to those maintained paths.
-
-Production source reference: [engine/gpu/triangle_tiles.rs](../../../src/engine/gpu/triangle_tiles.rs), [shaders/project_triangles.wgsl](../../../src/shaders/project_triangles.wgsl), [shaders/ink_visibility.wgsl](../../../src/shaders/ink_visibility.wgsl), [shaders/ribbon.wgsl](../../../src/shaders/ribbon.wgsl), [shaders/vector.wgsl](../../../src/shaders/vector.wgsl), [engine/gpu/clip.rs](../../../src/engine/gpu/clip.rs), [shaders/cap.wgsl](../../../src/shaders/cap.wgsl), [engine/gpu/render.rs](../../../src/engine/gpu/render.rs), [engine/gpu/pass.rs](../../../src/engine/gpu/pass.rs), [build.rs](../../../build.rs).
-
 ## <a id="checkpoint-86-copy-finite-tile-allocation-rules"></a>1. Bound the physical tile grid and reference storage
 
 **What this code does:** Bound the physical tile grid and reference storage.

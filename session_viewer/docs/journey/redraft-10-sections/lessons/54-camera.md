@@ -489,22 +489,6 @@ pub fn key(
         }
         match text.to_ascii_lowercase().as_str() {
             "z" if shift => Some(Shortcut::Redo),
-            "z" => Some(Shortcut::Undo),
-            "y" => Some(Shortcut::Redo),
-            _ => None,
-        }
-    } else if !focused {
-        match text.to_ascii_lowercase().as_str() {
-            "f" => Some(Shortcut::Fit),
-            "h" => Some(Shortcut::Hide),
-            "s" => Some(Shortcut::Show),
-            "delete" => Some(Shortcut::Delete),
-            _ => None,
-        }
-    } else {
-        None
-    }
-}
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
@@ -547,48 +531,6 @@ pub fn key(
         match text.to_ascii_lowercase().as_str() {
             "a" => Some(Shortcut::SelectAll),
             "z" if shift => Some(Shortcut::Redo),
-            "z" => Some(Shortcut::Undo),
-            "y" => Some(Shortcut::Redo),
-            _ => None,
-        }
-    } else if !focused {
-        match text.to_ascii_lowercase().as_str() {
-            "f" => Some(Shortcut::Fit),
-            "h" => Some(Shortcut::Hide),
-            "s" => Some(Shortcut::Show),
-            "delete" => Some(Shortcut::Delete),
-            _ => None,
-        }
-    } else {
-        None
-    }
-}
-
-pub fn context_key(
-    context: &egui::Context,
-    command_text: &str,
-    text: &str,
-    command: bool,
-    shift: bool,
-    alt: bool,
-    composing: bool,
-) -> Option<Shortcut> {
-    if egui::Popup::is_any_open(context) {
-        return None;
-    }
-    let empty_command = context.memory(|memory| memory.focused())
-        == Some(egui::Id::new("command-input"))
-        && command_text.is_empty();
-    key(
-        text,
-        command,
-        shift,
-        alt,
-        composing,
-        context.egui_wants_keyboard_input(),
-        empty_command,
-    )
-}
 ```
 
 ### 2. `src/object_selection.rs`

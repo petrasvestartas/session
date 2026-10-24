@@ -45,20 +45,6 @@
 </svg>
 </div>
 
-Address shared triangles independently from selection while updating only changed instance/object runs.
-
-## Ownership and data flow
-
-Slot zero means use a geometry row’s own owner; explicit slots substitute independent instance rows and physical triangle bases. A lookup texture maps physical addresses through live slot/triangle runs. Reuse/merge retired slots, preserve headroom and publish only changed member runs; projection uses physical triangle addresses rather than selected-object order. Object record updates and Arctic background changes retain immutable shared geometry. Ordinary/instanced opaque and transparent draws consume current original owner properties without flattening definitions.
-
-## The maintained implementation
-
-engine/gpu/slots.rs defines Slot=[u32;2], OWN_ROW=u32::MAX, Slots/SlotSpace/SlotTable and integer lookup texels. scene_instances.rs retains definition batches/member identities, and instanced.rs writes changed slots then invalidates triangle tiles/object geometry. objects.rs owns packed instances plus translation/flags. Course shared-record tables introduce these dependencies but are not proof of identical production table schemas.
-
-All production paths above are relative to `session_viewer/src`. The implementation below preserves the runnable teaching sequence. Early `src/renderer.rs`, `src/browser.rs` and local WGSL are staged prerequisites; production drawing remains in `engine/gpu`, `engine/pipelines` and `src/shaders`. Later rendering lessons must converge to those maintained paths.
-
-Production source reference: [engine/gpu/arena.rs](../../../src/engine/gpu/arena.rs), [engine/gpu/buffers.rs](../../../src/engine/gpu/buffers.rs), [engine/gpu/objects.rs](../../../src/engine/gpu/objects.rs), [engine/gpu/slots.rs](../../../src/engine/gpu/slots.rs), [engine/gpu/instanced.rs](../../../src/engine/gpu/instanced.rs), [engine/gpu/faces.rs](../../../src/engine/gpu/faces.rs), [engine/gpu/clip.rs](../../../src/engine/gpu/clip.rs), [engine/gpu/triangle_tiles.rs](../../../src/engine/gpu/triangle_tiles.rs), [app/scene_sync/tombs.rs](../../../src/app/scene_sync/tombs.rs), [build.rs](../../../build.rs).
-
 ## <a id="checkpoint-96zzu-separate-primitive-addresses-from-selection"></a>1. Separate primitive addresses from selection
 
 **What this code does:** Keep full primitive addresses in the range record while selection remains an independent flag.

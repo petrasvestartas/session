@@ -44,20 +44,6 @@
 </svg>
 </div>
 
-Keep stable owner rows while every query/projection/cap consumer follows the current shared-record schema.
-
-## Ownership and data flow
-
-A live object’s record identity survives unrelated insertions and removals. Integer object/face picks resolve original owners through checked current records, not memory addresses or selection indices. Ambient properties occupy declared fields. Shared shader declarations then feed triangle projection, cap crossing counts and exact cap picks with the same arena, plane and source-owner bindings. The first pick must prepare these dependencies even before colour has drawn; layout compatibility alone does not establish current cap pixels.
-
-## The maintained implementation
-
-engine/gpu/objects.rs owns maintained row properties; faces.rs resolves original face metadata, triangle_tiles.rs projects shared geometry and clip.rs owns crossing/pick records. src/shaders/scene.wgsl, triangle.wgsl and cap.wgsl carry actual production declarations, expanded by build.rs and specialized through engine/pipelines/mod.rs. Retained interim record pipelines remain staging where they differ.
-
-All production paths above are relative to `session_viewer/src`. The implementation below preserves the runnable teaching sequence. Early `src/renderer.rs`, `src/browser.rs` and local WGSL are staged prerequisites; production drawing remains in `engine/gpu`, `engine/pipelines` and `src/shaders`. Later rendering lessons must converge to those maintained paths.
-
-Production source reference: [engine/gpu/arena.rs](../../../src/engine/gpu/arena.rs), [engine/gpu/buffers.rs](../../../src/engine/gpu/buffers.rs), [engine/gpu/objects.rs](../../../src/engine/gpu/objects.rs), [engine/gpu/slots.rs](../../../src/engine/gpu/slots.rs), [engine/gpu/instanced.rs](../../../src/engine/gpu/instanced.rs), [engine/gpu/faces.rs](../../../src/engine/gpu/faces.rs), [engine/gpu/clip.rs](../../../src/engine/gpu/clip.rs), [engine/gpu/triangle_tiles.rs](../../../src/engine/gpu/triangle_tiles.rs), [app/scene_sync/tombs.rs](../../../src/app/scene_sync/tombs.rs), [build.rs](../../../build.rs).
-
 ## <a id="checkpoint-96zzzs-allocate-stable-object-record-rows"></a>1. Allocate stable object record rows
 
 **What this code does:** Prepare bounded row reuse without moving surviving originals.

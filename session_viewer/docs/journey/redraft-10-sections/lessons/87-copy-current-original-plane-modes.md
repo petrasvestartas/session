@@ -2933,7 +2933,7 @@ Connect matching source ownership and derived clipping.
 
 ```wgsl
 @group(1) @binding(0) var<uniform> object:Object;
-@vertex fn vertex(@location(0) position:vec3<f32>)->@builtin(position) vec4<f32> {return view.transform*object.model*vec4<f32>(position,1.0);}
+@vertex fn vertex(@location(0) position:vec3<f32>)->@builtin(position) vec4<f32> {let world=object.model*vec4<f32>(position,1.0);return view.transform*world;}
 @fragment fn fragment()->@location(0) vec4<f32> {return vec4<f32>(1.0);}
 ```
 

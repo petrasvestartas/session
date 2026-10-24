@@ -43,20 +43,6 @@
 </svg>
 </div>
 
-Reduce actual current surface depth/contact metadata into bounded cached levels for ambient shading.
-
-## Ownership and data flow
-
-Prepare linear depth and original radius addresses at a density-aware reduced resolution. One owner retains six actual depth/radius levels, their targets and preparation/nearest-depth pipelines. A full input witness invalidates work only when source images, view or relevant metadata changes. Encoded reductions and allocation diagnostics describe real GPU resources; Close releases them. These levels are derived render data, not a second source geometry representation.
-
-## The maintained implementation
-
-engine/gpu/ssao.rs owns maintained reduced/full images and pipeline caches; ssao/pipelines.rs defines actual layouts and passes. src/shaders/ambient_depth.wgsl and depth-reduction dependencies consume real source depth. Course forward-depth adapters stage the maintained depth convention; they do not establish final ambient parity.
-
-All production paths above are relative to `session_viewer/src`. The implementation below preserves the runnable teaching sequence. Early `src/renderer.rs`, `src/browser.rs` and local WGSL are staged prerequisites; production drawing remains in `engine/gpu`, `engine/pipelines` and `src/shaders`. Later rendering lessons must converge to those maintained paths.
-
-Production source reference: [engine/gpu/ssao.rs](../../../src/engine/gpu/ssao.rs), [engine/gpu/ssao/pipelines.rs](../../../src/engine/gpu/ssao/pipelines.rs), [shaders/ssao.wgsl](../../../src/shaders/ssao.wgsl), [shaders/triangle.wgsl](../../../src/shaders/triangle.wgsl), [shaders/ink_visibility.wgsl](../../../src/shaders/ink_visibility.wgsl), [engine/gpu/surface_outline.rs](../../../src/engine/gpu/surface_outline.rs), [engine/gpu/render.rs](../../../src/engine/gpu/render.rs), [engine/performance.rs](../../../src/engine/performance.rs), [engine/gpu/timing.rs](../../../src/engine/gpu/timing.rs), [app/command/tool/elements.rs](../../../src/app/command/tool/elements.rs), [build.rs](../../../build.rs).
-
 ## <a id="checkpoint-89-copy-density-scaled-depth-reduction"></a>1. Reduce depth and radius at a bounded display resolution
 
 **What this code does:** Write the density policy and nearest-positive depth/radius reduction.

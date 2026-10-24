@@ -5554,7 +5554,53 @@ Replace it with:
 
 **What this code does:** Exercise layers shortcuts colours and exact source ownership.
 
-### 1. `src/command_dock/mod.rs`
+### 1. `src/shortcuts.rs`
+
+Add field-aware Select All alongside the already taught history and H/S/F keys.
+
+**Locate this existing block:**
+
+```rust
+        None
+    }
+}
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```rust
+        None
+    }
+}
+
+pub fn context_key(
+    context: &egui::Context,
+    command_text: &str,
+    text: &str,
+    command: bool,
+    shift: bool,
+    alt: bool,
+    composing: bool,
+) -> Option<Shortcut> {
+    if egui::Popup::is_any_open(context) {
+        return None;
+    }
+    let empty_command = context.memory(|memory| memory.focused())
+        == Some(egui::Id::new("command-input"))
+        && command_text.is_empty();
+    key(
+        text,
+        command,
+        shift,
+        alt,
+        composing,
+        context.egui_wants_keyboard_input(),
+        empty_command,
+    )
+}
+```
+
+### 2. `src/command_dock/mod.rs`
 
 Request command focus once; an open dock must allow the layer name to own typing. Show completions only while their actual field owns focus. Keep Escape with its focused field; an open dock is not keyboard ownership.
 
@@ -5624,7 +5670,7 @@ Replace it with:
             command_cursor_end(ui.ctx(), id, &model.command);
 ```
 
-### 2. `src/view_flags_tests.rs`
+### 3. `src/view_flags_tests.rs`
 
 Copy the full source ownership, history and actual control regressions.
 
@@ -5920,7 +5966,7 @@ fn parent_lamp_preserves_child_visibility_and_child_lamps() {
 }
 ```
 
-### 3. `src/lib.rs`
+### 4. `src/lib.rs`
 
 Register the new source component.
 
@@ -5943,7 +5989,7 @@ pub mod layer_palette;
 mod view_flags_tests;
 ```
 
-### 4. `src/layer_edit_tests.rs`
+### 5. `src/layer_edit_tests.rs`
 
 Copy the full source ownership, history and actual control regressions.
 
@@ -6416,7 +6462,7 @@ fn portable_tree_identity_is_stable_across_repeated_saves_and_distinct_across_im
 }
 ```
 
-### 5. `src/lib.rs`
+### 6. `src/lib.rs`
 
 Register the new source component.
 
@@ -6437,7 +6483,7 @@ mod view_flags_tests;
 mod layer_edit_tests;
 ```
 
-### 6. `src/layer_ui_tests.rs`
+### 7. `src/layer_ui_tests.rs`
 
 Copy the full source ownership, history and actual control regressions.
 
@@ -6836,7 +6882,7 @@ fn an_open_command_dock_does_not_steal_layer_editing_focus() {
 }
 ```
 
-### 7. `src/lib.rs`
+### 8. `src/lib.rs`
 
 Register the new source component.
 
@@ -6857,7 +6903,7 @@ mod layer_edit_tests;
 mod layer_ui_tests;
 ```
 
-### 8. `src/pick_gpu_tests.rs`
+### 9. `src/pick_gpu_tests.rs`
 
 Copy the actual GPU colour, independent channel and geometry-reuse regression.
 

@@ -1082,6 +1082,26 @@ fn actual_nested_rotated_and_mirrored_definition_placements_keep_independent_int
 }
 ```
 
+### 5. `src/outline_mask.wgsl`
+
+Use the same model-then-view projection as visible geometry so selected coverage tests the same surface depth.
+
+**Locate this existing block:**
+
+```wgsl
+@group(1) @binding(0) var<uniform> object:Object;
+@vertex fn vertex(@location(0) position:vec3<f32>)->@builtin(position) vec4<f32> {return view.transform*object.model*vec4<f32>(position,1.0);}
+@fragment fn fragment()->@location(0) vec4<f32> {return vec4<f32>(1.0);}
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```wgsl
+@group(1) @binding(0) var<uniform> object:Object;
+@vertex fn vertex(@location(0) position:vec3<f32>)->@builtin(position) vec4<f32> {let world=object.model*vec4<f32>(position,1.0);return view.transform*world;}
+@fragment fn fragment()->@location(0) vec4<f32> {return vec4<f32>(1.0);}
+```
+
 ## <a id="checkpoint-70za-read-original-sheet-metadata-records"></a>6. Read sheet metadata records
 
 **What this code does:** Describe the original sheet side-table layout and entity identity fields.
@@ -1197,7 +1217,7 @@ pub mod sheet_entity;
 
 ## Build & Run
 
-![Recorded visual output for Lesson 13.3 (70d-exercise-rotated-and-mirrored-original-references)](../../../screenshots/journey/70d-exercise-rotated-and-mirrored-original-references.png)
+![Recorded visual output for Lesson 13.3 (70d-exercise-rotated-and-mirrored-original-references)](../../../screenshots/journey/70d-exercise-rotated-and-mirrored-original-references-browser.png)
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 13.3

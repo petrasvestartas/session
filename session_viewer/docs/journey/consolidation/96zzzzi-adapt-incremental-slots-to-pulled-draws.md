@@ -45,20 +45,6 @@
 </svg>
 </div>
 
-Reuse retired arena ranges only after their last GPU lease while keeping physical lookup and projection coherent.
-
-## Ownership and data flow
-
-One plan coordinates current member runs, draw slots and integer lookup publication. Separate projection-row identity from physical arena offset so reused storage cannot inherit a stale owner. Changed source/instance membership updates live lookup-selected triangle projection and replaces dependent bindings in one ownership boundary. Arena span planning merges reusable holes, uploads reused ranges in place and trims a dead tail without rewriting live prefixes. An outstanding GPU/display lease prevents premature reclamation even after the document row retires.
-
-## The maintained implementation
-
-engine/gpu/slots.rs and instanced.rs are maintained slot/allocation owners; arena.rs, buffers.rs and app/scene_sync/tombs.rs retain actual live/tombed geometry. Production uses lane footprints, tomb budgets and compaction in scene_sync rather than assuming the learner arena-lease allocator is its exact implementation. Reclamation parity requires an owner/source audit and current resource checks, not only the staged allocator’s own tests.
-
-All production paths above are relative to `session_viewer/src`. The implementation below preserves the runnable teaching sequence. Early `src/renderer.rs`, `src/browser.rs` and local WGSL are staged prerequisites; production drawing remains in `engine/gpu`, `engine/pipelines` and `src/shaders`. Later rendering lessons must converge to those maintained paths.
-
-Production source reference: [engine/gpu/arena.rs](../../../src/engine/gpu/arena.rs), [engine/gpu/buffers.rs](../../../src/engine/gpu/buffers.rs), [engine/gpu/objects.rs](../../../src/engine/gpu/objects.rs), [engine/gpu/slots.rs](../../../src/engine/gpu/slots.rs), [engine/gpu/instanced.rs](../../../src/engine/gpu/instanced.rs), [engine/gpu/faces.rs](../../../src/engine/gpu/faces.rs), [engine/gpu/clip.rs](../../../src/engine/gpu/clip.rs), [engine/gpu/triangle_tiles.rs](../../../src/engine/gpu/triangle_tiles.rs), [app/scene_sync/tombs.rs](../../../src/app/scene_sync/tombs.rs), [build.rs](../../../build.rs).
-
 ## <a id="checkpoint-96zzzzi-adapt-incremental-slots-to-pulled-draws"></a>1. Adapt incremental slots to pulled draws
 
 **What this code does:** Keep physical triangle bases correct when pulled draws begin at local occurrence zero.

@@ -54,20 +54,6 @@
 </svg>
 </div>
 
-Reserve memory before reading and draw shared current pages at independent placements within a finite budget.
-
-## Ownership and data flow
-
-Reserve temporary and retained page bytes before decoding; pinned coarse pages and live GPU/page references cannot be evicted merely because a cache entry is old. Evict only unpinned least-recently-used pages, reject stale source generations and bound prefix/decode work. Original attributes and metadata remain attached to each page owner; compact picks resolve through current source intervals. Draw rows borrow resident/streamed page owners, update before evicted addresses are reused and stop follow-up work when the publication owner closes. Encoding/revision conflicts reject the candidate rather than mixing unrelated byte versions.
-
-## The maintained implementation
-
-app/loader.rs implements maintained point/segment ceilings, coarse/prefix loading, generation checks and follow-up StreamCursor/SheetCursor work; app/stream.rs validates source layouts and app/fetch.rs bounds reads. CloudLane and segments.rs own actual resident GPU buffers. The course charged-page/LRU ownership model is staged; maintained loader currently tracks point/segment ceilings and whole-file byte budgets, so identical generic byte-eviction semantics are not established by those production owners.
-
-All production paths above are relative to `session_viewer/src`. The implementation below preserves the runnable teaching sequence. Early `src/renderer.rs`, `src/browser.rs` and local WGSL are staged prerequisites; production drawing remains in `engine/gpu`, `engine/pipelines` and `src/shaders`. Later rendering lessons must converge to those maintained paths.
-
-Production source reference: [app/manifest.rs](../../../src/app/manifest.rs), [app/session_io.rs](../../../src/app/session_io.rs), [app/stream.rs](../../../src/app/stream.rs), [app/range_gate.rs](../../../src/app/range_gate.rs), [app/fetch.rs](../../../src/app/fetch.rs), [app/loader.rs](../../../src/app/loader.rs), [app/live.rs](../../../src/app/live.rs).
-
 ## <a id="checkpoint-68-reserve-page-bytes-before-reading"></a>1. Reserve page bytes before reading
 
 **What this code does:** Reserve page bytes before reading.

@@ -874,7 +874,7 @@ mod freeform_tests;
 
 ## Build & Run
 
-![Recorded visual output for Lesson 14.6 (76d-exercise-exact-curves-and-rational-control-edits)](../../../screenshots/journey/76d-exercise-exact-curves-and-rational-control-edits.png)
+![Recorded visual output for Lesson 14.6 (76d-exercise-exact-curves-and-rational-control-edits)](../../../screenshots/journey/76d-exercise-exact-curves-and-rational-control-edits-browser.png)
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 14.6
