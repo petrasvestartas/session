@@ -545,6 +545,19 @@
         "productionDarkenedGroundPixels": 10273,
         "courseDarkenedGroundPixels": 10273,
         "authoredRuntimeChanged": false
+      },
+      "authenticCandidate": {
+        "status": "PASS two exact fullRGBA pairs; authored integration pending",
+        "record": "release/ambient-pedestal-qualified-native-review.json",
+        "privateCandidateFingerprint": "5d114c4e187c05f90c293a23a3212cdc0faa26af4c28d2743f93aaadf9c5dbda",
+        "canonicalProspectiveBeforeRegressionFingerprint": "08ec582924272b9ba197074fbc90f1e974180ab67db920421ed751f2063603fa",
+        "offChangedPixels": 0,
+        "onChangedPixels": 0,
+        "maxChannelDelta": 0,
+        "groundContactPixelsBoth": 10273,
+        "elapsedSeconds": 7.041,
+        "authoredRuntimeChanged": false,
+        "normalCacheInference": "Earlier V5 no-effect inference withdrawn: actual shared Cargo cache reused an earlier library. This candidate has verified unique compiled/link artifact and embedded shader bindings."
       }
     }
   },

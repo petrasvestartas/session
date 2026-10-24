@@ -1,0 +1,56 @@
+{
+  "derivation": "currentnativeCamera::default;isometric;aspect4/3;fit actual rawPBsourcebounds;uniform()",
+  "matrix_f32": [
+    1.125,
+    0.4330126941204071,
+    -4.33017021350679e-6,
+    0.4330126941204071,
+    -0.6495190262794495,
+    0.75,
+    -7.50007484384696e-6,
+    0.75,
+    -3.6055548895377846e-17,
+    1.5,
+    5.000049895897973e-6,
+    -0.5,
+    1.95646342009137e-13,
+    -202.5,
+    0.23175187408924103,
+    2649.9951171875
+  ],
+  "matrix_f32_bits": [
+    1066401792,
+    1054716887,
+    3062975457,
+    1054716887,
+    3206956769,
+    1061158912,
+    3069946151,
+    1061158912,
+    2753971937,
+    1069547520,
+    916964890,
+    3204448256,
+    710690616,
+    3276439552,
+    1047351389,
+    1160093676
+  ],
+  "native_scene_units": "millimeters through canonical currentnative Camera::uniform; identical unmodified f32 MVP supplied bothruntimes",
+  "scope": "New declared pose derived once fromactualsource, not a retained numerical pose or camera search",
+  "source_bounds_max": [
+    750.0,
+    750.0,
+    820.0
+  ],
+  "source_bounds_min": [
+    -750.0,
+    -750.0,
+    -550.0
+  ],
+  "source_pb_sha256": "8d952b0ac17ebf0bb7c20704b45b95acbe5b4395ff809a38baacaad93de4bed5",
+  "viewport": [
+    640,
+    480
+  ]
+}
