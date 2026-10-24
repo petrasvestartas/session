@@ -16,7 +16,7 @@ Earlier V4 images retain their source-bound history: [review](../../session_view
 
 - [ ] **7. Recovery: mask repair and full Chapter 13 callback pass.** Root reviewed the fresh final mirrored-triangle image clean; old outer-status failure and diagnostic evidence remain preserved. The typing experiment passes all 8 cases but its frozen-harness change still awaits authorization. [Full Chapter 13 proof](../../session_viewer/docs/journey/release/70d-browser-review.json), [clean final image](../../session_viewer/docs/journey/release/70d-current-mirrored-final.png), [original failure](../../session_viewer/docs/journey/release/70d-browser-failure-review.json).
 
-- [ ] **8. Final release: 0/5 gates closed.** The corrected checkpoint 97 now passes fresh WASM, optimized packaging and its original DPR 1/2 NVIDIA callback; the earlier duplicate-export failure remains preserved. The compiler refresh is complete. The current Chapter 14 callback and finite Sheet criteria now pass. The original current Chapter 13 callback now passes on NVIDIA with unchanged canonical typing; its final image was reviewed clean. There are 13 callbacks left in total. Existing startup Escape assertions are qualified within retained legacy-body failures; no whole legacy-body acceptance is claimed. The actual final713 quality/lost-device recovery callback now passes within its recorded scope; no whole Startup feature closure. Finish remaining source-specific and publication obligations, then the combined-book handoff. Gemini's first-ten-chapter work stays under its existing ownership.
+- [ ] **8. Final release: 1/5 gates closed; 4 remain.** The independently audited frozen-runtime Native/WASM/optimized-build gate is done at fef4/713 and current maintained714. [Build-gate review](../../session_viewer/docs/journey/release/final-runtime-build-gate-review.json). The corrected checkpoint 97 now passes fresh WASM, optimized packaging and its original DPR 1/2 NVIDIA callback; the earlier duplicate-export failure remains preserved. The compiler refresh is complete. The current Chapter 14 callback and finite Sheet criteria now pass. The original current Chapter 13 callback now passes on NVIDIA with unchanged canonical typing; its final image was reviewed clean. There are 13 callbacks left in total. Existing startup Escape assertions are qualified within retained legacy-body failures; no whole legacy-body acceptance is claimed. The actual final713 quality/lost-device recovery callback now passes within its recorded scope; no whole Startup feature closure. Finish remaining source-specific and publication obligations, then the combined-book handoff. Gemini's first-ten-chapter work stays under its existing ownership.
 
 
 
@@ -24,7 +24,7 @@ Earlier V4 images retain their source-bound history: [review](../../session_view
 
 **Slot callback remains unaccepted.** The original 96zzo run failed at the vertex-pulling selected-pixel comparison after 136.971s; all five build phases and its native image pass separately. Focused original/candidate checks reproduce selection 4 to empty versus 4 to 4 at DPR1/2, retaining every assertion. The one-line frozen-harness exception is pending and has not been applied. [Original failure and focused evidence](../../session_viewer/docs/journey/release/96zzo-browser-failure-review.json), [catch-page diagnostic](../../session_viewer/docs/journey/release/96zzo-original-browser-failure-diagnostic.png).
 
-Current guarded job: the original 80d NVIDIA browser callback (21936), after all five source402 build phases passed and its native image was reviewed. It uses 6GiB and two CPUs; no 80d callback acceptance yet.
+Current guarded job: none. The original 80d NVIDIA browser callback (21936) failed after 561.265 seconds at the GPU-pick check following Zoom In. Its five build phases and reviewed native image remain accepted within their scopes. A focused diagnosis is being prepared; no 80d callback acceptance yet.
 
 The detailed notes below preserve earlier source-bound results. The current counts above govern; later edits do not relabel those historical executions.
 
@@ -40,7 +40,7 @@ The detailed notes below preserve earlier source-bound results. The current coun
 | Display comparisons | 4/18 feature groups complete: Matrix, Camera/Plane, Joined and Sheet/text. Recorded Plane, CAD, ink and material comparisons retain their exact scopes | 14 partial feature checklists; source-specific callbacks, unproved controls and CAD/NURBS isolines remain | In progress |
 | Reload and held grid | 4/4 maintained/course by route/live cases pass; all original assertions retained. The separate chapter 14 callback now also passes | 0 reload/grid combinations left | Done within recorded scope |
 | Chapter visual acceptance | Current chapters13/14,maintained97,finalCAD and96v callbacks accepted;96y fixture proof retained separately | 13/18 source-specific callbacks remain: 10 historical and 3 late display entries; Slot original failure retained, candidate exception pending. Preserve Gemini chapters 1-10 | In progress |
-| Final release | Local docs/navigation/SVG/desktop/phone proofs and source-history checks pass within their recorded scopes | 0/5 final gates closed: matching final source/builds, runnable checkpoints, feature coverage, navigation/history, final browser inspection/publication | In progress |
+| Final release | Frozen current runtime Native/WASM/optimized build gate passes; local docs/navigation/visual proofs retain their source scopes | 1/5 final gates closed: runtime/build gate done; runnable checkpoints, feature coverage, navigation/history and final browser inspection/publication remain | In progress |
 
 These counts overlap and are not a completion percentage or session estimate. Check `session_viewer/docs/journey/consolidation/current-state.json` for current manifests. Root integrates and publishes; agents own bounded non-overlapping evidence and progress tasks. Only one heavy build/GPU/browser job runs at once, with two CPUs and the authorized memory overrides.
 
@@ -155,13 +155,15 @@ Software GPU measurements must be labelled as such; they are not hardware FPS cl
 
 Completed finite browser batch:75.783s,626,356,224B; all original assertions retained after approved input-helper and valid fixture corrections. Original finite Camera/Plane criteria are complete; required76d source-specific browser proof remains pending.
 
-## C. Final integration — 0/5 final gates passed
+## C. Final integration - 1/5 final gates passed
 
-- [ ] Freeze the integrated runtime and pass the final Native/WASM/optimized build checks.
+- [x] Freeze the integrated runtime and pass the final Native/WASM/optimized build checks.
 - [ ] Pass all declared runnable-checkpoint checks against their actual final inputs.
 - [ ] Close every feature row in the production/lesson coverage map with truthful source and visual evidence.
 - [ ] Verify final navigation, aliases and complete source history/checkpoint preservation.
 - [ ] Publish locally, inspect the final book and report counts, measurements and remaining limitations.
+
+Gate 1 is complete at frozen handwritten fef4/713 and maintained06359/714: actual Native1,062/1,062, matching WASM/optimized builds,433 dependency inputs and exact maintained native-cfg qualification. [Independent build-gate review](../../session_viewer/docs/journey/release/final-runtime-build-gate-review.json). The other four gate literals remain unchecked; later runtime/dependency/build-input changes require affected-proof reassessment.
 
 The current docs build is a valid baseline for stage A. It is not a substitute for this final pass after runtime changes.
 

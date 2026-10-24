@@ -1,0 +1,166 @@
+{
+  "status": "PASS independent final release gate1: frozen integrated runtime and final Native/WASM/optimized build checks",
+  "criterion": {
+    "gate": 1,
+    "plan": "../docs/plans/2026-10-18-viewer-course-progress.md",
+    "section": "C. Final integration",
+    "literal": "Freeze the integrated runtime and pass the final Native/WASM/optimized build checks."
+  },
+  "currentFrozenSources": [
+    {
+      "id": "96zzzzzzzq-draw-original-cad-wire-curves",
+      "files": 713,
+      "sourceFingerprint": "fef4c7bdb6f4c0a6f7a7701b0ba5581469dd757a34eefbab030a06e92ce4e5a1",
+      "sourceSignature": "c39e50938c22157a7883b49fe1c56912c03c703cc2291e0f4152183c3de8153c"
+    },
+    {
+      "id": "97-finish-with-the-maintained-browser-runtime",
+      "files": 714,
+      "sourceFingerprint": "06359f77b5c26901e6d6e155808ce05946282865b10fffdf4e36e07c494ba3ce",
+      "sourceSignature": "c9091018e8d705c85767ce38f04b110eb091b88ff3abca4224aa47b9a64ed0d6"
+    }
+  ],
+  "sourceBoundAudit": {
+    "path": "target/course-windows-20261018/final-runtime-build-gate-audit/audit.json",
+    "sha256": "c339faf2eebb6817e3037d42b42ee8ce18b8fa57133431e36e5032cbcd7d7259"
+  },
+  "verifiedInputChain": {
+    "handwrittenNative": {
+      "record": {
+        "path": "docs/journey/release/native-final-two-fixture-integration-review.json",
+        "sha256": "766ac193897db4bd633201967358fe4f4a7dd19a712bb6e73f72226ee3ee965f"
+      },
+      "sourceFreeze": {
+        "path": "target/course-windows-20261018/native-full-two-fixture-20261024T033650211Z/source-freeze.json",
+        "sha256": "aa50954e1f19244b28c1680a861794d00b222fece32f7d6715c794efccb558d4"
+      },
+      "currentFiles": 713,
+      "externalInventoryEntries": 433,
+      "lockSha256": "1df9f908a4aead0990495bcf505176ab0842191051943e422635b28f23ccab94",
+      "tests": {
+        "passed": 1062,
+        "failed": 0,
+        "ignored": 0,
+        "measured": 0,
+        "filtered": 0,
+        "uniqueNames": 1062,
+        "threads": 1,
+        "exactOriginal1060PlusTwo": true
+      },
+      "resources": {
+        "path": "target/course-windows-20261018/native-full-two-fixture-20261024T033650211Z/run.resources.json",
+        "sha256": "fd6ae8dfe5f8c177cb05de636ed8e235cef09e89ec7d862f77ed1424946af850"
+      },
+      "executedBinary": {
+        "path": "target/course-windows-20261018/native-checkpoint/native-full-two-fixture-20261024T033650211Z.exe",
+        "sha256": "fafd3ad989770a5e96be30a3ad0780dd423e3b17d747c735de4d92b3e1304aa2"
+      }
+    },
+    "handwrittenWasm": {
+      "record": {
+        "path": "docs/journey/release/final-fef4-artifact-review.json",
+        "sha256": "59be90667e771cef30162b2751deddbf01fdde539e1620abb3f1f96c85263c34"
+      },
+      "acceptance": {
+        "path": "target/course-windows-20261018/final-two-fixture-web-preparation/wasm-20261024T000324659Z/acceptance.json",
+        "sha256": "5735da32d0bf7116c3adcbbd4d1a10e3945da162446e48bc0279aafda215eddc"
+      },
+      "command": {
+        "path": "target/course-windows-20261018/final-two-fixture-web-preparation/wasm-20261024T000324659Z/command.json",
+        "sha256": "c1d5e24ab2963970f0cb0e5443a98dda18c1ffd7ea0d63dace3bf7ef81f056bc"
+      },
+      "resources": {
+        "path": "target/course-windows-20261018/final-two-fixture-web-preparation/wasm-20261024T000324659Z/resources.json",
+        "sha256": "71c2f3f40619d473cf92c7cc6586e0e983c60ded18c90c670cca8690b8f63989"
+      },
+      "originalOutputSha256": "d1d0596625dee42ea6019ef16fde02f0c2e9e89261c40264567d7d7befeea477",
+      "retentionQualification": "Build-check success stays valid although later legitimatecheckpoint builds overwrite shareddebugcache. Originalcommands/log/acceptance/resourceSHA retained; independently retained currentfef4 optimizedWASM/JS payloads remain exact. No needrerun solely to restore cache."
+    },
+    "handwrittenOptimized": {
+      "provenance": {
+        "path": "target/course-checks/windows-final-two-fixture-isolation-v2/final-two-fixture-build-provenance.json",
+        "sha256": "1f65fdeb19dccba1441e281c46dfd51feb9cf09d46241fe94a4e0596bf852416"
+      },
+      "command": {
+        "path": "target/course-windows-20261018/final-two-fixture-web-preparation/web-tool-path-v2-20261024T001152573Z/command.json",
+        "sha256": "79d1428ed6c2149b3ee9b9675b0707a94501f0690b29cffc0540d2780596b204"
+      },
+      "resources": {
+        "path": "target/course-windows-20261018/final-two-fixture-web-preparation/web-tool-path-v2-20261024T001152573Z/resources.json",
+        "sha256": "4a1798debd590541aadb45cd1e1a6a3fff222c944b442d843d0943226e992423"
+      },
+      "sourceFingerprint": "fef4c7bdb6f4c0a6f7a7701b0ba5581469dd757a34eefbab030a06e92ce4e5a1",
+      "retainedPayloads": 16,
+      "relevance": "Originalcourse metadata d4ab versuscurrent3670 differs through historical70mask correction plus97WASMexport-only correction; independently exactcurrentfinal713 files/fingerprint unchangedfef4. No wholecourseSHA relabelling."
+    },
+    "maintained714": {
+      "record": {
+        "path": "docs/journey/release/maintained97-export-recovery-review.json",
+        "sha256": "576ab6182909bf0c558dea42e64424518c19f4069bf0a421f0a9544ea6dab019"
+      },
+      "build": {
+        "path": "target/course-windows-20261018/maintained97-proportional-phases/maintained97-export-recovery-v2/proof.json",
+        "sha256": "a22558948adfd8b7257b8cc06929c687e613e78293aff55fc6d979cfbac03c66"
+      },
+      "currentSourceFingerprint": "06359f77b5c26901e6d6e155808ce05946282865b10fffdf4e36e07c494ba3ce",
+      "nativeCfgReuse": {
+        "receipt": {
+          "path": "target/course-windows-20261018/maintained97-proportional-phases/export-recovery/recovery.json",
+          "sha256": "523eae8501a6ee3f4aadeabd53b032e1fa3e1f5d10f1a2cd47910396ffe12140"
+        },
+        "equivalence": {
+          "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\maintained97-proportional-phases\\export-recovery\\application-equivalence.json",
+          "sha256": "028c3549af71a7f01114427a74ade6142aa90a4d767afd27ea0b83d2606ce5c8"
+        }
+      },
+      "nativeEquivalence": {
+        "onlyChangedFile": "src/browser_runtime.rs",
+        "moduleExcludedOnNative": true,
+        "allOther713FileTextsEqual": true,
+        "cargoAndLockUnchanged": true,
+        "production433UnchangedByEdit": true
+      },
+      "freshCurrentPhases": [
+        "wasm",
+        "web"
+      ],
+      "retainedPayloads": 18,
+      "qualification": "Retain original82197 nativecargo-check atoriginal714source; ONLYWASMexcludedbrowser_runtime attribute change,allother713texts/Cargo/lock/production433 identical. Freshcurrent714 WASM+optimizedTrunk packaging PASS. No claimedfullmaintained714 unfilterednative suite."
+    },
+    "readerCompiler": {
+      "record": {
+        "path": "docs/journey/release/reader-compilation-mask-refresh-review.json",
+        "sha256": "b0cf94f41aac504f9465ba4041812052f27ee3ee50932c606f92593849c1ff19"
+      },
+      "scope": "101/101 endpoints202/202phases:170retained exactrelevant-input-qualified+32actualfresh; compiler-only. Supports gate1 source-awarebuild accounting; remaining runtimecallback acceptance belongs gate2."
+    }
+  },
+  "decision": {
+    "gate1": "DONE at the recorded current frozen713/714 sources. This cross-phase audit establishes the combined build gate; individual older/native-only records are unchanged.",
+    "otherFourGates": "OPEN. Declared runnable checkpoint callbacks, feature closure, final navigation/history and final book publication remain independent.",
+    "reopen": "Reassess affected phase/source equivalence after an actual runtime,dependency or build-input change. Documentation,status and harness-only changes do not silently invalidate these runtime build proofs."
+  },
+  "remainingFourOriginalGateLiterals": [
+    "Pass all declared runnable-checkpoint checks against their actual final inputs.",
+    "Close every feature row in the production/lesson coverage map with truthful source and visual evidence.",
+    "Verify final navigation, aliases and complete source history/checkpoint preservation.",
+    "Publish locally, inspect the final book and report counts, measurements and remaining limitations."
+  ],
+  "counters": {
+    "releaseGatesDone": 1,
+    "releaseGatesTotal": 5,
+    "releaseGatesRemaining": 4,
+    "callbacksAccepted": 5,
+    "callbacksPending": 13,
+    "featuresComplete": 4,
+    "featuresPartial": 14,
+    "historicalFixturesAccepted": 2,
+    "historicalFixturesTotal": 4
+  },
+  "limits": [
+    "No original source-specific callback,finitefeature,Geminifirst10/combinedbookhandoff or finalvisual/publication acceptance is inferred.",
+    "The original finaldebugWASM success remains valid although subsequent legitimate builds overwrite the sharedcache; original receipt hashes and retainedfinal optimizedWASM payloads are preserved.",
+    "Maintained714 nativecargo-check reuse is exact native-cfg input qualification; no fullmaintained714 unfiltered native suite is claimed.",
+    "Native1062,testpostflight,commands/resources/env,713+433pins,retainedoutputs and current714 equivalence were independently audited with no reruns."
+  ]
+}

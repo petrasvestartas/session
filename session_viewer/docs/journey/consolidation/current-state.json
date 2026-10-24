@@ -124,7 +124,7 @@
     "escapeAuthoring": "PASS22/22 and structure/replay. Four user-approved shortcut corrections pass focused actual layers/labels/delete helper checks; complete enclosing94c/final callbacks remain pending.",
     "escapeBrowserRegression": "PASS: gpu-pick-escape-smoke-browser.resources.json,7.633s,506716160B. RealDPR1 Point sameoriginalObjectId3 selectedbefore/afterzoom; ordinaryEscapeclearsselection andsecondGPUsubmissioncompletes. FullcanonicalDPR1/2 matrix remains separate/running.",
     "historicalMetadataBackport": "PASS: dated inventory,count312 and UTF8-LF audit at96h/96v/96y, plus96zzzzf/g refresh. Current one-entry witness refresh producedc54a9960; no runtime/assertion changes in this refresh. Historical Opacity behavior and old source-proof bindings retained.",
-    "productionCoverageAccounting": "All307productionmodules,111lessons and1361checkpointmappings accounted. Features4/18complete14partial;sourcecallbacks5/18accepted13pending;fixtures2/4;finalrelease0/5. Currentnative1062 andreadercompiler101/202 retain separate proof.",
+    "productionCoverageAccounting": "All307productionmodules,111lessons and1361checkpointmappings accounted. Features4/18complete14partial;sourcecallbacks5/18accepted13pending;fixtures2/4;finalrelease1/5. Currentnative1062 andreadercompiler101/202 retain separate proof.",
     "nativeReuseAudit": "Historical64e13 reuse boundary excludes later hierarchy and97d TextPlane runtime changes.433-entry source inventory preflight remains separate from native execution;1059 result remains bound toa45.",
     "generatedCoveredPlane": "PASS: 16/16 exact full-RGBA pairs, 288.067 s, peak 995,434,496 B. Public plane-generated-covered-native-review.json and four individually inspected figures. Production and course axes remain visible over the opaque lid; no owner-pick or browser acceptance is claimed.",
     "generatedPrintPlane": "PASS: 16/16 exact full-RGBA pairs, 272.855 s, peak 973,623,296 B. Public plane-generated-print-native-review.json and four individually inspected figures. Generated 2,215-byte input is distinct from the historical 2,223-byte covered source; no owner-pick or browser acceptance is claimed.",
@@ -291,6 +291,25 @@
       "failedSite": "vertex-pulling.cjs16:76 selectedpixelhash inequality; quietEscape clearsselection",
       "buildScope": "Fiveactual590source phasesPASS andnativeed800 image reviewed; browserentry remains unaccepted.",
       "candidate": "Focused50466 baseline/candidateDPR1/2 diagnostic61.476s; originalIDs4->empty,candidateIDs4->4/alloriginalbodyassertionsPASS.16images/fourunique rootviewed. One-line frozenharness exception asked,pending/notapplied."
+    },
+    "finalRuntimeBuildGate": {
+      "status": "DONE independently audited final runtime/build gate1",
+      "record": "release/final-runtime-build-gate-review.json",
+      "literal": "Freeze the integrated runtime and pass the final Native/WASM/optimized build checks.",
+      "source713": {
+        "id": "96zzzzzzzq-draw-original-cad-wire-curves",
+        "files": 713,
+        "sourceFingerprint": "fef4c7bdb6f4c0a6f7a7701b0ba5581469dd757a34eefbab030a06e92ce4e5a1",
+        "sourceSignature": "c39e50938c22157a7883b49fe1c56912c03c703cc2291e0f4152183c3de8153c"
+      },
+      "maintained714": {
+        "id": "97-finish-with-the-maintained-browser-runtime",
+        "files": 714,
+        "sourceFingerprint": "06359f77b5c26901e6d6e155808ce05946282865b10fffdf4e36e07c494ba3ce",
+        "sourceSignature": "c9091018e8d705c85767ce38f04b110eb091b88ff3abca4224aa47b9a64ed0d6"
+      },
+      "scope": "ActualNative1062 plus source-matchingWASM/optimizedbuilds and exactmaintainednative-cfg reuse. Remaining originalfour releasegates stayopen; no callback/feature/handoff acceptance.",
+      "reopen": "Actual runtime/dependency/build-input change requires affectedproof reassessment; docs/status/harness-only changes do not invalidate frozenbuilds."
     }
   },
   "resourceGuard": {
@@ -305,14 +324,14 @@
     "All three approved browser input corrections are applied. The 2603.825-second full94c replay passed those sites, then failed Split setup with inherited Control mode. The tested Object-mode correction and full replay/qualified phase-reuse choice await their separate saved-plan exception.",
     "Reader compiler lane complete101/101endpoints202/202phases:85retained170qualifiedphases plus16fresh32actualphases. Original source-bound records and mask-invalidation history retained; no all202new execution or test/browser claim.",
     "Original18source-specificcallbacks:finalCAD,maintained97,current76,current70,96v accepted5;13remain including10historical+3late display. Historicalfixtures2/4accepted96y+96v;94c/96h remaining;oldfailures retained.",
-    "Matrix,Camera/Plane,Joined andfiniteSheet are4/18complete;14partial. Globalrelease0/5; Gemini first10/redraft andcombinedbookhandoff remain deferred.",
-    "Production ribbon guide fix retains focusedCPU/fourRGBA proof; latest finalfef4 unfiltered1062/1062 native integration nowPASS. Remaining14sourcecallbacks,14partialfeatures and0/5release gates stay open.",
+    "Matrix,Camera/Plane,Joined andfiniteSheet are4/18complete;14partial. Globalrelease1/5(buildgate done;fourremain); Gemini first10/redraft andcombinedbookhandoff remain deferred.",
+    "Production ribbon guide fix retains focusedCPU/fourRGBA proof; latest finalfef4 unfiltered1062/1062 native integration nowPASS. Remaining14sourcecallbacks,14partialfeatures andfour remainingrelease gates stay open.",
     "Original70d failed outer status and striped frame remain immutable. Applied mask projection fix now passes actual fullcanonical70 at331-source325b; fresh final PNG individually reviewed clean. No automatic SharedArena feature closure.",
     "Old60306/c65976run failedouterstatus and remainsimmutable. Subsequentcurrentbe28476fullcallback nowPASS withfreshSheet/finalcurve rootreview;finiteSheet complete via separate recordednative/browser scopes.",
     "Maintained97 duplicate-export packagingfailure retained. Corrected06359f77 wrapper freshWASM/optimizedpackage and completeoriginalDPR1/2NVIDIAbrowser nowPASS; bothoriginalimagesreviewed. Maintained97 callback accepted; currenttotal5/18accepted13left after separate76/70/96v acceptance. Feature/globalscope remains separately recorded."
   ],
   "onlyHeavy": {
-    "status": "running-unaccepted",
+    "status": "failed-unaccepted; no heavy job active",
     "rootSession": 21936,
     "task": "80d complete original NVIDIA browser callback",
     "checkpoint": "80d-exercise-networks-corner-retries-and-exact-original-archives",
@@ -320,9 +339,9 @@
     "stem": "80d-nvidia-current367-v1",
     "memoryLimitMiB": 6144,
     "processors": 2,
-    "scope": "Allfive actualsource402 buildphasesPASS; native31b321 image rootreviewed andtruthfulappenddone. Original80d fullcallback nowrunning; no browser/feature acceptance yet."
+    "scope": "Allfive actualsource402 buildphasesPASS; native31b321 image rootreviewed andtruthfulappenddone. Original80d fullcallback failed561.265s atgpu-pick-view.cjs22 afterZoomIn; focused unchanged-body diagnosis is being prepared. No browser/feature acceptance."
   },
-  "next": "Current80d source402 allfivebuildphasesPASS/nativeframe reviewed; originalNVIDIAbrowser21936 running-unaccepted,6GiB/twoCPUs. Slot58233 originalcallback failed atvertex-pulling selectedpixelcomparison; focusedone-linecandidate passes butfrozenharness exception remains pending,notapplied. Callbacks5/18accepted13left;features4/18complete14partial;fixtures2/4;Native1062/readercompiler101/202;release0/5 unchanged.",
+  "next": "Current80d source402 allfivebuildphasesPASS/nativeframe reviewed; originalNVIDIAbrowser21936 failed561.265s atgpu-pick-view afterZoomIn; focuseddiagnostic preparation,6GiB/twoCPUs. Slot58233 originalcallback failed atvertex-pulling selectedpixelcomparison; focusedone-linecandidate passes butfrozenharness exception remains pending,notapplied. Callbacks5/18accepted13left;features4/18complete14partial;fixtures2/4;Native1062/readercompiler101/202;release1/5: buildgate done,four othergates remain.",
   "currentDocsReview": {
     "status": "PASS scoped current3670 publication before this progress metadata update",
     "record": "release/docs-progress-current-visible-review.json",
@@ -408,9 +427,29 @@
       "record": "release/reload-grid-browser-review.json"
     },
     "finalIntegration": {
-      "status": "CurrentNative1062/1062 andreadercompiler101/202 PASS; fiveoriginalsourcecallbacks accepted,13pending. Slot590sourcefivebuildphasesPASS butoriginalbrowserFAIL; candidateexception pending. Features4/18complete14partial,fixtures2/4,release0/5;80doriginalbrowser21936running-unaccepted.",
-      "gatesDone": 0,
-      "gatesTotal": 5
+      "status": "CurrentNative1062/1062 andreadercompiler101/202 PASS; fiveoriginalsourcecallbacks accepted,13pending. Slot590sourcefivebuildphasesPASS butoriginalbrowserFAIL; candidateexception pending. Features4/18complete14partial,fixtures2/4,release1/5 (buildgate done;four gates remain);80doriginalbrowser21936failed561.265s atgpu-pick-view afterZoomIn; focuseddiagnostic preparation.",
+      "gatesDone": 1,
+      "gatesTotal": 5,
+      "gatesRemaining": 4,
+      "buildGate": {
+        "status": "DONE independently audited final runtime/build gate1",
+        "record": "release/final-runtime-build-gate-review.json",
+        "literal": "Freeze the integrated runtime and pass the final Native/WASM/optimized build checks.",
+        "source713": {
+          "id": "96zzzzzzzq-draw-original-cad-wire-curves",
+          "files": 713,
+          "sourceFingerprint": "fef4c7bdb6f4c0a6f7a7701b0ba5581469dd757a34eefbab030a06e92ce4e5a1",
+          "sourceSignature": "c39e50938c22157a7883b49fe1c56912c03c703cc2291e0f4152183c3de8153c"
+        },
+        "maintained714": {
+          "id": "97-finish-with-the-maintained-browser-runtime",
+          "files": 714,
+          "sourceFingerprint": "06359f77b5c26901e6d6e155808ce05946282865b10fffdf4e36e07c494ba3ce",
+          "sourceSignature": "c9091018e8d705c85767ce38f04b110eb091b88ff3abca4224aa47b9a64ed0d6"
+        },
+        "scope": "ActualNative1062 plus source-matchingWASM/optimizedbuilds and exactmaintainednative-cfg reuse. Remaining originalfour releasegates stayopen; no callback/feature/handoff acceptance.",
+        "reopen": "Actual runtime/dependency/build-input change requires affectedproof reassessment; docs/status/harness-only changes do not invalidate frozenbuilds."
+      }
     }
   },
   "remainingBatches": 4,
@@ -1196,10 +1235,10 @@
       "callbacksRemaining": 13,
       "historicalFixturesAccepted": 2,
       "historicalFixturesTotal": 4,
-      "releaseGatesDone": 0,
+      "releaseGatesDone": 1,
       "releaseGatesTotal": 5
     },
-    "next": "Current80d allfive402sourcephasesPASS/nativeframereviewed; originalNVIDIAbrowser21936 running-unaccepted; SlotfullcallbackFAIL preserved andone-linevertexcandidate pendingexception.13sourcecallbacks/14partialfeatures remain;fixtures2/4,release0/5.",
+    "next": "Current80d allfive402sourcephasesPASS/nativeframereviewed; originalNVIDIAbrowser21936 failed561.265s atgpu-pick-view afterZoomIn; focuseddiagnostic preparation; SlotfullcallbackFAIL preserved andone-linevertexcandidate pendingexception.13sourcecallbacks/14partialfeatures remain;fixtures2/4,release1/5 (buildgate done;fourremain).",
     "chapter14": {
       "status": "PASS complete current76originalcanonicalbrowser callback",
       "record": "release/76d-browser-review.json",
@@ -1402,6 +1441,25 @@
       "failedSite": "vertex-pulling.cjs16:76 selectedpixelhash inequality; quietEscape clearsselection",
       "buildScope": "Fiveactual590source phasesPASS andnativeed800 image reviewed; browserentry remains unaccepted.",
       "candidate": "Focused50466 baseline/candidateDPR1/2 diagnostic61.476s; originalIDs4->empty,candidateIDs4->4/alloriginalbodyassertionsPASS.16images/fourunique rootviewed. One-line frozenharness exception asked,pending/notapplied."
+    },
+    "buildGate": {
+      "status": "DONE independently audited final runtime/build gate1",
+      "record": "release/final-runtime-build-gate-review.json",
+      "literal": "Freeze the integrated runtime and pass the final Native/WASM/optimized build checks.",
+      "source713": {
+        "id": "96zzzzzzzq-draw-original-cad-wire-curves",
+        "files": 713,
+        "sourceFingerprint": "fef4c7bdb6f4c0a6f7a7701b0ba5581469dd757a34eefbab030a06e92ce4e5a1",
+        "sourceSignature": "c39e50938c22157a7883b49fe1c56912c03c703cc2291e0f4152183c3de8153c"
+      },
+      "maintained714": {
+        "id": "97-finish-with-the-maintained-browser-runtime",
+        "files": 714,
+        "sourceFingerprint": "06359f77b5c26901e6d6e155808ce05946282865b10fffdf4e36e07c494ba3ce",
+        "sourceSignature": "c9091018e8d705c85767ce38f04b110eb091b88ff3abca4224aa47b9a64ed0d6"
+      },
+      "scope": "ActualNative1062 plus source-matchingWASM/optimizedbuilds and exactmaintainednative-cfg reuse. Remaining originalfour releasegates stayopen; no callback/feature/handoff acceptance.",
+      "reopen": "Actual runtime/dependency/build-input change requires affectedproof reassessment; docs/status/harness-only changes do not invalidate frozenbuilds."
     }
   }
 }
