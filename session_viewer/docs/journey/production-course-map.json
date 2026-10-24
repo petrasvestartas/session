@@ -306,27 +306,46 @@
       "runnableCheckpoint": "96zzzzzzzq-draw-original-cad-wire-curves",
       "evidence": "docs/journey/visual-review.json; docs/screenshots/journey/browser.json; chapter source checkpoints. Existence is not current acceptance.",
       "currentVerification": {
-        "status": "partial",
+        "status": "complete",
         "integration": "#/currentIntegration",
-        "acceptedScope": "Eight extracted splat/resolve pairs, eighteen actual 2,000,064-point LOD/placement pairs and twelve focused cloud/Line controls passed; these are bounded native results. Current97d native1060 assertions separately verify resident-prefix bounds, far placement, original control IDs outside coarse LOD, streamed selection isolation and actual opaque/EDL fixture pixels. Complete display-group/streaming-control coverage remains partial.",
+        "acceptedScope": "Eight extracted splat/resolve pairs, eighteen actual 2,000,064-point LOD/placement pairs and twelve focused cloud/Line controls passed; these are bounded native results. Current97d native1060 assertions separately verify resident-prefix bounds, far placement, original control IDs outside coarse LOD, streamed selection isolation and actual opaque/EDL fixture pixels. Source282 complete original cloud-points default callback now passes atDPR1/2 and its meaningful selected cloud image is root reviewed. Existing actual native1064 stream size/visibility/locking, retainedresidentcounts/sharedowners/eviction/ID/clipping controls complement original browser cachedLOD/control assertions. Finite named declared criteria accepted; oldpair/native sources remain unchanged.",
         "records": [
           "../../target/course-windows-20261018/cloud-integrated-witness-run.json",
           "../../target/course-windows-20261018/cloud-lod-production-pairs.json",
           "../../target/course-windows-20261018/cloud-ink-production-after.json",
           "consolidation/current-state.json",
-          "release/sheet-text-native-controls-review.json"
+          "release/sheet-text-native-controls-review.json",
+          "release/cloud65c-browser-review.json"
         ],
-        "remainingAcceptance": [
-          "Run the complete current cloud display-group and streaming controls, retaining resident counts and original owners.",
-          "Run cloud-points.cjs at 65c with its recursive checks and inspect current cloud/EDL feature images."
-        ],
+        "remainingAcceptance": [],
         "chapterBrowserEntries": [
           {
             "chapter": 11,
             "checkpoint": "65c-cloud-point",
             "callback": "journey/checks/browser/cloud-points.cjs"
           }
-        ]
+        ],
+        "satisfiedCriteria": {
+          "original": [
+            "Run the complete current cloud display-group and streaming controls, retaining resident counts and original owners.",
+            "Run cloud-points.cjs at 65c with its recursive checks and inspect current cloud/EDL feature images."
+          ],
+          "record": "release/cloud65c-browser-review.json",
+          "sourceFingerprint": "b7f8bcd7dfdee750249074942ff4f543f1abcd46857f912891f55b22ad69d211",
+          "recursiveCallbackFingerprint": "48f4ae90fce2a5cf45a35bb60741b3403ff381b737723e9868a57763ec2eb8b6",
+          "nativeRecord": {
+            "path": "docs/journey/release/ambient-selector-final-native-integration-review.json",
+            "sha256": "536b6c1a5f0df6b99535bed3757921b173d99e63bbbc2c0dd8c33fe5b4e7b79e"
+          },
+          "nativeNamedControls": [
+            "stream_properties::tests::original_size_visibility_and_locking_are_checked_separately_from_placement_overrides",
+            "stream_row_tests::shared_streamed_owners_report_original_and_retained_counts_separately",
+            "stream_row_tests::streamed_owners_share_sources_keep_original_ids_and_refuse_incomplete_save",
+            "scene::pick_gpu_tests::actual_streamed_pages_pick_original_ids_share_uploads_and_release_after_eviction",
+            "clipping_gpu_tests::clipping_cloud_cache_color_and_original_u32_picks_follow_on_off_before_color",
+            "cloud_tests::current_cloud_lod_walk_obeys_screen_spacing_small_clouds_and_resident_prefixes"
+          ]
+        }
       }
     },
     {
@@ -21853,8 +21872,8 @@
     "chaptersTotal": 22,
     "readerFacingLessons": 111,
     "preservedCheckpoints": 1361,
-    "featuresComplete": 4,
-    "featuresPartial": 14,
+    "featuresComplete": 7,
+    "featuresPartial": 11,
     "featuresTotal": 18
   },
   "authoredReaderLessons": 111,
@@ -21939,8 +21958,8 @@
       "hashPolicy": "Valid UTF-8 text hashes normalize CRLF to LF; invalid UTF-8 remains raw. All307 current src paths/hashes matched the dated inventory during this audit. Existing301 row sha256/classification/basis values remain historical; current hashes come from the dated inventory. Six appended rows use the dated current hash and explicitly scoped staged basis. Complete path accounting is not verified extraction or feature parity."
     },
     "featureStatusCounts": {
-      "complete": 5,
-      "partial": 13,
+      "complete": 7,
+      "partial": 11,
       "open": 0,
       "meaning": "Complete accepts the named finite feature requirements at recorded source/fixture/settings; it does not close global release. Partial rows retain specific unaccepted requirements."
     },

@@ -623,12 +623,12 @@
   ],
   "onlyHeavy": {
     "status": "running",
-    "task": "Full65c corrected browser callback; retained compiler phases",
-    "sessionId": 49370,
+    "task": "Full95f corrected browser callback; retained five phase proofs",
+    "sessionId": 60660,
     "memoryLimitMiB": 6144,
     "processors": 2
   },
-  "next": "Finish six remaining source-specific callbacks with approved zero-delay typing and corrected terminal/measurement contracts.65c runs;88ad is accepted. Then integrate exact production BRep/kernel changes and execute the affected final batch while preserving Gemini and Vue.",
+  "next": "Finish five remaining source-specific callbacks.95f runs with the corrected measurement helper;65c is accepted and Cloud finite criteria are complete. Then integrate exact BRep/kernel changes, run final bounded comparisons/recovery and complete publication.",
   "currentDocsReview": {
     "status": "PASS current694/b031 book publication snapshot: desktop/390px phone roadmap and changed22.6 Rust/WGSL section; all three original PNGs root-reviewed",
     "record": "release/docs-progress-ambient-selector-current-visible-review.json",
@@ -688,9 +688,9 @@
       "joinedVectorSheets": {
         "status": "Joined and Sheet/text finite criteria complete through their separately scoped native and browser proofs. Other family and source-specific callback obligations remain pending. See release/joined-line-finite-review.json and release/sheet-text-finite-review.json."
       },
-      "featuresComplete": 6,
+      "featuresComplete": 7,
       "featuresTotal": 18,
-      "featuresPartial": 12,
+      "featuresPartial": 11,
       "cadBaseline": {
         "status": "passed-bounded-native-baseline",
         "passed": 5,
@@ -1419,11 +1419,6 @@
     },
     "pendingHistoricalCallbacks": [
       {
-        "checkpoint": "65c-cloud-point",
-        "callback": "journey/checks/browser/cloud-points.cjs",
-        "chapter": 11
-      },
-      {
         "checkpoint": "85ay-exercise-current-original-commands-together",
         "callback": "journey/checks/browser/current-commands.cjs",
         "chapter": 16
@@ -1952,17 +1947,17 @@
       "chaptersConsolidated": 22,
       "readerLessons": 111,
       "draftingRemaining": 0,
-      "featuresComplete": 6,
-      "featuresPartial": 12,
-      "callbacksAccepted": 12,
-      "callbacksRemaining": 6,
+      "featuresComplete": 7,
+      "featuresPartial": 11,
+      "callbacksAccepted": 13,
+      "callbacksRemaining": 5,
       "historicalFixturesAccepted": 2,
       "historicalFixturesTotal": 4,
       "releaseGatesDone": 3,
       "releaseGatesTotal": 5,
       "releaseGatesRemaining": 2
     },
-    "next": "12/18 callbacks accepted;6 remain. Features6/18, fixtures2/4, releasegates3/5.88ad fullcallback and visible original bore accepted at source496; exact final production-cap comparison remains separate.",
+    "next": "13/18 callbacks accepted;5 remain. Features7/18, fixtures2/4, releasegates3/5.65c and Cloud finite criteria accepted;95f running. Original execution scopes retained.",
     "chapter14": {
       "status": "PASS complete current76originalcanonicalbrowser callback",
       "record": "release/76d-browser-review.json",
@@ -2367,6 +2362,15 @@
       "callbackFingerprint": "290e91147bc3c47359bd468b8526547870927761f7aa097ed24f23cab6153122",
       "elapsedSeconds": 601.325,
       "peakJobCommitBytes": 1936838656
+    },
+    "cloud65c": {
+      "status": "PASS complete own282defaultbody+reviewedcloudimage",
+      "record": "release/cloud65c-browser-review.json",
+      "sourceFingerprint": "b7f8bcd7dfdee750249074942ff4f543f1abcd46857f912891f55b22ad69d211",
+      "sourceSignature": "e71eab55da8d235b231cf84e6f014b8b67f4b2ff47b5323fc20d75d4b90952be",
+      "recursiveCallbackFingerprint": "48f4ae90fce2a5cf45a35bb60741b3403ff381b737723e9868a57763ec2eb8b6",
+      "elapsedSeconds": 480.293,
+      "peakJobCommitBytes": 1406726144
     }
   },
   "currentRuntimeDocsQualification": {

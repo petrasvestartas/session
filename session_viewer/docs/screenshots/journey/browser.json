@@ -10968,6 +10968,34 @@
       "bundle": "29b5ac168ab3a234dc08f5ce9f763e64ca52d55795e39acb59df643ca6b5008a",
       "commands": [],
       "keyboardRoundtrip": false
+    },
+    "65c-cloud-point": {
+      "source": "e71eab55da8d235b231cf84e6f014b8b67f4b2ff47b5323fc20d75d4b90952be",
+      "checker": "730a2c8618175efe53a93be8f837fc14f91b5422375d8d0e699804d0c17e593a",
+      "extraChecker": "48f4ae90fce2a5cf45a35bb60741b3403ff381b737723e9868a57763ec2eb8b6",
+      "browser": "145.0.7632.6",
+      "headless": true,
+      "captured": "2026-10-24T18:11:34.084Z",
+      "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "canvas": "e50d782d09cb8fcda592320c7343d9fc4edb629391bb25f11582958fd51127e1",
+      "file": "65c-cloud-point-browser.png",
+      "initialViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "initialCanvas": {
+        "x": 0,
+        "y": 0,
+        "width": 900,
+        "height": 760
+      },
+      "screenshotViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "bundle": "925b534698616d750414a363b6bcc88709ff78d15e57e061b404df7f1b49930b",
+      "commands": [],
+      "keyboardRoundtrip": false
     }
   }
 }
