@@ -24,7 +24,11 @@ Earlier V4 images retain their source-bound history: [review](release/docs-progr
 
 **Slot callback remains unaccepted.** The original 96zzo run failed at the vertex-pulling selected-pixel comparison after 136.971s; all five build phases and its native image pass separately. Focused original/candidate checks reproduce selection 4 to empty versus 4 to 4 at DPR1/2, retaining every assertion. The one-line frozen-harness exception is pending and has not been applied. [Original failure and focused evidence](release/96zzo-browser-failure-review.json), [catch-page diagnostic](release/96zzo-original-browser-failure-diagnostic.png).
 
-Current guarded job: none. The original 80d NVIDIA browser callback (21936) failed after 561.265 seconds at the GPU-pick check following Zoom In. Its five build phases and reviewed native image remain accepted within their scopes. A focused diagnosis is being prepared; no 80d callback acceptance yet.
+**80d focused input review:** The cause witness and full candidate gpu-pick-view body pass all 20 original cases/assertions at DPR1/2 with inherited160-byte/source-outline settings (253.712s). The actual witness shows a retained selected original hitting its Scale gizmo. Adding Select None before physical Escape is proposed only; that new frozen-harness exception and the separate vertex exception are pending/unanswered. Originalfull80d failure561.265s stays unaccepted. [Focused proof](release/80d-gpu-pick-input-review.json), [actual Scale-gizmo witness](release/80d-original-two-click-gizmo-witness.png).
+
+Marker build23420 passed; its first6.4s run failed an unmeasured raw-production near-markerID predicate before RGBA comparison. This is preserved and under diagnosis; it does not yet establish a renderer defect, pair acceptance, runtime change or build-gate reopening.
+
+Current guarded job: historical635-source mesh-marker build93940, checkpoint `96zzzzzzp`, stem `96zzzzzzp-nvidia-current367-v1`, with4GiB/twoCPUs. No mesh-marker acceptance yet.
 
 The detailed notes below preserve earlier source-bound results. The current counts above govern; later edits do not relabel those historical executions.
 

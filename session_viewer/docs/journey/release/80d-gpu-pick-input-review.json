@@ -1,0 +1,170 @@
+{
+  "status": "PASS focused input-cause witness and complete candidate gpu-pick-view body; original80d fullcallback remains FAILED/unaccepted; canonical exception pending",
+  "source": {
+    "id": "80d-exercise-networks-corner-retries-and-exact-original-archives",
+    "files": 402,
+    "sourceFingerprint": "1242d7f59d38d42a9e69d5d3551502dce821c0c9947849f3108946f18ed7c068",
+    "sourceSignature": "c9d349f0a6bd89e9241943d249a271de39cf8dab6af4891530c653dd72b03481",
+    "lock": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\release\\Cargo-publish.lock",
+    "lockSha256": "f5295652adef20e61beafb5776445d44044a670b94774bf9b7273986cdd6c1ef",
+    "assets": {
+      "assets/text/NotoSans-Regular.subset.ttf": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09",
+      "assets/text/NotoSansSymbols2-Regular.subset.ttf": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed",
+      "assets/text/NotoSansSymbols-Regular.subset.ttf": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3",
+      "assets/text/OFL.txt": "0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb",
+      "assets/text/NotoSansSymbols-Regular.ttf": "8f02f31959bbdf6061547a188248e13f84dc5fdd940326ec494675f453f072bb",
+      "assets/text/NotoSans-Regular.ttf": "b85c38ecea8a7cfb39c24e395a4007474fa5a4fc864f6ee33309eb4948d232d5",
+      "assets/text/NotoSansSymbols2-Regular.ttf": "630846d528dbe4c4981370a4d0a9475a1fd1491a129bb411f8e157cdb5de13c6"
+    },
+    "callback": "journey/checks/browser/network.cjs",
+    "callbackFingerprint": "871440a04cff45c913e1e40b9767f3dacf59901656029800959e9882286692ed",
+    "frame": "journey/checks/80-network.rs",
+    "frameConstructor": "make_renderer(device, queue, format)",
+    "frameSize": [
+      640,
+      480
+    ],
+    "sampleRequired": true,
+    "nativeSuite": "not run by this proportional lane; source preserved and typechecked"
+  },
+  "originalFailure": {
+    "receipt": {
+      "path": "target/course-windows-20261018/next-source-aware-callback-preparation/80d-nvidia-current367-v1/browser-20261024T043650543Z.json",
+      "sha256": "98871aa19d7ba8f25787b91dce5324fc053c3d81e2d6b069825319841b3da9e3"
+    },
+    "resources": {
+      "path": "target/course-windows-20261018/80d-nvidia-current367-v1-proportional-browser-20261024T043651094Z.resources.json",
+      "sha256": "43eca1c74f8d71b4509fc1c4b83d3a20aaeee896671c3642764c6e298a5b8fa7"
+    },
+    "log": {
+      "path": "target/course-windows-20261018/80d-nvidia-current367-v1-proportional-browser-20261024T043651094Z.log",
+      "sha256": "44cab8129fbcc46d8f94995efbb7114728f062e0496baab0882b97ddcf5686b7"
+    },
+    "exitCode": 1,
+    "elapsedSeconds": 561.265,
+    "peakBytes": 759152640,
+    "failedSite": "gpu-pick-view.cjs22 after ZoomIn; expected newGPU pick never submitted. No full80d acceptance."
+  },
+  "actualFocusedExecution": {
+    "receipt": {
+      "path": "target/course-windows-20261018/80d-gpu-pick-view-diagnostic-preparation/run-20261024T045715692Z/diagnostic/receipt.json",
+      "sha256": "ee737d9d7ea56f57f31d8a3dcdd3fd9745ba4a41e5754caea3b210e03209a8b9"
+    },
+    "resources": {
+      "path": "target/course-windows-20261018/80d-gpu-pick-view-diagnostic-preparation/run-20261024T045715692Z/resources.json",
+      "sha256": "d2e3c38b2ede6146e08fa22b59f1eefd6237d05a3f6acef3c4dab41bba1291e5"
+    },
+    "log": {
+      "path": "target/course-windows-20261018/80d-gpu-pick-view-diagnostic-preparation/run-20261024T045715692Z/output.log",
+      "sha256": "8c36603e16dc1ca391ab2f067ef13a8850d292632e4b6d6a69b73326372cdbca"
+    },
+    "script": {
+      "path": "target/course-windows-20261018/80d-gpu-pick-view-diagnostic-preparation/run.cjs",
+      "sha256": "86ae3651d4cf422c2950d4f13303f0487d0f29bd3f8ecb3958d042ac4713c234"
+    },
+    "plan": {
+      "path": "target/course-windows-20261018/80d-gpu-pick-view-diagnostic-preparation/plan.json",
+      "sha256": "f65f8df082f0c0cf9096653f5012fdbc8e41a111a51882e5be7c4efffbdae50f"
+    },
+    "elapsedSeconds": 253.712,
+    "peakBytes": 792551424,
+    "memoryCapBytes": 6442450944,
+    "processors": 2,
+    "exitCode": 0,
+    "inheritedHelpers": {
+      "pickUniformBytes": 160,
+      "sourceOutlines": true
+    },
+    "helperPrefixSha256": "d6b78a4f2cef4e44e9cb3d757104f6e7dd4bdb823cad885178873cded0ce2a40",
+    "browser": "145.0.7632.6"
+  },
+  "originalCauseWitness": {
+    "selectedBefore": [
+      3
+    ],
+    "selectedAfter": [
+      3
+    ],
+    "originalPickCounter": 1,
+    "secondPickCounter": 1,
+    "secondGizmoTyping": "Scale",
+    "finding": "Historical402-source physicalEscape cancels gesture only, without Action::Escape; one selectedoriginal remains. AfterZoomIn the source-origin click hits the realScale gizmo, not a newGPU pick.",
+    "omission": "Diagnostic only: execute exact original Escape/projected click prefix, omit already-proven120s wait for an absent GPU submission. Not an original full-body PASS.",
+    "limit": "Small two-click cause witness only. The already-proven120s timeout was deliberately not repeated; this is not an original fullbody PASS."
+  },
+  "candidate": {
+    "status": "All20 original cases and assertions PASS across DPR1/2; canonical change not applied",
+    "source": {
+      "path": "target/course-windows-20261018/80d-gpu-pick-view-diagnostic-preparation/candidate.cjs",
+      "sha256": "a3c8c1e150c77784904c314b6c40f8c201e2eb1ffc6b8cf6445404211428e05f"
+    },
+    "patch": {
+      "path": "target/course-windows-20261018/80d-gpu-pick-view-diagnostic-preparation/candidate.patch",
+      "sha256": "56ecaf184678f4f6f9063c003f611134117d058de7a877666ff1971ac3cfce26"
+    },
+    "canonicalOriginal": {
+      "path": "docs/journey/checks/browser/gpu-pick-view.cjs",
+      "sha256": "0954dc25bdf5693e97243d291763f9ace9458a44d305f0a10a9289af615a0941"
+    },
+    "change": "Add only Select None immediately before the existing physicalEscape in the clickhelper. Every original assertion/wait/source/camera/history/selection/release case retained.",
+    "fullBodyCaseMatrix": "2 densities x2 projections x5 original kinds =20 originalcases",
+    "contexts": [
+      {
+        "density": 1,
+        "label": "candidate-full-body",
+        "status": "Original finally reached; body outcome recorded separately",
+        "pageErrors": [],
+        "commandCount": 165
+      },
+      {
+        "density": 2,
+        "label": "candidate-full-body",
+        "status": "Original finally reached; body outcome recorded separately",
+        "pageErrors": [],
+        "commandCount": 165
+      }
+    ],
+    "raw20CaseEvidence": {
+      "path": "target/course-windows-20261018/80d-gpu-pick-view-diagnostic-preparation/run-20261024T045715692Z/diagnostic/receipt.json",
+      "sha256": "ee737d9d7ea56f57f31d8a3dcdd3fd9745ba4a41e5754caea3b210e03209a8b9"
+    },
+    "timing": "Actual120000ms implicit actiontimeout retained; explicit operationwaits unchanged. Candidate runs entire unchangedbody except proposed one-line inputsetup."
+  },
+  "authorization": {
+    "gpuPickView": "New frozenharness exception asked after actualfocusedPASS; pending/unanswered,notapplied.",
+    "vertexPulling": "Separate one-line vertex-pulling exception remains pending/unanswered,notapplied.",
+    "scope": "No canonicalhelper/callback/source/runtime edit or whole80d/feature acceptance."
+  },
+  "image": {
+    "figure": "journey/release/80d-original-two-click-gizmo-witness.png",
+    "sha256": "39d33861d89236a78477f3ede3246d8fe78e05cb488941167988e55b2fd484e9",
+    "source": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\80d-gpu-pick-view-diagnostic-preparation\\run-20261024T045715692Z\\diagnostic\\original-two-click-gizmo-witness.png",
+    "visualReview": "Root individually viewed actual originaltwo-click witnessPNG: Scale factor dialog visible; source-origin gizmo interception is observable."
+  },
+  "buildScope": {
+    "proof": {
+      "path": "target/course-windows-20261018/next-source-aware-callback-preparation/80d-nvidia-current367-v1/proof.json",
+      "sha256": "9a16219c59248d101f16fc57915e631c5c4328b17b680b1052ed5b639aab05e6"
+    },
+    "fiveActualPhases": "PASS at original402source; originalfullbrowser failure doesnotinvalidate matching build/nativeframe acceptance.",
+    "nativeSuite": {
+      "status": "not-run",
+      "reason": "Saved plan section4: native full-suite execution belongs to integrated batches/final freeze; historical tests are preserved and typechecked here."
+    }
+  },
+  "countsUnchanged": {
+    "callbacksAccepted": 6,
+    "callbacksPending": 12,
+    "pendingHistorical": 9,
+    "featuresComplete": 4,
+    "featuresPartial": 14,
+    "fixturesAccepted": 2,
+    "fixturesTotal": 4,
+    "releaseGatesDone": 1,
+    "releaseGatesRemaining": 4
+  },
+  "limits": [
+    "Actualfull80dFAIL561.265 remains preserved and unaccepted. FocusedcandidatePASS is not canonicalexception approval or fullcallbackPASS.",
+    "No newmarkerpair output, native suite, runtimefeature or globalrelease acceptance inferred."
+  ]
+}

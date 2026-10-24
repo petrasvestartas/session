@@ -3,7 +3,7 @@
   "scope": "Initial production-to-course source/coverage audit; proposals are not completed consolidation or rendering acceptance.",
   "sourceAuthority": "session_viewer/src",
   "endpoint": "96zzzzzzzq-draw-original-cad-wire-curves",
-  "endpointStatus": "ActualArena44752 completePASS andthree freshmeaningfulimages reviewed; originalsourcecallbacks6/18accepted12left,9historicalpending. Current80d focusedV3 witness/fullcandidate20-case diagnostic46213 running at6GiB/twoCPUs; originalfull80dFAIL561.265/SlotFAIL remainunaccepted andexceptionspending. Fixtures2/4,features4/18complete14partial,Native1062/readercompiler101/202,release1/5 done4remaining.",
+  "endpointStatus": "Currentonlyheavy93940 historical635-source mesh-marker build96zzzzzzp/stem96zzzzzzp-nvidia-current367-v1,4GiB/twoCPUs; no acceptance. Markerbuild23420PASS,first6.4srun failed rawproduction near-markerID predicate beforeRGBAcomparison; diagnosispending,notprovenrendererbug/no runtimechange/buildgate reopening.80dfocused253.712PASS andtwo inputexceptions pending; originalfull80d/Slot remainunaccepted. Counts6/18callbacks12left,features4/18complete14partial,fixtures2/4,release1/5done4remaining.",
   "courseSha256": "367065739cee3cbf01e1b240c9eca4a1e0c12092eccab2fe2345cbc783a55197",
   "chapters": 22,
   "existingSteps": 1361,
@@ -22442,7 +22442,7 @@
         "releaseGatesDone": 1,
         "releaseGatesTotal": 5
       },
-      "next": "Current80d focusedV3 witness/fullcandidate gpu-pick-view DPR1/2 original20cases46213 running; originalfull80dFAIL561.265 andSlotFAIL retained, exceptions pending.12sourcecallbacks/14partialfeatures;fixtures2/4;release1/5.",
+      "next": "Currentonlyheavy93940 historical635-source mesh-marker build96zzzzzzp/stem96zzzzzzp-nvidia-current367-v1,4GiB/twoCPUs; no acceptance. Markerbuild23420PASS,first6.4srun failed rawproduction near-markerID predicate beforeRGBAcomparison; diagnosispending,notprovenrendererbug/no runtimechange/buildgate reopening.80dfocused253.712PASS andtwo inputexceptions pending; originalfull80d/Slot remainunaccepted. Counts6/18callbacks12left,features4/18complete14partial,fixtures2/4,release1/5done4remaining.",
       "chapter14": {
         "status": "PASS complete current76originalcanonicalbrowser callback",
         "record": "release/76d-browser-review.json",
@@ -22675,6 +22675,24 @@
         "elapsedSeconds": 155.914,
         "peakJobCommitBytes": 976257024,
         "scope": "Allthree Delete/Undo/original-placement/pixel/GPUrelease loops passed DPR1/2. Nativefreshimage ed800 matches previouslyroot-reviewed bytes. SharedArena feature remains partial; Slotfailed andother contracts independent."
+      },
+      "gpuPickInput80d": {
+        "status": "PASS focused80d input-cause witness and fullcandidate20casebodyDPR1/2; canonicalexceptionpending; nofull80dacceptance",
+        "record": "release/80d-gpu-pick-input-review.json",
+        "rootSession": 46213,
+        "elapsedSeconds": 253.712,
+        "peakJobCommitBytes": 792551424,
+        "inheritedHelpers": {
+          "pickUniformBytes": 160,
+          "sourceOutlines": true
+        },
+        "scope": "Original80d fullFAIL561.265 remainsunaccepted. Originaltwo-click diagnosticomits alreadyproven120swait only. Candidate addsSelectNone beforeEscape; all20originalcases/assertions PASS. Newgpu-pick andexistingvertex exceptions bothpending/unanswered,notapplied."
+      },
+      "markerControlPairs": {
+        "status": "BuildPASS;firstwitnessrunFAILED beforeRGBAcomparison;no pairacceptance",
+        "folder": "target/course-windows-20261018/marker-control-pairs-preparation",
+        "buildRootSession": 23420,
+        "scope": "Unmeasuredrawproduction near-markerID predicate failed6.4s. Versioneddump/probegatingdiagnosis pending; notyetprovenrendererbug,canonicalruntime unchanged,buildgate1 not reopened."
       }
     },
     "sheetFiniteClosure": {
