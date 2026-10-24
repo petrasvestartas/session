@@ -3,7 +3,7 @@
   "scope": "Initial production-to-course source/coverage audit; proposals are not completed consolidation or rendering acceptance.",
   "sourceAuthority": "session_viewer/src",
   "endpoint": "96zzzzzzzq-draw-original-cad-wire-curves",
-  "endpointStatus": "Noactiveheavy: rootconfirmed713strictV2 and714originalfinal.cjs terminalPASS/allfourimages reviewed. Current1063native and713/714compiler/frame/buildgate1DONE; finalsourcebrowserdeltaqualified. Freezecompletedmetadata andrunpreparedV7 combineddocs once. Callbacks8/18sourcebound10remaining/features4/18complete14partial/fixtures2/4/release1/5unchanged; alloldfailures retained.",
+  "endpointStatus": "Current1063 native integration, seven compiler/package/frame phases, strict713 Sphere browser and complete714 DPR1/2 browser PASS. Currentf23 docs build/probe PASS; root reviewed desktop/390phone and changed22.6Rust section, ownedroadmap refreshed/front. Noactiveheavy. Await consolidated user decision on five prepared frozen-harness corrections before remaining10 sourcecallbacks; Gemini1-10 remains owned elsewhere. Callbacks8/18/features4/18complete14partial/fixtures2/4/release1/5done4remain; scoped proofs and earlier failures preserved.",
   "courseSha256": "367065739cee3cbf01e1b240c9eca4a1e0c12092eccab2fe2345cbc783a55197",
   "chapters": 22,
   "existingSteps": 1361,
@@ -22349,47 +22349,14 @@
       ]
     },
     "docsCurrent": {
-      "status": "PASS measured5/18roadmap desktop/390phone publication; bothoriginalPNGrootreviewed",
-      "record": "release/docs-progress-five-callback-visible-review.json",
-      "courseSha256": "367065739cee3cbf01e1b240c9eca4a1e0c12092eccab2fe2345cbc783a55197",
-      "roadmapSha256": "2fe5750275b3665effa79fd47dedc11d3a13eb312125d26bdd0827705182df8b",
-      "currentStateSha256": "202271fc58a9043b6153eff5d1aa5be6cfa0b5424de6dc718d16e087c5e033d7",
-      "mapSha256": "8928ed9619f2242931cb5f5ca77e517038d1ad450d6f14a834a7bfa7020d5303",
-      "scope": "Measuredprepublication5callback/Native1062/qualityprooflink snapshot only. Newreview/images andsubsequentSlotfailure/currentjob updates are outside thatbuild. PreviousV4chapter13/97 views retain originalsource/build; first10/combinedbookhandoff pending.",
-      "previousScopedRecord": {
-        "status": "PASS current3670 V4 docs prepublication snapshot; all4originalPNG individually reviewed",
-        "record": "release/docs-progress-current-visible-review.json",
-        "courseSha256": "367065739cee3cbf01e1b240c9eca4a1e0c12092eccab2fe2345cbc783a55197",
-        "roadmapSha256": "eedb87e026c25a6799993656e2be1683aff0cb6c214ae8a764a8a2b237840f87",
-        "currentStateSha256": "801a7610c3f9a0b0ec024ff61abd0694b308287a9791e36b470d8a7fc6073b4f",
-        "images": [
-          {
-            "figure": "journey/release/docs-current-roadmap-desktop.png",
-            "sha256": "30136b9be59edd132f929c9db5686d007db271b49b26a84c7624c3c5225326db"
-          },
-          {
-            "figure": "journey/release/docs-current-chapter13-desktop.png",
-            "sha256": "c199e0ffc87f61174660f3a4a60de34f44f097024ea49650ed41bc4c16b1a372"
-          },
-          {
-            "figure": "journey/release/docs-current-chapter13-phone.png",
-            "sha256": "ca098917381a6e3ebb970061b781537094cc2da34ddef3dc1ab39219da88b98b"
-          },
-          {
-            "figure": "journey/release/docs-current-maintained97-desktop.png",
-            "sha256": "86b168a184098e2efb1f68bcd26c78d457732cf0e0af03b1ab48b9081c82faf0"
-          }
-        ],
-        "scope": "Actual prepublication snapshot with current4/18callbacks14left, chapter13desktop/390phone and corrected97reference instruction5. Newreview/copies and subsequentstatusupdates were not partof that build; no self-referential currentbuild claim. First10/redraft and combined-book handoff remain pending.",
-        "previousScopedRecord": {
-          "status": "PASS actual5779 roadmap and changedChapter13desktop/phone; all3originalPNGindividuallyreviewed",
-          "record": "release/docs-progress-mask-visible-review.json",
-          "courseSha256": "5779c3b35e9103a413a1fa5c4b5869ccfe8d4ff51927ae5d9dc67888121e5e17",
-          "subsequent97EditNotAccepted": true,
-          "previousScopedRecord": "PASS scoped integrated content publication:59 introductions,111 links,21 images and17 inspected views at recorded source/build. Separate docs UI review resolves duplicate progress navigation and Matrix phone prose overflow; four inspected UI views retain their frontend source hashes. First10/current whole-book, SVG/runtime parity and global release acceptance remain separate."
-        }
-      },
-      "currentRuntimeQualification": "Historicalreceiptat3670/fef4/06359; newf23fe2/65f0013/b9f70ac integrationqualification pending; no oldproof relabelledcurrent."
+      "status": "PASS currentf23 roadmap desktop/390phone and changedChapter22.6 Rust section; root actualimages reviewed",
+      "record": "release/docs-progress-xray-current-visible-review.json",
+      "currentCourseSha256": "f23fe2c84e633849f9b9fad00a0ecdb87b2d40b0d4165fd7561d702626cc7537",
+      "assetsVerified": 90,
+      "checkboxesVerified": 1468,
+      "newRustBodiesVerified": 9,
+      "scope": "Actual V7 build and V7b probe, source/HTTP/DOM exactness and image review. Measured prepublication inputs exclude this review, three copied images and this later metadata update. No whole-book or additional callback/feature/release-gate acceptance.",
+      "previousRecord": "release/docs-progress-eight-callback-visible-review.json"
     },
     "readerCompilerProof": {
       "status": "PASS current compiler-only101/101endpoints202/202phases:85retained170qualifiedphases+16fresh32actualphases",
@@ -22538,7 +22505,7 @@
         "releaseGatesDone": 1,
         "releaseGatesTotal": 5
       },
-      "next": "Noactiveheavy: rootconfirmed713strictV2 and714originalfinal.cjs terminalPASS/allfourimages reviewed. Current1063native and713/714compiler/frame/buildgate1DONE; finalsourcebrowserdeltaqualified. Freezecompletedmetadata andrunpreparedV7 combineddocs once. Callbacks8/18sourcebound10remaining/features4/18complete14partial/fixtures2/4/release1/5unchanged; alloldfailures retained.",
+      "next": "Current1063 native integration, seven compiler/package/frame phases, strict713 Sphere browser and complete714 DPR1/2 browser PASS. Currentf23 docs build/probe PASS; root reviewed desktop/390phone and changed22.6Rust section, ownedroadmap refreshed/front. Noactiveheavy. Await consolidated user decision on five prepared frozen-harness corrections before remaining10 sourcecallbacks; Gemini1-10 remains owned elsewhere. Callbacks8/18/features4/18complete14partial/fixtures2/4/release1/5done4remain; scoped proofs and earlier failures preserved.",
       "chapter14": {
         "status": "PASS complete current76originalcanonicalbrowser callback",
         "record": "release/76d-browser-review.json",
@@ -23248,9 +23215,13 @@
     "status": "PASS finite nativeframe/WASM/web/boot; fullcallbacks/globalrelease separate"
   },
   "currentRuntimeDocsQualification": {
-    "status": "Previous8/18desktop/390phone docsPASS remains boundtocourse3670",
-    "record": "release/docs-progress-eight-callback-visible-review.json",
+    "status": "PASS currentf23 roadmap desktop/390phone and changedChapter22.6 Rust section; root actualimages reviewed",
+    "record": "release/docs-progress-xray-current-visible-review.json",
     "currentCourseSha256": "f23fe2c84e633849f9b9fad00a0ecdb87b2d40b0d4165fd7561d702626cc7537",
-    "scope": "Source/progressXraypublication postdates measured82asset/1468checkbox snapshot; no newcurrentdocsacceptance."
+    "assetsVerified": 90,
+    "checkboxesVerified": 1468,
+    "newRustBodiesVerified": 9,
+    "scope": "Actual V7 build and V7b probe, source/HTTP/DOM exactness and image review. Measured prepublication inputs exclude this review, three copied images and this later metadata update. No whole-book or additional callback/feature/release-gate acceptance.",
+    "previousRecord": "release/docs-progress-eight-callback-visible-review.json"
   }
 }

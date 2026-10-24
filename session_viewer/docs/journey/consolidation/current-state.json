@@ -547,16 +547,21 @@
     "task": "Allreportednative/compiler/current713+714browser jobs terminal; V7docs notyetstarted",
     "scope": "Rootconfirmednoactiveheavy; no docsbuild/probeacceptance yet."
   },
-  "next": "Noactiveheavy: rootconfirmed713strictV2 and714originalfinal.cjs terminalPASS/allfourimages reviewed. Current1063native and713/714compiler/frame/buildgate1DONE; finalsourcebrowserdeltaqualified. Freezecompletedmetadata andrunpreparedV7 combineddocs once. Callbacks8/18sourcebound10remaining/features4/18complete14partial/fixtures2/4/release1/5unchanged; alloldfailures retained.",
+  "next": "Current1063 native integration, seven compiler/package/frame phases, strict713 Sphere browser and complete714 DPR1/2 browser PASS. Currentf23 docs build/probe PASS; root reviewed desktop/390phone and changed22.6Rust section, ownedroadmap refreshed/front. Noactiveheavy. Await consolidated user decision on five prepared frozen-harness corrections before remaining10 sourcecallbacks; Gemini1-10 remains owned elsewhere. Callbacks8/18/features4/18complete14partial/fixtures2/4/release1/5done4remain; scoped proofs and earlier failures preserved.",
   "currentDocsReview": {
-    "status": "PASS scoped current3670 publication before this progress metadata update",
-    "record": "release/docs-progress-current-visible-review.json",
-    "scope": "Roadmap, changed chapter13 desktop/390phone and existing97 reference desktop; four original images individually inspected. Does not claim a whole-book sweep or runtime acceptance."
+    "status": "PASS currentf23 roadmap desktop/390phone and changedChapter22.6 Rust section; root actualimages reviewed",
+    "record": "release/docs-progress-xray-current-visible-review.json",
+    "currentCourseSha256": "f23fe2c84e633849f9b9fad00a0ecdb87b2d40b0d4165fd7561d702626cc7537",
+    "assetsVerified": 90,
+    "checkboxesVerified": 1468,
+    "newRustBodiesVerified": 9,
+    "scope": "Actual V7 build and V7b probe, source/HTTP/DOM exactness and image review. Measured prepublication inputs exclude this review, three copied images and this later metadata update. No whole-book or additional callback/feature/release-gate acceptance.",
+    "previousRecord": "release/docs-progress-current-visible-review.json"
   },
   "visibleCurrentReader": {
     "url": "http://127.0.0.1:8788/docs/#/course/journey/roadmap",
-    "record": "target/course-windows-20261018/docs-current-visible-publication-preparation/opened-current-reader.json",
-    "scope": "New owned Chrome tab left open and brought to front; all prior tabs preserved."
+    "record": "target/course-windows-20261018/fef4-progress-publication-preparation/progress-publication-v7-current/owned-roadmap-front.json",
+    "scope": "Actual current roadmap refreshed and brought to front; all other tabs preserved."
   },
   "localDocs": "http://127.0.0.1:8788/docs/#/course",
   "progressPlan": "../../../../docs/plans/2026-10-18-viewer-course-progress.md",
@@ -633,7 +638,7 @@
       "record": "release/reload-grid-browser-review.json"
     },
     "finalIntegration": {
-      "status": "Current71365f0013 unfiltered1063PASS; seven713/714compiler/package/framephases andindependentbuildgate1DONE. Current713strictSphereV2and714originalfinal.cjs DPR1/2/presentationPASS/rootfourimages reviewed. Noactiveheavy; V7docs pending. Callbacks8/18sourcebound10remaining/features4/18complete14partial/fixtures2/4/release1/5unchanged.",
+      "status": "Current1063 native integration, seven compiler/package/frame phases, strict713 Sphere browser and complete714 DPR1/2 browser PASS. Currentf23 docs build/probe PASS; root reviewed desktop/390phone and changed22.6Rust section, ownedroadmap refreshed/front. Noactiveheavy. Await consolidated user decision on five prepared frozen-harness corrections before remaining10 sourcecallbacks; Gemini1-10 remains owned elsewhere. Callbacks8/18/features4/18complete14partial/fixtures2/4/release1/5done4remain; scoped proofs and earlier failures preserved.",
       "gatesDone": 1,
       "gatesTotal": 5,
       "gatesRemaining": 4,
@@ -984,14 +989,37 @@
       "applied": false,
       "candidateEvidence": "target/course-windows-20261018/split-control-candidate-v1.resources.json",
       "candidate": "Focused DPR1/2 pass,41.194s,peak787517440B; diagnostic only, not applied canonical acceptance.",
-      "phaseReuse": "Optional phase reuse question sent; no answer yet."
+      "phaseReuse": "Optional phase reuse question sent; no answer yet.",
+      "consolidatedQuestion": "2026-10-24: apply five tested input/error corrections; optional phase reuse and typing delay remain separate."
     },
     {
       "choice": "Source-aware document decode error expectation",
       "status": "awaiting-user-answer",
       "applied": false,
       "candidateEvidence": "target/course-windows-20261018/65c-document-phases-diagnosis-v1/compatibility-candidate-v2/document-phases-source-contract-focus-v2.focus.json",
-      "candidate": "Both65c legacy exact static error and94c detailed invalid-varint error pass atDPR1/2;29.59s,peak877285376B. All phase/archive/image/Undo/Redo assertions retained. Canonical harness unchanged."
+      "candidate": "Both65c legacy exact static error and94c detailed invalid-varint error pass atDPR1/2;29.59s,peak877285376B. All phase/archive/image/Undo/Redo assertions retained. Canonical harness unchanged.",
+      "consolidatedQuestion": "2026-10-24: apply five tested input/error corrections; optional phase reuse and typing delay remain separate."
+    },
+    {
+      "choice": "Vertex-pulling selection-preserving input",
+      "status": "awaiting-user-answer",
+      "applied": false,
+      "candidateEvidence": "target/course-windows-20261018/vertex-pulling-selection-correction-preparation/run-20261024T043047051Z",
+      "consolidatedQuestion": "2026-10-24: apply five tested input/error corrections; optional phase reuse and typing delay remain separate."
+    },
+    {
+      "choice": "GPU-pick origin selection setup",
+      "status": "awaiting-user-answer",
+      "applied": false,
+      "candidateEvidence": "target/course-windows-20261018/80d-gpu-pick-view-diagnostic-preparation/run-20261024T045715692Z",
+      "consolidatedQuestion": "2026-10-24: apply five tested input/error corrections; optional phase reuse and typing delay remain separate."
+    },
+    {
+      "choice": "Mesh-marker Control-mode input",
+      "status": "awaiting-user-answer",
+      "applied": false,
+      "candidateEvidence": "release/mesh-marker-control-input-review.json",
+      "consolidatedQuestion": "2026-10-24: apply five tested input/error corrections; optional phase reuse and typing delay remain separate."
     }
   ],
   "planeMatrices": {
@@ -1602,7 +1630,7 @@
       "releaseGatesDone": 1,
       "releaseGatesTotal": 5
     },
-    "next": "Noactiveheavy: rootconfirmed713strictV2 and714originalfinal.cjs terminalPASS/allfourimages reviewed. Current1063native and713/714compiler/frame/buildgate1DONE; finalsourcebrowserdeltaqualified. Freezecompletedmetadata andrunpreparedV7 combineddocs once. Callbacks8/18sourcebound10remaining/features4/18complete14partial/fixtures2/4/release1/5unchanged; alloldfailures retained.",
+    "next": "Current1063 native integration, seven compiler/package/frame phases, strict713 Sphere browser and complete714 DPR1/2 browser PASS. Currentf23 docs build/probe PASS; root reviewed desktop/390phone and changed22.6Rust section, ownedroadmap refreshed/front. Noactiveheavy. Await consolidated user decision on five prepared frozen-harness corrections before remaining10 sourcecallbacks; Gemini1-10 remains owned elsewhere. Callbacks8/18/features4/18complete14partial/fixtures2/4/release1/5done4remain; scoped proofs and earlier failures preserved.",
     "chapter14": {
       "status": "PASS complete current76originalcanonicalbrowser callback",
       "record": "release/76d-browser-review.json",
@@ -2045,9 +2073,13 @@
     }
   },
   "currentRuntimeDocsQualification": {
-    "status": "Previous8/18desktop/390phone docsPASS remains boundtocourse3670",
-    "record": "release/docs-progress-eight-callback-visible-review.json",
+    "status": "PASS currentf23 roadmap desktop/390phone and changedChapter22.6 Rust section; root actualimages reviewed",
+    "record": "release/docs-progress-xray-current-visible-review.json",
     "currentCourseSha256": "f23fe2c84e633849f9b9fad00a0ecdb87b2d40b0d4165fd7561d702626cc7537",
-    "scope": "Source/progressXraypublication postdates measured82asset/1468checkbox snapshot; no newcurrentdocsacceptance."
+    "assetsVerified": 90,
+    "checkboxesVerified": 1468,
+    "newRustBodiesVerified": 9,
+    "scope": "Actual V7 build and V7b probe, source/HTTP/DOM exactness and image review. Measured prepublication inputs exclude this review, three copied images and this later metadata update. No whole-book or additional callback/feature/release-gate acceptance.",
+    "previousRecord": "release/docs-progress-eight-callback-visible-review.json"
   }
 }
