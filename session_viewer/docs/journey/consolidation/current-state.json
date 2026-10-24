@@ -602,6 +602,15 @@
     "ambientSelectorCompilerRefresh": {
       "status": "PASS seven actual source-matching Native/WASM/optimized/frame phases; native1064 separatelyPASS",
       "record": "release/ambient-selector-final-compiler-integration-review.json"
+    },
+    "ambientSelectorBrowserRefresh": {
+      "status": "PASS current694 Sphere/raw-owner check and currentb031 full maintained final.cjs DPR1/2/presentation; all four images root-reviewed",
+      "records": [
+        "release/ambient-selector-final713-marker-browser-review.json",
+        "release/ambient-selector-maintained714-browser-review.json"
+      ],
+      "preservedFailure": "Actual first714 DPR2 focus timeout preserved; unchanged v2 retry fully passed",
+      "scope": "No assertion or runtime change; source callback counts unchanged"
     }
   },
   "resourceGuard": {
@@ -625,9 +634,9 @@
   ],
   "onlyHeavy": {
     "status": "none",
-    "task": "All native/compiler/frame jobs terminal; source-matching browser qualification queued"
+    "task": "Final native1064, seven build phases and both current browser checks terminal PASS; docs build/probe next"
   },
-  "next": "Verify current713/714 browser endpoints and publish/review current tutorials in the existing browser. Remaining10 sourcecallbacks retain pending frozen-harness choices; all Vue design and Gemini ownership preserved.",
+  "next": "Build and verify current published roadmap and changed22.6 tutorial section with all latest Gemini content; preserve every Vue/frontend file. Ten source-specific callbacks remain subject to pending frozen-harness decisions.",
   "currentDocsReview": {
     "status": "PASS currentf23 roadmap desktop/390phone and changedChapter22.6 Rust section; root actualimages reviewed",
     "record": "release/docs-progress-xray-current-visible-review.json",
@@ -1007,23 +1016,15 @@
       "record": "release/ambient-selector-final-compiler-integration-review.json"
     },
     "currentBrowserQualification": {
-      "status": "PASS current713strictSphere/original-owner browser and714completeoriginalfinal.cjs DPR1/2/presentation; allfournewPNGrootreviewed",
-      "record": "release/xray-current-browser-relevance-review.json",
-      "courseSha256": "f23fe2c84e633849f9b9fad00a0ecdb87b2d40b0d4165fd7561d702626cc7537",
-      "source713": "65f0013ae13365244de0baf69d29fd84c0219450573f86e5884eb0413dd6ae30",
-      "source714": "b9f70ac28efa5ff434a2e479f5d5374160c7c5e05eb5833ae7edd32f8b882321",
-      "marker713": {
-        "elapsedSeconds": 37.695,
-        "peakJobCommitBytes": 579866624,
-        "scope": "ActualSphere rendering/rawABI andopacity0; bothnear/rear originalowner4 asserted, opaque/source restoration retained."
-      },
-      "maintained714": {
-        "elapsedSeconds": 12.031,
-        "peakJobCommitBytes": 871219200,
-        "scope": "Originalunchangedfinal.cjs DPR1/2+capture_currentpresentation; all18freshHTTPpayloads/actualNVIDIA verified."
-      },
-      "limits": "Currentfinaldeltaqualification only; original8/18source-specificcallbackcountunchanged. PriorV1edge-only/oldV2semanticfailure/06359presentationproofs retainownscope.",
-      "applicabilityAfterAmbient": "Historical at recorded65/f23 source; not a new555/b5 compiler, full native or browser execution."
+      "status": "PASS current694 Sphere/raw-owner check and currentb031 full maintained final.cjs DPR1/2/presentation; all four images root-reviewed",
+      "records": [
+        "release/ambient-selector-final713-marker-browser-review.json",
+        "release/ambient-selector-maintained714-browser-review.json"
+      ],
+      "preservedFailure": "Actual first714 DPR2 focus timeout preserved; unchanged v2 retry fully passed",
+      "scope": "No assertion or runtime change; source callback counts unchanged",
+      "source713": "6947664b26863adf65ef7bfc879694bfedee853852bc2c7660d59f31d2e36ca9",
+      "source714": "b0313bae6b71646b9424776561375ffc4306125317e1686c5894e0ef618701bf"
     },
     "previousFingerprintBeforeAmbient": "65f0013ae13365244de0baf69d29fd84c0219450573f86e5884eb0413dd6ae30",
     "previousCourseSha256BeforeAmbient": "f23fe2c84e633849f9b9fad00a0ecdb87b2d40b0d4165fd7561d702626cc7537",

@@ -1,24 +1,26 @@
-**Current source:** Final tutorial713 `6947664b`, maintained714 `b0313bae`, course `05b03157`. Ambient Off/On matches production exactly at samples1 and4 within the recorded original pedestal comparisons. The final source passes one unfiltered **1,064/1,064 native tests**, all22 authoring tests and the1,361-checkpoint/43-reference structure check. Allseven Native/WASM/optimized/frame phases pass. Gemini's Vue design and tutorial edits are preserved. [Native proof](release/ambient-selector-final-native-integration-review.json), [compiler/frame proof](release/ambient-selector-final-compiler-integration-review.json), [ambient comparison](release/ambient-four-sample-selector-parity-review.json).
+**Current source:** Final tutorial 713 `6947664b`, maintained 714 `b0313bae`, course `05b03157`. Ambient Off/On matches production exactly at samples 1 and 4 within the recorded original pedestal comparisons. The final source passes one unfiltered **1,064/1,064 native tests**, all 22 authoring tests and the 1,361-checkpoint/43-reference structure check. All seven Native/WASM/optimized/frame phases pass. Gemini's Vue design and tutorial edits are preserved. [Native proof](release/ambient-selector-final-native-integration-review.json), [compiler/frame proof](release/ambient-selector-final-compiler-integration-review.json), [ambient comparison](release/ambient-four-sample-selector-parity-review.json).
 
 ## Progress: eight stages
 
 - [x] **1. Source integration: complete.** All source repositories are pulled; the portable pull launcher passes eight Windows/Bash safety checks. [Integration evidence](release/concurrent-teaching-integration-review.json).
 
-- [x] **2. Draft lessons:22/22 written.** There are111 reader lessons,0 unwritten lessons and1,361 preserved checkpoints. All1,359 earlier checkpoints remain unchanged. First-ten-chapter ownership stays with Gemini.
+- [x] **2. Draft lessons: 22/22 written.** There are 111 reader lessons, 0 unwritten lessons and 1,361 preserved checkpoints. All 1,359 earlier checkpoints remain unchanged. First-ten-chapter ownership stays with Gemini.
 
 - [x] **3. Previous docs publication:verified.** The recorded F23 desktop/390px phone and Chapter22.6 views passed. The new ambient sections and latest Gemini content are queued for a fresh local build and browser verification. [Previous measured review](release/docs-progress-xray-current-visible-review.json).
 
-- [x] **4. Reader compilation: 101/101 complete.** All202 phases have source qualification:170 retained original phases plus32 freshly passed phases. The final713/714 endpoints separately pass current Native/WASM/optimized builds and qualified frame checks. [Reader compiler evidence](release/reader-compilation-mask-refresh-review.json), [final native proof](release/ambient-selector-final-native-integration-review.json).
+- [x] **4. Reader compilation: 101/101 complete.** All 202 phases have source qualification: 170 retained original phases plus 32 freshly passed phases. The final 713/714 endpoints separately pass current Native/WASM/optimized builds and qualified frame checks. [Reader compiler evidence](release/reader-compilation-mask-refresh-review.json), [final native proof](release/ambient-selector-final-native-integration-review.json).
 
 - [ ] **5. Feature closure: 4/18 complete; 14 partial.** Matrix, Camera/Plane, Joined and Sheet/text satisfy their recorded finite criteria. Completed native controls, mirrored placement, Arena, source-faces and quality proofs are retained; stale repeat requirements have been removed. [Coverage](production-course-map.md), [finite visibility evidence](release/finite-visibility-native-criterion-review.json).
 
-- [ ] **6. Full callbacks: 8/18 accepted; 10 left.** Accepted source-specific results retain their original source scopes. Historical fixtures: 2/4 accepted (96y and96v), 2 left (94c and96h). Reload/grid checks are4/4 accepted. These counts overlap feature work. [Reload/grid evidence](release/reload-grid-browser-review.json).
+- [ ] **6. Full callbacks: 8/18 accepted; 10 left.** Accepted source-specific results retain their original source scopes. Historical fixtures: 2/4 accepted (96y and 96v), 2 left (94c and96h). Reload/grid checks are 4/4 accepted. These counts overlap feature work. [Reload/grid evidence](release/reload-grid-browser-review.json).
 
-- [ ] **7. Browser input corrections:five prepared decisions pending.** Tested selection, GPU-pick, mesh-marker, Split-mode and source-aware decode-error corrections retain the required behavior assertions. The canonical harness remains unchanged pending the saved-plan exception. Ten complete source-specific callbacks remain unaccepted.
+- [ ] **7. Browser input corrections: five prepared decisions pending.** Tested selection, GPU-pick, mesh-marker, Split-mode and source-aware decode-error corrections retain the required behavior assertions. The canonical harness remains unchanged pending the saved-plan exception. Ten complete source-specific callbacks remain unaccepted.
 
-- [ ] **8. Final release: 1/5 gates closed; 4 remain.** The final694/b031 Native/WASM/optimized-build gate independently passes. Current browser qualification, remaining feature/source-specific obligations and final publication are separate. [Current build-gate review](release/ambient-selector-final-runtime-build-gate-review.json).
+- [ ] **8. Final release: 1/5 gates closed; 4 remain.** The final 694/b031 Native/WASM/optimized-build gate independently passes. Both final browser endpoints pass, including maintained DPR 1/2 and original-owner Sphere checks. Remaining feature/source-specific obligations and final publication are separate. [Current build-gate review](release/ambient-selector-final-runtime-build-gate-review.json).
 
-Current guarded job:none; native/build/frame work is complete. Current713/714 browser and tutorial publication checks are next. The saved historical records below retain their own sources and counts.
+Current guarded job: none; native/build/frame and both final browser checks pass. The local tutorial build and browser publication check are next. The saved historical records below retain their own sources and counts.
+
+[Current browser proof 1](release/ambient-selector-final713-marker-browser-review.json), [Current browser proof 2](release/ambient-selector-maintained714-browser-review.json).
 
 ## Earlier checkpoint notes (historical counts)
 

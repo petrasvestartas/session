@@ -1,0 +1,162 @@
+{
+  "status": "PASS actual current source browser execution and root review of exact retained images",
+  "scope": "One source DPR1 explicit Sphere8/thickness4/aa1/raw owner-only integer queries and opaque restoration; current ambient-refreshed source qualification only",
+  "sourceFingerprint": "6947664b26863adf65ef7bfc879694bfedee853852bc2c7660d59f31d2e36ca9",
+  "courseSha256": "05b031571b9b18b4e2740898af6782e2c746cb6b1fcf35c73adb86c957869374",
+  "proof": {
+    "path": "target/course-windows-20261018/ambient-selector-browser-relevance-preparation/selector-new713-marker-v1/proof.json",
+    "sha256": "9120e1209bdb473f20a44415fb30e7b60143428942838fb63425470310c852e6"
+  },
+  "browser": {
+    "path": "target/course-windows-20261018/ambient-selector-browser-relevance-preparation/selector-new713-marker-v1/browser.json",
+    "sha256": "1e4fe62918fb775ec51e11a8ca37a4527d451ebf82dc7ca96ca02f479dc58d27"
+  },
+  "log": {
+    "path": "target/course-windows-20261018/ambient-selector-browser-relevance-preparation/selector-new713-marker-v1/output.log",
+    "sha256": "d3324d473e9913eb6a28deccfe1ad64d896603c5c1c1b3fd7beffa174ea490b0"
+  },
+  "resources": {
+    "path": "target/course-windows-20261018/ambient-selector-browser-relevance-preparation/selector-new713-marker-v1/resources.json",
+    "sha256": "7e1aa09b91a7c4ae24272709006b2ae72a21a5c42b0f06cdd5d0ad3b815713a6",
+    "elapsedSeconds": 46.735,
+    "peakJobCommitBytes": 578895872,
+    "jobCommitLimitBytes": 6442450944,
+    "processors": 2,
+    "exitCode": 0,
+    "timedOut": false,
+    "swapCapSupported": false,
+    "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced."
+  },
+  "validation": {
+    "inputPins": 2256,
+    "sourceBoundBundle": {
+      "path": "target/course-windows-20261018/ambient-selector-refreeze-preparation/713-web/bundle.json",
+      "sha256": "5777bf4d9153741b5297cb9177907c01ded9b709296184efc880072b7211c04d"
+    },
+    "freshHttpPreAndPostPayloads": 20,
+    "retainedPayloadHashesExact": true
+  },
+  "adapter": {
+    "dxgiSelection": {
+      "index": 0,
+      "name": "NVIDIA GeForce RTX 4080 Laptop GPU",
+      "vendor": 4318,
+      "device": 10208,
+      "luid": "0,86780",
+      "luidHigh": 0,
+      "luidLow": 86780,
+      "dedicatedVideoMemoryBytes": 12577669120,
+      "flags": 0
+    },
+    "driver": {
+      "name": "NVIDIA GeForce RTX 4080 Laptop GPU",
+      "driverVersion": "32.0.15.9579",
+      "pnpDeviceId": "PCI\\VEN_10DE&DEV_27E0&SUBSYS_3B6417AA&REV_A1\\4&2E9880A0&0&0008",
+      "status": "OK"
+    },
+    "actualDrawingObservations": [
+      {
+        "devices": [
+          {
+            "fallback": false,
+            "vendor": "nvidia",
+            "architecture": "lovelace",
+            "deviceName": "",
+            "description": "",
+            "adapter": {
+              "vendor": "nvidia",
+              "architecture": "lovelace",
+              "device": "",
+              "description": "",
+              "isFallbackAdapter": false
+            },
+            "device": {
+              "vendor": "nvidia",
+              "architecture": "lovelace",
+              "device": "",
+              "description": "",
+              "isFallbackAdapter": false
+            }
+          }
+        ],
+        "errors": []
+      }
+    ],
+    "qualification": "DXGI selection separately enumerated; each actual WebGPU drawing device observed NVIDIA, non-fallback. Exact WebGPU device name was unavailable."
+  },
+  "assertions": {
+    "originalOwner": 4,
+    "queries": [
+      {
+        "name": "rear",
+        "world": [
+          0.6,
+          0.6,
+          -0.8
+        ],
+        "selected": [
+          4
+        ],
+        "rawCenter": [
+          4,
+          1
+        ],
+        "querySize": [
+          13,
+          13
+        ],
+        "opacity": 0
+      },
+      {
+        "name": "near",
+        "world": [
+          -0.6,
+          -0.6,
+          -0.8
+        ],
+        "selected": [
+          4
+        ],
+        "rawCenter": [
+          4,
+          1
+        ],
+        "querySize": [
+          13,
+          13
+        ],
+        "opacity": 0
+      }
+    ],
+    "actualSphereDraw": {
+      "vertices": 6,
+      "instances": 8,
+      "thickness": 4,
+      "feather": 1,
+      "opacity": 0
+    },
+    "visibleOriginalGrayMarkerPixels": 8,
+    "restoration": {
+      "opaqueDrawingExact": true,
+      "completeDecodedArchiveExact": true,
+      "sourceCameraPlacementsUploadsExact": true
+    }
+  },
+  "images": [
+    {
+      "name": "ambient-selector-final713-opaque-original-cube.png",
+      "sha256": "035c279cf71d6d5018bc26c934823299a1e93461f286bf92e1c7911430344aa7",
+      "rootPersonallyReviewed": true,
+      "review": "Solid red cube with clean black original edges."
+    },
+    {
+      "name": "ambient-selector-final713-xray-original-cube.png",
+      "sha256": "d585c7eeb64a832f9a5e4bbb1b6f981e7cbde318c44d448a82a47e4203621f36",
+      "rootPersonallyReviewed": true,
+      "review": "Transparent cube with hidden original edges visible."
+    }
+  ],
+  "exclusions": [
+    "One DPR1 explicit Sphere original-owner witness only; no full final713/CAD callback or historical callback acceptance."
+  ]
+}
