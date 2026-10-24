@@ -1,0 +1,388 @@
+{
+  "status": "PASS bounded declared finite-visibility native component; whole feature partial",
+  "originalNativeCriterion": "Verify finite sag/tolerance, triangle addressing, clipping, coplanar depth and tiled visibility against production across affected families.",
+  "acceptedScope": "Retains seven previously inspected accepted native semantic bodies plus two now-read named native bodies with exact original1060 PASS entries, unchanged relevant source files, and the separately accepted14 actual-production/course ink pairs. No new native or GPU execution.",
+  "originalExecution": {
+    "sourceFingerprint": "97d4a9ff577fe4e932ee9561260e4bd0adbc2a82943883d111949038af33fd23",
+    "sourceFiles": 713,
+    "tests": {
+      "passed": 1060,
+      "failed": 0,
+      "ignored": 0,
+      "filtered": 0,
+      "threads": 1
+    },
+    "review": {
+      "path": "docs/journey/release/native-97d-integration-review.json",
+      "sha256": "64c7515eecd6c4e90b0ac1d9f3d76900193d16956e8a9f34319c6ebe0a670e91"
+    },
+    "stdout": {
+      "path": "target/course-windows-20261018/native-full-97d-20261023T194428611Z/suite.stdout.log",
+      "sha256": "17df2d8db27d2f76718efdc54fd9025965d659e40bd357ebe14563eafa08d465"
+    },
+    "resources": {
+      "path": "target/course-windows-20261018/native-full-97d-20261023T194428611Z/run.resources.json",
+      "sha256": "2a492d076171c8bb22c9b7a8fd4fa27dd3d6b698814bf49d27411e50c7609ee6",
+      "elapsedSeconds": 1385.144,
+      "peakJobCommitBytes": 1512873984
+    }
+  },
+  "retainedRelevantSource": {
+    "currentSourceFingerprint": "6947664b26863adf65ef7bfc879694bfedee853852bc2c7660d59f31d2e36ca9",
+    "fileCount": 29,
+    "files": [
+      {
+        "file": "clipping_geometry.rs",
+        "sha256": "0889474eb5b39c7b9c09531cb4e739376363e110a1f0070a5da27e00e2ad1cd6",
+        "historicalPath": "target/course-final-original-owners/src/clipping_geometry.rs",
+        "currentPath": "target/course-windows-20261018/ambient-selector-refreeze-preparation/source-713/src/clipping_geometry.rs"
+      },
+      {
+        "file": "clipping_gpu.rs",
+        "sha256": "7b8e02a834aaa091a430f1978450d856abf4919ea9dd484054d3b9adf85dd9e2",
+        "historicalPath": "target/course-final-original-owners/src/clipping_gpu.rs",
+        "currentPath": "target/course-windows-20261018/ambient-selector-refreeze-preparation/source-713/src/clipping_gpu.rs"
+      },
+      {
+        "file": "clipping_gpu_tests.rs",
+        "sha256": "1563e57a958f92054c6d63d59e867ff4a2f6473eee63eb987226f4d27208a299",
+        "historicalPath": "target/course-final-original-owners/src/clipping_gpu_tests.rs",
+        "currentPath": "target/course-windows-20261018/ambient-selector-refreeze-preparation/source-713/src/clipping_gpu_tests.rs"
+      },
+      {
+        "file": "clipping_input.rs",
+        "sha256": "39b97b539c9f9234a732bdb3bf194d9cef794585ff9e43a861ad1b76f20cd951",
+        "historicalPath": "target/course-final-original-owners/src/clipping_input.rs",
+        "currentPath": "target/course-windows-20261018/ambient-selector-refreeze-preparation/source-713/src/clipping_input.rs"
+      },
+      {
+        "file": "clipping_rows.rs",
+        "sha256": "d673e47cf9c113171d323ba280b9c5bb0bced55e5667bb21be1f1331a41d6954",
+        "historicalPath": "target/course-final-original-owners/src/clipping_rows.rs",
+        "currentPath": "target/course-windows-20261018/ambient-selector-refreeze-preparation/source-713/src/clipping_rows.rs"
+      },
+      {
+        "file": "clipping_source_tests.rs",
+        "sha256": "df62dbafdc66f8f6e3e934f942a00daa493693656d702f3465a5ccc7b9c7841d",
+        "historicalPath": "target/course-final-original-owners/src/clipping_source_tests.rs",
+        "currentPath": "target/course-windows-20261018/ambient-selector-refreeze-preparation/source-713/src/clipping_source_tests.rs"
+      },
+      {
+        "file": "clipping_tool.rs",
+        "sha256": "c565b8facee1f58080e3ea5252c53efc465d083b63d190467d08f0f9d5195248",
+        "historicalPath": "target/course-final-original-owners/src/clipping_tool.rs",
+        "currentPath": "target/course-windows-20261018/ambient-selector-refreeze-preparation/source-713/src/clipping_tool.rs"
+      },
+      {
+        "file": "clipping_uniform.rs",
+        "sha256": "4ac96a9221f88fb085e54ee42ed65e72eeb9bdca065edd7fc1d73575a0e65183",
+        "historicalPath": "target/course-final-original-owners/src/clipping_uniform.rs",
+        "currentPath": "target/course-windows-20261018/ambient-selector-refreeze-preparation/source-713/src/clipping_uniform.rs"
+      },
+      {
+        "file": "clipping_uniform_tests.rs",
+        "sha256": "7670fd6f8747620cea317dc2c5e0d002c9f987062f66efa098ce23fdac6c4e6d",
+        "historicalPath": "target/course-final-original-owners/src/clipping_uniform_tests.rs",
+        "currentPath": "target/course-windows-20261018/ambient-selector-refreeze-preparation/source-713/src/clipping_uniform_tests.rs"
+      },
+      {
+        "file": "finite_chain.wgsl",
+        "sha256": "82b148a5dd12bf0e42a472b0042a1bb6dbc024b560c20a01858fda028f71bc81",
+        "historicalPath": "target/course-final-original-owners/src/finite_chain.wgsl",
+        "currentPath": "target/course-windows-20261018/ambient-selector-refreeze-preparation/source-713/src/finite_chain.wgsl"
+      },
+      {
+        "file": "finite_chain_pick.wgsl",
+        "sha256": "11b5fcce1a20a10c5df767cdf6536c915bd5cf4b258758113f90817e6887554d",
+        "historicalPath": "target/course-final-original-owners/src/finite_chain_pick.wgsl",
+        "currentPath": "target/course-windows-20261018/ambient-selector-refreeze-preparation/source-713/src/finite_chain_pick.wgsl"
+      },
+      {
+        "file": "finite_ink.rs",
+        "sha256": "046c9f84e3f90bae1935aab49f05cc3ac3313314479c385eff275c5212427970",
+        "historicalPath": "target/course-final-original-owners/src/finite_ink.rs",
+        "currentPath": "target/course-windows-20261018/ambient-selector-refreeze-preparation/source-713/src/finite_ink.rs"
+      },
+      {
+        "file": "finite_marker.wgsl",
+        "sha256": "a115ea7b53e88c88793f528060f4b49ea4342c68534aa06d4fd72f3491970858",
+        "historicalPath": "target/course-final-original-owners/src/finite_marker.wgsl",
+        "currentPath": "target/course-windows-20261018/ambient-selector-refreeze-preparation/source-713/src/finite_marker.wgsl"
+      },
+      {
+        "file": "finite_marker_pick.wgsl",
+        "sha256": "2f60b20a59f0c618da6215a3ea68a0a0fd007852a39df24c5e411ea306ac47fc",
+        "historicalPath": "target/course-final-original-owners/src/finite_marker_pick.wgsl",
+        "currentPath": "target/course-windows-20261018/ambient-selector-refreeze-preparation/source-713/src/finite_marker_pick.wgsl"
+      },
+      {
+        "file": "finite_project.wgsl",
+        "sha256": "aa0b502812dcaa6803639764fe65cd3407f664cea06b326ccdf7e38d2c0dbb50",
+        "historicalPath": "target/course-final-original-owners/src/finite_project.wgsl",
+        "currentPath": "target/course-windows-20261018/ambient-selector-refreeze-preparation/source-713/src/finite_project.wgsl"
+      },
+      {
+        "file": "finite_project_source.rs",
+        "sha256": "c67e24dd0afc61ce540fc88bbefba44bca42bc9a950dc037e9512f882df57525",
+        "historicalPath": "target/course-final-original-owners/src/finite_project_source.rs",
+        "currentPath": "target/course-windows-20261018/ambient-selector-refreeze-preparation/source-713/src/finite_project_source.rs"
+      },
+      {
+        "file": "finite_sample_tests.rs",
+        "sha256": "52f4a4fc4d33c6115c690d729265bc462f3c4a8ff255eefe2db7c7ef500d94c2",
+        "historicalPath": "target/course-final-original-owners/src/finite_sample_tests.rs",
+        "currentPath": "target/course-windows-20261018/ambient-selector-refreeze-preparation/source-713/src/finite_sample_tests.rs"
+      },
+      {
+        "file": "finite_scan_contract.rs",
+        "sha256": "80ae0c73a6d7007f1d70025e8e1df41fd2239d344296aa913ff9acf0c5d2dda9",
+        "historicalPath": "target/course-final-original-owners/src/finite_scan_contract.rs",
+        "currentPath": "target/course-windows-20261018/ambient-selector-refreeze-preparation/source-713/src/finite_scan_contract.rs"
+      },
+      {
+        "file": "finite_scan_triangle_tiles.wgsl",
+        "sha256": "3474d986e948fd5da963515a862de14d1758ac8ac1b7543674efd84af6501fe1",
+        "historicalPath": "target/course-final-original-owners/src/finite_scan_triangle_tiles.wgsl",
+        "currentPath": "target/course-windows-20261018/ambient-selector-refreeze-preparation/source-713/src/finite_scan_triangle_tiles.wgsl"
+      },
+      {
+        "file": "finite_sources.rs",
+        "sha256": "ed28cb1ae250851cabafc72f454b783a62b3509b1781ca32e456941785b07772",
+        "historicalPath": "target/course-final-original-owners/src/finite_sources.rs",
+        "currentPath": "target/course-windows-20261018/ambient-selector-refreeze-preparation/source-713/src/finite_sources.rs"
+      },
+      {
+        "file": "finite_stroke.wgsl",
+        "sha256": "3b3eaeb572626e4f25ce93b90eddc910c87284dc43f7abf504d5ee5b8248a856",
+        "historicalPath": "target/course-final-original-owners/src/finite_stroke.wgsl",
+        "currentPath": "target/course-windows-20261018/ambient-selector-refreeze-preparation/source-713/src/finite_stroke.wgsl"
+      },
+      {
+        "file": "finite_stroke_pick.wgsl",
+        "sha256": "c57e84e33be21955c4d8e1628d020e2fbecf50a1c0a6f3232d610c3b37d004ca",
+        "historicalPath": "target/course-final-original-owners/src/finite_stroke_pick.wgsl",
+        "currentPath": "target/course-windows-20261018/ambient-selector-refreeze-preparation/source-713/src/finite_stroke_pick.wgsl"
+      },
+      {
+        "file": "finite_tiles_contract.rs",
+        "sha256": "dcd8398f009aa338331c9a3aa07a4f620acb77d047677d46f2bb69f790f603ac",
+        "historicalPath": "target/course-final-original-owners/src/finite_tiles_contract.rs",
+        "currentPath": "target/course-windows-20261018/ambient-selector-refreeze-preparation/source-713/src/finite_tiles_contract.rs"
+      },
+      {
+        "file": "finite_triangle_tiles.wgsl",
+        "sha256": "ed19c5169179a0e0b7e91d5ef2b498d222cc75185f6e9f8da3da1536cefa33fe",
+        "historicalPath": "target/course-final-original-owners/src/finite_triangle_tiles.wgsl",
+        "currentPath": "target/course-windows-20261018/ambient-selector-refreeze-preparation/source-713/src/finite_triangle_tiles.wgsl"
+      },
+      {
+        "file": "finite_visibility.wgsl",
+        "sha256": "7e7918708b5154eda763725313845353c81d862296b000b6110770b58fa99d10",
+        "historicalPath": "target/course-final-original-owners/src/finite_visibility.wgsl",
+        "currentPath": "target/course-windows-20261018/ambient-selector-refreeze-preparation/source-713/src/finite_visibility.wgsl"
+      },
+      {
+        "file": "finite_visibility_tests.rs",
+        "sha256": "d67908d4906f50817045d24f4c539b8e9c8e6e3e2031b4d9592fa1c32d41f0d6",
+        "historicalPath": "target/course-final-original-owners/src/finite_visibility_tests.rs",
+        "currentPath": "target/course-windows-20261018/ambient-selector-refreeze-preparation/source-713/src/finite_visibility_tests.rs"
+      },
+      {
+        "file": "production_mesh_ink.rs",
+        "sha256": "db22d1eed1cc6fd41ea81df3ea4a313ae668faed9ac385fa4690f697e30c29e4",
+        "historicalPath": "target/course-final-original-owners/src/production_mesh_ink.rs",
+        "currentPath": "target/course-windows-20261018/ambient-selector-refreeze-preparation/source-713/src/production_mesh_ink.rs"
+      },
+      {
+        "file": "production_mesh_ink_provenance.json",
+        "sha256": "833a68f75707522838ddcc0a5f4dc0985ab25d52550e1bfb65001ecaec1ede35",
+        "historicalPath": "target/course-final-original-owners/src/production_mesh_ink_provenance.json",
+        "currentPath": "target/course-windows-20261018/ambient-selector-refreeze-preparation/source-713/src/production_mesh_ink_provenance.json"
+      },
+      {
+        "file": "production_mesh_ink_tests.rs",
+        "sha256": "141a1de312899f928ce792b06f7e9111e2793628bb362c2582daf5e71b27697a",
+        "historicalPath": "target/course-final-original-owners/src/production_mesh_ink_tests.rs",
+        "currentPath": "target/course-windows-20261018/ambient-selector-refreeze-preparation/source-713/src/production_mesh_ink_tests.rs"
+      }
+    ],
+    "qualification": "These exact finite/clipping/production-mesh-ink source bytes match both historical recorded source and current694 stage. Original test/device/fixture execution scopes remain immutable; this is source relevance qualification, not a fresh694 execution."
+  },
+  "acceptedNativeBodies": [
+    {
+      "test": "finite_visibility_tests::original_lines_headed_chains_and_points_share_actual_color_and_integer_occlusion",
+      "line": 16,
+      "source": "target/course-final-original-owners/src/finite_visibility_tests.rs",
+      "sourceSha256": "d67908d4906f50817045d24f4c539b8e9c8e6e3e2031b4d9592fa1c32d41f0d6",
+      "originalObservedResult": "ok",
+      "actualAssertions": [
+        "DPR1/2 ?plainLine/headedLine/Point: hidden original loses first pick to solid before color; visible wins",
+        "near camera cut yields no clipped original pick; kept side retains owner",
+        "every differing clipped-vs-explicit-end pixel constrained to actual production cap/filter radius; genuine cap adds pixels; cut stays flat",
+        "original Line Rc identity retained"
+      ],
+      "scopeLimit": "Already tests finite clipping and cap/filter support; not a full independent production parity sweep or CAD-sag tolerance proof."
+    },
+    {
+      "test": "finite_visibility_tests::a_line_on_a_sloping_original_face_keeps_its_full_css_width",
+      "line": 44,
+      "source": "target/course-final-original-owners/src/finite_visibility_tests.rs",
+      "sourceSha256": "d67908d4906f50817045d24f4c539b8e9c8e6e3e2031b4d9592fa1c32d41f0d6",
+      "originalObservedResult": "ok",
+      "actualAssertions": [
+        "DPR1/2: sloping-surface four-CSS-pixel ribbon red pixel count EXACTLY equals flat count; owner pick retained"
+      ],
+      "scopeLimit": "Native finite centerline visibility already tested."
+    },
+    {
+      "test": "finite_visibility_tests::a_device_limit_retains_physical_color_and_pick_occlusion",
+      "line": 54,
+      "source": "target/course-final-original-owners/src/finite_visibility_tests.rs",
+      "sourceSha256": "d67908d4906f50817045d24f4c539b8e9c8e6e3e2031b4d9592fa1c32d41f0d6",
+      "originalObservedResult": "ok",
+      "actualAssertions": [
+        "64KiB storage binding limit; expected tile rows96/16; hidden red0/solid pick, visible red>30/ink pick"
+      ],
+      "scopeLimit": "Bounded actual triangle addressing/device limit proof; not all theoretical limits."
+    },
+    {
+      "test": "finite_visibility_tests::translucent_faces_reveal_original_ink_without_giving_it_pick_ownership",
+      "line": 81,
+      "source": "target/course-final-original-owners/src/finite_visibility_tests.rs",
+      "sourceSha256": "d67908d4906f50817045d24f4c539b8e9c8e6e3e2031b4d9592fa1c32d41f0d6",
+      "originalObservedResult": "ok",
+      "actualAssertions": [
+        "DPR1/2 ?plainLine/headedLine/Point with opacity.1: through-glass red>30 while solid retains pick before/after color"
+      ],
+      "scopeLimit": "A requirement that visible through-glass ink necessarily owns pick contradicts explicit contract."
+    },
+    {
+      "test": "clipping_gpu_tests::clipping_all_original_ink_families_preserve_kept_integer_owners_and_release_cut_occluders",
+      "line": 23,
+      "source": "target/course-final-original-owners/src/clipping_gpu_tests.rs",
+      "sourceSha256": "1563e57a958f92054c6d63d59e867ff4a2f6473eee63eb987226f4d27208a299",
+      "originalObservedResult": "ok",
+      "actualAssertions": [
+        "plainLine/headedLine/Point atdensity1/2: kept original owner picked,cut side None before color",
+        "clip disable increases actual red coverage; cut solid releases retained ink visibility/picking"
+      ],
+      "scopeLimit": "Exact named native clipping contract accepted; independent arbitrary production clipping sweep unsupported."
+    },
+    {
+      "test": "clipping_gpu_tests::clipping_sheet_centerline_color_and_crop_ids_preserve_original_source_entities",
+      "line": 32,
+      "source": "target/course-final-original-owners/src/clipping_gpu_tests.rs",
+      "sourceSha256": "1563e57a958f92054c6d63d59e867ff4a2f6473eee63eb987226f4d27208a299",
+      "originalObservedResult": "ok",
+      "actualAssertions": [
+        "Sheet original entity16777217:kept owner succeeds/cut None; disabling restores cut owner and increases pixels",
+        "Sheet uploads unchanged; exact original source retained"
+      ],
+      "scopeLimit": "Sheet finite native clipping already covered; no browser ingress claim."
+    },
+    {
+      "test": "scene::production_mesh_ink_tests::production_brep_pipe_rows_keep_curve_sag_silhouettes_and_rigid_replay_normals",
+      "line": 26,
+      "source": "target/course-final-original-owners/src/production_mesh_ink_tests.rs",
+      "sourceSha256": "141a1de312899f928ce792b06f7e9111e2793628bb362c2582daf5e71b27697a",
+      "originalObservedResult": "ok",
+      "actualAssertions": [
+        "actual curved boundary sag>0; nonpickable silhouettes have negative sag and u32MAX ids",
+        "rigid cached replay versus independent preparation:walks1/replays1; packed normals correct; endpoints within1e-4; sag bits identical; source protobuf exact"
+      ],
+      "scopeLimit": "Addresses native sag/ownership/replay contract, not every possible finite-sag visual tolerance."
+    }
+  ],
+  "additionalReviewedBodies": [
+    {
+      "test": "finite_visibility_tests::an_unchanged_dense_view_consumes_actual_overflow_and_stops_rebuilding",
+      "observedOriginal1060Result": "ok",
+      "source": "finite_visibility_tests.rs",
+      "sourceSha256": "d67908d4906f50817045d24f4c539b8e9c8e6e3e2031b4d9592fa1c32d41f0d6",
+      "scope": "Overlapping actual triangles grow sharedpool untilconvergence; boundedgrowth<=6; settled repeateddraws preserve tileusage."
+    },
+    {
+      "test": "finite_visibility_tests::coplanar_construction_grid_is_hidden_without_hiding_original_ink",
+      "observedOriginal1060Result": "ok",
+      "source": "finite_visibility_tests.rs",
+      "sourceSha256": "d67908d4906f50817045d24f4c539b8e9c8e6e3e2031b4d9592fa1c32d41f0d6",
+      "scope": "Coplanar grid redpixelcount exactly equals underlying baseline;319x239resize invalidatesprojection even when tiledimensions unchanged."
+    }
+  ],
+  "numericalAndTileLimits": {
+    "sag": {
+      "positiveBoundarySag": true,
+      "negativeNonpickableSilhouetteSag": true,
+      "originalProtobufExact": true,
+      "rigidReplayEndpointAbsoluteErrorLessThan": 0.0001,
+      "rigidReplaySagF32BitsExact": true
+    },
+    "triangleTile": {
+      "actualMaxStorageBindingBytes": 65536,
+      "expectedTileRows": [
+        96,
+        16
+      ],
+      "hiddenInkPixels": 0,
+      "visibleInkPixelsGreaterThan": 30,
+      "originalOwnerPicks": true,
+      "densePoolGrowthConverges": true,
+      "stableTileUsageAfterConvergence": true,
+      "resizeProjectionInvalidationFrom": [
+        320,
+        240
+      ],
+      "resizeProjectionInvalidationTo": [
+        319,
+        239
+      ]
+    },
+    "coplanar": {
+      "slopingSurfaceRibbonDensity": [
+        1,
+        2
+      ],
+      "widthCss": 4,
+      "redPixelsExactlyEqualFlat": true,
+      "coplanarGridDoesNotChangeUnderlyingOriginalInkPixels": true
+    },
+    "clipping": {
+      "families": [
+        "plain Line",
+        "headed Line",
+        "Point",
+        "Sheet"
+      ],
+      "density": [
+        1,
+        2
+      ],
+      "keptIntegerOriginalOwner": true,
+      "cutIntegerOwnerAbsent": true,
+      "sourceIdentityAndUploadsRetained": true
+    }
+  },
+  "productionComparison": {
+    "record": {
+      "path": "docs/journey/release/ink-family-controls-native-review.json",
+      "sha256": "1eab8b5fc32a443fba50d71181b2c3e73f640fa85aac02cbaba0a6d2ea647a8c"
+    },
+    "status": "PASS:14/14 exact actual-production/course native RGBA pairs;14unique frames inspected",
+    "sourceFingerprint": "97d4a9ff577fe4e932ee9561260e4bd0adbc2a82943883d111949038af33fd23",
+    "scope": "Two CAD mixed-family visibility cases plus open arrowed, closed headless and placed selected joined strokes. Each production/course pair uses the same original source bytes, settings, camera, DPR and samples. This finite evidence is not whole-feature/browser/release acceptance.",
+    "qualification": "Fourteen fixed actual-production/course fullRGBA pairs retain their original fixtures/settings/source/device and reviewed image scopes. They complement named semantics; no all-family Cartesian matrix or arbitrary sag raster bound is asserted."
+  },
+  "preparationAudit": {
+    "path": "target/course-windows-20261018/partial-feature-10-18-remaining-audit-20261024/finite-sag-tile-bounded-audit.json",
+    "sha256": "27e619b7199c45abfd9be1114a2e327d4d9d9802dbcf650622d66f9255e4d30b"
+  },
+  "remainingAcceptance": [
+    "Run chapter17 caps and chapter20 slot callbacks, including hidden/reenabled families and original source picks."
+  ],
+  "remainingFeatureStatus": "partial",
+  "independentDeclaredEntries": "measured-file-reader96zzq remains a separately declared global/streaming callback; its declaration is preserved. Arena603 is alreadyaccepted at its original source. Final native1064/build gate remains separate and currently pending.",
+  "exclusions": [
+    "No new native test execution, whole current694 suite result, new source-specific browser execution or count change.",
+    "Only the concrete numeric/source/tile bounds listed above are accepted; no arbitrary material/sag/tolerance parity claim."
+  ]
+}
