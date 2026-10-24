@@ -12,6 +12,7 @@ module.exports = async (original, helpers) => {
             const value = async name => JSON.parse(await page.locator('canvas').getAttribute(name));
             const selected = async () => page.locator('canvas').getAttribute('data-selected-id');
             const click = async p => {
+                await helpers.command(page, 'Select None');
                 await page.keyboard.press('Escape');
                 const matrix = await value('data-camera-matrix'), box = await page.locator('canvas').boundingBox();
                 const clip = [0, 1, 2, 3].map(row => p.reduce((sum, n, axis) => sum + matrix[axis * 4 + row] * n, matrix[12 + row]));

@@ -13,7 +13,7 @@ module.exports=async(original,helpers)=>{
             assert.deepEqual((await value('data-instance-gpu')).slice(0,3),[1,2,helpers.instanceAllocationBytes??2*(helpers.objectRecordBytes??160)]);await quiet();const baseline=await helpers.drawing(page),uploads=(await value('data-gpu-stats')).slice(0,2);
             await helpers.command(page,'View Normals On');await quiet();assert.notEqual(await helpers.drawing(page),baseline);assert.equal(await value('data-normal-view'),true);
             await helpers.command(page,'View Normals Off');await quiet();assert.equal(await helpers.drawing(page),baseline);assert.deepEqual((await value('data-gpu-stats')).slice(0,2),uploads);
-            await helpers.command(page,'Select Next');await quiet();assert.notEqual(await helpers.drawing(page),baseline);assert.deepEqual((await value('data-gpu-stats')).slice(0,2),uploads);
+            await helpers.command(page,'Select Next');await page.waitForTimeout(150);assert.notEqual(await helpers.drawing(page),baseline);assert.deepEqual((await value('data-gpu-stats')).slice(0,2),uploads);
             await helpers.command(page,'Select None');await quiet();assert.equal(await helpers.drawing(page),baseline);assert.deepEqual(await value('data-instances'),source);
             await helpers.command(page,'Close');await quiet();assert.deepEqual((await value('data-instance-gpu')).slice(0,3),[0,0,0]);assert.deepEqual(await value('data-gpu-usage'),[0,0,0,0]);assert.deepEqual(errors,[]);
         }finally{await context.close();await original.bringToFront();}

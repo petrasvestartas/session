@@ -6,7 +6,7 @@
 
 - [x] **2. Draft lessons: 22/22 written.** There are 111 reader lessons, 0 unwritten lessons and 1,361 preserved checkpoints. All 1,359 earlier checkpoints remain unchanged. First-ten-chapter ownership stays with Gemini.
 
-- [x] **3. Previous docs publication:verified.** The recorded F23 desktop/390px phone and Chapter22.6 views passed. The new ambient sections and latest Gemini content are queued for a fresh local build and browser verification. [Previous measured review](release/docs-progress-xray-current-visible-review.json).
+- [x] **3. Current docs publication: verified.** The current694/b031/course05b V8 build, desktop/390px phone roadmap and changed Chapter22.6 pass:14 exact Rust/WGSL bodies,11 linked assets,1,468 exact checkbox states and zero page errors. All3 original images were reviewed. This measured snapshot precedes its new review and current status edits. [Measured publication review](release/docs-progress-ambient-selector-current-visible-review.json).
 
 - [x] **4. Reader compilation: 101/101 complete.** All 202 phases have source qualification: 170 retained original phases plus 32 freshly passed phases. The final 713/714 endpoints separately pass current Native/WASM/optimized builds and qualified frame checks. [Reader compiler evidence](release/reader-compilation-mask-refresh-review.json), [final native proof](release/ambient-selector-final-native-integration-review.json).
 
@@ -14,11 +14,11 @@
 
 - [ ] **6. Full callbacks: 8/18 accepted; 10 left.** Accepted source-specific results retain their original source scopes. Historical fixtures: 2/4 accepted (96y and 96v), 2 left (94c and96h). Reload/grid checks are 4/4 accepted. These counts overlap feature work. [Reload/grid evidence](release/reload-grid-browser-review.json).
 
-- [ ] **7. Browser input corrections: five prepared decisions pending.** Tested selection, GPU-pick, mesh-marker, Split-mode and source-aware decode-error corrections retain the required behavior assertions. The canonical harness remains unchanged pending the saved-plan exception. Ten complete source-specific callbacks remain unaccepted.
+- [x] **7. Browser input corrections: five approved and applied.** The selection, GPU-pick, mesh-marker, Split-mode and source-aware decode-error corrections preserve all behavior assertions. Six files pass syntax checks; scoped candidate proofs are retained. The ten complete source-specific callbacks are next. [Approved corrections](release/five-approved-harness-corrections-review.json).
 
-- [ ] **8. Final release: 1/5 gates closed; 4 remain.** The final 694/b031 Native/WASM/optimized-build gate independently passes. Both final browser endpoints pass, including maintained DPR 1/2 and original-owner Sphere checks. Remaining feature/source-specific obligations and final publication are separate. [Current build-gate review](release/ambient-selector-final-runtime-build-gate-review.json).
+- [ ] **8. Final release: 3/5 gates closed; 2 remain.** Current694/b031 build checks, final navigation/aliases/source history and local publication/report are independently complete. Remaining gates are declared runnable-checkpoint checks and finite feature closure:10 source-specific callbacks and14 partial feature rows. All existing source scopes and Gemini content are preserved. [Independent navigation/publication review](release/final-navigation-publication-gates-review.json). [Current build-gate review](release/ambient-selector-final-runtime-build-gate-review.json).
 
-Current guarded job: none; native/build/frame and both final browser checks pass. The local tutorial build and browser publication check are next. The saved historical records below retain their own sources and counts.
+Current guarded job: none. Three of five final gates complete at current694/b031/course05b: runtime build, navigation/history and local publication/report. Remaining:10 source-specific callbacks and14 partial finite features. The user approved all five prepared frozen-harness corrections; their application and actual callback verification retain separate evidence. Eight accepted callbacks and2/4 fixtures remain source-bound. The historical notes below retain their original sources and counts.
 
 [Current browser proof 1](release/ambient-selector-final713-marker-browser-review.json), [Current browser proof 2](release/ambient-selector-maintained714-browser-review.json).
 

@@ -1,0 +1,164 @@
+{
+  "status": "PASS two independently approved finite release criteria at current694/b031/course05b local publication snapshot",
+  "source713": "6947664b26863adf65ef7bfc879694bfedee853852bc2c7660d59f31d2e36ca9",
+  "source714": "b0313bae6b71646b9424776561375ffc4306125317e1686c5894e0ef618701bf",
+  "courseSha256": "05b031571b9b18b4e2740898af6782e2c746cb6b1fcf35c73adb86c957869374",
+  "decisions": [
+    {
+      "gate": 4,
+      "literal": "Verify final navigation, aliases and complete source history/checkpoint preservation.",
+      "decision": "complete",
+      "basis": [
+        {
+          "code": "../session_tests/scripts/course/checkpoints.test.ts:285-332",
+          "actual": "Retained22/22 log includes complete prerequisite-order/stable-route assertion, rejection of missing/reversed sections, consolidation order/endpoints/aliases/legacy-numbering assertion. Every declared retained step anchor is read from its actual page; alias cardinality equals all consolidated steps; representative legacy route/anchor and original number remain exact."
+        },
+        {
+          "code": "../session_tests/src/courseBook.ts:8-52",
+          "actual": "The tested production mapping rejects any missing/duplicate/reordered checkpoint and non-last runnable endpoint; creates each retained checkpoint alias from that same validated ordered mapping."
+        },
+        {
+          "code": "../session_tests/plugins/course.ts:244-252,395-430,450-477",
+          "actual": "Actual V8 build renders every page; alias payloads redirect to consolidated page plus original checkpoint anchor; every internal target/anchor is checked. No broken-link or unwritten-include warning in completed log. Previous/next reader navigation and retained legacy navigation use the same mapping."
+        },
+        {
+          "actual": "Actual source postflight reconstructed all1361 checkpoints, confirms all1359 earlier steps/snippets unchanged, and binds current713/714. Structure verifies1361 and43 reference checkpoints against all displayed edits."
+        },
+        {
+          "actual": "Current V8 local frontend/HTML/HTTP and desktop/390phone navigation presentation passed; root reviewed both roadmap images and changed22.6 image."
+        }
+      ],
+      "limits": [
+        "No fullbook feature acceptance or pending source-specific callback acceptance.",
+        "Alias correctness follows all-entry mapping/anchor assertions and actual all-page build;111 fresh browser clicks are not part of this literal criterion."
+      ]
+    },
+    {
+      "gate": 5,
+      "literal": "Publish locally, inspect the final book and report counts, measurements and remaining limitations.",
+      "decision": "complete",
+      "basis": [
+        "Actual current V8 build and local served index/roadmap/changed22.6 payloads are SHA-bound; build/probe guards exited0 with unchanged inputs.",
+        "Root individually inspected all3 actual PNGs. Desktop/390phone fit, disabled exact checkbox states, real closed drawer, no page errors and14 ordered Rust/WGSL bodies passed.",
+        "Published roadmap/current metadata reports22chapters/111reader lessons/1361preserved checkpoints,1064native,8of18accepted callbacks,4of18features,2of4fixtures and explicit pending harness/source-specific limitations.",
+        "Five already measured performance categories remain reported with original small-demo/WARP/source/sampling limits and no hardware-FPS or current694 speedup claim. The literal requests reported measurements, not a new performance sweep."
+      ],
+      "limits": [
+        "Measured prepublication snapshot excludes this new audit and later status edits.",
+        "This independent criterion does not declare every lesson feature complete, Gemini handoff complete or all historical callbacks passed.",
+        "Reassess affected navigation/publication proof if actual book, aliases, source or frontend inputs change; status/proof publication alone does not retroactively change the measured snapshot."
+      ]
+    }
+  ],
+  "counts": {
+    "chapters": 22,
+    "readerLessons": 111,
+    "retainedAliasMappings": 1360,
+    "checkpoints": 1361,
+    "earlierCheckpointsUnchanged": 1359,
+    "authoringPassed": 22,
+    "referenceChecks": 43,
+    "renderedPages": 1575,
+    "emittedAssets": 470,
+    "liveHTTPAssets": 11,
+    "renderedCheckboxes": 1468,
+    "changedSourceBodies": 14,
+    "performanceCategories": 5
+  },
+  "independentAudit": {
+    "path": "target\\course-windows-20261018\\final-navigation-publication-gates-audit\\independent-review.json",
+    "sha256": "9a551384a74658c75b47ced1d085c76c27f5aa3bbd24a3a09cae092b59110561"
+  },
+  "evidence": [
+    {
+      "path": "docs/journey/release/ambient-selector-authored-source-review.json",
+      "sha256": "5c05f82c5de5dbf8fa7fdaa9c05d0b68dbc5cb8bb89607715baeccf524a05fb4"
+    },
+    {
+      "path": "target/course-windows-20261018/ambient-selector-authoring-preparation/actual-selector-postflight-v1.json",
+      "sha256": "0496471b4307e886d8941dbda63587fb78bb9e5cde30a05a2b752b793b1eaa06"
+    },
+    {
+      "path": "target/course-windows-20261018/ambient-ground-regression-preparation/authored-checks-selector-v3-units/output.log",
+      "sha256": "ec8805df36b0b48740cf8b14db79d8dda6469ea1631211b3c8f0539c600e22d0"
+    },
+    {
+      "path": "target/course-windows-20261018/ambient-ground-regression-preparation/authored-checks-selector-v3-units/resources.json",
+      "sha256": "132e0b0768d3d98b3e6dfc4300c41d8cd71ef245dc83884033cb1eef8bc05fa6"
+    },
+    {
+      "path": "target/course-windows-20261018/ambient-ground-regression-preparation/authored-checks-selector-v3-structure/output.log",
+      "sha256": "726b513a6403152dbcbc3f377f98676d314610b208ab6569eeb462417791433f"
+    },
+    {
+      "path": "target/course-windows-20261018/ambient-ground-regression-preparation/authored-checks-selector-v3-structure/resources.json",
+      "sha256": "26430c2ce8f44719bc4b11ff6123063766798a126e8615da820fe4f7b984d496"
+    },
+    {
+      "path": "../session_tests/scripts/course/checkpoints.test.ts",
+      "sha256": "ec0fd7e54b91126f911cbe08540d2de898a2684afac7330f40aabca6bd685b1b"
+    },
+    {
+      "path": "docs/journey/book.json",
+      "sha256": "392b9ff86eb234ab70660f04bf8bf53b26b7c7e691954242b89b3e8627d6995f"
+    },
+    {
+      "path": "docs/journey/course.json",
+      "sha256": "05b031571b9b18b4e2740898af6782e2c746cb6b1fcf35c73adb86c957869374"
+    },
+    {
+      "path": "../session_tests/src/courseBook.ts",
+      "sha256": "fbc1f4511826b561f02b9f5486de458b16401eeba71dda3e24ad228bd03d66b9"
+    },
+    {
+      "path": "../session_tests/plugins/course.ts",
+      "sha256": "462cf702b498d7c4f5d30f100dfcc8d0d39766823d2441141a8c800e9d613b5f"
+    },
+    {
+      "path": "../session_tests/src/components/layout/MainLayout.vue",
+      "sha256": "691fe1c55090427be5396288094cc904036494056516094c3df49a134b14d645"
+    },
+    {
+      "path": "docs/journey/release/docs-progress-ambient-selector-current-visible-review.json",
+      "sha256": "44ac6e135287a43c5d174d39aad389880142c33a842c117af507c5d99666d081"
+    },
+    {
+      "path": "target/course-windows-20261018/fef4-progress-publication-preparation/progress-publication-v8-selector-current/inputs.json",
+      "sha256": "c1e08f5c3ed5787df4c2960dda7b1f41139378c16490ef3b9f3887fc8513cc6a"
+    },
+    {
+      "path": "target/course-windows-20261018/fef4-progress-publication-preparation/progress-publication-v8-selector-current/build-pass.json",
+      "sha256": "435d9850c0201f40eb709ca74d7054b918e00a5263b382a331ef3a59f42713f7"
+    },
+    {
+      "path": "target/course-windows-20261018/fef4-progress-publication-preparation/progress-publication-v8-selector-current/resources.json",
+      "sha256": "d9d7cbc0cac220b5de07db2ff7797f5290ba50c977da4d2c9cc898abf2ec4dbd"
+    },
+    {
+      "path": "target/course-windows-20261018/fef4-progress-publication-preparation/progress-publication-v8-selector-current/build.log",
+      "sha256": "f07f1abd25633c6441d502c305934fbfb8f39a09b6eab6d01ae641d8c329059b"
+    },
+    {
+      "path": "target/course-windows-20261018/fef4-progress-publication-preparation/progress-publication-v8-selector-current/visible-roadmap-v8-selector-v2/review.json",
+      "sha256": "b9e370f2fa34437d5ce41c2b9ca81987356b1e10a5405dca1576e069a2360bf1"
+    },
+    {
+      "path": "target/course-windows-20261018/fef4-progress-publication-preparation/progress-publication-v8-selector-current/probe-v8-progress-v2.resources.json",
+      "sha256": "011fcca9277838d0683241b4c0bb8a5d25eea93fbbdda118dab3444498ac99e1"
+    },
+    {
+      "path": "docs/journey/release/runtime-performance-review.json",
+      "sha256": "06941394b8794640e51aea35e422ca03b14ce1001c3ef364bd324d6a539c854a"
+    }
+  ],
+  "currentDocsRecord": "release/docs-progress-ambient-selector-current-visible-review.json",
+  "rootReview": {
+    "approvedBothIndependentCriteria": true,
+    "actualThreeDocsImagesIndividuallyReviewed": true
+  },
+  "remainingFinalGates": [
+    "Pass all declared runnable-checkpoint checks against their actual final inputs.",
+    "Close every feature row in the production/lesson coverage map with truthful source and visual evidence."
+  ],
+  "scope": "Only original final-gate4 navigation/history and5 local publication/report complete. Build gate1 retains its separate approved proof. Gates2 runnable checks and3 finite features stay open. Eight accepted callback source scopes and all18 feature rows remain unchanged. Measured V8 snapshot precedes this review and metadata publication; reassess affected proof after actual source/book/navigation/frontend changes."
+}
