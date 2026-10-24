@@ -37,22 +37,64 @@
     "publishedCi": "PASS atb7cdd5dc: run39928419284,WASM+native all-target checks,558 maintained native tests pass,61ignored GPU tests. This is separate from learner1059-test WARP suite.",
     "pullLauncherSafety": "PASS:pull-launcher-regression.json;8isolated Bash/cmd help/invalid/dirty/unpublished cases,HEADandpayload preserved. No destructive force run.",
     "nativeFullCurrent": {
-      "status": "qualified-recovery-after-failed-full-run",
+      "status": "PASS current final fef4 unfiltered1062/1062 native integration;0failed/ignored/filtered",
+      "record": "release/native-final-two-fixture-integration-review.json",
       "sourceFingerprint": "fef4c7bdb6f4c0a6f7a7701b0ba5581469dd757a34eefbab030a06e92ce4e5a1",
-      "courseSha256": "d4ab046ec86c32ca3524afdf9f665dac30821367ce0bf5899f61ab7baf2f026e",
-      "originalPassed": 1060,
-      "originalFailed": 2,
-      "exactFocusedRecovered": 2,
-      "singleUnfiltered1062Pass": false,
-      "record": "release/native-ribbon-v4-qualified-recovery-review.json",
-      "scope": "Qualified native recovery only; not one unfiltered1062PASS. Current frame/WASM/optimizedweb/bootrender and scoped lesson publication have separate records.17fullcallbacks and global release remain pending."
+      "sourceSignature": "c39e50938c22157a7883b49fe1c56912c03c703cc2291e0f4152183c3de8153c",
+      "courseSha256": "367065739cee3cbf01e1b240c9eca4a1e0c12092eccab2fe2345cbc783a55197",
+      "sourceFiles": 713,
+      "passed": 1062,
+      "failed": 0,
+      "ignored": 0,
+      "filtered": 0,
+      "singleUnfiltered1062Pass": true,
+      "suiteSeconds": 1399.52,
+      "guardElapsedSeconds": 1401.26,
+      "peakJobCommitBytes": 1499983872,
+      "scope": "Actual unfiltered current handwritten713 native integration with exact1062test inventory and successful source postflight. Native integration only; historical callbacks, finitefeaturecontrols, whole714maintained suite and global release gates remain separate.",
+      "previousQualifiedRecovery": {
+        "status": "qualified-recovery-after-failed-full-run",
+        "sourceFingerprint": "fef4c7bdb6f4c0a6f7a7701b0ba5581469dd757a34eefbab030a06e92ce4e5a1",
+        "courseSha256": "d4ab046ec86c32ca3524afdf9f665dac30821367ce0bf5899f61ab7baf2f026e",
+        "originalPassed": 1060,
+        "originalFailed": 2,
+        "exactFocusedRecovered": 2,
+        "singleUnfiltered1062Pass": false,
+        "record": "release/native-ribbon-v4-qualified-recovery-review.json",
+        "scope": "Qualified native recovery only; not one unfiltered1062PASS. Current frame/WASM/optimizedweb/bootrender and scoped lesson publication have separate records.17fullcallbacks and global release remain pending."
+      }
     },
-    "nativeSourceAfterDisposal": "PASS current97d:1060/1060 unfiltered native tests, zero failures/ignored/filtered; guarded 1385.144s, peak 1512873984B. Native integration acceptance only; compiler/browser/publication work remains. Historical a45/1059 and96y/831 proofs retain their original source bindings.",
+    "nativeSourceAfterDisposal": "PASS latest fef4 handwritten713 unfiltered1062/1062;0failed/ignored/filtered. Suite1399.52s,guard1401.26s,peak1499983872B. Original97d1060 and qualified1060+2/failed1062 records retain historical source scopes. release/native-final-two-fixture-integration-review.json",
     "svgRendering": "PASS: shared SVG tokenizer, five focused parser tests, svg-docs-build.json (123.144s), and svg-visible.json. Complete Gemini diagram visually inspected after full reload; original authored Markdown unchanged.",
     "frameSchedule": "PASS: three native CPU semantics plus unchanged browser coalescing/disposal contract at63acaf79. Ordered input, one pending frame, geometry reuse, idle0 and no late disposal submissions; cached-page browser resume remains separate.",
     "performance": "PASS: performance-disposal resources/manifest and public runtime-performance-review.json. Five categories measured on same small demo; resize burst56->1frames,uploads283136->5056bytes,idle0. Raw warm timings retained, no steady-frame or hardware speedup claim. Unchanged lifecycle callback passes.",
     "disposalFix": "PASS: optimized disposal-web182.878s and unchanged browser lifecycle callback; final teardown has no late submissions. Original failed run retained.",
-    "docsCurrent": "PASS scoped integrated content publication:59 introductions,111 links,21 images and17 inspected views at recorded source/build. Separate docs UI review resolves duplicate progress navigation and Matrix phone prose overflow; four inspected UI views retain their frontend source hashes. First10/current whole-book, SVG/runtime parity and global release acceptance remain separate.",
+    "docsCurrent": {
+      "status": "PASS current3670 V4 docs prepublication snapshot; all4originalPNG individually reviewed",
+      "record": "release/docs-progress-current-visible-review.json",
+      "courseSha256": "367065739cee3cbf01e1b240c9eca4a1e0c12092eccab2fe2345cbc783a55197",
+      "roadmapSha256": "eedb87e026c25a6799993656e2be1683aff0cb6c214ae8a764a8a2b237840f87",
+      "currentStateSha256": "801a7610c3f9a0b0ec024ff61abd0694b308287a9791e36b470d8a7fc6073b4f",
+      "images": [
+        {
+          "figure": "journey/release/docs-current-roadmap-desktop.png",
+          "sha256": "30136b9be59edd132f929c9db5686d007db271b49b26a84c7624c3c5225326db"
+        },
+        {
+          "figure": "journey/release/docs-current-chapter13-desktop.png",
+          "sha256": "c199e0ffc87f61174660f3a4a60de34f44f097024ea49650ed41bc4c16b1a372"
+        },
+        {
+          "figure": "journey/release/docs-current-chapter13-phone.png",
+          "sha256": "ca098917381a6e3ebb970061b781537094cc2da34ddef3dc1ab39219da88b98b"
+        },
+        {
+          "figure": "journey/release/docs-current-maintained97-desktop.png",
+          "sha256": "86b168a184098e2efb1f68bcd26c78d457732cf0e0af03b1ab48b9081c82faf0"
+        }
+      ],
+      "scope": "Actual prepublication snapshot with current4/18callbacks14left, chapter13desktop/390phone and corrected97reference instruction5. Newreview/copies and subsequentstatusupdates were not partof that build; no self-referential currentbuild claim. First10/redraft and combined-book handoff remain pending."
+    },
     "historicalLock": "Cached94c lock was stale (missing getrandom dependency edge only). Current canonical94-Cargo.lock already correct; exact canonical bytes restored to ignored cache, no canonical lock or test assertion changes. Initial --locked abort retained.",
     "historicalVulkanProbe": "PASS: unchanged94c glyph-atlas GPU test, canonical lock SHA1df9f908 restored, explicit pinned Vulkan SwiftShader ICD environment; historical-vulkan-probe-current-lock.json. Full checkpoint/callback acceptance remains separate.",
     "structuralCurrent": "PASS1361 checkpoints,307viewer files,43reference,351final; target/course-windows-20261018/clipping-guide-ribbon-v4-preparation/authoring/structure.log",
@@ -121,22 +163,41 @@
       "scope": "Only changed22.6 material teaching at recorded source/build; prior broader proofs remain source-bound and global/first10 handoff pending."
     },
     "clippingGuideSourceFix": {
-      "status": "PASS focusedCPU2 and four strict full-RGBA pairs;full integration/browser/docs pending",
+      "status": "PASS focusedCPU2/fourRGBA pairs plus actualfinal1062unfiltered native integration; browser/docs/global acceptance retain separate scopes.",
       "record": "release/clipping-guide-ribbon-native-review.json",
       "priorPartialRecord": "release/clipping-guide-source-fix-partial-review.json",
       "expectedFullNativeTests": 1062,
-      "fullNativeAcceptance": "QUALIFIED1060 unchanged namedPASS plus2exactfocusedrecovery; originalunfiltered fullrun remainsFAIL1060/1062"
+      "fullNativeAcceptance": "PASS latest currentfef4 handwritten713 unfiltered1062/1062,zero failed/ignored/filtered. Original failed1060/1062 and qualified1060+2 are retained historical records.",
+      "previousQualifiedNativeAcceptance": "QUALIFIED1060 unchanged namedPASS plus2exactfocusedrecovery; originalunfiltered fullrun remainsFAIL1060/1062",
+      "currentFullNativeRecord": "release/native-final-two-fixture-integration-review.json"
     },
     "clippingGuideRibbonFullNative": {
-      "status": "qualified-recovery-after-failed-full-run",
+      "status": "PASS current final fef4 unfiltered1062/1062 native integration;0failed/ignored/filtered",
+      "record": "release/native-final-two-fixture-integration-review.json",
       "sourceFingerprint": "fef4c7bdb6f4c0a6f7a7701b0ba5581469dd757a34eefbab030a06e92ce4e5a1",
-      "courseSha256": "d4ab046ec86c32ca3524afdf9f665dac30821367ce0bf5899f61ab7baf2f026e",
-      "originalPassed": 1060,
-      "originalFailed": 2,
-      "exactFocusedRecovered": 2,
-      "singleUnfiltered1062Pass": false,
-      "record": "release/native-ribbon-v4-qualified-recovery-review.json",
-      "scope": "Qualified native recovery only; not one unfiltered1062PASS. Current frame/WASM/optimizedweb/bootrender and scoped lesson publication have separate records.17fullcallbacks and global release remain pending."
+      "sourceSignature": "c39e50938c22157a7883b49fe1c56912c03c703cc2291e0f4152183c3de8153c",
+      "courseSha256": "367065739cee3cbf01e1b240c9eca4a1e0c12092eccab2fe2345cbc783a55197",
+      "sourceFiles": 713,
+      "passed": 1062,
+      "failed": 0,
+      "ignored": 0,
+      "filtered": 0,
+      "singleUnfiltered1062Pass": true,
+      "suiteSeconds": 1399.52,
+      "guardElapsedSeconds": 1401.26,
+      "peakJobCommitBytes": 1499983872,
+      "scope": "Actual unfiltered current handwritten713 native integration with exact1062test inventory and successful source postflight. Native integration only; historical callbacks, finitefeaturecontrols, whole714maintained suite and global release gates remain separate.",
+      "previousQualifiedRecovery": {
+        "status": "qualified-recovery-after-failed-full-run",
+        "sourceFingerprint": "fef4c7bdb6f4c0a6f7a7701b0ba5581469dd757a34eefbab030a06e92ce4e5a1",
+        "courseSha256": "d4ab046ec86c32ca3524afdf9f665dac30821367ce0bf5899f61ab7baf2f026e",
+        "originalPassed": 1060,
+        "originalFailed": 2,
+        "exactFocusedRecovered": 2,
+        "singleUnfiltered1062Pass": false,
+        "record": "release/native-ribbon-v4-qualified-recovery-review.json",
+        "scope": "Qualified native recovery only; not one unfiltered1062PASS. Current frame/WASM/optimizedweb/bootrender and scoped lesson publication have separate records.17fullcallbacks and global release remain pending."
+      }
     },
     "finalCurrentArtifacts": {
       "status": "PASS finite current-source native frame, WASM, optimized web and actual browser boot/render",
@@ -197,7 +258,9 @@
       "focusedRepair": "release/70d-mask-projection-repair-review.json",
       "figure": "journey/release/70d-current-mirrored-final.png",
       "scope": "Current331-source325b fullcanonicalNVIDIA callback. No SharedArena or otherfeature closure; original failures and four diagnostic frames retain their scopes."
-    }
+    },
+    "previousNativeSourceAfterDisposal": "PASS current97d:1060/1060 unfiltered native tests, zero failures/ignored/filtered; guarded 1385.144s, peak 1512873984B. Native integration acceptance only; compiler/browser/publication work remains. Historical a45/1059 and96y/831 proofs retain their original source bindings.",
+    "previousDocsCurrent": "PASS scoped integrated content publication:59 introductions,111 links,21 images and17 inspected views at recorded source/build. Separate docs UI review resolves duplicate progress navigation and Matrix phone prose overflow; four inspected UI views retain their frontend source hashes. First10/current whole-book, SVG/runtime parity and global release acceptance remain separate."
   },
   "resourceGuard": {
     "command": "../../../../session_tests/scripts/run-guarded.cmd",
@@ -212,28 +275,21 @@
     "Reader compiler lane complete101/101endpoints202/202phases:85retained170qualifiedphases plus16fresh32actualphases. Original source-bound records and mask-invalidation history retained; no all202new execution or test/browser claim.",
     "Original18source-specificcallbacks:finalCAD,maintained97,current76,current70 accepted4;14remain including11historical+3late display. Historicalfixture1/4unchanged;65clegacyerrorfailure retained.",
     "Matrix,Camera/Plane,Joined andfiniteSheet are4/18complete;14partial. Globalrelease0/5; Gemini first10/redraft andcombinedbookhandoff remain deferred.",
-    "Production ribbon guide fix: two CPU regressions and four strict full-RGBA pairs accepted; eight original images inspected. Separate current qualified native recovery, frame/WASM/web/boot and scoped lesson publication records pass. Full callbacks and global release remain pending.",
+    "Production ribbon guide fix retains focusedCPU/fourRGBA proof; latest finalfef4 unfiltered1062/1062 native integration nowPASS. Remaining14sourcecallbacks,14partialfeatures and0/5release gates stay open.",
     "Original70d failed outer status and striped frame remain immutable. Applied mask projection fix now passes actual fullcanonical70 at331-source325b; fresh final PNG individually reviewed clean. No automatic SharedArena feature closure.",
     "Old60306/c65976run failedouterstatus and remainsimmutable. Subsequentcurrentbe28476fullcallback nowPASS withfreshSheet/finalcurve rootreview;finiteSheet complete via separate recordednative/browser scopes.",
     "Maintained97 duplicate-export packagingfailure retained. Corrected06359f77 wrapper freshWASM/optimizedpackage and completeoriginalDPR1/2NVIDIAbrowser nowPASS; bothoriginalimagesreviewed. Maintained97 callback accepted; currenttotal4/18accepted14left after separate76/70 acceptance. Feature/globalscope remains separately recorded."
   ],
   "onlyHeavy": {
     "status": "running-unaccepted",
-    "task": "Final unfiltered 1062-test native integration at current fef4 source",
-    "rootSession": 61745,
-    "memoryLimitMiB": 4096,
-    "manifest": "target/course-windows-20261018/native-full-two-fixture-20261024T033650211Z/manifest.json",
-    "previousCompleted70Session": 43071,
-    "boundedShortcutFailure": {
-      "rootSession": 51544,
-      "status": "explained-legacy-baseline-assumption; complete body remains failed",
-      "record": "target/startup-finite-criteria-preparation/shortcuts-fef4-v1/report.json",
-      "diagnostic": "target/startup-finite-criteria-preparation/shortcuts-fef4-passive-diagnostic-v1-passive-states/observation.json",
-      "scope": "The empty click releases text focus but retains selected ObjectId2. Baseline Fit targets that object; later Escape clears selection and uppercase F correctly fits all geometry. Earlier Escape/text/history observations retain their bounded scope. No whole-body or Startup feature acceptance, and no current runtime change indicated."
-    },
-    "processors": 2
+    "rootSession": 42947,
+    "task": "Final713 fef4 unchanged default quality callback plus actual prerequisites on existing optimizedbundle",
+    "startedUtcApprox": "2026-10-24T04:01:00Z",
+    "memoryLimitMiB": 6144,
+    "processors": 2,
+    "scope": "Actual final lost-device/frame-owner recovery criterion under execution. No Startup feature or historical656 callback acceptance before terminalPASS and root actualimage review."
   },
-  "next": "Complete the active unfiltered final 1062-test native run. Current docs build, roadmap, chapter13 desktop/phone and checkpoint97 full corrected code block passed DOM/HTTP and individual image review. The legacy shortcut diagnostic failure is explained by unequal selection baselines; current runtime remains unchanged. Four of18 callbacks accepted,14 remain; four of18 feature groups complete,14 partial.",
+  "next": "Actual final713 quality callback/prerequisites42947 running; await terminal result and root image review. Fullnative1062 and readercompiler101/202 are complete. Original sourcecallbacks4/18accepted14left; finitefeatures4/18complete14partial; fixture1/4; release0/5. First10/redraft handoff remains separate.",
   "currentDocsReview": {
     "status": "PASS scoped current3670 publication before this progress metadata update",
     "record": "release/docs-progress-current-visible-review.json",
@@ -319,7 +375,7 @@
       "record": "release/reload-grid-browser-review.json"
     },
     "finalIntegration": {
-      "status": "FinalCAD,maintained97,current76 andcurrent70 originalsource-specificcallbacks accepted4/18;14remain. Finitefeatures4/18complete14partial;finalrelease0/5. Native/compiler/artifact/docs proofs retain original source bindings.",
+      "status": "Currentfinalfef4 native1062/1062 andreadercompiler101/202 PASS. Originalsourcecallbacks4/18 accepted14remain;finitefeatures4/18complete14partial;release0/5. Currentfinalquality42947running-unaccepted.",
       "gatesDone": 0,
       "gatesTotal": 5
     }
@@ -361,7 +417,7 @@
         "src/plane_original.rs",
         "src/production_joined.rs"
       ],
-      "scope": "Production ribbon guide fix: two CPU regressions and four strict full-RGBA pairs accepted; eight original images inspected. Separate current qualified native recovery, frame/WASM/web/boot and scoped lesson publication records pass. Full callbacks and global release remain pending."
+      "scope": "Production ribbon guide repair: two CPU regressions and four strictRGBA pairs retain their original scope. Latest currentfef4 unfiltered1062/1062 native integration nowPASS. Frame/WASM/web/boot and docs have separate records;14originalcallbacks and global release remain pending."
     },
     "qualifiedNativeRecovery": {
       "status": "qualified-recovery-after-failed-full-run",
@@ -458,6 +514,23 @@
       "acceptanceRecord": "release/maintained97-export-recovery-review.json",
       "browserElapsedSeconds": 15.704,
       "browserPeakJobCommitBytes": 896905216
+    },
+    "nativeFullIntegration": {
+      "status": "PASS current final fef4 unfiltered1062/1062 native integration;0failed/ignored/filtered",
+      "record": "release/native-final-two-fixture-integration-review.json",
+      "sourceFingerprint": "fef4c7bdb6f4c0a6f7a7701b0ba5581469dd757a34eefbab030a06e92ce4e5a1",
+      "sourceSignature": "c39e50938c22157a7883b49fe1c56912c03c703cc2291e0f4152183c3de8153c",
+      "courseSha256": "367065739cee3cbf01e1b240c9eca4a1e0c12092eccab2fe2345cbc783a55197",
+      "sourceFiles": 713,
+      "passed": 1062,
+      "failed": 0,
+      "ignored": 0,
+      "filtered": 0,
+      "singleUnfiltered1062Pass": true,
+      "suiteSeconds": 1399.52,
+      "guardElapsedSeconds": 1401.26,
+      "peakJobCommitBytes": 1499983872,
+      "scope": "Actual unfiltered current handwritten713 native integration with exact1062test inventory and successful source postflight. Native integration only; historical callbacks, finitefeaturecontrols, whole714maintained suite and global release gates remain separate."
     }
   },
   "coordination": {
@@ -672,9 +745,12 @@
       {
         "id": "final-native-and-compiler-proof",
         "requirement": "One final integrated native regression plus required source-matching compiler/frame proof; reuse completed97d web where inputs match.",
-        "nativeStatus": "Pending one unfiltered current final fef4 1062-test integration run. Original97d 1060/1060 remains accepted for its original source; current fef4 has separately qualified1060 unchanged namedPASS plus2focused recovery, not unfiltered1062PASS.",
-        "nativeRecord": "release/native-97d-integration-review.json",
-        "qualifiedCurrentNativeRecord": "release/native-ribbon-v4-qualified-recovery-review.json"
+        "nativeStatus": "DONE currentfef4 handwritten713 unfiltered1062/1062 PASS,zero failed/ignored/filtered; one actual integratedsuite completed. Native scope only.",
+        "nativeRecord": "release/native-final-two-fixture-integration-review.json",
+        "qualifiedCurrentNativeRecord": "release/native-ribbon-v4-qualified-recovery-review.json",
+        "previousNativeRecord": "release/native-97d-integration-review.json",
+        "compilerStatus": "DONE101/101reader endpoints202/202 qualifiedphases:170retained+32fresh.",
+        "remainingGroupScope": "Group retained for final runnable/source-specific proof and publication accounting; native and readercompiler portions done. Three originalnoncallback actiongroups/counts unchanged; no automatic globalgate closure."
       },
       {
         "id": "declared-reader-checkpoint-proof-accounting",
@@ -1082,7 +1158,7 @@
       "releaseGatesDone": 0,
       "releaseGatesTotal": 5
     },
-    "next": "No active heavy job. Actual70 fullcallback accepted. Bounded unchanged shortcut body failed final uppercase-F pixel equality after earlier focus/text/history sites passed; diagnosis pending, no Startup or whole-body acceptance and no blanket artifact-defect claim. Remaining14 source-specific callbacks and final unfiltered native1062 pending runtime decision.",
+    "next": "Actual final713 quality callback/prerequisites42947 running; await terminal result and root image review. Fullnative1062 and readercompiler101/202 are complete. Original sourcecallbacks4/18accepted14left; finitefeatures4/18complete14partial; fixture1/4; release0/5. First10/redraft handoff remains separate.",
     "chapter14": {
       "status": "PASS complete current76originalcanonicalbrowser callback",
       "record": "release/76d-browser-review.json",
@@ -1229,6 +1305,58 @@
       "browserSourceFingerprint": "be284802487701c94923dad393cec3b6cc3ba230bbffd61e949ceb62d8247482",
       "browserSourceFiles": 377,
       "scope": "OnlyfiniteSheet row; current76completebody+freshSheet/finalreview. Native97d+qualifiedfef4 andoriginal32pairs remain independentlysource-bound.70d/global22callbacks stillseparate."
+    },
+    "currentFullNative": {
+      "status": "PASS current final fef4 unfiltered1062/1062 native integration;0failed/ignored/filtered",
+      "record": "release/native-final-two-fixture-integration-review.json",
+      "sourceFingerprint": "fef4c7bdb6f4c0a6f7a7701b0ba5581469dd757a34eefbab030a06e92ce4e5a1",
+      "sourceSignature": "c39e50938c22157a7883b49fe1c56912c03c703cc2291e0f4152183c3de8153c",
+      "courseSha256": "367065739cee3cbf01e1b240c9eca4a1e0c12092eccab2fe2345cbc783a55197",
+      "sourceFiles": 713,
+      "passed": 1062,
+      "failed": 0,
+      "ignored": 0,
+      "filtered": 0,
+      "singleUnfiltered1062Pass": true,
+      "suiteSeconds": 1399.52,
+      "guardElapsedSeconds": 1401.26,
+      "peakJobCommitBytes": 1499983872,
+      "scope": "Actual unfiltered current handwritten713 native integration with exact1062test inventory and successful source postflight. Native integration only; historical callbacks, finitefeaturecontrols, whole714maintained suite and global release gates remain separate."
+    },
+    "currentDocs": {
+      "status": "PASS current3670 V4 docs prepublication snapshot; all4originalPNG individually reviewed",
+      "record": "release/docs-progress-current-visible-review.json",
+      "courseSha256": "367065739cee3cbf01e1b240c9eca4a1e0c12092eccab2fe2345cbc783a55197",
+      "roadmapSha256": "eedb87e026c25a6799993656e2be1683aff0cb6c214ae8a764a8a2b237840f87",
+      "currentStateSha256": "801a7610c3f9a0b0ec024ff61abd0694b308287a9791e36b470d8a7fc6073b4f",
+      "images": [
+        {
+          "figure": "journey/release/docs-current-roadmap-desktop.png",
+          "sha256": "30136b9be59edd132f929c9db5686d007db271b49b26a84c7624c3c5225326db"
+        },
+        {
+          "figure": "journey/release/docs-current-chapter13-desktop.png",
+          "sha256": "c199e0ffc87f61174660f3a4a60de34f44f097024ea49650ed41bc4c16b1a372"
+        },
+        {
+          "figure": "journey/release/docs-current-chapter13-phone.png",
+          "sha256": "ca098917381a6e3ebb970061b781537094cc2da34ddef3dc1ab39219da88b98b"
+        },
+        {
+          "figure": "journey/release/docs-current-maintained97-desktop.png",
+          "sha256": "86b168a184098e2efb1f68bcd26c78d457732cf0e0af03b1ab48b9081c82faf0"
+        }
+      ],
+      "scope": "Actual prepublication snapshot with current4/18callbacks14left, chapter13desktop/390phone and corrected97reference instruction5. Newreview/copies and subsequentstatusupdates were not partof that build; no self-referential currentbuild claim. First10/redraft and combined-book handoff remain pending."
+    },
+    "currentFinalQuality": {
+      "status": "running-unaccepted",
+      "rootSession": 42947,
+      "task": "Final713 fef4 unchanged default quality callback plus actual prerequisites on existing optimizedbundle",
+      "startedUtcApprox": "2026-10-24T04:01:00Z",
+      "memoryLimitMiB": 6144,
+      "processors": 2,
+      "scope": "Actual final lost-device/frame-owner recovery criterion under execution. No Startup feature or historical656 callback acceptance before terminalPASS and root actualimage review."
     }
   }
 }

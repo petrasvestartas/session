@@ -3,7 +3,7 @@
   "scope": "Initial production-to-course source/coverage audit; proposals are not completed consolidation or rendering acceptance.",
   "sourceAuthority": "session_viewer/src",
   "endpoint": "96zzzzzzzq-draw-original-cad-wire-curves",
-  "endpointStatus": "Current76fullcanonicalcallbackPASS withfreshSheet/finalcurve rootreview;finiteSheetcriteria complete. Callback3/18accepted15pending;features4/18complete14partial;compiler101/101endpoints202/202phases=170retained+32fresh;fixture1/4;release0/5. Current70fullcallback43071running-unaccepted. Alloriginalfailedruns/nativecriterion/source-qualifiedproofs retained.",
+  "endpointStatus": "Actual final713 quality callback/prerequisites42947 running; await terminal result and root image review. Fullnative1062 and readercompiler101/202 are complete. Original sourcecallbacks4/18accepted14left; finitefeatures4/18complete14partial; fixture1/4; release0/5. First10/redraft handoff remains separate.",
   "courseSha256": "367065739cee3cbf01e1b240c9eca4a1e0c12092eccab2fe2345cbc783a55197",
   "chapters": 22,
   "existingSteps": 1361,
@@ -21696,7 +21696,7 @@
     "recordedAt": "2026-10-23T17:02:35.831075+00:00",
     "courseSha256": "367065739cee3cbf01e1b240c9eca4a1e0c12092eccab2fe2345cbc783a55197",
     "historicalCourseSha256": "8453513dc6d5ae34d081becc435ee893bbb82cc89d31386ed6fa7141e7576b1b",
-    "scope": "Currentfinalfef4 cfg-test source713 is runtime-equivalent to e432; original fullrunFAIL1060/1062 plus two exact correctedfocused fixtures remains qualified native recovery, not unfiltered1062PASS. Finitefeatures4/18 complete14partial; originalsourcecallbacks4/18 accepted14pending. Individual build/browser/docs records retain source-specific scopes.",
+    "scope": "Current finalfef4 handwritten713 unfiltered1062/1062 native integration PASS;0failed/ignored/filtered. Original failed1060/1062 and qualified1060+2 records remain historical. Feature4/18complete14partial; sourcecallbacks4/18accepted14pending;compiler101/202. Distinct native/frame/WASM/Trunk/browser/docs proofs retain their source-specific scopes;release0/5.",
     "state": "consolidation/current-state.json",
     "evidencePaths": "Paths in currentIntegration/currentVerification are relative to docs/journey; target evidence is local and is not a public hosted artifact.",
     "authoring": {
@@ -21734,29 +21734,61 @@
       }
     },
     "native": {
-      "status": "passed-final-native-integration",
-      "fingerprint": "97d4a9ff577fe4e932ee9561260e4bd0adbc2a82943883d111949038af33fd23",
-      "passed": 1060,
+      "status": "PASS current final fef4 unfiltered1062/1062 native integration;0failed/ignored/filtered",
+      "record": "release/native-final-two-fixture-integration-review.json",
+      "sourceFingerprint": "fef4c7bdb6f4c0a6f7a7701b0ba5581469dd757a34eefbab030a06e92ce4e5a1",
+      "sourceSignature": "c39e50938c22157a7883b49fe1c56912c03c703cc2291e0f4152183c3de8153c",
+      "courseSha256": "367065739cee3cbf01e1b240c9eca4a1e0c12092eccab2fe2345cbc783a55197",
+      "sourceFiles": 713,
+      "passed": 1062,
       "failed": 0,
       "ignored": 0,
       "filtered": 0,
-      "record": "release/native-97d-integration-review.json",
-      "elapsedSeconds": 1385.144,
-      "peakJobCommitBytes": 1512873984,
-      "currentFinalAcceptance": "PASS current97d:1060/1060 unfiltered native tests, zero failures/ignored/filtered; guarded 1385.144s, peak 1512873984B. Native integration acceptance only; compiler/browser/publication work remains.",
-      "historical1059": {
-        "status": "passed-at-recorded-source",
-        "fingerprint": "a45eada2fbdbd940d5e85b50e7e5fe12ccef69e794abd71111264cce0368fe2c",
-        "passed": 1059,
+      "singleUnfiltered1062Pass": true,
+      "suiteSeconds": 1399.52,
+      "guardElapsedSeconds": 1401.26,
+      "peakJobCommitBytes": 1499983872,
+      "scope": "Actual unfiltered current handwritten713 native integration with exact1062test inventory and successful source postflight. Native integration only; historical callbacks, finitefeaturecontrols, whole714maintained suite and global release gates remain separate.",
+      "previousOriginal97d": {
+        "status": "passed-final-native-integration",
+        "fingerprint": "97d4a9ff577fe4e932ee9561260e4bd0adbc2a82943883d111949038af33fd23",
+        "passed": 1060,
         "failed": 0,
         "ignored": 0,
-        "publicStatus": "consolidation/current-state.json",
-        "resources": "../../target/course-windows-20261018/integrated-full-native-source-freeze.json",
-        "log": "../../target/course-windows-20261018/integrated-full-native-source-freeze.log",
-        "elapsedSeconds": 1468.642,
-        "peakJobCommitBytes": 1480597504,
-        "currentDelta": "Historicala45 full1059 and96y831 retain their source bindings. Current97d includes hierarchy and TextPlane4x changes; one final integrated native regression remains pending. Matrix8/8 current native pairs are complete.",
-        "currentFinalAcceptance": "Matrix native8/8 exact at97d with inspected figures; full final native/inventory acceptance pending.96y831 and a45full1059 retain recorded source bindings.",
+        "filtered": 0,
+        "record": "release/native-97d-integration-review.json",
+        "elapsedSeconds": 1385.144,
+        "peakJobCommitBytes": 1512873984,
+        "currentFinalAcceptance": "PASS current97d:1060/1060 unfiltered native tests, zero failures/ignored/filtered; guarded 1385.144s, peak 1512873984B. Native integration acceptance only; compiler/browser/publication work remains.",
+        "historical1059": {
+          "status": "passed-at-recorded-source",
+          "fingerprint": "a45eada2fbdbd940d5e85b50e7e5fe12ccef69e794abd71111264cce0368fe2c",
+          "passed": 1059,
+          "failed": 0,
+          "ignored": 0,
+          "publicStatus": "consolidation/current-state.json",
+          "resources": "../../target/course-windows-20261018/integrated-full-native-source-freeze.json",
+          "log": "../../target/course-windows-20261018/integrated-full-native-source-freeze.log",
+          "elapsedSeconds": 1468.642,
+          "peakJobCommitBytes": 1480597504,
+          "currentDelta": "Historicala45 full1059 and96y831 retain their source bindings. Current97d includes hierarchy and TextPlane4x changes; one final integrated native regression remains pending. Matrix8/8 current native pairs are complete.",
+          "currentFinalAcceptance": "Matrix native8/8 exact at97d with inspected figures; full final native/inventory acceptance pending.96y831 and a45full1059 retain recorded source bindings.",
+          "cadBaseline": {
+            "status": "passed-bounded-native-baseline",
+            "passed": 5,
+            "total": 5,
+            "elapsedSeconds": 31.945,
+            "peakJobCommitBytes": 750256128,
+            "record": "release/cad-baseline-native-review.json",
+            "remaining": "Named CAD display controls,source-specific browser and curve-continuity requirements remain; feature partial."
+          },
+          "historical94cCurrent": "PASS current94c native800/800:guard188.26s,actual tests87.26s;fresh WARP frame inspected,SHA256 D57B09B12F4239A6203C0E8AD14E850C71B59DE102A302CA1DC9639912C179F8. Original WASM57.334s and optimized web152.536s reused only under unchanged native-only dependency-graph proof. Complete canonical94c browser callback remains pending.",
+          "inkControls": {
+            "record": "release/ink-family-controls-native-review.json",
+            "status": "passed-scoped-native-14-pairs",
+            "sourceFingerprint": "97d4a9ff577fe4e932ee9561260e4bd0adbc2a82943883d111949038af33fd23"
+          }
+        },
         "cadBaseline": {
           "status": "passed-bounded-native-baseline",
           "passed": 5,
@@ -21766,29 +21798,14 @@
           "record": "release/cad-baseline-native-review.json",
           "remaining": "Named CAD display controls,source-specific browser and curve-continuity requirements remain; feature partial."
         },
-        "historical94cCurrent": "PASS current94c native800/800:guard188.26s,actual tests87.26s;fresh WARP frame inspected,SHA256 D57B09B12F4239A6203C0E8AD14E850C71B59DE102A302CA1DC9639912C179F8. Original WASM57.334s and optimized web152.536s reused only under unchanged native-only dependency-graph proof. Complete canonical94c browser callback remains pending.",
         "inkControls": {
           "record": "release/ink-family-controls-native-review.json",
           "status": "passed-scoped-native-14-pairs",
           "sourceFingerprint": "97d4a9ff577fe4e932ee9561260e4bd0adbc2a82943883d111949038af33fd23"
-        }
-      },
-      "cadBaseline": {
-        "status": "passed-bounded-native-baseline",
-        "passed": 5,
-        "total": 5,
-        "elapsedSeconds": 31.945,
-        "peakJobCommitBytes": 750256128,
-        "record": "release/cad-baseline-native-review.json",
-        "remaining": "Named CAD display controls,source-specific browser and curve-continuity requirements remain; feature partial."
-      },
-      "inkControls": {
-        "record": "release/ink-family-controls-native-review.json",
-        "status": "passed-scoped-native-14-pairs",
-        "sourceFingerprint": "97d4a9ff577fe4e932ee9561260e4bd0adbc2a82943883d111949038af33fd23"
-      },
-      "historical94cCurrent": "PASS current94c native800/800:guard188.26s,actual tests87.26s;fresh WARP frame inspected,SHA256 D57B09B12F4239A6203C0E8AD14E850C71B59DE102A302CA1DC9639912C179F8. Original WASM57.334s and optimized web152.536s reused only under unchanged native-only dependency-graph proof. Complete canonical94c browser callback remains pending.",
-      "currentDelta": "Historicala45 full1059 and96y831 retain their original source bindings. Current97d final native1060/1060 passes at its own source; bounded Matrix8/CAD5/ink14 and18 inspected semantic bodies remain separately scoped."
+        },
+        "historical94cCurrent": "PASS current94c native800/800:guard188.26s,actual tests87.26s;fresh WARP frame inspected,SHA256 D57B09B12F4239A6203C0E8AD14E850C71B59DE102A302CA1DC9639912C179F8. Original WASM57.334s and optimized web152.536s reused only under unchanged native-only dependency-graph proof. Complete canonical94c browser callback remains pending.",
+        "currentDelta": "Historicala45 full1059 and96y831 retain their original source bindings. Current97d final native1060/1060 passes at its own source; bounded Matrix8/CAD5/ink14 and18 inspected semantic bodies remain separately scoped."
+      }
     },
     "browser": {
       "lastMeasuredFingerprint": "63acaf79da6dfdde9c35f32d917806560cca2d2b4e9bf73cb1129566076e4856",
@@ -21890,10 +21907,10 @@
       "requirements": "Each entry needs its own checkpoint build signature, optimized bundle, original sample, unchanged recursive callback pass and individual feature-image review. Do not substitute the final runtime for historical layouts."
     },
     "remainingFinalGates": [
-      "Freeze current integrated runtime and finish affected final native/frame and required compiler proof using valid phase reuse; retain historical source scopes.",
-      "FinalCAD canonical browser accepted; finish the remaining17 source-specific callback entries without weakening frozen assertions.",
-      "Close the15 remaining finite feature checklists and actual declared source-specific lesson checks; Matrix, Camera and Joined finite features are complete.",
-      "Finish required current reader/checkpoint proof accounting, source inventory, navigation/aliases, docs build and visible local publication review."
+      "Current final fef4 unfiltered1062 native integration, retained scopedframe/artifacts and101/202readercompiler proof pass. Complete remaining runnable/source-specific proof accounting and finalpublication before closing the combinedrelease gate.",
+      "FinalCAD,maintained97,current76 andcurrent70 original source-specific callbacks accepted4/18;finish remaining14 without weakening frozenassertions.",
+      "Close remaining14 finitefeature checklists and actualdeclared lesson checks; Matrix,Camera/Plane,Joined andSheet/text arecomplete within recorded scopes.",
+      "Finish required current reader/checkpoint proof accounting,sourceinventory,navigation/aliases,combinedbook/currentdocs publication andGemini first10handoff. CurrentV4fourimage docs snapshot is separately accepted at its measured prepublicationinputs."
     ],
     "inventoryRefresh": {
       "fromFingerprint": "34d5e443db93c963ba895466249a0e56c7c170352304973997650552b21ae299",
@@ -21990,9 +22007,12 @@
         {
           "id": "final-native-and-compiler-proof",
           "requirement": "One final integrated native regression plus required source-matching compiler/frame proof; reuse completed97d web where inputs match.",
-          "nativeStatus": "Pending one unfiltered current final fef4 1062-test integration run. Original97d 1060/1060 remains accepted for its original source; current fef4 has separately qualified1060 unchanged namedPASS plus2focused recovery, not unfiltered1062PASS.",
-          "nativeRecord": "release/native-97d-integration-review.json",
-          "qualifiedCurrentNativeRecord": "release/native-ribbon-v4-qualified-recovery-review.json"
+          "nativeStatus": "DONE currentfef4 handwritten713 unfiltered1062/1062 PASS,zero failed/ignored/filtered; one actual integratedsuite completed. Native scope only.",
+          "nativeRecord": "release/native-final-two-fixture-integration-review.json",
+          "qualifiedCurrentNativeRecord": "release/native-ribbon-v4-qualified-recovery-review.json",
+          "previousNativeRecord": "release/native-97d-integration-review.json",
+          "compilerStatus": "DONE101/101reader endpoints202/202 qualifiedphases:170retained+32fresh.",
+          "remainingGroupScope": "Group retained for final runnable/source-specific proof and publication accounting; native and readercompiler portions done. Three originalnoncallback actiongroups/counts unchanged; no automatic globalgate closure."
         },
         {
           "id": "declared-reader-checkpoint-proof-accounting",
@@ -22215,11 +22235,37 @@
       ]
     },
     "docsCurrent": {
-      "status": "PASS actual5779 roadmap and changedChapter13desktop/phone; all3originalPNGindividuallyreviewed",
-      "record": "release/docs-progress-mask-visible-review.json",
-      "courseSha256": "5779c3b35e9103a413a1fa5c4b5869ccfe8d4ff51927ae5d9dc67888121e5e17",
-      "subsequent97EditNotAccepted": true,
-      "previousScopedRecord": "PASS scoped integrated content publication:59 introductions,111 links,21 images and17 inspected views at recorded source/build. Separate docs UI review resolves duplicate progress navigation and Matrix phone prose overflow; four inspected UI views retain their frontend source hashes. First10/current whole-book, SVG/runtime parity and global release acceptance remain separate."
+      "status": "PASS current3670 V4 docs prepublication snapshot; all4originalPNG individually reviewed",
+      "record": "release/docs-progress-current-visible-review.json",
+      "courseSha256": "367065739cee3cbf01e1b240c9eca4a1e0c12092eccab2fe2345cbc783a55197",
+      "roadmapSha256": "eedb87e026c25a6799993656e2be1683aff0cb6c214ae8a764a8a2b237840f87",
+      "currentStateSha256": "801a7610c3f9a0b0ec024ff61abd0694b308287a9791e36b470d8a7fc6073b4f",
+      "images": [
+        {
+          "figure": "journey/release/docs-current-roadmap-desktop.png",
+          "sha256": "30136b9be59edd132f929c9db5686d007db271b49b26a84c7624c3c5225326db"
+        },
+        {
+          "figure": "journey/release/docs-current-chapter13-desktop.png",
+          "sha256": "c199e0ffc87f61174660f3a4a60de34f44f097024ea49650ed41bc4c16b1a372"
+        },
+        {
+          "figure": "journey/release/docs-current-chapter13-phone.png",
+          "sha256": "ca098917381a6e3ebb970061b781537094cc2da34ddef3dc1ab39219da88b98b"
+        },
+        {
+          "figure": "journey/release/docs-current-maintained97-desktop.png",
+          "sha256": "86b168a184098e2efb1f68bcd26c78d457732cf0e0af03b1ab48b9081c82faf0"
+        }
+      ],
+      "scope": "Actual prepublication snapshot with current4/18callbacks14left, chapter13desktop/390phone and corrected97reference instruction5. Newreview/copies and subsequentstatusupdates were not partof that build; no self-referential currentbuild claim. First10/redraft and combined-book handoff remain pending.",
+      "previousScopedRecord": {
+        "status": "PASS actual5779 roadmap and changedChapter13desktop/phone; all3originalPNGindividuallyreviewed",
+        "record": "release/docs-progress-mask-visible-review.json",
+        "courseSha256": "5779c3b35e9103a413a1fa5c4b5869ccfe8d4ff51927ae5d9dc67888121e5e17",
+        "subsequent97EditNotAccepted": true,
+        "previousScopedRecord": "PASS scoped integrated content publication:59 introductions,111 links,21 images and17 inspected views at recorded source/build. Separate docs UI review resolves duplicate progress navigation and Matrix phone prose overflow; four inspected UI views retain their frontend source hashes. First10/current whole-book, SVG/runtime parity and global release acceptance remain separate."
+      }
     },
     "readerCompilerProof": {
       "status": "PASS current compiler-only101/101endpoints202/202phases:85retained170qualifiedphases+16fresh32actualphases",
@@ -22368,7 +22414,7 @@
         "releaseGatesDone": 0,
         "releaseGatesTotal": 5
       },
-      "next": "No active heavy job. Actual70 fullcallback accepted. Bounded unchanged shortcut body failed final uppercase-F pixel equality after earlier focus/text/history sites passed; diagnosis pending, no Startup or whole-body acceptance and no blanket artifact-defect claim. Remaining14 source-specific callbacks and final unfiltered native1062 pending runtime decision.",
+      "next": "Actual final713 quality callback/prerequisites42947 running; await terminal result and root image review. Fullnative1062 and readercompiler101/202 are complete. Original sourcecallbacks4/18accepted14left; finitefeatures4/18complete14partial; fixture1/4; release0/5. First10/redraft handoff remains separate.",
       "chapter14": {
         "status": "PASS complete current76originalcanonicalbrowser callback",
         "record": "release/76d-browser-review.json",
@@ -22515,6 +22561,58 @@
         "browserSourceFingerprint": "be284802487701c94923dad393cec3b6cc3ba230bbffd61e949ceb62d8247482",
         "browserSourceFiles": 377,
         "scope": "OnlyfiniteSheet row; current76completebody+freshSheet/finalreview. Native97d+qualifiedfef4 andoriginal32pairs remain independentlysource-bound.70d/global22callbacks stillseparate."
+      },
+      "currentFullNative": {
+        "status": "PASS current final fef4 unfiltered1062/1062 native integration;0failed/ignored/filtered",
+        "record": "release/native-final-two-fixture-integration-review.json",
+        "sourceFingerprint": "fef4c7bdb6f4c0a6f7a7701b0ba5581469dd757a34eefbab030a06e92ce4e5a1",
+        "sourceSignature": "c39e50938c22157a7883b49fe1c56912c03c703cc2291e0f4152183c3de8153c",
+        "courseSha256": "367065739cee3cbf01e1b240c9eca4a1e0c12092eccab2fe2345cbc783a55197",
+        "sourceFiles": 713,
+        "passed": 1062,
+        "failed": 0,
+        "ignored": 0,
+        "filtered": 0,
+        "singleUnfiltered1062Pass": true,
+        "suiteSeconds": 1399.52,
+        "guardElapsedSeconds": 1401.26,
+        "peakJobCommitBytes": 1499983872,
+        "scope": "Actual unfiltered current handwritten713 native integration with exact1062test inventory and successful source postflight. Native integration only; historical callbacks, finitefeaturecontrols, whole714maintained suite and global release gates remain separate."
+      },
+      "currentDocs": {
+        "status": "PASS current3670 V4 docs prepublication snapshot; all4originalPNG individually reviewed",
+        "record": "release/docs-progress-current-visible-review.json",
+        "courseSha256": "367065739cee3cbf01e1b240c9eca4a1e0c12092eccab2fe2345cbc783a55197",
+        "roadmapSha256": "eedb87e026c25a6799993656e2be1683aff0cb6c214ae8a764a8a2b237840f87",
+        "currentStateSha256": "801a7610c3f9a0b0ec024ff61abd0694b308287a9791e36b470d8a7fc6073b4f",
+        "images": [
+          {
+            "figure": "journey/release/docs-current-roadmap-desktop.png",
+            "sha256": "30136b9be59edd132f929c9db5686d007db271b49b26a84c7624c3c5225326db"
+          },
+          {
+            "figure": "journey/release/docs-current-chapter13-desktop.png",
+            "sha256": "c199e0ffc87f61174660f3a4a60de34f44f097024ea49650ed41bc4c16b1a372"
+          },
+          {
+            "figure": "journey/release/docs-current-chapter13-phone.png",
+            "sha256": "ca098917381a6e3ebb970061b781537094cc2da34ddef3dc1ab39219da88b98b"
+          },
+          {
+            "figure": "journey/release/docs-current-maintained97-desktop.png",
+            "sha256": "86b168a184098e2efb1f68bcd26c78d457732cf0e0af03b1ab48b9081c82faf0"
+          }
+        ],
+        "scope": "Actual prepublication snapshot with current4/18callbacks14left, chapter13desktop/390phone and corrected97reference instruction5. Newreview/copies and subsequentstatusupdates were not partof that build; no self-referential currentbuild claim. First10/redraft and combined-book handoff remain pending."
+      },
+      "currentFinalQuality": {
+        "status": "running-unaccepted",
+        "rootSession": 42947,
+        "task": "Final713 fef4 unchanged default quality callback plus actual prerequisites on existing optimizedbundle",
+        "startedUtcApprox": "2026-10-24T04:01:00Z",
+        "memoryLimitMiB": 6144,
+        "processors": 2,
+        "scope": "Actual final lost-device/frame-owner recovery criterion under execution. No Startup feature or historical656 callback acceptance before terminalPASS and root actualimage review."
       }
     },
     "sheetFiniteClosure": {
@@ -22525,6 +22623,23 @@
       "browserSourceFingerprint": "be284802487701c94923dad393cec3b6cc3ba230bbffd61e949ceb62d8247482",
       "browserSourceFiles": 377,
       "scope": "OnlyfiniteSheet row; current76completebody+freshSheet/finalreview. Native97d+qualifiedfef4 andoriginal32pairs remain independentlysource-bound.70d/global22callbacks stillseparate."
+    },
+    "currentFullNative": {
+      "status": "PASS current final fef4 unfiltered1062/1062 native integration;0failed/ignored/filtered",
+      "record": "release/native-final-two-fixture-integration-review.json",
+      "sourceFingerprint": "fef4c7bdb6f4c0a6f7a7701b0ba5581469dd757a34eefbab030a06e92ce4e5a1",
+      "sourceSignature": "c39e50938c22157a7883b49fe1c56912c03c703cc2291e0f4152183c3de8153c",
+      "courseSha256": "367065739cee3cbf01e1b240c9eca4a1e0c12092eccab2fe2345cbc783a55197",
+      "sourceFiles": 713,
+      "passed": 1062,
+      "failed": 0,
+      "ignored": 0,
+      "filtered": 0,
+      "singleUnfiltered1062Pass": true,
+      "suiteSeconds": 1399.52,
+      "guardElapsedSeconds": 1401.26,
+      "peakJobCommitBytes": 1499983872,
+      "scope": "Actual unfiltered current handwritten713 native integration with exact1062test inventory and successful source postflight. Native integration only; historical callbacks, finitefeaturecontrols, whole714maintained suite and global release gates remain separate."
     }
   },
   "authoringPrerequisiteRepair": {
