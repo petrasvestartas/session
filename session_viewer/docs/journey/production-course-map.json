@@ -22083,12 +22083,39 @@
     },
     "productionSourceInventory": {
       "path": "current-viewer-2026-10-23.json",
-      "sha256": "9c14d47411b1f013feefa8e8d8a5ac730b002f701d64325807f96d654e0d158e",
+      "sha256": "5dce24b77ac687f295135f485934f250fe6f5cbfe58cbe385799a843c0abdb48",
       "files": 307,
       "mappedPaths": 307,
       "historicalRowsPreserved": 301,
       "addedRows": 6,
-      "hashPolicy": "Valid UTF-8 text hashes normalize CRLF to LF; invalid UTF-8 remains raw. All307 current src paths/hashes matched the dated inventory during this audit. Existing301 row sha256/classification/basis values remain historical; current hashes come from the dated inventory. Six appended rows use the dated current hash and explicitly scoped staged basis. Complete path accounting is not verified extraction or feature parity."
+      "hashPolicy": "Valid UTF-8 text hashes normalize CRLF to LF; invalid UTF-8 remains raw. All307 current src paths/hashes matched the dated inventory during this audit. Existing301 row sha256/classification/basis values remain historical; current hashes come from the dated inventory. Six appended rows use the dated current hash and explicitly scoped staged basis. Complete path accounting is not verified extraction or feature parity. Current exact-BRep transition changes exactly three current maintained hash rows; original dated inventory is preserved byte-for-byte in the linked historical snapshot. This is source accounting, not a new typed-history or GPU execution.",
+      "currentSourceQualification": {
+        "status": "Current source-hash accounting refresh only; historical typed references and accepted runtime proofs retain original scopes",
+        "date": "2026-10-24",
+        "preservedHistoricalInventory": {
+          "path": "docs/journey/consolidation/history/current-viewer-2026-10-23-before-exact-brep.json",
+          "sha256": "9c14d47411b1f013feefa8e8d8a5ac730b002f701d64325807f96d654e0d158e"
+        },
+        "changes": [
+          {
+            "path": "src/app/walk/brep_edges.rs",
+            "beforeSha256": "2a19dd35e93bf62103e9549fc16f9c9d0fe6859a68be424b970d60dea17b5d2d",
+            "sha256": "9f1c26f77f08f487e1d4219f35d07fb1376ed2ba922eba1124c89a1d57442100"
+          },
+          {
+            "path": "src/selftest/stroke_witness.rs",
+            "beforeSha256": "493e57a9a0a049e906738bfca8072947d022607c3458c4c0b53b2ed5d8b6ad4b",
+            "sha256": "c87ffcca494f6515836cd34ca764feab5097817e67b025bc5eecd7180db0209e"
+          },
+          {
+            "path": "src/selftest.rs",
+            "beforeSha256": "5fde63ff1c457acaf1bf1f7d1a83b7bbd762cdbbef6b77b340fd411945f59ea1",
+            "sha256": "cbc606956962a9687a02cba1f3679f01dea85a5435d94e69fb303e1a030b8838"
+          }
+        ],
+        "sourceScope": "Merged exact production BRep edge reconstruction, native witness registration and its diagnostic implementation. These hashes describe actual current maintained files. Existing course/reference assignments, previous dated changes and sourceInventoryScope values remain historical; no extraction parity or new typed-reference execution is inferred.",
+        "typingScope": "All43 reference histories, typed snippets, checkpoint metadata and source reconstruction remain unchanged. Course inventory pointer and course JSON bytes unchanged."
+      }
     },
     "featureStatusCounts": {
       "complete": 14,

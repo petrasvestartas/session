@@ -1,0 +1,77 @@
+{
+  "status": "PASS three actual exact-production BRep/curved-border/cap representatives",
+  "sourceFingerprint": "f339c9ac8c75353caca48e1dba3c537a002f0e62726b19f58dcad7bdb324bf9e",
+  "pairs": [
+    {
+      "case": "mixed",
+      "changedPixels": 0,
+      "maxRgbaDelta": 0,
+      "image": {
+        "file": "exact-brep-mixed.png",
+        "sha256": "34ae19eafd332f14115ccb97f7633de1c7b5595112e2869feedd94caefefb353",
+        "rootPersonallyReviewed": true,
+        "courseImageByteIdentical": true
+      },
+      "resources": {
+        "path": "target/course-windows-20261018/final-brep-comparison-v3-preparation/pair-mixed-env-v2/resources.json",
+        "sha256": "b77106e4173b43b2227188fe58f594146497804cdfa2a0b86be5c8807ded1b3a",
+        "elapsedSeconds": 6.014,
+        "peakJobCommitBytes": 748044288
+      },
+      "manifest": {
+        "path": "target/course-windows-20261018/final-brep-comparison-v3-preparation/pair-mixed-env-v2-frames/manifest.json",
+        "sha256": "1a8c90298218ff3e632f8249d22abb19dd5011a2b9dcbd3034cc795740e06c24"
+      },
+      "scope": "Exact production/tutorial pixels, original source and archive, course fresh/cached original-owner queries; no independent production-ID-pass claim."
+    },
+    {
+      "case": "surface-curved-border",
+      "changedPixels": 0,
+      "maxRgbaDelta": 0,
+      "image": {
+        "file": "exact-brep-surface-curved-border.png",
+        "sha256": "45c965ff0c34488e3d6ad71d4e9939a7d74777024060974771f9556f5c81f073",
+        "rootPersonallyReviewed": true,
+        "courseImageByteIdentical": true
+      },
+      "resources": {
+        "path": "target/course-windows-20261018/final-brep-comparison-v3-preparation/pair-curved-border-env-v2/resources.json",
+        "sha256": "0394dadf989769dd8e4a4df3caf94aaa99153e449aee485cf63bf813e25b3b6e",
+        "elapsedSeconds": 5.443,
+        "peakJobCommitBytes": 749944832
+      },
+      "manifest": {
+        "path": "target/course-windows-20261018/final-brep-comparison-v3-preparation/pair-curved-border-env-v2-frames/manifest.json",
+        "sha256": "3780c48fa12a4463f2750e477453c79808909e312a92e587a6c4f906a073aa3b"
+      },
+      "scope": "Exact production/tutorial pixels, original source and archive, course fresh/cached original-owner queries; no independent production-ID-pass claim."
+    },
+    {
+      "case": "cap-bore",
+      "changedPixels": 0,
+      "maxRgbaDelta": 0,
+      "image": {
+        "file": "exact-brep-cap-bore.png",
+        "sha256": "a253c020b2ecca1c602a2b51d652ec35eb763e1d2d1a015cc6ce0d2e3e45c477",
+        "rootPersonallyReviewed": true,
+        "courseImageByteIdentical": true
+      },
+      "resources": {
+        "path": "target/course-windows-20261018/final-brep-cap-centered-fixture-preparation/cap-centered-v1/resources.json",
+        "sha256": "da0f682152d8abfced45f007939bfe3a2805a8e447dbb7b1d3453214f5947e07",
+        "elapsedSeconds": 4.64,
+        "peakJobCommitBytes": 650002432
+      },
+      "manifest": {
+        "path": "target/course-windows-20261018/final-brep-cap-centered-fixture-preparation/cap-centered-v1-frames/manifest.json",
+        "sha256": "b8a9788b8ecc845c8e6c3a7e5a2edee73ae30519b3cca98e870fbb7a69875b46"
+      },
+      "scope": "Actual closed gray identity cap and selected yellow mirrored/nonuniform cap, production original owner IDs, course first/cached original owners, empty bore None, source and archive unchanged. Faithful centered fixture uses z0 interior section."
+    }
+  ],
+  "acceptance": {
+    "path": "target/course-windows-20261018/final-brep-native-suite-v2-preparation/comparison-acceptance.json",
+    "sha256": "c66c30d14b8278d4d8f26581ec593071496361056f333eeb1c390e2dcd8e3bd7"
+  },
+  "scope": "Three bounded actual representatives, no new matrix or whole-feature/native-suite acceptance. Full1068 suite is running. Original failed FXC and miscentered cap fixture executions remain preserved; neither renderer nor assertions were changed for recovery."
+}

@@ -623,8 +623,8 @@
   ],
   "onlyHeavy": {
     "status": "running",
-    "task": "Build three source-bound production/tutorial rendering representatives",
-    "sessionId": 50551,
+    "task": "One unfiltered final1068 native suite after four focused checks and three strict production pairs",
+    "sessionId": 58427,
     "memoryLimitMiB": 4096,
     "processors": 2
   },
@@ -1196,6 +1196,11 @@
         "total": 4,
         "actualCompiledTestInventory": 1068,
         "record": "release/exact-brep-focused-review.json"
+      },
+      "productionPairs": {
+        "passed": 3,
+        "total": 3,
+        "record": "release/exact-brep-production-pairs-review.json"
       }
     }
   },
