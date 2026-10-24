@@ -1,0 +1,706 @@
+{
+  "status": "PASS complete original603-source arena-empty callback and individually reviewed restoredCAD DPR1/2 plus finalcanonical image; phase-qualified acceptance",
+  "checkpoint": "96zzzzx-retire-empty-arena-ranges-after-tail-trimming",
+  "sourceFiles": 603,
+  "sourceFingerprint": "4ae2011cd36e0e16b94c09122b3fdc9157e3d9a80967b460e8a9750c810f0b17",
+  "sourceSignature": "7eca2247d5bd5de69fddd3ef349ecc79596a48607236ae16af108e3f8f080174",
+  "courseSha256": "367065739cee3cbf01e1b240c9eca4a1e0c12092eccab2fe2345cbc783a55197",
+  "callback": {
+    "path": "journey/checks/browser/arena-empty.cjs",
+    "recursiveFingerprint": "16c6960647427f675a4a82573070c3b090c271164520ee60a6a7d7a64ec6ca18",
+    "captureSha256": "ecbc4c716aa91a7aedc2532132c4b08e0a7d1e7511c380b0dbbba0152325a733",
+    "original60msTypingUnchanged": true
+  },
+  "build": {
+    "proof": {
+      "path": "target/course-windows-20261018/next-source-aware-callback-preparation/96zzzzx-nvidia-current367-v1/proof.json",
+      "sha256": "4b2831f4b86616a37e72a07b585cd32fa41adf075eb4115c03862d7e223e6888"
+    },
+    "phases": {
+      "native-check": {
+        "input": {
+          "id": "96zzzzx-retire-empty-arena-ranges-after-tail-trimming",
+          "files": 603,
+          "sourceFingerprint": "4ae2011cd36e0e16b94c09122b3fdc9157e3d9a80967b460e8a9750c810f0b17",
+          "sourceSignature": "7eca2247d5bd5de69fddd3ef349ecc79596a48607236ae16af108e3f8f080174",
+          "lock": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\release\\94-Cargo.lock",
+          "lockSha256": "1df9f908a4aead0990495bcf505176ab0842191051943e422635b28f23ccab94",
+          "assets": {
+            "assets/text/NotoSans-Regular.subset.ttf": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09",
+            "assets/text/NotoSansSymbols2-Regular.subset.ttf": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed",
+            "assets/text/NotoSansSymbols-Regular.subset.ttf": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3",
+            "assets/text/OFL.txt": "0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb",
+            "assets/text/NotoSansSymbols-Regular.ttf": "8f02f31959bbdf6061547a188248e13f84dc5fdd940326ec494675f453f072bb",
+            "assets/text/NotoSans-Regular.ttf": "b85c38ecea8a7cfb39c24e395a4007474fa5a4fc864f6ee33309eb4948d232d5",
+            "assets/text/NotoSansSymbols2-Regular.ttf": "630846d528dbe4c4981370a4d0a9475a1fd1491a129bb411f8e157cdb5de13c6",
+            "assets/pb/course-comparison.pb": "8d952b0ac17ebf0bb7c20704b45b95acbe5b4395ff809a38baacaad93de4bed5",
+            "assets/pb/course-metadata.pb": "2cfe2ad9becff37d0fcca23f71e47b1c6e674d7934327120a9233efd0c2faf55",
+            "assets/pb/course-instance-features.pb": "3b9a0d162728849ff09fe9b8e77b877a4565e66b77b5c73d09422f362e816500",
+            "assets/pb/course-feature-pick.pb": "e05c864d93c99b700665508eb8ddc630c637cec24b51558de97f26f05762387d"
+          },
+          "callback": "journey/checks/browser/arena-empty.cjs",
+          "callbackFingerprint": "16c6960647427f675a4a82573070c3b090c271164520ee60a6a7d7a64ec6ca18",
+          "frame": "journey/checks/94-comparison.rs",
+          "frameConstructor": "make_renderer(device, queue, format)",
+          "frameSize": [
+            640,
+            480
+          ],
+          "sampleRequired": true,
+          "nativeSuite": "not run by this proportional lane; source preserved and typechecked"
+        },
+        "environment": {
+          "RUSTC": "C:\\Users\\Petras\\.rustup\\toolchains\\stable-x86_64-pc-windows-msvc\\bin\\rustc.exe",
+          "COURSE_MEMORY_MIB": "4096",
+          "COURSE_TIMEOUT_SECONDS": "1800",
+          "CARGO_TARGET_DIR": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-build",
+          "CARGO_BUILD_JOBS": "1",
+          "CARGO_INCREMENTAL": "0",
+          "CARGO_NET_OFFLINE": "true",
+          "REGEN_PROTO": "0",
+          "RUSTC_WRAPPER": "",
+          "RUSTC_WORKSPACE_WRAPPER": "",
+          "RUST_TEST_THREADS": "1",
+          "NO_COLOR": "true",
+          "VIEWER_GPU_WAIT_SECONDS": "60",
+          "VIEWER_ADAPTER": "Microsoft Basic Render Driver",
+          "WGPU_BACKEND": "dx12",
+          "VIEWER_DXC_PATH": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\native-checkpoint\\dxcompiler.dll",
+          "VK_ICD_FILENAMES": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-browsers\\chromium_headless_shell-1208\\chrome-headless-shell-win64\\vk_swiftshader_icd.json",
+          "VK_DRIVER_FILES": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-browsers\\chromium_headless_shell-1208\\chrome-headless-shell-win64\\vk_swiftshader_icd.json",
+          "toolResolution": "{\"wasm-bindgen\":{\"path\":\"C:\\\\Users\\\\Petras\\\\AppData\\\\Local\\\\trunkrs\\\\trunk\\\\cache\\\\wasm-bindgen-0.2.128\\\\wasm-bindgen.exe\",\"sha256\":\"207b71832e4c2810f061b1d6a4571fe7c7e85ec052a2027ef43caafb00cfabb4\",\"actualVersion\":\"wasm-bindgen 0.2.128\",\"pathFirst\":\"C:\\\\Users\\\\Petras\\\\AppData\\\\Local\\\\trunkrs\\\\trunk\\\\cache\\\\wasm-bindgen-0.2.128\\\\wasm-bindgen.exe\"},\"wasm-opt\":{\"path\":\"C:\\\\Users\\\\Petras\\\\AppData\\\\Local\\\\trunkrs\\\\trunk\\\\cache\\\\wasm-opt-version_123\\\\bin\\\\wasm-opt.exe\",\"sha256\":\"9738733f02dc4b80ea42daeca89d7b8a0755656f3d2e405949ee1233bf473598\",\"actualVersion\":\"wasm-opt version 123 (version_123)\",\"pathFirst\":\"C:\\\\Users\\\\Petras\\\\AppData\\\\Local\\\\trunkrs\\\\trunk\\\\cache\\\\wasm-opt-version_123\\\\bin\\\\wasm-opt.exe\"}}",
+          "PATH": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\native-checkpoint;C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-browsers\\chromium_headless_shell-1208\\chrome-headless-shell-win64;C:\\Users\\Petras\\AppData\\Local\\trunkrs\\trunk\\cache\\wasm-bindgen-0.2.128;C:\\Users\\Petras\\AppData\\Local\\trunkrs\\trunk\\cache\\wasm-opt-version_123\\bin;C:\\Users\\Petras\\.codex\\tmp\\arg0-windows\\codex-arg0BnckMm;C:\\Users\\Petras\\AppData\\Roaming\\npm\\node_modules\\@openai\\codex\\node_modules\\@openai\\codex-win32-x64\\vendor\\x86_64-pc-windows-msvc\\codex-path;C:\\Users\\Petras\\.opencode\\bin;C:\\Users\\Petras\\.local\\bin;C:\\Users\\Petras\\.cargo\\bin;C:\\Users\\Petras\\bin;C:\\Program Files\\Git\\mingw64\\bin;C:\\Program Files\\Git\\usr\\local\\bin;C:\\Program Files\\Git\\usr\\bin;C:\\Program Files\\Git\\usr\\bin;C:\\Program Files\\Git\\mingw64\\bin;C:\\Program Files\\Git\\usr\\bin;C:\\Users\\Petras\\bin;C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v13.2\\bin\\x64;C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v13.2\\bin;C:\\WINDOWS\\system32;C:\\WINDOWS;C:\\WINDOWS\\System32\\Wbem;C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0;C:\\WINDOWS\\System32\\OpenSSH;C:\\Program Files\\dotnet;C:\\Program Files (x86)\\Windows Kits\\10\\Windows Performance Toolkit;C:\\Program Files\\Git\\cmd;C:\\Program Files\\CMake\\bin;C:\\Program Files\\nodejs;C:\\Program Files\\GitHub CLI;C:\\Program Files (x86)\\ZeroTier\\One;C:\\Program Files\\PowerToys\\DSCModules;C:\\Program Files\\NVIDIA Corporation\\NVIDIA App\\NvDLISR;C:\\Program Files (x86)\\NVIDIA Corporation\\PhysX\\Common;C:\\Program Files\\NVIDIA Corporation\\Nsight Compute 2026.1.1;C:\\Users\\Petras\\.cargo\\bin;C:\\Users\\Petras\\.local\\bin;C:\\Users\\Petras\\AppData\\Local\\Microsoft\\WindowsApps;C:\\Users\\Petras\\AppData\\Local\\Programs\\Windsurf\\bin;C:\\Users\\Petras\\.dotnet\\tools;C:\\Users\\Petras\\AppData\\Local\\Programs\\Microsoft VS Code\\bin;C:\\Users\\Petras\\AppData\\Roaming\\npm;C:\\Users\\Petras\\AppData\\Local\\Python\\bin;C:\\Users\\Petras\\.bun\\bin;C:\\Users\\Petras\\.bun\\bin;C:\\Program Files\\Git\\usr\\bin\\vendor_perl;C:\\Program Files\\Git\\usr\\bin\\core_perl",
+          "inheritedBuildEnvironmentFingerprint": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+          "RUSTFLAGS": null,
+          "CARGO_ENCODED_RUSTFLAGS": null,
+          "RUSTUP_TOOLCHAIN": null
+        },
+        "command": {
+          "name": "96zzzzx-nvidia-current367-v1-native-check-20261024T044808355Z",
+          "args": [
+            "C:\\Users\\Petras\\.rustup\\toolchains\\stable-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "check",
+            "--tests",
+            "--examples",
+            "--locked",
+            "--offline",
+            "--target",
+            "x86_64-pc-windows-msvc",
+            "-j1"
+          ],
+          "returncode": 0
+        },
+        "resources": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\96zzzzx-nvidia-current367-v1-native-check-20261024T044808355Z.resources.json",
+        "evidence": {
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\96zzzzx-nvidia-current367-v1-native-check-20261024T044808355Z.log": "f0333810f366312d8e95736bf7fd1659bb6960510db21860549a75a784070910",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\96zzzzx-nvidia-current367-v1-native-check-20261024T044808355Z.resources.json": "e5cb84ad905b6c6c21676c4c2977e86e5c36ed06455c4208a6739165d550b5d2",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\96zzzzx-nvidia-current367-v1-native-check-20261024T044808355Z.command.json": "89e04f9a66f6cdb8ccb0733ba7ece06d2b448405513537f5de852c2a5bfb03ff"
+        },
+        "outputs": {}
+      },
+      "wasm": {
+        "input": {
+          "id": "96zzzzx-retire-empty-arena-ranges-after-tail-trimming",
+          "files": 603,
+          "sourceFingerprint": "4ae2011cd36e0e16b94c09122b3fdc9157e3d9a80967b460e8a9750c810f0b17",
+          "sourceSignature": "7eca2247d5bd5de69fddd3ef349ecc79596a48607236ae16af108e3f8f080174",
+          "lock": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\release\\94-Cargo.lock",
+          "lockSha256": "1df9f908a4aead0990495bcf505176ab0842191051943e422635b28f23ccab94",
+          "assets": {
+            "assets/text/NotoSans-Regular.subset.ttf": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09",
+            "assets/text/NotoSansSymbols2-Regular.subset.ttf": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed",
+            "assets/text/NotoSansSymbols-Regular.subset.ttf": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3",
+            "assets/text/OFL.txt": "0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb",
+            "assets/text/NotoSansSymbols-Regular.ttf": "8f02f31959bbdf6061547a188248e13f84dc5fdd940326ec494675f453f072bb",
+            "assets/text/NotoSans-Regular.ttf": "b85c38ecea8a7cfb39c24e395a4007474fa5a4fc864f6ee33309eb4948d232d5",
+            "assets/text/NotoSansSymbols2-Regular.ttf": "630846d528dbe4c4981370a4d0a9475a1fd1491a129bb411f8e157cdb5de13c6",
+            "assets/pb/course-comparison.pb": "8d952b0ac17ebf0bb7c20704b45b95acbe5b4395ff809a38baacaad93de4bed5",
+            "assets/pb/course-metadata.pb": "2cfe2ad9becff37d0fcca23f71e47b1c6e674d7934327120a9233efd0c2faf55",
+            "assets/pb/course-instance-features.pb": "3b9a0d162728849ff09fe9b8e77b877a4565e66b77b5c73d09422f362e816500",
+            "assets/pb/course-feature-pick.pb": "e05c864d93c99b700665508eb8ddc630c637cec24b51558de97f26f05762387d"
+          },
+          "callback": "journey/checks/browser/arena-empty.cjs",
+          "callbackFingerprint": "16c6960647427f675a4a82573070c3b090c271164520ee60a6a7d7a64ec6ca18",
+          "frame": "journey/checks/94-comparison.rs",
+          "frameConstructor": "make_renderer(device, queue, format)",
+          "frameSize": [
+            640,
+            480
+          ],
+          "sampleRequired": true,
+          "nativeSuite": "not run by this proportional lane; source preserved and typechecked"
+        },
+        "environment": {
+          "RUSTC": "C:\\Users\\Petras\\.rustup\\toolchains\\stable-x86_64-pc-windows-msvc\\bin\\rustc.exe",
+          "COURSE_MEMORY_MIB": "4096",
+          "COURSE_TIMEOUT_SECONDS": "1800",
+          "CARGO_TARGET_DIR": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-build",
+          "CARGO_BUILD_JOBS": "1",
+          "CARGO_INCREMENTAL": "0",
+          "CARGO_NET_OFFLINE": "true",
+          "REGEN_PROTO": "0",
+          "RUSTC_WRAPPER": "",
+          "RUSTC_WORKSPACE_WRAPPER": "",
+          "RUST_TEST_THREADS": "1",
+          "NO_COLOR": "true",
+          "VIEWER_GPU_WAIT_SECONDS": "60",
+          "VIEWER_ADAPTER": "Microsoft Basic Render Driver",
+          "WGPU_BACKEND": "dx12",
+          "VIEWER_DXC_PATH": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\native-checkpoint\\dxcompiler.dll",
+          "VK_ICD_FILENAMES": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-browsers\\chromium_headless_shell-1208\\chrome-headless-shell-win64\\vk_swiftshader_icd.json",
+          "VK_DRIVER_FILES": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-browsers\\chromium_headless_shell-1208\\chrome-headless-shell-win64\\vk_swiftshader_icd.json",
+          "toolResolution": "{\"wasm-bindgen\":{\"path\":\"C:\\\\Users\\\\Petras\\\\AppData\\\\Local\\\\trunkrs\\\\trunk\\\\cache\\\\wasm-bindgen-0.2.128\\\\wasm-bindgen.exe\",\"sha256\":\"207b71832e4c2810f061b1d6a4571fe7c7e85ec052a2027ef43caafb00cfabb4\",\"actualVersion\":\"wasm-bindgen 0.2.128\",\"pathFirst\":\"C:\\\\Users\\\\Petras\\\\AppData\\\\Local\\\\trunkrs\\\\trunk\\\\cache\\\\wasm-bindgen-0.2.128\\\\wasm-bindgen.exe\"},\"wasm-opt\":{\"path\":\"C:\\\\Users\\\\Petras\\\\AppData\\\\Local\\\\trunkrs\\\\trunk\\\\cache\\\\wasm-opt-version_123\\\\bin\\\\wasm-opt.exe\",\"sha256\":\"9738733f02dc4b80ea42daeca89d7b8a0755656f3d2e405949ee1233bf473598\",\"actualVersion\":\"wasm-opt version 123 (version_123)\",\"pathFirst\":\"C:\\\\Users\\\\Petras\\\\AppData\\\\Local\\\\trunkrs\\\\trunk\\\\cache\\\\wasm-opt-version_123\\\\bin\\\\wasm-opt.exe\"}}",
+          "PATH": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\native-checkpoint;C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-browsers\\chromium_headless_shell-1208\\chrome-headless-shell-win64;C:\\Users\\Petras\\AppData\\Local\\trunkrs\\trunk\\cache\\wasm-bindgen-0.2.128;C:\\Users\\Petras\\AppData\\Local\\trunkrs\\trunk\\cache\\wasm-opt-version_123\\bin;C:\\Users\\Petras\\.codex\\tmp\\arg0-windows\\codex-arg0BnckMm;C:\\Users\\Petras\\AppData\\Roaming\\npm\\node_modules\\@openai\\codex\\node_modules\\@openai\\codex-win32-x64\\vendor\\x86_64-pc-windows-msvc\\codex-path;C:\\Users\\Petras\\.opencode\\bin;C:\\Users\\Petras\\.local\\bin;C:\\Users\\Petras\\.cargo\\bin;C:\\Users\\Petras\\bin;C:\\Program Files\\Git\\mingw64\\bin;C:\\Program Files\\Git\\usr\\local\\bin;C:\\Program Files\\Git\\usr\\bin;C:\\Program Files\\Git\\usr\\bin;C:\\Program Files\\Git\\mingw64\\bin;C:\\Program Files\\Git\\usr\\bin;C:\\Users\\Petras\\bin;C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v13.2\\bin\\x64;C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v13.2\\bin;C:\\WINDOWS\\system32;C:\\WINDOWS;C:\\WINDOWS\\System32\\Wbem;C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0;C:\\WINDOWS\\System32\\OpenSSH;C:\\Program Files\\dotnet;C:\\Program Files (x86)\\Windows Kits\\10\\Windows Performance Toolkit;C:\\Program Files\\Git\\cmd;C:\\Program Files\\CMake\\bin;C:\\Program Files\\nodejs;C:\\Program Files\\GitHub CLI;C:\\Program Files (x86)\\ZeroTier\\One;C:\\Program Files\\PowerToys\\DSCModules;C:\\Program Files\\NVIDIA Corporation\\NVIDIA App\\NvDLISR;C:\\Program Files (x86)\\NVIDIA Corporation\\PhysX\\Common;C:\\Program Files\\NVIDIA Corporation\\Nsight Compute 2026.1.1;C:\\Users\\Petras\\.cargo\\bin;C:\\Users\\Petras\\.local\\bin;C:\\Users\\Petras\\AppData\\Local\\Microsoft\\WindowsApps;C:\\Users\\Petras\\AppData\\Local\\Programs\\Windsurf\\bin;C:\\Users\\Petras\\.dotnet\\tools;C:\\Users\\Petras\\AppData\\Local\\Programs\\Microsoft VS Code\\bin;C:\\Users\\Petras\\AppData\\Roaming\\npm;C:\\Users\\Petras\\AppData\\Local\\Python\\bin;C:\\Users\\Petras\\.bun\\bin;C:\\Users\\Petras\\.bun\\bin;C:\\Program Files\\Git\\usr\\bin\\vendor_perl;C:\\Program Files\\Git\\usr\\bin\\core_perl",
+          "inheritedBuildEnvironmentFingerprint": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+          "RUSTFLAGS": null,
+          "CARGO_ENCODED_RUSTFLAGS": null,
+          "RUSTUP_TOOLCHAIN": null
+        },
+        "command": {
+          "name": "96zzzzx-nvidia-current367-v1-wasm-20261024T044829411Z",
+          "args": [
+            "C:\\Users\\Petras\\.rustup\\toolchains\\stable-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "build",
+            "--lib",
+            "--locked",
+            "--offline",
+            "--target",
+            "wasm32-unknown-unknown",
+            "-j1"
+          ],
+          "returncode": 0
+        },
+        "resources": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\96zzzzx-nvidia-current367-v1-wasm-20261024T044829411Z.resources.json",
+        "evidence": {
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\96zzzzx-nvidia-current367-v1-wasm-20261024T044829411Z.log": "8af1dcd1189a10567c4ab2eed0167f33b1e0e54f670d47d3df234ca3e01c32a7",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\96zzzzx-nvidia-current367-v1-wasm-20261024T044829411Z.resources.json": "d72c24ccd947f29f5a5feb33658a7bcc827452c08f5c30b29b8327bc81a2d553",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\96zzzzx-nvidia-current367-v1-wasm-20261024T044829411Z.command.json": "d99d4207879eeb38f58afd5d89285ea7082daf4f79018fc83b3dc4ece463d9bd"
+        },
+        "outputs": {}
+      },
+      "web": {
+        "input": {
+          "id": "96zzzzx-retire-empty-arena-ranges-after-tail-trimming",
+          "files": 603,
+          "sourceFingerprint": "4ae2011cd36e0e16b94c09122b3fdc9157e3d9a80967b460e8a9750c810f0b17",
+          "sourceSignature": "7eca2247d5bd5de69fddd3ef349ecc79596a48607236ae16af108e3f8f080174",
+          "lock": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\release\\94-Cargo.lock",
+          "lockSha256": "1df9f908a4aead0990495bcf505176ab0842191051943e422635b28f23ccab94",
+          "assets": {
+            "assets/text/NotoSans-Regular.subset.ttf": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09",
+            "assets/text/NotoSansSymbols2-Regular.subset.ttf": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed",
+            "assets/text/NotoSansSymbols-Regular.subset.ttf": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3",
+            "assets/text/OFL.txt": "0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb",
+            "assets/text/NotoSansSymbols-Regular.ttf": "8f02f31959bbdf6061547a188248e13f84dc5fdd940326ec494675f453f072bb",
+            "assets/text/NotoSans-Regular.ttf": "b85c38ecea8a7cfb39c24e395a4007474fa5a4fc864f6ee33309eb4948d232d5",
+            "assets/text/NotoSansSymbols2-Regular.ttf": "630846d528dbe4c4981370a4d0a9475a1fd1491a129bb411f8e157cdb5de13c6",
+            "assets/pb/course-comparison.pb": "8d952b0ac17ebf0bb7c20704b45b95acbe5b4395ff809a38baacaad93de4bed5",
+            "assets/pb/course-metadata.pb": "2cfe2ad9becff37d0fcca23f71e47b1c6e674d7934327120a9233efd0c2faf55",
+            "assets/pb/course-instance-features.pb": "3b9a0d162728849ff09fe9b8e77b877a4565e66b77b5c73d09422f362e816500",
+            "assets/pb/course-feature-pick.pb": "e05c864d93c99b700665508eb8ddc630c637cec24b51558de97f26f05762387d"
+          },
+          "callback": "journey/checks/browser/arena-empty.cjs",
+          "callbackFingerprint": "16c6960647427f675a4a82573070c3b090c271164520ee60a6a7d7a64ec6ca18",
+          "frame": "journey/checks/94-comparison.rs",
+          "frameConstructor": "make_renderer(device, queue, format)",
+          "frameSize": [
+            640,
+            480
+          ],
+          "sampleRequired": true,
+          "nativeSuite": "not run by this proportional lane; source preserved and typechecked"
+        },
+        "environment": {
+          "RUSTC": "C:\\Users\\Petras\\.rustup\\toolchains\\stable-x86_64-pc-windows-msvc\\bin\\rustc.exe",
+          "COURSE_MEMORY_MIB": "4096",
+          "COURSE_TIMEOUT_SECONDS": "1800",
+          "CARGO_TARGET_DIR": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-build",
+          "CARGO_BUILD_JOBS": "1",
+          "CARGO_INCREMENTAL": "0",
+          "CARGO_NET_OFFLINE": "true",
+          "REGEN_PROTO": "0",
+          "RUSTC_WRAPPER": "",
+          "RUSTC_WORKSPACE_WRAPPER": "",
+          "RUST_TEST_THREADS": "1",
+          "NO_COLOR": "true",
+          "VIEWER_GPU_WAIT_SECONDS": "60",
+          "VIEWER_ADAPTER": "Microsoft Basic Render Driver",
+          "WGPU_BACKEND": "dx12",
+          "VIEWER_DXC_PATH": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\native-checkpoint\\dxcompiler.dll",
+          "VK_ICD_FILENAMES": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-browsers\\chromium_headless_shell-1208\\chrome-headless-shell-win64\\vk_swiftshader_icd.json",
+          "VK_DRIVER_FILES": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-browsers\\chromium_headless_shell-1208\\chrome-headless-shell-win64\\vk_swiftshader_icd.json",
+          "toolResolution": "{\"wasm-bindgen\":{\"path\":\"C:\\\\Users\\\\Petras\\\\AppData\\\\Local\\\\trunkrs\\\\trunk\\\\cache\\\\wasm-bindgen-0.2.128\\\\wasm-bindgen.exe\",\"sha256\":\"207b71832e4c2810f061b1d6a4571fe7c7e85ec052a2027ef43caafb00cfabb4\",\"actualVersion\":\"wasm-bindgen 0.2.128\",\"pathFirst\":\"C:\\\\Users\\\\Petras\\\\AppData\\\\Local\\\\trunkrs\\\\trunk\\\\cache\\\\wasm-bindgen-0.2.128\\\\wasm-bindgen.exe\"},\"wasm-opt\":{\"path\":\"C:\\\\Users\\\\Petras\\\\AppData\\\\Local\\\\trunkrs\\\\trunk\\\\cache\\\\wasm-opt-version_123\\\\bin\\\\wasm-opt.exe\",\"sha256\":\"9738733f02dc4b80ea42daeca89d7b8a0755656f3d2e405949ee1233bf473598\",\"actualVersion\":\"wasm-opt version 123 (version_123)\",\"pathFirst\":\"C:\\\\Users\\\\Petras\\\\AppData\\\\Local\\\\trunkrs\\\\trunk\\\\cache\\\\wasm-opt-version_123\\\\bin\\\\wasm-opt.exe\"}}",
+          "PATH": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\native-checkpoint;C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-browsers\\chromium_headless_shell-1208\\chrome-headless-shell-win64;C:\\Users\\Petras\\AppData\\Local\\trunkrs\\trunk\\cache\\wasm-bindgen-0.2.128;C:\\Users\\Petras\\AppData\\Local\\trunkrs\\trunk\\cache\\wasm-opt-version_123\\bin;C:\\Users\\Petras\\.codex\\tmp\\arg0-windows\\codex-arg0BnckMm;C:\\Users\\Petras\\AppData\\Roaming\\npm\\node_modules\\@openai\\codex\\node_modules\\@openai\\codex-win32-x64\\vendor\\x86_64-pc-windows-msvc\\codex-path;C:\\Users\\Petras\\.opencode\\bin;C:\\Users\\Petras\\.local\\bin;C:\\Users\\Petras\\.cargo\\bin;C:\\Users\\Petras\\bin;C:\\Program Files\\Git\\mingw64\\bin;C:\\Program Files\\Git\\usr\\local\\bin;C:\\Program Files\\Git\\usr\\bin;C:\\Program Files\\Git\\usr\\bin;C:\\Program Files\\Git\\mingw64\\bin;C:\\Program Files\\Git\\usr\\bin;C:\\Users\\Petras\\bin;C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v13.2\\bin\\x64;C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v13.2\\bin;C:\\WINDOWS\\system32;C:\\WINDOWS;C:\\WINDOWS\\System32\\Wbem;C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0;C:\\WINDOWS\\System32\\OpenSSH;C:\\Program Files\\dotnet;C:\\Program Files (x86)\\Windows Kits\\10\\Windows Performance Toolkit;C:\\Program Files\\Git\\cmd;C:\\Program Files\\CMake\\bin;C:\\Program Files\\nodejs;C:\\Program Files\\GitHub CLI;C:\\Program Files (x86)\\ZeroTier\\One;C:\\Program Files\\PowerToys\\DSCModules;C:\\Program Files\\NVIDIA Corporation\\NVIDIA App\\NvDLISR;C:\\Program Files (x86)\\NVIDIA Corporation\\PhysX\\Common;C:\\Program Files\\NVIDIA Corporation\\Nsight Compute 2026.1.1;C:\\Users\\Petras\\.cargo\\bin;C:\\Users\\Petras\\.local\\bin;C:\\Users\\Petras\\AppData\\Local\\Microsoft\\WindowsApps;C:\\Users\\Petras\\AppData\\Local\\Programs\\Windsurf\\bin;C:\\Users\\Petras\\.dotnet\\tools;C:\\Users\\Petras\\AppData\\Local\\Programs\\Microsoft VS Code\\bin;C:\\Users\\Petras\\AppData\\Roaming\\npm;C:\\Users\\Petras\\AppData\\Local\\Python\\bin;C:\\Users\\Petras\\.bun\\bin;C:\\Users\\Petras\\.bun\\bin;C:\\Program Files\\Git\\usr\\bin\\vendor_perl;C:\\Program Files\\Git\\usr\\bin\\core_perl",
+          "inheritedBuildEnvironmentFingerprint": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+          "RUSTFLAGS": null,
+          "CARGO_ENCODED_RUSTFLAGS": null,
+          "RUSTUP_TOOLCHAIN": null
+        },
+        "command": {
+          "name": "96zzzzx-nvidia-current367-v1-web-20261024T044852873Z",
+          "args": [
+            "C:\\Users\\Petras\\.cargo\\bin\\trunk.exe",
+            "build",
+            "--release",
+            "--public-url",
+            "./"
+          ],
+          "returncode": 0
+        },
+        "resources": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\96zzzzx-nvidia-current367-v1-web-20261024T044852873Z.resources.json",
+        "evidence": {
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\96zzzzx-nvidia-current367-v1-web-20261024T044852873Z.log": "e11a3fd87b3c18d3864b706cc2ebea43f7573aaacd42a9096952e03ee2956f40",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\96zzzzx-nvidia-current367-v1-web-20261024T044852873Z.resources.json": "7e0853f3b0e517d6b1af361832a02c8c91063a5e0f3762861daaaae61d2e1802",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\96zzzzx-nvidia-current367-v1-web-20261024T044852873Z.command.json": "85405df02f3268ed7d475528c1d8be1fbb6752252bf72ec0ec2d85bb8a6f12a4"
+        },
+        "outputs": {
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-96zzzzx-retire-empty-arena-ranges-after-tail-trimming\\dist\\assets\\pb\\course-comparison.pb": "8d952b0ac17ebf0bb7c20704b45b95acbe5b4395ff809a38baacaad93de4bed5",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-96zzzzx-retire-empty-arena-ranges-after-tail-trimming\\dist\\assets\\pb\\course-feature-pick.pb": "e05c864d93c99b700665508eb8ddc630c637cec24b51558de97f26f05762387d",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-96zzzzx-retire-empty-arena-ranges-after-tail-trimming\\dist\\assets\\pb\\course-instance-features.pb": "3b9a0d162728849ff09fe9b8e77b877a4565e66b77b5c73d09422f362e816500",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-96zzzzx-retire-empty-arena-ranges-after-tail-trimming\\dist\\assets\\pb\\course-metadata.pb": "2cfe2ad9becff37d0fcca23f71e47b1c6e674d7934327120a9233efd0c2faf55",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-96zzzzx-retire-empty-arena-ranges-after-tail-trimming\\dist\\index.html": "98365c0c549480bd2d0eace582cc2115e7720572ff59afcbcbe78c4e3f0a82a2",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-96zzzzx-retire-empty-arena-ranges-after-tail-trimming\\dist\\snippets\\session_viewer-568dd7ccbb8842dd\\inline0.js": "bcd603923161001987d238655bc702c35aa98920d69d7c9793006792bd030104",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-96zzzzx-retire-empty-arena-ranges-after-tail-trimming\\dist\\snippets\\viewer_journey-7519825317df163d\\src\\adapter_info.js": "3d87da73f9a18dd579c0e96f207899630a600a7839ff4d9857a87fe1211091bb",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-96zzzzx-retire-empty-arena-ranges-after-tail-trimming\\dist\\text\\NotoSans-Regular.subset.ttf": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-96zzzzx-retire-empty-arena-ranges-after-tail-trimming\\dist\\text\\NotoSans-Regular.ttf": "b85c38ecea8a7cfb39c24e395a4007474fa5a4fc864f6ee33309eb4948d232d5",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-96zzzzx-retire-empty-arena-ranges-after-tail-trimming\\dist\\text\\NotoSansSymbols-Regular.subset.ttf": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-96zzzzx-retire-empty-arena-ranges-after-tail-trimming\\dist\\text\\NotoSansSymbols-Regular.ttf": "8f02f31959bbdf6061547a188248e13f84dc5fdd940326ec494675f453f072bb",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-96zzzzx-retire-empty-arena-ranges-after-tail-trimming\\dist\\text\\NotoSansSymbols2-Regular.subset.ttf": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-96zzzzx-retire-empty-arena-ranges-after-tail-trimming\\dist\\text\\NotoSansSymbols2-Regular.ttf": "630846d528dbe4c4981370a4d0a9475a1fd1491a129bb411f8e157cdb5de13c6",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-96zzzzx-retire-empty-arena-ranges-after-tail-trimming\\dist\\text\\OFL.txt": "0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-96zzzzx-retire-empty-arena-ranges-after-tail-trimming\\dist\\viewer_journey-c22de3b5c3ab5ba9.js": "743f9abb76e5cf907bc5fd7b56922da9faa432f450341a349649473b7fc987cd",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-96zzzzx-retire-empty-arena-ranges-after-tail-trimming\\dist\\viewer_journey-c22de3b5c3ab5ba9_bg.wasm": "07ab5266a218914e2fedf5d3d2c42487deb2e78c5ad8d4551117b71636ed55ae"
+        }
+      },
+      "frame": {
+        "input": {
+          "id": "96zzzzx-retire-empty-arena-ranges-after-tail-trimming",
+          "files": 603,
+          "sourceFingerprint": "4ae2011cd36e0e16b94c09122b3fdc9157e3d9a80967b460e8a9750c810f0b17",
+          "sourceSignature": "7eca2247d5bd5de69fddd3ef349ecc79596a48607236ae16af108e3f8f080174",
+          "lock": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\release\\94-Cargo.lock",
+          "lockSha256": "1df9f908a4aead0990495bcf505176ab0842191051943e422635b28f23ccab94",
+          "assets": {
+            "assets/text/NotoSans-Regular.subset.ttf": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09",
+            "assets/text/NotoSansSymbols2-Regular.subset.ttf": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed",
+            "assets/text/NotoSansSymbols-Regular.subset.ttf": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3",
+            "assets/text/OFL.txt": "0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb",
+            "assets/text/NotoSansSymbols-Regular.ttf": "8f02f31959bbdf6061547a188248e13f84dc5fdd940326ec494675f453f072bb",
+            "assets/text/NotoSans-Regular.ttf": "b85c38ecea8a7cfb39c24e395a4007474fa5a4fc864f6ee33309eb4948d232d5",
+            "assets/text/NotoSansSymbols2-Regular.ttf": "630846d528dbe4c4981370a4d0a9475a1fd1491a129bb411f8e157cdb5de13c6",
+            "assets/pb/course-comparison.pb": "8d952b0ac17ebf0bb7c20704b45b95acbe5b4395ff809a38baacaad93de4bed5",
+            "assets/pb/course-metadata.pb": "2cfe2ad9becff37d0fcca23f71e47b1c6e674d7934327120a9233efd0c2faf55",
+            "assets/pb/course-instance-features.pb": "3b9a0d162728849ff09fe9b8e77b877a4565e66b77b5c73d09422f362e816500",
+            "assets/pb/course-feature-pick.pb": "e05c864d93c99b700665508eb8ddc630c637cec24b51558de97f26f05762387d"
+          },
+          "callback": "journey/checks/browser/arena-empty.cjs",
+          "callbackFingerprint": "16c6960647427f675a4a82573070c3b090c271164520ee60a6a7d7a64ec6ca18",
+          "frame": "journey/checks/94-comparison.rs",
+          "frameConstructor": "make_renderer(device, queue, format)",
+          "frameSize": [
+            640,
+            480
+          ],
+          "sampleRequired": true,
+          "nativeSuite": "not run by this proportional lane; source preserved and typechecked"
+        },
+        "environment": {
+          "RUSTC": "C:\\Users\\Petras\\.rustup\\toolchains\\stable-x86_64-pc-windows-msvc\\bin\\rustc.exe",
+          "COURSE_MEMORY_MIB": "4096",
+          "COURSE_TIMEOUT_SECONDS": "1800",
+          "CARGO_TARGET_DIR": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-build",
+          "CARGO_BUILD_JOBS": "1",
+          "CARGO_INCREMENTAL": "0",
+          "CARGO_NET_OFFLINE": "true",
+          "REGEN_PROTO": "0",
+          "RUSTC_WRAPPER": "",
+          "RUSTC_WORKSPACE_WRAPPER": "",
+          "RUST_TEST_THREADS": "1",
+          "NO_COLOR": "true",
+          "VIEWER_GPU_WAIT_SECONDS": "60",
+          "VIEWER_ADAPTER": "Microsoft Basic Render Driver",
+          "WGPU_BACKEND": "dx12",
+          "VIEWER_DXC_PATH": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\native-checkpoint\\dxcompiler.dll",
+          "VK_ICD_FILENAMES": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-browsers\\chromium_headless_shell-1208\\chrome-headless-shell-win64\\vk_swiftshader_icd.json",
+          "VK_DRIVER_FILES": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-browsers\\chromium_headless_shell-1208\\chrome-headless-shell-win64\\vk_swiftshader_icd.json",
+          "toolResolution": "{\"wasm-bindgen\":{\"path\":\"C:\\\\Users\\\\Petras\\\\AppData\\\\Local\\\\trunkrs\\\\trunk\\\\cache\\\\wasm-bindgen-0.2.128\\\\wasm-bindgen.exe\",\"sha256\":\"207b71832e4c2810f061b1d6a4571fe7c7e85ec052a2027ef43caafb00cfabb4\",\"actualVersion\":\"wasm-bindgen 0.2.128\",\"pathFirst\":\"C:\\\\Users\\\\Petras\\\\AppData\\\\Local\\\\trunkrs\\\\trunk\\\\cache\\\\wasm-bindgen-0.2.128\\\\wasm-bindgen.exe\"},\"wasm-opt\":{\"path\":\"C:\\\\Users\\\\Petras\\\\AppData\\\\Local\\\\trunkrs\\\\trunk\\\\cache\\\\wasm-opt-version_123\\\\bin\\\\wasm-opt.exe\",\"sha256\":\"9738733f02dc4b80ea42daeca89d7b8a0755656f3d2e405949ee1233bf473598\",\"actualVersion\":\"wasm-opt version 123 (version_123)\",\"pathFirst\":\"C:\\\\Users\\\\Petras\\\\AppData\\\\Local\\\\trunkrs\\\\trunk\\\\cache\\\\wasm-opt-version_123\\\\bin\\\\wasm-opt.exe\"}}",
+          "PATH": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\native-checkpoint;C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-browsers\\chromium_headless_shell-1208\\chrome-headless-shell-win64;C:\\Users\\Petras\\AppData\\Local\\trunkrs\\trunk\\cache\\wasm-bindgen-0.2.128;C:\\Users\\Petras\\AppData\\Local\\trunkrs\\trunk\\cache\\wasm-opt-version_123\\bin;C:\\Users\\Petras\\.codex\\tmp\\arg0-windows\\codex-arg0BnckMm;C:\\Users\\Petras\\AppData\\Roaming\\npm\\node_modules\\@openai\\codex\\node_modules\\@openai\\codex-win32-x64\\vendor\\x86_64-pc-windows-msvc\\codex-path;C:\\Users\\Petras\\.opencode\\bin;C:\\Users\\Petras\\.local\\bin;C:\\Users\\Petras\\.cargo\\bin;C:\\Users\\Petras\\bin;C:\\Program Files\\Git\\mingw64\\bin;C:\\Program Files\\Git\\usr\\local\\bin;C:\\Program Files\\Git\\usr\\bin;C:\\Program Files\\Git\\usr\\bin;C:\\Program Files\\Git\\mingw64\\bin;C:\\Program Files\\Git\\usr\\bin;C:\\Users\\Petras\\bin;C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v13.2\\bin\\x64;C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v13.2\\bin;C:\\WINDOWS\\system32;C:\\WINDOWS;C:\\WINDOWS\\System32\\Wbem;C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0;C:\\WINDOWS\\System32\\OpenSSH;C:\\Program Files\\dotnet;C:\\Program Files (x86)\\Windows Kits\\10\\Windows Performance Toolkit;C:\\Program Files\\Git\\cmd;C:\\Program Files\\CMake\\bin;C:\\Program Files\\nodejs;C:\\Program Files\\GitHub CLI;C:\\Program Files (x86)\\ZeroTier\\One;C:\\Program Files\\PowerToys\\DSCModules;C:\\Program Files\\NVIDIA Corporation\\NVIDIA App\\NvDLISR;C:\\Program Files (x86)\\NVIDIA Corporation\\PhysX\\Common;C:\\Program Files\\NVIDIA Corporation\\Nsight Compute 2026.1.1;C:\\Users\\Petras\\.cargo\\bin;C:\\Users\\Petras\\.local\\bin;C:\\Users\\Petras\\AppData\\Local\\Microsoft\\WindowsApps;C:\\Users\\Petras\\AppData\\Local\\Programs\\Windsurf\\bin;C:\\Users\\Petras\\.dotnet\\tools;C:\\Users\\Petras\\AppData\\Local\\Programs\\Microsoft VS Code\\bin;C:\\Users\\Petras\\AppData\\Roaming\\npm;C:\\Users\\Petras\\AppData\\Local\\Python\\bin;C:\\Users\\Petras\\.bun\\bin;C:\\Users\\Petras\\.bun\\bin;C:\\Program Files\\Git\\usr\\bin\\vendor_perl;C:\\Program Files\\Git\\usr\\bin\\core_perl",
+          "inheritedBuildEnvironmentFingerprint": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+          "RUSTFLAGS": null,
+          "CARGO_ENCODED_RUSTFLAGS": null,
+          "RUSTUP_TOOLCHAIN": null
+        },
+        "command": {
+          "name": "96zzzzx-nvidia-current367-v1-frame-20261024T045138380Z",
+          "args": [
+            "C:\\Users\\Petras\\.rustup\\toolchains\\stable-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "run",
+            "--example",
+            "frame",
+            "--locked",
+            "--offline",
+            "--target",
+            "x86_64-pc-windows-msvc",
+            "-j1"
+          ],
+          "returncode": 0
+        },
+        "resources": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\96zzzzx-nvidia-current367-v1-frame-20261024T045138380Z.resources.json",
+        "evidence": {
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\96zzzzx-nvidia-current367-v1-frame-20261024T045138380Z.log": "3f57ed5f489d80889f3c65561ff3e5d8f7617fced8df1e25a3cd241226eea146",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\96zzzzx-nvidia-current367-v1-frame-20261024T045138380Z.resources.json": "932baaf3d014abd54c990c39aea92fd490d171fe83d4dae80aa4ecd6709944d7",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\96zzzzx-nvidia-current367-v1-frame-20261024T045138380Z.command.json": "39bb3944103249ea0be5a7c1635887f9fa5c9805edc0d8cc15ba699566ec303a"
+        },
+        "outputs": {
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\next-source-aware-callback-preparation\\96zzzzx-nvidia-current367-v1\\96zzzzx-nvidia-current367-v1-frame-20261024T045138380Z-frame.exe": "57b42b0ae0dd6c1c308ddd2912ae741c4139bbb0917d19837a854ccbacbc8030",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-96zzzzx-retire-empty-arena-ranges-after-tail-trimming\\frame.ppm": "a3e232e315d43fb3a4098145608f2e3d1af29edb4951c8173a715338792477ad"
+        }
+      },
+      "sample": {
+        "input": {
+          "id": "96zzzzx-retire-empty-arena-ranges-after-tail-trimming",
+          "files": 603,
+          "sourceFingerprint": "4ae2011cd36e0e16b94c09122b3fdc9157e3d9a80967b460e8a9750c810f0b17",
+          "sourceSignature": "7eca2247d5bd5de69fddd3ef349ecc79596a48607236ae16af108e3f8f080174",
+          "lock": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\release\\94-Cargo.lock",
+          "lockSha256": "1df9f908a4aead0990495bcf505176ab0842191051943e422635b28f23ccab94",
+          "assets": {
+            "assets/text/NotoSans-Regular.subset.ttf": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09",
+            "assets/text/NotoSansSymbols2-Regular.subset.ttf": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed",
+            "assets/text/NotoSansSymbols-Regular.subset.ttf": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3",
+            "assets/text/OFL.txt": "0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb",
+            "assets/text/NotoSansSymbols-Regular.ttf": "8f02f31959bbdf6061547a188248e13f84dc5fdd940326ec494675f453f072bb",
+            "assets/text/NotoSans-Regular.ttf": "b85c38ecea8a7cfb39c24e395a4007474fa5a4fc864f6ee33309eb4948d232d5",
+            "assets/text/NotoSansSymbols2-Regular.ttf": "630846d528dbe4c4981370a4d0a9475a1fd1491a129bb411f8e157cdb5de13c6",
+            "assets/pb/course-comparison.pb": "8d952b0ac17ebf0bb7c20704b45b95acbe5b4395ff809a38baacaad93de4bed5",
+            "assets/pb/course-metadata.pb": "2cfe2ad9becff37d0fcca23f71e47b1c6e674d7934327120a9233efd0c2faf55",
+            "assets/pb/course-instance-features.pb": "3b9a0d162728849ff09fe9b8e77b877a4565e66b77b5c73d09422f362e816500",
+            "assets/pb/course-feature-pick.pb": "e05c864d93c99b700665508eb8ddc630c637cec24b51558de97f26f05762387d"
+          },
+          "callback": "journey/checks/browser/arena-empty.cjs",
+          "callbackFingerprint": "16c6960647427f675a4a82573070c3b090c271164520ee60a6a7d7a64ec6ca18",
+          "frame": "journey/checks/94-comparison.rs",
+          "frameConstructor": "make_renderer(device, queue, format)",
+          "frameSize": [
+            640,
+            480
+          ],
+          "sampleRequired": true,
+          "nativeSuite": "not run by this proportional lane; source preserved and typechecked"
+        },
+        "environment": {
+          "RUSTC": "C:\\Users\\Petras\\.rustup\\toolchains\\stable-x86_64-pc-windows-msvc\\bin\\rustc.exe",
+          "COURSE_MEMORY_MIB": "4096",
+          "COURSE_TIMEOUT_SECONDS": "1800",
+          "CARGO_TARGET_DIR": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-build",
+          "CARGO_BUILD_JOBS": "1",
+          "CARGO_INCREMENTAL": "0",
+          "CARGO_NET_OFFLINE": "true",
+          "REGEN_PROTO": "0",
+          "RUSTC_WRAPPER": "",
+          "RUSTC_WORKSPACE_WRAPPER": "",
+          "RUST_TEST_THREADS": "1",
+          "NO_COLOR": "true",
+          "VIEWER_GPU_WAIT_SECONDS": "60",
+          "VIEWER_ADAPTER": "Microsoft Basic Render Driver",
+          "WGPU_BACKEND": "dx12",
+          "VIEWER_DXC_PATH": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\native-checkpoint\\dxcompiler.dll",
+          "VK_ICD_FILENAMES": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-browsers\\chromium_headless_shell-1208\\chrome-headless-shell-win64\\vk_swiftshader_icd.json",
+          "VK_DRIVER_FILES": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-browsers\\chromium_headless_shell-1208\\chrome-headless-shell-win64\\vk_swiftshader_icd.json",
+          "toolResolution": "{\"wasm-bindgen\":{\"path\":\"C:\\\\Users\\\\Petras\\\\AppData\\\\Local\\\\trunkrs\\\\trunk\\\\cache\\\\wasm-bindgen-0.2.128\\\\wasm-bindgen.exe\",\"sha256\":\"207b71832e4c2810f061b1d6a4571fe7c7e85ec052a2027ef43caafb00cfabb4\",\"actualVersion\":\"wasm-bindgen 0.2.128\",\"pathFirst\":\"C:\\\\Users\\\\Petras\\\\AppData\\\\Local\\\\trunkrs\\\\trunk\\\\cache\\\\wasm-bindgen-0.2.128\\\\wasm-bindgen.exe\"},\"wasm-opt\":{\"path\":\"C:\\\\Users\\\\Petras\\\\AppData\\\\Local\\\\trunkrs\\\\trunk\\\\cache\\\\wasm-opt-version_123\\\\bin\\\\wasm-opt.exe\",\"sha256\":\"9738733f02dc4b80ea42daeca89d7b8a0755656f3d2e405949ee1233bf473598\",\"actualVersion\":\"wasm-opt version 123 (version_123)\",\"pathFirst\":\"C:\\\\Users\\\\Petras\\\\AppData\\\\Local\\\\trunkrs\\\\trunk\\\\cache\\\\wasm-opt-version_123\\\\bin\\\\wasm-opt.exe\"}}",
+          "PATH": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\native-checkpoint;C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-browsers\\chromium_headless_shell-1208\\chrome-headless-shell-win64;C:\\Users\\Petras\\AppData\\Local\\trunkrs\\trunk\\cache\\wasm-bindgen-0.2.128;C:\\Users\\Petras\\AppData\\Local\\trunkrs\\trunk\\cache\\wasm-opt-version_123\\bin;C:\\Users\\Petras\\.codex\\tmp\\arg0-windows\\codex-arg0BnckMm;C:\\Users\\Petras\\AppData\\Roaming\\npm\\node_modules\\@openai\\codex\\node_modules\\@openai\\codex-win32-x64\\vendor\\x86_64-pc-windows-msvc\\codex-path;C:\\Users\\Petras\\.opencode\\bin;C:\\Users\\Petras\\.local\\bin;C:\\Users\\Petras\\.cargo\\bin;C:\\Users\\Petras\\bin;C:\\Program Files\\Git\\mingw64\\bin;C:\\Program Files\\Git\\usr\\local\\bin;C:\\Program Files\\Git\\usr\\bin;C:\\Program Files\\Git\\usr\\bin;C:\\Program Files\\Git\\mingw64\\bin;C:\\Program Files\\Git\\usr\\bin;C:\\Users\\Petras\\bin;C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v13.2\\bin\\x64;C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v13.2\\bin;C:\\WINDOWS\\system32;C:\\WINDOWS;C:\\WINDOWS\\System32\\Wbem;C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0;C:\\WINDOWS\\System32\\OpenSSH;C:\\Program Files\\dotnet;C:\\Program Files (x86)\\Windows Kits\\10\\Windows Performance Toolkit;C:\\Program Files\\Git\\cmd;C:\\Program Files\\CMake\\bin;C:\\Program Files\\nodejs;C:\\Program Files\\GitHub CLI;C:\\Program Files (x86)\\ZeroTier\\One;C:\\Program Files\\PowerToys\\DSCModules;C:\\Program Files\\NVIDIA Corporation\\NVIDIA App\\NvDLISR;C:\\Program Files (x86)\\NVIDIA Corporation\\PhysX\\Common;C:\\Program Files\\NVIDIA Corporation\\Nsight Compute 2026.1.1;C:\\Users\\Petras\\.cargo\\bin;C:\\Users\\Petras\\.local\\bin;C:\\Users\\Petras\\AppData\\Local\\Microsoft\\WindowsApps;C:\\Users\\Petras\\AppData\\Local\\Programs\\Windsurf\\bin;C:\\Users\\Petras\\.dotnet\\tools;C:\\Users\\Petras\\AppData\\Local\\Programs\\Microsoft VS Code\\bin;C:\\Users\\Petras\\AppData\\Roaming\\npm;C:\\Users\\Petras\\AppData\\Local\\Python\\bin;C:\\Users\\Petras\\.bun\\bin;C:\\Users\\Petras\\.bun\\bin;C:\\Program Files\\Git\\usr\\bin\\vendor_perl;C:\\Program Files\\Git\\usr\\bin\\core_perl",
+          "inheritedBuildEnvironmentFingerprint": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+          "RUSTFLAGS": null,
+          "CARGO_ENCODED_RUSTFLAGS": null,
+          "RUSTUP_TOOLCHAIN": null
+        },
+        "command": {
+          "name": "96zzzzx-nvidia-current367-v1-sample-20261024T045218016Z",
+          "args": [
+            "C:\\Users\\Petras\\.rustup\\toolchains\\stable-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "run",
+            "--example",
+            "sample",
+            "--locked",
+            "--offline",
+            "--target",
+            "x86_64-pc-windows-msvc",
+            "-j1"
+          ],
+          "returncode": 0
+        },
+        "resources": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\96zzzzx-nvidia-current367-v1-sample-20261024T045218016Z.resources.json",
+        "evidence": {
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\96zzzzx-nvidia-current367-v1-sample-20261024T045218016Z.log": "6408258137bd5275f76c67964a82087fd1031448d78ce75a78875aedd4bcbe9a",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\96zzzzx-nvidia-current367-v1-sample-20261024T045218016Z.resources.json": "e060e22a2243bbdd6042d2261692d94aa2996c1e1d80d22070bb89da30ffa8f0",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\96zzzzx-nvidia-current367-v1-sample-20261024T045218016Z.command.json": "793d53fd0e56043f045aed3f5310299e12de6895e225ab682e7dd3585df6f9d0"
+        },
+        "outputs": {
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-96zzzzx-retire-empty-arena-ranges-after-tail-trimming\\sample.pb": "d9082eecc02360cb34d83ad75fbca67b15830be740fe862511ec06c7d849d66b"
+        }
+      }
+    },
+    "nativeSuite": {
+      "status": "not-run",
+      "reason": "Saved plan section4: native full-suite execution belongs to integrated batches/final freeze; historical tests are preserved and typechecked here."
+    },
+    "canonicalVerifyComplete": false,
+    "nativeFrame": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\next-source-aware-callback-preparation\\96zzzzx-nvidia-current367-v1\\native-frame.png",
+      "sha256": "ed800db2b9cf80fa70a5df1ee086e4fa294f896a1a8d9fb6107da4dce036a366",
+      "sourceFiles": 603,
+      "visualReuse": "Actualfresh603-source frame is byteidentical ed800 to previously root-reviewed Slot640x480 nativeframe. Exactbytevisualreview reused; no duplicateinspection or reused603execution claim.",
+      "existingReview": "release/96zzo-browser-failure-review.json"
+    },
+    "scope": "Allfive actual603-source native-check/WASM/optimizedweb/frame/sample phasesPASS. Final713 Native1062 remains a separate record; nohistoricalfullsuite executed here."
+  },
+  "browser": {
+    "receipt": {
+      "path": "target/course-windows-20261018/arena-acceptance-publication-preparation/receipt.json",
+      "sha256": "b6cdc48cf7e44251923cc7d3061252ea05e7b11d2e09de1d838401bedae2374b"
+    },
+    "originalReceipt": {
+      "path": "target/course-windows-20261018/next-source-aware-callback-preparation/96zzzzx-nvidia-current367-v1/browser-20261024T045334850Z.json",
+      "sha256": "b6cdc48cf7e44251923cc7d3061252ea05e7b11d2e09de1d838401bedae2374b"
+    },
+    "resources": {
+      "path": "target/course-windows-20261018/96zzzzx-nvidia-current367-v1-proportional-browser-20261024T045335416Z.resources.json",
+      "sha256": "cc3c492371f41c9cdeae6e700d66b39cefd53ad7f4781fee8c1271a5ba19bf5c"
+    },
+    "log": {
+      "path": "target/course-windows-20261018/96zzzzx-nvidia-current367-v1-proportional-browser-20261024T045335416Z.log",
+      "sha256": "0e58bc12bc238f800cfd9f452a5aa1c3e8a438709af2dc2c08c55908e49ce9e2"
+    },
+    "exitCode": 0,
+    "elapsedSeconds": 155.914,
+    "peakJobCommitBytes": 976257024,
+    "memoryCapBytes": 6442450944,
+    "processors": 2,
+    "adapter": {
+      "index": 0,
+      "name": "NVIDIA GeForce RTX 4080 Laptop GPU",
+      "vendor": 4318,
+      "device": 10208,
+      "luid": "0,86780",
+      "luidHigh": 0,
+      "luidLow": 86780,
+      "dedicatedVideoMemoryBytes": 12577669120,
+      "flags": 0,
+      "scope": "Browser NVIDIA DXGI selection only; original native build/frame remain WARP",
+      "bootProofPath": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\nvidia-hardware-browser-preparation\\nvidia-current-fef4-boot-v1\\proof.json",
+      "bootProofSha256": "1f47e818b919455adeb18bd96126cc316c09adf4b84513e6c05cb0c405578558",
+      "bootBrowserSha256": "2ab1e6da5eb50ce14f5053dfebd782e99ad50ea6d28081694877c2f2f9da981e"
+    },
+    "canonical": {
+      "source": "7eca2247d5bd5de69fddd3ef349ecc79596a48607236ae16af108e3f8f080174",
+      "checker": "ecbc4c716aa91a7aedc2532132c4b08e0a7d1e7511c380b0dbbba0152325a733",
+      "extraChecker": "16c6960647427f675a4a82573070c3b090c271164520ee60a6a7d7a64ec6ca18",
+      "browser": "145.0.7632.6",
+      "headless": true,
+      "captured": "2026-10-24T04:56:11.678Z",
+      "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "canvas": "747b865801184e34535a527d39ce19bcc9b1fe409bafb997551038bc4538d656",
+      "file": "96zzzzx-retire-empty-arena-ranges-after-tail-trimming-browser.png",
+      "initialViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "initialCanvas": {
+        "x": 0,
+        "y": 0,
+        "width": 900,
+        "height": 760
+      },
+      "screenshotViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "bundle": "98365c0c549480bd2d0eace582cc2115e7720572ff59afcbcbe78c4e3f0a82a2",
+      "commands": [],
+      "keyboardRoundtrip": false
+    },
+    "frozenResults": {
+      "path": "target/course-windows-20261018/arena-acceptance-publication-preparation/results.json",
+      "sha256": "baea7e416482d693258da41ed1d1cbf4c8b2dcd1f7fa9951c5b9e17d001cadc8"
+    },
+    "frozenCanonicalHistory": {
+      "path": "target/course-windows-20261018/arena-acceptance-publication-preparation/browser.json",
+      "sha256": "a6984c788986c04cb18029b100909d4c288719d470c8ff3d16aa0ad1e8c265ba"
+    }
+  },
+  "passiveObservation": {
+    "receipt": {
+      "path": "target/course-windows-20261018/arena-empty-passive-review-preparation/run-20261024T045329254Z/receipt.json",
+      "sha256": "b58e321b3527e64b2ab96adf652f2fe86becf9bd83cefedd74c8e6ee77c45d64"
+    },
+    "observation": {
+      "path": "target/course-windows-20261018/arena-empty-passive-review-preparation/run-20261024T045329254Z/actual-restored-cad/observation.json",
+      "sha256": "842f5cfaaefa6c4662c0901144767bfaa7ddea47c1ba5f10eab01ecd1b76a200"
+    },
+    "callback": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\checks\\browser\\arena-empty.cjs",
+      "sha256": "35bd918ec1bcb3d93c5e49676342f276c4fc150a533b7089a79a5b17df71ab43"
+    },
+    "observer": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\arena-empty-passive-review-preparation\\observe.cjs",
+      "sha256": "24d247013640c0e9213d20bb9691d2f89b9351a819749e2469e0aaf0152396e0"
+    },
+    "scope": "Full unchanged arena-empty default callback and all prerequisites. Passive screenshot after original final3rd Undo/SelectNone/original-placement+pixel equality+errors assertions, immediately before its own line18 context.close at DPR1/2. No commands/camera/input changes, waits/RAFs/queue fences, new context/GPU request, skipped assertions or altered canonical files. Root individually views originals; screenshots do not claim stronger presentation fencing than canonical settled drawing.",
+    "cases": [
+      {
+        "density": 1,
+        "commands": [
+          "Layers Off",
+          "Select All",
+          "Delete",
+          "Example CAD",
+          "Clipping Plane XY 0,0,0",
+          "Clipping Plane Solid",
+          "View Top",
+          "Fit",
+          "Select None",
+          "Select All",
+          "Delete",
+          "Undo",
+          "Select None",
+          "Select All",
+          "Delete",
+          "Undo",
+          "Select None",
+          "Select All",
+          "Delete",
+          "Undo",
+          "Select None"
+        ],
+        "status": "PASS passive restored CAD screenshot; root visual inspection pending",
+        "before": {
+          "data-row-placements": "[[\"ObjectId(3)\",[1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0]],[\"ObjectId(4)\",[1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0]]]",
+          "data-gpu-usage": "[2, 6348, 2, 352]",
+          "data-clipping": "{\"ambient\":[0,0,0,0,0],\"ambient_error\":null,\"arctic\":false,\"cap_error\":null,\"caps\":[1228832,1,3,636,636],\"error\":null,\"global_outline\":[0,0,0,0],\"ink_flags\":[336,336],\"opacity\":1.0,\"outlines\":false,\"pyramid\":[0,0,0,0],\"pyramid_error\":null,\"rows\":[{\"id\":4,\"normal\":[-0.0,-0.0,-1.0],\"offset\":0.0}],\"usage\":[1,1,1,9,448]}",
+          "data-selected-ids": "[]",
+          "data-drawing-originals": "{\"lines\":[],\"points\":[],\"polylines\":[]}",
+          "data-camera-matrix": "[0.24633516841470127,0.0,0.0,0.0,0.0,0.3695027526220519,1.0118716292246998e-17,0.0,0.0,8.204609272467509e-17,-0.045570646923231345,0.0,0.0,0.05312499999999998,0.7136132281687052,1.0]",
+          "data-command-ui": "{\"command\":\"\",\"completion_rect\":null,\"controls\":[{\"key\":\"command/input\",\"label\":\"Command\",\"rect\":[86.375,614.0,900.0,636.0]},{\"key\":\"command/collapse\",\"label\":\"Collapse or expand history\",\"rect\":[908.0,614.5,924.0,635.5]},{\"key\":\"command/resize\",\"label\":\"Drag to resize command history\",\"rect\":[0.0,606.0,960.0,614.0]}],\"focused\":true,\"history\":[\"> Layers Off\\nCommand submitted.\",\"> Select All\\nCommand submitted.\",\"> Delete\\nCommand submitted.\",\"> Example CAD\\nCommand submitted.\",\"> Clipping Plane XY 0,0,0\\nCommand submitted.\",\"> Clipping Plane Solid\\nCommand submitted.\",\"> View Top\\nCommand submitted.\",\"> Fit\\nCommand submitted.\",\"> Select None\\nCommand submitted.\",\"> Select All\\nCommand submitted.\",\"> Delete\\nCommand submitted.\",\"> Undo\\nCommand submitted.\",\"> Select None\\nCommand submitted.\",\"> Select All\\nCommand submitted.\",\"> Delete\\nCommand submitted.\",\"> Undo\\nCommand submitted.\",\"> Select None\\nCommand submitted.\",\"> Select All\\nCommand submitted.\",\"> Delete\\nCommand submitted.\",\"> Undo\\nCommand submitted.\",\"> Select None\\nCommand submitted.\"],\"number\":\"\",\"number_error\":\"\",\"number_rect\":null,\"options\":[],\"options_rect\":null,\"pointer_owned\":false,\"status\":\"Command submitted.\",\"top\":606.0,\"tree_open\":false,\"tree_rect\":null}"
+        },
+        "after": {
+          "data-row-placements": "[[\"ObjectId(3)\",[1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0]],[\"ObjectId(4)\",[1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0]]]",
+          "data-gpu-usage": "[2, 6348, 2, 352]",
+          "data-clipping": "{\"ambient\":[0,0,0,0,0],\"ambient_error\":null,\"arctic\":false,\"cap_error\":null,\"caps\":[1228832,1,3,636,636],\"error\":null,\"global_outline\":[0,0,0,0],\"ink_flags\":[336,336],\"opacity\":1.0,\"outlines\":false,\"pyramid\":[0,0,0,0],\"pyramid_error\":null,\"rows\":[{\"id\":4,\"normal\":[-0.0,-0.0,-1.0],\"offset\":0.0}],\"usage\":[1,1,1,9,448]}",
+          "data-selected-ids": "[]",
+          "data-drawing-originals": "{\"lines\":[],\"points\":[],\"polylines\":[]}",
+          "data-camera-matrix": "[0.24633516841470127,0.0,0.0,0.0,0.0,0.3695027526220519,1.0118716292246998e-17,0.0,0.0,8.204609272467509e-17,-0.045570646923231345,0.0,0.0,0.05312499999999998,0.7136132281687052,1.0]",
+          "data-command-ui": "{\"command\":\"\",\"completion_rect\":null,\"controls\":[{\"key\":\"command/input\",\"label\":\"Command\",\"rect\":[86.375,614.0,900.0,636.0]},{\"key\":\"command/collapse\",\"label\":\"Collapse or expand history\",\"rect\":[908.0,614.5,924.0,635.5]},{\"key\":\"command/resize\",\"label\":\"Drag to resize command history\",\"rect\":[0.0,606.0,960.0,614.0]}],\"focused\":true,\"history\":[\"> Layers Off\\nCommand submitted.\",\"> Select All\\nCommand submitted.\",\"> Delete\\nCommand submitted.\",\"> Example CAD\\nCommand submitted.\",\"> Clipping Plane XY 0,0,0\\nCommand submitted.\",\"> Clipping Plane Solid\\nCommand submitted.\",\"> View Top\\nCommand submitted.\",\"> Fit\\nCommand submitted.\",\"> Select None\\nCommand submitted.\",\"> Select All\\nCommand submitted.\",\"> Delete\\nCommand submitted.\",\"> Undo\\nCommand submitted.\",\"> Select None\\nCommand submitted.\",\"> Select All\\nCommand submitted.\",\"> Delete\\nCommand submitted.\",\"> Undo\\nCommand submitted.\",\"> Select None\\nCommand submitted.\",\"> Select All\\nCommand submitted.\",\"> Delete\\nCommand submitted.\",\"> Undo\\nCommand submitted.\",\"> Select None\\nCommand submitted.\"],\"number\":\"\",\"number_error\":\"\",\"number_rect\":null,\"options\":[],\"options_rect\":null,\"pointer_owned\":false,\"status\":\"Command submitted.\",\"top\":606.0,\"tree_open\":false,\"tree_rect\":null}"
+        },
+        "image": {
+          "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\arena-empty-passive-review-preparation\\run-20261024T045329254Z\\actual-restored-cad\\restored-cad-after-three-undo-dpr1.png",
+          "sha256": "05be9e0f790d6b0d7edf42fceb58b9b91b199e024c615e15f9e937b7fa30ed0e"
+        },
+        "runtimeReady": "ready",
+        "closeCaller": "    at module.exports (C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\checks\\browser\\arena-empty.cjs:18:26)"
+      },
+      {
+        "density": 2,
+        "commands": [
+          "Layers Off",
+          "Select All",
+          "Delete",
+          "Example CAD",
+          "Clipping Plane XY 0,0,0",
+          "Clipping Plane Solid",
+          "View Top",
+          "Fit",
+          "Select None",
+          "Select All",
+          "Delete",
+          "Undo",
+          "Select None",
+          "Select All",
+          "Delete",
+          "Undo",
+          "Select None",
+          "Select All",
+          "Delete",
+          "Undo",
+          "Select None"
+        ],
+        "status": "PASS passive restored CAD screenshot; root visual inspection pending",
+        "before": {
+          "data-row-placements": "[[\"ObjectId(3)\",[1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0]],[\"ObjectId(4)\",[1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0]]]",
+          "data-gpu-usage": "[2, 6348, 2, 352]",
+          "data-clipping": "{\"ambient\":[0,0,0,0,0],\"ambient_error\":null,\"arctic\":false,\"cap_error\":null,\"caps\":[4915232,1,3,636,636],\"error\":null,\"global_outline\":[0,0,0,0],\"ink_flags\":[336,336],\"opacity\":1.0,\"outlines\":false,\"pyramid\":[0,0,0,0],\"pyramid_error\":null,\"rows\":[{\"id\":4,\"normal\":[-0.0,-0.0,-1.0],\"offset\":0.0}],\"usage\":[1,1,1,9,448]}",
+          "data-selected-ids": "[]",
+          "data-drawing-originals": "{\"lines\":[],\"points\":[],\"polylines\":[]}",
+          "data-camera-matrix": "[0.24633516841470127,0.0,0.0,0.0,0.0,0.3695027526220519,1.0118716292246998e-17,0.0,0.0,8.204609272467509e-17,-0.045570646923231345,0.0,0.0,0.05312499999999998,0.7136132281687052,1.0]",
+          "data-command-ui": "{\"command\":\"\",\"completion_rect\":null,\"controls\":[{\"key\":\"command/input\",\"label\":\"Command\",\"rect\":[86.375,614.0,900.0,636.0]},{\"key\":\"command/collapse\",\"label\":\"Collapse or expand history\",\"rect\":[908.0,614.5,924.0,635.5]},{\"key\":\"command/resize\",\"label\":\"Drag to resize command history\",\"rect\":[0.0,606.0,960.0,614.0]}],\"focused\":true,\"history\":[\"> Layers Off\\nCommand submitted.\",\"> Select All\\nCommand submitted.\",\"> Delete\\nCommand submitted.\",\"> Example CAD\\nCommand submitted.\",\"> Clipping Plane XY 0,0,0\\nCommand submitted.\",\"> Clipping Plane Solid\\nCommand submitted.\",\"> View Top\\nCommand submitted.\",\"> Fit\\nCommand submitted.\",\"> Select None\\nCommand submitted.\",\"> Select All\\nCommand submitted.\",\"> Delete\\nCommand submitted.\",\"> Undo\\nCommand submitted.\",\"> Select None\\nCommand submitted.\",\"> Select All\\nCommand submitted.\",\"> Delete\\nCommand submitted.\",\"> Undo\\nCommand submitted.\",\"> Select None\\nCommand submitted.\",\"> Select All\\nCommand submitted.\",\"> Delete\\nCommand submitted.\",\"> Undo\\nCommand submitted.\",\"> Select None\\nCommand submitted.\"],\"number\":\"\",\"number_error\":\"\",\"number_rect\":null,\"options\":[],\"options_rect\":null,\"pointer_owned\":false,\"status\":\"Command submitted.\",\"top\":606.0,\"tree_open\":false,\"tree_rect\":null}"
+        },
+        "after": {
+          "data-row-placements": "[[\"ObjectId(3)\",[1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0]],[\"ObjectId(4)\",[1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0]]]",
+          "data-gpu-usage": "[2, 6348, 2, 352]",
+          "data-clipping": "{\"ambient\":[0,0,0,0,0],\"ambient_error\":null,\"arctic\":false,\"cap_error\":null,\"caps\":[4915232,1,3,636,636],\"error\":null,\"global_outline\":[0,0,0,0],\"ink_flags\":[336,336],\"opacity\":1.0,\"outlines\":false,\"pyramid\":[0,0,0,0],\"pyramid_error\":null,\"rows\":[{\"id\":4,\"normal\":[-0.0,-0.0,-1.0],\"offset\":0.0}],\"usage\":[1,1,1,9,448]}",
+          "data-selected-ids": "[]",
+          "data-drawing-originals": "{\"lines\":[],\"points\":[],\"polylines\":[]}",
+          "data-camera-matrix": "[0.24633516841470127,0.0,0.0,0.0,0.0,0.3695027526220519,1.0118716292246998e-17,0.0,0.0,8.204609272467509e-17,-0.045570646923231345,0.0,0.0,0.05312499999999998,0.7136132281687052,1.0]",
+          "data-command-ui": "{\"command\":\"\",\"completion_rect\":null,\"controls\":[{\"key\":\"command/input\",\"label\":\"Command\",\"rect\":[86.375,614.0,900.0,636.0]},{\"key\":\"command/collapse\",\"label\":\"Collapse or expand history\",\"rect\":[908.0,614.5,924.0,635.5]},{\"key\":\"command/resize\",\"label\":\"Drag to resize command history\",\"rect\":[0.0,606.0,960.0,614.0]}],\"focused\":true,\"history\":[\"> Layers Off\\nCommand submitted.\",\"> Select All\\nCommand submitted.\",\"> Delete\\nCommand submitted.\",\"> Example CAD\\nCommand submitted.\",\"> Clipping Plane XY 0,0,0\\nCommand submitted.\",\"> Clipping Plane Solid\\nCommand submitted.\",\"> View Top\\nCommand submitted.\",\"> Fit\\nCommand submitted.\",\"> Select None\\nCommand submitted.\",\"> Select All\\nCommand submitted.\",\"> Delete\\nCommand submitted.\",\"> Undo\\nCommand submitted.\",\"> Select None\\nCommand submitted.\",\"> Select All\\nCommand submitted.\",\"> Delete\\nCommand submitted.\",\"> Undo\\nCommand submitted.\",\"> Select None\\nCommand submitted.\",\"> Select All\\nCommand submitted.\",\"> Delete\\nCommand submitted.\",\"> Undo\\nCommand submitted.\",\"> Select None\\nCommand submitted.\"],\"number\":\"\",\"number_error\":\"\",\"number_rect\":null,\"options\":[],\"options_rect\":null,\"pointer_owned\":false,\"status\":\"Command submitted.\",\"top\":606.0,\"tree_open\":false,\"tree_rect\":null}"
+        },
+        "image": {
+          "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\arena-empty-passive-review-preparation\\run-20261024T045329254Z\\actual-restored-cad\\restored-cad-after-three-undo-dpr2.png",
+          "sha256": "f1290a46a3f89a7ccbc90e9d8b90c3e4424764ff83b634cf2f26f62af19b9909"
+        },
+        "runtimeReady": "ready",
+        "closeCaller": "    at module.exports (C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\checks\\browser\\arena-empty.cjs:18:26)"
+      }
+    ],
+    "qualification": "Unchanged fullcallback body+allprerequisites run; passive images immediately before originalcontext.close after thirdUndo/SelectNone/pixelidentity/error assertions. No extra commands/camera/input/wait/RAF/fence or appGPUrequest introduced."
+  },
+  "images": [
+    {
+      "figure": "journey/release/arena-current-restored-cad-dpr1.png",
+      "sha256": "05be9e0f790d6b0d7edf42fceb58b9b91b199e024c615e15f9e937b7fa30ed0e",
+      "source": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\arena-empty-passive-review-preparation\\run-20261024T045329254Z\\actual-restored-cad\\restored-cad-after-three-undo-dpr1.png",
+      "visualReview": "Root independently viewed meaningful restoredCAD at DPR1 after allthree originalDelete/Undo exactoriginal/pixel/GPUrelease assertions; graytop filledCAD,clearroundhole andplaneoutline."
+    },
+    {
+      "figure": "journey/release/arena-current-restored-cad-dpr2.png",
+      "sha256": "f1290a46a3f89a7ccbc90e9d8b90c3e4424764ff83b634cf2f26f62af19b9909",
+      "source": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\arena-empty-passive-review-preparation\\run-20261024T045329254Z\\actual-restored-cad\\restored-cad-after-three-undo-dpr2.png",
+      "visualReview": "Root independently viewed meaningful restoredCAD at DPR2 after allthree originalDelete/Undo exactoriginal/pixel/GPUrelease assertions; graytop filledCAD,clearroundhole andplaneoutline."
+    },
+    {
+      "figure": "journey/release/arena-current-browser-final.png",
+      "sha256": "699642c163a81a10e3878b6bb9ce6d53adde4ad98bc3a07fb740f8cc6eb3e370",
+      "source": "docs/screenshots/journey/96zzzzx-retire-empty-arena-ranges-after-tail-trimming-browser.png",
+      "visualReview": "Root independently viewed fresh finalcanonical coloredlayeredtriangles; distinct from restoredCAD childpage images."
+    }
+  ],
+  "preservedFailedLauncher": {
+    "receipt": {
+      "path": "target/course-windows-20261018/arena-empty-passive-review-preparation/run-20261024T045311532Z/receipt.json",
+      "sha256": "67cca86039f571e14a95a42f213362b88a7a66cbf985f59a82766f1d4d0315b7"
+    },
+    "qualification": "Firstpre-browser launcherfailed Windowsabsolute --import URL handling. Newlaunch-windows-v2 usespathToFileURL only; sharedrunner andcanonicalcallback unchanged. Original failedattempt remains failed.",
+    "originalLauncher": {
+      "path": "target/course-windows-20261018/arena-empty-passive-review-preparation/launch.cjs",
+      "sha256": "9331b6156a87c36d443b2060b9550c9b15ff4ead23aa705fbefb5b3f5ceaec74"
+    },
+    "windowsLauncher": {
+      "path": "target/course-windows-20261018/arena-empty-passive-review-preparation/launch-windows-v2.cjs",
+      "sha256": "038eb7fec6ebae92382eef73e26265fdc3d8e5ecf1382ee587eb383082d18d2d"
+    }
+  },
+  "counters": {
+    "callbacksAccepted": 6,
+    "callbacksPending": 12,
+    "pendingHistorical": 9,
+    "historicalFixturesAccepted": 2,
+    "historicalFixturesTotal": 4,
+    "featuresComplete": 4,
+    "featuresPartial": 14,
+    "releaseGatesDone": 1,
+    "releaseGatesTotal": 5
+  },
+  "limits": [
+    "Acceptonly originalArena source-specificcallback; SharedArena row remains partial because Slotfullcallback failed andotherdeclared contracts remain separate.",
+    "Original80d fullcallback failure remains unaccepted; pending focusedcandidates do not alter canonicalhelper/runtime/source or acceptance.",
+    "No arbitraryemptyarena/resource/performance or globalrelease closure; native713buildgate1 remains independently done."
+  ]
+}

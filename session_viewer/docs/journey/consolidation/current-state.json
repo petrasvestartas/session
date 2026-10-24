@@ -124,7 +124,7 @@
     "escapeAuthoring": "PASS22/22 and structure/replay. Four user-approved shortcut corrections pass focused actual layers/labels/delete helper checks; complete enclosing94c/final callbacks remain pending.",
     "escapeBrowserRegression": "PASS: gpu-pick-escape-smoke-browser.resources.json,7.633s,506716160B. RealDPR1 Point sameoriginalObjectId3 selectedbefore/afterzoom; ordinaryEscapeclearsselection andsecondGPUsubmissioncompletes. FullcanonicalDPR1/2 matrix remains separate/running.",
     "historicalMetadataBackport": "PASS: dated inventory,count312 and UTF8-LF audit at96h/96v/96y, plus96zzzzf/g refresh. Current one-entry witness refresh producedc54a9960; no runtime/assertion changes in this refresh. Historical Opacity behavior and old source-proof bindings retained.",
-    "productionCoverageAccounting": "All307productionmodules,111lessons and1361checkpointmappings accounted. Features4/18complete14partial;sourcecallbacks5/18accepted13pending;fixtures2/4;finalrelease1/5. Currentnative1062 andreadercompiler101/202 retain separate proof.",
+    "productionCoverageAccounting": "All307productionmodules,111lessons and1361checkpointmappings accounted. Features4/18complete14partial;sourcecallbacks6/18accepted12pending;fixtures2/4;finalrelease1/5. Currentnative1062 andreadercompiler101/202 retain separate proof.",
     "nativeReuseAudit": "Historical64e13 reuse boundary excludes later hierarchy and97d TextPlane runtime changes.433-entry source inventory preflight remains separate from native execution;1059 result remains bound toa45.",
     "generatedCoveredPlane": "PASS: 16/16 exact full-RGBA pairs, 288.067 s, peak 995,434,496 B. Public plane-generated-covered-native-review.json and four individually inspected figures. Production and course axes remain visible over the opaque lid; no owner-pick or browser acceptance is claimed.",
     "generatedPrintPlane": "PASS: 16/16 exact full-RGBA pairs, 272.855 s, peak 973,623,296 B. Public plane-generated-print-native-review.json and four individually inspected figures. Generated 2,215-byte input is distinct from the historical 2,223-byte covered source; no owner-pick or browser acceptance is claimed.",
@@ -310,6 +310,17 @@
       },
       "scope": "ActualNative1062 plus source-matchingWASM/optimizedbuilds and exactmaintainednative-cfg reuse. Remaining originalfour releasegates stayopen; no callback/feature/handoff acceptance.",
       "reopen": "Actual runtime/dependency/build-input change requires affectedproof reassessment; docs/status/harness-only changes do not invalidate frozenbuilds."
+    },
+    "arenaEmptyBrowser": {
+      "status": "PASS complete originalArena source-specific defaultcallback plus root-reviewed restoredCAD DPR1/2/finalimages",
+      "checkpoint": "96zzzzx-retire-empty-arena-ranges-after-tail-trimming",
+      "record": "release/arena-empty-browser-review.json",
+      "sourceFiles": 603,
+      "sourceFingerprint": "4ae2011cd36e0e16b94c09122b3fdc9157e3d9a80967b460e8a9750c810f0b17",
+      "sourceSignature": "7eca2247d5bd5de69fddd3ef349ecc79596a48607236ae16af108e3f8f080174",
+      "elapsedSeconds": 155.914,
+      "peakJobCommitBytes": 976257024,
+      "scope": "Allthree Delete/Undo/original-placement/pixel/GPUrelease loops passed DPR1/2. Nativefreshimage ed800 matches previouslyroot-reviewed bytes. SharedArena feature remains partial; Slotfailed andother contracts independent."
     }
   },
   "resourceGuard": {
@@ -323,25 +334,24 @@
   "currentDefects": [
     "All three approved browser input corrections are applied. The 2603.825-second full94c replay passed those sites, then failed Split setup with inherited Control mode. The tested Object-mode correction and full replay/qualified phase-reuse choice await their separate saved-plan exception.",
     "Reader compiler lane complete101/101endpoints202/202phases:85retained170qualifiedphases plus16fresh32actualphases. Original source-bound records and mask-invalidation history retained; no all202new execution or test/browser claim.",
-    "Original18source-specificcallbacks:finalCAD,maintained97,current76,current70,96v accepted5;13remain including10historical+3late display. Historicalfixtures2/4accepted96y+96v;94c/96h remaining;oldfailures retained.",
+    "Original18source-specificcallbacks:finalCAD,maintained97,current76,current70,96v,Arena-empty accepted6;12remain including9historical+3late display. Fixtures2/4accepted96y+96v;94c/96h remaining;Slot/80d failures andpendingexceptions preserved.",
     "Matrix,Camera/Plane,Joined andfiniteSheet are4/18complete;14partial. Globalrelease1/5(buildgate done;fourremain); Gemini first10/redraft andcombinedbookhandoff remain deferred.",
     "Production ribbon guide fix retains focusedCPU/fourRGBA proof; latest finalfef4 unfiltered1062/1062 native integration nowPASS. Remaining14sourcecallbacks,14partialfeatures andfour remainingrelease gates stay open.",
     "Original70d failed outer status and striped frame remain immutable. Applied mask projection fix now passes actual fullcanonical70 at331-source325b; fresh final PNG individually reviewed clean. No automatic SharedArena feature closure.",
     "Old60306/c65976run failedouterstatus and remainsimmutable. Subsequentcurrentbe28476fullcallback nowPASS withfreshSheet/finalcurve rootreview;finiteSheet complete via separate recordednative/browser scopes.",
-    "Maintained97 duplicate-export packagingfailure retained. Corrected06359f77 wrapper freshWASM/optimizedpackage and completeoriginalDPR1/2NVIDIAbrowser nowPASS; bothoriginalimagesreviewed. Maintained97 callback accepted; currenttotal5/18accepted13left after separate76/70/96v acceptance. Feature/globalscope remains separately recorded."
+    "Maintained97 duplicate-export packagingfailure retained. Corrected06359f77 wrapper freshWASM/optimizedpackage and completeoriginalDPR1/2NVIDIAbrowser nowPASS; bothoriginalimagesreviewed. Maintained97 callback accepted; currenttotal6/18accepted12left after separate76/70/96v/Arena acceptance. Feature/globalscope remains separately recorded."
   ],
   "onlyHeavy": {
-    "status": "failed-unaccepted; no heavy job active",
-    "rootSession": 21936,
-    "task": "80d complete original NVIDIA browser callback",
-    "checkpoint": "80d-exercise-networks-corner-retries-and-exact-original-archives",
-    "sourceFiles": 402,
-    "stem": "80d-nvidia-current367-v1",
+    "status": "running-unaccepted",
+    "rootSession": 46213,
+    "task": "80d focusedV3 double-click witness plus fullcandidate originalgpu-pick-view DPR1/2 body",
+    "folder": "target/course-windows-20261018/80d-gpu-pick-view-diagnostic-preparation/run-20261024T045715692Z",
+    "startedUtcApprox": "2026-10-24T04:57:15Z",
     "memoryLimitMiB": 6144,
     "processors": 2,
-    "scope": "Allfive actualsource402 buildphasesPASS; native31b321 image rootreviewed andtruthfulappenddone. Original80d fullcallback failed561.265s atgpu-pick-view.cjs22 afterZoomIn; focused unchanged-body diagnosis is being prepared. No browser/feature acceptance."
+    "scope": "Original20cases retained; diagnostic/candidate only. Canonicalhelper/callback/runtime unchanged; original80d fullrunFAIL561.265 remains unaccepted, pendingselectionexceptions notapplied."
   },
-  "next": "Current80d source402 allfivebuildphasesPASS/nativeframe reviewed; originalNVIDIAbrowser21936 failed561.265s atgpu-pick-view afterZoomIn; focuseddiagnostic preparation,6GiB/twoCPUs. Slot58233 originalcallback failed atvertex-pulling selectedpixelcomparison; focusedone-linecandidate passes butfrozenharness exception remains pending,notapplied. Callbacks5/18accepted13left;features4/18complete14partial;fixtures2/4;Native1062/readercompiler101/202;release1/5: buildgate done,four othergates remain.",
+  "next": "ActualArena44752 completePASS andthree freshmeaningfulimages reviewed; originalsourcecallbacks6/18accepted12left,9historicalpending. Current80d focusedV3 witness/fullcandidate20-case diagnostic46213 running at6GiB/twoCPUs; originalfull80dFAIL561.265/SlotFAIL remainunaccepted andexceptionspending. Fixtures2/4,features4/18complete14partial,Native1062/readercompiler101/202,release1/5 done4remaining.",
   "currentDocsReview": {
     "status": "PASS scoped current3670 publication before this progress metadata update",
     "record": "release/docs-progress-current-visible-review.json",
@@ -427,7 +437,7 @@
       "record": "release/reload-grid-browser-review.json"
     },
     "finalIntegration": {
-      "status": "CurrentNative1062/1062 andreadercompiler101/202 PASS; fiveoriginalsourcecallbacks accepted,13pending. Slot590sourcefivebuildphasesPASS butoriginalbrowserFAIL; candidateexception pending. Features4/18complete14partial,fixtures2/4,release1/5 (buildgate done;four gates remain);80doriginalbrowser21936failed561.265s atgpu-pick-view afterZoomIn; focuseddiagnostic preparation.",
+      "status": "CurrentNative1062/1062 and readercompiler101/202 PASS; six originalsourcecallbacks accepted,12pending. Slot590-source buildphasesPASS butoriginalbrowserFAIL; exceptionpending. Features4/18complete14partial,fixtures2/4,release1/5(buildgate done;fourremain). Current80dV3focusedcandidate46213running; originalfull80dFAIL561.265s atgpu-pick-view remainsunaccepted.",
       "gatesDone": 1,
       "gatesTotal": 5,
       "gatesRemaining": 4,
@@ -800,11 +810,6 @@
         "chapter": 20
       },
       {
-        "checkpoint": "96zzzzx-retire-empty-arena-ranges-after-tail-trimming",
-        "callback": "journey/checks/browser/arena-empty.cjs",
-        "chapter": 20
-      },
-      {
         "checkpoint": "94c-prove-the-original-comparison-and-inspect-differences",
         "callback": "journey/checks/browser/comparison.cjs"
       }
@@ -830,18 +835,18 @@
       }
     ],
     "counting": {
-      "pendingHistoricalEntryCallbacks": 10,
+      "pendingHistoricalEntryCallbacks": 9,
       "additionalDeclaredCallbackEntries": 4,
       "pendingIntegrationActions": 3,
       "distinctSourceSpecificCallbackEntries": 18,
       "nonCallbackIntegrationActions": 3,
       "namedActions": 21,
       "remainingFeatureChecklists": 14,
-      "meaning": "Original18 source-specificentries retained: finalCAD,maintained97,current76,current70 and96v accepted5;pending13=10historical+3late display. Original21named denominator retained;16pending groups overlap14partial finitefeatures. Originalfixturecontracts2/4 accepted96y+96v;94c/96h remain.",
+      "meaning": "Original18 source-specificentries retained: finalCAD,maintained97,current76,current70,96v andArena-empty accepted6;pending12=9historical+3late display. Original21named denominator retained;15pending groups overlap14partialfeatures. Fixtures2/4(96y+96v),release1/5 remain independent.",
       "eta": "No total ETA; missing successful callback durations and unscopednative tuples prevent an honest walltime estimate.",
-      "acceptedSourceSpecificCallbackEntries": 5,
-      "pendingSourceSpecificCallbackEntries": 13,
-      "pendingNamedActions": 16,
+      "acceptedSourceSpecificCallbackEntries": 6,
+      "pendingSourceSpecificCallbackEntries": 12,
+      "pendingNamedActions": 15,
       "pendingAdditionalDeclaredCallbackEntries": 3
     },
     "phaseReuse94c": {
@@ -1146,6 +1151,19 @@
         "elapsedSeconds": 65.353,
         "peakJobCommitBytes": 559063040,
         "fixtureScope": "Second of four originalfixturebrowser contracts accepted;96y separate.94c/96h pending."
+      },
+      {
+        "checkpoint": "96zzzzx-retire-empty-arena-ranges-after-tail-trimming",
+        "callback": "journey/checks/browser/arena-empty.cjs",
+        "chapter": 20,
+        "status": "PASS complete originalArena source-specific defaultcallback plus root-reviewed restoredCAD DPR1/2/finalimages",
+        "record": "release/arena-empty-browser-review.json",
+        "sourceFiles": 603,
+        "sourceFingerprint": "4ae2011cd36e0e16b94c09122b3fdc9157e3d9a80967b460e8a9750c810f0b17",
+        "sourceSignature": "7eca2247d5bd5de69fddd3ef349ecc79596a48607236ae16af108e3f8f080174",
+        "elapsedSeconds": 155.914,
+        "peakJobCommitBytes": 976257024,
+        "scope": "Allthree Delete/Undo/original-placement/pixel/GPUrelease loops passed DPR1/2. Nativefreshimage ed800 matches previouslyroot-reviewed bytes. SharedArena feature remains partial; Slotfailed andother contracts independent."
       }
     ]
   },
@@ -1231,14 +1249,14 @@
       "draftingRemaining": 0,
       "featuresComplete": 4,
       "featuresPartial": 14,
-      "callbacksAccepted": 5,
-      "callbacksRemaining": 13,
+      "callbacksAccepted": 6,
+      "callbacksRemaining": 12,
       "historicalFixturesAccepted": 2,
       "historicalFixturesTotal": 4,
       "releaseGatesDone": 1,
       "releaseGatesTotal": 5
     },
-    "next": "Current80d allfive402sourcephasesPASS/nativeframereviewed; originalNVIDIAbrowser21936 failed561.265s atgpu-pick-view afterZoomIn; focuseddiagnostic preparation; SlotfullcallbackFAIL preserved andone-linevertexcandidate pendingexception.13sourcecallbacks/14partialfeatures remain;fixtures2/4,release1/5 (buildgate done;fourremain).",
+    "next": "Current80d focusedV3 witness/fullcandidate gpu-pick-view DPR1/2 original20cases46213 running; originalfull80dFAIL561.265 andSlotFAIL retained, exceptions pending.12sourcecallbacks/14partialfeatures;fixtures2/4;release1/5.",
     "chapter14": {
       "status": "PASS complete current76originalcanonicalbrowser callback",
       "record": "release/76d-browser-review.json",
@@ -1460,6 +1478,17 @@
       },
       "scope": "ActualNative1062 plus source-matchingWASM/optimizedbuilds and exactmaintainednative-cfg reuse. Remaining originalfour releasegates stayopen; no callback/feature/handoff acceptance.",
       "reopen": "Actual runtime/dependency/build-input change requires affectedproof reassessment; docs/status/harness-only changes do not invalidate frozenbuilds."
+    },
+    "arenaEmpty": {
+      "status": "PASS complete originalArena source-specific defaultcallback plus root-reviewed restoredCAD DPR1/2/finalimages",
+      "checkpoint": "96zzzzx-retire-empty-arena-ranges-after-tail-trimming",
+      "record": "release/arena-empty-browser-review.json",
+      "sourceFiles": 603,
+      "sourceFingerprint": "4ae2011cd36e0e16b94c09122b3fdc9157e3d9a80967b460e8a9750c810f0b17",
+      "sourceSignature": "7eca2247d5bd5de69fddd3ef349ecc79596a48607236ae16af108e3f8f080174",
+      "elapsedSeconds": 155.914,
+      "peakJobCommitBytes": 976257024,
+      "scope": "Allthree Delete/Undo/original-placement/pixel/GPUrelease loops passed DPR1/2. Nativefreshimage ed800 matches previouslyroot-reviewed bytes. SharedArena feature remains partial; Slotfailed andother contracts independent."
     }
   }
 }

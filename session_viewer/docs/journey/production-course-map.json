@@ -3,7 +3,7 @@
   "scope": "Initial production-to-course source/coverage audit; proposals are not completed consolidation or rendering acceptance.",
   "sourceAuthority": "session_viewer/src",
   "endpoint": "96zzzzzzzq-draw-original-cad-wire-curves",
-  "endpointStatus": "Current80d source402 allfivebuildphasesPASS/nativeframe reviewed; originalNVIDIAbrowser21936 failed561.265s atgpu-pick-view afterZoomIn; focuseddiagnostic preparation,6GiB/twoCPUs. Slot58233 originalcallback failed atvertex-pulling selectedpixelcomparison; focusedone-linecandidate passes butfrozenharness exception remains pending,notapplied. Callbacks5/18accepted13left;features4/18complete14partial;fixtures2/4;Native1062/readercompiler101/202;release1/5: buildgate done,four othergates remain.",
+  "endpointStatus": "ActualArena44752 completePASS andthree freshmeaningfulimages reviewed; originalsourcecallbacks6/18accepted12left,9historicalpending. Current80d focusedV3 witness/fullcandidate20-case diagnostic46213 running at6GiB/twoCPUs; originalfull80dFAIL561.265/SlotFAIL remainunaccepted andexceptionspending. Fixtures2/4,features4/18complete14partial,Native1062/readercompiler101/202,release1/5 done4remaining.",
   "courseSha256": "367065739cee3cbf01e1b240c9eca4a1e0c12092eccab2fe2345cbc783a55197",
   "chapters": 22,
   "existingSteps": 1361,
@@ -21699,7 +21699,7 @@
     "recordedAt": "2026-10-23T17:02:35.831075+00:00",
     "courseSha256": "367065739cee3cbf01e1b240c9eca4a1e0c12092eccab2fe2345cbc783a55197",
     "historicalCourseSha256": "8453513dc6d5ae34d081becc435ee893bbb82cc89d31386ed6fa7141e7576b1b",
-    "scope": "Currentfinalfef4 handwritten713 unfiltered1062/1062 nativeintegration PASS; oldfailed/qualifiedrecords retainhistory. Originalsourcecallbacks5/18accepted13pending;features4/18complete14partial;fixtures2/4;compiler101/202;release1/5 (buildgate done;fourremain). Native/frame/WASM/web/browser/docs proofs retain source-specific scopes.",
+    "scope": "Currentfinalfef4 handwritten713 unfiltered1062/1062 nativeintegration PASS; oldfailed/qualifiedrecords retainhistory. Originalsourcecallbacks6/18accepted12pending;features4/18complete14partial;fixtures2/4;compiler101/202;release1/5 (buildgate done;fourremain). Native/frame/WASM/web/browser/docs proofs retain source-specific scopes.",
     "state": "consolidation/current-state.json",
     "evidencePaths": "Paths in currentIntegration/currentVerification are relative to docs/journey; target evidence is local and is not a public hosted artifact.",
     "authoring": {
@@ -21993,11 +21993,6 @@
           "chapter": 20
         },
         {
-          "checkpoint": "96zzzzx-retire-empty-arena-ranges-after-tail-trimming",
-          "callback": "journey/checks/browser/arena-empty.cjs",
-          "chapter": 20
-        },
-        {
           "checkpoint": "94c-prove-the-original-comparison-and-inspect-differences",
           "callback": "journey/checks/browser/comparison.cjs"
         }
@@ -22023,18 +22018,18 @@
         }
       ],
       "counting": {
-        "pendingHistoricalEntryCallbacks": 10,
+        "pendingHistoricalEntryCallbacks": 9,
         "additionalDeclaredCallbackEntries": 4,
         "pendingIntegrationActions": 3,
         "distinctSourceSpecificCallbackEntries": 18,
         "nonCallbackIntegrationActions": 3,
         "namedActions": 21,
         "remainingFeatureChecklists": 14,
-        "meaning": "Original18 source-specificentries retained: finalCAD,maintained97,current76,current70 and96v accepted5;pending13=10historical+3late display. Original21named denominator retained;16pending groups overlap14partial finitefeatures. Originalfixturecontracts2/4 accepted96y+96v;94c/96h remain.",
+        "meaning": "Original18 source-specificentries retained: finalCAD,maintained97,current76,current70,96v andArena-empty accepted6;pending12=9historical+3late display. Original21named denominator retained;15pending groups overlap14partialfeatures. Fixtures2/4(96y+96v),release1/5 remain independent.",
         "eta": "No total ETA; missing successful callback durations and unscopednative tuples prevent an honest walltime estimate.",
-        "acceptedSourceSpecificCallbackEntries": 5,
-        "pendingSourceSpecificCallbackEntries": 13,
-        "pendingNamedActions": 16,
+        "acceptedSourceSpecificCallbackEntries": 6,
+        "pendingSourceSpecificCallbackEntries": 12,
+        "pendingNamedActions": 15,
         "pendingAdditionalDeclaredCallbackEntries": 3
       },
       "phaseReuse94c": {
@@ -22242,6 +22237,19 @@
           "elapsedSeconds": 65.353,
           "peakJobCommitBytes": 559063040,
           "fixtureScope": "Second of four originalfixturebrowser contracts accepted;96y separate.94c/96h pending."
+        },
+        {
+          "checkpoint": "96zzzzx-retire-empty-arena-ranges-after-tail-trimming",
+          "callback": "journey/checks/browser/arena-empty.cjs",
+          "chapter": 20,
+          "status": "PASS complete originalArena source-specific defaultcallback plus root-reviewed restoredCAD DPR1/2/finalimages",
+          "record": "release/arena-empty-browser-review.json",
+          "sourceFiles": 603,
+          "sourceFingerprint": "4ae2011cd36e0e16b94c09122b3fdc9157e3d9a80967b460e8a9750c810f0b17",
+          "sourceSignature": "7eca2247d5bd5de69fddd3ef349ecc79596a48607236ae16af108e3f8f080174",
+          "elapsedSeconds": 155.914,
+          "peakJobCommitBytes": 976257024,
+          "scope": "Allthree Delete/Undo/original-placement/pixel/GPUrelease loops passed DPR1/2. Nativefreshimage ed800 matches previouslyroot-reviewed bytes. SharedArena feature remains partial; Slotfailed andother contracts independent."
         }
       ]
     },
@@ -22427,14 +22435,14 @@
         "draftingRemaining": 0,
         "featuresComplete": 4,
         "featuresPartial": 14,
-        "callbacksAccepted": 5,
-        "callbacksRemaining": 13,
+        "callbacksAccepted": 6,
+        "callbacksRemaining": 12,
         "historicalFixturesAccepted": 2,
         "historicalFixturesTotal": 4,
         "releaseGatesDone": 1,
         "releaseGatesTotal": 5
       },
-      "next": "Current80d allfive402sourcephasesPASS/nativeframereviewed; originalNVIDIAbrowser21936 failed561.265s atgpu-pick-view afterZoomIn; focuseddiagnostic preparation; SlotfullcallbackFAIL preserved andone-linevertexcandidate pendingexception.13sourcecallbacks/14partialfeatures remain;fixtures2/4,release1/5 (buildgate done;fourremain).",
+      "next": "Current80d focusedV3 witness/fullcandidate gpu-pick-view DPR1/2 original20cases46213 running; originalfull80dFAIL561.265 andSlotFAIL retained, exceptions pending.12sourcecallbacks/14partialfeatures;fixtures2/4;release1/5.",
       "chapter14": {
         "status": "PASS complete current76originalcanonicalbrowser callback",
         "record": "release/76d-browser-review.json",
@@ -22656,6 +22664,17 @@
         },
         "scope": "ActualNative1062 plus source-matchingWASM/optimizedbuilds and exactmaintainednative-cfg reuse. Remaining originalfour releasegates stayopen; no callback/feature/handoff acceptance.",
         "reopen": "Actual runtime/dependency/build-input change requires affectedproof reassessment; docs/status/harness-only changes do not invalidate frozenbuilds."
+      },
+      "arenaEmpty": {
+        "status": "PASS complete originalArena source-specific defaultcallback plus root-reviewed restoredCAD DPR1/2/finalimages",
+        "checkpoint": "96zzzzx-retire-empty-arena-ranges-after-tail-trimming",
+        "record": "release/arena-empty-browser-review.json",
+        "sourceFiles": 603,
+        "sourceFingerprint": "4ae2011cd36e0e16b94c09122b3fdc9157e3d9a80967b460e8a9750c810f0b17",
+        "sourceSignature": "7eca2247d5bd5de69fddd3ef349ecc79596a48607236ae16af108e3f8f080174",
+        "elapsedSeconds": 155.914,
+        "peakJobCommitBytes": 976257024,
+        "scope": "Allthree Delete/Undo/original-placement/pixel/GPUrelease loops passed DPR1/2. Nativefreshimage ed800 matches previouslyroot-reviewed bytes. SharedArena feature remains partial; Slotfailed andother contracts independent."
       }
     },
     "sheetFiniteClosure": {

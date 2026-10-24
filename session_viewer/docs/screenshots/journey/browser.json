@@ -8870,12 +8870,12 @@
       "keyboardRoundtrip": false
     },
     "96zzzzx-retire-empty-arena-ranges-after-tail-trimming": {
-      "source": "db0b19b7e7fe71d565771518d2c86a940ca8848bedcacff05c5be8b3ec490c30",
-      "checker": "c3798c494d2de95a20d2f629a662e6b6b10394a1bbb09f157956bdc61fe37c66",
+      "source": "7eca2247d5bd5de69fddd3ef349ecc79596a48607236ae16af108e3f8f080174",
+      "checker": "ecbc4c716aa91a7aedc2532132c4b08e0a7d1e7511c380b0dbbba0152325a733",
       "extraChecker": "16c6960647427f675a4a82573070c3b090c271164520ee60a6a7d7a64ec6ca18",
-      "browser": "153.0.8010.36",
-      "headless": false,
-      "captured": "2026-10-14T23:03:53.900Z",
+      "browser": "145.0.7632.6",
+      "headless": true,
+      "captured": "2026-10-24T04:56:11.678Z",
       "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
       "canvas": "747b865801184e34535a527d39ce19bcc9b1fe409bafb997551038bc4538d656",
       "file": "96zzzzx-retire-empty-arena-ranges-after-tail-trimming-browser.png",
@@ -8893,7 +8893,7 @@
         "width": 900,
         "height": 760
       },
-      "bundle": "35a23f25475e0a02e3b49310e11c4d3a60ca1bacacfa44fc950a57f2d38439b2",
+      "bundle": "98365c0c549480bd2d0eace582cc2115e7720572ff59afcbcbe78c4e3f0a82a2",
       "commands": [],
       "keyboardRoundtrip": false
     },
