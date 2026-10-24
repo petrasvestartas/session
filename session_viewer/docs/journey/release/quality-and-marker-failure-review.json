@@ -1,0 +1,270 @@
+{
+  "status": "Two actual failures preserved; no callback, five-pair or feature acceptance",
+  "quality656": {
+    "status": "FAILED original complete callback after prerequisite prefix; EEXIST output-directory collision",
+    "receipt": {
+      "path": "target/course-windows-20261018/next-source-aware-callback-preparation/96zzzzzzzl-nvidia-current367-v1/browser-20261024T053920127Z.json",
+      "sha256": "a27d78a7806ea5cda1689140c8fe12f9fe8568423f2ce2f2e484e0b41cbd5dc9"
+    },
+    "build": {
+      "path": "target/course-windows-20261018/next-source-aware-callback-preparation/96zzzzzzzl-nvidia-current367-v1/proof.json",
+      "sha256": "1b41d6712fba3e0b4c3c3fec557bd890849f3d871e5b996c66b5ad588c8b2320"
+    },
+    "resources": {
+      "path": "target/course-windows-20261018/96zzzzzzzl-nvidia-current367-v1-proportional-browser-20261024T053920734Z.resources.json",
+      "sha256": "06092321b71702e040fd380d714e8d2374874cbdbde865a03c3fa5dca575fe17"
+    },
+    "log": {
+      "path": "target/course-windows-20261018/96zzzzzzzl-nvidia-current367-v1-proportional-browser-20261024T053920734Z.log",
+      "sha256": "901897f15be26de52ff87005e5e0c0278f5b2ea17c2ad88b8528f7bffa04d0b6"
+    },
+    "canonicalBody": {
+      "path": "docs/journey/checks/browser/quality-settings.cjs",
+      "sha256": "77322b4c57daa9ef944382bfcdc6a75207aff0142b4be5ebda100f8d385649c6"
+    },
+    "elapsedSeconds": 216.486,
+    "peakJobCommitBytes": 810520576,
+    "exitCode": 1,
+    "timedOut": false,
+    "processors": 2,
+    "memoryCapBytes": 6442450944,
+    "failedSite": "quality-settings.cjs16 fs.mkdirSync(existing quality output directory); no complete quality-body PASS.",
+    "prefixOutputs": [
+      {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\quality-marker-failure-publication-preparation\\quality656-prefix\\96zzzzzzzl-choose-bounded-frame-quality-contact-shading-dpr1.png",
+        "sha256": "d3c1a8a0a59bed383d4b7bee6638efa5fc7770ddd760b8ad6e595b0bf769e44d"
+      },
+      {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\quality-marker-failure-publication-preparation\\quality656-prefix\\96zzzzzzzl-choose-bounded-frame-quality-contact-shading-dpr2.png",
+        "sha256": "e04bcd3d4e98ffa7c1328ed8ced90d54774ebef1433bdfef1b28ce2c634e6695"
+      },
+      {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\quality-marker-failure-publication-preparation\\quality656-prefix\\96zzzzzzzl-choose-bounded-frame-quality-resize-480-dpr1.png",
+        "sha256": "1915cbda2037c4c9d18465636557eb0b29080b14f7d0dbb72e4fd0a1d3608fc7"
+      },
+      {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\quality-marker-failure-publication-preparation\\quality656-prefix\\96zzzzzzzl-choose-bounded-frame-quality-resize-480-dpr2.png",
+        "sha256": "d0c32d1cf8c5ab4dce8328f0b6faa9416bf1d546e858676d1d79a9550f12f1c1"
+      },
+      {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\quality-marker-failure-publication-preparation\\quality656-prefix\\96zzzzzzzl-choose-bounded-frame-quality-resize-620-dpr1.png",
+        "sha256": "59d89b42e97ccfc42b8087929835b1ca7ddb6f2e5de69fc01710a1b8c3784ed5"
+      },
+      {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\quality-marker-failure-publication-preparation\\quality656-prefix\\96zzzzzzzl-choose-bounded-frame-quality-resize-620-dpr2.png",
+        "sha256": "2ab18bb35d7db73c0e64b47ca901dabbc3a870701580849e4d0f51c2afe95783"
+      },
+      {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\quality-marker-failure-publication-preparation\\quality656-prefix\\96zzzzzzzl-choose-bounded-frame-quality-shared-originals-dpr1.png",
+        "sha256": "3893064ea6e6e5a37a8361c2aa3bdfb778c9a2e952d11174c845e6fbf343aae7"
+      },
+      {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\quality-marker-failure-publication-preparation\\quality656-prefix\\96zzzzzzzl-choose-bounded-frame-quality-shared-originals-dpr2.png",
+        "sha256": "1f7c68f14511b44f2107ca48969a51a6579811f277fef6027f86b72890821704"
+      },
+      {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\quality-marker-failure-publication-preparation\\quality656-prefix\\96zzzzzzzl-choose-bounded-frame-quality-target-reuse.json",
+        "sha256": "fbe36b6ba6fb13543b357b4b2cff78836c66174ca4b449d60991ad57ae68d3ea"
+      }
+    ],
+    "prefixScope": "Nine current failed-run prefix outputs frozen unchanged before replay; output presence is not complete-body or visual acceptance. Older preexisting quality output directory retained.",
+    "buildScope": "Allfive656 source-specific build phases PASS/native055 prior635 image hash review reused/phaseappend retained. Original656 browser remains failed/unaccepted. Separate accepted final713 quality proof remains unchanged."
+  },
+  "markerXrayV7": {
+    "status": "FAILED strict course Object query at hidden vertex2 despite exact matched RGBA",
+    "resources": {
+      "path": "target/course-windows-20261018/marker-control-pairs-preparation/marker-id-diagnostic-v7-run-20261024T054436126Z/resources.json",
+      "sha256": "428ed4f92f646f40f723f6f413f7c71aecc1707010f268e3f3edee09e131fb25"
+    },
+    "command": {
+      "path": "target/course-windows-20261018/marker-control-pairs-preparation/marker-id-diagnostic-v7-run-20261024T054436126Z/command.json",
+      "sha256": "e952c9002eba2386a4fff12a7187c2850565500413b52a921da0f431a227379c"
+    },
+    "log": {
+      "path": "target/course-windows-20261018/marker-control-pairs-preparation/marker-id-diagnostic-v7-run-20261024T054436126Z/output.log",
+      "sha256": "ae94cdaf124b4ebad8c7f0eac5c69e58e55c41472a1ae98434a2ef643ab2bfbe"
+    },
+    "preparation": {
+      "path": "target/course-windows-20261018/marker-control-pairs-preparation/diagnostic-v7/preparation.json",
+      "sha256": "1623c96e9c74a386b858fc0c0cc44d2e6ed050f770a69ef1d415d1c0087a04d4"
+    },
+    "elapsedSeconds": 9.432,
+    "peakJobCommitBytes": 750100480,
+    "exitCode": 1,
+    "timedOut": false,
+    "processors": 2,
+    "memoryCapBytes": 4294967296,
+    "pixelMetrics": {
+      "record": {
+        "path": "target/course-windows-20261018/marker-control-pairs-preparation/diagnostic-v7/baseline-20261024T054436125Z/xray-pair-before-queries.json",
+        "sha256": "f18b8a8c4d05dbd4ea961773fb8472e2d2a892aed03c6195079b3dcfa0303238"
+      },
+      "changedPixels": 0,
+      "maxChannelDelta": 0,
+      "courseRgbaSha256": "859854d67facd69c791cd534f0c2a4accd0665952b0dcbe37fe8adc0de91ebd8",
+      "productionRgbaSha256": "859854d67facd69c791cd534f0c2a4accd0665952b0dcbe37fe8adc0de91ebd8"
+    },
+    "failedQuery": {
+      "record": {
+        "path": "target/course-windows-20261018/marker-control-pairs-preparation/diagnostic-v7/baseline-20261024T054436125Z/xray-course-query-vertex-2.json",
+        "sha256": "fa54d61a365ce39c50853659409b476095aa04f33f6604d73a9551edaeb974f2"
+      },
+      "actual": "Some(Ok(None))",
+      "expectedOriginalOwner": 2,
+      "mode": "Object",
+      "vertex": 2,
+      "pixel": [
+        353,
+        210
+      ],
+      "ndc": [
+        0.10468745231628418,
+        0.12291663885116577
+      ],
+      "opacity": 0,
+      "sourceUnchanged": true
+    },
+    "productionQuery": {
+      "record": {
+        "path": "target/course-windows-20261018/marker-control-pairs-preparation/diagnostic-v7/baseline-20261024T054436125Z/xray-production-identity.json",
+        "sha256": "d5733206e408c855c3e9294196008eb5c1830c91e106eabce96b96deae24041a"
+      },
+      "actualRear": [
+        2,
+        1073741824
+      ],
+      "meaning": "Original owner2, DISC sphere-tag1073741824; actual source query retained.",
+      "adapter": {
+        "backend": "Dx12",
+        "device": 140,
+        "device_type": "Cpu",
+        "driver": "10.0.26100.9711",
+        "driver_info": "",
+        "name": "Microsoft Basic Render Driver",
+        "vendor": 5140
+      }
+    },
+    "inputs": {
+      "source": {
+        "path": "target/course-windows-20261018/marker-control-pairs-preparation/diagnostic-v7/baseline-20261024T054436125Z/source.pb",
+        "sha256": "028ed693423209e7a6365d5a45b3a167cc97397bcfdad32d3281def7afd6b52a"
+      },
+      "beforeArchive": {
+        "path": "target/course-windows-20261018/marker-control-pairs-preparation/diagnostic-v7/baseline-20261024T054436125Z/before.session",
+        "sha256": "d30a1afdb76b34eae089700b9d2863e8ae0ae2849bdfee9214c2cdeb71b017fa"
+      },
+      "queryArchive": {
+        "path": "target/course-windows-20261018/marker-control-pairs-preparation/diagnostic-v7/baseline-20261024T054436125Z/xray-before-queries.session",
+        "sha256": "647ba713841695f43795d889dbba3c745942d4e30af0968b3c6610ceaffc5488"
+      },
+      "projection": {
+        "path": "target/course-windows-20261018/marker-control-pairs-preparation/diagnostic-v7/baseline-20261024T054436125Z/xray-projection-and-expectations.json",
+        "sha256": "7f09e19361f08b708b33acaa741c5aa34185ff3adcd90e4f645d13676d9a50e8"
+      }
+    },
+    "image": {
+      "figure": "journey/release/marker-xray-matched-pixels-query-failure.png",
+      "sha256": "6628bf9e40001c3ade94a18f7e78df470457284e7cc9d4acd4ab2a36a9104ee9",
+      "production": {
+        "path": "target/course-windows-20261018/marker-control-pairs-preparation/diagnostic-v7/baseline-20261024T054436125Z/xray-production.png",
+        "sha256": "6628bf9e40001c3ade94a18f7e78df470457284e7cc9d4acd4ab2a36a9104ee9"
+      },
+      "course": {
+        "path": "target/course-windows-20261018/marker-control-pairs-preparation/diagnostic-v7/baseline-20261024T054436125Z/xray-course.png",
+        "sha256": "6628bf9e40001c3ade94a18f7e78df470457284e7cc9d4acd4ab2a36a9104ee9"
+      },
+      "rootReview": "Root personally viewed the unique byte-identical PNG: clean wire cube and visible gray corners. Pixel equality does not satisfy the failed owner-query criterion."
+    },
+    "priorV6": {
+      "status": "Four completed strictzeroRGBA cases andotherassertions retained; not a five-case PASS",
+      "manifest": {
+        "path": "target/course-windows-20261018/marker-control-pairs-preparation/diagnostic-v6/baseline-20261024T053604538Z/manifest.json",
+        "sha256": "1ca60f24d43c6d9f32b629d3573be9402b4fdf82c881a0f5fe91ad907831f882"
+      },
+      "rootReviewedImages": {
+        "path": "target/course-windows-20261018/marker-control-pairs-preparation/diagnostic-v6/baseline-20261024T053604538Z/root-four-case-images.json",
+        "sha256": "12de640db780aededf50224001e62e98beb61c4fcc1ec7ccc0be65748fa2f3eb"
+      },
+      "cases": [
+        {
+          "case": "opaque-markers",
+          "pairedPixels": {
+            "path": "target/course-windows-20261018/marker-control-pairs-preparation/diagnostic-v6/baseline-20261024T053604538Z/opaque-markers-pair-before-queries.json",
+            "sha256": "d4c6ec49533d6c92cda2963c5bacdc25b545b7ecaa27b2cad19e52e97b6c88c0"
+          },
+          "courseOwnerVisible": {
+            "path": "target/course-windows-20261018/marker-control-pairs-preparation/diagnostic-v6/baseline-20261024T053604538Z/opaque-markers-course-query-vertex-0.json",
+            "sha256": "8107b922b1fadd8538bba9ba2cbd6069629ab18ece072b2915935f1eb3994261"
+          },
+          "courseOwnerRear": {
+            "path": "target/course-windows-20261018/marker-control-pairs-preparation/diagnostic-v6/baseline-20261024T053604538Z/opaque-markers-course-query-vertex-2.json",
+            "sha256": "4104f8dec3cabca24e690308998da68fbc98b743d915d5ade8af247f2f7dd29b"
+          }
+        },
+        {
+          "case": "glass",
+          "pairedPixels": {
+            "path": "target/course-windows-20261018/marker-control-pairs-preparation/diagnostic-v6/baseline-20261024T053604538Z/glass-pair-before-queries.json",
+            "sha256": "979dfe6a04dce8d2aa1b4b76cf07fc6c347fd211d14d2a6f913405ec4009d00e"
+          },
+          "courseOwnerVisible": {
+            "path": "target/course-windows-20261018/marker-control-pairs-preparation/diagnostic-v6/baseline-20261024T053604538Z/glass-course-query-vertex-0.json",
+            "sha256": "5347f0c13de2b0607cec51bf7653149cd5459663707e29a9e5256836c5d37b47"
+          },
+          "courseOwnerRear": {
+            "path": "target/course-windows-20261018/marker-control-pairs-preparation/diagnostic-v6/baseline-20261024T053604538Z/glass-course-query-vertex-2.json",
+            "sha256": "4bae8d0ce590750492f3247bb722d8a15a05a9bd1d4bb155306d1fe7511c7c93"
+          }
+        },
+        {
+          "case": "thickness",
+          "pairedPixels": {
+            "path": "target/course-windows-20261018/marker-control-pairs-preparation/diagnostic-v6/baseline-20261024T053604538Z/thickness-pair-before-queries.json",
+            "sha256": "e4fe09a65b01ef6361e7344e58fb84b5dd08dbb3de2226e447d3d71ac75ac4a0"
+          },
+          "courseOwnerVisible": {
+            "path": "target/course-windows-20261018/marker-control-pairs-preparation/diagnostic-v6/baseline-20261024T053604538Z/thickness-course-query-vertex-0.json",
+            "sha256": "d7a6a66406ee9b432caaac7a16e6ba97cfa599428536ca3b9a40ff4481749f7c"
+          },
+          "courseOwnerRear": {
+            "path": "target/course-windows-20261018/marker-control-pairs-preparation/diagnostic-v6/baseline-20261024T053604538Z/thickness-course-query-vertex-2.json",
+            "sha256": "86b0d0f247b995747636fb132df97e61debae5da3e3873705d0403cda43f18af"
+          }
+        },
+        {
+          "case": "feather",
+          "pairedPixels": {
+            "path": "target/course-windows-20261018/marker-control-pairs-preparation/diagnostic-v6/baseline-20261024T053604538Z/feather-pair-before-queries.json",
+            "sha256": "aedec634a53fd8032867e117a6d7135df8180a2e6c45866386e6ce290579f1c1"
+          },
+          "courseOwnerVisible": {
+            "path": "target/course-windows-20261018/marker-control-pairs-preparation/diagnostic-v6/baseline-20261024T053604538Z/feather-course-query-vertex-0.json",
+            "sha256": "1bdc9917154f7525bda39048877f8cb3d4fb4adb40365345dfaef3281df7274a"
+          },
+          "courseOwnerRear": {
+            "path": "target/course-windows-20261018/marker-control-pairs-preparation/diagnostic-v6/baseline-20261024T053604538Z/feather-course-query-vertex-2.json",
+            "sha256": "a1fb3418ce83c428e7f5ad2b5e9bde6461d3cfb390b42d2efa05a11867c07c95"
+          }
+        }
+      ],
+      "scope": "V6 fifth Xray predicate failed before course query. V7 executed only Xray, retaining exact relevant-input qualification of priorfour cases; no repeatedfour renders or fullfive-newPASS claim."
+    },
+    "cause": "Actual cause under source analysis; no runtime defect, comparator-only explanation, renderer fix or build-gate reopening asserted."
+  },
+  "countsUnchanged": {
+    "callbacksAccepted": 6,
+    "callbacksPending": 12,
+    "pendingHistorical": 9,
+    "featuresComplete": 4,
+    "featuresPartial": 14,
+    "fixturesAccepted": 2,
+    "fixturesTotal": 4,
+    "releaseGatesDone": 1,
+    "releaseGatesRemaining": 4
+  },
+  "pendingExceptions": "Mesh-marker Control,80d SelectNone andSlot vertex input exceptions allpending/unanswered/unapplied. Candidate635607.752sPASS remains scoped andunaccepted ascanonicalcallback.",
+  "limits": [
+    "Two actual failures only; no assertion removed and no source/canonical/helper edits.",
+    "All oldV5/V6/V7 failures, historical proofs, native1062 and accepted final713quality evidence remain source-bound andunchanged."
+  ]
+}
