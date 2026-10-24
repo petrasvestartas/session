@@ -1,0 +1,289 @@
+{
+  "status": "PASS deferred auxiliary capdriver-only canonical application; runtime/source/compiler/native proof identities unchanged",
+  "recordedUtc": "2026-10-24T21:02:12.858Z",
+  "canonical": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\cap-bore-witness.rs",
+    "beforeSha256": "078f5398edbbeb1047a89a95341eb5a24f7185d18f96b3f5d159be261b54fe78",
+    "afterSha256": "7ecbd369e90d6b74f4ba94c4076326ff52be7a51231175837b253d4cd4651db3",
+    "backup": {
+      "path": "target/course-windows-20261018/final-brep-cap-centered-fixture-preparation/canonical-before-deferred-apply.rs",
+      "sha256": "078f5398edbbeb1047a89a95341eb5a24f7185d18f96b3f5d159be261b54fe78"
+    }
+  },
+  "candidate": {
+    "path": "target/course-windows-20261018/final-brep-cap-centered-fixture-preparation/cap-bore-centered.rs",
+    "sha256": "7ecbd369e90d6b74f4ba94c4076326ff52be7a51231175837b253d4cd4651db3"
+  },
+  "strictPair": {
+    "path": "target/course-windows-20261018/final-brep-cap-centered-fixture-preparation/cap-centered-v1/pair-execution.json",
+    "sha256": "34879b89834f151288ad94f7e4031d37a2ec2863e1dc636f4dc354e272dbbde1"
+  },
+  "actualManifest": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\final-brep-cap-centered-fixture-preparation\\cap-centered-v1-frames\\manifest.json",
+    "sha256": "b8a9788b8ecc845c8e6c3a7e5a2edee73ae30519b3cca98e870fbb7a69875b46"
+  },
+  "actualPairResources": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\final-brep-cap-centered-fixture-preparation\\cap-centered-v1\\resources.json",
+    "sha256": "da0f682152d8abfced45f007939bfe3a2805a8e447dbb7b1d3453214f5947e07"
+  },
+  "actualPairLog": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\final-brep-cap-centered-fixture-preparation\\cap-centered-v1\\output.log",
+    "sha256": "33039fbc1f5cef9e71b186586e3483c7af34dd20f28ecf238f3b903d6fb12e0f"
+  },
+  "sourceFingerprint": "f339c9ac8c75353caca48e1dba3c537a002f0e62726b19f58dcad7bdb324bf9e",
+  "courseSha256": "2d589e8e0f45a9bd927ae63769c1186dc30e646466878b51858c491b18a1e190",
+  "sources": [
+    {
+      "id": "96zzzzzzzq-draw-original-cad-wire-curves",
+      "count": 713,
+      "fingerprint": "f339c9ac8c75353caca48e1dba3c537a002f0e62726b19f58dcad7bdb324bf9e",
+      "packageName": "viewer_journey_713_f339c9ac8c75353caca48e1d"
+    },
+    {
+      "id": "97-finish-with-the-maintained-browser-runtime",
+      "count": 714,
+      "fingerprint": "40e317cc56bd558db438827de2ebfbc8b8be9be8453d2043fb54929a56d5baa0",
+      "packageName": "viewer_journey_714_40e317cc56bd558db438827d"
+    }
+  ],
+  "rootImageReview": {
+    "rootPersonallyViewed": true,
+    "sha256": "a253c020b2ecca1c602a2b51d652ec35eb763e1d2d1a015cc6ce0d2e3e45c477",
+    "production": {
+      "path": "target/course-windows-20261018/final-brep-cap-centered-fixture-preparation/cap-centered-v1-frames/production.png",
+      "sha256": "a253c020b2ecca1c602a2b51d652ec35eb763e1d2d1a015cc6ce0d2e3e45c477"
+    },
+    "course": {
+      "path": "target/course-windows-20261018/final-brep-cap-centered-fixture-preparation/cap-centered-v1-frames/course.png",
+      "sha256": "a253c020b2ecca1c602a2b51d652ec35eb763e1d2d1a015cc6ce0d2e3e45c477"
+    },
+    "partnerExactByteReuse": true
+  },
+  "actualSameRendererLibraries": [
+    {
+      "artifact": {
+        "reason": "compiler-artifact",
+        "package_id": "path+file:///C:/pc/3_code/code_rust/wood_research/session/session_viewer/target/course-windows-20261018/final-brep-native-suite-v2-preparation/native-alias#viewer_journey_native_full_f339c9ac8c75353caca48e1d@0.1.0",
+        "manifest_path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\final-brep-native-suite-v2-preparation\\native-alias\\Cargo.toml",
+        "target": {
+          "kind": [
+            "rlib"
+          ],
+          "crate_types": [
+            "rlib"
+          ],
+          "name": "viewer_journey_native_full_f339c9ac8c75353caca48e1d",
+          "src_path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\final-brep-native-suite-v2-preparation\\source\\src\\lib.rs",
+          "edition": "2024",
+          "doc": true,
+          "doctest": true,
+          "test": true
+        },
+        "profile": {
+          "opt_level": "0",
+          "debuginfo": 2,
+          "debug_assertions": true,
+          "overflow_checks": true,
+          "test": false
+        },
+        "features": [],
+        "filenames": [
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-build\\x86_64-pc-windows-msvc\\debug\\deps\\libviewer_journey_native_full_f339c9ac8c75353caca48e1d-ef90a06638c81be1.rlib",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-build\\x86_64-pc-windows-msvc\\debug\\deps\\libviewer_journey_native_full_f339c9ac8c75353caca48e1d-ef90a06638c81be1.rmeta"
+        ],
+        "executable": null,
+        "fresh": true
+      },
+      "actualRlib": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-build\\x86_64-pc-windows-msvc\\debug\\deps\\libviewer_journey_native_full_f339c9ac8c75353caca48e1d-ef90a06638c81be1.rlib",
+      "retainedOld": {
+        "source": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-build\\x86_64-pc-windows-msvc\\debug\\deps\\libviewer_journey_native_full_f339c9ac8c75353caca48e1d-ef90a06638c81be1.rlib",
+        "retained": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\final-brep-comparison-v3-preparation\\build\\65681ed2d28b-libviewer_journey_native_full_f339c9ac8c75353caca48e1d-ef90a06638c81be1.rlib",
+        "sha256": "2266d375c8cbe59e56c8ecda0bdcc81d48d87ad1d38a30a5e99e0b17c22de009"
+      }
+    },
+    {
+      "artifact": {
+        "reason": "compiler-artifact",
+        "package_id": "path+file:///C:/pc/3_code/code_rust/wood_research/session/session_viewer/target/course-windows-20261018/final-brep-refreeze-v2-preparation/production#session_viewer_freeze_528e2d28a704902f58a63a17@0.1.0",
+        "manifest_path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\final-brep-refreeze-v2-preparation\\production\\Cargo.toml",
+        "target": {
+          "kind": [
+            "cdylib",
+            "rlib"
+          ],
+          "crate_types": [
+            "cdylib",
+            "rlib"
+          ],
+          "name": "session_viewer_freeze_528e2d28a704902f58a63a17",
+          "src_path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\final-brep-refreeze-v2-preparation\\production\\src\\lib.rs",
+          "edition": "2024",
+          "doc": true,
+          "doctest": true,
+          "test": true
+        },
+        "profile": {
+          "opt_level": "0",
+          "debuginfo": 2,
+          "debug_assertions": true,
+          "overflow_checks": true,
+          "test": false
+        },
+        "features": [],
+        "filenames": [
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-build\\x86_64-pc-windows-msvc\\debug\\deps\\session_viewer_freeze_528e2d28a704902f58a63a17.dll",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-build\\x86_64-pc-windows-msvc\\debug\\deps\\session_viewer_freeze_528e2d28a704902f58a63a17.dll.lib",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-build\\x86_64-pc-windows-msvc\\debug\\deps\\session_viewer_freeze_528e2d28a704902f58a63a17.dll.exp",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-build\\x86_64-pc-windows-msvc\\debug\\deps\\session_viewer_freeze_528e2d28a704902f58a63a17.pdb",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-build\\x86_64-pc-windows-msvc\\debug\\deps\\libsession_viewer_freeze_528e2d28a704902f58a63a17.rlib"
+        ],
+        "executable": null,
+        "fresh": true
+      },
+      "actualRlib": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-build\\x86_64-pc-windows-msvc\\debug\\deps\\libsession_viewer_freeze_528e2d28a704902f58a63a17.rlib",
+      "retainedOld": {
+        "source": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-build\\x86_64-pc-windows-msvc\\debug\\deps\\libsession_viewer_freeze_528e2d28a704902f58a63a17.rlib",
+        "retained": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\final-brep-comparison-v3-preparation\\build\\55b4b8c19ceb-libsession_viewer_freeze_528e2d28a704902f58a63a17.rlib",
+        "sha256": "666605f29475c4419a04bafaa370518e75f3f25785b2f56ec96bd0bf7d429080"
+      }
+    }
+  ],
+  "completed": {
+    "browser": {
+      "path": "docs/journey/release/final-brep-713-browser-review.json",
+      "sha256": "e7ccf1c9f8af45e2ce644e63f3b2555eb50aa1721148e5426169b55d565eb80c"
+    },
+    "quality": {
+      "path": "docs/journey/release/final-brep-quality-recovery-review.json",
+      "sha256": "f94bafe99664e95f357daea3e479e1ef70f274e5a17a083741426597cce3ad6c"
+    },
+    "docs": {
+      "path": "docs/journey/release/docs-final-brep-visible-review.json",
+      "sha256": "054640fffcaef2f709ae4984a368fe3b1e5a671006c814fff4c14a6faf966e6a"
+    }
+  },
+  "native": {
+    "path": "target/course-windows-20261018/final-brep-native-suite-v2-preparation/acceptance.json",
+    "sha256": "905ca367fee3911875952b4700d7980f733c76c7ff564d18b406c18af28ba40f"
+  },
+  "actualSevenPhases": [
+    {
+      "name": "713-native",
+      "command": {
+        "path": "target/course-windows-20261018/final-brep-refreeze-v2-preparation/713-native/command.json",
+        "sha256": "0ade205cfa8b910b3fa8f2a674f516af7eddfb4550c650f419a3600d338c231c"
+      },
+      "resources": {
+        "path": "target/course-windows-20261018/final-brep-refreeze-v2-preparation/713-native/resources.json",
+        "sha256": "74683f344c4ffa7340fc9e621f3a9610c0df7517b698770d71af984119256cd6"
+      },
+      "binding": {
+        "path": "target/course-windows-20261018/final-brep-refreeze-v2-preparation/713-native/compiler-source-binding.json",
+        "sha256": "16f9dfa99b775b00cc8ee62912bbcbbcdef7609f87e3a03084573344da3b4cb5"
+      }
+    },
+    {
+      "name": "713-wasm",
+      "command": {
+        "path": "target/course-windows-20261018/final-brep-refreeze-v2-preparation/713-wasm/command.json",
+        "sha256": "7140b724d6e5a3416bd606b856f29a38a880ad4a46ea6f6411885236ab39df0e"
+      },
+      "resources": {
+        "path": "target/course-windows-20261018/final-brep-refreeze-v2-preparation/713-wasm/resources.json",
+        "sha256": "58794ea384bd72b253431722dd314b89c338fa85107baa142694190c334cc1c5"
+      },
+      "binding": {
+        "path": "target/course-windows-20261018/final-brep-refreeze-v2-preparation/713-wasm/compiler-source-binding.json",
+        "sha256": "e96502ea0c4b8d3139d575a8425fd7679521c2e556f46708254c995219a2e614"
+      }
+    },
+    {
+      "name": "713-web",
+      "command": {
+        "path": "target/course-windows-20261018/final-brep-refreeze-v2-preparation/713-web/command.json",
+        "sha256": "ad99b148a7752ad731e9a91652529beb25e28d432219679861d232223ec1f832"
+      },
+      "resources": {
+        "path": "target/course-windows-20261018/final-brep-refreeze-v2-preparation/713-web/resources.json",
+        "sha256": "1f194b22ae5aa187ab8a10b7251e0928f22d719edcdc1a661ce78343ecba4332"
+      },
+      "binding": {
+        "path": "target/course-windows-20261018/final-brep-refreeze-v2-preparation/713-web/compiler-source-binding.json",
+        "sha256": "98539242e92643601a2ec5317fb47fe05cda6159571ec8aaf4be66a8e6c05cb5"
+      }
+    },
+    {
+      "name": "713-frame",
+      "command": {
+        "path": "target/course-windows-20261018/final-brep-refreeze-v2-preparation/713-frame/command.json",
+        "sha256": "ec5e087df18837043f50a69b035a87e0bc88e523d124a5b6f72600291522b986"
+      },
+      "resources": {
+        "path": "target/course-windows-20261018/final-brep-refreeze-v2-preparation/713-frame/resources.json",
+        "sha256": "951c1575665fcd02c58583ba3c0580476064946bc0e108e91299bc6bf2eac842"
+      },
+      "binding": {
+        "path": "target/course-windows-20261018/final-brep-refreeze-v2-preparation/713-frame/frame.json",
+        "sha256": "e5a44366351e594200d64246201fc47e97944997530347c6493e11fea738e19f"
+      }
+    },
+    {
+      "name": "714-native",
+      "command": {
+        "path": "target/course-windows-20261018/final-brep-refreeze-v2-preparation/714-native/command.json",
+        "sha256": "a76a5c0b5d43721ed181897407942c1323e2444487484c8e7ccb19cbe4f8340a"
+      },
+      "resources": {
+        "path": "target/course-windows-20261018/final-brep-refreeze-v2-preparation/714-native/resources.json",
+        "sha256": "a7957c7ac1ec542720cebfb3435faba079ec4ae0ddff73dece0d5ff9bcfe64a3"
+      },
+      "binding": {
+        "path": "target/course-windows-20261018/final-brep-refreeze-v2-preparation/714-native/compiler-source-binding.json",
+        "sha256": "829bf2aec4d135c2fa6cc2b8868e20c00a75bbd9829df492e1aba409cdcc8d2f"
+      }
+    },
+    {
+      "name": "714-wasm",
+      "command": {
+        "path": "target/course-windows-20261018/final-brep-refreeze-v2-preparation/714-wasm/command.json",
+        "sha256": "5d375f0e7f296c91d762d1fc480ed526dd8b0944e6f2d256b7102c0e2fc9e431"
+      },
+      "resources": {
+        "path": "target/course-windows-20261018/final-brep-refreeze-v2-preparation/714-wasm/resources.json",
+        "sha256": "4d0d2f78135921427a2483087b437aa720a04a170b737175d014996df2ca5c8c"
+      },
+      "binding": {
+        "path": "target/course-windows-20261018/final-brep-refreeze-v2-preparation/714-wasm/compiler-source-binding.json",
+        "sha256": "ee87d2d4498f1c0832940b0e83032bec98cc754d832df6b5e4c0a3a69a9c8a3c"
+      }
+    },
+    {
+      "name": "714-web",
+      "command": {
+        "path": "target/course-windows-20261018/final-brep-refreeze-v2-preparation/714-web/command.json",
+        "sha256": "94e3ab7a154bd2dc8d6375c4c92bf3bf9ec4d3d3859c9446f8431ad101e4e15e"
+      },
+      "resources": {
+        "path": "target/course-windows-20261018/final-brep-refreeze-v2-preparation/714-web/resources.json",
+        "sha256": "205783209261374a3d719857cad6050a7b487919c46c8a835357774fc37ef5d5"
+      },
+      "binding": {
+        "path": "target/course-windows-20261018/final-brep-refreeze-v2-preparation/714-web/compiler-source-binding.json",
+        "sha256": "5eef185f1f64e702e64a0732699f607fcfa161c53b834e1133e364b6c244e86a"
+      }
+    }
+  ],
+  "originalFreeze": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\final-brep-refreeze-v2-preparation\\prepared-v3.json",
+    "sha256": "8a22a381fca60dc7d1618b6ec607eb945cf2d2b0c917c71db616f27226d8275e",
+    "onlyObsoleteCurrentFilePin": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\cap-bore-witness.rs",
+    "originalRecordedDriverSha256": "078f5398edbbeb1047a89a95341eb5a24f7185d18f96b3f5d159be261b54fe78",
+    "preservedWithoutMutation": true
+  },
+  "scope": "ONLY standalone session_tests/scripts/course/cap-bore-witness.rs changes to byte-identical actually tested centered fixture. All caps/pixel/closedness/owner/source/archive assertions remain verbatim. Maintained renderer, authored713/714, dependencies, canonical inventory and actual compiled outputs do not change. Original mixed/curved/native/all7/browser/quality/docs retain exact old inputs and need no replay for this auxiliary fixture correction.",
+  "limits": [
+    "Old cap v1 wrong coordinates and old FXC failure remain failed evidence.",
+    "Do not rewrite frozen prepared/config/input/source signatures or claim old compile executed this new driver. New actual cap proof identifies ignored candidate; canonical now exactly matches it.",
+    "Docs snapshot excludes this auxiliary session_tests/scripts driver; measured book/Vue inputs remain unchanged."
+  ]
+}

@@ -12,7 +12,7 @@
   "historicalState": "history/2026-10-17-linux-state.json",
   "evidenceRoot": "../../../target/course-windows-20261018",
   "runtimeChanged": true,
-  "fullPlanComplete": false,
+  "fullPlanComplete": true,
   "checks": {
     "finalCadNativeFrame": "PASS: canonical640x480 native frame at97d, exactPNG individually reviewed; release/final-cad-native-frame-review.json. Full browser and whole-checkpoint acceptance remain separate.",
     "finalChapterAudit": "PASS: 21 lessons, 197 checkpoints, 4840 original code blocks, 2346 snippet includes, 247 relative links",
@@ -49,16 +49,13 @@
     "performance": "PASS: performance-disposal resources/manifest and public runtime-performance-review.json. Five categories measured on same small demo; resize burst56->1frames,uploads283136->5056bytes,idle0. Raw warm timings retained, no steady-frame or hardware speedup claim. Unchanged lifecycle callback passes.",
     "disposalFix": "PASS: optimized disposal-web182.878s and unchanged browser lifecycle callback; final teardown has no late submissions. Original failed run retained.",
     "docsCurrent": {
-      "status": "PASS current694/b031 book publication snapshot: desktop/390px phone roadmap and changed22.6 Rust/WGSL section; all three original PNGs root-reviewed",
-      "record": "release/docs-progress-ambient-selector-current-visible-review.json",
-      "source713": "6947664b26863adf65ef7bfc879694bfedee853852bc2c7660d59f31d2e36ca9",
-      "source714": "b0313bae6b71646b9424776561375ffc4306125317e1686c5894e0ef618701bf",
-      "currentCourseSha256": "05b031571b9b18b4e2740898af6782e2c746cb6b1fcf35c73adb86c957869374",
-      "assetsVerified": 11,
-      "checkboxesVerified": 1468,
-      "newSourceBodiesVerified": 14,
-      "scope": "Measured pre-publication snapshot. All Vue/frontend inputs and Gemini Markdown/SVG edits retained. Does not include this later review, three publication copies or metadata update. No whole111-lesson visual sweep, extra source-specific callbacks, feature closure or release-gate increment.",
-      "previousRecord": "release/docs-progress-xray-current-visible-review.json"
+      "status": "PASS final current-source docs and3root-reviewed original images; completed desktop/phone progress sync also passes; original V10 measured scope retained.",
+      "record": "docs/journey/release/docs-final-brep-visible-review.json",
+      "recordSha256": "054640fffcaef2f709ae4984a368fe3b1e5a671006c814fff4c14a6faf966e6a",
+      "source713": "f339c9ac8c75353caca48e1dba3c537a002f0e62726b19f58dcad7bdb324bf9e",
+      "source714": "40e317cc56bd558db438827de2ebfbc8b8be9be8453d2043fb54929a56d5baa0",
+      "courseSha256": "2d589e8e0f45a9bd927ae63769c1186dc30e646466878b51858c491b18a1e190",
+      "scope": "Original V10 full chapter/16.4 proof retained. Subsequent build changes only completion metadata/headlines; no source/frontend/chapter rerender mandate."
     },
     "historicalLock": "Cached94c lock was stale (missing getrandom dependency edge only). Current canonical94-Cargo.lock already correct; exact canonical bytes restored to ignored cache, no canonical lock or test assertion changes. Initial --locked abort retained.",
     "historicalVulkanProbe": "PASS: unchanged94c glyph-atlas GPU test, canonical lock SHA1df9f908 restored, explicit pinned Vulkan SwiftShader ICD environment; historical-vulkan-probe-current-lock.json. Full checkpoint/callback acceptance remains separate.",
@@ -650,23 +647,22 @@
     "swapCapSupported": false,
     "authorization": "User requested more memory on 2026-10-20. Browser jobs now use -MemoryLimitMiB 6144 after 4 GiB startup stalls; builds may use 4096. Default stays 2048 for other callers. Two CPUs and one heavy job retained."
   },
-  "currentDefects": [
-    "Final current-source docs build, desktop/phone roadmap and changed22.6/16.4 publication checks remain. Runtime/source-specific checks and all finite feature/release criteria are complete at the linked exact scopes."
-  ],
+  "currentDefects": [],
   "onlyHeavy": {
     "status": "idle",
-    "task": "Final runtime verification complete; final docs build and visible-page publication remain",
+    "task": "No active implementation or acceptance jobs; final source and documentation verification complete.",
     "memoryLimitMiB": 4096,
     "processors": 2
   },
-  "next": "Build and inspect the final documentation snapshot with current status and source bodies; preserve Vue and Gemini content.",
+  "next": "All course work and active acceptance queues are complete. Retain the final source-bound reviews and published documentation.",
   "currentDocsReview": {
-    "status": "PASS current694/b031 book publication snapshot: desktop/390px phone roadmap and changed22.6 Rust/WGSL section; all three original PNGs root-reviewed",
-    "record": "release/docs-progress-ambient-selector-current-visible-review.json",
-    "source713": "6947664b26863adf65ef7bfc879694bfedee853852bc2c7660d59f31d2e36ca9",
-    "source714": "b0313bae6b71646b9424776561375ffc4306125317e1686c5894e0ef618701bf",
-    "scope": "Measured pre-publication snapshot. All Vue/frontend inputs and Gemini Markdown/SVG edits retained. Does not include this later review, three publication copies or metadata update. No whole111-lesson visual sweep, extra source-specific callbacks, feature closure or release-gate increment.",
-    "courseSha256": "05b031571b9b18b4e2740898af6782e2c746cb6b1fcf35c73adb86c957869374"
+    "status": "PASS final current-source docs and3root-reviewed original images; completed desktop/phone progress sync also passes; original V10 measured scope retained.",
+    "record": "docs/journey/release/docs-final-brep-visible-review.json",
+    "recordSha256": "054640fffcaef2f709ae4984a368fe3b1e5a671006c814fff4c14a6faf966e6a",
+    "source713": "f339c9ac8c75353caca48e1dba3c537a002f0e62726b19f58dcad7bdb324bf9e",
+    "source714": "40e317cc56bd558db438827de2ebfbc8b8be9be8453d2043fb54929a56d5baa0",
+    "courseSha256": "2d589e8e0f45a9bd927ae63769c1186dc30e646466878b51858c491b18a1e190",
+    "scope": "Original V10 full chapter/16.4 proof retained. Subsequent build changes only completion metadata/headlines; no source/frontend/chapter rerender mandate."
   },
   "visibleCurrentReader": {
     "url": "http://127.0.0.1:8788/docs/#/course/journey/roadmap",
@@ -757,7 +753,7 @@
       "record": "release/reload-grid-browser-review.json"
     },
     "finalIntegration": {
-      "status": "5/5 release gates complete;18/18 callbacks,18/18 finite features,4/4 fixtures. Final docs snapshot publication pending.",
+      "status": "5/5 release gates complete;18/18 callbacks,18/18 finite features,4/4 fixtures. Final documentation and completed desktop/phone status sync accepted.",
       "gatesDone": 5,
       "gatesTotal": 5,
       "gatesRemaining": 0,
@@ -840,7 +836,7 @@
       }
     }
   },
-  "remainingBatches": 1,
+  "remainingBatches": 0,
   "visibleBrowser": {
     "0": "E",
     "1": "x",
@@ -1257,7 +1253,7 @@
       "reviewedPngSha256": "4c786c32b7fcbed3d6c3554637444ed580ee84bb09e643805e2bed534eb4f274",
       "scope": "640x480 94-comparison native frame only; full browser and whole-checkpoint acceptance remain separate."
     },
-    "status": "Runtime queue complete at linked source scopes; final measured docs publication remains.",
+    "status": "Complete:18/18 original callbacks,18/18 finite feature criteria,4/4 fixtures and5/5 release gates accepted; final documentation and completed desktop/phone sync pass at recorded scopes.",
     "basis": "Saved consolidation plan section4: focused semantic/affected visual checks after runtime changes; full suite at integration boundaries/final freeze; prose-only docs/link/build/visible-page checks; reuse only matching relevant inputs.",
     "historicalPlanCorrection": "The old ignored remaining-acceptance-actions.json attributed Compile every runnable checkpoint from its canonical snippets to the user as an exact quote. That sentence is absent from the saved plan; it and the1361fresh four-phase/1173full-suite expansion were agent-generated. Preserve the old record as historical, not an active mandate.",
     "preservedHistory": {
@@ -1268,25 +1264,20 @@
       "meaning": "Counts describe authored declarations, not required new GPU jobs. Preserve canonical source reconstruction, reproducibility and all actual declared lesson/feature assertions; retain old proof honestly. A missing aggregate record alone does not mandate fresh full execution for every historical ID."
     },
     "pendingHistoricalCallbacks": [],
-    "pendingIntegrationActions": [
-      {
-        "id": "final-docs-publication",
-        "requirement": "One source/status-matching docs build and declared changed-page checks; no new runtime matrix."
-      }
-    ],
+    "pendingIntegrationActions": [],
     "counting": {
       "pendingHistoricalEntryCallbacks": 0,
       "additionalDeclaredCallbackEntries": 4,
-      "pendingIntegrationActions": 3,
+      "pendingIntegrationActions": 0,
       "distinctSourceSpecificCallbackEntries": 18,
       "nonCallbackIntegrationActions": 3,
       "namedActions": 21,
-      "remainingFeatureChecklists": 4,
-      "meaning": "All18sourcecallbacksactualaccepted atrecordedscopes;all4Windowsfixtures;14finitefeaturescomplete4partial. Original21nameddenominator/noncallback3groupsandreleasestatusremainindependent.",
-      "eta": "No total ETA; missing successful callback durations and unscopednative tuples prevent an honest walltime estimate.",
+      "remainingFeatureChecklists": 0,
+      "meaning": "All18 original source-specific callbacks accepted at recorded scopes;4/4 original Windows fixtures;18/18 finite features complete,0partial;5/5 release gates. Original21named-action denominator and3noncallback integration groups remain historical accounting;0pending named/integration actions.",
+      "eta": "Complete:0remaining active acceptance actions.",
       "acceptedSourceSpecificCallbackEntries": 18,
       "pendingSourceSpecificCallbackEntries": 0,
-      "pendingNamedActions": 3,
+      "pendingNamedActions": 0,
       "pendingAdditionalDeclaredCallbackEntries": 0
     },
     "phaseReuse94c": {
@@ -1767,7 +1758,7 @@
       "releaseGatesTotal": 5,
       "releaseGatesRemaining": 0
     },
-    "next": "17/18 callbacks accepted;1 remains (reader591).10/18 features complete;8 partial. All4/4 fixtures pass; final gates3/5. Reader build active.",
+    "next": "Complete:18/18 callbacks,18/18 finite features,4/4 fixtures and5/5 release gates;0remaining active acceptance actions.",
     "chapter14": {
       "status": "PASS complete current76originalcanonicalbrowser callback",
       "record": "release/76d-browser-review.json",
@@ -2235,15 +2226,12 @@
     }
   },
   "currentRuntimeDocsQualification": {
-    "status": "PASS current694/b031 book publication snapshot: desktop/390px phone roadmap and changed22.6 Rust/WGSL section; all three original PNGs root-reviewed",
-    "record": "release/docs-progress-ambient-selector-current-visible-review.json",
-    "source713": "6947664b26863adf65ef7bfc879694bfedee853852bc2c7660d59f31d2e36ca9",
-    "source714": "b0313bae6b71646b9424776561375ffc4306125317e1686c5894e0ef618701bf",
-    "currentCourseSha256": "05b031571b9b18b4e2740898af6782e2c746cb6b1fcf35c73adb86c957869374",
-    "assetsVerified": 11,
-    "checkboxesVerified": 1468,
-    "newSourceBodiesVerified": 14,
-    "scope": "Measured pre-publication snapshot. All Vue/frontend inputs and Gemini Markdown/SVG edits retained. Does not include this later review, three publication copies or metadata update. No whole111-lesson visual sweep, extra source-specific callbacks, feature closure or release-gate increment.",
-    "previousRecord": "release/docs-progress-xray-current-visible-review.json"
+    "status": "PASS final current-source docs and3root-reviewed original images; completed desktop/phone progress sync also passes; original V10 measured scope retained.",
+    "record": "docs/journey/release/docs-final-brep-visible-review.json",
+    "recordSha256": "054640fffcaef2f709ae4984a368fe3b1e5a671006c814fff4c14a6faf966e6a",
+    "source713": "f339c9ac8c75353caca48e1dba3c537a002f0e62726b19f58dcad7bdb324bf9e",
+    "source714": "40e317cc56bd558db438827de2ebfbc8b8be9be8453d2043fb54929a56d5baa0",
+    "courseSha256": "2d589e8e0f45a9bd927ae63769c1186dc30e646466878b51858c491b18a1e190",
+    "scope": "Original V10 full chapter/16.4 proof retained. Subsequent build changes only completion metadata/headlines; no source/frontend/chapter rerender mandate."
   }
 }

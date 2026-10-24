@@ -1,17 +1,17 @@
 **Final runtime status:** 18/18 source-specific callbacks,18/18 bounded finite features,4/4 original fixtures and5/5 release gates accepted. Final tutorial713 `f339c9ac`, maintained714 `40e317cc`; actual native1,068/1,068 and all7 compiler/package/frame phases pass. [Native proof](release/final-brep-final-native-integration-review.json), [build review](release/final-brep-final-runtime-build-gate-review.json), [finite closure](release/final-four-feature-closure-review.json). Historical results retain their original source scopes.
 
-**Documentation:** One final current-source/status docs build and visible-page publication remain; prior docs records retain their measured694/b031 scope.
+**Documentation:** Final current-source documentation build and desktop/phone/Chapter22.6 review are complete. The preserved 16.4 measurement page and source bodies pass. [Measured final docs review](release/docs-final-brep-visible-review.json).
 
 ## Progress: eight stages
 
 - [x] **1. Source integration complete.** Exact production BRep/kernel corrections applied; tutorial and Vue/Gemini work preserved.
-- [x] **2. Draft lessons complete.**22/22 chapters,111 reader lessons,1361 checkpoints retained;1359 earlier source bodies unchanged.
-- [ ] **3. Final docs publication.** Fresh build and desktop/phone/changed-source checks pending.
-- [x] **4. Reader compilation complete.**101 endpoints/202 original phase records retained with exact API/dependency qualification; no fresh202-execution claim. Actual final713/714 builds are separate.
-- [x] **5. Finite features complete.**18/18; recorded fixture, pick and production limits preserved.
+- [x] **2. Draft lessons complete.** 22/22 chapters,111 reader lessons,1361 checkpoints retained;1359 earlier source bodies unchanged.
+- [x] **3. Final docs publication.** Current-source rendered snapshot and all3 root-reviewed images accepted.
+- [x] **4. Reader compilation complete.** 101 endpoints/202 original phase records retained with exact API/dependency qualification; no fresh202-execution claim. Actual final713/714 builds are separate.
+- [x] **5. Finite features complete.** 18/18; recorded fixture, pick and production limits preserved.
 - [x] **6. Full callbacks: 18/18 accepted; 0 left.** Historical fixtures: 4/4 accepted.
-- [x] **7. Browser corrections verified.**All original assertions retained; exact approved source-aware contracts documented.
-- [x] **8. Final release: 5/5 gates closed.** Gate decisions source-bound to actual results. Final docs publication remains separately explicit above.
+- [x] **7. Browser corrections verified.** All original assertions retained; exact approved source-aware contracts documented.
+- [x] **8. Final release: 5/5 gates closed.** Gate decisions source-bound to actual results. Final docs publication and root image review are complete.
 
 ## Earlier checkpoint notes (historical counts)
 

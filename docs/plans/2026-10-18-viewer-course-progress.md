@@ -1,6 +1,6 @@
 **Final runtime status:** 18/18 source-specific callbacks,18/18 bounded finite features,4/4 original fixtures and5/5 release gates accepted. Final tutorial713 `f339c9ac`, maintained714 `40e317cc`; actual native1,068/1,068 and all7 compiler/package/frame phases pass. [Native proof](../../session_viewer/docs/journey/release/final-brep-final-native-integration-review.json), [build review](../../session_viewer/docs/journey/release/final-brep-final-runtime-build-gate-review.json), [finite closure](../../session_viewer/docs/journey/release/final-four-feature-closure-review.json). Historical results retain their original source scopes.
 
-**Documentation:** One final current-source/status docs build and visible-page publication remain; prior docs records retain their measured694/b031 scope.
+**Documentation:** Final current-source documentation build and desktop/phone/Chapter22.6 review are complete. The preserved 16.4 measurement page and source bodies pass. [Measured final docs review](../../session_viewer/docs/journey/release/docs-final-brep-visible-review.json).
 
 ## Earlier checkpoint notes (historical counts)
 

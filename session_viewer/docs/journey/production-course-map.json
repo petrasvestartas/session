@@ -22243,12 +22243,13 @@
       "scope": "Authoritative current queue retained in current-state; archived nested copy preserves original source-specific history."
     },
     "docsCurrent": {
-      "status": "PASS current694/b031 book publication snapshot: desktop/390px phone roadmap and changed22.6 Rust/WGSL section; all three original PNGs root-reviewed",
-      "record": "release/docs-progress-ambient-selector-current-visible-review.json",
-      "scope": "Measured pre-publication snapshot. All Vue/frontend inputs and Gemini Markdown/SVG edits retained. Does not include this later review, three publication copies or metadata update. No whole111-lesson visual sweep, extra source-specific callbacks, feature closure or release-gate increment.",
-      "source713": "6947664b26863adf65ef7bfc879694bfedee853852bc2c7660d59f31d2e36ca9",
-      "source714": "b0313bae6b71646b9424776561375ffc4306125317e1686c5894e0ef618701bf",
-      "courseSha256": "05b031571b9b18b4e2740898af6782e2c746cb6b1fcf35c73adb86c957869374"
+      "status": "PASS actual final current-source docs and3root-reviewed images; completed progress sync follows",
+      "record": "docs/journey/release/docs-final-brep-visible-review.json",
+      "recordSha256": "054640fffcaef2f709ae4984a368fe3b1e5a671006c814fff4c14a6faf966e6a",
+      "source713": "f339c9ac8c75353caca48e1dba3c537a002f0e62726b19f58dcad7bdb324bf9e",
+      "source714": "40e317cc56bd558db438827de2ebfbc8b8be9be8453d2043fb54929a56d5baa0",
+      "courseSha256": "2d589e8e0f45a9bd927ae63769c1186dc30e646466878b51858c491b18a1e190",
+      "scope": "Original V10 full chapter/16.4 proof retained. Subsequent build changes only completion metadata/headlines; no source/frontend/chapter rerender mandate."
     },
     "readerCompilerProof": {
       "status": "PASS current compiler-only101/101endpoints202/202phases:85retained170qualifiedphases+16fresh32actualphases",
@@ -22683,17 +22684,13 @@
     "previousRecord": "release/final-fef4-artifact-review.json"
   },
   "currentRuntimeDocsQualification": {
-    "status": "PASS current694/b031 book publication snapshot: desktop/390px phone roadmap and changed22.6 Rust/WGSL section; all three original PNGs root-reviewed",
-    "record": "release/docs-progress-ambient-selector-current-visible-review.json",
-    "source713": "6947664b26863adf65ef7bfc879694bfedee853852bc2c7660d59f31d2e36ca9",
-    "source714": "b0313bae6b71646b9424776561375ffc4306125317e1686c5894e0ef618701bf",
-    "currentCourseSha256": "05b031571b9b18b4e2740898af6782e2c746cb6b1fcf35c73adb86c957869374",
-    "assetsVerified": 11,
-    "checkboxesVerified": 1468,
-    "newSourceBodiesVerified": 14,
-    "scope": "Measured pre-publication snapshot. All Vue/frontend inputs and Gemini Markdown/SVG edits retained. Does not include this later review, three publication copies or metadata update. No whole111-lesson visual sweep, extra source-specific callbacks, feature closure or release-gate increment.",
-    "previousRecord": "release/docs-progress-xray-current-visible-review.json",
-    "previousMapRecord": "release/docs-progress-xray-current-visible-review.json"
+    "status": "PASS actual final current-source docs and3root-reviewed images; completed progress sync follows",
+    "record": "docs/journey/release/docs-final-brep-visible-review.json",
+    "recordSha256": "054640fffcaef2f709ae4984a368fe3b1e5a671006c814fff4c14a6faf966e6a",
+    "source713": "f339c9ac8c75353caca48e1dba3c537a002f0e62726b19f58dcad7bdb324bf9e",
+    "source714": "40e317cc56bd558db438827de2ebfbc8b8be9be8453d2043fb54929a56d5baa0",
+    "courseSha256": "2d589e8e0f45a9bd927ae63769c1186dc30e646466878b51858c491b18a1e190",
+    "scope": "Original V10 full chapter/16.4 proof retained. Subsequent build changes only completion metadata/headlines; no source/frontend/chapter rerender mandate."
   },
   "currentAmbientSource": {
     "courseSha256": "05b031571b9b18b4e2740898af6782e2c746cb6b1fcf35c73adb86c957869374",

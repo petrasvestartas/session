@@ -144,7 +144,7 @@ fn main() -> Result<()> {
     let mut brep=BRep::create_block_with_hole(4.0,3.0,0.6,0.65);
     brep.set_guid("b6802f09-1be8-4cc6-a96c-bcae7869d920".into());
     let mut plane=viewer_journey::clipping_geometry::plane_from(
-        viewer_journey::clipping_geometry::Mode::Xy,&[[0.0,0.0,0.3]],10.0).map_err(anyhow::Error::msg)?;
+        viewer_journey::clipping_geometry::Mode::Xy,&[[0.0,0.0,0.0]],10.0).map_err(anyhow::Error::msg)?;
     plane.set_guid("b6802f09-1be8-4cc6-a96c-bcae7869d921".into());
     let second=&Xform::translation(10.0,0.0,0.0)*&Xform::scale_xyz(-1.0,0.8,1.3);
     let owner_guids=["b6802f09-1be8-4cc6-a96c-bcae7869d922","b6802f09-1be8-4cc6-a96c-bcae7869d923"];
@@ -167,7 +167,7 @@ fn main() -> Result<()> {
     let mut reopened=Scene::empty();viewer_journey::scene_document::open(&mut reopened,&archive).map_err(anyhow::Error::msg)?;
     ensure!(retained_cap_sources(&reopened)==originals);
     let mut camera=viewer_journey::camera::Camera::default();camera.set_view(viewer_journey::camera::View::Top);
-    camera.target=[5.0,1.5,0.0];camera.distance=20.0;camera.aspect=4.0/3.0;
+    camera.target=[5.0,0.0,0.0];camera.distance=20.0;camera.aspect=4.0/3.0;
     camera.projection=viewer_journey::camera::Projection::Orthographic;
     let matrix=camera.uniform();let size=[640,480];
     let clip=viewer_journey::clipping_rows::current(&scene).map_err(anyhow::Error::msg)?;
@@ -197,8 +197,8 @@ fn main() -> Result<()> {
         let native=production.identity["walked_ink"]["objects"].as_array().unwrap().iter().find(|r|r["guid"]==row.guid).ok_or_else(||anyhow::anyhow!("actual production original owner mapping missing"))?;
         let native_id=native["row"].as_u64().unwrap()as u32+1;
         ensure!(production.identity["uploaded_objects"].as_array().unwrap().iter().any(|r|r["row"]==native["row"]&&r["flags"].as_u64().is_some_and(|flags|flags&(1<<13)!=0)),"actual original must be verified closed");
-        for(hole,p)in[(false,[0.5,0.5,0.3]),(true,[2.0,1.5,0.3])]{
-            let q=row.model.transform_point(&Point::new(p[0],p[1],p[2]));let world=[q[0],q[1],0.3];
+        for(hole,p)in[(false,[1.0,1.0,0.0]),(true,[0.0,0.0,0.0])]{
+            let q=row.model.transform_point(&Point::new(p[0],p[1],p[2]));let world=[q[0],q[1],0.0];
             let (x,y)=cap_screen(matrix,world,size)?;
             let native_pick=ids[y*size[0]as usize+x];
             ensure!(native_pick[0]==if hole{0}else{native_id},"production bore/section must retain its actual original owner");
