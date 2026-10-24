@@ -466,7 +466,7 @@
         }
       ],
       "classification": "staged",
-      "remainingDefect": "Corrected actual-production Point8/8 and mesh8/8 native full-RGBA pairs match at the recorded translated orthographic pose, including DPR1/2, samples1/4 and selection. These do not establish arbitrary occlusion or all marker/normal/control toggles; complete display controls and browser coverage remain pending.",
+      "remainingDefect": "Original finite Marker/mesh-dot/normal criteria are satisfied by the recorded native, matched production and source-specific browser evidence. Separate global callbacks and later BRep/kernel integration retain their own scopes; no additional Marker defect is asserted.",
       "proposedLessons": [
         "35-stroke",
         "36-chain",
@@ -485,9 +485,9 @@
       "runnableCheckpoint": "96zzzzzzzq-draw-original-cad-wire-curves",
       "evidence": "docs/journey/visual-review.json; docs/screenshots/journey/browser.json; chapter source checkpoints. Existence is not current acceptance.",
       "currentVerification": {
-        "status": "partial",
+        "status": "complete",
         "integration": "#/currentIntegration",
-        "acceptedScope": "Eight original Point and eight Mesh corrected translated-pose pairs match full RGBA across DPR1/2, samples1/4 and selection. Their historical bindings are retained. Current97d native assertions additionally verify mesh-marker ownership and source lifetime through perspective/orthographic rebasing, plus original Point size/selection coverage at DPR1/2 and samples1/4. Full named control coverage and browser review remain partial. Five bounded closedMesh Sphere marker control comparisons are accepted through four historical V6 completed zero-RGBA cases plus one actual V10 Xray candidate pair, with current65f0013 source/control qualification. The whole V6 run remains FAILED; this is not five fresh current executions. Fixed opacity/thickness/feather, source/MVP/production rows and original-owner query limits are recorded. All ten original PNG sides match five root-reviewed image hashes. Each run independently preserves its complete decoded source and metadata; cross-run saved archive bytes differ. Broad authored normal/glyph controls, arbitrary placement and the full source-specific635 browser callback remain separate. Separate final65 and555 Sphere browser witnesses also passed fixed near/rear original-owner raw13x13 queries, actual Sphere ABI/thickness/feather/Xray state and exact opaque/archive restoration. These narrow browser proofs do not execute or accept the source-specific635 recursive callback, and do not claim current694 whole-feature identity. Source635 complete original default mesh-marker callback now independently passes:7fixtures,2projections,DPR1/2,original owner/Control-no-hit/archive/pixel/upload assertions,round/contact helpers andall7 root-reviewed images. Accepted Slot590 normal-view toggles/direction/restoration retain their exact recorded scope.",
+        "acceptedScope": "The finite Marker/mesh-dot/normal criteria are complete through separately source-bound Point8/Mesh8 full-RGBA pairs, qualified five Sphere controls, actual694 native Point size/color/depth/selection/family/original-owner assertions, accepted Slot590 normal-view controls and the complete source635 marker/normal/pick browser contract with seven root-reviewed images. Production original Point supports a single SDF DOT; no unsupported non-DOT renderer or arbitrary matrix is required. Historical proof identities and failed runs retain their exact scope.",
         "records": [
           "release/point-native-review.json",
           "release/mesh-native-review.json",
@@ -495,11 +495,10 @@
           "release/marker-control-native-qualified-review.json",
           "release/xray-current-browser-relevance-review.json",
           "release/ambient-final713-marker-browser-review.json",
-          "release/mesh-markers-browser-review.json"
+          "release/mesh-markers-browser-review.json",
+          "release/finite-marker-review.json"
         ],
-        "remainingAcceptance": [
-          "Complete marker/normal/glyph/sphere controls and depth/original-owner cases outside the five accepted oblique-perspective closed-Mesh Sphere states and the recorded Point/Mesh native scopes."
-        ],
+        "remainingAcceptance": [],
         "chapterBrowserEntries": [
           {
             "chapter": 22,

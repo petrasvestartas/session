@@ -688,9 +688,9 @@
       "joinedVectorSheets": {
         "status": "Joined and Sheet/text finite criteria complete through their separately scoped native and browser proofs. Other family and source-specific callback obligations remain pending. See release/joined-line-finite-review.json and release/sheet-text-finite-review.json."
       },
-      "featuresComplete": 5,
+      "featuresComplete": 6,
       "featuresTotal": 18,
-      "featuresPartial": 13,
+      "featuresPartial": 12,
       "cadBaseline": {
         "status": "passed-bounded-native-baseline",
         "passed": 5,
@@ -1952,8 +1952,8 @@
       "chaptersConsolidated": 22,
       "readerLessons": 111,
       "draftingRemaining": 0,
-      "featuresComplete": 5,
-      "featuresPartial": 13,
+      "featuresComplete": 6,
+      "featuresPartial": 12,
       "callbacksAccepted": 12,
       "callbacksRemaining": 6,
       "historicalFixturesAccepted": 2,
@@ -1962,7 +1962,7 @@
       "releaseGatesTotal": 5,
       "releaseGatesRemaining": 2
     },
-    "next": "12/18 callbacks accepted;6 remain. Features5/18, fixtures2/4, releasegates3/5.88ad fullcallback and visible original bore accepted at source496; exact final production-cap comparison remains separate.",
+    "next": "12/18 callbacks accepted;6 remain. Features6/18, fixtures2/4, releasegates3/5.88ad fullcallback and visible original bore accepted at source496; exact final production-cap comparison remains separate.",
     "chapter14": {
       "status": "PASS complete current76originalcanonicalbrowser callback",
       "record": "release/76d-browser-review.json",

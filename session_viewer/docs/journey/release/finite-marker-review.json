@@ -1,0 +1,134 @@
+{
+  "status": "PASS original finite Markers mesh-dots normals criteria; root reviewed and published completion",
+  "feature": "Markers, mesh dots and normals",
+  "criterionPointer": "/features/4/currentVerification/remainingAcceptance",
+  "satisfiedLiteralCriteria": [
+    "Complete marker/normal/glyph/sphere controls and depth/original-owner cases outside the five accepted oblique-perspective closed-Mesh Sphere states and the recorded Point/Mesh native scopes."
+  ],
+  "sourceFingerprint": "6947664b26863adf65ef7bfc879694bfedee853852bc2c7660d59f31d2e36ca9",
+  "courseScope": "Native1064/current strictSphere evidence retains original694/course05b execution identity; currentfd differs only approved65 terminal metadata. Older Point/Mesh native pairs and Slot590/635 browser proofs retain their original inputs. No new execution inferred.",
+  "acceptedRecords": [
+    {
+      "path": "docs/journey/release/point-native-review.json",
+      "sha256": "a6f3884bc04eafc76022bf8f525b5dd0e939fe9f4ea7e20ed9cf34aa98f9cdb2"
+    },
+    {
+      "path": "docs/journey/release/mesh-native-review.json",
+      "sha256": "5c5d6cd327649390778a6e43b7ccb690f256b36c080aab0975cfaec62ad53b0f"
+    },
+    {
+      "path": "docs/journey/release/marker-control-native-qualified-review.json",
+      "sha256": "6ba6afb042d687cf53ce6799e54e1daca0b3b6bb7d00d5debd491fc07a149561"
+    },
+    {
+      "path": "docs/journey/release/slot-pipeline-browser-review.json",
+      "sha256": "99945a79029671de32a07d1992be1ac1e5674191ab855a5dc464c2817b8695f4"
+    },
+    {
+      "path": "docs/journey/release/mesh-markers-browser-review.json",
+      "sha256": "029fb5fe7abbc29212b82e07a0a28ee4f68fc9b32a0f25806064d86ae7e3ebdc"
+    },
+    {
+      "path": "docs/journey/release/ambient-selector-final713-marker-browser-review.json",
+      "sha256": "57c99b9595695ce2a3ef5024396156ca72ce965089154a7e4c1771462ef91ae8"
+    },
+    {
+      "path": "docs/journey/release/ambient-selector-final-native-integration-review.json",
+      "sha256": "536b6c1a5f0df6b99535bed3757921b173d99e63bbbc2c0dd8c33fe5b4e7b79e"
+    }
+  ],
+  "actualNativePasses": {
+    "namedResults": {
+      "path": "target\\course-windows-20261018\\ambient-selector-refreeze-publication-preparation\\native1064-named-results.json",
+      "sha256": "dec2d168cef96bbf5e89d3648800425f90214cd9798cc49e641ba7eb0fbdcac8"
+    },
+    "tests": [
+      {
+        "name": "scene::production_glyph_tests::actual_glyph_programs_and_48_byte_rows_keep_the_production_algorithms",
+        "status": "ok"
+      },
+      {
+        "name": "scene::production_glyph_tests::actual_point_walk_uses_physical_radius_and_compact_owners_without_mutating_source",
+        "status": "ok"
+      },
+      {
+        "name": "scene::production_glyph_tests::production_point_pixels_keep_physical_diameter_and_selection_coverage_at_both_densities",
+        "status": "ok"
+      },
+      {
+        "name": "scene::production_glyph_tests::display_controls_follow_production_parser_and_leave_source_and_history_intact",
+        "status": "ok"
+      },
+      {
+        "name": "renderer::visibility_tests::actual_mixed_families_keep_shared_sources_highlights_queries_and_active_controls",
+        "status": "ok"
+      },
+      {
+        "name": "finite_visibility_tests::original_lines_headed_chains_and_points_share_actual_color_and_integer_occlusion",
+        "status": "ok"
+      },
+      {
+        "name": "finite_visibility_tests::a_point_on_a_sloping_original_face_keeps_its_disc_and_first_pick",
+        "status": "ok"
+      },
+      {
+        "name": "scene::pick_gpu_tests::actual_feature_point_disc_uses_original_owner_and_production_physical_diameter",
+        "status": "ok"
+      }
+    ],
+    "sourceBodies": [
+      {
+        "path": "target/course-windows-20261018/ambient-selector-refreeze-preparation/source-713/src/production_glyph_tests.rs",
+        "sha256": "0dfda4cef007d188a0a1e67bd4a985178d3d56f442012f75af8783d837b8e67d"
+      },
+      {
+        "path": "target/course-windows-20261018/ambient-selector-refreeze-preparation/source-713/src/finite_visibility_tests.rs",
+        "sha256": "d67908d4906f50817045d24f4c539b8e9c8e6e3e2031b4d9592fa1c32d41f0d6"
+      },
+      {
+        "path": "target/course-windows-20261018/ambient-selector-refreeze-preparation/source-713/src/ink_visibility_gpu_tests.rs",
+        "sha256": "752c281837f9ac14b7d799916bbc41eb71ed76465f0057ccfc9d4fa2332184ac"
+      },
+      {
+        "path": "target/course-windows-20261018/ambient-selector-refreeze-preparation/source-713/src/pick_gpu_tests.rs",
+        "sha256": "d56fd6e82de070d521ad6045df0d35d8f3e97c52bc87c1692831594881ad4121"
+      }
+    ]
+  },
+  "finiteComponents": [
+    {
+      "criterion": "Original Point/glyph controls, dimensions, selection, depth and original owner",
+      "evidence": "Accepted Point8 exact same-source production/course RGBA pairs; current694 actual native physical12px diameter at DPR1/2 samples1/4, exact selected occupied footprint, family-off white frame, source/archive stability; native sloped-point visible/hidden first-owner and color assertions.",
+      "scope": "Original Point production walk is one SDF DOT. Width/color/default-radius/visibility/selection are supported; a separate non-DOT authored Point selector does not exist and is not required."
+    },
+    {
+      "criterion": "Sphere/mesh marker material and display controls",
+      "evidence": "Accepted qualified4+1 oblique-perspective closed-Mesh production pairs retain actual thickness, feather, opaque/glass/Xray, owner/source limits. Current694 strict raw13x13 Sphere browser witness and native opacity-before-color restoration remain separately bound.",
+      "scope": "Preserve failed wholeV6 record; do not turn qualified individual successes into a fresh5case run."
+    },
+    {
+      "criterion": "Authored normals and complete source-specific browser contract",
+      "evidence": "Accepted Slot590 actually executed original normal-view controls and diagnostic pixels/restoration at both densities. Source635 full original marker/normal/pick callback passed all28 fixture/projection/density rows, source/history/upload/Control-no-hit assertions and seven root-reviewed images.",
+      "scope": "No repeat Slot normal view,635 callback or arbitrary marker matrix."
+    }
+  ],
+  "unsupportedExtraRequirementRemoved": "A non-DOT authored Point glyph representative was an audit suggestion without a production selector or literal declared requirement. It is excluded, just as unsupported generated interior isolines were excluded.",
+  "sourceAuthority": {
+    "path": "src/app/walk/points.rs",
+    "sha256": "af7baa2ff846c8ede26274635f105bd34377cf2aa63576424ff53da843d38330"
+  },
+  "remainingFiniteCriterion": [],
+  "notClaimed": [
+    "Arbitrary pose/settings Cartesian matrix",
+    "Other17features automatically complete",
+    "Any new callback acceptance",
+    "All future source/kernel transitions qualified"
+  ],
+  "decision": "All literal finite Marker components now have actual matching scoped semantic/rendered/pick/visible evidence. Recommend row4 complete; no extra test or render required.",
+  "rootDecision": {
+    "complete": true,
+    "reviewedUtc": "2026-10-24T18:07:01.479Z",
+    "newExecutionInferred": false,
+    "callbacksAccepted": 12
+  }
+}
