@@ -528,6 +528,14 @@
       "record": "release/marker-control-native-qualified-review.json",
       "scope": "Five bounded closedMesh Sphere marker control comparisons are accepted through four historical V6 completed zero-RGBA cases plus one actual V10 Xray candidate pair, with current65f0013 source/control qualification. The whole V6 run remains FAILED; this is not five fresh current executions. Fixed opacity/thickness/feather, source/MVP/production rows and original-owner query limits are recorded. All ten original PNG sides match five root-reviewed image hashes. Each run independently preserves its complete decoded source and metadata; cross-run saved archive bytes differ. Broad authored normal/glyph controls, arbitrary placement and the full source-specific635 browser callback remain separate.",
       "wholeFeatureComplete": false
+    },
+    "ambientProductionComparison": {
+      "status": "FAIL observed current native ambient comparison; candidate correction pending",
+      "record": "release/ambient-pedestal-native-failure-review.json",
+      "offChangedPixels": 0,
+      "onChangedPixels": 36492,
+      "maxChannelDelta": 47,
+      "sourceFingerprint": "65f0013ae13365244de0baf69d29fd84c0219450573f86e5884eb0413dd6ae30"
     }
   },
   "resourceGuard": {
@@ -546,12 +554,13 @@
     "Productionribbonguide andXrayopacityfixes retainscopedproofs. Current65f0013handwritten713 unfiltered1063native andsource713strictSphereV2/714originalbrowser qualificationPASS. Oldfef4full1062/V1edge-only/oldV2failure remainhistorical. Ten sourcecallbacks,14partialfeatures andfourreleasegates remainopen.",
     "Original70d failed outer status and striped frame remain immutable. Applied mask projection fix now passes actual fullcanonical70 at331-source325b; fresh final PNG individually reviewed clean. No automatic SharedArena feature closure.",
     "Old60306/c65976run failedouterstatus and remainsimmutable. Subsequentcurrentbe28476fullcallback nowPASS withfreshSheet/finalcurve rootreview;finiteSheet complete via separate recordednative/browser scopes.",
-    "Maintained97 duplicate-export failure andold06359browserPASS retainedhistorically. Currentb9f70ac compiler/packages/qualifiedframe andunchangedoriginalfinal.cjs DPR1/2/presentation nowPASS12.031s; bothnewimagesrootreviewed. Sourcecallbackaccounting8/18accepted10remaining unchanged; nofeature/globalclosure."
+    "Maintained97 duplicate-export failure andold06359browserPASS retainedhistorically. Currentb9f70ac compiler/packages/qualifiedframe andunchangedoriginalfinal.cjs DPR1/2/presentation nowPASS12.031s; bothnewimagesrootreviewed. Sourcecallbackaccounting8/18accepted10remaining unchanged; nofeature/globalclosure.",
+    "Current native ambient production comparison fails: Off0RGBA, On36492pixels/max47 at retained four-BRep pedestal; single-mip AO bindings and texture/uniform extents differ. Isolated four-module candidate pending; release/ambient-pedestal-native-failure-review.json."
   ],
   "onlyHeavy": {
     "status": "none",
-    "task": "Current native, compiler, browser and docs jobs are terminal and accepted within their recorded scopes.",
-    "scope": "No active heavy process. Independent marker evidence and ambient-comparison preparation are read-only; five canonical harness corrections still await user answer."
+    "task": "Actual pedestal comparison and failure postflight are terminal; isolated four-module correction preparation only.",
+    "scope": "No ambient parity acceptance or runtime source change. Five canonical harness corrections still await user answer."
   },
   "next": "Current1063 native integration, seven compiler/package/frame phases, strict713 Sphere browser and complete714 DPR1/2 browser PASS. Currentf23 docs build/probe PASS; root reviewed desktop/390phone and changed22.6Rust section, ownedroadmap refreshed/front. Noactiveheavy. Await consolidated user decision on five prepared frozen-harness corrections before remaining10 sourcecallbacks; Gemini1-10 remains owned elsewhere. Callbacks8/18/features4/18complete14partial/fixtures2/4/release1/5done4remain; scoped proofs and earlier failures preserved.",
   "currentDocsReview": {
@@ -964,6 +973,12 @@
     "activeAgents": {
       "plane_completion": "Completed final artifact publication preparation; root owns execution and public writes.",
       "chapter_browser_queue": "Prepared source-bound70d/76d/80d build and full-callback launchers; no heavy execution."
+    },
+    "vueWebsiteOwnership": {
+      "owner": "Gemini",
+      "instruction": "Preserve Vue components, styling, layout, routes and website structure. Modify or add tutorial content only inside the existing sections and structure.",
+      "received": "2026-10-24",
+      "chapters1To10": "Gemini ownership remains reserved; no handoff assumed."
     }
   },
   "publication": {

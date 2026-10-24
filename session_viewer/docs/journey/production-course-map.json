@@ -1117,7 +1117,15 @@
             "checkpoint": "95f-prove-cache-invalidation-and-honest-performance-reports",
             "callback": "journey/checks/browser/performance.cjs"
           }
-        ]
+        ],
+        "unresolvedComparison": {
+          "status": "FAIL observed current native ambient comparison; candidate correction pending",
+          "record": "release/ambient-pedestal-native-failure-review.json",
+          "offChangedPixels": 0,
+          "onChangedPixels": 36492,
+          "maxChannelDelta": 47,
+          "sourceFingerprint": "65f0013ae13365244de0baf69d29fd84c0219450573f86e5884eb0413dd6ae30"
+        }
       }
     },
     {
