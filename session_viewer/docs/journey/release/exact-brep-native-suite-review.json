@@ -1,0 +1,35 @@
+{
+  "status": "PASS one actual unfiltered final native invocation",
+  "sourceFingerprint": "f339c9ac8c75353caca48e1dba3c537a002f0e62726b19f58dcad7bdb324bf9e",
+  "courseSha256": "2d589e8e0f45a9bd927ae63769c1186dc30e646466878b51858c491b18a1e190",
+  "passed": 1068,
+  "failed": 0,
+  "ignored": 0,
+  "filtered": 0,
+  "workingDirectory": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\",
+  "sourceBinding": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\final-brep-native-suite-v2-preparation\\built.json",
+    "sha256": "5304229ed9e7fc116cdef6fb5e245efe08e2b26a1b077977c25f8ac4ccd6c050"
+  },
+  "focused": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\final-brep-native-suite-v2-preparation\\focused-pass.json",
+    "sha256": "fe889b031c44d96ddd1a2343306e992d1b686c9409389a3517c3ae99e308ef6a"
+  },
+  "comparisons": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\final-brep-native-suite-v2-preparation\\comparison-acceptance.json",
+    "sha256": "c66c30d14b8278d4d8f26581ec593071496361056f333eeb1c390e2dcd8e3bd7"
+  },
+  "actualResources": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\final-brep-native-suite-v2-preparation\\full-current\\resources.json",
+    "sha256": "2a8ce89cddd0dfb791a9032a1f1ba07f99bd24ec6f59dc987c92a07eed4bd2a6"
+  },
+  "actualLog": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\final-brep-native-suite-v2-preparation\\full-current\\output.log",
+    "sha256": "511fd4d0f938131440dfc4e1576edb32e18894464728d4d8623695f1aa6b8ce9"
+  },
+  "scope": "Actual one unfiltered final1068 native integration after four exact new BRep checks and three root-reviewed strict production pairs. Seven compiler/frame phases and final browser/recovery/docs remain separate.",
+  "originalAcceptance": {
+    "path": "target/course-windows-20261018/final-brep-native-suite-v2-preparation/acceptance.json",
+    "sha256": "905ca367fee3911875952b4700d7980f733c76c7ff564d18b406c18af28ba40f"
+  }
+}

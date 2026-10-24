@@ -623,8 +623,8 @@
   ],
   "onlyHeavy": {
     "status": "running",
-    "task": "One unfiltered final1068 native suite after four focused checks and three strict production pairs",
-    "sessionId": 58427,
+    "task": "Final713 WASM compiler phase; full1068 native suite passed",
+    "sessionId": 85812,
     "memoryLimitMiB": 4096,
     "processors": 2
   },
@@ -1201,6 +1201,13 @@
         "passed": 3,
         "total": 3,
         "record": "release/exact-brep-production-pairs-review.json"
+      },
+      "fullNative": {
+        "passed": 1068,
+        "failed": 0,
+        "ignored": 0,
+        "filtered": 0,
+        "record": "release/exact-brep-native-suite-review.json"
       }
     }
   },
