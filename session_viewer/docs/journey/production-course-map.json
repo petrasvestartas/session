@@ -3,7 +3,7 @@
   "scope": "Initial production-to-course source/coverage audit; proposals are not completed consolidation or rendering acceptance.",
   "sourceAuthority": "session_viewer/src",
   "endpoint": "96zzzzzzzq-draw-original-cad-wire-curves",
-  "endpointStatus": "Three of five final gates complete at current694/b031/course05b: runtime build, navigation/history and local publication/report. Remaining:10 source-specific callbacks and14 partial finite features. The user approved all five prepared frozen-harness corrections; their application and actual callback verification retain separate evidence. Eight accepted callbacks and2/4 fixtures remain source-bound.",
+  "endpointStatus": "Three of five final gates complete at current694/b031/course05b: runtime build, navigation/history and local publication/report. Remaining:9 source-specific callbacks and13 partial finite features. Nine accepted callbacks and2/4 fixtures retain their recorded scopes. Slot590 nowpasses the complete approved canonicalbody; SharedArena originalfinitecriteria are complete. Finalnative/runtimeproofs unchanged.",
   "courseSha256": "05b031571b9b18b4e2740898af6782e2c746cb6b1fcf35c73adb86c957869374",
   "chapters": 22,
   "existingSteps": 1361,
@@ -201,7 +201,7 @@
         ],
         "remainingAcceptance": [
           "Retain the accepted named material/lighting/opaque/glass/Xray comparisons and copied/locked/clipped-source controls. Validate only still-unproved material, normal and display controls outside those bounded actual-production records; no arbitrary control matrix is declared.",
-          "Run the remaining95f performance,96zzo Slot,96zzq measured-reader and635 mesh-marker source-specific entries and inspect their feature frames. The accepted603 Arena and630 source-faces callbacks retain their original source scopes and need no repeat acceptance."
+          "Run the remaining95f performance,96zzq measured-reader and635 mesh-marker source-specific entries and inspect their feature frames. The accepted590 Slot,603 Arena and630 source-faces callbacks retain their original source scopes and need no repeat acceptance."
         ],
         "chapterBrowserEntries": [
           {
@@ -790,7 +790,7 @@
         ],
         "remainingAcceptance": [
           "Complete94c recursive callback after approved shortcuts, retaining prior failure evidence.",
-          "Run96h inventory at its own checkpoint and the remaining96zzo Slot/96zzq measured-reader ownership contracts, retaining still-unproved stale/cropped/rebased request checks. Accepted96y,Arena,source-faces,finalCAD and bounded Sphere evidence keeps its exact scope;96y alone does not close chapter19."
+          "Run96h inventory at its own checkpoint and the remaining96zzq measured-reader ownership contracts, retaining still-unproved stale/cropped/rebased request checks. Accepted590 Slot,96y,Arena,source-faces,finalCAD and bounded Sphere evidence keeps its exact scope;96y alone does not close chapter19."
         ],
         "chapterBrowserEntries": [
           {
@@ -889,18 +889,17 @@
       "runnableCheckpoint": "96zzzzzzzq-draw-original-cad-wire-curves",
       "evidence": "docs/journey/visual-review.json; docs/screenshots/journey/browser.json; chapter source checkpoints. Existence is not current acceptance.",
       "currentVerification": {
-        "status": "partial",
+        "status": "complete",
         "integration": "#/currentIntegration",
-        "acceptedScope": "Historical a45 native1059 suite passed; known normalized slot lookup correspondence remains scoped source evidence, not complete arena parity. Original70d source331 mirrored/nested placement callback and originalArena source603 callback are now independently accepted, with root-reviewed meaningful mirrored owners and restored CAD after all three DeleteUndo cycles atDPR1/2. Packed draw-slot/property/range coverage at96zzo remains unaccepted; neither accepted record claims whole current694 source identity.",
+        "acceptedScope": "Original SharedArena finitecriteria complete across separately recorded source331 nested/mirrored placement,source590 packedSlot/property/range/fullcallback andsource603 Arena release/Undo/restoredCAD. Root reviewed meaningful Slot selected CAD and retainednonempty placement/restored frames. Original native/control/source/compiler scopes remainexact; no universalcurrent694 identity or globalcallback closure.",
         "records": [
           "consolidation/current-state.json",
           "release/70d-browser-review.json",
-          "release/arena-empty-browser-review.json"
+          "release/arena-empty-browser-review.json",
+          "release/slot-pipeline-browser-review.json",
+          "release/shared-arena-finite-review.json"
         ],
-        "remainingAcceptance": [
-          "Complete the remaining96zzo slot-pipeline callback at its own checkpoint. Original70d nested-placement and96zzzzx arena-empty own-checkpoint callbacks are already accepted at their recorded sources.",
-          "Inspect remaining Slot packed draw-slot/property/range feature output. Retain accepted70d mirrored/nonuniform owner frames andArena restored-CAD DPR1/2 DeleteUndo/release evidence; an empty terminal frame does not establish Slot feature rendering."
-        ],
+        "remainingAcceptance": [],
         "chapterBrowserEntries": [
           {
             "chapter": 13,
@@ -932,7 +931,13 @@
             "checkpoint": "96zzzzx-retire-empty-arena-ranges-after-tail-trimming",
             "callback": "journey/checks/browser/arena-empty.cjs"
           }
-        ]
+        ],
+        "satisfiedFiniteCriteria": [
+          "Run nested-placements.cjs at70d, slot-pipeline.cjs at96zzo and arena-empty.cjs at96zzzzx on their own checkpoints.",
+          "Inspect mirrored/nonuniform owners, packed draw ranges, reuse/release and restored CAD after Undo; an empty terminal frame does not prove feature rendering."
+        ],
+        "finiteClosureRecord": "release/shared-arena-finite-review.json",
+        "remainingGlobalObligations": "Declared96h inventory,96y fixture and96zzq measuredreader remainindependentglobal/otherfeature obligations; theirdeclarations arepreserved."
       }
     },
     {
@@ -21901,8 +21906,8 @@
       "hashPolicy": "Valid UTF-8 text hashes normalize CRLF to LF; invalid UTF-8 remains raw. All307 current src paths/hashes matched the dated inventory during this audit. Existing301 row sha256/classification/basis values remain historical; current hashes come from the dated inventory. Six appended rows use the dated current hash and explicitly scoped staged basis. Complete path accounting is not verified extraction or feature parity."
     },
     "featureStatusCounts": {
-      "complete": 4,
-      "partial": 14,
+      "complete": 5,
+      "partial": 13,
       "open": 0,
       "meaning": "Complete accepts the named finite feature requirements at recorded source/fixture/settings; it does not close global release. Partial rows retain specific unaccepted requirements."
     },
