@@ -1,0 +1,372 @@
+{
+  "status": "FAIL original70d outer final-status equality; unresolved visual counterexample",
+  "checkpoint": "70d-exercise-rotated-and-mirrored-original-references",
+  "sourceFingerprint": "46e5b75c3dbcbfbb1e3aa6bb75a9aa4bbde22daa6c25faf44ab14826c199a881",
+  "sourceSignature": "f746cbb388d774e3bedbda46f2c8e978b2659c02bf8f91eebbc1cafff69348dd",
+  "sourceFiles": 331,
+  "callback": {
+    "path": "journey/checks/browser/nested-placements.cjs",
+    "recursiveFingerprint": "d0a52a22e0ef59c7e036702273ba7812afb8ae11a3b214907b86c69db16629b8",
+    "returnedBeforeOuterFailure": true,
+    "outerCaptureAccepted": false
+  },
+  "build": {
+    "proof": {
+      "path": "target/course-windows-20261018/next-source-aware-callback-preparation/70d-two-fixture-v5-tool-path-v1/proof.json",
+      "sha256": "d20577df9e9f1e560f2d5e01adc59a195b08590f46d35e91438450477d25f533"
+    },
+    "phases": {
+      "native-check": {
+        "command": {
+          "name": "70d-two-fixture-v5-tool-path-v1-native-check-20261024T001432871Z",
+          "args": [
+            "C:\\Users\\Petras\\.rustup\\toolchains\\stable-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "check",
+            "--tests",
+            "--examples",
+            "--locked",
+            "--offline",
+            "--target",
+            "x86_64-pc-windows-msvc",
+            "-j1"
+          ],
+          "returncode": 0
+        },
+        "resources": {
+          "path": "target/course-checks/70d-two-fixture-v5-tool-path-v1-native-check-20261024T001432871Z.resources.json",
+          "sha256": "3d1721ca40cecbb9240624d1c183c8f774b462ec79836aba10a2f23456269a4b"
+        },
+        "elapsedSeconds": 13.353,
+        "peakJobCommitBytes": 825233408,
+        "evidence": [
+          {
+            "path": "target/course-checks/70d-two-fixture-v5-tool-path-v1-native-check-20261024T001432871Z.log",
+            "sha256": "9baa60c2773014a8dcbc0e8c05832aabe0c5be3c0bed8a241e4e8b74a51f6123"
+          },
+          {
+            "path": "target/course-checks/70d-two-fixture-v5-tool-path-v1-native-check-20261024T001432871Z.resources.json",
+            "sha256": "3d1721ca40cecbb9240624d1c183c8f774b462ec79836aba10a2f23456269a4b"
+          },
+          {
+            "path": "target/course-checks/70d-two-fixture-v5-tool-path-v1-native-check-20261024T001432871Z.command.json",
+            "sha256": "89e04f9a66f6cdb8ccb0733ba7ece06d2b448405513537f5de852c2a5bfb03ff"
+          }
+        ],
+        "recordedOutputs": []
+      },
+      "wasm": {
+        "command": {
+          "name": "70d-two-fixture-v5-tool-path-v1-wasm-20261024T001449747Z",
+          "args": [
+            "C:\\Users\\Petras\\.rustup\\toolchains\\stable-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "build",
+            "--lib",
+            "--locked",
+            "--offline",
+            "--target",
+            "wasm32-unknown-unknown",
+            "-j1"
+          ],
+          "returncode": 0
+        },
+        "resources": {
+          "path": "target/course-checks/70d-two-fixture-v5-tool-path-v1-wasm-20261024T001449747Z.resources.json",
+          "sha256": "9909fe7cc6522e12bbdbb6e4ea5a6f7eb97b032a2d1e22e4ce94cfbf955f0798"
+        },
+        "elapsedSeconds": 11.843,
+        "peakJobCommitBytes": 1224937472,
+        "evidence": [
+          {
+            "path": "target/course-checks/70d-two-fixture-v5-tool-path-v1-wasm-20261024T001449747Z.log",
+            "sha256": "8932404811189b516860c1bc886c1f547c546f70fd72d08403108c4ecf6e425f"
+          },
+          {
+            "path": "target/course-checks/70d-two-fixture-v5-tool-path-v1-wasm-20261024T001449747Z.resources.json",
+            "sha256": "9909fe7cc6522e12bbdbb6e4ea5a6f7eb97b032a2d1e22e4ce94cfbf955f0798"
+          },
+          {
+            "path": "target/course-checks/70d-two-fixture-v5-tool-path-v1-wasm-20261024T001449747Z.command.json",
+            "sha256": "d99d4207879eeb38f58afd5d89285ea7082daf4f79018fc83b3dc4ece463d9bd"
+          }
+        ],
+        "recordedOutputs": []
+      },
+      "web": {
+        "command": {
+          "name": "70d-two-fixture-v5-tool-path-v1-web-20261024T001504681Z",
+          "args": [
+            "C:\\Users\\Petras\\.cargo\\bin\\trunk.exe",
+            "build",
+            "--release",
+            "--public-url",
+            "./"
+          ],
+          "returncode": 0
+        },
+        "resources": {
+          "path": "target/course-checks/70d-two-fixture-v5-tool-path-v1-web-20261024T001504681Z.resources.json",
+          "sha256": "ca9869f86829dd9fa12ec37110c8ffc973e007f22c927893ff42af0fdd014ccb"
+        },
+        "elapsedSeconds": 112.647,
+        "peakJobCommitBytes": 931905536,
+        "evidence": [
+          {
+            "path": "target/course-checks/70d-two-fixture-v5-tool-path-v1-web-20261024T001504681Z.log",
+            "sha256": "97a615ff7341dd56584704ea7fca9e0ad99762e2a3bd3200d1ee4d05ef56e29b"
+          },
+          {
+            "path": "target/course-checks/70d-two-fixture-v5-tool-path-v1-web-20261024T001504681Z.resources.json",
+            "sha256": "ca9869f86829dd9fa12ec37110c8ffc973e007f22c927893ff42af0fdd014ccb"
+          },
+          {
+            "path": "target/course-checks/70d-two-fixture-v5-tool-path-v1-web-20261024T001504681Z.command.json",
+            "sha256": "85405df02f3268ed7d475528c1d8be1fbb6752252bf72ec0ec2d85bb8a6f12a4"
+          }
+        ],
+        "recordedOutputs": [
+          {
+            "path": "target/course-70d-exercise-rotated-and-mirrored-original-references/dist/index.html",
+            "sha256AtExecution": "75fd81c6fee027ac67e5a3fadd0572f07a64fa0d391bad65a5b36ce90f3efdaf",
+            "currentlyRetained": true
+          },
+          {
+            "path": "target/course-70d-exercise-rotated-and-mirrored-original-references/dist/snippets/session_viewer-568dd7ccbb8842dd/inline0.js",
+            "sha256AtExecution": "bcd603923161001987d238655bc702c35aa98920d69d7c9793006792bd030104",
+            "currentlyRetained": true
+          },
+          {
+            "path": "target/course-70d-exercise-rotated-and-mirrored-original-references/dist/snippets/viewer_journey-7519825317df163d/src/adapter_info.js",
+            "sha256AtExecution": "3d87da73f9a18dd579c0e96f207899630a600a7839ff4d9857a87fe1211091bb",
+            "currentlyRetained": true
+          },
+          {
+            "path": "target/course-70d-exercise-rotated-and-mirrored-original-references/dist/text/NotoSans-Regular.subset.ttf",
+            "sha256AtExecution": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09",
+            "currentlyRetained": true
+          },
+          {
+            "path": "target/course-70d-exercise-rotated-and-mirrored-original-references/dist/text/NotoSans-Regular.ttf",
+            "sha256AtExecution": "b85c38ecea8a7cfb39c24e395a4007474fa5a4fc864f6ee33309eb4948d232d5",
+            "currentlyRetained": true
+          },
+          {
+            "path": "target/course-70d-exercise-rotated-and-mirrored-original-references/dist/text/NotoSansSymbols-Regular.subset.ttf",
+            "sha256AtExecution": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3",
+            "currentlyRetained": true
+          },
+          {
+            "path": "target/course-70d-exercise-rotated-and-mirrored-original-references/dist/text/NotoSansSymbols-Regular.ttf",
+            "sha256AtExecution": "8f02f31959bbdf6061547a188248e13f84dc5fdd940326ec494675f453f072bb",
+            "currentlyRetained": true
+          },
+          {
+            "path": "target/course-70d-exercise-rotated-and-mirrored-original-references/dist/text/NotoSansSymbols2-Regular.subset.ttf",
+            "sha256AtExecution": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed",
+            "currentlyRetained": true
+          },
+          {
+            "path": "target/course-70d-exercise-rotated-and-mirrored-original-references/dist/text/NotoSansSymbols2-Regular.ttf",
+            "sha256AtExecution": "630846d528dbe4c4981370a4d0a9475a1fd1491a129bb411f8e157cdb5de13c6",
+            "currentlyRetained": true
+          },
+          {
+            "path": "target/course-70d-exercise-rotated-and-mirrored-original-references/dist/text/OFL.txt",
+            "sha256AtExecution": "0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb",
+            "currentlyRetained": true
+          },
+          {
+            "path": "target/course-70d-exercise-rotated-and-mirrored-original-references/dist/viewer_journey-ef031ffeb7969a39.js",
+            "sha256AtExecution": "eb6a47a796b599e015cdf656e1e8e86deec66b65064dc27ddd17e6da4af5f0ed",
+            "currentlyRetained": true
+          },
+          {
+            "path": "target/course-70d-exercise-rotated-and-mirrored-original-references/dist/viewer_journey-ef031ffeb7969a39_bg.wasm",
+            "sha256AtExecution": "76f40672a3c6380121c029ab212e63c245061030c482e58aba5bef0a32813dda",
+            "currentlyRetained": true
+          }
+        ]
+      },
+      "frame": {
+        "command": {
+          "name": "70d-two-fixture-v5-tool-path-v1-frame-20261024T001700780Z",
+          "args": [
+            "C:\\Users\\Petras\\.rustup\\toolchains\\stable-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "run",
+            "--example",
+            "frame",
+            "--locked",
+            "--offline",
+            "--target",
+            "x86_64-pc-windows-msvc",
+            "-j1"
+          ],
+          "returncode": 0
+        },
+        "resources": {
+          "path": "target/course-checks/70d-two-fixture-v5-tool-path-v1-frame-20261024T001700780Z.resources.json",
+          "sha256": "21ffed684f02b5e4390f3df6402ccb2823cb9a638c85184fcd9df8e3fd0d8734"
+        },
+        "elapsedSeconds": 31.393,
+        "peakJobCommitBytes": 2004729856,
+        "evidence": [
+          {
+            "path": "target/course-checks/70d-two-fixture-v5-tool-path-v1-frame-20261024T001700780Z.log",
+            "sha256": "b7ca30579a65c3314d0117ab0eb73f66fac3a34beff5c5d97198955aee51491c"
+          },
+          {
+            "path": "target/course-checks/70d-two-fixture-v5-tool-path-v1-frame-20261024T001700780Z.resources.json",
+            "sha256": "21ffed684f02b5e4390f3df6402ccb2823cb9a638c85184fcd9df8e3fd0d8734"
+          },
+          {
+            "path": "target/course-checks/70d-two-fixture-v5-tool-path-v1-frame-20261024T001700780Z.command.json",
+            "sha256": "39bb3944103249ea0be5a7c1635887f9fa5c9805edc0d8cc15ba699566ec303a"
+          }
+        ],
+        "recordedOutputs": [
+          {
+            "path": "target/course-windows-20261018/next-source-aware-callback-preparation/70d-two-fixture-v5-tool-path-v1/70d-two-fixture-v5-tool-path-v1-frame-20261024T001700780Z-frame.exe",
+            "sha256AtExecution": "a34363da549ca428514683232f952230d18efe72c7d5b8219eb6cc893a0f77ef",
+            "currentlyRetained": true
+          },
+          {
+            "path": "target/course-70d-exercise-rotated-and-mirrored-original-references/frame.ppm",
+            "sha256AtExecution": "e81bfdc6a2378afa9b82c4d9524f9328db525403d22d36df91a7e9574e42f004",
+            "currentlyRetained": true
+          }
+        ]
+      },
+      "sample": {
+        "command": {
+          "name": "70d-two-fixture-v5-tool-path-v1-sample-20261024T001735379Z",
+          "args": [
+            "C:\\Users\\Petras\\.rustup\\toolchains\\stable-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "run",
+            "--example",
+            "sample",
+            "--locked",
+            "--offline",
+            "--target",
+            "x86_64-pc-windows-msvc",
+            "-j1"
+          ],
+          "returncode": 0
+        },
+        "resources": {
+          "path": "target/course-checks/70d-two-fixture-v5-tool-path-v1-sample-20261024T001735379Z.resources.json",
+          "sha256": "80e630196b81acc66ef5570f2c0e2e77eafa0bec4f375757b7dba95db7ec2198"
+        },
+        "elapsedSeconds": 4.775,
+        "peakJobCommitBytes": 1851707392,
+        "evidence": [
+          {
+            "path": "target/course-checks/70d-two-fixture-v5-tool-path-v1-sample-20261024T001735379Z.log",
+            "sha256": "d3ded533b6be1b409fd1533eaab2e87fc0688525c9294c6ef757e6b5dfbc2b32"
+          },
+          {
+            "path": "target/course-checks/70d-two-fixture-v5-tool-path-v1-sample-20261024T001735379Z.resources.json",
+            "sha256": "80e630196b81acc66ef5570f2c0e2e77eafa0bec4f375757b7dba95db7ec2198"
+          },
+          {
+            "path": "target/course-checks/70d-two-fixture-v5-tool-path-v1-sample-20261024T001735379Z.command.json",
+            "sha256": "793d53fd0e56043f045aed3f5310299e12de6895e225ab682e7dd3585df6f9d0"
+          }
+        ],
+        "recordedOutputs": [
+          {
+            "path": "target/course-70d-exercise-rotated-and-mirrored-original-references/sample.pb",
+            "sha256AtExecution": "3f553a8e2ab4cdff3ee5344ac68ace9754aade11fa27a5e9bdcff33993facebc",
+            "currentlyRetained": true
+          }
+        ]
+      }
+    },
+    "canonicalVerifyComplete": false,
+    "nativeSuite": {
+      "status": "not-run",
+      "reason": "Saved plan section4: native full-suite execution belongs to integrated batches/final freeze; historical tests are preserved and typechecked here."
+    },
+    "nativeFrame": {
+      "figure": "journey/release/70d-native-frame-before-browser-failure.png",
+      "sha256": "15547370f1d1e5ddc9a615d5889a63e269d53b99b56502f3ff739bb8d40c7266",
+      "rootIndividuallyReviewed": true
+    }
+  },
+  "browser": {
+    "proof": {
+      "path": "target/course-windows-20261018/next-source-aware-callback-preparation/70d-two-fixture-v5-tool-path-v1/browser-20261024T001836112Z.json",
+      "sha256": "5cc8f84d0c5d35994d8cae73599d095369d94bdea2d533eb244273088abcf2da"
+    },
+    "resources": {
+      "path": "target/course-windows-20261018/70d-two-fixture-v5-tool-path-v1-proportional-browser-20261024T001836500Z.resources.json",
+      "sha256": "6ea2629fd19ecc6c2ad284f66db0865aea62df10c6406ba325c420215fd29a6b"
+    },
+    "log": {
+      "path": "target/course-windows-20261018/70d-two-fixture-v5-tool-path-v1-proportional-browser-20261024T001836500Z.log",
+      "sha256": "36db146c8c4f989581ff88aa37c0ad0f024802c7996b1ea47f438f8337e6f598"
+    },
+    "elapsedSeconds": 1993.027,
+    "peakJobCommitBytes": 1648103424,
+    "adapter": {
+      "name": "Microsoft Basic Render Driver",
+      "vendor": 5140,
+      "device": 140,
+      "luid": "0,86727"
+    },
+    "diagnosis": {
+      "path": "target/course-windows-20261018/70d-final-status-metadata-correction/diagnosis.json",
+      "sha256": "192ae8fefed1c8b63655f60c6939d68234db8e648d2bfc3e54d022f6ae2596a7"
+    },
+    "failure": {
+      "json": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\70d-exercise-rotated-and-mirrored-original-references-browser-failure.json",
+        "sha256": "6feb71fe03f7d2c25232d98aa62c8f6a13ea78f6cfacc2ec212dd7a0487f310b"
+      },
+      "image": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\70d-exercise-rotated-and-mirrored-original-references-browser-failure.png",
+        "sha256": "885fe10956b7eb84500cf87170ed145e9e431ea7e722a7acd7c5a8d75a81a4be"
+      },
+      "actualStatus": "Document closed.",
+      "expectedStatus": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "errors": [],
+      "messages": [],
+      "scene": {
+        "data-object-count": "2",
+        "data-instance-cpu": "[2,1,1]",
+        "data-instance-gpu": "[1,2,320,24,7520]",
+        "data-selected-id": "ObjectId(59)",
+        "data-grid-enabled": "false",
+        "data-normal-view": "false"
+      }
+    },
+    "figure": "journey/release/70d-browser-failure-striped.png",
+    "pngSha256": "885fe10956b7eb84500cf87170ed145e9e431ea7e722a7acd7c5a8d75a81a4be",
+    "rootIndividuallyReviewed": true
+  },
+  "visualCounterexample": {
+    "agentOriginalResolutionViewed": true,
+    "rootOriginalResolutionViewed": true,
+    "observed": "900x760 image visibly contains correct blue rotated triangle and yellow mirrored selected triangle with colored gizmo. Black parallel striping crosses/lies under the lower yellow triangle. Native isolated frame was clean according to root.",
+    "classification": "UNRESOLVED visual difference/counterexample; do not label harmless, production-equivalent or fixed by status metadata. No matched settings attribution established.",
+    "nextBoundedAction": "Preserve exact failure PNG/JSON and source/environment. Compare same final nested scene/state on verified NVIDIA if root executes approved new lane, then inspect maintained/course rendering and carried controls only if artifact persists; never hide/crop/tolerate striping."
+  },
+  "scope": [
+    "Original nested callback returned, but enclosing capture FAILED; no70d acceptance or denominator change.",
+    "Black parallel striping near the lower selected yellow triangle remains unresolved; metadata correction does not resolve or waive visual evidence.",
+    "Build phases passed; historical fullnative suite was not executed. Native frame is clean within its separate inspected scope.",
+    "All failed evidence retained. No runtime, canonical harness, metadata or assertion correction applied by this publisher."
+  ],
+  "countsUnchanged": {
+    "chapters": 22,
+    "readerLessons": 111,
+    "draftingRemaining": 0,
+    "featuresComplete": 3,
+    "featuresPartial": 15,
+    "callbacksAccepted": 1,
+    "callbacksTotal": 18,
+    "callbacksRemaining": 17,
+    "historicalFixturesAccepted": 1,
+    "historicalFixturesTotal": 4,
+    "releaseGatesDone": 0,
+    "releaseGatesTotal": 5
+  }
+}

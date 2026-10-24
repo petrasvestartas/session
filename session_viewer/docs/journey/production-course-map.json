@@ -3,7 +3,7 @@
   "scope": "Initial production-to-course source/coverage audit; proposals are not completed consolidation or rendering acceptance.",
   "sourceAuthority": "session_viewer/src",
   "endpoint": "96zzzzzzzq-draw-original-cad-wire-curves",
-  "endpointStatus": "Current97d native1060/1060, optimized bundle and finite Matrix, Camera/Plane and Joined acceptance pass. FinalCAD original callback accepted1/18;17remain.15partial feature checklists and global release0/5 remain open.",
+  "endpointStatus": "Current fef4 native recovery is qualified1060 unchanged named PASS plus two corrected authored-fixture focused PASS, not a single unfiltered1062PASS. Current retained-release NVIDIA boot passes its separate scope. FinalCAD remains1/18 accepted,17callbacks left;15partial features and final release0/5 remain.70d outer capture failed with unresolved black striping.",
   "courseSha256": "a0e3163a416e2c869fb42408bbedc7578e12f74d97b689238cc486d768bf364f",
   "chapters": 22,
   "existingSteps": 1361,
@@ -22221,6 +22221,37 @@
       "singleUnfiltered1062Pass": false,
       "record": "release/native-ribbon-v4-qualified-recovery-review.json",
       "scope": "Qualified native recovery only; not one unfiltered1062PASS. Current frame/WASM/optimizedweb/bootrender and scoped lesson publication have separate records.17fullcallbacks and global release remain pending."
+    },
+    "currentBrowserBatch": {
+      "hardwareBoot": {
+        "status": "PASS scoped verified NVIDIA current retained-release boot/render; root image reviewed",
+        "record": "release/final-fef4-nvidia-browser-boot-review.json",
+        "sourceFingerprint": "fef4c7bdb6f4c0a6f7a7701b0ba5581469dd757a34eefbab030a06e92ce4e5a1",
+        "elapsedSeconds": 12.877,
+        "peakJobCommitBytes": 598761472,
+        "scope": "Actual application NVIDIA/nonfallback adapter; no callback, feature, performance or global release acceptance"
+      },
+      "chapter13": {
+        "status": "FAILED original outer capture; no acceptance",
+        "record": "release/70d-browser-failure-review.json",
+        "actualFinalStatus": "Document closed.",
+        "expectedFinalStatus": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+        "visualCounterexample": "Root-reviewed black parallel striping near the lower selected yellow triangle remains unresolved; metadata correction alone cannot close the visual defect."
+      },
+      "counts": {
+        "chaptersConsolidated": 22,
+        "readerLessons": 111,
+        "draftingRemaining": 0,
+        "featuresComplete": 3,
+        "featuresPartial": 15,
+        "callbacksAccepted": 1,
+        "callbacksRemaining": 17,
+        "historicalFixturesAccepted": 1,
+        "historicalFixturesTotal": 4,
+        "releaseGatesDone": 0,
+        "releaseGatesTotal": 5
+      },
+      "next": "Chapter14 original76d source-specific callback on verified NVIDIA, with actual Sheet-state observation; full acceptance remains pending."
     }
   },
   "authoringPrerequisiteRepair": {
