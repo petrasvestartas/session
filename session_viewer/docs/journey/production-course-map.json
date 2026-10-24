@@ -3,7 +3,7 @@
   "scope": "Initial production-to-course source/coverage audit; proposals are not completed consolidation or rendering acceptance.",
   "sourceAuthority": "session_viewer/src",
   "endpoint": "96zzzzzzzq-draw-original-cad-wire-curves",
-  "endpointStatus": "Currentonlyheavy66112 xray-final-refreeze-preparation/launch.mjs native713; no newfull1063/nativebuildacceptance yet. Actualauthoring22/22 and1361/43structurePASS afterbounded2page docsrepair; initialmissing9referenceFAIL preserved. Gate0/5/remainder5;callbacks8/18/10pending/features4/18/fixtures2/4 retainrecordedscopes.",
+  "endpointStatus": "Currentonlyheavy57591 unfiltered1063nativefreeze at713-native-full1063-v2, running/no suitePASS. Actualseven713/714 compiler/package/frame phasesPASS;101readerendpoints/202phases retainedunderexactsource/hashrelevance. Strict713markerbrowserV2 andunchangedoriginal714final.cjs pending. Gate0/5 stays;callbacks8/18sourcebound/10remaining,features4/18complete14partial,fixtures2/4unchanged.",
   "courseSha256": "367065739cee3cbf01e1b240c9eca4a1e0c12092eccab2fe2345cbc783a55197",
   "chapters": 22,
   "existingSteps": 1361,
@@ -21699,7 +21699,7 @@
     "recordedAt": "2026-10-23T17:02:35.831075+00:00",
     "courseSha256": "f23fe2c84e633849f9b9fad00a0ecdb87b2d40b0d4165fd7561d702626cc7537",
     "historicalCourseSha256": "8453513dc6d5ae34d081becc435ee893bbb82cc89d31386ed6fa7141e7576b1b",
-    "scope": "Actualcurrentfinal71365f0013/maintained714b9f70ac Xrayopacityfix applied; focused1native/isolatedstrictXraypairPASS only. Newunfiltered1063andrefreshed713/714builds pending; oldfef4full1062/buildgate historical. Source-boundcallbacks8/18accepted10pending;features4/18complete14partial,fixtures2/4;release0/5reopened. Reader101/202retainedatpriorinputswithnewfinaldeltaqualificationpending.",
+    "scope": "Actualcurrent71365f0013/714b9f70ac compiler/packages/frame sevenphasesPASS and1478pins/101reader202records relevant. Full1063native57591running;713markerV2/714browserpending. Oldfef4Native1062/buildgate and3670docs retainhistory. Callbacks8/18sourcebound10pending/features4/18complete14partial/fixtures2/4/release0/5 unchanged.",
     "state": "consolidation/current-state.json",
     "evidencePaths": "Paths in currentIntegration/currentVerification are relative to docs/journey; target evidence is local and is not a public hosted artifact.",
     "authoring": {
@@ -21941,7 +21941,40 @@
       "elapsedSeconds": 155.692,
       "peakJobCommitBytes": 2014339072,
       "scope": "Maintained optimized build only, retained at its original source/bundle binding. Separate four-case reload/grid acceptance is recorded in release/reload-grid-browser-review.json; current working-tree hashes do not assert a new maintained build.",
-      "currentRuntimeQualification": "Historicalreceiptat3670/fef4/06359; newf23fe2/65f0013/b9f70ac integrationqualification pending; no oldproof relabelledcurrent."
+      "currentRuntimeQualification": "Historicalreceiptat3670/fef4/06359; newf23fe2/65f0013/b9f70ac integrationqualification pending; no oldproof relabelledcurrent.",
+      "currentXrayRefresh": {
+        "status": "PASS seven current713/714 compiler/package/frame phases; full1063/strictmarkerV2/714browserpending",
+        "record": "release/xray-final-compiler-refresh-review.json",
+        "courseSha256": "f23fe2c84e633849f9b9fad00a0ecdb87b2d40b0d4165fd7561d702626cc7537",
+        "sources": [
+          {
+            "id": "96zzzzzzzq-draw-original-cad-wire-curves",
+            "files": 713,
+            "fingerprint": "65f0013ae13365244de0baf69d29fd84c0219450573f86e5884eb0413dd6ae30",
+            "signature": "48f23e94ec7b26bce70495ce6d8c1a56c4430a5026c812b8045d48c45fd3f966",
+            "dependencies": {
+              "dependencies": "eb5ecf3316a388c7e4cca3e4f0ef18682dbf1e52d27121f0098ed321da78324e",
+              "dependency_checker": "d32c7dbec5fd12dbd68a3adf36bccb60bdf5254cb890f1f8c5bff8a5b7e7d6d5"
+            }
+          },
+          {
+            "id": "97-finish-with-the-maintained-browser-runtime",
+            "files": 714,
+            "fingerprint": "b9f70ac28efa5ff434a2e479f5d5374160c7c5e05eb5833ae7edd32f8b882321",
+            "signature": "1fb7d6470f356ac76e629a5b3358041dba99d6a52384c4b3ae6abdfe30fa5d32",
+            "dependencies": {
+              "dependencies": "eb5ecf3316a388c7e4cca3e4f0ef18682dbf1e52d27121f0098ed321da78324e",
+              "dependency_checker": "d32c7dbec5fd12dbd68a3adf36bccb60bdf5254cb890f1f8c5bff8a5b7e7d6d5"
+            }
+          }
+        ],
+        "phaseCount": 7,
+        "preparedPinsChecked": 1478,
+        "readerEndpointsRetained": 101,
+        "readerPhasesRetained": 202,
+        "framePngSha256": "4c786c32b7fcbed3d6c3554637444ed580ee84bb09e643805e2bed534eb4f274",
+        "scope": "FreshNative-check/WASM/optimizedweb713+714 andactual713canonicalframe;714nativecfg/graphreuse accepted. Reader101/202exactendpoint/source/records unchanged. V1browser onlyedge/source restoration; no marker/finaldelta acceptance."
+      }
     },
     "productionSourceInventory": {
       "path": "current-viewer-2026-10-23.json",
@@ -22062,9 +22095,10 @@
           "nativeRecord": "release/xray-original-owner-source-fix-review.json",
           "qualifiedCurrentNativeRecord": "release/native-ribbon-v4-qualified-recovery-review.json",
           "previousNativeRecord": "release/native-97d-integration-review.json",
-          "compilerStatus": "DONE101/101reader endpoints202/202 qualifiedphases:170retained+32fresh.",
-          "remainingGroupScope": "Currentruntimefivefiledelta requires refreshed713/714integration/buildqualification; historicalreader101/202proof retainedwithcurrentdelta qualificationpending. Othernoncallbackactiongroups/countsunchanged.",
-          "previousAcceptedNativeRecord": "release/native-final-two-fixture-integration-review.json"
+          "compilerStatus": "DONE current713/714 Native-check/WASM/optimizedpackages plusfresh713frame andqualified714frame reuse;101/101reader202/202retained exactsource/recordhashes, nochangedfinalendpointinreader101lane.",
+          "remainingGroupScope": "Currentfull1063integration andnarrowmarker/maintainedbrowser qualification pending. No newfullsuiteacceptance inferred fromcompilerphases.",
+          "previousAcceptedNativeRecord": "release/native-final-two-fixture-integration-review.json",
+          "compilerRecord": "release/xray-final-compiler-refresh-review.json"
         },
         {
           "id": "declared-reader-checkpoint-proof-accounting",
@@ -22517,7 +22551,7 @@
         "releaseGatesDone": 0,
         "releaseGatesTotal": 5
       },
-      "next": "Currentonlyheavy66112 xray-final-refreeze-preparation/launch.mjs native713; no newfull1063/nativebuildacceptance yet. Actualauthoring22/22 and1361/43structurePASS afterbounded2page docsrepair; initialmissing9referenceFAIL preserved. Gate0/5/remainder5;callbacks8/18/10pending/features4/18/fixtures2/4 retainrecordedscopes.",
+      "next": "Currentonlyheavy57591 unfiltered1063nativefreeze at713-native-full1063-v2, running/no suitePASS. Actualseven713/714 compiler/package/frame phasesPASS;101readerendpoints/202phases retainedunderexactsource/hashrelevance. Strict713markerbrowserV2 andunchangedoriginal714final.cjs pending. Gate0/5 stays;callbacks8/18sourcebound/10remaining,features4/18complete14partial,fixtures2/4unchanged.",
       "chapter14": {
         "status": "PASS complete current76originalcanonicalbrowser callback",
         "record": "release/76d-browser-review.json",
@@ -22841,6 +22875,39 @@
         "focusedNativePassed": 1,
         "focusedNativeFiltered": 1062,
         "scope": "Actualruntimechange: old1062fef4/06359buildproofs historical; current1063and713/714buildrefresh pending. Eightacceptedcallbacks keeporiginalsource; nofeature/countchange."
+      },
+      "xrayCompilerRefresh": {
+        "status": "PASS seven current713/714 compiler/package/frame phases; full1063/strictmarkerV2/714browserpending",
+        "record": "release/xray-final-compiler-refresh-review.json",
+        "courseSha256": "f23fe2c84e633849f9b9fad00a0ecdb87b2d40b0d4165fd7561d702626cc7537",
+        "sources": [
+          {
+            "id": "96zzzzzzzq-draw-original-cad-wire-curves",
+            "files": 713,
+            "fingerprint": "65f0013ae13365244de0baf69d29fd84c0219450573f86e5884eb0413dd6ae30",
+            "signature": "48f23e94ec7b26bce70495ce6d8c1a56c4430a5026c812b8045d48c45fd3f966",
+            "dependencies": {
+              "dependencies": "eb5ecf3316a388c7e4cca3e4f0ef18682dbf1e52d27121f0098ed321da78324e",
+              "dependency_checker": "d32c7dbec5fd12dbd68a3adf36bccb60bdf5254cb890f1f8c5bff8a5b7e7d6d5"
+            }
+          },
+          {
+            "id": "97-finish-with-the-maintained-browser-runtime",
+            "files": 714,
+            "fingerprint": "b9f70ac28efa5ff434a2e479f5d5374160c7c5e05eb5833ae7edd32f8b882321",
+            "signature": "1fb7d6470f356ac76e629a5b3358041dba99d6a52384c4b3ae6abdfe30fa5d32",
+            "dependencies": {
+              "dependencies": "eb5ecf3316a388c7e4cca3e4f0ef18682dbf1e52d27121f0098ed321da78324e",
+              "dependency_checker": "d32c7dbec5fd12dbd68a3adf36bccb60bdf5254cb890f1f8c5bff8a5b7e7d6d5"
+            }
+          }
+        ],
+        "phaseCount": 7,
+        "preparedPinsChecked": 1478,
+        "readerEndpointsRetained": 101,
+        "readerPhasesRetained": 202,
+        "framePngSha256": "4c786c32b7fcbed3d6c3554637444ed580ee84bb09e643805e2bed534eb4f274",
+        "scope": "FreshNative-check/WASM/optimizedweb713+714 andactual713canonicalframe;714nativecfg/graphreuse accepted. Reader101/202exactendpoint/source/records unchanged. V1browser onlyedge/source restoration; no marker/finaldelta acceptance."
       }
     },
     "sheetFiniteClosure": {
@@ -22894,6 +22961,39 @@
       "focusedNativePassed": 1,
       "focusedNativeFiltered": 1062,
       "scope": "Actualruntimechange: old1062fef4/06359buildproofs historical; current1063and713/714buildrefresh pending. Eightacceptedcallbacks keeporiginalsource; nofeature/countchange."
+    },
+    "compilerRefresh": {
+      "status": "PASS seven current713/714 compiler/package/frame phases; full1063/strictmarkerV2/714browserpending",
+      "record": "release/xray-final-compiler-refresh-review.json",
+      "courseSha256": "f23fe2c84e633849f9b9fad00a0ecdb87b2d40b0d4165fd7561d702626cc7537",
+      "sources": [
+        {
+          "id": "96zzzzzzzq-draw-original-cad-wire-curves",
+          "files": 713,
+          "fingerprint": "65f0013ae13365244de0baf69d29fd84c0219450573f86e5884eb0413dd6ae30",
+          "signature": "48f23e94ec7b26bce70495ce6d8c1a56c4430a5026c812b8045d48c45fd3f966",
+          "dependencies": {
+            "dependencies": "eb5ecf3316a388c7e4cca3e4f0ef18682dbf1e52d27121f0098ed321da78324e",
+            "dependency_checker": "d32c7dbec5fd12dbd68a3adf36bccb60bdf5254cb890f1f8c5bff8a5b7e7d6d5"
+          }
+        },
+        {
+          "id": "97-finish-with-the-maintained-browser-runtime",
+          "files": 714,
+          "fingerprint": "b9f70ac28efa5ff434a2e479f5d5374160c7c5e05eb5833ae7edd32f8b882321",
+          "signature": "1fb7d6470f356ac76e629a5b3358041dba99d6a52384c4b3ae6abdfe30fa5d32",
+          "dependencies": {
+            "dependencies": "eb5ecf3316a388c7e4cca3e4f0ef18682dbf1e52d27121f0098ed321da78324e",
+            "dependency_checker": "d32c7dbec5fd12dbd68a3adf36bccb60bdf5254cb890f1f8c5bff8a5b7e7d6d5"
+          }
+        }
+      ],
+      "phaseCount": 7,
+      "preparedPinsChecked": 1478,
+      "readerEndpointsRetained": 101,
+      "readerPhasesRetained": 202,
+      "framePngSha256": "4c786c32b7fcbed3d6c3554637444ed580ee84bb09e643805e2bed534eb4f274",
+      "scope": "FreshNative-check/WASM/optimizedweb713+714 andactual713canonicalframe;714nativecfg/graphreuse accepted. Reader101/202exactendpoint/source/records unchanged. V1browser onlyedge/source restoration; no marker/finaldelta acceptance."
     }
   },
   "authoringPrerequisiteRepair": {
