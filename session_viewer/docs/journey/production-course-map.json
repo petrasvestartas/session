@@ -3,7 +3,7 @@
   "scope": "Initial production-to-course source/coverage audit; proposals are not completed consolidation or rendering acceptance.",
   "sourceAuthority": "session_viewer/src",
   "endpoint": "96zzzzzzzq-draw-original-cad-wire-curves",
-  "endpointStatus": "Currentonlyheavy98388 sourcefaces630 build, stem96zzzzzzm-nvidia-current367-v1; reader099native/WASM exactphase reuse, freshoptimizedwebcompiling. Priorquality656EEXISTFAIL andmarkerV7hiddenObjectqueryFAIL retained; noacceptance/countchange/runtimecausepreclaim.",
+  "endpointStatus": "Currentonlyheavy48924 original656 NVIDIAquality retry atsame source/stem/runner,6GiB/twoCPUs; preexistinggeneratedqualitydirectory reversiblyrelocated. Prior54304EEXISTFAIL andnineprefixoutputs retained. Sourcefaces630full99840PASS accepted7/18 with11left=9historical+2late;12sourcefacePNGs rootviewed plus exactcanonicalvisualreuse. MarkerV7hiddenObjectqueryFAIL remainsunaccepted despitezeroRGBA; no runtimecauseconfirmed. Allthreeinputexceptionspending/unapplied;features4/18complete14partial,fixtures2/4,release1/5 unchanged.",
   "courseSha256": "367065739cee3cbf01e1b240c9eca4a1e0c12092eccab2fe2345cbc783a55197",
   "chapters": 22,
   "existingSteps": 1361,
@@ -21699,7 +21699,7 @@
     "recordedAt": "2026-10-23T17:02:35.831075+00:00",
     "courseSha256": "367065739cee3cbf01e1b240c9eca4a1e0c12092eccab2fe2345cbc783a55197",
     "historicalCourseSha256": "8453513dc6d5ae34d081becc435ee893bbb82cc89d31386ed6fa7141e7576b1b",
-    "scope": "Currentfinalfef4 handwritten713 unfiltered1062/1062 nativeintegration PASS; oldfailed/qualifiedrecords retainhistory. Originalsourcecallbacks6/18accepted12pending;features4/18complete14partial;fixtures2/4;compiler101/202;release1/5 (buildgate done;fourremain). Native/frame/WASM/web/browser/docs proofs retain source-specific scopes.",
+    "scope": "Currentfinalfef4 handwritten713 unfiltered1062/1062 nativeintegration PASS; oldfailed/qualifiedrecords retainhistory. Originalsourcecallbacks7/18accepted11pending;features4/18complete14partial;fixtures2/4;compiler101/202;release1/5 (buildgate done;fourremain). Native/frame/WASM/web/browser/docs proofs retain source-specific scopes.",
     "state": "consolidation/current-state.json",
     "evidencePaths": "Paths in currentIntegration/currentVerification are relative to docs/journey; target evidence is local and is not a public hosted artifact.",
     "authoring": {
@@ -22025,12 +22025,12 @@
         "nonCallbackIntegrationActions": 3,
         "namedActions": 21,
         "remainingFeatureChecklists": 14,
-        "meaning": "Original18 source-specificentries retained: finalCAD,maintained97,current76,current70,96v andArena-empty accepted6;pending12=9historical+3late display. Original21named denominator retained;15pending groups overlap14partialfeatures. Fixtures2/4(96y+96v),release1/5 remain independent.",
+        "meaning": "Original18sourceentries retained:finalCAD,maintained97,current76,current70,96v,Arena-empty andsourcefaces accepted7;pending11=9historical+2late. Original21named denominator retained;14pendinggroups overlap14partialfeatures. Fixtures2/4 andrelease1/5 remainindependent.",
         "eta": "No total ETA; missing successful callback durations and unscopednative tuples prevent an honest walltime estimate.",
-        "acceptedSourceSpecificCallbackEntries": 6,
-        "pendingSourceSpecificCallbackEntries": 12,
-        "pendingNamedActions": 15,
-        "pendingAdditionalDeclaredCallbackEntries": 3
+        "acceptedSourceSpecificCallbackEntries": 7,
+        "pendingSourceSpecificCallbackEntries": 11,
+        "pendingNamedActions": 14,
+        "pendingAdditionalDeclaredCallbackEntries": 2
       },
       "phaseReuse94c": {
         "reusableForTwoNativeHelperLines": [
@@ -22107,7 +22107,15 @@
             "node",
             "docs/capture_journey.cjs",
             "96zzzzzzm-query-original-faces-under-contact-overlays"
-          ]
+          ],
+          "status": "PASS complete original630 sourcefaces callback;12actualfeatureimages reviewed plus exactcanonicalvisualreuse",
+          "record": "release/source-faces-browser-review.json",
+          "sourceFiles": 630,
+          "sourceFingerprint": "5c18f53c21b8674571df1fa9081e8525a1e208c446798bae3cde6e28a077f13b",
+          "sourceSignature": "7f1370c850d44cc94c4f730d8658dfa86a8146773d7b552625ad38351a2ea01a",
+          "elapsedSeconds": 1951.444,
+          "peakJobCommitBytes": 1106415616,
+          "scope": "Sparse17/93 sourcefaces/readonlycontact, originalowner/overhang/BRep andexactselection/zoom/MoveUndo/archive assertions; inheritedprefix anddedicatedDPR1/2/finalparent pass. Onlysourcecallbackacceptance; featurecountsunchanged."
         }
       ],
       "nativeScopeReviews": [
@@ -22435,14 +22443,14 @@
         "draftingRemaining": 0,
         "featuresComplete": 4,
         "featuresPartial": 14,
-        "callbacksAccepted": 6,
-        "callbacksRemaining": 12,
+        "callbacksAccepted": 7,
+        "callbacksRemaining": 11,
         "historicalFixturesAccepted": 2,
         "historicalFixturesTotal": 4,
         "releaseGatesDone": 1,
         "releaseGatesTotal": 5
       },
-      "next": "Currentonlyheavy98388 sourcefaces630 build, stem96zzzzzzm-nvidia-current367-v1; reader099native/WASM exactphase reuse, freshoptimizedwebcompiling. Priorquality656EEXISTFAIL andmarkerV7hiddenObjectqueryFAIL retained; noacceptance/countchange/runtimecausepreclaim.",
+      "next": "Currentonlyheavy48924 original656 NVIDIAquality retry atsame source/stem/runner,6GiB/twoCPUs; preexistinggeneratedqualitydirectory reversiblyrelocated. Prior54304EEXISTFAIL andnineprefixoutputs retained. Sourcefaces630full99840PASS accepted7/18 with11left=9historical+2late;12sourcefacePNGs rootviewed plus exactcanonicalvisualreuse. MarkerV7hiddenObjectqueryFAIL remainsunaccepted despitezeroRGBA; no runtimecauseconfirmed. Allthreeinputexceptionspending/unapplied;features4/18complete14partial,fixtures2/4,release1/5 unchanged.",
       "chapter14": {
         "status": "PASS complete current76originalcanonicalbrowser callback",
         "record": "release/76d-browser-review.json",
@@ -22709,6 +22717,17 @@
         "record": "release/quality-and-marker-failure-review.json",
         "quality656": "Original54304 FAIL216.486s EEXIST quality-settings.cjs16; nineprefixoutputs frozen; noacceptance.",
         "markerXray": "V7 68288 FAIL9.432s courseObjectqueryhiddenvertex2 None vsproduction[2,DISC]; strictzeroRGBA. Four V6completedcases retained; nofivepairacceptance/runtimecausepreclaim."
+      },
+      "sourceFaces": {
+        "status": "PASS complete original630 sourcefaces callback;12actualfeatureimages reviewed plus exactcanonicalvisualreuse",
+        "checkpoint": "96zzzzzzm-query-original-faces-under-contact-overlays",
+        "record": "release/source-faces-browser-review.json",
+        "sourceFiles": 630,
+        "sourceFingerprint": "5c18f53c21b8674571df1fa9081e8525a1e208c446798bae3cde6e28a077f13b",
+        "sourceSignature": "7f1370c850d44cc94c4f730d8658dfa86a8146773d7b552625ad38351a2ea01a",
+        "elapsedSeconds": 1951.444,
+        "peakJobCommitBytes": 1106415616,
+        "scope": "Sparse17/93 sourcefaces/readonlycontact, originalowner/overhang/BRep andexactselection/zoom/MoveUndo/archive assertions; inheritedprefix anddedicatedDPR1/2/finalparent pass. Onlysourcecallbackacceptance; featurecountsunchanged."
       }
     },
     "sheetFiniteClosure": {
