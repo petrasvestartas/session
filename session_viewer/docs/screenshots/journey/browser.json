@@ -10940,6 +10940,34 @@
       "bundle": "1c94ddbc2c0f1a33f507a1c9d9d9adf12bba88626b8963692e92ae5b9fe520d0",
       "commands": [],
       "keyboardRoundtrip": false
+    },
+    "88ad-exercise-original-sections-bores-and-ink": {
+      "source": "11cfae1941526dd8075d515d591f393c2e941f6d8f9876e77633c476d58a5bc3",
+      "checker": "730a2c8618175efe53a93be8f837fc14f91b5422375d8d0e699804d0c17e593a",
+      "extraChecker": "290e91147bc3c47359bd468b8526547870927761f7aa097ed24f23cab6153122",
+      "browser": "145.0.7632.6",
+      "headless": true,
+      "captured": "2026-10-24T18:01:29.025Z",
+      "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "canvas": "b264fb05c7b8984ef38a73de351ad20e2d5509249527e5864f3b1b05917d1a20",
+      "file": "88ad-exercise-original-sections-bores-and-ink-browser.png",
+      "initialViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "initialCanvas": {
+        "x": 0,
+        "y": 0,
+        "width": 900,
+        "height": 760
+      },
+      "screenshotViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "bundle": "29b5ac168ab3a234dc08f5ce9f763e64ca52d55795e39acb59df643ca6b5008a",
+      "commands": [],
+      "keyboardRoundtrip": false
     }
   }
 }

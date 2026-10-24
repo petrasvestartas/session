@@ -623,12 +623,12 @@
   ],
   "onlyHeavy": {
     "status": "running",
-    "task": "Full95f browser callback with approved zero-delay command helper",
-    "sessionId": 85528,
+    "task": "Full65c corrected browser callback; retained compiler phases",
+    "sessionId": 49370,
     "memoryLimitMiB": 6144,
     "processors": 2
   },
-  "next": "Finish the seven pending full source-specific callbacks using the approved zero-delay helper and qualified compiler phases.95f is running;88ad now has all five phases passed. Preserve eleven accepted historical scopes. Then integrate exact production BRep/kernel corrections in finalq and run the affected final integration batch, preserving all Gemini and Vue content.",
+  "next": "Finish six remaining source-specific callbacks with approved zero-delay typing and corrected terminal/measurement contracts.65c runs;88ad is accepted. Then integrate exact production BRep/kernel changes and execute the affected final batch while preserving Gemini and Vue.",
   "currentDocsReview": {
     "status": "PASS current694/b031 book publication snapshot: desktop/390px phone roadmap and changed22.6 Rust/WGSL section; all three original PNGs root-reviewed",
     "record": "release/docs-progress-ambient-selector-current-visible-review.json",
@@ -958,7 +958,7 @@
     "fingerprint": "6947664b26863adf65ef7bfc879694bfedee853852bc2c7660d59f31d2e36ca9",
     "files": 713,
     "recordedAt": "2026-10-24T10:49:38.600Z",
-    "courseSha256": "05b031571b9b18b4e2740898af6782e2c746cb6b1fcf35c73adb86c957869374",
+    "courseSha256": "fd25625df40bee14e302a069448fa9510a87b90f80eee945f37b752fb1277726",
     "metadataRefreshAtC54": "Only src/current_inventory.json changes one external witness hash after native helper registers Matrix titles and publishes visible labels. All other712 learner files are byte-identical; old execution proofs retain recorded fingerprints.",
     "deltaFromC54": {
       "fromFingerprint": "c54a9960f80340aa9d01aa7c0e0eaf5920b18fefa360656a123e6ccb8ad09f91",
@@ -1197,7 +1197,8 @@
       "source713": "6947664b26863adf65ef7bfc879694bfedee853852bc2c7660d59f31d2e36ca9",
       "source714": "b0313bae6b71646b9424776561375ffc4306125317e1686c5894e0ef618701bf",
       "earlierCheckpointsPreserved": 1359
-    }
+    },
+    "previousCourseBeforeTwoContractCorrections": "05b031571b9b18b4e2740898af6782e2c746cb6b1fcf35c73adb86c957869374"
   },
   "coordination": {
     "gemini": "Owns sections 1-10 in session/session_viewer/docs/journey, including original chapter prose and redraft-10-sections. Preserve changes; stage only named owned paths.",
@@ -1385,6 +1386,17 @@
       "beforeSha256": "ecbc4c716aa91a7aedc2532132c4b08e0a7d1e7511c380b0dbbba0152325a733",
       "afterSha256": "730a2c8618175efe53a93be8f837fc14f91b5422375d8d0e699804d0c17e593a",
       "allAssertionsAndRenderingWaitsRetained": true
+    },
+    "twoBrowserContracts": {
+      "approved": true,
+      "applied": true,
+      "userAnswer": "Apply both tested corrections",
+      "record": "release/two-approved-browser-contract-corrections-review.json",
+      "allBehaviorAssertionsRetained": true
+    },
+    "remainingWorkJudgment": {
+      "userInstruction": "All the questions you have always accepts what you think is best and continue to do the work",
+      "scope": "Proceed with necessary implementation and harness corrections using judgment; preserve Gemini/Vue and behavior assertions. No further routine confirmations."
     }
   },
   "validationQueue": {
@@ -1415,11 +1427,6 @@
         "checkpoint": "85ay-exercise-current-original-commands-together",
         "callback": "journey/checks/browser/current-commands.cjs",
         "chapter": 16
-      },
-      {
-        "checkpoint": "88ad-exercise-original-sections-bores-and-ink",
-        "callback": "journey/checks/browser/caps.cjs",
-        "chapter": 17
       },
       {
         "checkpoint": "95f-prove-cache-invalidation-and-honest-performance-reports",
@@ -1947,15 +1954,15 @@
       "draftingRemaining": 0,
       "featuresComplete": 5,
       "featuresPartial": 13,
-      "callbacksAccepted": 11,
-      "callbacksRemaining": 7,
+      "callbacksAccepted": 12,
+      "callbacksRemaining": 6,
       "historicalFixturesAccepted": 2,
       "historicalFixturesTotal": 4,
       "releaseGatesDone": 3,
       "releaseGatesTotal": 5,
       "releaseGatesRemaining": 2
     },
-    "next": "Three of five final gates complete at current694/b031/course05b: runtime build, navigation/history and local publication/report. Remaining:7 source-specific callbacks and13 partial finite features. Eleven accepted callbacks and2/4 fixtures retain their recorded scopes. Source635 full original mesh-marker callback and all7 meaningful images accepted; no whole marker feature closure. Final native/runtime proofs unchanged.",
+    "next": "12/18 callbacks accepted;6 remain. Features5/18, fixtures2/4, releasegates3/5.88ad fullcallback and visible original bore accepted at source496; exact final production-cap comparison remains separate.",
     "chapter14": {
       "status": "PASS complete current76originalcanonicalbrowser callback",
       "record": "release/76d-browser-review.json",
@@ -2349,6 +2356,17 @@
       "elapsedSeconds": 640.406,
       "peakJobCommitBytes": 827396096,
       "scope": "Only actual source635 full original mesh-marker default callback, exact approved checker, original assertions, six feature images and final canonical root review. No historical full native suite or blanket production parity."
+    },
+    "caps88ad": {
+      "status": "PASS original default callback plus root-reviewed cap image",
+      "record": "release/caps88ad-browser-review.json",
+      "checkpoint": "88ad-exercise-original-sections-bores-and-ink",
+      "sourceFiles": 496,
+      "sourceFingerprint": "8caaafa12e5a8295e8eef18cfeb60f9869afe340dddb6324e003307f6836049b",
+      "sourceSignature": "11cfae1941526dd8075d515d591f393c2e941f6d8f9876e77633c476d58a5bc3",
+      "callbackFingerprint": "290e91147bc3c47359bd468b8526547870927761f7aa097ed24f23cab6153122",
+      "elapsedSeconds": 601.325,
+      "peakJobCommitBytes": 1936838656
     }
   },
   "currentRuntimeDocsQualification": {
