@@ -1,0 +1,685 @@
+{
+  "status": "PASS measured eight-callback roadmap desktop/390phone publication; source-bound prepublication snapshot",
+  "source": {
+    "courseSha256": "367065739cee3cbf01e1b240c9eca4a1e0c12092eccab2fe2345cbc783a55197",
+    "roadmapSha256": "9517db4ecf965aa69f3ed9f65f1eaddf96e23c52c6b9ecfe83db82f9b3e2c4a3",
+    "stateSha256": "1a1671055058de731cd40242968ea0972825b37faaa9f2153f3bb7b5153275ee",
+    "mapSha256": "fea5b6ca7aa9dd3251c18423c7a7a366c6bad80baab40dad65312efc8c1d69c5",
+    "inputManifest": {
+      "path": "target/course-windows-20261018/fef4-progress-publication-preparation/progress-publication-v6-current-retry1/inputs.json",
+      "sha256": "f8ddc1dc3bb32ecc88c498e182e8a214f3631d5a698260c2f256363a4830ee46"
+    },
+    "frozenExistingInputsVerified": 26601,
+    "native": {
+      "sourceFiles": 713,
+      "sourceFingerprint": "fef4c7bdb6f4c0a6f7a7701b0ba5581469dd757a34eefbab030a06e92ce4e5a1",
+      "passed": 1062,
+      "record": "release/native-final-two-fixture-integration-review.json"
+    },
+    "maintained": {
+      "sourceFiles": 714,
+      "sourceFingerprint": "06359f77b5c26901e6d6e155808ce05946282865b10fffdf4e36e07c494ba3ce",
+      "record": "release/maintained97-export-recovery-review.json"
+    }
+  },
+  "build": {
+    "result": {
+      "path": "target/course-windows-20261018/fef4-progress-publication-preparation/progress-publication-v6-current-retry1/build-pass.json",
+      "sha256": "435d9850c0201f40eb709ca74d7054b918e00a5263b382a331ef3a59f42713f7"
+    },
+    "resources": {
+      "path": "target/course-windows-20261018/fef4-progress-publication-preparation/progress-publication-v6-current-retry1/resources.json",
+      "sha256": "d02bff2db2f57f6db048d08693ec36c631a053b536797eb96512f85a67acea6d"
+    },
+    "log": {
+      "path": "target/course-windows-20261018/fef4-progress-publication-preparation/progress-publication-v6-current-retry1/build.log",
+      "sha256": "8501fa64755af3b6e58c9ec86638177656b36497839740aaeae9b50a8e9bc0e0"
+    },
+    "command": {
+      "path": "target/course-windows-20261018/fef4-progress-publication-preparation/progress-publication-v6-current-retry1/command.json",
+      "sha256": "781f35784bae585ec68ef562147c63bea5f6f892ade7b26b40546e09f8ce4357"
+    },
+    "guardSeconds": 38.83,
+    "peakBytes": 1384198144,
+    "base": "/docs/"
+  },
+  "probe": {
+    "review": {
+      "path": "target/course-windows-20261018/fef4-progress-publication-preparation/progress-publication-v6-current-retry1/visible-roadmap-v6/review.json",
+      "sha256": "52cee27207433858797b2d8388734b2725fa00e7751ca059ed6f2f46d00443a0"
+    },
+    "resources": {
+      "path": "target/course-windows-20261018/fef4-progress-publication-preparation/progress-publication-v6-current-retry1/probe-v6-progress.resources.json",
+      "sha256": "7d3667e6b67b9f6a47b574740924ba999e1684ed1968a12ccf459db7016de3f2"
+    },
+    "log": {
+      "path": "target/course-windows-20261018/fef4-progress-publication-preparation/progress-publication-v6-current-retry1/probe-v6-progress.log",
+      "sha256": "ede705fd0398fef7f626b504e3efeb9d3ed91a5403d50f66465e8cd474165d4d"
+    },
+    "guardSeconds": 16.034,
+    "peakBytes": 255725568,
+    "helperHashes": {
+      "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\fef4-progress-publication-preparation\\probe-v6-progress.cjs": "89fc89246f8e156d28fda2ebcc355f48acf3b53c6ffeffdc01b586b96cc4358b",
+      "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\fef4-progress-publication-preparation\\launch-probe-v6-progress.cjs": "a9de6c784ac0bb75c2c5c0107f775c2f93ef54507cf53e37e528f1d949e214c5",
+      "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\fef4-progress-publication-preparation\\common-v6.cjs": "ef8f9f532219843c986c42d061ec4c9d65f0a7c72e1337c4e9926f4f3060f059",
+      "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\fef4-progress-publication-preparation\\build-v6.cjs": "0593a7aeac5a3a54157cdd8d9c6a3eb7462c1db69c32ebb44208dace77288e3c"
+    },
+    "counts": {
+      "pendingHistoricalEntryCallbacks": 9,
+      "additionalDeclaredCallbackEntries": 4,
+      "pendingIntegrationActions": 3,
+      "distinctSourceSpecificCallbackEntries": 18,
+      "nonCallbackIntegrationActions": 3,
+      "namedActions": 21,
+      "remainingFeatureChecklists": 14,
+      "meaning": "Original18sourceentries retained:finalCAD,maintained97,current76,current70,96v,Arena-empty,sourcefaces andquality656 accepted8;pending10=9historical+1meshmarker. Original21named denominator retained;13pendinggroups overlap14partialfeatures. Fixtures2/4 andrelease1/5 remainindependent.",
+      "eta": "No total ETA; missing successful callback durations and unscopednative tuples prevent an honest walltime estimate.",
+      "acceptedSourceSpecificCallbackEntries": 8,
+      "pendingSourceSpecificCallbackEntries": 10,
+      "pendingNamedActions": 13,
+      "pendingAdditionalDeclaredCallbackEntries": 1
+    },
+    "fixtures": {
+      "accepted": 2,
+      "total": 4
+    },
+    "gates": {
+      "done": 1,
+      "total": 5
+    },
+    "currentAssetCount": 82,
+    "currentAssets": [
+      {
+        "file": "docs/journey/release/70d-browser-failure-review.json",
+        "url": "http://localhost:8788/docs/course/docs/journey/release/70d-browser-failure-review.json?v=df0550d0cdd2",
+        "sha256": "df0550d0cdd2d5f19bfa77d7c63dbfb19d3a8ec95db476eb933a74d9a37e3ab7",
+        "kind": "JSON"
+      },
+      {
+        "file": "docs/journey/release/70d-browser-review.json",
+        "url": "http://localhost:8788/docs/course/docs/journey/release/70d-browser-review.json?v=79f944f67f1a",
+        "sha256": "79f944f67f1a8e2633cbddf026237de58cc51a4eebff2e8a596f97f2d671b5ac",
+        "kind": "JSON"
+      },
+      {
+        "file": "docs/journey/release/70d-current-mirrored-final.png",
+        "url": "http://localhost:8788/docs/course/docs/journey/release/70d-current-mirrored-final.png?v=58fbd5f36b33",
+        "sha256": "58fbd5f36b3379c593b5a968d7f7c588a8c852a7b260788ec95abf75e0b5df0d",
+        "kind": "PNG"
+      },
+      {
+        "file": "docs/journey/release/76d-browser-review.json",
+        "url": "http://localhost:8788/docs/course/docs/journey/release/76d-browser-review.json?v=08d689e03e86",
+        "sha256": "08d689e03e86c57037011c16b3157241d07a5d2ac1eebefa421fd6a7fc6f276a",
+        "kind": "JSON"
+      },
+      {
+        "file": "docs/journey/release/76d-current-final-curves.png",
+        "url": "http://localhost:8788/docs/course/docs/journey/release/76d-current-final-curves.png?v=4aa1f469da97",
+        "sha256": "4aa1f469da97467da184efd103cacc03f010318d5109951a6a89022f2e0bd013",
+        "kind": "PNG"
+      },
+      {
+        "file": "docs/journey/release/76d-current-sheet-before-drawing.png",
+        "url": "http://localhost:8788/docs/course/docs/journey/release/76d-current-sheet-before-drawing.png?v=69698b390864",
+        "sha256": "69698b390864f5ca72cfb3d5edbc50601fc56b3a8636b68171886118377696e8",
+        "kind": "PNG"
+      },
+      {
+        "file": "docs/journey/release/80d-gpu-pick-input-review.json",
+        "url": "http://localhost:8788/docs/course/docs/journey/release/80d-gpu-pick-input-review.json?v=14b13a20facd",
+        "sha256": "14b13a20facd1bdf29fd2e5868006a59116226ee08838749fdf4944e881b15f2",
+        "kind": "JSON"
+      },
+      {
+        "file": "docs/journey/release/80d-original-two-click-gizmo-witness.png",
+        "url": "http://localhost:8788/docs/course/docs/journey/release/80d-original-two-click-gizmo-witness.png?v=39d33861d892",
+        "sha256": "39d33861d89236a78477f3ede3246d8fe78e05cb488941167988e55b2fd484e9",
+        "kind": "PNG"
+      },
+      {
+        "file": "docs/journey/release/96v-browser-review.json",
+        "url": "http://localhost:8788/docs/course/docs/journey/release/96v-browser-review.json?v=e3d67262cbd3",
+        "sha256": "e3d67262cbd3c63eee563b7b19d4b2719fb740f551419ed90bc4eeba3c65df1b",
+        "kind": "JSON"
+      },
+      {
+        "file": "docs/journey/release/96v-current-browser-final.png",
+        "url": "http://localhost:8788/docs/course/docs/journey/release/96v-current-browser-final.png?v=e0027afa1f16",
+        "sha256": "e0027afa1f164ee8ff73f96495d89881d3b624e159218cd4155dd213d83e8642",
+        "kind": "PNG"
+      },
+      {
+        "file": "docs/journey/release/96v-current-native-frame.png",
+        "url": "http://localhost:8788/docs/course/docs/journey/release/96v-current-native-frame.png?v=72079e3630a9",
+        "sha256": "72079e3630a9d01de2e63110a28b3fc39fed50d6e3b929a1e86e56dc6420e0c1",
+        "kind": "PNG"
+      },
+      {
+        "file": "docs/journey/release/96zzo-browser-failure-review.json",
+        "url": "http://localhost:8788/docs/course/docs/journey/release/96zzo-browser-failure-review.json?v=3c889cc05697",
+        "sha256": "3c889cc05697e6f28998f2775e87afd6563bc34d3e035db14a57514308957b06",
+        "kind": "JSON"
+      },
+      {
+        "file": "docs/journey/release/96zzo-original-browser-failure-diagnostic.png",
+        "url": "http://localhost:8788/docs/course/docs/journey/release/96zzo-original-browser-failure-diagnostic.png?v=d9822345bf72",
+        "sha256": "d9822345bf72fa5b8ac198c234e862a48c35861e47655112588c1dc3f78b182c",
+        "kind": "PNG"
+      },
+      {
+        "file": "docs/journey/release/arena-current-browser-final.png",
+        "url": "http://localhost:8788/docs/course/docs/journey/release/arena-current-browser-final.png?v=699642c163a8",
+        "sha256": "699642c163a81a10e3878b6bb9ce6d53adde4ad98bc3a07fb740f8cc6eb3e370",
+        "kind": "PNG"
+      },
+      {
+        "file": "docs/journey/release/arena-current-restored-cad-dpr1.png",
+        "url": "http://localhost:8788/docs/course/docs/journey/release/arena-current-restored-cad-dpr1.png?v=05be9e0f790d",
+        "sha256": "05be9e0f790d6b0d7edf42fceb58b9b91b199e024c615e15f9e937b7fa30ed0e",
+        "kind": "PNG"
+      },
+      {
+        "file": "docs/journey/release/arena-current-restored-cad-dpr2.png",
+        "url": "http://localhost:8788/docs/course/docs/journey/release/arena-current-restored-cad-dpr2.png?v=f1290a46a3f8",
+        "sha256": "f1290a46a3f89a7ccbc90e9d8b90c3e4424764ff83b634cf2f26f62af19b9909",
+        "kind": "PNG"
+      },
+      {
+        "file": "docs/journey/release/arena-empty-browser-review.json",
+        "url": "http://localhost:8788/docs/course/docs/journey/release/arena-empty-browser-review.json?v=27d30b695398",
+        "sha256": "27d30b6953989ad5647d6a6192a8abb6a6d1982614cd3f7f5e26822c33230b42",
+        "kind": "JSON"
+      },
+      {
+        "file": "docs/journey/release/concurrent-teaching-integration-review.json",
+        "url": "http://localhost:8788/docs/course/docs/journey/release/concurrent-teaching-integration-review.json?v=2766b7171355",
+        "sha256": "2766b7171355c0541166e426f58dd734737e307efa186c3b3d0e5f4773fa9450",
+        "kind": "JSON"
+      },
+      {
+        "file": "docs/journey/release/docs-current-chapter13-desktop.png",
+        "url": "http://localhost:8788/docs/course/docs/journey/release/docs-current-chapter13-desktop.png?v=c199e0ffc87f",
+        "sha256": "c199e0ffc87f61174660f3a4a60de34f44f097024ea49650ed41bc4c16b1a372",
+        "kind": "PNG"
+      },
+      {
+        "file": "docs/journey/release/docs-current-chapter13-phone.png",
+        "url": "http://localhost:8788/docs/course/docs/journey/release/docs-current-chapter13-phone.png?v=ca098917381a",
+        "sha256": "ca098917381a6e3ebb970061b781537094cc2da34ddef3dc1ab39219da88b98b",
+        "kind": "PNG"
+      },
+      {
+        "file": "docs/journey/release/docs-current-maintained97-desktop.png",
+        "url": "http://localhost:8788/docs/course/docs/journey/release/docs-current-maintained97-desktop.png?v=86b168a18409",
+        "sha256": "86b168a184098e2efb1f68bcd26c78d457732cf0e0af03b1ab48b9081c82faf0",
+        "kind": "PNG"
+      },
+      {
+        "file": "docs/journey/release/docs-current-roadmap-desktop.png",
+        "url": "http://localhost:8788/docs/course/docs/journey/release/docs-current-roadmap-desktop.png?v=30136b9be59e",
+        "sha256": "30136b9be59edd132f929c9db5686d007db271b49b26a84c7624c3c5225326db",
+        "kind": "PNG"
+      },
+      {
+        "file": "docs/journey/release/docs-five-callback-roadmap-desktop.png",
+        "url": "http://localhost:8788/docs/course/docs/journey/release/docs-five-callback-roadmap-desktop.png?v=b87e55087d02",
+        "sha256": "b87e55087d02fb808df26052d7f436eacec9a62d3545b8e88cb8ba85859e8288",
+        "kind": "PNG"
+      },
+      {
+        "file": "docs/journey/release/docs-five-callback-roadmap-phone.png",
+        "url": "http://localhost:8788/docs/course/docs/journey/release/docs-five-callback-roadmap-phone.png?v=2887f2474a72",
+        "sha256": "2887f2474a720fc14ea405e6b3998fb2e1a1c4e520c48e289e49ebfa342b98bf",
+        "kind": "PNG"
+      },
+      {
+        "file": "docs/journey/release/docs-progress-current-visible-review.json",
+        "url": "http://localhost:8788/docs/course/docs/journey/release/docs-progress-current-visible-review.json?v=c1b84deee6c0",
+        "sha256": "c1b84deee6c0300ce07d947468b246775cf77e56c14d7f4512133c7ed3d86c9b",
+        "kind": "JSON"
+      },
+      {
+        "file": "docs/journey/release/docs-progress-five-callback-visible-review.json",
+        "url": "http://localhost:8788/docs/course/docs/journey/release/docs-progress-five-callback-visible-review.json?v=1f7c9bf1ef29",
+        "sha256": "1f7c9bf1ef290f119758827a5b2902433782922ddfab0de8ec8e9118d2e368be",
+        "kind": "JSON"
+      },
+      {
+        "file": "docs/journey/release/final-fef4-artifact-review.json",
+        "url": "http://localhost:8788/docs/course/docs/journey/release/final-fef4-artifact-review.json?v=59be90667e77",
+        "sha256": "59be90667e771cef30162b2751deddbf01fdde539e1620abb3f1f96c85263c34",
+        "kind": "JSON"
+      },
+      {
+        "file": "docs/journey/release/final-fef4-browser-boot.png",
+        "url": "http://localhost:8788/docs/course/docs/journey/release/final-fef4-browser-boot.png?v=b34f1ec8e712",
+        "sha256": "b34f1ec8e712448260d1d33d31fb0b8f1f669d2bb4590944f6a5df31fcfcf4b7",
+        "kind": "PNG"
+      },
+      {
+        "file": "docs/journey/release/final-fef4-native-frame.png",
+        "url": "http://localhost:8788/docs/course/docs/journey/release/final-fef4-native-frame.png?v=4c786c32b7fc",
+        "sha256": "4c786c32b7fcbed3d6c3554637444ed580ee84bb09e643805e2bed534eb4f274",
+        "kind": "PNG"
+      },
+      {
+        "file": "docs/journey/release/final-quality-automatic-dpr1.png",
+        "url": "http://localhost:8788/docs/course/docs/journey/release/final-quality-automatic-dpr1.png?v=f5da22df153a",
+        "sha256": "f5da22df153ad2fa2fcf6b440373008224a90a2c093067e4665afa6256bc7929",
+        "kind": "PNG"
+      },
+      {
+        "file": "docs/journey/release/final-quality-automatic-dpr2.png",
+        "url": "http://localhost:8788/docs/course/docs/journey/release/final-quality-automatic-dpr2.png?v=bfbf01e57a66",
+        "sha256": "bfbf01e57a661ea68bd02c76ecddf78bfe10d08ce1e288ba8d98493dbdbb041e",
+        "kind": "PNG"
+      },
+      {
+        "file": "docs/journey/release/final-quality-forced-four-dpr1.png",
+        "url": "http://localhost:8788/docs/course/docs/journey/release/final-quality-forced-four-dpr1.png?v=f5da22df153a",
+        "sha256": "f5da22df153ad2fa2fcf6b440373008224a90a2c093067e4665afa6256bc7929",
+        "kind": "PNG"
+      },
+      {
+        "file": "docs/journey/release/final-quality-forced-four-dpr2.png",
+        "url": "http://localhost:8788/docs/course/docs/journey/release/final-quality-forced-four-dpr2.png?v=9420bf48b850",
+        "sha256": "9420bf48b85092cff9ca03a879f5c455fa8524b8d8ae9d369d2007892eb81dc9",
+        "kind": "PNG"
+      },
+      {
+        "file": "docs/journey/release/final-quality-recovered-forced-four.png",
+        "url": "http://localhost:8788/docs/course/docs/journey/release/final-quality-recovered-forced-four.png?v=90a428adc12d",
+        "sha256": "90a428adc12d4287bbdc268477e8cf381d4aed738975236b49686c1c7ad39537",
+        "kind": "PNG"
+      },
+      {
+        "file": "docs/journey/release/final-quality-recovery-review.json",
+        "url": "http://localhost:8788/docs/course/docs/journey/release/final-quality-recovery-review.json?v=54cb090abe1a",
+        "sha256": "54cb090abe1a441e0f026929aeccdc2723a756618137ba24bb7a264ffe77f032",
+        "kind": "JSON"
+      },
+      {
+        "file": "docs/journey/release/final-runtime-build-gate-review.json",
+        "url": "http://localhost:8788/docs/course/docs/journey/release/final-runtime-build-gate-review.json?v=87d9992219f6",
+        "sha256": "87d9992219f6c0f107f78dd5da7b39c244d32b6145b33681b720b9285c763531",
+        "kind": "JSON"
+      },
+      {
+        "file": "docs/journey/release/maintained97-export-recovery-dpr1.png",
+        "url": "http://localhost:8788/docs/course/docs/journey/release/maintained97-export-recovery-dpr1.png?v=ab519bd9ff19",
+        "sha256": "ab519bd9ff19a16c73771ea73ee370111202fa1dd68f10e0ac08c03dcaf444ea",
+        "kind": "PNG"
+      },
+      {
+        "file": "docs/journey/release/maintained97-export-recovery-dpr2.png",
+        "url": "http://localhost:8788/docs/course/docs/journey/release/maintained97-export-recovery-dpr2.png?v=a7f9c87ac916",
+        "sha256": "a7f9c87ac916a4e85e507d83b8b5038fdd4df5ed71cdc26c0188c75c3f2f6365",
+        "kind": "PNG"
+      },
+      {
+        "file": "docs/journey/release/maintained97-export-recovery-review.json",
+        "url": "http://localhost:8788/docs/course/docs/journey/release/maintained97-export-recovery-review.json?v=576ab6182909",
+        "sha256": "576ab6182909bf0c558dea42e64424518c19f4069bf0a421f0a9544ea6dab019",
+        "kind": "JSON"
+      },
+      {
+        "file": "docs/journey/release/marker-xray-matched-pixels-query-failure.png",
+        "url": "http://localhost:8788/docs/course/docs/journey/release/marker-xray-matched-pixels-query-failure.png?v=6628bf9e4000",
+        "sha256": "6628bf9e40001c3ade94a18f7e78df470457284e7cc9d4acd4ab2a36a9104ee9",
+        "kind": "PNG"
+      },
+      {
+        "file": "docs/journey/release/mesh-marker-candidate-authored-dpr1.png",
+        "url": "http://localhost:8788/docs/course/docs/journey/release/mesh-marker-candidate-authored-dpr1.png?v=f1894606203b",
+        "sha256": "f1894606203bbc1896b73fc85433d43de20617b0599a70e46863bb094a822581",
+        "kind": "PNG"
+      },
+      {
+        "file": "docs/journey/release/mesh-marker-candidate-authored-dpr2.png",
+        "url": "http://localhost:8788/docs/course/docs/journey/release/mesh-marker-candidate-authored-dpr2.png?v=214a76b97c7e",
+        "sha256": "214a76b97c7e29f26987cd97b282fb2faf4a24764c8a590a88789708064d65e4",
+        "kind": "PNG"
+      },
+      {
+        "file": "docs/journey/release/mesh-marker-candidate-coplanar-center-dpr1.png",
+        "url": "http://localhost:8788/docs/course/docs/journey/release/mesh-marker-candidate-coplanar-center-dpr1.png?v=8a8dd127e6ea",
+        "sha256": "8a8dd127e6ea234844cb95689dfd8287c7a776c59f93623fcfa0dd600a12d93d",
+        "kind": "PNG"
+      },
+      {
+        "file": "docs/journey/release/mesh-marker-candidate-coplanar-center-dpr2.png",
+        "url": "http://localhost:8788/docs/course/docs/journey/release/mesh-marker-candidate-coplanar-center-dpr2.png?v=6b255df2becc",
+        "sha256": "6b255df2beccbd9b88d3f5942ed0bab0a060ecee608fa848ee95ac3df0c2e0bf",
+        "kind": "PNG"
+      },
+      {
+        "file": "docs/journey/release/mesh-marker-candidate-shared-markers-dpr1.png",
+        "url": "http://localhost:8788/docs/course/docs/journey/release/mesh-marker-candidate-shared-markers-dpr1.png?v=1d51fa25c756",
+        "sha256": "1d51fa25c756c1a502471a26b9000a3de3b7cf8d57f7dd36cfbb83a6259400a0",
+        "kind": "PNG"
+      },
+      {
+        "file": "docs/journey/release/mesh-marker-candidate-shared-markers-dpr2.png",
+        "url": "http://localhost:8788/docs/course/docs/journey/release/mesh-marker-candidate-shared-markers-dpr2.png?v=f29eb06b6ead",
+        "sha256": "f29eb06b6ead203b83d819deb00b8e96efd14851732d3abfadaaae1e6d18bbe2",
+        "kind": "PNG"
+      },
+      {
+        "file": "docs/journey/release/mesh-marker-control-input-review.json",
+        "url": "http://localhost:8788/docs/course/docs/journey/release/mesh-marker-control-input-review.json?v=65abd4b6fcc0",
+        "sha256": "65abd4b6fcc08e2ab0d1f0ee0c4a69805bc04b45916360097125cc1127b2594d",
+        "kind": "JSON"
+      },
+      {
+        "file": "docs/journey/release/native-final-two-fixture-integration-review.json",
+        "url": "http://localhost:8788/docs/course/docs/journey/release/native-final-two-fixture-integration-review.json?v=766ac193897d",
+        "sha256": "766ac193897db4bd633201967358fe4f4a7dd19a712bb6e73f72226ee3ee965f",
+        "kind": "JSON"
+      },
+      {
+        "file": "docs/journey/release/native-ribbon-v4-qualified-recovery-review.json",
+        "url": "http://localhost:8788/docs/course/docs/journey/release/native-ribbon-v4-qualified-recovery-review.json?v=a2d4516e9743",
+        "sha256": "a2d4516e9743c230bfd8e41300416684e737f7691ba2207872be2c8668b41d6d",
+        "kind": "JSON"
+      },
+      {
+        "file": "docs/journey/release/quality-and-marker-failure-review.json",
+        "url": "http://localhost:8788/docs/course/docs/journey/release/quality-and-marker-failure-review.json?v=5f463c3e5dcf",
+        "sha256": "5f463c3e5dcf81f67e8a64ce90677a3800b412e2290a4932cd641ca13b2cb821",
+        "kind": "JSON"
+      },
+      {
+        "file": "docs/journey/release/quality656-browser-review.json",
+        "url": "http://localhost:8788/docs/course/docs/journey/release/quality656-browser-review.json?v=e84cb8b4ddca",
+        "sha256": "e84cb8b4ddcab47842ba94979511920d59581d613aec995910d78485acc969dc",
+        "kind": "JSON"
+      },
+      {
+        "file": "docs/journey/release/quality656-current-canonical-final.png",
+        "url": "http://localhost:8788/docs/course/docs/journey/release/quality656-current-canonical-final.png?v=2c3174d55441",
+        "sha256": "2c3174d5544169db975c549b81eb624b1a40fb3df4b8182dd2bdcbbf3fe4abfd",
+        "kind": "PNG"
+      },
+      {
+        "file": "docs/journey/release/quality656-current-prefix-contact-shading-dpr1.png",
+        "url": "http://localhost:8788/docs/course/docs/journey/release/quality656-current-prefix-contact-shading-dpr1.png?v=d3c1a8a0a59b",
+        "sha256": "d3c1a8a0a59bed383d4b7bee6638efa5fc7770ddd760b8ad6e595b0bf769e44d",
+        "kind": "PNG"
+      },
+      {
+        "file": "docs/journey/release/quality656-current-prefix-contact-shading-dpr2.png",
+        "url": "http://localhost:8788/docs/course/docs/journey/release/quality656-current-prefix-contact-shading-dpr2.png?v=e04bcd3d4e98",
+        "sha256": "e04bcd3d4e98ffa7c1328ed8ced90d54774ebef1433bdfef1b28ce2c634e6695",
+        "kind": "PNG"
+      },
+      {
+        "file": "docs/journey/release/quality656-current-prefix-resize-480-dpr1.png",
+        "url": "http://localhost:8788/docs/course/docs/journey/release/quality656-current-prefix-resize-480-dpr1.png?v=1915cbda2037",
+        "sha256": "1915cbda2037c4c9d18465636557eb0b29080b14f7d0dbb72e4fd0a1d3608fc7",
+        "kind": "PNG"
+      },
+      {
+        "file": "docs/journey/release/quality656-current-prefix-resize-480-dpr2.png",
+        "url": "http://localhost:8788/docs/course/docs/journey/release/quality656-current-prefix-resize-480-dpr2.png?v=d0c32d1cf8c5",
+        "sha256": "d0c32d1cf8c5ab4dce8328f0b6faa9416bf1d546e858676d1d79a9550f12f1c1",
+        "kind": "PNG"
+      },
+      {
+        "file": "docs/journey/release/quality656-current-prefix-resize-620-dpr1.png",
+        "url": "http://localhost:8788/docs/course/docs/journey/release/quality656-current-prefix-resize-620-dpr1.png?v=59d89b42e97c",
+        "sha256": "59d89b42e97ccfc42b8087929835b1ca7ddb6f2e5de69fc01710a1b8c3784ed5",
+        "kind": "PNG"
+      },
+      {
+        "file": "docs/journey/release/quality656-current-prefix-resize-620-dpr2.png",
+        "url": "http://localhost:8788/docs/course/docs/journey/release/quality656-current-prefix-resize-620-dpr2.png?v=2ab18bb35d7d",
+        "sha256": "2ab18bb35d7db73c0e64b47ca901dabbc3a870701580849e4d0f51c2afe95783",
+        "kind": "PNG"
+      },
+      {
+        "file": "docs/journey/release/quality656-current-prefix-shared-originals-dpr1.png",
+        "url": "http://localhost:8788/docs/course/docs/journey/release/quality656-current-prefix-shared-originals-dpr1.png?v=3893064ea6e6",
+        "sha256": "3893064ea6e6e5a37a8361c2aa3bdfb778c9a2e952d11174c845e6fbf343aae7",
+        "kind": "PNG"
+      },
+      {
+        "file": "docs/journey/release/quality656-current-prefix-shared-originals-dpr2.png",
+        "url": "http://localhost:8788/docs/course/docs/journey/release/quality656-current-prefix-shared-originals-dpr2.png?v=1f7c68f14511",
+        "sha256": "1f7c68f14511b44f2107ca48969a51a6579811f277fef6027f86b72890821704",
+        "kind": "PNG"
+      },
+      {
+        "file": "docs/journey/release/quality656-current-quality-automatic-dpr1.png",
+        "url": "http://localhost:8788/docs/course/docs/journey/release/quality656-current-quality-automatic-dpr1.png?v=ed26a17b2926",
+        "sha256": "ed26a17b29261946bc4e663fe2a6aaac3e0504fecc5614ffb23b3d69dc561a66",
+        "kind": "PNG"
+      },
+      {
+        "file": "docs/journey/release/quality656-current-quality-automatic-dpr2.png",
+        "url": "http://localhost:8788/docs/course/docs/journey/release/quality656-current-quality-automatic-dpr2.png?v=25d74fc3d025",
+        "sha256": "25d74fc3d025d0e34dd18938db04169b60366d8c4d41612c4b44b9167e71217d",
+        "kind": "PNG"
+      },
+      {
+        "file": "docs/journey/release/quality656-current-quality-forced-four-dpr1.png",
+        "url": "http://localhost:8788/docs/course/docs/journey/release/quality656-current-quality-forced-four-dpr1.png?v=ed26a17b2926",
+        "sha256": "ed26a17b29261946bc4e663fe2a6aaac3e0504fecc5614ffb23b3d69dc561a66",
+        "kind": "PNG"
+      },
+      {
+        "file": "docs/journey/release/quality656-current-quality-forced-four-dpr2.png",
+        "url": "http://localhost:8788/docs/course/docs/journey/release/quality656-current-quality-forced-four-dpr2.png?v=d1f1540266f5",
+        "sha256": "d1f1540266f582dbb8594b29cfe58a3a1305785c221c296f6f1a46fdaa0ee65f",
+        "kind": "PNG"
+      },
+      {
+        "file": "docs/journey/release/quality656-current-quality-recovered-forced-four.png",
+        "url": "http://localhost:8788/docs/course/docs/journey/release/quality656-current-quality-recovered-forced-four.png?v=cdd1bfb10a89",
+        "sha256": "cdd1bfb10a8931617648557a7743f876408c0520fbc6f0871253b5d6b1fcb154",
+        "kind": "PNG"
+      },
+      {
+        "file": "docs/journey/release/reader-compilation-mask-refresh-review.json",
+        "url": "http://localhost:8788/docs/course/docs/journey/release/reader-compilation-mask-refresh-review.json?v=b0cf94f41aac",
+        "sha256": "b0cf94f41aac504f9465ba4041812052f27ee3ee50932c606f92593849c1ff19",
+        "kind": "JSON"
+      },
+      {
+        "file": "docs/journey/release/reload-grid-browser-review.json",
+        "url": "http://localhost:8788/docs/course/docs/journey/release/reload-grid-browser-review.json?v=7be8355bd91f",
+        "sha256": "7be8355bd91f61c2bacc23c7384606e1027b5ed509726e025f6ab72ba5d01143",
+        "kind": "JSON"
+      },
+      {
+        "file": "docs/journey/release/sheet-text-finite-review.json",
+        "url": "http://localhost:8788/docs/course/docs/journey/release/sheet-text-finite-review.json?v=cc545d6dd41c",
+        "sha256": "cc545d6dd41cee23384652c6753d3da8b7161c09dc09d86cf52379ed39786a33",
+        "kind": "JSON"
+      },
+      {
+        "file": "docs/journey/release/source-faces-browser-review.json",
+        "url": "http://localhost:8788/docs/course/docs/journey/release/source-faces-browser-review.json?v=012cc5b95e01",
+        "sha256": "012cc5b95e01c991aa76d98e04d6ed4409dcd0668ba0c1035c40dc2579e60e61",
+        "kind": "JSON"
+      },
+      {
+        "file": "docs/journey/release/source-faces-current-brep-source-face-dpr1.png",
+        "url": "http://localhost:8788/docs/course/docs/journey/release/source-faces-current-brep-source-face-dpr1.png?v=3052721a1ecc",
+        "sha256": "3052721a1ecc0d8f9b8271f9493373e5ad082e5915c7722a2816a34fc836234e",
+        "kind": "PNG"
+      },
+      {
+        "file": "docs/journey/release/source-faces-current-brep-source-face-dpr2.png",
+        "url": "http://localhost:8788/docs/course/docs/journey/release/source-faces-current-brep-source-face-dpr2.png?v=6d39e116ddb1",
+        "sha256": "6d39e116ddb10ef603192e0f1d63438e424ba0ed6a04025b608efdf6ec1b2c09",
+        "kind": "PNG"
+      },
+      {
+        "file": "docs/journey/release/source-faces-current-canonical-final.png",
+        "url": "http://localhost:8788/docs/course/docs/journey/release/source-faces-current-canonical-final.png?v=60baf6d2ba3b",
+        "sha256": "60baf6d2ba3b2fee1f754cd8fd0209afe3455b30684d6be4f809c210ce4914a6",
+        "kind": "PNG"
+      },
+      {
+        "file": "docs/journey/release/source-faces-current-isometric-left-face-dpr1.png",
+        "url": "http://localhost:8788/docs/course/docs/journey/release/source-faces-current-isometric-left-face-dpr1.png?v=60baf6d2ba3b",
+        "sha256": "60baf6d2ba3b2fee1f754cd8fd0209afe3455b30684d6be4f809c210ce4914a6",
+        "kind": "PNG"
+      },
+      {
+        "file": "docs/journey/release/source-faces-current-isometric-left-face-dpr2.png",
+        "url": "http://localhost:8788/docs/course/docs/journey/release/source-faces-current-isometric-left-face-dpr2.png?v=b03c1081121e",
+        "sha256": "b03c1081121eadad3bcf2e58a071732ee8e90788215d1f1951598164eee834b2",
+        "kind": "PNG"
+      },
+      {
+        "file": "docs/journey/release/source-faces-current-overhang-no-face-dpr1.png",
+        "url": "http://localhost:8788/docs/course/docs/journey/release/source-faces-current-overhang-no-face-dpr1.png?v=a0b300dfef9b",
+        "sha256": "a0b300dfef9bf7599b138af12073f8aabdfa5c9e178ff472d720073916cf82a1",
+        "kind": "PNG"
+      },
+      {
+        "file": "docs/journey/release/source-faces-current-overhang-no-face-dpr2.png",
+        "url": "http://localhost:8788/docs/course/docs/journey/release/source-faces-current-overhang-no-face-dpr2.png?v=9e60c6cf13b9",
+        "sha256": "9e60c6cf13b9072483ed6777e158722ec91755f425af9ed55e7d5cf2d6ee9c2d",
+        "kind": "PNG"
+      },
+      {
+        "file": "docs/journey/release/source-faces-current-overhang-original-parent-dpr1.png",
+        "url": "http://localhost:8788/docs/course/docs/journey/release/source-faces-current-overhang-original-parent-dpr1.png?v=304b59ab3eb6",
+        "sha256": "304b59ab3eb6f10be3da160dcb83b57e59b1bec15a3d7f49d70235b48b2ea489",
+        "kind": "PNG"
+      },
+      {
+        "file": "docs/journey/release/source-faces-current-overhang-original-parent-dpr2.png",
+        "url": "http://localhost:8788/docs/course/docs/journey/release/source-faces-current-overhang-original-parent-dpr2.png?v=cdcfb5240007",
+        "sha256": "cdcfb52400073556058a333a31f6433be06cad97a211bc8f516a7c04ab1854f3",
+        "kind": "PNG"
+      },
+      {
+        "file": "docs/journey/release/source-faces-current-top-left-face-dpr1.png",
+        "url": "http://localhost:8788/docs/course/docs/journey/release/source-faces-current-top-left-face-dpr1.png?v=57c3e8113fca",
+        "sha256": "57c3e8113fca606302fe3c0dccfa19652f86dba28c7fad77bd434db24b4f9727",
+        "kind": "PNG"
+      },
+      {
+        "file": "docs/journey/release/source-faces-current-top-left-face-dpr2.png",
+        "url": "http://localhost:8788/docs/course/docs/journey/release/source-faces-current-top-left-face-dpr2.png?v=a810e9f8e757",
+        "sha256": "a810e9f8e7573c6c1ef86db943a29a2f2fe729cf2e4cb8911a95a622a68e513a",
+        "kind": "PNG"
+      },
+      {
+        "file": "docs/journey/release/source-faces-current-top-right-face-dpr1.png",
+        "url": "http://localhost:8788/docs/course/docs/journey/release/source-faces-current-top-right-face-dpr1.png?v=a56718266c1e",
+        "sha256": "a56718266c1e1e237f0fe5a486cd33adabcf3d57c0d26644ad4655f4feac3197",
+        "kind": "PNG"
+      },
+      {
+        "file": "docs/journey/release/source-faces-current-top-right-face-dpr2.png",
+        "url": "http://localhost:8788/docs/course/docs/journey/release/source-faces-current-top-right-face-dpr2.png?v=bbe3c871718b",
+        "sha256": "bbe3c871718be61256ccd1da80a51028b63644d9a655f16a4b37c71a125d9dc7",
+        "kind": "PNG"
+      }
+    ],
+    "checkboxesPerView": 1468,
+    "servedIndex": {
+      "url": "http://localhost:8788/docs/",
+      "sha256": "bf9a031934ae2f1b5847605ae9f9fcd4b207fe97b41f7db6cb4ff46f713c8988"
+    },
+    "servedRoadmap": {
+      "url": "http://localhost:8788/docs/assets/course-journey-roadmap-CzAoso3I.json",
+      "sha256": "1adcf436a16e5ae9ae31a51bcf1686362e8f270e4767eb99b5621c816a03f769",
+      "entry": {
+        "url": "http://localhost:8788/docs/assets/main-DciVwTPb.js",
+        "sha256": "722e24abe7d942017403a6122eb6b3e55cd1a00bc58e233e3fccf73983368d9f"
+      }
+    },
+    "refreshedOwnedRoadmap": {
+      "targetId": "EE5A00124D21C152A45CEECF7B61C38E",
+      "url": "http://127.0.0.1:8788/docs/#/course/journey/roadmap",
+      "viewport": null
+    },
+    "pageErrors": []
+  },
+  "images": [
+    {
+      "figure": "journey/release/docs-eight-callback-roadmap-desktop.png",
+      "sha256": "bb85e76e331da3c208b7b3df46cb1b92462458955d6f531baa9fb8504475aea8",
+      "width": 1400,
+      "height": 900,
+      "requestedViewport": {
+        "width": 1400,
+        "height": 900
+      },
+      "fit": {
+        "viewport": 1400,
+        "height": 900,
+        "dpr": 1.0000000149011612,
+        "document": 1400,
+        "articleClient": 793,
+        "articleScroll": 793,
+        "mainClient": 1095,
+        "mainScroll": 1095
+      },
+      "drawer": null,
+      "visualReview": "Root personally viewed this exact actualroadmapPNG: currentsection6 shows8/18; historicalfivecallbackstage3 remains explicitly scoped; phonefits/closedrawer."
+    },
+    {
+      "figure": "journey/release/docs-eight-callback-roadmap-phone.png",
+      "sha256": "f9c74c02f56e0a84831a5bc049f872e71762f946dd3435bbff3a7dec6fd648c2",
+      "width": 390,
+      "height": 844,
+      "requestedViewport": {
+        "width": 390,
+        "height": 844
+      },
+      "fit": {
+        "viewport": 390,
+        "height": 844,
+        "dpr": 1.0000000149011612,
+        "document": 390,
+        "articleClient": 343,
+        "articleScroll": 343,
+        "mainClient": 375,
+        "mainScroll": 375
+      },
+      "drawer": {
+        "closed": true,
+        "inert": true,
+        "right": 0,
+        "expanded": "false"
+      },
+      "visualReview": "Root personally viewed this exact actualroadmapPNG: currentsection6 shows8/18; historicalfivecallbackstage3 remains explicitly scoped; phonefits/closedrawer."
+    }
+  ],
+  "preservedFailure": {
+    "inputManifest": {
+      "path": "target/course-windows-20261018/fef4-progress-publication-preparation/progress-publication-v6-current/inputs.json",
+      "sha256": "dc05bc2dc5f62a0f15835833920ab0cd18345352497b4af52b375c3103061d83"
+    },
+    "resources": {
+      "path": "target/course-windows-20261018/fef4-progress-publication-preparation/progress-publication-v6-current/resources.json",
+      "sha256": "1f5d4e0fc40181bdb26bdb2f6618a5af07e231602af56267a18930fbc3beb0ef"
+    },
+    "log": {
+      "path": "target/course-windows-20261018/fef4-progress-publication-preparation/progress-publication-v6-current/build.log",
+      "sha256": "9f568e60b26c357f38dcf939bad0e444db92b28f570ca31283f3187bc819163c"
+    },
+    "status": "First56291 build raced7/18 to8/18 inputupdates; postflight refusedchangedinputs; noacceptedcurrentdocs evidence.",
+    "qualification": "Retry91243 freezes completed8/18 inputs independently; failedfirstbuild retained."
+  },
+  "helperCorrection": {
+    "scope": "Before firstexecution only, root changed ownedtargetURL assertion fromlocalhost toactual127.0.0.1; backup retained. AssetHTTPbase remainslocalhost. No canonicalcourse/runtime/browserharness changes."
+  },
+  "retainedHistory": {
+    "fiveCallbackRecord": "release/docs-progress-five-callback-visible-review.json",
+    "fourCallbackRecord": "release/docs-progress-current-visible-review.json",
+    "scope": "Earlier docs snapshots andchapter13/97 views retain originalinputs/build/source; none relabeled asfreshV6lessonchecks."
+  },
+  "limits": [
+    "Measured snapshot includes8/18callbacks,gate1/5,Native1062,82currentlinks andall1468authoredcheckboxstates atrecordedinputs. No runtimecallback/feature acceptance inferred.",
+    "This new review andtwo copies are published after the measuredbuild andwere not insideit. No self-link rebuild orprogress/prose mutation.",
+    "Onlyroadmapdesktop/390phone changedpagechecked; first10/combinedbookhandoff andfinalreleaseothergates remain independent."
+  ]
+}

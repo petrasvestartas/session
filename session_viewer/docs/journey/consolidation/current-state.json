@@ -124,7 +124,7 @@
     "escapeAuthoring": "PASS22/22 and structure/replay. Four user-approved shortcut corrections pass focused actual layers/labels/delete helper checks; complete enclosing94c/final callbacks remain pending.",
     "escapeBrowserRegression": "PASS: gpu-pick-escape-smoke-browser.resources.json,7.633s,506716160B. RealDPR1 Point sameoriginalObjectId3 selectedbefore/afterzoom; ordinaryEscapeclearsselection andsecondGPUsubmissioncompletes. FullcanonicalDPR1/2 matrix remains separate/running.",
     "historicalMetadataBackport": "PASS: dated inventory,count312 and UTF8-LF audit at96h/96v/96y, plus96zzzzf/g refresh. Current one-entry witness refresh producedc54a9960; no runtime/assertion changes in this refresh. Historical Opacity behavior and old source-proof bindings retained.",
-    "productionCoverageAccounting": "All307productionmodules,111lessons and1361checkpointmappings accounted. Features4/18complete14partial;sourcecallbacks7/18accepted11pending;fixtures2/4;finalrelease1/5. Currentnative1062 andreadercompiler101/202 retain separate proof.",
+    "productionCoverageAccounting": "All307productionmodules,111lessons and1361checkpointmappings accounted. Features4/18complete14partial;sourcecallbacks8/18accepted10pending;fixtures2/4;finalrelease1/5. Currentnative1062 andreadercompiler101/202 retain separate proof.",
     "nativeReuseAudit": "Historical64e13 reuse boundary excludes later hierarchy and97d TextPlane runtime changes.433-entry source inventory preflight remains separate from native execution;1059 result remains bound toa45.",
     "generatedCoveredPlane": "PASS: 16/16 exact full-RGBA pairs, 288.067 s, peak 995,434,496 B. Public plane-generated-covered-native-review.json and four individually inspected figures. Production and course axes remain visible over the opaque lid; no owner-pick or browser acceptance is claimed.",
     "generatedPrintPlane": "PASS: 16/16 exact full-RGBA pairs, 272.855 s, peak 973,623,296 B. Public plane-generated-print-native-review.json and four individually inspected figures. Generated 2,215-byte input is distinct from the historical 2,223-byte covered source; no owner-pick or browser acceptance is claimed.",
@@ -360,6 +360,17 @@
       "elapsedSeconds": 1951.444,
       "peakJobCommitBytes": 1106415616,
       "scope": "Sparse17/93 sourcefaces/readonlycontact, originalowner/overhang/BRep andexactselection/zoom/MoveUndo/archive assertions; inheritedprefix anddedicatedDPR1/2/finalparent pass. Onlysourcecallbackacceptance; featurecountsunchanged."
+    },
+    "quality656Browser": {
+      "status": "PASS complete unchanged656originalquality callback; allcurrentoutputs rootreviewed withoneexactvisualreuse",
+      "checkpoint": "96zzzzzzzl-choose-bounded-frame-quality",
+      "record": "release/quality656-browser-review.json",
+      "sourceFiles": 656,
+      "sourceFingerprint": "9c0e1769d6ea84c6c7a7af0551bb9942ba52805a906421a5d8e3ddcc50618864",
+      "sourceSignature": "146ba775dbadd3d9a7357b31a6dab36e9c908932b392511e4114fd073218b687",
+      "elapsedSeconds": 305.098,
+      "peakJobCommitBytes": 926248960,
+      "scope": "Own656fivebuildphases/originalfullcallback; fivequalityPNGs/result, eightprefixPNGs/targetreuseJSON andfinalcanonical frozen. Root13uniqueviews cover14PNGoutputs; forcedfourDPR1exactSHA matches reviewedautomaticDPR1. ExpectedtinydefaultScene/demo recovery/lossnotice, no unsaveddocumentclaim. OldEEXIST failure retained; final713proofseparate."
     }
   },
   "resourceGuard": {
@@ -373,24 +384,19 @@
   "currentDefects": [
     "All three approved browser input corrections are applied. The 2603.825-second full94c replay passed those sites, then failed Split setup with inherited Control mode. The tested Object-mode correction and full replay/qualified phase-reuse choice await their separate saved-plan exception.",
     "Reader compiler lane complete101/101endpoints202/202phases:85retained170qualifiedphases plus16fresh32actualphases. Original source-bound records and mask-invalidation history retained; no all202new execution or test/browser claim.",
-    "Original18source-specificcallbacks:finalCAD,maintained97,current76,current70,96v,Arena-empty,sourcefaces accepted7;11remain including9historical+2late. Fixtures2/4accepted96y+96v;94c/96h remaining;Slot/80d/635failures andpendingexceptions preserved.",
+    "Original18source-specificcallbacks:finalCAD,maintained97,current76,current70,96v,Arena-empty,sourcefaces,quality656 accepted8;10remain including9historical+1meshmarker. Fixtures2/4accepted96y+96v;94c/96h remaining;Slot/80d/635failures andpendingexceptions preserved.",
     "Matrix,Camera/Plane,Joined andfiniteSheet are4/18complete;14partial. Globalrelease1/5(buildgate done;fourremain); Gemini first10/redraft andcombinedbookhandoff remain deferred.",
-    "Production ribbon guide fix retains focusedCPU/fourRGBA proof; latest finalfef4 unfiltered1062/1062 native integration nowPASS. Remaining11sourcecallbacks,14partialfeatures andfour remainingrelease gates stay open.",
+    "Production ribbon guide fix retains focusedCPU/fourRGBA proof; latest finalfef4 unfiltered1062/1062 native integration nowPASS. Remaining10sourcecallbacks,14partialfeatures andfour remainingrelease gates stay open.",
     "Original70d failed outer status and striped frame remain immutable. Applied mask projection fix now passes actual fullcanonical70 at331-source325b; fresh final PNG individually reviewed clean. No automatic SharedArena feature closure.",
     "Old60306/c65976run failedouterstatus and remainsimmutable. Subsequentcurrentbe28476fullcallback nowPASS withfreshSheet/finalcurve rootreview;finiteSheet complete via separate recordednative/browser scopes.",
     "Maintained97 duplicate-export packagingfailure retained. Corrected06359f77 wrapper freshWASM/optimizedpackage and completeoriginalDPR1/2NVIDIAbrowser nowPASS; bothoriginalimagesreviewed. Maintained97 callback accepted; currenttotal6/18accepted12left after separate76/70/96v/Arena acceptance. Feature/globalscope remains separately recorded."
   ],
   "onlyHeavy": {
-    "status": "running-original-browser-unaccepted",
-    "rootSession": 48924,
-    "task": "Full original NVIDIA historical656 quality retry",
-    "checkpoint": "96zzzzzzzl-choose-bounded-frame-quality",
-    "stem": "96zzzzzzzl-nvidia-current367-v1",
-    "memoryLimitMiB": 6144,
-    "processors": 2,
-    "scope": "Sameoriginalsource/runner; preexistinggeneratedqualitydirectory reversiblyrelocated. OldEEXISTfailure/outputfreeze retained. No retryacceptanceyet. Prior18818 refused mistypedframeSHA beforebrowserlaunch orwrites; actual48924 reads proof.frame.sha256 directly."
+    "status": "isolated-v8-build-run-starting-root-session-awaiting-report",
+    "task": "Isolated native marker V8 build/run",
+    "scope": "Rootreported startingisolatedV8; exactrootsession notyetreported. Quality65648924 terminalPASS; no canonicalsource/runtime edit or build-gate reopening."
   },
-  "next": "Currentonlyheavy48924 original656 NVIDIAquality retry atsame source/stem/runner,6GiB/twoCPUs; preexistinggeneratedqualitydirectory reversiblyrelocated. Prior54304EEXISTFAIL andnineprefixoutputs retained. Sourcefaces630full99840PASS accepted7/18 with11left=9historical+2late;12sourcefacePNGs rootviewed plus exactcanonicalvisualreuse. MarkerV7hiddenObjectqueryFAIL remainsunaccepted despitezeroRGBA; no runtimecauseconfirmed. Allthreeinputexceptionspending/unapplied;features4/18complete14partial,fixtures2/4,release1/5 unchanged.",
+  "next": "Quality65648924 actualfullPASS305.098s/926248960B; all16outputs frozen, root13uniquePNGviews plusoneexacthashreuse cover14outputs. Callbacks8/18accepted10left=9historical+1meshmarker;features4/18complete14partial,fixtures2/4,release1/5 unchanged. RootstartingisolatednativeMarkerV8 build/run; exactrootsessionnotyetreported. No canonicalsource/runtimechange; originalEEXIST/markerV7queryFAIL andthreependinginputexceptions retained.",
   "currentDocsReview": {
     "status": "PASS scoped current3670 publication before this progress metadata update",
     "record": "release/docs-progress-current-visible-review.json",
@@ -476,7 +482,7 @@
       "record": "release/reload-grid-browser-review.json"
     },
     "finalIntegration": {
-      "status": "Native1062/readercompiler101/202/buildgate1PASS;callbacks7/18accepted11pending=9historical+2late;features4/18complete14partial,fixtures2/4,release1/5. Sourcefaces630actualfullPASS/root12images+finalvisualreuse accepted.656retry48924running; oldEEXISTFAIL/markerV7queryFAIL/candidateexceptionhistory retained.",
+      "status": "Native1062/readercompiler101/202/buildgate1PASS;callbacks8/18accepted10pending=9historical+1meshmarker;features4/18complete14partial,fixtures2/4,release1/5. Original656retryPASS/root13uniquePNGviews+onehashreuse accepted; earlierEEXISTFAIL preserved. IsolatedMarkerV8 starting; actualcause/acceptance remainsseparate.",
       "gatesDone": 1,
       "gatesTotal": 5,
       "gatesRemaining": 4,
@@ -881,12 +887,12 @@
       "nonCallbackIntegrationActions": 3,
       "namedActions": 21,
       "remainingFeatureChecklists": 14,
-      "meaning": "Original18sourceentries retained:finalCAD,maintained97,current76,current70,96v,Arena-empty andsourcefaces accepted7;pending11=9historical+2late. Original21named denominator retained;14pendinggroups overlap14partialfeatures. Fixtures2/4 andrelease1/5 remainindependent.",
+      "meaning": "Original18sourceentries retained:finalCAD,maintained97,current76,current70,96v,Arena-empty,sourcefaces andquality656 accepted8;pending10=9historical+1meshmarker. Original21named denominator retained;13pendinggroups overlap14partialfeatures. Fixtures2/4 andrelease1/5 remainindependent.",
       "eta": "No total ETA; missing successful callback durations and unscopednative tuples prevent an honest walltime estimate.",
-      "acceptedSourceSpecificCallbackEntries": 7,
-      "pendingSourceSpecificCallbackEntries": 11,
-      "pendingNamedActions": 14,
-      "pendingAdditionalDeclaredCallbackEntries": 2
+      "acceptedSourceSpecificCallbackEntries": 8,
+      "pendingSourceSpecificCallbackEntries": 10,
+      "pendingNamedActions": 13,
+      "pendingAdditionalDeclaredCallbackEntries": 1
     },
     "phaseReuse94c": {
       "reusableForTwoNativeHelperLines": [
@@ -954,7 +960,15 @@
           "node",
           "docs/capture_journey.cjs",
           "96zzzzzzzl-choose-bounded-frame-quality"
-        ]
+        ],
+        "status": "PASS complete unchanged656originalquality callback; allcurrentoutputs rootreviewed withoneexactvisualreuse",
+        "record": "release/quality656-browser-review.json",
+        "sourceFiles": 656,
+        "sourceFingerprint": "9c0e1769d6ea84c6c7a7af0551bb9942ba52805a906421a5d8e3ddcc50618864",
+        "sourceSignature": "146ba775dbadd3d9a7357b31a6dab36e9c908932b392511e4114fd073218b687",
+        "elapsedSeconds": 305.098,
+        "peakJobCommitBytes": 926248960,
+        "scope": "Own656fivebuildphases/originalfullcallback; fivequalityPNGs/result, eightprefixPNGs/targetreuseJSON andfinalcanonical frozen. Root13uniqueviews cover14PNGoutputs; forcedfourDPR1exactSHA matches reviewedautomaticDPR1. ExpectedtinydefaultScene/demo recovery/lossnotice, no unsaveddocumentclaim. OldEEXIST failure retained; final713proofseparate."
       },
       {
         "checkpoint": "96zzzzzzm-query-original-faces-under-contact-overlays",
@@ -1296,14 +1310,14 @@
       "draftingRemaining": 0,
       "featuresComplete": 4,
       "featuresPartial": 14,
-      "callbacksAccepted": 7,
-      "callbacksRemaining": 11,
+      "callbacksAccepted": 8,
+      "callbacksRemaining": 10,
       "historicalFixturesAccepted": 2,
       "historicalFixturesTotal": 4,
       "releaseGatesDone": 1,
       "releaseGatesTotal": 5
     },
-    "next": "Currentonlyheavy48924 original656 NVIDIAquality retry atsame source/stem/runner,6GiB/twoCPUs; preexistinggeneratedqualitydirectory reversiblyrelocated. Prior54304EEXISTFAIL andnineprefixoutputs retained. Sourcefaces630full99840PASS accepted7/18 with11left=9historical+2late;12sourcefacePNGs rootviewed plus exactcanonicalvisualreuse. MarkerV7hiddenObjectqueryFAIL remainsunaccepted despitezeroRGBA; no runtimecauseconfirmed. Allthreeinputexceptionspending/unapplied;features4/18complete14partial,fixtures2/4,release1/5 unchanged.",
+    "next": "Quality65648924 actualfullPASS305.098s/926248960B; all16outputs frozen, root13uniquePNGviews plusoneexacthashreuse cover14outputs. Callbacks8/18accepted10left=9historical+1meshmarker;features4/18complete14partial,fixtures2/4,release1/5 unchanged. RootstartingisolatednativeMarkerV8 build/run; exactrootsessionnotyetreported. No canonicalsource/runtimechange; originalEEXIST/markerV7queryFAIL andthreependinginputexceptions retained.",
     "chapter14": {
       "status": "PASS complete current76originalcanonicalbrowser callback",
       "record": "release/76d-browser-review.json",
@@ -1581,6 +1595,17 @@
       "elapsedSeconds": 1951.444,
       "peakJobCommitBytes": 1106415616,
       "scope": "Sparse17/93 sourcefaces/readonlycontact, originalowner/overhang/BRep andexactselection/zoom/MoveUndo/archive assertions; inheritedprefix anddedicatedDPR1/2/finalparent pass. Onlysourcecallbackacceptance; featurecountsunchanged."
+    },
+    "quality656": {
+      "status": "PASS complete unchanged656originalquality callback; allcurrentoutputs rootreviewed withoneexactvisualreuse",
+      "checkpoint": "96zzzzzzzl-choose-bounded-frame-quality",
+      "record": "release/quality656-browser-review.json",
+      "sourceFiles": 656,
+      "sourceFingerprint": "9c0e1769d6ea84c6c7a7af0551bb9942ba52805a906421a5d8e3ddcc50618864",
+      "sourceSignature": "146ba775dbadd3d9a7357b31a6dab36e9c908932b392511e4114fd073218b687",
+      "elapsedSeconds": 305.098,
+      "peakJobCommitBytes": 926248960,
+      "scope": "Own656fivebuildphases/originalfullcallback; fivequalityPNGs/result, eightprefixPNGs/targetreuseJSON andfinalcanonical frozen. Root13uniqueviews cover14PNGoutputs; forcedfourDPR1exactSHA matches reviewedautomaticDPR1. ExpectedtinydefaultScene/demo recovery/lossnotice, no unsaveddocumentclaim. OldEEXIST failure retained; final713proofseparate."
     }
   }
 }

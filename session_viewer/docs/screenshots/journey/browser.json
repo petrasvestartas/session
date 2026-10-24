@@ -9906,12 +9906,12 @@
       "keyboardRoundtrip": false
     },
     "96zzzzzzm-query-original-faces-under-contact-overlays": {
-      "source": "b2c32f80e281c991a7374e89bb364b45fa3c74207f2f15e90e964121877937c0",
-      "checker": "c3798c494d2de95a20d2f629a662e6b6b10394a1bbb09f157956bdc61fe37c66",
+      "source": "7f1370c850d44cc94c4f730d8658dfa86a8146773d7b552625ad38351a2ea01a",
+      "checker": "ecbc4c716aa91a7aedc2532132c4b08e0a7d1e7511c380b0dbbba0152325a733",
       "extraChecker": "21c8d1956f5a76cba0f934b240f56109b3d29a8cf0d783504e234c31af6f960d",
-      "browser": "153.0.8010.36",
-      "headless": false,
-      "captured": "2026-10-15T18:20:57.241Z",
+      "browser": "145.0.7632.6",
+      "headless": true,
+      "captured": "2026-10-24T06:22:27.628Z",
       "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
       "canvas": "bb12649b41a29993b8d6a9783dac5b85a9b7aa9130fe33e9eb80b44eabb8e785",
       "file": "96zzzzzzm-query-original-faces-under-contact-overlays-browser.png",
@@ -9929,7 +9929,7 @@
         "width": 640,
         "height": 480
       },
-      "bundle": "c9eca86c86560a2e1a56a824494ba257e9d9302d694897a8bd162d2437211f08",
+      "bundle": "8f77846340b69dab04e320c425277572f4be8624d0429cabd239336fe638a88c",
       "commands": [],
       "keyboardRoundtrip": false
     },
@@ -10634,14 +10634,14 @@
       "keyboardRoundtrip": false
     },
     "96zzzzzzzl-choose-bounded-frame-quality": {
-      "source": "6b5b03265acd3730167ca612bccd748912a9cbcfe3f149741c9d0cecb6f5e856",
-      "checker": "c3798c494d2de95a20d2f629a662e6b6b10394a1bbb09f157956bdc61fe37c66",
+      "source": "146ba775dbadd3d9a7357b31a6dab36e9c908932b392511e4114fd073218b687",
+      "checker": "ecbc4c716aa91a7aedc2532132c4b08e0a7d1e7511c380b0dbbba0152325a733",
       "extraChecker": "75158ad4c1082b014b27a83c69fc14a111dc46e48abdc889a7a8a9909fc742eb",
-      "browser": "153.0.8010.36",
-      "headless": false,
-      "captured": "2026-10-17T05:05:19.621Z",
+      "browser": "145.0.7632.6",
+      "headless": true,
+      "captured": "2026-10-24T06:29:59.766Z",
       "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
-      "canvas": "2d4672693ad35b536e3314bb9ff763aec2cb3428ef71df52a52fb3dfda914cef",
+      "canvas": "f05a4a59e8fe39b8db46dbccacd38265bec9e160fdd1e68b49f9632ff6c31406",
       "file": "96zzzzzzzl-choose-bounded-frame-quality-browser.png",
       "initialViewport": {
         "width": 900,
@@ -10657,7 +10657,7 @@
         "width": 900,
         "height": 760
       },
-      "bundle": "51147b0f180d7e14a1af08d0ab505c64943ba9a69ca2ad2382be986d7d4de758",
+      "bundle": "1cf475df2e006db0568e6429b4c144ff87f1cff7b6d06af3c1be3dd6d40626a0",
       "commands": [],
       "keyboardRoundtrip": false
     },
