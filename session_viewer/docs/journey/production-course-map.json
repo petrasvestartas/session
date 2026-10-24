@@ -3,7 +3,7 @@
   "scope": "Initial production-to-course source/coverage audit; proposals are not completed consolidation or rendering acceptance.",
   "sourceAuthority": "session_viewer/src",
   "endpoint": "96zzzzzzzq-draw-original-cad-wire-curves",
-  "endpointStatus": "Current1063 native integration, seven compiler/package/frame phases, strict713 Sphere browser and complete714 DPR1/2 browser PASS. Currentf23 docs build/probe PASS; root reviewed desktop/390phone and changed22.6Rust section, ownedroadmap refreshed/front. Noactiveheavy. Await consolidated user decision on five prepared frozen-harness corrections before remaining10 sourcecallbacks; Gemini1-10 remains owned elsewhere. Callbacks8/18/features4/18complete14partial/fixtures2/4/release1/5done4remain; scoped proofs and earlier failures preserved.",
+  "endpointStatus": "Current555/b5 seven compiler/package/frame phases and current713/714 browser checks PASS. Actual4x ambient-off matches exactly; ambient-on111pixels/max10 remains open. Full1064/source freeze pending; release0/5, callbacks8/18, features4/18, fixtures2/4. Preserve all Gemini Vue changes.",
   "courseSha256": "05b031571b9b18b4e2740898af6782e2c746cb6b1fcf35c73adb86c957869374",
   "chapters": 22,
   "existingSteps": 1361,

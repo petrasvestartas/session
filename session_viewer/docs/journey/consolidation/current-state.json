@@ -575,6 +575,20 @@
       "scope": "Actualnew1063native+sevencompiler/package/frame phases+714nativecfg/graphreuse; independentbuildgateonly. Browserqualification andotherfourliteralreleasegates remainopen.",
       "previousAcceptedRecord": "release/final-runtime-build-gate-review.json",
       "reopen": "Actualruntime/dependency/buildinputchange requires affectedproof reassessment; docs/status/harness-only edits do not invalidate frozenbuilds."
+    },
+    "ambientFinalCompilerRefresh": {
+      "status": "PASS all seven actual final555/b5 native/WASM/optimized-web/frame phases; full1064 remains pending",
+      "record": "release/ambient-final-compiler-integration-review.json",
+      "sourceFingerprint": "555490d4cb3dd18014984afc15692d1ac14509f204061e26192633150d46f5ff",
+      "maintainedFingerprint": "b5a415856167f657d7eb02e9efa32c66d0561a0e2c482ec36bbe17608b6c8d2d"
+    },
+    "ambientFinalBrowserRefresh": {
+      "status": "PASS actual current713 Sphere/raw original-owner and714 originalfinal.cjs DPR1/2/presentation; all four PNGs root-reviewed",
+      "records": [
+        "release/ambient-final713-marker-browser-review.json",
+        "release/ambient-maintained714-browser-review.json"
+      ],
+      "scope": "Current source qualification; existing callback counts unchanged"
     }
   },
   "resourceGuard": {
@@ -597,11 +611,10 @@
     "Ambient contact source fix is applied at555/b5. Two exact fullRGBA native pairs, five focused tests and1359earlier checkpoint preservation pass; broader ambient/outline/multisample production/browser criteria remain open."
   ],
   "onlyHeavy": {
-    "status": "none",
-    "task": "Authoring/source/structure qualification complete; new final runtime compiler refresh queued.",
-    "scope": "Previous1063/build/browser proofs keep recorded65/f23 source; no current full1064 or new seven-phase claim."
+    "status": "None at checkpoint; isolated multisample correction preparation active",
+    "task": "Actual4x ambient-off matches; ambient-on differs111pixels/max10. Preserve failure and resolve production selector divergence before final native freeze."
   },
-  "next": "Refresh final555/b5 compiler/package/frame and full1064 integration using uniquely identified compiler packages, then current browser/docs qualification; preserve Gemini Vue and chapters1-10 ownership.",
+  "next": "Resolve actual4x ambient comparison, then source-matching full1064/build-gate and docs publication. Preserve Gemini Vue design and edit existing tutorial sections only.",
   "currentDocsReview": {
     "status": "PASS currentf23 roadmap desktop/390phone and changedChapter22.6 Rust section; root actualimages reviewed",
     "record": "release/docs-progress-xray-current-visible-review.json",
