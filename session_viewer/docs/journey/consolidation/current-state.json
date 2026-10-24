@@ -218,18 +218,32 @@
     "Maintained97 duplicate-export packagingfailure retained. Corrected06359f77 wrapper freshWASM/optimizedpackage and completeoriginalDPR1/2NVIDIAbrowser nowPASS; bothoriginalimagesreviewed. Maintained97 callback accepted; currenttotal4/18accepted14left after separate76/70 acceptance. Feature/globalscope remains separately recorded."
   ],
   "onlyHeavy": {
-    "status": "none",
-    "task": "No active heavy job",
+    "status": "running-unaccepted",
+    "task": "Final unfiltered 1062-test native integration at current fef4 source",
+    "rootSession": 61745,
+    "memoryLimitMiB": 4096,
+    "manifest": "target/course-windows-20261018/native-full-two-fixture-20261024T033650211Z/manifest.json",
     "previousCompleted70Session": 43071,
     "boundedShortcutFailure": {
       "rootSession": 51544,
-      "status": "failed-under-diagnosis",
+      "status": "explained-legacy-baseline-assumption; complete body remains failed",
       "record": "target/startup-finite-criteria-preparation/shortcuts-fef4-v1/report.json",
-      "scope": "Earlierfocus/text/history assertions passed; finaluppercase-F exactpixels failed. No wholebody orStartup acceptance."
+      "diagnostic": "target/startup-finite-criteria-preparation/shortcuts-fef4-passive-diagnostic-v1-passive-states/observation.json",
+      "scope": "The empty click releases text focus but retains selected ObjectId2. Baseline Fit targets that object; later Escape clears selection and uppercase F correctly fits all geometry. Earlier Escape/text/history observations retain their bounded scope. No whole-body or Startup feature acceptance, and no current runtime change indicated."
     },
     "processors": 2
   },
-  "next": "No active heavy job. Actual70 fullcallback accepted. Bounded unchanged shortcut body failed final uppercase-F pixel equality after earlier focus/text/history sites passed; diagnosis pending, no Startup or whole-body acceptance and no blanket artifact-defect claim. Remaining14 source-specific callbacks and final unfiltered native1062 pending runtime decision.",
+  "next": "Complete the active unfiltered final 1062-test native run. Current docs build, roadmap, chapter13 desktop/phone and checkpoint97 full corrected code block passed DOM/HTTP and individual image review. The legacy shortcut diagnostic failure is explained by unequal selection baselines; current runtime remains unchanged. Four of18 callbacks accepted,14 remain; four of18 feature groups complete,14 partial.",
+  "currentDocsReview": {
+    "status": "PASS scoped current3670 publication before this progress metadata update",
+    "record": "release/docs-progress-current-visible-review.json",
+    "scope": "Roadmap, changed chapter13 desktop/390phone and existing97 reference desktop; four original images individually inspected. Does not claim a whole-book sweep or runtime acceptance."
+  },
+  "visibleCurrentReader": {
+    "url": "http://127.0.0.1:8788/docs/#/course/journey/roadmap",
+    "record": "target/course-windows-20261018/docs-current-visible-publication-preparation/opened-current-reader.json",
+    "scope": "New owned Chrome tab left open and brought to front; all prior tabs preserved."
+  },
   "localDocs": "http://127.0.0.1:8788/docs/#/course",
   "progressPlan": "../../../../docs/plans/2026-10-18-viewer-course-progress.md",
   "stages": {
