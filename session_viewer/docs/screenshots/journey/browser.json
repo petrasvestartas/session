@@ -9990,14 +9990,14 @@
       "keyboardRoundtrip": false
     },
     "96zzzzzzp-draw-default-mesh-vertex-dots": {
-      "source": "13df132becde99765dd15799a532e07548120aa9da92e96a737a7c99ed55cfcf",
-      "checker": "c3798c494d2de95a20d2f629a662e6b6b10394a1bbb09f157956bdc61fe37c66",
-      "extraChecker": "6cb369d1013aa584e7f2eb7ee8d7e4335bf4659f46e976eb9c3fed92b3137c12",
-      "browser": "153.0.8010.36",
-      "headless": false,
-      "captured": "2026-10-16T11:21:32.009Z",
+      "source": "41a217a7346d10aa40f537143b77c817d11e8375045dd6b9412038494c67e367",
+      "checker": "ecbc4c716aa91a7aedc2532132c4b08e0a7d1e7511c380b0dbbba0152325a733",
+      "extraChecker": "43ba38a1f1de2459a8d5cd435b3ea3ad31a76b9dc03e4029f942d952ba418e38",
+      "browser": "145.0.7632.6",
+      "headless": true,
+      "captured": "2026-10-24T16:57:36.388Z",
       "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
-      "canvas": "f7c9ff683ecb8ab9624a9ecb8eb1f90c0903048bd7cf841b17762f93ccd074a1",
+      "canvas": "b16be16ffd9f3f18cd1050dcbd1154a31d8b23077a633e9494a92107182ade87",
       "file": "96zzzzzzp-draw-default-mesh-vertex-dots-browser.png",
       "initialViewport": {
         "width": 900,
@@ -10013,7 +10013,7 @@
         "width": 900,
         "height": 760
       },
-      "bundle": "3668255b1569bec8543cb9060acb5d76c6d66eb62546ac404716032b0c7c86a9",
+      "bundle": "00505b63e29b63f4046478791d0ea7fd6a7808dcddd820d3fbc5ed865ae8b49b",
       "commands": [],
       "keyboardRoundtrip": false
     },

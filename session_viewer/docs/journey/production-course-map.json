@@ -3,7 +3,7 @@
   "scope": "Initial production-to-course source/coverage audit; proposals are not completed consolidation or rendering acceptance.",
   "sourceAuthority": "session_viewer/src",
   "endpoint": "96zzzzzzzq-draw-original-cad-wire-curves",
-  "endpointStatus": "Three of five final gates complete at current694/b031/course05b: runtime build, navigation/history and local publication/report. Remaining:8 source-specific callbacks and13 partial finite features. Ten accepted callbacks and2/4 fixtures retain their recorded scopes. Slot590 and Network402 complete original callbacks pass; SharedArena finite criteria complete. CAD generated-isoline continuity remains separately open. Final native/runtime proofs unchanged.",
+  "endpointStatus": "Three of five final gates complete at current694/b031/course05b: runtime build, navigation/history and local publication/report. Remaining:7 source-specific callbacks and13 partial finite features. Eleven accepted callbacks and2/4 fixtures retain their recorded scopes. Source635 full original mesh-marker callback and all7 meaningful images accepted; no whole marker feature closure. Final native/runtime proofs unchanged.",
   "courseSha256": "05b031571b9b18b4e2740898af6782e2c746cb6b1fcf35c73adb86c957869374",
   "chapters": 22,
   "existingSteps": 1361,
@@ -189,7 +189,7 @@
       "currentVerification": {
         "status": "partial",
         "integration": "#/currentIntegration",
-        "acceptedScope": "Eight corrected actual-production/course Mesh pairs match full RGBA at their original a45 translated orthographic pose. Current97d native1060/1060 independently passes mesh-marker placement, sparse original-owner picks and source-lifetime assertions; this does not accept every material/lighting/opaque-transparent control against production. Seven separately reviewed current native bodies additionally cover bounded headlight/backface and unlit/sky restoration, ambient/depth-pyramid reuse, glass/Xray pixels and picks, and Xray commands; no independent production material/lighting comparison is implied. Eight exact actual-production/course material native pairs pass at97d,DPR1/samples1:unlit/headlight/backface/returned-unlit and closedMesh+hiddenLine opaque/glass/Xray/returned-opaque.26.285s,693067776B;16PNG conversions exact,all6unique images individually reviewed by root. Complete decodedProto+archiveMetadata source integrity; fresh production instances. No AO/sky/copied/locked/clipped/pick/browser or whole-feature closure. Separate finite native reconciliation also accepts four actual copied-selected/locked/clipped glass/Xray source states in material-transparency-native-criterion-review, at its retained e432/fef4 qualification. Original Arena603 and source-faces630 browser contracts are independently complete and root reviewed; this does not accept pending95f/Slot/measured-reader/635 or relabel those proofs to current694.",
+        "acceptedScope": "Eight corrected actual-production/course Mesh pairs match full RGBA at their original a45 translated orthographic pose. Current97d native1060/1060 independently passes mesh-marker placement, sparse original-owner picks and source-lifetime assertions; this does not accept every material/lighting/opaque-transparent control against production. Seven separately reviewed current native bodies additionally cover bounded headlight/backface and unlit/sky restoration, ambient/depth-pyramid reuse, glass/Xray pixels and picks, and Xray commands; no independent production material/lighting comparison is implied. Eight exact actual-production/course material native pairs pass at97d,DPR1/samples1:unlit/headlight/backface/returned-unlit and closedMesh+hiddenLine opaque/glass/Xray/returned-opaque.26.285s,693067776B;16PNG conversions exact,all6unique images individually reviewed by root. Complete decodedProto+archiveMetadata source integrity; fresh production instances. No AO/sky/copied/locked/clipped/pick/browser or whole-feature closure. Separate finite native reconciliation also accepts four actual copied-selected/locked/clipped glass/Xray source states in material-transparency-native-criterion-review, at its retained e432/fef4 qualification. Original Arena603 and source-faces630 browser contracts are independently complete and root reviewed; this does not accept pending95f/Slot/measured-reader/635 or relabel those proofs to current694. Source635 full original mesh-marker callback now passes with six reviewed authored/coplanar/shared feature images plus meaningful final canonical source. Slot590 is independently accepted;95f and96zzq remain separate.",
         "records": [
           "release/material-lighting-transparency-native-review.json",
           "release/mesh-native-review.json",
@@ -197,11 +197,12 @@
           "release/material-production-pairs-native-review.json",
           "release/material-transparency-native-criterion-review.json",
           "release/arena-empty-browser-review.json",
-          "release/source-faces-browser-review.json"
+          "release/source-faces-browser-review.json",
+          "release/mesh-markers-browser-review.json"
         ],
         "remainingAcceptance": [
           "Retain the accepted named material/lighting/opaque/glass/Xray comparisons and copied/locked/clipped-source controls. Validate only still-unproved material, normal and display controls outside those bounded actual-production records; no arbitrary control matrix is declared.",
-          "Run the remaining95f performance,96zzq measured-reader and635 mesh-marker source-specific entries and inspect their feature frames. The accepted590 Slot,603 Arena and630 source-faces callbacks retain their original source scopes and need no repeat acceptance."
+          "Run remaining95f performance and96zzq measured-reader source-specific entries and inspect their feature frames. Accepted590 Slot,603 Arena,630 source-faces and635 mesh-marker callbacks retain their original sources and need no repeat acceptance."
         ],
         "chapterBrowserEntries": [
           {
@@ -486,18 +487,18 @@
       "currentVerification": {
         "status": "partial",
         "integration": "#/currentIntegration",
-        "acceptedScope": "Eight original Point and eight Mesh corrected translated-pose pairs match full RGBA across DPR1/2, samples1/4 and selection. Their historical bindings are retained. Current97d native assertions additionally verify mesh-marker ownership and source lifetime through perspective/orthographic rebasing, plus original Point size/selection coverage at DPR1/2 and samples1/4. Full named control coverage and browser review remain partial. Five bounded closedMesh Sphere marker control comparisons are accepted through four historical V6 completed zero-RGBA cases plus one actual V10 Xray candidate pair, with current65f0013 source/control qualification. The whole V6 run remains FAILED; this is not five fresh current executions. Fixed opacity/thickness/feather, source/MVP/production rows and original-owner query limits are recorded. All ten original PNG sides match five root-reviewed image hashes. Each run independently preserves its complete decoded source and metadata; cross-run saved archive bytes differ. Broad authored normal/glyph controls, arbitrary placement and the full source-specific635 browser callback remain separate. Separate final65 and555 Sphere browser witnesses also passed fixed near/rear original-owner raw13x13 queries, actual Sphere ABI/thickness/feather/Xray state and exact opaque/archive restoration. These narrow browser proofs do not execute or accept the source-specific635 recursive callback, and do not claim current694 whole-feature identity.",
+        "acceptedScope": "Eight original Point and eight Mesh corrected translated-pose pairs match full RGBA across DPR1/2, samples1/4 and selection. Their historical bindings are retained. Current97d native assertions additionally verify mesh-marker ownership and source lifetime through perspective/orthographic rebasing, plus original Point size/selection coverage at DPR1/2 and samples1/4. Full named control coverage and browser review remain partial. Five bounded closedMesh Sphere marker control comparisons are accepted through four historical V6 completed zero-RGBA cases plus one actual V10 Xray candidate pair, with current65f0013 source/control qualification. The whole V6 run remains FAILED; this is not five fresh current executions. Fixed opacity/thickness/feather, source/MVP/production rows and original-owner query limits are recorded. All ten original PNG sides match five root-reviewed image hashes. Each run independently preserves its complete decoded source and metadata; cross-run saved archive bytes differ. Broad authored normal/glyph controls, arbitrary placement and the full source-specific635 browser callback remain separate. Separate final65 and555 Sphere browser witnesses also passed fixed near/rear original-owner raw13x13 queries, actual Sphere ABI/thickness/feather/Xray state and exact opaque/archive restoration. These narrow browser proofs do not execute or accept the source-specific635 recursive callback, and do not claim current694 whole-feature identity. Source635 complete original default mesh-marker callback now independently passes:7fixtures,2projections,DPR1/2,original owner/Control-no-hit/archive/pixel/upload assertions,round/contact helpers andall7 root-reviewed images. Accepted Slot590 normal-view toggles/direction/restoration retain their exact recorded scope.",
         "records": [
           "release/point-native-review.json",
           "release/mesh-native-review.json",
           "release/sheet-text-native-controls-review.json",
           "release/marker-control-native-qualified-review.json",
           "release/xray-current-browser-relevance-review.json",
-          "release/ambient-final713-marker-browser-review.json"
+          "release/ambient-final713-marker-browser-review.json",
+          "release/mesh-markers-browser-review.json"
         ],
         "remainingAcceptance": [
-          "Complete marker/normal/glyph/sphere controls and depth/original-owner cases outside the five accepted oblique-perspective closed-Mesh Sphere states and the recorded Point/Mesh native scopes.",
-          "Inspect current browser feature images after the unchanged recursive marker/normal/pick checks pass."
+          "Complete marker/normal/glyph/sphere controls and depth/original-owner cases outside the five accepted oblique-perspective closed-Mesh Sphere states and the recorded Point/Mesh native scopes."
         ],
         "chapterBrowserEntries": [
           {
@@ -505,7 +506,15 @@
             "checkpoint": "96zzzzzzp-draw-default-mesh-vertex-dots",
             "callback": "journey/checks/browser/mesh-markers.cjs"
           }
-        ]
+        ],
+        "satisfiedBrowserCriterion": {
+          "criterion": "Inspect current browser feature images after the unchanged recursive marker/normal/pick checks pass.",
+          "record": "release/mesh-markers-browser-review.json",
+          "sourceFingerprint": "62d26c2c5f38cbe6fa7dcca9b4f16065154f80dc2bf8c45b84acffe140ab7e28",
+          "sourceSignature": "41a217a7346d10aa40f537143b77c817d11e8375045dd6b9412038494c67e367",
+          "rootReviewedFeatureImages": 6,
+          "rootReviewedCanonicalImages": 1
+        }
       }
     },
     {
