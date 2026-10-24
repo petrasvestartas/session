@@ -1,0 +1,230 @@
+{
+  "status": "PASS complete original canonical544-source comparison defaultcallback and root-reviewed meaningful pedestal; explicitly qualified phase reuse",
+  "checkpoint": "94c-prove-the-original-comparison-and-inspect-differences",
+  "sourceFiles": 544,
+  "sourceFingerprint": "3f02a2d827ccc8944516c54f51ffec80739b95fa626a975906d664c43a0f793e",
+  "currentSourceSignature": "49ef535e80f8ed93cd7ede6bff39fb5a48bc84c23ff4b18235cf508870b6c036",
+  "canonicalGlobalCaptureSource": "108426cc86167dc7584206fa69b72154126d25e4b08e4efac16390aeb88044aa",
+  "sourceMetadataScope": "Canonical capture retains original builds[id].source; this immutable sidecar qualifies current source/native800/frame and historicalWASM/web reuse without rewriting globalresults.",
+  "course": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\course.json",
+    "sha256": "fd25625df40bee14e302a069448fa9510a87b90f80eee945f37b752fb1277726",
+    "priorSha256": "05b031571b9b18b4e2740898af6782e2c746cb6b1fcf35c73adb86c957869374",
+    "qualification": {
+      "priorCourseSha256": "05b031571b9b18b4e2740898af6782e2c746cb6b1fcf35c73adb86c957869374",
+      "actualCourseSha256": "fd25625df40bee14e302a069448fa9510a87b90f80eee945f37b752fb1277726",
+      "sourceEquivalent": true,
+      "qualification": {
+        "approval": {
+          "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\two-tested-corrections-application-preparation\\applied-qualification-approval.json",
+          "sha256": "4f2e2953d2feec510492a5e174290e9c8e46b999ef10a46967792965bb17dda1"
+        },
+        "application": {
+          "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\two-tested-corrections-application-preparation\\application.json",
+          "sha256": "05e5a25ceaccfd536c5537aa736cd3ca893bd85254a32dc56569ba9b0353f0ca"
+        },
+        "plan": {
+          "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\two-exception-pin-qualification-preparation\\plan.json",
+          "sha256": "86047f932502db6e6785dd0db8e9f00dacd01ed3c04722a099c3df28225f5497"
+        },
+        "qualifier": {
+          "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\two-exception-pin-qualification-preparation\\qualification.mjs",
+          "sha256": "f37aff4e393adfcc905458bed899ade8d6e00e61458cd51e81c66b66dabb0831"
+        },
+        "course": {
+          "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\course.json",
+          "beforeSha256": "05b031571b9b18b4e2740898af6782e2c746cb6b1fcf35c73adb86c957869374",
+          "afterSha256": "fd25625df40bee14e302a069448fa9510a87b90f80eee945f37b752fb1277726",
+          "beforeFile": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\two-exception-pin-qualification-preparation\\course-before.bin",
+          "afterFile": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\two-exception-pin-qualification-preparation\\course-candidate.bin"
+        },
+        "elements": {
+          "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\checks\\browser\\elements.cjs",
+          "beforeSha256": "e5cd43f4997a1557add4f27f23229702b0983273467d2c4dde6309fd4c903cc5",
+          "afterSha256": "8a10921d7403037d3e588827a785154fa0885b141ea9d5da9bf7c0eeddc99d6c",
+          "beforeFile": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\two-exception-pin-qualification-preparation\\elements-before.cjs",
+          "afterFile": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\two-exception-pin-qualification-preparation\\elements-candidate.cjs",
+          "before": "assert.match(await page.locator('canvas').getAttribute('data-controls'),/X 1000/);",
+          "after": "assert.match(await page.locator('canvas').evaluate(c=>c.getAttribute('data-controls')??JSON.parse(c.getAttribute('data-measurement')).label),/X 1000/);"
+        },
+        "scope": "Only exact approved presentation metadata/measurement schema changes; no runtime/source/compiler execution or callback acceptance inferred."
+      }
+    }
+  },
+  "callback": {
+    "path": "journey/checks/browser/comparison.cjs",
+    "recursiveFingerprint": "a9d077403a96d1d48b0c1abf80bbb6de5eb6bab0db405d041ff1a16cc707856b",
+    "captureSha256": "730a2c8618175efe53a93be8f837fc14f91b5422375d8d0e699804d0c17e593a",
+    "completeDefaultBody": true,
+    "typingAndTwoCorrections": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\capture_journey.cjs",
+      "originalSha256": "ecbc4c716aa91a7aedc2532132c4b08e0a7d1e7511c380b0dbbba0152325a733",
+      "sha256": "730a2c8618175efe53a93be8f837fc14f91b5422375d8d0e699804d0c17e593a",
+      "approval": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\typing-delay-pin-qualification-preparation\\approval-record.json",
+        "sha256": "533d03c9f9f1edd3862e60a46922946eceb1127cb3051e3f9c5baa57b3f6e3e8"
+      },
+      "qualifier": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\typing-delay-pin-qualification-preparation\\capture-only-qualification.mjs",
+        "sha256": "c83eb6cd77003023155093fd0aabd750c0999e3bd9133c943438baddab36e1a9"
+      },
+      "scope": "Retain approved typing speed separately; exact two approved presentation/schema corrections only, no source/compiler/history relabel.",
+      "manifest": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\typing-delay-pin-qualification-preparation\\wrappers-manifest.json",
+        "sha256": "1ba350667f525a3c5de81759d3e669449dbf4d8c32b7ccfc2ce76f87de44c8dc"
+      },
+      "wrapperScope": "Browser capture delay-only qualification; original completed phases/accepted callbacks keep exact original source/checker/execution identities.",
+      "twoExceptions": {
+        "approval": {
+          "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\two-tested-corrections-application-preparation\\applied-qualification-approval.json",
+          "sha256": "4f2e2953d2feec510492a5e174290e9c8e46b999ef10a46967792965bb17dda1"
+        },
+        "application": {
+          "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\two-tested-corrections-application-preparation\\application.json",
+          "sha256": "05e5a25ceaccfd536c5537aa736cd3ca893bd85254a32dc56569ba9b0353f0ca"
+        },
+        "plan": {
+          "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\two-exception-pin-qualification-preparation\\plan.json",
+          "sha256": "86047f932502db6e6785dd0db8e9f00dacd01ed3c04722a099c3df28225f5497"
+        },
+        "qualifier": {
+          "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\two-exception-pin-qualification-preparation\\qualification.mjs",
+          "sha256": "f37aff4e393adfcc905458bed899ade8d6e00e61458cd51e81c66b66dabb0831"
+        },
+        "course": {
+          "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\course.json",
+          "beforeSha256": "05b031571b9b18b4e2740898af6782e2c746cb6b1fcf35c73adb86c957869374",
+          "afterSha256": "fd25625df40bee14e302a069448fa9510a87b90f80eee945f37b752fb1277726",
+          "beforeFile": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\two-exception-pin-qualification-preparation\\course-before.bin",
+          "afterFile": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\two-exception-pin-qualification-preparation\\course-candidate.bin"
+        },
+        "elements": {
+          "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\checks\\browser\\elements.cjs",
+          "beforeSha256": "e5cd43f4997a1557add4f27f23229702b0983273467d2c4dde6309fd4c903cc5",
+          "afterSha256": "8a10921d7403037d3e588827a785154fa0885b141ea9d5da9bf7c0eeddc99d6c",
+          "beforeFile": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\two-exception-pin-qualification-preparation\\elements-before.cjs",
+          "afterFile": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\two-exception-pin-qualification-preparation\\elements-candidate.cjs",
+          "before": "assert.match(await page.locator('canvas').getAttribute('data-controls'),/X 1000/);",
+          "after": "assert.match(await page.locator('canvas').evaluate(c=>c.getAttribute('data-controls')??JSON.parse(c.getAttribute('data-measurement')).label),/X 1000/);"
+        },
+        "scope": "Only exact approved presentation metadata/measurement schema changes; no runtime/source/compiler execution or callback acceptance inferred."
+      },
+      "twoWrapperManifest": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\two-exception-pin-qualification-preparation\\wrappers-manifest.json",
+        "sha256": "a93b85603529cb6756ace79c882c7a200e5334ac5965efed6130700e779f99b4"
+      }
+    }
+  },
+  "browser": {
+    "report": {
+      "path": "target/course-windows-20261018/comparison94c-acceptance-publication-preparation/raw/full-browser.json",
+      "sha256": "b2dc5ed469e194307a0b0d5d11eef66854161cb2c19348a4b295431362618282"
+    },
+    "snapshot": {
+      "path": "target/course-windows-20261018/comparison94c-acceptance-publication-preparation/raw/browser-snapshot.json",
+      "sha256": "14b647ea8615204e052261355bbbe8d10844ba17edfb3d9dda5acb5a65de6f9b"
+    },
+    "entry": {
+      "source": "108426cc86167dc7584206fa69b72154126d25e4b08e4efac16390aeb88044aa",
+      "checker": "730a2c8618175efe53a93be8f837fc14f91b5422375d8d0e699804d0c17e593a",
+      "extraChecker": "a9d077403a96d1d48b0c1abf80bbb6de5eb6bab0db405d041ff1a16cc707856b",
+      "browser": "145.0.7632.6",
+      "headless": true,
+      "captured": "2026-10-24T18:36:51.891Z",
+      "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "canvas": "da38d2d47ee3decee8faa3963665568f8efb2fd15532d42dfed0f94e96fc484b",
+      "file": "94c-prove-the-original-comparison-and-inspect-differences-browser.png",
+      "initialViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "initialCanvas": {
+        "x": 0,
+        "y": 0,
+        "width": 900,
+        "height": 760
+      },
+      "screenshotViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "bundle": "0669559eee1af4a5cceb3cd53b512cf760d4c20af34e01165e3c41b1316d5dc4",
+      "commands": [],
+      "keyboardRoundtrip": false
+    },
+    "log": {
+      "path": "target/course-windows-20261018/comparison94c-acceptance-publication-preparation/raw/full-browser.log",
+      "sha256": "e60a3044411f0da4eb0de1e4cc62f276da9b09bbccf85d33dd63b29179d6f349"
+    },
+    "resources": {
+      "path": "target/course-windows-20261018/comparison94c-acceptance-publication-preparation/raw/full-browser.resources.json",
+      "sha256": "67d3c5a3c7937f20af80b89b5fd3b3fb83bbf34c91cad406ade4db6960e5e060",
+      "elapsedSeconds": 640.221,
+      "peakJobCommitBytes": 2213318656,
+      "processors": 2,
+      "jobCommitLimitBytes": 6442450944
+    },
+    "servedHashes": {
+      "http://127.0.0.1:8781/94c-prove-the-original-comparison-and-inspect-differences/dist/assets/pb/course-comparison.pb": "8d952b0ac17ebf0bb7c20704b45b95acbe5b4395ff809a38baacaad93de4bed5",
+      "http://127.0.0.1:8781/94c-prove-the-original-comparison-and-inspect-differences/dist/index.html": "0669559eee1af4a5cceb3cd53b512cf760d4c20af34e01165e3c41b1316d5dc4",
+      "http://127.0.0.1:8781/94c-prove-the-original-comparison-and-inspect-differences/dist/snippets/session_viewer-568dd7ccbb8842dd/inline0.js": "bcd603923161001987d238655bc702c35aa98920d69d7c9793006792bd030104",
+      "http://127.0.0.1:8781/94c-prove-the-original-comparison-and-inspect-differences/dist/snippets/viewer_journey-7519825317df163d/src/adapter_info.js": "3d87da73f9a18dd579c0e96f207899630a600a7839ff4d9857a87fe1211091bb",
+      "http://127.0.0.1:8781/94c-prove-the-original-comparison-and-inspect-differences/dist/text/NotoSans-Regular.subset.ttf": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09",
+      "http://127.0.0.1:8781/94c-prove-the-original-comparison-and-inspect-differences/dist/text/NotoSans-Regular.ttf": "b85c38ecea8a7cfb39c24e395a4007474fa5a4fc864f6ee33309eb4948d232d5",
+      "http://127.0.0.1:8781/94c-prove-the-original-comparison-and-inspect-differences/dist/text/NotoSansSymbols-Regular.subset.ttf": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3",
+      "http://127.0.0.1:8781/94c-prove-the-original-comparison-and-inspect-differences/dist/text/NotoSansSymbols-Regular.ttf": "8f02f31959bbdf6061547a188248e13f84dc5fdd940326ec494675f453f072bb",
+      "http://127.0.0.1:8781/94c-prove-the-original-comparison-and-inspect-differences/dist/text/NotoSansSymbols2-Regular.subset.ttf": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed",
+      "http://127.0.0.1:8781/94c-prove-the-original-comparison-and-inspect-differences/dist/text/NotoSansSymbols2-Regular.ttf": "630846d528dbe4c4981370a4d0a9475a1fd1491a129bb411f8e157cdb5de13c6",
+      "http://127.0.0.1:8781/94c-prove-the-original-comparison-and-inspect-differences/dist/text/OFL.txt": "0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb",
+      "http://127.0.0.1:8781/94c-prove-the-original-comparison-and-inspect-differences/dist/viewer_journey-d2c0ed0ea698204a.js": "290b2c5ae423579d93ca7ebf6b7792d912712ecba9e38f6aa9c68367985859f3",
+      "http://127.0.0.1:8781/94c-prove-the-original-comparison-and-inspect-differences/dist/viewer_journey-d2c0ed0ea698204a_bg.wasm": "1ad28e63d33fc5b4aab94339154071be1fa3ba67de055becbe26ff86fe253348"
+    },
+    "adapter": {
+      "index": 0,
+      "name": "NVIDIA GeForce RTX 4080 Laptop GPU",
+      "vendor": 4318,
+      "device": 10208,
+      "luid": "0,86780",
+      "luidHigh": 0,
+      "luidLow": 86780,
+      "dedicatedVideoMemoryBytes": 12577669120,
+      "flags": 0
+    }
+  },
+  "retainedCompilerAndNative": {
+    "preparation": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\comparison94c-approved-five-browser-preparation\\prepared.json",
+      "sha256": "441bae3d1d5ac6d7df7916277c466fb4d98f141c82faf6aed9f66c75be93627f"
+    },
+    "nativeProof": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\canonical-94c-phase-native-v1\\phase-proof.json",
+      "sha256": "559e9fcb5e0e3588aa37be3f481701f4ed175fd2d7af67145df7f3e2fec875e7"
+    },
+    "nativeFrameSha256": "d57b09b12f4239a6203c0e8ad14e850c71b59de102a302ca1dc9639912c179f8",
+    "frameReview": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\canonical-94c-approved-measure-focus-v1\\browser-phase-proof.json",
+      "sha256": "3d4c2c0189fff316ee5c7cfede23e9137ca23526821f195eb5668e95ca568c27"
+    },
+    "originalNative800NotRerun": true,
+    "phaseBoundary": "Only two native diagnostic helper lines differ from the prior global signature; see hashed signature-cause and proportional audit. Original WASM57.334s and release web152.536s records remain historical, with unchanged stage/dist and served/dist bytes pinned here. No prior native evidence is rebound.",
+    "originalTransitiveProvenanceLimit": "This preparation pins existing bundle bytes and matching stage/dist alongside original successful build logs; original build record did not contain all transitive bundle hashes. No new build or browser run occurred.",
+    "qualification": "NewactualbrowserPASS only. HistoricalWASM/web/800native andglobalresults source identities remainoriginal; no newcompiler/globalverify acceptance inferred."
+  },
+  "image": {
+    "file": "comparison94c-current-browser.png",
+    "sha256": "8354b6839948576872b2230356cba0f51c34ce8a8a76fcc5781061ff7188de61",
+    "rootPersonallyReviewed": true,
+    "review": "Cleanbluepedestal: squarebase, column, roundtop andblackoriginaledges. Correctnonemptycomparisonterminal; initialrootpreview wasmisleading, exactfrozenoriginal reopened/reviewed. NoextradiagnosticGPUrun."
+  },
+  "fixtureAcceptance": {
+    "fixture": "94c originalcomparison",
+    "accepted": true,
+    "scope": "Complete supplied source-specific comparison contract usingactualoriginalPB4CADs and allrecursivepixel/owner/archive assertions; separately reviewed actualframe. Otherfixtures96y/96v acceptedindependently;96h remains."
+  },
+  "limits": [
+    "No wholeadditionalfinitefeatureclosure;features9/18 unchanged.",
+    "Current544-source/native800 relevance andhistoricalWASM/webmissingtransitivehash qualification stayexplicit.",
+    "No prefix/tail reuse,800testrepeat,buildrepeat orsyntheticfullverify.",
+    "No newBRepkernel/current694source acceptance inferred."
+  ]
+}

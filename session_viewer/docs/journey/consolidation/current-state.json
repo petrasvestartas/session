@@ -623,12 +623,12 @@
   ],
   "onlyHeavy": {
     "status": "running",
-    "task": "Full94c comparison browser callback; retained native800 and qualified compiler phases",
-    "sessionId": 83951,
-    "memoryLimitMiB": 6144,
+    "task": "First source-specific85ay native/WASM/optimized/frame/sample phases",
+    "sessionId": 87521,
+    "memoryLimitMiB": 4096,
     "processors": 2
   },
-  "next": "Finish four remaining callbacks:94c runs, then85ay,96h and measured reader96zzq.95f full callback and visible pedestal are accepted; finite performance and outline/ambient criteria complete. Then integrate exact BRep/kernel changes and execute the final affected verification/publication batch.",
+  "next": "Finish the remaining85ay,96h and measured-reader96zzq callbacks, each with its own first build phases.94c full comparison and fixture are accepted. Then integrate exact BRep/kernel changes and complete the final affected verification/publication batch.",
   "currentDocsReview": {
     "status": "PASS current694/b031 book publication snapshot: desktop/390px phone roadmap and changed22.6 Rust/WGSL section; all three original PNGs root-reviewed",
     "record": "release/docs-progress-ambient-selector-current-visible-review.json",
@@ -650,11 +650,11 @@
       "repositoriesLeft": 0
     },
     "windowsInputs": {
-      "status": "in progress",
+      "status": "in progress;3/4 semanticallyaccepted",
       "fixturesGenerated": 4,
       "fixturesTotal": 4,
-      "softwareWebGpu": "RecordedWARP scopes retained;96y andcurrent96v completefixturebrowser contracts accepted2/4.94c/96h remain.",
-      "fixturesSemanticallyAccepted": 2
+      "softwareWebGpu": "RecordedWARP scopes retained;96y,96v and94c completefixturebrowsercontractsaccepted3/4.94cactualNVIDIAfullPASS+reviewedcomparisonpedestal;96h remains.",
+      "fixturesSemanticallyAccepted": 3
     },
     "consolidation": {
       "status": "editorial structure done",
@@ -1432,10 +1432,6 @@
         "checkpoint": "96zzq-open-files-through-one-measured-session-reader",
         "callback": "journey/checks/browser/measured-file-reader.cjs",
         "chapter": 20
-      },
-      {
-        "checkpoint": "94c-prove-the-original-comparison-and-inspect-differences",
-        "callback": "journey/checks/browser/comparison.cjs"
       }
     ],
     "pendingIntegrationActions": [
@@ -1461,18 +1457,18 @@
       }
     ],
     "counting": {
-      "pendingHistoricalEntryCallbacks": 7,
+      "pendingHistoricalEntryCallbacks": 3,
       "additionalDeclaredCallbackEntries": 4,
       "pendingIntegrationActions": 3,
       "distinctSourceSpecificCallbackEntries": 18,
       "nonCallbackIntegrationActions": 3,
       "namedActions": 21,
-      "remainingFeatureChecklists": 13,
-      "meaning": "Original18 source entries retained: eleven independently accepted callbacks including Slot590,Network402 andMesh635; seven historical callbacks pending. Original21 named denominator retained;10 pending groups overlap13 partial features. Fixtures2/4 and release3/5 remain independent.",
+      "remainingFeatureChecklists": 9,
+      "meaning": "Original18sourceentries:15actualaccepted,3historicalcallbacks85ay/96h/96zzqremain. Original21nameddenominatorretained;3noncallbackintegrationgroups remainindependentlyscoped. Fixtures3/4;features9/18;release3/5.",
       "eta": "No total ETA; missing successful callback durations and unscopednative tuples prevent an honest walltime estimate.",
-      "acceptedSourceSpecificCallbackEntries": 11,
-      "pendingSourceSpecificCallbackEntries": 7,
-      "pendingNamedActions": 10,
+      "acceptedSourceSpecificCallbackEntries": 15,
+      "pendingSourceSpecificCallbackEntries": 3,
+      "pendingNamedActions": 6,
       "pendingAdditionalDeclaredCallbackEntries": 0
     },
     "phaseReuse94c": {
@@ -1944,15 +1940,15 @@
       "draftingRemaining": 0,
       "featuresComplete": 9,
       "featuresPartial": 9,
-      "callbacksAccepted": 14,
-      "callbacksRemaining": 4,
-      "historicalFixturesAccepted": 2,
+      "callbacksAccepted": 15,
+      "callbacksRemaining": 3,
+      "historicalFixturesAccepted": 3,
       "historicalFixturesTotal": 4,
       "releaseGatesDone": 3,
       "releaseGatesTotal": 5,
       "releaseGatesRemaining": 2
     },
-    "next": "14/18 callbacks accepted;4 remain.9/18 features complete;9 partial. Fixtures2/4, releasegates3/5.95f performance and bounded outline/ambient criteria accepted at recorded scopes;94c active.",
+    "next": "15/18 callbacks accepted;3 remain.9/18 features complete;9 partial. Fixtures3/4 (96h left), releasegates3/5.85ay build phases are active. Recorded source/provenance limits remain explicit.",
     "chapter14": {
       "status": "PASS complete current76originalcanonicalbrowser callback",
       "record": "release/76d-browser-review.json",
@@ -2375,6 +2371,16 @@
       "recursiveCallbackFingerprint": "e7394b63132216251770f924d4d60a1a929bcbe7e882410ce32cb1a29f87bab4",
       "elapsedSeconds": 644.073,
       "peakJobCommitBytes": 2212790272
+    },
+    "comparison94c": {
+      "status": "PASS completeoriginal544bodyandreviewedpedestal;qualifiedhistoricalphaseprovenance",
+      "record": "release/comparison94c-browser-review.json",
+      "sourceFingerprint": "3f02a2d827ccc8944516c54f51ffec80739b95fa626a975906d664c43a0f793e",
+      "sourceSignature": "49ef535e80f8ed93cd7ede6bff39fb5a48bc84c23ff4b18235cf508870b6c036",
+      "recursiveCallbackFingerprint": "a9d077403a96d1d48b0c1abf80bbb6de5eb6bab0db405d041ff1a16cc707856b",
+      "elapsedSeconds": 640.221,
+      "peakJobCommitBytes": 2213318656,
+      "fixtureAccepted": true
     }
   },
   "currentRuntimeDocsQualification": {

@@ -818,7 +818,7 @@
       "currentVerification": {
         "status": "partial",
         "integration": "#/currentIntegration",
-        "acceptedScope": "Recorded Point/Mesh/wire native ownership checks, focused Escape repeated picking and complete96y feature-original-pick browser callback pass. Original ownership,locking,highlight,Delete/Undo and archive regeneration verified at recorded sources. FinalCAD97d, original603 Arena and630 source-faces callbacks also pass their recorded owner/selection/DeleteUndo/archive or sparse-face/cropped-query contracts with reviewed meaningful images. Final65 and555 Sphere witnesses add only their bounded raw13x13 original-owner/Xray restoration proof. No94c,96h,Slot or measured-reader full acceptance is inferred.",
+        "acceptedScope": "Recorded Point/Mesh/wire native ownership checks, focused Escape repeated picking and complete96y feature-original-pick browser callback pass. Original ownership,locking,highlight,Delete/Undo and archive regeneration verified at recorded sources. FinalCAD97d, original603 Arena and630 source-faces callbacks also pass their recorded owner/selection/DeleteUndo/archive or sparse-face/cropped-query contracts with reviewed meaningful images. Final65 and555 Sphere witnesses add only their bounded raw13x13 original-owner/Xray restoration proof. No94c,96h,Slot or measured-reader full acceptance is inferred. Source54494c complete original comparison entry now passes with meaningful four-CAD comparison pedestal; original transitive compiler qualification remains explicit. Inventory96h andreader96zzq andunprovedstale/cropped/rebased obligations remainseparate.",
         "records": [
           "release/point-native-review.json",
           "release/mesh-native-review.json",
@@ -828,10 +828,10 @@
           "release/source-faces-browser-review.json",
           "release/arena-empty-browser-review.json",
           "release/xray-current-browser-relevance-review.json",
-          "release/ambient-final713-marker-browser-review.json"
+          "release/ambient-final713-marker-browser-review.json",
+          "release/comparison94c-browser-review.json"
         ],
         "remainingAcceptance": [
-          "Complete94c recursive callback after approved shortcuts, retaining prior failure evidence.",
           "Run96h inventory at its own checkpoint and the remaining96zzq measured-reader ownership contracts, retaining still-unproved stale/cropped/rebased request checks. Accepted590 Slot,96y,Arena,source-faces,finalCAD and bounded Sphere evidence keeps its exact scope;96y alone does not close chapter19."
         ],
         "chapterBrowserEntries": [
@@ -860,7 +860,14 @@
             "checkpoint": "96zzzzx-retire-empty-arena-ranges-after-tail-trimming",
             "callback": "journey/checks/browser/arena-empty.cjs"
           }
-        ]
+        ],
+        "satisfiedComparisonBrowserCriterion": {
+          "record": "release/comparison94c-browser-review.json",
+          "checkpoint": "94c-prove-the-original-comparison-and-inspect-differences",
+          "sourceFingerprint": "3f02a2d827ccc8944516c54f51ffec80739b95fa626a975906d664c43a0f793e",
+          "recursiveCallbackFingerprint": "a9d077403a96d1d48b0c1abf80bbb6de5eb6bab0db405d041ff1a16cc707856b",
+          "originalCriterion": "Complete94c recursive callback after approved shortcuts, retaining prior failure evidence."
+        }
       }
     },
     {
