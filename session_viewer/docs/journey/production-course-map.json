@@ -4,7 +4,7 @@
   "sourceAuthority": "session_viewer/src",
   "endpoint": "96zzzzzzzq-draw-original-cad-wire-curves",
   "endpointStatus": "Current1063 native integration, seven compiler/package/frame phases, strict713 Sphere browser and complete714 DPR1/2 browser PASS. Currentf23 docs build/probe PASS; root reviewed desktop/390phone and changed22.6Rust section, ownedroadmap refreshed/front. Noactiveheavy. Await consolidated user decision on five prepared frozen-harness corrections before remaining10 sourcecallbacks; Gemini1-10 remains owned elsewhere. Callbacks8/18/features4/18complete14partial/fixtures2/4/release1/5done4remain; scoped proofs and earlier failures preserved.",
-  "courseSha256": "367065739cee3cbf01e1b240c9eca4a1e0c12092eccab2fe2345cbc783a55197",
+  "courseSha256": "05b031571b9b18b4e2740898af6782e2c746cb6b1fcf35c73adb86c957869374",
   "chapters": 22,
   "existingSteps": 1361,
   "proposedReaderLessons": 111,
@@ -1098,9 +1098,11 @@
       "currentVerification": {
         "status": "partial",
         "integration": "#/currentIntegration",
-        "acceptedScope": "Historical a45 native1059 suite passed and selected source matches remain recorded; no complete current browser GTAO/outline acceptance is inferred.",
+        "acceptedScope": "Historical a45 native1059 suite passed and selected source matches remain recorded; no complete current browser GTAO/outline acceptance is inferred. Applied final555/b5 geometric-normal/full-pyramid reconciliation has two strict original-pedestal ambientOff/On production pairs atDPR1/sample1 with zeroRGBA differences and five focused native checks; whole feature remains partial.",
         "records": [
-          "consolidation/current-state.json"
+          "consolidation/current-state.json",
+          "release/ambient-pedestal-qualified-native-review.json",
+          "release/ambient-authored-source-integration-review.json"
         ],
         "remainingAcceptance": [
           "Run chapter11 cloud/outline and chapter18 performance/render-quality entry callbacks.",
@@ -1118,13 +1120,23 @@
             "callback": "journey/checks/browser/performance.cjs"
           }
         ],
-        "unresolvedComparison": {
+        "previousNativeFailure": {
           "status": "FAIL observed current native ambient comparison; candidate correction pending",
           "record": "release/ambient-pedestal-native-failure-review.json",
           "offChangedPixels": 0,
           "onChangedPixels": 36492,
           "maxChannelDelta": 47,
           "sourceFingerprint": "65f0013ae13365244de0baf69d29fd84c0219450573f86e5884eb0413dd6ae30"
+        },
+        "ambientNativeComparison": {
+          "status": "PASS bounded nativeOff/On exact0RGBA and five focused cache/normal/contact/sample4 checks",
+          "record": "release/ambient-authored-source-integration-review.json",
+          "source713": "555490d4cb3dd18014984afc15692d1ac14509f204061e26192633150d46f5ff",
+          "source714": "b5a415856167f657d7eb02e9efa32c66d0561a0e2c482ec36bbe17608b6c8d2d",
+          "productionPairs": 2,
+          "matchedPairSamples": 1,
+          "groundContactPixelsBoth": 10273,
+          "remaining": "Full declared outline/depth/GTAO multisample production and source-specific browser criteria remain open."
         }
       }
     },
@@ -23233,5 +23245,11 @@
     "newRustBodiesVerified": 9,
     "scope": "Actual V7 build and V7b probe, source/HTTP/DOM exactness and image review. Measured prepublication inputs exclude this review, three copied images and this later metadata update. No whole-book or additional callback/feature/release-gate acceptance.",
     "previousRecord": "release/docs-progress-eight-callback-visible-review.json"
+  },
+  "currentAmbientSource": {
+    "courseSha256": "05b031571b9b18b4e2740898af6782e2c746cb6b1fcf35c73adb86c957869374",
+    "source713": "555490d4cb3dd18014984afc15692d1ac14509f204061e26192633150d46f5ff",
+    "source714": "b5a415856167f657d7eb02e9efa32c66d0561a0e2c482ec36bbe17608b6c8d2d",
+    "buildGate": "pending newsource refresh"
   }
 }

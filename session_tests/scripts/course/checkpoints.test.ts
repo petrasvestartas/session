@@ -408,7 +408,7 @@ test('the compact target-owner lesson preserves its accepted source apart from s
     files[testPath] = edited(files[testPath], {path: testPath, snippet: '', why: '', before: assertion(currentCount)}, assertion(previousCount));
     assert.equal(fingerprint(files), record.applicationFingerprint);
     assert.equal(fingerprint(expected('96zzzzzzzq-draw-original-cad-wire-curves')),
-        '65f0013ae13365244de0baf69d29fd84c0219450573f86e5884eb0413dd6ae30');
+        '555490d4cb3dd18014984afc15692d1ac14509f204061e26192633150d46f5ff');
     const counted = fields.reduce((sum, edit) => sum + edit.before!.length + read(path.join(viewer, 'docs', edit.snippet)).length, 0);
     assert(counted > 0 && counted < 100);
     assert(typingLoad(step).minutes[1] <= 60);

@@ -46328,6 +46328,95 @@ Update that block with the supplied code; keep unchanged surrounding lines:
 --8<-- "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-xray-marker-query-regression.rs"
 ```
 
+### Keep ambient contact reconstruction consistent
+
+Sample the full depth and radius pyramid, use a coarser occupancy level, and pass the half-resolution ground dimensions to the camera uniform so the shadow reaches the intended area. Compute geometric contact normals from transformed original triangle edges and retain full-precision XYZ through full-resolution reconstruction; encode them once for the reduced normal texture. Three R32Float normal targets plus the radius target use the guaranteed four attachments and 16 bytes per sample, including the four-sample path. The retained pedestal check protects visible ground shading, repeated-frame reuse and exact restoration without changing original geometry.
+
+### 401. `src/ambient_camera.rs`
+
+```rust
+--8<-- "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ambient-production-01-ambient_camera.rs"
+```
+
+### 402. `src/ambient.wgsl`
+
+```wgsl
+--8<-- "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ambient-production-02-ambient.wgsl"
+```
+
+### 403. `src/ambient_sources.wgsl`
+
+```wgsl
+--8<-- "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ambient-production-03-ambient_sources.wgsl"
+```
+
+### 404. `src/ambient_source_pipeline.rs`
+
+```rust
+--8<-- "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ambient-production-04-ambient_source_pipeline.rs"
+```
+
+### 405. `src/ambient_source_gpu.rs`
+
+```rust
+--8<-- "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ambient-production-05-ambient_source_gpu.rs"
+```
+
+### 406. `src/ambient_images.rs`
+
+```rust
+--8<-- "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ambient-production-06-ambient_images.rs"
+```
+
+### 407. `src/ambient_pipeline.rs`
+
+```rust
+--8<-- "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ambient-production-07-ambient_pipeline.rs"
+```
+
+### 408. `src/ambient_groups.rs`
+
+```rust
+--8<-- "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ambient-production-08-ambient_groups.rs"
+```
+
+### 409. `src/ambient_gpu.rs`
+
+```rust
+--8<-- "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ambient-production-09-ambient_gpu.rs"
+```
+
+### 410. `src/ambient_input_tests.rs`
+
+```rust
+--8<-- "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ambient-production-10-ambient_input_tests.rs"
+```
+
+### 411. `src/ambient_contact_tests.rs`
+
+```rust
+--8<-- "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ambient-production-11-ambient_contact_tests.rs"
+```
+
+### 412. `src/sample_surface_tests.rs`
+
+```rust
+--8<-- "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ambient-production-12-sample_surface_tests.rs"
+```
+
+### 413. `src/ambient_sample_inspect.rs`
+
+```rust
+--8<-- "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ambient-production-13-ambient_sample_inspect.rs"
+```
+
+### 414. `src/ambient_gpu_tests.rs`
+
+```rust
+--8<-- "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ambient-retained-ground-regression.rs" skip=3337
+```
+
+
 ## Run and check
 
 Run this from `session_viewer` to select the fixed dependency versions and install supplied binary assets. It updates Cargo.lock and preserves the previous lock. It does not write implementation code:

@@ -1,0 +1,594 @@
+{
+  "status": "PASS scoped authored ambient source reconciliation, all1361 reconstruction and existing22 authoring/structure checks; final runtime integration remains pending",
+  "recordedUtc": "2026-10-24T10:10:47.649Z",
+  "source": {
+    "courseSha256": "05b031571b9b18b4e2740898af6782e2c746cb6b1fcf35c73adb86c957869374",
+    "handwritten713": {
+      "fingerprint": "555490d4cb3dd18014984afc15692d1ac14509f204061e26192633150d46f5ff",
+      "sourceFiles": 713
+    },
+    "maintained714": {
+      "fingerprint": "b5a415856167f657d7eb02e9efa32c66d0561a0e2c482ec36bbe17608b6c8d2d",
+      "sourceFiles": 714
+    },
+    "earlier1359Unchanged": true,
+    "changedFinalSourceFiles": 14,
+    "unchangedFinalSourceFiles": 699,
+    "canonicalCargoRetained": true
+  },
+  "application": {
+    "receipt": {
+      "path": "target/course-windows-20261018/ambient-ground-regression-preparation/authentic-authoring-applied-v3/application.json",
+      "sha256": "9313307d011adb9245c96c1673a2651cd868228dd0ae167f8be0ad9f66ea92ad",
+      "bytes": 5500
+    },
+    "ownedFiles": [
+      {
+        "path": "docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ambient-production-01-ambient_camera.rs",
+        "beforeSha256": null,
+        "afterSha256": "7a305c24e1c75aeabb5c9cf78f5fc9551a5417e8915fca80dd0bc77ef988308d"
+      },
+      {
+        "path": "docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ambient-production-02-ambient.wgsl",
+        "beforeSha256": null,
+        "afterSha256": "09b64493c448d2366095aa8b94e8cc9b5d9b6fc2775ab15e00fd2a34002cb4cb"
+      },
+      {
+        "path": "docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ambient-production-03-ambient_sources.wgsl",
+        "beforeSha256": null,
+        "afterSha256": "3886ab7691bf74b343e5268860c4d68ae3e1745c97459b78d61f4ac66d3fc561"
+      },
+      {
+        "path": "docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ambient-production-04-ambient_source_pipeline.rs",
+        "beforeSha256": null,
+        "afterSha256": "3b11dbe30bb33344071bc5ac91df8a4503378eaaec33bc4af2f3f2bc3728b403"
+      },
+      {
+        "path": "docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ambient-production-05-ambient_source_gpu.rs",
+        "beforeSha256": null,
+        "afterSha256": "693e6057da5310d31763609155699a29ffe1f0e0f5e16c53b64cfd539b0bcd99"
+      },
+      {
+        "path": "docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ambient-production-06-ambient_images.rs",
+        "beforeSha256": null,
+        "afterSha256": "59c4a033f23d174f249566ef941475b17e4e31d17cd731ddcc18537797aa0f4c"
+      },
+      {
+        "path": "docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ambient-production-07-ambient_pipeline.rs",
+        "beforeSha256": null,
+        "afterSha256": "6704ff0919f3f50d54cc079fdbb9e039ea1534abaf0ba12b8fce7568b4c8cc68"
+      },
+      {
+        "path": "docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ambient-production-08-ambient_groups.rs",
+        "beforeSha256": null,
+        "afterSha256": "2454e1b30399322567d83565bf75d385fa00a608caebc286203a33c688c72688"
+      },
+      {
+        "path": "docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ambient-production-09-ambient_gpu.rs",
+        "beforeSha256": null,
+        "afterSha256": "0ab35d3a8ef15e3a8e6733295db657e07a83d41c5607d3f5290718d228bff4c1"
+      },
+      {
+        "path": "docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ambient-production-10-ambient_input_tests.rs",
+        "beforeSha256": null,
+        "afterSha256": "a793339057cb16fd259474b0310a7832ab08508ce9c40efa123998a144f8da2e"
+      },
+      {
+        "path": "docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ambient-production-11-ambient_contact_tests.rs",
+        "beforeSha256": null,
+        "afterSha256": "3d4ea53e76c0d57bbb11142b10e6d08d1d1c82fee93f53ab5506a9e23953f7ee"
+      },
+      {
+        "path": "docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ambient-production-12-sample_surface_tests.rs",
+        "beforeSha256": null,
+        "afterSha256": "38987cae5fb5b17eea55a6f5da2168e604ac83711d95d3fcb98a10f45920d3a4"
+      },
+      {
+        "path": "docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ambient-production-13-ambient_sample_inspect.rs",
+        "beforeSha256": null,
+        "afterSha256": "8483e081fcb342e68630d17f7a14748d4aaeaf0509bc15e1db4841f0122ae5ec"
+      },
+      {
+        "path": "docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ambient-retained-ground-regression.rs",
+        "beforeSha256": null,
+        "afterSha256": "e43dc5c34c0a93ce62e047e285a6a90eade1f7442c2224306a85a8d47bf4f68c"
+      },
+      {
+        "path": "docs/journey/course.json",
+        "beforeSha256": "f23fe2c84e633849f9b9fad00a0ecdb87b2d40b0d4165fd7561d702626cc7537",
+        "afterSha256": "05b031571b9b18b4e2740898af6782e2c746cb6b1fcf35c73adb86c957869374"
+      },
+      {
+        "path": "docs/journey/96zzzzzzzq-draw-original-cad-wire-curves.md",
+        "beforeSha256": "c241589a1c86aff40b27538f3385ad074e808afe119b7d595aaf90a77697a8ab",
+        "afterSha256": "248d3e2bbf44c577da874baad65969a06f7ab54a6c97c3670d97afed8d7ae57f"
+      },
+      {
+        "path": "docs/journey/consolidation/96zzzzzzzm-retain-visible-instance-ranges.md",
+        "beforeSha256": "67da66c6a9582fb5d1a1819546062958f21d473dab357ba8d4fcba4240f069b8",
+        "afterSha256": "e84bcb7cfb5198b08fde08b9d63f50b1c8473c2e019b07800f1fecba3b54200d"
+      }
+    ],
+    "scope": "Fourteen appended source edits in existing finalq;97 inherits. Existing Gemini Markdown bytes retained; no Vue/frontend changes."
+  },
+  "postflight": {
+    "record": {
+      "path": "target/course-windows-20261018/ambient-ground-regression-preparation/actual-authored-postflight-v1.json",
+      "sha256": "6665ff935ba58821654803b3ca68f1de427bbdf3d7d28f15bbc79c77b8ce9f7a",
+      "bytes": 460495
+    },
+    "command": {
+      "path": "target/course-windows-20261018/ambient-ground-regression-preparation/authored-checks-v1-source/command.json",
+      "sha256": "0fc670006e154df8b088d7638d15e425fca7d9048a7c01b7be71b1e4adc1a899",
+      "bytes": 841
+    },
+    "stdout": {
+      "path": "target/course-windows-20261018/ambient-ground-regression-preparation/authored-checks-v1-source/output.log",
+      "sha256": "57ea7423a75534f4352b6baa3b74913a198a433c79d81b9528b7ed1135b991d1",
+      "bytes": 402
+    },
+    "resources": {
+      "platform": "windows-job-object",
+      "startedUtc": "2026-10-24T10:07:02.2057870Z",
+      "executable": "C:\\Program Files\\nodejs\\node.exe",
+      "arguments": [
+        "--import",
+        "../session_tests/scripts/typescript.mjs",
+        "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\ambient-ground-regression-preparation\\postflight-authored.mjs",
+        "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\ambient-ground-regression-preparation\\actual-authored-postflight-v1.json"
+      ],
+      "workingDirectory": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer",
+      "timeoutSeconds": 600,
+      "jobCommitLimitBytes": 4294967296,
+      "swapCapSupported": false,
+      "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+      "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+      "exitCode": 0,
+      "timedOut": false,
+      "elapsedSeconds": 19.812,
+      "peakJobCommitBytes": 704344064,
+      "affinityMask": "0x3",
+      "processors": 2,
+      "processId": 61704,
+      "descendantsAtCleanup": 1,
+      "evidence": {
+        "path": "target/course-windows-20261018/ambient-ground-regression-preparation/authored-checks-v1-source/resources.json",
+        "sha256": "776e8db1a7e8cd95df3c6c329a610935ce61ec77e2d18931c0ee0a720690232c",
+        "bytes": 1308
+      }
+    },
+    "all1361Reconstructed": true,
+    "all1359PriorInputsRetained": true,
+    "focusedNativeEquivalence": "Every712 nonCargo final source file equals the actual focused source; original canonical Cargo retained. Private staged Cargo path rewrite is unused: actual compiler used separately pinned native alias."
+  },
+  "productionPairs": {
+    "publicRecord": {
+      "path": "docs/journey/release/ambient-pedestal-qualified-native-review.json",
+      "sha256": "17890910bbf6cc1cfdabebdbc1698093809efc1924844ea007c13ea66d8f40ed",
+      "bytes": 20142
+    },
+    "result": {
+      "path": "target/course-windows-20261018/ambient-intermediate-diagnostic-v6/unique-v5-source-binding-v3/result.json",
+      "sha256": "0fd846d5fe3726355d6cded76aa8867357c74c2dec23c7f2313087cf7a3c9200",
+      "bytes": 2503
+    },
+    "manifest": {
+      "path": "target/course-windows-20261018/ambient-intermediate-diagnostic-v6/unique-v5-source-binding-v3/frames-v5-scope3/manifest.json",
+      "sha256": "8f46dc182086b6791f17cf886e0855b10abadb9848cc0262abe3bd8d299d54f9",
+      "bytes": 32217
+    },
+    "sourceBindingSha256": "22fa5918b35924da9d8c67fe6db6eb770fdd7aa9ddf0d5adc17489a4f1e9c75a",
+    "privateFingerprint": "5d114c4e187c05f90c293a23a3212cdc0faa26af4c28d2743f93aaadf9c5dbda",
+    "cases": [
+      "ambient-off",
+      "ambient-on"
+    ],
+    "changedPixels": [
+      0,
+      0
+    ],
+    "maximumChannelDelta": [
+      0,
+      0
+    ],
+    "signal": {
+      "course_darkened_ground_contact_pixels": 10273,
+      "course_on_vs_off_changed_pixels": 276049,
+      "production_darkened_ground_contact_pixels": 10273,
+      "production_on_vs_off_changed_pixels": 276049
+    },
+    "visualReview": "Retained root-reviewed Off/On public PNGs in linked qualified pair record; no new image inspection claimed"
+  },
+  "focusedNative": {
+    "record": {
+      "path": "target/course-windows-20261018/ambient-ground-regression-preparation/focused-v5-scope3-v2/focused-result.json",
+      "sha256": "a9796167db58502f491f158cf03338f251f513fce17be36ce628b8b02ff73e68",
+      "bytes": 2846
+    },
+    "binarySha256": "ee6f59c68b15b1ced186b86701be1aee05091661c6da2689bed2c23691929bc9",
+    "tests": [
+      {
+        "test": "renderer::ambient_gpu_tests::actual_ambient_darkens_original_contacts_in_one_frame_caches_and_releases_large_images",
+        "command": {
+          "path": "target/course-windows-20261018/ambient-ground-regression-preparation/focused-v5-scope3-v2/test-01/command.json",
+          "sha256": "26b37fd5c63cbd0026eb71702236c8f60b3f2e9140c4195b499ab42ac15ded08",
+          "bytes": 1480
+        },
+        "stdout": {
+          "path": "target/course-windows-20261018/ambient-ground-regression-preparation/focused-v5-scope3-v2/test-01/output.log",
+          "sha256": "2a65ecc80074dd512b3671edf5b3e71a626812ce8fb6e57101151f613a27bad5",
+          "bytes": 733
+        },
+        "resources": {
+          "platform": "windows-job-object",
+          "startedUtc": "2026-10-24T10:01:31.9847818Z",
+          "executable": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\ambient-ground-regression-preparation\\focused-v5-scope3-v2\\ambient-ground-focused-v5-scope3-v2.exe",
+          "arguments": [
+            "renderer::ambient_gpu_tests::actual_ambient_darkens_original_contacts_in_one_frame_caches_and_releases_large_images",
+            "--exact",
+            "--test-threads=1",
+            "--nocapture"
+          ],
+          "workingDirectory": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer",
+          "timeoutSeconds": 1800,
+          "jobCommitLimitBytes": 4294967296,
+          "swapCapSupported": false,
+          "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+          "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+          "exitCode": 0,
+          "timedOut": false,
+          "elapsedSeconds": 5.199,
+          "peakJobCommitBytes": 662175744,
+          "affinityMask": "0x3",
+          "processors": 2,
+          "processId": 64860,
+          "descendantsAtCleanup": 1,
+          "evidence": {
+            "path": "target/course-windows-20261018/ambient-ground-regression-preparation/focused-v5-scope3-v2/test-01/resources.json",
+            "sha256": "9af3ab724b8c7685f2af8cc456ffc3cca64e35b40509a9f4dfebd2031a8054f8",
+            "bytes": 1240
+          }
+        }
+      },
+      {
+        "test": "renderer::ambient_gpu_tests::actual_retained_pedestal_ambient_reaches_visible_ground_and_preserves_cache_and_sources",
+        "command": {
+          "path": "target/course-windows-20261018/ambient-ground-regression-preparation/focused-v5-scope3-v2/test-02/command.json",
+          "sha256": "d1a32c108d3e993d0efcf123785deca0d127c0d4d0ba753f050dcdbbfb4b9534",
+          "bytes": 1481
+        },
+        "stdout": {
+          "path": "target/course-windows-20261018/ambient-ground-regression-preparation/focused-v5-scope3-v2/test-02/output.log",
+          "sha256": "e1d4884ae912f831e92160a93f0858addc71584c5fe2d550f6c98418605744d7",
+          "bytes": 734
+        },
+        "resources": {
+          "platform": "windows-job-object",
+          "startedUtc": "2026-10-24T10:01:39.0079752Z",
+          "executable": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\ambient-ground-regression-preparation\\focused-v5-scope3-v2\\ambient-ground-focused-v5-scope3-v2.exe",
+          "arguments": [
+            "renderer::ambient_gpu_tests::actual_retained_pedestal_ambient_reaches_visible_ground_and_preserves_cache_and_sources",
+            "--exact",
+            "--test-threads=1",
+            "--nocapture"
+          ],
+          "workingDirectory": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer",
+          "timeoutSeconds": 1800,
+          "jobCommitLimitBytes": 4294967296,
+          "swapCapSupported": false,
+          "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+          "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+          "exitCode": 0,
+          "timedOut": false,
+          "elapsedSeconds": 2.557,
+          "peakJobCommitBytes": 619683840,
+          "affinityMask": "0x3",
+          "processors": 2,
+          "processId": 39060,
+          "descendantsAtCleanup": 1,
+          "evidence": {
+            "path": "target/course-windows-20261018/ambient-ground-regression-preparation/focused-v5-scope3-v2/test-02/resources.json",
+            "sha256": "ca4b00912c61daba36bfeed3d765909cf8472b33edaa5526c85a76652e8b1c3f",
+            "bytes": 1241
+          }
+        }
+      },
+      {
+        "test": "renderer::ambient_input_tests::actual_geometric_normals_preserve_authored_lighting_in_both_object_paths",
+        "command": {
+          "path": "target/course-windows-20261018/ambient-ground-regression-preparation/focused-v5-scope3-v2/test-03/command.json",
+          "sha256": "47d428561d75b9a6dd43d35ac31aff336d5619db14f00ef5c3130b0f67d7fc62",
+          "bytes": 1468
+        },
+        "stdout": {
+          "path": "target/course-windows-20261018/ambient-ground-regression-preparation/focused-v5-scope3-v2/test-03/output.log",
+          "sha256": "b7747353c11b4c962731879ba7d9f9fafc118a932fab88178396243f72e0731d",
+          "bytes": 721
+        },
+        "resources": {
+          "platform": "windows-job-object",
+          "startedUtc": "2026-10-24T10:01:43.3351661Z",
+          "executable": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\ambient-ground-regression-preparation\\focused-v5-scope3-v2\\ambient-ground-focused-v5-scope3-v2.exe",
+          "arguments": [
+            "renderer::ambient_input_tests::actual_geometric_normals_preserve_authored_lighting_in_both_object_paths",
+            "--exact",
+            "--test-threads=1",
+            "--nocapture"
+          ],
+          "workingDirectory": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer",
+          "timeoutSeconds": 1800,
+          "jobCommitLimitBytes": 4294967296,
+          "swapCapSupported": false,
+          "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+          "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+          "exitCode": 0,
+          "timedOut": false,
+          "elapsedSeconds": 5.294,
+          "peakJobCommitBytes": 750456832,
+          "affinityMask": "0x3",
+          "processors": 2,
+          "processId": 55496,
+          "descendantsAtCleanup": 1,
+          "evidence": {
+            "path": "target/course-windows-20261018/ambient-ground-regression-preparation/focused-v5-scope3-v2/test-03/resources.json",
+            "sha256": "abe2062d01c4d7ac98944674eff1a246d1a75b9bbd5f8783eec39dae562bce8f",
+            "bytes": 1228
+          }
+        }
+      },
+      {
+        "test": "renderer::ambient_contact_tests::contact_properties_match_original_radius_and_shared_geometry_in_both_paths",
+        "command": {
+          "path": "target/course-windows-20261018/ambient-ground-regression-preparation/focused-v5-scope3-v2/test-04/command.json",
+          "sha256": "043c77509244ffb3e7763e34b75c9cb6bd2e6b13f282bbca93b7554283f18608",
+          "bytes": 1472
+        },
+        "stdout": {
+          "path": "target/course-windows-20261018/ambient-ground-regression-preparation/focused-v5-scope3-v2/test-04/output.log",
+          "sha256": "723ca7c6a9c0de31937fdec7ddc898eb7e09b798c92e257a32c504c51979aac8",
+          "bytes": 1216
+        },
+        "resources": {
+          "platform": "windows-job-object",
+          "startedUtc": "2026-10-24T10:01:50.3868053Z",
+          "executable": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\ambient-ground-regression-preparation\\focused-v5-scope3-v2\\ambient-ground-focused-v5-scope3-v2.exe",
+          "arguments": [
+            "renderer::ambient_contact_tests::contact_properties_match_original_radius_and_shared_geometry_in_both_paths",
+            "--exact",
+            "--test-threads=1",
+            "--nocapture"
+          ],
+          "workingDirectory": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer",
+          "timeoutSeconds": 1800,
+          "jobCommitLimitBytes": 4294967296,
+          "swapCapSupported": false,
+          "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+          "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+          "exitCode": 0,
+          "timedOut": false,
+          "elapsedSeconds": 12.354,
+          "peakJobCommitBytes": 698769408,
+          "affinityMask": "0x3",
+          "processors": 2,
+          "processId": 65324,
+          "descendantsAtCleanup": 1,
+          "evidence": {
+            "path": "target/course-windows-20261018/ambient-ground-regression-preparation/focused-v5-scope3-v2/test-04/resources.json",
+            "sha256": "606f4cbceb766c5b06d6c93b8ef1fa2ce689b4f82008f8d6af62c17fd22f25d6",
+            "bytes": 1233
+          }
+        }
+      },
+      {
+        "test": "renderer::sample_tests::actual_four_sample_ambient_reads_original_properties_and_executes_sparse_corrections",
+        "command": {
+          "path": "target/course-windows-20261018/ambient-ground-regression-preparation/focused-v5-scope3-v2/test-05/command.json",
+          "sha256": "d4168b579aef67ede336d7ae9edbfd83e4a09f705f96aa7ba17b8a41dd1b272c",
+          "bytes": 1473
+        },
+        "stdout": {
+          "path": "target/course-windows-20261018/ambient-ground-regression-preparation/focused-v5-scope3-v2/test-05/output.log",
+          "sha256": "e179822af586b150ff0e0f1a0191f09734d864bc90ad147749013e1bafb6eaba",
+          "bytes": 727
+        },
+        "resources": {
+          "platform": "windows-job-object",
+          "startedUtc": "2026-10-24T10:02:04.5422752Z",
+          "executable": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\ambient-ground-regression-preparation\\focused-v5-scope3-v2\\ambient-ground-focused-v5-scope3-v2.exe",
+          "arguments": [
+            "renderer::sample_tests::actual_four_sample_ambient_reads_original_properties_and_executes_sparse_corrections",
+            "--exact",
+            "--test-threads=1",
+            "--nocapture"
+          ],
+          "workingDirectory": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer",
+          "timeoutSeconds": 1800,
+          "jobCommitLimitBytes": 4294967296,
+          "swapCapSupported": false,
+          "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+          "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+          "exitCode": 0,
+          "timedOut": false,
+          "elapsedSeconds": 19.272,
+          "peakJobCommitBytes": 829636608,
+          "affinityMask": "0x3",
+          "processors": 2,
+          "processId": 56048,
+          "descendantsAtCleanup": 1,
+          "evidence": {
+            "path": "target/course-windows-20261018/ambient-ground-regression-preparation/focused-v5-scope3-v2/test-05/resources.json",
+            "sha256": "2018e1ed900e3217976fdbb268866956b0a8ee16a0658e3efda45e1738594bf7",
+            "bytes": 1234
+          }
+        }
+      }
+    ],
+    "passed": 5,
+    "fullNativeSuiteExecuted": false,
+    "testOnlyCorrection": {
+      "file": "src/ambient_contact_tests.rs",
+      "beforeSha256": "b948e290224202342c7cefd428ea6a0c0a087ecfb3eb45440b599d93b0505638",
+      "afterSha256": "3d4ea53e76c0d57bbb11142b10e6d08d1d1c82fee93f53ab5506a9e23953f7ee",
+      "before": "crate::ambient_input_tests::encoded_normal",
+      "after": "super::ambient_input_tests::encoded_normal",
+      "scope": "One native-only test helper module address; semantic assertions/runtime/PB/pose remain unchanged; no pair rerun claimed"
+    }
+  },
+  "authoring": {
+    "tests": 22,
+    "passed": 22,
+    "failed": 0,
+    "command": {
+      "path": "target/course-windows-20261018/ambient-ground-regression-preparation/authored-checks-v2-units/command.json",
+      "sha256": "3a201ae1161f6703d5df355fc379defe93ea5958f6c49014c4a8043de968e878",
+      "bytes": 549
+    },
+    "stdout": {
+      "path": "target/course-windows-20261018/ambient-ground-regression-preparation/authored-checks-v2-units/output.log",
+      "sha256": "41340b73706a344d29bdc138a8bc8cd7ea1dea0ed8ff3db6f6cb1f000db8b20f",
+      "bytes": 2161
+    },
+    "resources": {
+      "platform": "windows-job-object",
+      "startedUtc": "2026-10-24T10:08:45.3610265Z",
+      "executable": "C:\\Program Files\\nodejs\\node.exe",
+      "arguments": [
+        "--import",
+        "../session_tests/scripts/typescript.mjs",
+        "../session_tests/scripts/course/checkpoints.test.ts"
+      ],
+      "workingDirectory": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer",
+      "timeoutSeconds": 600,
+      "jobCommitLimitBytes": 4294967296,
+      "swapCapSupported": false,
+      "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+      "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+      "exitCode": 0,
+      "timedOut": false,
+      "elapsedSeconds": 10.117,
+      "peakJobCommitBytes": 466567168,
+      "affinityMask": "0x3",
+      "processors": 2,
+      "processId": 56960,
+      "descendantsAtCleanup": 1,
+      "evidence": {
+        "path": "target/course-windows-20261018/ambient-ground-regression-preparation/authored-checks-v2-units/resources.json",
+        "sha256": "e5fed899ba1eb878fe584b22ab00276a34ca12a266c88a72b51c801cf08984ad",
+        "bytes": 997
+      }
+    },
+    "testSource": {
+      "path": "../session_tests/scripts/course/checkpoints.test.ts",
+      "sha256": "a857ee9f7d8a177996006e1cc2398a2604b8419732decbc90d885a048950b3f7",
+      "bytes": 25875
+    },
+    "initialFailure": {
+      "command": {
+        "path": "target/course-windows-20261018/ambient-ground-regression-preparation/authored-checks-v1-units/command.json",
+        "sha256": "b88dd1937b9184275826fedc06223b8e833c98a1df4b36bd681d5b513e146c5b",
+        "bytes": 549
+      },
+      "stdout": {
+        "path": "target/course-windows-20261018/ambient-ground-regression-preparation/authored-checks-v1-units/output.log",
+        "sha256": "412c66cc014eed590ad56728436e3e92ae27ec17eb30fcab4f09d95a9cafb7d4",
+        "bytes": 3435
+      },
+      "resources": {
+        "platform": "windows-job-object",
+        "startedUtc": "2026-10-24T10:07:32.7870673Z",
+        "executable": "C:\\Program Files\\nodejs\\node.exe",
+        "arguments": [
+          "--import",
+          "../session_tests/scripts/typescript.mjs",
+          "../session_tests/scripts/course/checkpoints.test.ts"
+        ],
+        "workingDirectory": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer",
+        "timeoutSeconds": 600,
+        "jobCommitLimitBytes": 4294967296,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 1,
+        "timedOut": false,
+        "elapsedSeconds": 9.448,
+        "peakJobCommitBytes": 474517504,
+        "affinityMask": "0x3",
+        "processors": 2,
+        "processId": 35444,
+        "descendantsAtCleanup": 1,
+        "evidence": {
+          "path": "target/course-windows-20261018/ambient-ground-regression-preparation/authored-checks-v1-units/resources.json",
+          "sha256": "bfdd13777b8f0a9d99381324f42d39834b9a1129bdf85acea1aaec70b9c9e37c",
+          "bytes": 996
+        }
+      },
+      "passed": 21,
+      "failed": 1,
+      "reason": "The unchanged final-source fingerprint assertion still expected old65 after actual authored source became555; root corrected its one expected literal. Failed stdout/resources retained; this is not a new23rd test."
+    }
+  },
+  "structure": {
+    "checkpoints": 1361,
+    "references": 43,
+    "command": {
+      "path": "target/course-windows-20261018/ambient-ground-regression-preparation/authored-checks-v2-structure/command.json",
+      "sha256": "bec343ef0b18961eb067df5e776dfddbc5013a6b8f6dd71ca6557764545a171b",
+      "bytes": 549
+    },
+    "stdout": {
+      "path": "target/course-windows-20261018/ambient-ground-regression-preparation/authored-checks-v2-structure/output.log",
+      "sha256": "726b513a6403152dbcbc3f377f98676d314610b208ab6569eeb462417791433f",
+      "bytes": 136
+    },
+    "resources": {
+      "platform": "windows-job-object",
+      "startedUtc": "2026-10-24T10:09:31.4003026Z",
+      "executable": "C:\\Program Files\\nodejs\\node.exe",
+      "arguments": [
+        "--import",
+        "../session_tests/scripts/typescript.mjs",
+        "../session_tests/scripts/course.ts",
+        "structure"
+      ],
+      "workingDirectory": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer",
+      "timeoutSeconds": 600,
+      "jobCommitLimitBytes": 4294967296,
+      "swapCapSupported": false,
+      "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+      "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+      "exitCode": 0,
+      "timedOut": false,
+      "elapsedSeconds": 11.045,
+      "peakJobCommitBytes": 315236352,
+      "affinityMask": "0x3",
+      "processors": 2,
+      "processId": 65276,
+      "descendantsAtCleanup": 1,
+      "evidence": {
+        "path": "target/course-windows-20261018/ambient-ground-regression-preparation/authored-checks-v2-structure/resources.json",
+        "sha256": "b581b2fa233a411c65ecdef2b17b72d392e1559390fa29f89cc6d6bcaf46373b",
+        "bytes": 1016
+      }
+    }
+  },
+  "scope": {
+    "accepted": "Actual source integration, two named exact production/course native pairs, five named native tests,22 authoring tests and source/reference structure only",
+    "pending": [
+      "Fresh Native/WASM/optimized713 and714 final compiler/package/frame qualification",
+      "One unfiltered current1064 native integration suite",
+      "Current final713 and714 browser relevance qualification",
+      "Consolidated docs build/probe after final runtime qualification and stable progress metadata"
+    ],
+    "preserved": "All older1063/65 and source-bound eight historical callback receipts retained; no relabeling to new555/b5source",
+    "countersUnchanged": {
+      "callbacksAccepted": 8,
+      "callbacksRemaining": 10,
+      "featuresComplete": 4,
+      "featuresPartial": 14,
+      "fixturesAccepted": 2,
+      "fixturesRemaining": 2,
+      "releaseGatesDone": 0,
+      "releaseGatesRemaining": 5
+    }
+  }
+}
