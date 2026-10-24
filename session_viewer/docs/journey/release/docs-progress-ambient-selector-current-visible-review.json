@@ -1,0 +1,269 @@
+{
+  "status": "PASS current694/b031 book publication snapshot: desktop/390px phone roadmap and changed22.6 Rust/WGSL section; all three original PNGs root-reviewed",
+  "source713": "6947664b26863adf65ef7bfc879694bfedee853852bc2c7660d59f31d2e36ca9",
+  "source714": "b0313bae6b71646b9424776561375ffc4306125317e1686c5894e0ef618701bf",
+  "courseSha256": "05b031571b9b18b4e2740898af6782e2c746cb6b1fcf35c73adb86c957869374",
+  "build": {
+    "inputs": {
+      "path": "target/course-windows-20261018/fef4-progress-publication-preparation/progress-publication-v8-selector-current/inputs.json",
+      "sha256": "c1e08f5c3ed5787df4c2960dda7b1f41139378c16490ef3b9f3887fc8513cc6a"
+    },
+    "pass": {
+      "path": "target/course-windows-20261018/fef4-progress-publication-preparation/progress-publication-v8-selector-current/build-pass.json",
+      "sha256": "435d9850c0201f40eb709ca74d7054b918e00a5263b382a331ef3a59f42713f7"
+    },
+    "resources": {
+      "path": "target/course-windows-20261018/fef4-progress-publication-preparation/progress-publication-v8-selector-current/resources.json",
+      "sha256": "d9d7cbc0cac220b5de07db2ff7797f5290ba50c977da4d2c9cc898abf2ec4dbd"
+    },
+    "log": {
+      "path": "target/course-windows-20261018/fef4-progress-publication-preparation/progress-publication-v8-selector-current/build.log",
+      "sha256": "f07f1abd25633c6441d502c305934fbfb8f39a09b6eab6d01ae641d8c329059b"
+    }
+  },
+  "probe": {
+    "path": "target/course-windows-20261018/fef4-progress-publication-preparation/progress-publication-v8-selector-current/visible-roadmap-v8-selector-v2/review.json",
+    "sha256": "b9e370f2fa34437d5ce41c2b9ca81987356b1e10a5405dca1576e069a2360bf1",
+    "resources": {
+      "path": "target/course-windows-20261018/fef4-progress-publication-preparation/progress-publication-v8-selector-current/probe-v8-progress-v2.resources.json",
+      "sha256": "011fcca9277838d0683241b4c0bb8a5d25eea93fbbdda118dab3444498ac99e1"
+    }
+  },
+  "actualAssetsVerified": 11,
+  "checkboxesVerified": 1468,
+  "newSourceBodiesVerified": 14,
+  "languages": {
+    "rust": 12,
+    "wgsl": 2
+  },
+  "views": [
+    {
+      "name": "desktop",
+      "fit": {
+        "viewport": 1400,
+        "height": 900,
+        "dpr": 1.0000000149011612,
+        "document": 1400,
+        "articleClient": 793,
+        "articleScroll": 793,
+        "mainClient": 1095,
+        "mainScroll": 1095
+      },
+      "drawer": null,
+      "checkboxes": {
+        "count": 1468,
+        "allDisabled": true,
+        "exactStates": true
+      }
+    },
+    {
+      "name": "phone",
+      "fit": {
+        "viewport": 390,
+        "height": 844,
+        "dpr": 1.0000000149011612,
+        "document": 390,
+        "articleClient": 343,
+        "articleScroll": 343,
+        "mainClient": 375,
+        "mainScroll": 375
+      },
+      "drawer": {
+        "closed": true,
+        "inert": true,
+        "right": 0,
+        "expanded": "false"
+      },
+      "checkboxes": {
+        "count": 1468,
+        "allDisabled": true,
+        "exactStates": true
+      }
+    },
+    {
+      "name": "chapter22-6-desktop",
+      "fit": {
+        "viewport": 1400,
+        "document": 1400,
+        "articleClient": 793,
+        "articleScroll": 793,
+        "mainClient": 1095,
+        "mainScroll": 1095
+      },
+      "orderedNewBodies": [
+        {
+          "spec": "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ambient-production-01-ambient_camera.rs",
+          "number": 256,
+          "language": "rust",
+          "skip": 0,
+          "sourceSha256": "7a305c24e1c75aeabb5c9cf78f5fc9551a5417e8915fca80dd0bc77ef988308d",
+          "blockIndex": 1241
+        },
+        {
+          "spec": "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ambient-production-02-ambient.wgsl",
+          "number": 257,
+          "language": "wgsl",
+          "skip": 0,
+          "sourceSha256": "0f33eccdf49fde27d3a0dedc59c9653d0f42683491c883c0aa6e0ef1fcdcc5e3",
+          "blockIndex": 1242
+        },
+        {
+          "spec": "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ambient-production-03-ambient_sources.wgsl",
+          "number": 258,
+          "language": "wgsl",
+          "skip": 0,
+          "sourceSha256": "3886ab7691bf74b343e5268860c4d68ae3e1745c97459b78d61f4ac66d3fc561",
+          "blockIndex": 1243
+        },
+        {
+          "spec": "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ambient-production-04-ambient_source_pipeline.rs",
+          "number": 259,
+          "language": "rust",
+          "skip": 0,
+          "sourceSha256": "3b11dbe30bb33344071bc5ac91df8a4503378eaaec33bc4af2f3f2bc3728b403",
+          "blockIndex": 1244
+        },
+        {
+          "spec": "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ambient-production-05-ambient_source_gpu.rs",
+          "number": 260,
+          "language": "rust",
+          "skip": 0,
+          "sourceSha256": "693e6057da5310d31763609155699a29ffe1f0e0f5e16c53b64cfd539b0bcd99",
+          "blockIndex": 1245
+        },
+        {
+          "spec": "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ambient-production-06-ambient_images.rs",
+          "number": 261,
+          "language": "rust",
+          "skip": 0,
+          "sourceSha256": "59c4a033f23d174f249566ef941475b17e4e31d17cd731ddcc18537797aa0f4c",
+          "blockIndex": 1246
+        },
+        {
+          "spec": "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ambient-production-07-ambient_pipeline.rs",
+          "number": 262,
+          "language": "rust",
+          "skip": 0,
+          "sourceSha256": "6704ff0919f3f50d54cc079fdbb9e039ea1534abaf0ba12b8fce7568b4c8cc68",
+          "blockIndex": 1247
+        },
+        {
+          "spec": "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ambient-production-08-ambient_groups.rs",
+          "number": 263,
+          "language": "rust",
+          "skip": 0,
+          "sourceSha256": "2454e1b30399322567d83565bf75d385fa00a608caebc286203a33c688c72688",
+          "blockIndex": 1248
+        },
+        {
+          "spec": "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ambient-production-09-ambient_gpu.rs",
+          "number": 264,
+          "language": "rust",
+          "skip": 0,
+          "sourceSha256": "0ab35d3a8ef15e3a8e6733295db657e07a83d41c5607d3f5290718d228bff4c1",
+          "blockIndex": 1249
+        },
+        {
+          "spec": "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ambient-production-10-ambient_input_tests.rs",
+          "number": 265,
+          "language": "rust",
+          "skip": 0,
+          "sourceSha256": "a793339057cb16fd259474b0310a7832ab08508ce9c40efa123998a144f8da2e",
+          "blockIndex": 1250
+        },
+        {
+          "spec": "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ambient-production-11-ambient_contact_tests.rs",
+          "number": 266,
+          "language": "rust",
+          "skip": 0,
+          "sourceSha256": "3d4ea53e76c0d57bbb11142b10e6d08d1d1c82fee93f53ab5506a9e23953f7ee",
+          "blockIndex": 1251
+        },
+        {
+          "spec": "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ambient-production-12-sample_surface_tests.rs",
+          "number": 267,
+          "language": "rust",
+          "skip": 0,
+          "sourceSha256": "38987cae5fb5b17eea55a6f5da2168e604ac83711d95d3fcb98a10f45920d3a4",
+          "blockIndex": 1252
+        },
+        {
+          "spec": "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ambient-production-13-ambient_sample_inspect.rs",
+          "number": 268,
+          "language": "rust",
+          "skip": 0,
+          "sourceSha256": "8483e081fcb342e68630d17f7a14748d4aaeaf0509bc15e1db4841f0122ae5ec",
+          "blockIndex": 1253
+        },
+        {
+          "spec": "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ambient-retained-ground-regression.rs",
+          "number": 269,
+          "language": "rust",
+          "skip": 3337,
+          "sourceSha256": "e43dc5c34c0a93ce62e047e285a6a90eade1f7442c2224306a85a8d47bf4f68c",
+          "blockIndex": 1254
+        }
+      ]
+    }
+  ],
+  "images": [
+    {
+      "name": "desktop",
+      "file": "docs-ambient-selector-roadmap-desktop.png",
+      "sha256": "cfcb312b21207eb3d9b654a438f2d81840490282d642c5de2754be0cbe204738",
+      "width": 1400,
+      "height": 900,
+      "rootPersonallyReviewedOriginalResolution": true
+    },
+    {
+      "name": "phone",
+      "file": "docs-ambient-selector-roadmap-phone.png",
+      "sha256": "067169fb3ac7362a35a5e7ce4254cf90db4b37e0a11a89560796d541da94bcd0",
+      "width": 390,
+      "height": 844,
+      "rootPersonallyReviewedOriginalResolution": true
+    },
+    {
+      "name": "chapter22-6-desktop",
+      "file": "docs-ambient-selector-chapter22-6.png",
+      "sha256": "5b433bc26d2937f942bf8af41f120e7d99687202983d81d9ef6e9f832c38aba3",
+      "width": 1400,
+      "height": 900,
+      "rootPersonallyReviewedOriginalResolution": true
+    }
+  ],
+  "servedIndex": {
+    "url": "http://localhost:8788/docs/",
+    "sha256": "ef519906b3902c8cde3096ad6c5aaf05e56e229ab1a7ab430d955cb7c0f6c81e"
+  },
+  "servedRoadmap": {
+    "url": "http://localhost:8788/docs/assets/course-journey-roadmap-DQMmRn1T.json",
+    "sha256": "142777578820c43fab8b8a9b3b01319e5a1a5f985a2c090dc6894b69cd2c76ea",
+    "entry": {
+      "url": "http://localhost:8788/docs/assets/main-B_RFzb6I.js",
+      "sha256": "9dfa483db9030bf19a79f069db523198757e5af9aab63e28382a848857a1838e"
+    }
+  },
+  "servedChapter": {
+    "url": "http://localhost:8788/docs/assets/course-journey-consolidation-96zzzzzzzm-retain-visible-instance-ranges-CL69mNNE.json",
+    "sha256": "b0e997774da0e11bc88d7fc9cd0f09c7a1095c8aaca3e0b5998bd646ea74af7f",
+    "allFourteenExactBodies": true
+  },
+  "refreshedOwnedRoadmap": {
+    "targetId": "5D5FC1F8E1A3B4609E316598BDD50C28",
+    "url": "http://127.0.0.1:8788/docs/#/course/journey/roadmap",
+    "viewport": null
+  },
+  "pageErrors": [],
+  "preservedSetupFailure": {
+    "record": "target/course-windows-20261018/fef4-progress-publication-preparation/progress-publication-v8-selector-current/visible-roadmap-v8-selector/review.json",
+    "sha256": "9487d2d70beb07eb450f9c084d5f531040d8da218d45c3c73a212ff01b74ccd7",
+    "reason": "Previous root-owned target no longer existed; no page checks were accepted from that attempt.",
+    "recovery": "Created one new owned tutorial tab, then reused the identical completed build and assertions. Only versioned output paths changed.",
+    "ownership": {
+      "path": "target/course-windows-20261018/fef4-progress-publication-preparation/new-root-owned-docs-tab.json",
+      "sha256": "01de6b8d89a7224e5a5cb39ce134e0d1b960773a4655f1aabc92f287fa2404c9"
+    }
+  },
+  "scope": "Measured pre-publication snapshot. All Vue/frontend inputs and Gemini Markdown/SVG edits retained. Does not include this later review, three publication copies or metadata update. No whole111-lesson visual sweep, extra source-specific callbacks, feature closure or release-gate increment."
+}
