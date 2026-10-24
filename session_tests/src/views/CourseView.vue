@@ -114,7 +114,7 @@ const onClick = (e: MouseEvent) => {
 }
 
 .missing {
-  color: var(--muted);
+  color: var(--fg);
 }
 
 .columns {
@@ -126,7 +126,7 @@ const onClick = (e: MouseEvent) => {
 .doc {
   flex: 1 1 auto;
   min-width: 0;
-  max-width: 820px;
+  max-width: 100%;
   overflow-wrap: anywhere;
   line-height: 1.6;
   font-size: 15.5px;
@@ -145,7 +145,7 @@ const onClick = (e: MouseEvent) => {
 
 .toc-title {
   margin: 0 0 0.5rem;
-  color: var(--faint);
+  color: var(--fg);
   font-size: 12px;
 }
 
@@ -153,7 +153,7 @@ const onClick = (e: MouseEvent) => {
 .toc-inline a {
   display: block;
   padding: 0.18rem 0;
-  color: var(--muted);
+  color: var(--fg);
   text-decoration: none;
 }
 
@@ -177,7 +177,7 @@ const onClick = (e: MouseEvent) => {
 
 .toc-inline summary {
   cursor: pointer;
-  color: var(--muted);
+  color: var(--fg);
 }
 
 @media (max-width: 1100px) {
@@ -194,7 +194,7 @@ const onClick = (e: MouseEvent) => {
   display: flex;
   justify-content: space-between;
   gap: 1rem;
-  max-width: 820px;
+  max-width: 100%;
   margin-top: 3rem;
   padding-top: 1rem;
   border-top: 1px solid var(--rule);
@@ -210,7 +210,7 @@ const onClick = (e: MouseEvent) => {
 
 .pager a span {
   font-size: 12px;
-  color: var(--faint);
+  color: var(--fg);
 }
 
 .pager a:hover {
@@ -332,7 +332,7 @@ const onClick = (e: MouseEvent) => {
   right: 0.35rem;
   padding: 0.1rem 0.45rem;
   font-size: 11px;
-  color: var(--muted);
+  color: var(--fg);
   background: #ffffff;
   border: 1px solid var(--rule);
   border-radius: 3px;
@@ -360,7 +360,7 @@ const onClick = (e: MouseEvent) => {
   margin: 1rem 0;
   padding: 0.1rem 1rem;
   border-left: 3px solid var(--rule);
-  color: var(--muted);
+  color: var(--fg);
 }
 
 .doc :deep(.note) {

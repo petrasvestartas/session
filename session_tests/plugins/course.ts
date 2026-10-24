@@ -138,9 +138,7 @@ function navGroups(bySlug: Map<string, string>): Group[] {
     const lessonGroups: Group[] = book.chapters.map(chapter => ({
       title: `${chapter.number} · ${chapter.title}`,
       slugs: chapter.sections.flatMap(section => section.lessons.map(lesson => pageSlug(path.join(DOCS, lesson.page)))),
-      sections: chapter.sections.map(section => ({title: `${section.number} · ${section.title}`,
-        slugs: section.lessons.map(lesson => pageSlug(path.join(DOCS, lesson.page)))})),
-    }));
+          }));
     if (book.comparison) lessonGroups.push({title: 'Reference comparison', slugs: [pageSlug(path.join(DOCS, book.comparison.page))]});
     groups.splice(1, 0, ...lessonGroups);
     const reference = groups.find((g) => g.title === 'Course');
