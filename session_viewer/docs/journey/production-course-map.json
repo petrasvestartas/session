@@ -3,8 +3,8 @@
   "scope": "Initial production-to-course source/coverage audit; proposals are not completed consolidation or rendering acceptance.",
   "sourceAuthority": "session_viewer/src",
   "endpoint": "96zzzzzzzq-draw-original-cad-wire-curves",
-  "endpointStatus": "16/18 own-source callbacks accepted;2 remain:96h inventory and measured-reader96zzq. Features9/18 complete9partial,fixtures3/4,release3/5 unchanged. Own445current-commands fullcallback and readable2mm measurement accepted. Historical proofs retain their source scopes; final kept BRep/kernel integration remains queued.",
-  "courseSha256": "fd25625df40bee14e302a069448fa9510a87b90f80eee945f37b752fb1277726",
+  "endpointStatus": "18/18 source-specific callbacks;18/18 bounded finite features;4/4 original fixtures;5/5 release gates. Actual final native 1068/1068, seven compiler/package/frame phases and source-bound current713/714 browser/recovery proofs pass. Historical results retain original source/checker/dependency scopes.",
+  "courseSha256": "2d589e8e0f45a9bd927ae63769c1186dc30e646466878b51858c491b18a1e190",
   "chapters": 22,
   "existingSteps": 1361,
   "proposedReaderLessons": 111,
@@ -71,20 +71,34 @@
       "runnableCheckpoint": "96zzzzzzzq-draw-original-cad-wire-curves",
       "evidence": "docs/journey/visual-review.json; docs/screenshots/journey/browser.json; chapter source checkpoints. Existence is not current acceptance.",
       "currentVerification": {
-        "status": "partial",
+        "status": "complete",
         "integration": "#/currentIntegration",
-        "acceptedScope": "Ordered input and presentation coalescing, disposal and idle assertions passed on the measured browser source. Approved selection-preserving dock handoff and affected layers/labels/delete checks also pass in focused94c execution. Qualified final fef4 focused/unfocused Escape and text/document ownership observations are recorded separately; both complete legacy 26a shortcut-body attempts remain failed at their later mismatched Fit baseline, with runtime and canonical harness unchanged. Actual final fef4/713 default quality callback now proves real device-loss recovery with a fresh ready runtime, reduced one-sample canvas, preserved URL and ordinary reload restoring four samples; the tiny default-scene image and retained loss-reason notice are intentional. This accepts only the recorded recovery component. Existing lifecycle/disposal/idle and qualified Escape assertions retain their separately recorded scopes; no unsaved-document preservation or whole Startup closure.",
+        "acceptedScope": "Ordered input and presentation coalescing, disposal and idle assertions passed on the measured browser source. Approved selection-preserving dock handoff and affected layers/labels/delete checks also pass in focused94c execution. Qualified final fef4 focused/unfocused Escape and text/document ownership observations are recorded separately; both complete legacy 26a shortcut-body attempts remain failed at their later mismatched Fit baseline, with runtime and canonical harness unchanged. Actual final fef4/713 default quality callback now proves real device-loss recovery with a fresh ready runtime, reduced one-sample canvas, preserved URL and ordinary reload restoring four samples; the tiny default-scene image and retained loss-reason notice are intentional. This accepts only the recorded recovery component. Existing lifecycle/disposal/idle and qualified Escape assertions retain their separately recorded scopes; no unsaved-document preservation or whole Startup closure. Actual new final quality/device-loss recovery and direct target-resize prerequisites pass at the current source. Thirty-four unchanged fef4 startup/dock/frame/shortcut modules retain only their original accepted lifecycle and focused/unfocused Escape scopes. The two failed complete legacy shortcut attempts remain failed; no unsaved-document preservation claim.",
         "records": [
           "release/runtime-performance-review.json",
           "../../target/course-windows-20261018/selected-shortcuts-affected-modules/manifest.json",
           "release/startup-escape-focus-review.json",
-          "release/final-quality-recovery-review.json"
+          "release/final-quality-recovery-review.json",
+          "release/final-four-feature-closure-review.json"
         ],
-        "remainingAcceptance": [
-          "Validate actual final lifecycle,recovery and focused/unfocused Escape handoff using declared callback checks or relevant-input proof; the unchanged97d optimized bundle already passes and is reusable.",
-          "Complete source-matching historical callbacks and inspect viewer frames; docs layout screenshots do not establish runtime acceptance."
-        ],
-        "chapterBrowserEntries": []
+        "remainingAcceptance": [],
+        "chapterBrowserEntries": [],
+        "finalFiniteClosure": {
+          "record": "release/final-four-feature-closure-review.json",
+          "originalRemainingAcceptance": [
+            "Validate actual final lifecycle,recovery and focused/unfocused Escape handoff using declared callback checks or relevant-input proof; the unchanged97d optimized bundle already passes and is reusable.",
+            "Complete source-matching historical callbacks and inspect viewer frames; docs layout screenshots do not establish runtime acceptance."
+          ],
+          "acceptedScope": "Actual new final quality/device-loss recovery and direct target-resize prerequisites pass at the current source. Thirty-four unchanged fef4 startup/dock/frame/shortcut modules retain only their original accepted lifecycle and focused/unfocused Escape scopes. The two failed complete legacy shortcut attempts remain failed; no unsaved-document preservation claim.",
+          "limitations": "Bounded recorded fixtures and assertions only; all original failure/source/checker/dependency scopes retained. No new arbitrary matrix or historical replay.",
+          "evidenceRoles": [
+            "qualityRecovery",
+            "lifecycleRelevance",
+            "historicalCallbacks",
+            "browser713",
+            "browser714"
+          ]
+        }
       }
     },
     {
@@ -605,9 +619,9 @@
       "runnableCheckpoint": "96zzzzzzzq-draw-original-cad-wire-curves",
       "evidence": "docs/journey/visual-review.json; docs/screenshots/journey/browser.json; chapter source checkpoints. Existence is not current acceptance.",
       "currentVerification": {
-        "status": "partial",
+        "status": "complete",
         "integration": "#/currentIntegration",
-        "acceptedScope": "One selected canonical wire archive matches actual production full RGBA; original archive and course Object picks are checked. Production picks and control-point checks are excluded. PASS 5/5 actual production/course full-RGBA native CAD baseline pairs at97d: wire,mixed,bore,hole-face,surface;31.945s,750256128B. DPR1,samples1,unselected,all families; mirrored/nonuniform placements and original source/archive/course Object-pick checks retained. Five figures inspected. Named display controls and browser acceptance remain pending; the supported60-case Cartesian matrix is not an automatic requirement. Public release/cad-baseline-native-review.json. Current 97d native ink controls pass 14/14 exact production/course RGBA pairs: two mixed-CAD no-lines/no-edges states and open arrowed, closed headless, placed selected joined strokes. Five invocations, 201.558 s, peak 963235840 B; 28 PNGs decoded and all 14 unique frames individually inspected. Fixed styles/cameras only; no arbitrary width/AA/clipping/material sweep, production owner-picking or browser acceptance claim. Complete finalCAD canonical browser contract at97d is now accepted separately:four fixture/DPR rows with samples1/4,25 individually reviewed images; release/final-cad-browser-review.json. Earlier native-only limits remain scoped to those native records. CAD/NURBS isoline and other unproved requirements remain partial. The exact finite joined/headed/CAD width, AA, clipping, visibility and original-owner/archive controls are already reconciled as satisfied in joined-line-finite-review, with native and finalCAD browser scopes retained. Source-faces630 separately accepts sparse original face/parent ownership and readonly-overlay/MoveUndo/archive restoration. Source40280d complete original network callback now passes with two root-reviewed meaningful NURBS surfaces. Accepted original input-curve continuity remains distinct from generated curved-isoline continuity, which is still open.",
+        "acceptedScope": "One selected canonical wire archive matches actual production full RGBA; original archive and course Object picks are checked. Production picks and control-point checks are excluded. PASS 5/5 actual production/course full-RGBA native CAD baseline pairs at97d: wire,mixed,bore,hole-face,surface;31.945s,750256128B. DPR1,samples1,unselected,all families; mirrored/nonuniform placements and original source/archive/course Object-pick checks retained. Five figures inspected. Named display controls and browser acceptance remain pending; the supported60-case Cartesian matrix is not an automatic requirement. Public release/cad-baseline-native-review.json. Current 97d native ink controls pass 14/14 exact production/course RGBA pairs: two mixed-CAD no-lines/no-edges states and open arrowed, closed headless, placed selected joined strokes. Five invocations, 201.558 s, peak 963235840 B; 28 PNGs decoded and all 14 unique frames individually inspected. Fixed styles/cameras only; no arbitrary width/AA/clipping/material sweep, production owner-picking or browser acceptance claim. Complete finalCAD canonical browser contract at97d is now accepted separately:four fixture/DPR rows with samples1/4,25 individually reviewed images; release/final-cad-browser-review.json. Earlier native-only limits remain scoped to those native records. CAD/NURBS isoline and other unproved requirements remain partial. The exact finite joined/headed/CAD width, AA, clipping, visibility and original-owner/archive controls are already reconciled as satisfied in joined-line-finite-review, with native and finalCAD browser scopes retained. Source-faces630 separately accepts sparse original face/parent ownership and readonly-overlay/MoveUndo/archive restoration. Source40280d complete original network callback now passes with two root-reviewed meaningful NURBS surfaces. Accepted original input-curve continuity remains distinct from generated curved-isoline continuity, which is still open. Exact merged production BRep reconstruction and new four focused regressions pass within the actual unfiltered final native suite. Actual strict mixed and curved-border frames, original source/archive/course-owner assertions and separately scoped final browser images complete the finite contract. Production NurbsSurface emits four border isocurves, skipping closed directions; it does not expose generated interior isolines. No production-ID pick claim follows from the CAD pair.",
         "records": [
           "release/cad-selected-native-review.json",
           "release/cad-baseline-native-review.json",
@@ -616,12 +630,10 @@
           "release/joined-line-finite-review.json",
           "release/native-control-semantics-review.json",
           "release/source-faces-browser-review.json",
-          "release/network-browser-review.json"
+          "release/network-browser-review.json",
+          "release/final-four-feature-closure-review.json"
         ],
-        "remainingAcceptance": [
-          "Retain the accepted finite CAD/ink width, AA, clipping, visibility and recorded original-owner/archive controls. Complete source-specific CAD/NURBS ownership/display cases outside those recorded contracts. Native image equality alone does not assert production owner-picking, opaque depth occlusion or curved-isoline continuity.",
-          "Inspect generated curved NURBS isoline continuity/legibility within the declared CAD contract. The source402 chapter15 network callback and meaningful original input-curve/surface review are accepted; do not repeat that callback or expand this into an arbitrary matrix."
-        ],
+        "remainingAcceptance": [],
         "chapterBrowserEntries": [
           {
             "chapter": 15,
@@ -644,6 +656,22 @@
           "record": "release/network-browser-review.json",
           "acceptedScope": "Complete original chapter15 network body and meaningful surface image accepted at source402. Existing source-faces input-curve continuity proof retains its original scope.",
           "remainingScope": "Generated curved NURBS isoline continuity/legibility is not established by original input-curve sampling or aggregate counts."
+        },
+        "finalFiniteClosure": {
+          "record": "release/final-four-feature-closure-review.json",
+          "originalRemainingAcceptance": [
+            "Retain the accepted finite CAD/ink width, AA, clipping, visibility and recorded original-owner/archive controls. Complete source-specific CAD/NURBS ownership/display cases outside those recorded contracts. Native image equality alone does not assert production owner-picking, opaque depth occlusion or curved-isoline continuity.",
+            "Inspect generated curved NURBS isoline continuity/legibility within the declared CAD contract. The source402 chapter15 network callback and meaningful original input-curve/surface review are accepted; do not repeat that callback or expand this into an arbitrary matrix."
+          ],
+          "acceptedScope": "Exact merged production BRep reconstruction and new four focused regressions pass within the actual unfiltered final native suite. Actual strict mixed and curved-border frames, original source/archive/course-owner assertions and separately scoped final browser images complete the finite contract. Production NurbsSurface emits four border isocurves, skipping closed directions; it does not expose generated interior isolines. No production-ID pick claim follows from the CAD pair.",
+          "limitations": "Bounded recorded fixtures and assertions only; all original failure/source/checker/dependency scopes retained. No new arbitrary matrix or historical replay.",
+          "evidenceRoles": [
+            "native",
+            "mixed",
+            "surface-curved-border",
+            "browser713",
+            "browser714"
+          ]
         }
       }
     },
@@ -706,20 +734,19 @@
       "runnableCheckpoint": "96zzzzzzzq-draw-original-cad-wire-curves",
       "evidence": "docs/journey/visual-review.json; docs/screenshots/journey/browser.json; chapter source checkpoints. Existence is not current acceptance.",
       "currentVerification": {
-        "status": "partial",
+        "status": "complete",
         "integration": "#/currentIntegration",
-        "acceptedScope": "Historical a45 native1059 suite passed; retained staged cap/section fixtures do not independently establish full production extraction parity. Separately accepted native controls already cover kept/cut original ink owners and sheet clipping; four exact production/course glass/Xray guide states establish their recorded clip policy and copied/locked/selected source scope. Retain these named proofs without repeating them. They do not complete the own-source88ad cap/winding/section callback or establish every production cap/section pass. Source496 caps88ad complete original default browser body accepted with separately reviewed native and actual browser solid-cap/bore images. Production comparison and independent remaining semantic criteria retain their declared scope.",
+        "acceptedScope": "Historical a45 native1059 suite passed; retained staged cap/section fixtures do not independently establish full production extraction parity. Separately accepted native controls already cover kept/cut original ink owners and sheet clipping; four exact production/course glass/Xray guide states establish their recorded clip policy and copied/locked/selected source scope. Retain these named proofs without repeating them. They do not complete the own-source88ad cap/winding/section callback or establish every production cap/section pass. Source496 caps88ad complete original default browser body accepted with separately reviewed native and actual browser solid-cap/bore images. Production comparison and independent remaining semantic criteria retain their declared scope. The actual strict centered cap fixture compares selected mirrored/nonuniform and unselected verified-closed original owners, fullRGBA, production original owner picks, cached course original picks and empty bore with unchanged source/archive. Recorded caps/Slot/Arena/reader callbacks and new full native pass retain original source scopes. This is one representative fixture, not an arbitrary cap matrix.",
         "records": [
           "consolidation/current-state.json",
           "release/native-control-semantics-review.json",
           "release/clipping-guide-ribbon-native-review.json",
           "release/material-transparency-native-criterion-review.json",
           "release/final-cad-browser-review.json",
-          "release/caps88ad-browser-review.json"
+          "release/caps88ad-browser-review.json",
+          "release/final-four-feature-closure-review.json"
         ],
-        "remainingAcceptance": [
-          "Complete actual production cap/winding/section-pass and selected/placed section cases outside the accepted native ink/sheet clipping and fixed glass/Xray guide fixtures, with current final feature frames."
-        ],
+        "remainingAcceptance": [],
         "chapterBrowserEntries": [
           {
             "chapter": 17,
@@ -749,6 +776,21 @@
           "sourceSignature": "11cfae1941526dd8075d515d591f393c2e941f6d8f9876e77633c476d58a5bc3",
           "recursiveCallbackFingerprint": "290e91147bc3c47359bd468b8526547870927761f7aa097ed24f23cab6153122",
           "originalCriterion": "Run caps.cjs at88ad with inherited clipping/section checks and inspect bores, holes, winding and cap color/pick ownership."
+        },
+        "finalFiniteClosure": {
+          "record": "release/final-four-feature-closure-review.json",
+          "originalRemainingAcceptance": [
+            "Complete actual production cap/winding/section-pass and selected/placed section cases outside the accepted native ink/sheet clipping and fixed glass/Xray guide fixtures, with current final feature frames."
+          ],
+          "acceptedScope": "The actual strict centered cap fixture compares selected mirrored/nonuniform and unselected verified-closed original owners, fullRGBA, production original owner picks, cached course original picks and empty bore with unchanged source/archive. Recorded caps/Slot/Arena/reader callbacks and new full native pass retain original source scopes. This is one representative fixture, not an arbitrary cap matrix.",
+          "limitations": "Bounded recorded fixtures and assertions only; all original failure/source/checker/dependency scopes retained. No new arbitrary matrix or historical replay.",
+          "evidenceRoles": [
+            "native",
+            "cap-bore",
+            "historicalCallbacks",
+            "browser713",
+            "browser714"
+          ]
         }
       }
     },
@@ -1352,9 +1394,9 @@
       "runnableCheckpoint": "96zzzzzzzq-draw-original-cad-wire-curves",
       "evidence": "docs/journey/visual-review.json; docs/screenshots/journey/browser.json; chapter source checkpoints. Existence is not current acceptance.",
       "currentVerification": {
-        "status": "partial",
+        "status": "complete",
         "integration": "#/currentIntegration",
-        "acceptedScope": "Historical a45 and bounded ribbon/cloud/Sheet comparisons retain their original scopes. The declared finite native component is accepted within nine reviewed named assertions from the recorded97d/1060 suite: production-derived sag/rigid replay, original-owner finite clipping, bounded64KiB triangle addressing, dense tile convergence and coplanar depth/resize. All29 relevant source files match current694; this is qualified retention, not a new native execution. Fourteen exact production/course ink pairs retain their fixed representative scopes. Caps88ad and Slot96zzo source-specific callbacks remain pending; whole feature stays partial. Source496 caps88ad complete original default browser body accepted with separately reviewed native and actual browser solid-cap/bore images. Production comparison and independent remaining semantic criteria retain their declared scope.",
+        "acceptedScope": "Historical a45 and bounded ribbon/cloud/Sheet comparisons retain their original scopes. The declared finite native component is accepted within nine reviewed named assertions from the recorded97d/1060 suite: production-derived sag/rigid replay, original-owner finite clipping, bounded64KiB triangle addressing, dense tile convergence and coplanar depth/resize. All29 relevant source files match current694; this is qualified retention, not a new native execution. Fourteen exact production/course ink pairs retain their fixed representative scopes. Caps88ad and Slot96zzo source-specific callbacks remain pending; whole feature stays partial. Source496 caps88ad complete original default browser body accepted with separately reviewed native and actual browser solid-cap/bore images. Production comparison and independent remaining semantic criteria retain their declared scope. Previously accepted nine named finite sag/tile/depth assertions, exact14 representative ink pairs and source496caps/source590Slot/source603Arena browser scopes are retained. Actual new full native and the strict selected/placed section-cap representative discharge the remaining overlap with clipping; no arbitrary numeric sag/tolerance or tiled visibility matrix is claimed.",
         "records": [
           "../../target/course-windows-20261018/ribbon-final-stroke-run.json",
           "../../target/course-windows-20261018/cloud-ink-production-after.json",
@@ -1363,11 +1405,10 @@
           "release/native-control-semantics-review.json",
           "release/arena-empty-browser-review.json",
           "release/finite-visibility-native-criterion-review.json",
-          "release/caps88ad-browser-review.json"
+          "release/caps88ad-browser-review.json",
+          "release/final-four-feature-closure-review.json"
         ],
-        "remainingAcceptance": [
-          "Source496 caps, source590 Slot and source603 Arena browser criteria and bounded native sag/tile/depth proofs are accepted at their recorded scopes. Whole-feature status remains partial pending root reconciliation with the separately open production cap/section comparison; no repeat historical caps callback is required."
-        ],
+        "remainingAcceptance": [],
         "chapterBrowserEntries": [
           {
             "chapter": 17,
@@ -1423,6 +1464,20 @@
           "sourceSignature": "11cfae1941526dd8075d515d591f393c2e941f6d8f9876e77633c476d58a5bc3",
           "recursiveCallbackFingerprint": "290e91147bc3c47359bd468b8526547870927761f7aa097ed24f23cab6153122",
           "originalCriterion": "Run the chapter17 caps callback, including hidden/reenabled families and original source picks. Source590 Slot and603 Arena are accepted at their recorded scopes; the bounded native sag/tile/depth criterion remains accepted separately."
+        },
+        "finalFiniteClosure": {
+          "record": "release/final-four-feature-closure-review.json",
+          "originalRemainingAcceptance": [
+            "Source496 caps, source590 Slot and source603 Arena browser criteria and bounded native sag/tile/depth proofs are accepted at their recorded scopes. Whole-feature status remains partial pending root reconciliation with the separately open production cap/section comparison; no repeat historical caps callback is required."
+          ],
+          "acceptedScope": "Previously accepted nine named finite sag/tile/depth assertions, exact14 representative ink pairs and source496caps/source590Slot/source603Arena browser scopes are retained. Actual new full native and the strict selected/placed section-cap representative discharge the remaining overlap with clipping; no arbitrary numeric sag/tolerance or tiled visibility matrix is claimed.",
+          "limitations": "Bounded recorded fixtures and assertions only; all original failure/source/checker/dependency scopes retained. No new arbitrary matrix or historical replay.",
+          "evidenceRoles": [
+            "native",
+            "cap-bore",
+            "compiler",
+            "historicalCallbacks"
+          ]
         }
       }
     },
@@ -22024,8 +22079,8 @@
     "chaptersTotal": 22,
     "readerFacingLessons": 111,
     "preservedCheckpoints": 1361,
-    "featuresComplete": 14,
-    "featuresPartial": 4,
+    "featuresComplete": 18,
+    "featuresPartial": 0,
     "featuresTotal": 18
   },
   "authoredReaderLessons": 111,
@@ -22052,16 +22107,31 @@
     "recordedAt": "2026-10-24",
     "courseSha256": "2d589e8e0f45a9bd927ae63769c1186dc30e646466878b51858c491b18a1e190",
     "historicalCourseSha256": "8453513dc6d5ae34d081becc435ee893bbb82cc89d31386ed6fa7141e7576b1b",
-    "scope": "Actual exact production BRep and three-kernel transition applied; new final build/native/browser verification pending. All18historical callbacks retain actualoriginal source identities;14featurescomplete4partial. Original navigation/publication gates4/5 retained; buildgate1 reopened.",
+    "scope": "18/18 source-specific callbacks;18/18 bounded finite features;4/4 original fixtures;5/5 release gates. Actual final native 1068/1068, seven compiler/package/frame phases and source-bound current713/714 browser/recovery proofs pass. Historical results retain original source/checker/dependency scopes. Final changed-source docs snapshot publication pending.",
     "state": "consolidation/current-state.json",
     "evidencePaths": "Paths in currentIntegration/currentVerification are relative to docs/journey; target evidence is local and is not a public hosted artifact.",
     "authoring": {
-      "status": "PASS current22/22 and1361checkpoint/43reference structure; all1359 earlier preserved",
+      "status": "PASS actual current22/22 authoring and1361checkpoint/43reference structure;1359earlier preserved",
       "testsPassed": 22,
       "checkpoints": 1361,
       "readerLessons": 111,
       "referenceHistories": 43,
-      "record": "release/ambient-selector-authored-source-review.json"
+      "record": "docs/journey/release/exact-brep-authored-source-review.json",
+      "sources": [
+        {
+          "id": "96zzzzzzzq-draw-original-cad-wire-curves",
+          "count": 713,
+          "fingerprint": "f339c9ac8c75353caca48e1dba3c537a002f0e62726b19f58dcad7bdb324bf9e",
+          "packageName": "viewer_journey_713_f339c9ac8c75353caca48e1d"
+        },
+        {
+          "id": "97-finish-with-the-maintained-browser-runtime",
+          "count": 714,
+          "fingerprint": "40e317cc56bd558db438827de2ebfbc8b8be9be8453d2043fb54929a56d5baa0",
+          "packageName": "viewer_journey_714_40e317cc56bd558db438827d"
+        }
+      ],
+      "courseSha256": "2d589e8e0f45a9bd927ae63769c1186dc30e646466878b51858c491b18a1e190"
     },
     "native": {
       "status": "PASS:1068/1068 unfiltered finalBRephandwrittennative;0failed/ignored/filtered",
@@ -22130,23 +22200,18 @@
       }
     },
     "featureStatusCounts": {
-      "complete": 14,
-      "partial": 4,
+      "complete": 18,
+      "partial": 0,
       "open": 0,
       "meaning": "Complete accepts the named finite feature requirements at recorded source/fixture/settings; it does not close global release. Partial rows retain specific unaccepted requirements."
     },
     "remainingChapterBrowserQueue": {
-      "path": "../../target/course-windows-20261018/remaining-chapter-browser-queue.json",
-      "chapters": 9,
-      "entryCallbacks": 12,
-      "status": "96y entry passed at recorded source; remaining entries pending, including96h for chapter19. Queue file retains original planning scope.",
-      "requirements": "Each entry needs its own checkpoint build signature, optimized bundle, original sample, unchanged recursive callback pass and individual feature-image review. Do not substitute the final runtime for historical layouts."
+      "status": "DONE18/18 original own-source callbacks accepted;0remaining",
+      "record": "release/reader96zzq-browser-review.json",
+      "historicalPlan": "docs/journey/consolidation/history/before-final-current-status-normalization.json",
+      "scope": "Original planning queue preserved as history; no repeated callback or new111-GPU mandate."
     },
-    "remainingFinalGates": [
-      "Freeze the integrated runtime and pass the final Native/WASM/optimized build checks.",
-      "Pass all declared runnable-checkpoint checks against their actual final inputs.",
-      "Close every feature row in the production/lesson coverage map with truthful source and visual evidence."
-    ],
+    "remainingFinalGates": [],
     "inventoryRefresh": {
       "fromFingerprint": "34d5e443db93c963ba895466249a0e56c7c170352304973997650552b21ae299",
       "changedLearnerFiles": [
@@ -22339,9 +22404,9 @@
       "compilerRecord": "release/final-brep-final-compiler-integration-review.json",
       "scope": "No othergate/featureclosureinferred."
     },
-    "releaseGatesDone": 3,
+    "releaseGatesDone": 5,
     "releaseGatesTotal": 5,
-    "releaseGatesRemaining": 2,
+    "releaseGatesRemaining": 0,
     "xrayOriginalOwnerSourceFix": {
       "status": "APPLIED source-only Xray original-owner opacity fix; bounded candidate/native regression PASS; new final integration pending",
       "record": "release/xray-original-owner-source-fix-review.json",
@@ -22536,6 +22601,70 @@
         "source713": "6947664b26863adf65ef7bfc879694bfedee853852bc2c7660d59f31d2e36ca9",
         "source714": "b0313bae6b71646b9424776561375ffc4306125317e1686c5894e0ef618701bf",
         "courseSha256": "05b031571b9b18b4e2740898af6782e2c746cb6b1fcf35c73adb86c957869374"
+      }
+    },
+    "finalCurrentAcceptance": {
+      "status": "PASS actual source-bound final runtime and bounded feature/release criteria",
+      "sources": [
+        {
+          "id": "96zzzzzzzq-draw-original-cad-wire-curves",
+          "count": 713,
+          "fingerprint": "f339c9ac8c75353caca48e1dba3c537a002f0e62726b19f58dcad7bdb324bf9e",
+          "packageName": "viewer_journey_713_f339c9ac8c75353caca48e1d"
+        },
+        {
+          "id": "97-finish-with-the-maintained-browser-runtime",
+          "count": 714,
+          "fingerprint": "40e317cc56bd558db438827de2ebfbc8b8be9be8453d2043fb54929a56d5baa0",
+          "packageName": "viewer_journey_714_40e317cc56bd558db438827d"
+        }
+      ],
+      "courseSha256": "2d589e8e0f45a9bd927ae63769c1186dc30e646466878b51858c491b18a1e190",
+      "nativeTests": 1068,
+      "evidence": {
+        "native": {
+          "path": "docs/journey/release/final-brep-final-native-integration-review.json",
+          "sha256": "befcbe25a9ef21b6c03a081be14ed498c3bd6aaacf6219a64b0c93277d901d27"
+        },
+        "compiler": {
+          "path": "docs/journey/release/final-brep-final-compiler-integration-review.json",
+          "sha256": "934e7cd257c17b106709650c77b1f9ff442ad422e0a537e2963baecee32c6eb8"
+        },
+        "buildGate": {
+          "path": "docs/journey/release/final-brep-final-runtime-build-gate-review.json",
+          "sha256": "6cff1d1e6e59b31a1c7dd13831dff871dcd7e3a525c95b0910cf1f5fbaa4aeff"
+        },
+        "closure": {
+          "path": "docs/journey/release/final-four-feature-closure-review.json",
+          "sha256": "2b4d3c5b9094b04cdc9debc5210b33e8877add3f5b611b2b65cde50a55faaa9d"
+        },
+        "browser713": {
+          "path": "docs/journey/release/final-brep-713-browser-review.json",
+          "sha256": "e7ccf1c9f8af45e2ce644e63f3b2555eb50aa1721148e5426169b55d565eb80c"
+        },
+        "browser714": {
+          "path": "docs/journey/release/final-brep-714-browser-review.json",
+          "sha256": "94d7822ac6bdf4a22e5836ee22d57ef406176a1ecd60b98719a6944d32303606"
+        },
+        "qualityRecovery": {
+          "path": "docs/journey/release/final-brep-quality-recovery-review.json",
+          "sha256": "f94bafe99664e95f357daea3e479e1ef70f274e5a17a083741426597cce3ad6c"
+        },
+        "comparisons": {
+          "path": "docs/journey/release/exact-brep-production-pairs-review.json",
+          "sha256": "b74ef01be4bfadc395e3e57bb0aec84826d09c3b2b1e80f171f8e3c3de43ef7f"
+        },
+        "authoring": {
+          "path": "docs/journey/release/exact-brep-authored-source-review.json",
+          "sha256": "ab805098dee4e2841efd344f87d99b989110c83e3516c503e7bb3b0fb7153be1"
+        }
+      },
+      "rootReview": {
+        "path": "target/course-windows-20261018/finalization-config-preparation/actual-normalizer-root-review.json",
+        "sha256": "af18370f7622b8b86236cbe66e372664a8df63b11f2c2c33924c6f9af6f69268"
+      },
+      "docs": {
+        "status": "PENDING one final docs publication snapshot"
       }
     }
   },

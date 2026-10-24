@@ -1,3 +1,13 @@
+**Final runtime status:** 18/18 source-specific callbacks,18/18 bounded finite features,4/4 original fixtures and5/5 release gates accepted. Final tutorial713 `f339c9ac`, maintained714 `40e317cc`; actual native1,068/1,068 and all7 compiler/package/frame phases pass. [Native proof](release/final-brep-final-native-integration-review.json), [build review](release/final-brep-final-runtime-build-gate-review.json), [finite closure](release/final-four-feature-closure-review.json). Historical results retain their original source scopes.
+
+**Documentation:** One final current-source/status docs build and visible-page publication remain; prior docs records retain their measured694/b031 scope.
+
+All18 finite feature rows are accepted at their exact declared scopes. The machine-readable map is authoritative; the table below preserves the original extraction audit rather than imposing superseded remaining-work statements.
+
+## Earlier checkpoint notes (historical counts)
+
+The following records are preserved checkpoint history. Their counts, running jobs and remaining-work statements describe their original dates and sources; they are superseded by the current summary above.
+
 # Production source and course coverage map
 
 The production viewer under `session_viewer/src` is the source of the course. This initial audit maps the actual cumulative endpoint, not just similarly named lesson files. It does not accept pending CAD evidence or private proposals.

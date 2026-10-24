@@ -1,3 +1,11 @@
+**Final runtime status:** 18/18 source-specific callbacks,18/18 bounded finite features,4/4 original fixtures and5/5 release gates accepted. Final tutorial713 `f339c9ac`, maintained714 `40e317cc`; actual native1,068/1,068 and all7 compiler/package/frame phases pass. [Native proof](../../session_viewer/docs/journey/release/final-brep-final-native-integration-review.json), [build review](../../session_viewer/docs/journey/release/final-brep-final-runtime-build-gate-review.json), [finite closure](../../session_viewer/docs/journey/release/final-four-feature-closure-review.json). Historical results retain their original source scopes.
+
+**Documentation:** One final current-source/status docs build and visible-page publication remain; prior docs records retain their measured694/b031 scope.
+
+## Earlier checkpoint notes (historical counts)
+
+The following records are preserved checkpoint history. Their counts, running jobs and remaining-work statements describe their original dates and sources; they are superseded by the current summary above.
+
 **Current reader checkpoint:** All18/18 source-specific callbacks pass; all4 original fixtures are accepted.14/18 finite features are complete, with4 remaining for final BRep/curved-border/cap integration and startup recovery. The reader passes20.827s, including failed-read atomicity, child editing, visibility and archive roundtrips; its actual image is reviewed. [Acceptance](../../session_viewer/docs/journey/release/reader96zzq-browser-review.json).
 
 **Grammar checkpoint:** Full96h callback passes625.367s; all5phase proofs and actual native/browser images reviewed.17/18 callbacks accepted,1 remains;4/4 fixtures complete. Commands/history finite criteria close with85ay and its readable2mm mark:10/18 features complete,8 partial. Gates3/5; reader591 build active. [Acceptance](../../session_viewer/docs/journey/release/inventory96h-browser-review.json).

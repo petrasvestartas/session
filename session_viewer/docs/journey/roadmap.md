@@ -1,28 +1,21 @@
-**BRep comparisons:** All3 production/tutorial representatives pass with zero pixel differences; actual original-owner checks and source/archive assertions pass at their declared scopes. [Review](release/exact-brep-production-pairs-review.json), [BRep](release/exact-brep-mixed.png), [curved border](release/exact-brep-surface-curved-border.png), [section caps](release/exact-brep-cap-bore.png). The single full1,068-test native suite passes with0failures/ignored/filtered. [Native acceptance](release/exact-brep-native-suite-review.json). Final compiler/browser/recovery/publication checks remain.
+**Final runtime status:** 18/18 source-specific callbacks,18/18 bounded finite features,4/4 original fixtures and5/5 release gates accepted. Final tutorial713 `f339c9ac`, maintained714 `40e317cc`; actual native1,068/1,068 and all7 compiler/package/frame phases pass. [Native proof](release/final-brep-final-native-integration-review.json), [build review](release/final-brep-final-runtime-build-gate-review.json), [finite closure](release/final-four-feature-closure-review.json). Historical results retain their original source scopes.
 
-**Current reader checkpoint:** All18/18 source-specific callbacks pass; all4 original fixtures are accepted.14/18 finite features are complete, with4 remaining for final BRep/curved-border/cap integration and startup recovery. The reader passes20.827s, including failed-read atomicity, child editing, visibility and archive roundtrips; its actual image is reviewed. [Acceptance](release/reader96zzq-browser-review.json).
-
-**Current source:** Final tutorial713 `f339c9ac`, maintained714 `40e317cc`. The exact BRep curve and three-kernel ruled-face corrections are applied. All1,361 checkpoints reconstruct and all1,359 earlier sources/snippets are unchanged. The single full1,068-test native suite passes; final compiler/browser checks are running. Earlier1,064-test and seven-phase proofs retain their recorded694/b031 source scope. Gemini and Vue are preserved.
+**Documentation:** One final current-source/status docs build and visible-page publication remain; prior docs records retain their measured694/b031 scope.
 
 ## Progress: eight stages
 
-- [x] **1. Source integration: complete.** All source repositories are pulled; the portable pull launcher passes eight Windows/Bash safety checks. [Integration evidence](release/concurrent-teaching-integration-review.json).
+- [x] **1. Source integration complete.** Exact production BRep/kernel corrections applied; tutorial and Vue/Gemini work preserved.
+- [x] **2. Draft lessons complete.**22/22 chapters,111 reader lessons,1361 checkpoints retained;1359 earlier source bodies unchanged.
+- [ ] **3. Final docs publication.** Fresh build and desktop/phone/changed-source checks pending.
+- [x] **4. Reader compilation complete.**101 endpoints/202 original phase records retained with exact API/dependency qualification; no fresh202-execution claim. Actual final713/714 builds are separate.
+- [x] **5. Finite features complete.**18/18; recorded fixture, pick and production limits preserved.
+- [x] **6. Full callbacks: 18/18 accepted; 0 left.** Historical fixtures: 4/4 accepted.
+- [x] **7. Browser corrections verified.**All original assertions retained; exact approved source-aware contracts documented.
+- [x] **8. Final release: 5/5 gates closed.** Gate decisions source-bound to actual results. Final docs publication remains separately explicit above.
 
-- [x] **2. Draft lessons: 22/22 written.** There are 111 reader lessons, 0 unwritten lessons and 1,361 preserved checkpoints. All 1,359 earlier checkpoints remain unchanged. First-ten-chapter ownership stays with Gemini.
+## Earlier checkpoint notes (historical counts)
 
-- [x] **3. Current docs publication: verified.** The current694/b031/course05b V8 build, desktop/390px phone roadmap and changed Chapter22.6 pass:14 exact Rust/WGSL bodies,11 linked assets,1,468 exact checkbox states and zero page errors. All3 original images were reviewed. This measured snapshot precedes its new review and current status edits. [Measured publication review](release/docs-progress-ambient-selector-current-visible-review.json).
-
-- [x] **4. Reader compilation: 101/101 complete.** All 202 phases have source qualification: 170 retained original phases plus 32 freshly passed phases. The final 713/714 endpoints separately pass current Native/WASM/optimized builds and qualified frame checks. [Reader compiler evidence](release/reader-compilation-mask-refresh-review.json), [final native proof](release/ambient-selector-final-native-integration-review.json).
-
-- [ ] **5. Feature closure: 14/18 complete; 4 partial.** Matrix, Camera/Plane, Joined, Sheet/text, Shared Arena, Markers, Cloud, outline/ambient, performance and Commands/history satisfy their recorded finite criteria. Completed native controls, mirrored placement, Arena, source-faces and quality proofs are retained; stale repeat requirements have been removed. [Coverage](production-course-map.md), [finite visibility evidence](release/finite-visibility-native-criterion-review.json).
-
-- [x] **6. Full callbacks: 18/18 accepted; 0 left.** Accepted source-specific results retain their original source scopes. Historical fixtures: 4/4 accepted (96y,96v,94c and96h). Reload/grid checks are 4/4 accepted. These counts overlap feature work. [Reload/grid evidence](release/reload-grid-browser-review.json).
-
-- [x] **7. Browser input corrections: five approved and applied.** The selection, GPU-pick, mesh-marker, Split-mode and source-aware decode-error corrections preserve all behavior assertions. Six files pass syntax checks; scoped candidate proofs are retained. Slot590, caps88ad and the measured reader pass their complete original callbacks. Two further terminal/measurement contract corrections are approved and applied. [Approved corrections](release/five-approved-harness-corrections-review.json).
-
-- [ ] **8. Final release: 2/5 gates retained during new-source verification; 3 remain.** Navigation/aliases/source history and local publication/report retain their independent scope; the build gate is reopened for the actual BRep/kernel change. Remaining gates are declared runnable-checkpoint checks and finite feature closure:0 source-specific callbacks and4 partial feature rows. All existing source scopes and Gemini content are preserved. [Independent navigation/publication review](release/final-navigation-publication-gates-review.json). [Current build-gate review](release/ambient-selector-final-runtime-build-gate-review.json).
-
-Current guarded job: final native compilation and test enumeration. All18/18 callbacks,14/18 features and4/4 fixtures are accepted;2/5 release gates are retained while new-source build checks run.
+The following records are preserved checkpoint history. Their counts, running jobs and remaining-work statements describe their original dates and sources; they are superseded by the current summary above.
 
 [Current browser proof 1](release/ambient-selector-final713-marker-browser-review.json), [Current browser proof 2](release/ambient-selector-maintained714-browser-review.json).
 
