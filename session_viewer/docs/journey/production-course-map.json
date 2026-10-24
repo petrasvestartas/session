@@ -22047,7 +22047,7 @@
       "scope": "640x480 94-comparison native frame only; full browser and whole-checkpoint acceptance remain separate."
     },
     "id": "96zzzzzzzq-draw-original-cad-wire-curves",
-    "fingerprint": "871b89b10757b1385d06878c1d560d65584acbbc5bffd5b8cef56088bb9a6f08",
+    "fingerprint": "f339c9ac8c75353caca48e1dba3c537a002f0e62726b19f58dcad7bdb324bf9e",
     "files": 713,
     "recordedAt": "2026-10-24",
     "courseSha256": "2d589e8e0f45a9bd927ae63769c1186dc30e646466878b51858c491b18a1e190",
@@ -22065,20 +22065,20 @@
     },
     "native": {
       "status": "PENDING actual new exact BRep source verification",
-      "source713": "871b89b10757b1385d06878c1d560d65584acbbc5bffd5b8cef56088bb9a6f08",
-      "source714": "58b0ef2cc71e8c31b17b692e6d5961450239a0db65062a5689675bae1c25de72",
+      "source713": "f339c9ac8c75353caca48e1dba3c537a002f0e62726b19f58dcad7bdb324bf9e",
+      "source714": "40e317cc56bd558db438827de2ebfbc8b8be9be8453d2043fb54929a56d5baa0",
       "previous": "beforeExactBrepTransition"
     },
     "browser": {
       "status": "PENDING actual new exact BRep source verification",
-      "source713": "871b89b10757b1385d06878c1d560d65584acbbc5bffd5b8cef56088bb9a6f08",
-      "source714": "58b0ef2cc71e8c31b17b692e6d5961450239a0db65062a5689675bae1c25de72",
+      "source713": "f339c9ac8c75353caca48e1dba3c537a002f0e62726b19f58dcad7bdb324bf9e",
+      "source714": "40e317cc56bd558db438827de2ebfbc8b8be9be8453d2043fb54929a56d5baa0",
       "previous": "beforeExactBrepTransition"
     },
     "maintainedOptimizedBuild": {
       "status": "PENDING actual new exact BRep source verification",
-      "source713": "871b89b10757b1385d06878c1d560d65584acbbc5bffd5b8cef56088bb9a6f08",
-      "source714": "58b0ef2cc71e8c31b17b692e6d5961450239a0db65062a5689675bae1c25de72",
+      "source713": "f339c9ac8c75353caca48e1dba3c537a002f0e62726b19f58dcad7bdb324bf9e",
+      "source714": "40e317cc56bd558db438827de2ebfbc8b8be9be8453d2043fb54929a56d5baa0",
       "previous": "beforeExactBrepTransition"
     },
     "productionSourceInventory": {
@@ -22309,8 +22309,8 @@
     },
     "compilerRefresh": {
       "status": "PENDING actual new exact BRep source verification",
-      "source713": "871b89b10757b1385d06878c1d560d65584acbbc5bffd5b8cef56088bb9a6f08",
-      "source714": "58b0ef2cc71e8c31b17b692e6d5961450239a0db65062a5689675bae1c25de72",
+      "source713": "f339c9ac8c75353caca48e1dba3c537a002f0e62726b19f58dcad7bdb324bf9e",
+      "source714": "40e317cc56bd558db438827de2ebfbc8b8be9be8453d2043fb54929a56d5baa0",
       "previous": "beforeExactBrepTransition"
     },
     "historicalNativeBeforeCurrent1063": {

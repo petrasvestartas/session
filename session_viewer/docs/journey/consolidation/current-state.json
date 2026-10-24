@@ -623,8 +623,8 @@
   ],
   "onlyHeavy": {
     "status": "running",
-    "task": "Compile and enumerate final source-bound native test executable",
-    "sessionId": 14662,
+    "task": "Build three source-bound production/tutorial rendering representatives",
+    "sessionId": 50551,
     "memoryLimitMiB": 4096,
     "processors": 2
   },
@@ -938,7 +938,7 @@
   },
   "currentSource": {
     "id": "96zzzzzzzq-draw-original-cad-wire-curves",
-    "fingerprint": "871b89b10757b1385d06878c1d560d65584acbbc5bffd5b8cef56088bb9a6f08",
+    "fingerprint": "f339c9ac8c75353caca48e1dba3c537a002f0e62726b19f58dcad7bdb324bf9e",
     "files": 713,
     "recordedAt": "2026-10-24T19:41:50.001Z",
     "courseSha256": "2d589e8e0f45a9bd927ae63769c1186dc30e646466878b51858c491b18a1e190",
@@ -1186,10 +1186,17 @@
       "status": "APPLIED, final validation running",
       "productionCommit": "30c2b39da1950bb92abcd717aeac2bba296c2e52",
       "kernel": "8445d2149f59c5a1caebb1a3e605833bf21996f2",
-      "source714": "58b0ef2cc71e8c31b17b692e6d5961450239a0db65062a5689675bae1c25de72",
+      "source714": "40e317cc56bd558db438827de2ebfbc8b8be9be8453d2043fb54929a56d5baa0",
       "all1361Reconstructed": true,
       "earlier1359Unchanged": true,
-      "vueAndGeminiProtected": true
+      "vueAndGeminiProtected": true,
+      "fixtureCorrection": "Use existing Scene::empty constructor in the new fallback test; all assertions and rendering code retained.",
+      "focused": {
+        "passed": 4,
+        "total": 4,
+        "actualCompiledTestInventory": 1068,
+        "record": "release/exact-brep-focused-review.json"
+      }
     }
   },
   "coordination": {

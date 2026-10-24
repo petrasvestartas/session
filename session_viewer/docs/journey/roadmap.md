@@ -1,6 +1,6 @@
 **Current reader checkpoint:** All18/18 source-specific callbacks pass; all4 original fixtures are accepted.14/18 finite features are complete, with4 remaining for final BRep/curved-border/cap integration and startup recovery. The reader passes20.827s, including failed-read atomicity, child editing, visibility and archive roundtrips; its actual image is reviewed. [Acceptance](release/reader96zzq-browser-review.json).
 
-**Current source:** Final tutorial713 `871b89b1`, maintained714 `58b0ef2c`. The exact BRep curve and three-kernel ruled-face corrections are applied. All1,361 checkpoints reconstruct and all1,359 earlier sources/snippets are unchanged. Final native/compiler/browser checks are running. Earlier1,064-test and seven-phase proofs retain their recorded694/b031 source scope. Gemini and Vue are preserved.
+**Current source:** Final tutorial713 `f339c9ac`, maintained714 `40e317cc`. The exact BRep curve and three-kernel ruled-face corrections are applied. All1,361 checkpoints reconstruct and all1,359 earlier sources/snippets are unchanged. Final native/compiler/browser checks are running. Earlier1,064-test and seven-phase proofs retain their recorded694/b031 source scope. Gemini and Vue are preserved.
 
 ## Progress: eight stages
 

@@ -520,7 +520,7 @@ fn foreign_cad_chain_ends_are_rejected_and_valid_curve_falls_back_without_facing
     assert!(prepared.wires.iter().any(|wire| wire.edge == edge),
         "A valid original curve survives a missing coherent face chain");
     assert!(!mesh.display.indices().is_empty(), "Fallback does not discard the face mesh");
-    let mut scene = Scene::default();
+    let mut scene = Scene::empty();
     let owner = scene.insert_prepared_cad((prepared, mesh)).unwrap();
     let saved = documents(&scene);
     let sources = crate::pick_sources::Sources::new(&scene).unwrap();
