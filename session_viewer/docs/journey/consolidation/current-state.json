@@ -535,7 +535,17 @@
       "offChangedPixels": 0,
       "onChangedPixels": 36492,
       "maxChannelDelta": 47,
-      "sourceFingerprint": "65f0013ae13365244de0baf69d29fd84c0219450573f86e5884eb0413dd6ae30"
+      "sourceFingerprint": "65f0013ae13365244de0baf69d29fd84c0219450573f86e5884eb0413dd6ae30",
+      "isolatedCandidate": {
+        "status": "FAIL exact comparison after four-module candidate",
+        "record": "release/ambient-pedestal-candidate-v4-review.json",
+        "offChangedPixels": 0,
+        "onChangedPixels": 2493,
+        "maxChannelDelta": 1,
+        "productionDarkenedGroundPixels": 10273,
+        "courseDarkenedGroundPixels": 10273,
+        "authoredRuntimeChanged": false
+      }
     }
   },
   "resourceGuard": {
