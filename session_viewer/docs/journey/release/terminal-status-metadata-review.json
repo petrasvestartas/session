@@ -1,0 +1,137 @@
+{
+  "status": "APPLIED8owned terminal-status metadata corrections; no new browser acceptance",
+  "originalCourseSha256": "d4ab046ec86c32ca3524afdf9f665dac30821367ce0bf5899f61ab7baf2f026e",
+  "currentCourseSha256": "7dc82d0cf71d86f7612e7b08dd2a9335394eebc79ce81a2b2bf136e3074be3d9",
+  "application": {
+    "path": "target/course-windows-20261018/terminal-status-metadata-v2/application.json",
+    "sha256": "bf3addbd9076c41d96de242732d7bdbf428ea8a74239614c0fb0c8178833fe5b"
+  },
+  "sourceEquivalence": {
+    "path": "target/course-windows-20261018/terminal-status-metadata-v2/post-apply-source-equivalence.json",
+    "sha256": "c41332f29d9457152d4fd9f2dff30dcea99882abf6ef478ea97087bcf4f59b55"
+  },
+  "changes": [
+    {
+      "id": "70d-exercise-rotated-and-mirrored-original-references",
+      "field": "browser_result_status",
+      "value": "Document closed."
+    },
+    {
+      "id": "76d-exercise-exact-curves-and-rational-control-edits",
+      "field": "browser_result_status",
+      "value": "Document closed."
+    },
+    {
+      "id": "80d-exercise-networks-corner-retries-and-exact-original-archives",
+      "field": "browser_result_status",
+      "value": "Document closed."
+    },
+    {
+      "id": "85ay-exercise-current-original-commands-together",
+      "field": "browser_result_status",
+      "value": "Document closed."
+    },
+    {
+      "id": "88ad-exercise-original-sections-bores-and-ink",
+      "field": "browser_result_status",
+      "value": "Document closed."
+    },
+    {
+      "id": "95f-prove-cache-invalidation-and-honest-performance-reports",
+      "field": "browser_result_status",
+      "value": "Document closed."
+    },
+    {
+      "id": "96h-prove-current-source-grammar-and-explicit-differences",
+      "field": "browser_result_status",
+      "value": "Document replaced. Undo restores the previous document."
+    },
+    {
+      "id": "94c-prove-the-original-comparison-and-inspect-differences",
+      "field": "browser_result_status",
+      "value": "File imported. Undo removes the entire import."
+    }
+  ],
+  "actualVerifiedBindings": [
+    {
+      "id": "70d-exercise-rotated-and-mirrored-original-references",
+      "files": 331,
+      "sourceFingerprint": "46e5b75c3dbcbfbb1e3aa6bb75a9aa4bbde22daa6c25faf44ab14826c199a881",
+      "signature": "f746cbb388d774e3bedbda46f2c8e978b2659c02bf8f91eebbc1cafff69348dd",
+      "lockSha256": "f5295652adef20e61beafb5776445d44044a670b94774bf9b7273986cdd6c1ef",
+      "assetCount": 7
+    },
+    {
+      "id": "76d-exercise-exact-curves-and-rational-control-edits",
+      "files": 377,
+      "sourceFingerprint": "c659daa7ae3ec0cb945ee47131fbed2be30c73876d53d19bfc5f2bc6cb89f1e1",
+      "signature": "d9ba7fe134f92b92b34fe591778a89eb277212d72406f3f86a623baccbd983d8",
+      "lockSha256": "f5295652adef20e61beafb5776445d44044a670b94774bf9b7273986cdd6c1ef",
+      "assetCount": 7
+    },
+    {
+      "id": "80d-exercise-networks-corner-retries-and-exact-original-archives",
+      "files": 402,
+      "sourceFingerprint": "77a00fbd1f82a023692b65e1e56eed65fa5f9b73173a46bb903fe6951d08780c",
+      "signature": "275718d0766ce5fff88ed15c0e791e8083061e615058cf959e7f57ef03883607",
+      "lockSha256": "f5295652adef20e61beafb5776445d44044a670b94774bf9b7273986cdd6c1ef",
+      "assetCount": 7
+    },
+    {
+      "id": "85ay-exercise-current-original-commands-together",
+      "files": 445,
+      "sourceFingerprint": "5689bad27df83753e1cce084c01b7a889b2546c05866d4c06a9eae3f6ce78379",
+      "signature": "9e07f9c0733d33e10fd10d7ed510f86a8d569eb840c3fbc9f9eb324897f7e15a",
+      "lockSha256": "f5295652adef20e61beafb5776445d44044a670b94774bf9b7273986cdd6c1ef",
+      "assetCount": 7
+    },
+    {
+      "id": "88ad-exercise-original-sections-bores-and-ink",
+      "files": 496,
+      "sourceFingerprint": "8caaafa12e5a8295e8eef18cfeb60f9869afe340dddb6324e003307f6836049b",
+      "signature": "11cfae1941526dd8075d515d591f393c2e941f6d8f9876e77633c476d58a5bc3",
+      "lockSha256": "f5295652adef20e61beafb5776445d44044a670b94774bf9b7273986cdd6c1ef",
+      "assetCount": 7
+    },
+    {
+      "id": "95f-prove-cache-invalidation-and-honest-performance-reports",
+      "files": 549,
+      "sourceFingerprint": "3caa88eb8496ece322ed6f8caa48500aa9487ae2d5fde68c86825ac33b5b6148",
+      "signature": "9720b0172de028846a42d2f3e07dc7e107a179a91f2c4237204da3f865169430",
+      "lockSha256": "1df9f908a4aead0990495bcf505176ab0842191051943e422635b28f23ccab94",
+      "assetCount": 8
+    },
+    {
+      "id": "96h-prove-current-source-grammar-and-explicit-differences",
+      "files": 558,
+      "sourceFingerprint": "dfe346a7d230533e917c6809932f2e643e7c519d3bd04163b21340fe51a8278f",
+      "signature": "181752f19a2eb7664f379d6f24426b917c3fe7380c77e5d8246cd35b35b1e9eb",
+      "lockSha256": "1df9f908a4aead0990495bcf505176ab0842191051943e422635b28f23ccab94",
+      "assetCount": 9
+    },
+    {
+      "id": "94c-prove-the-original-comparison-and-inspect-differences",
+      "files": 544,
+      "sourceFingerprint": "3f02a2d827ccc8944516c54f51ffec80739b95fa626a975906d664c43a0f793e",
+      "signature": "49ef535e80f8ed93cd7ede6bff39fb5a48bc84c23ff4b18235cf508870b6c036",
+      "lockSha256": "1df9f908a4aead0990495bcf505176ab0842191051943e422635b28f23ccab94",
+      "assetCount": 8
+    },
+    {
+      "id": "97-finish-with-the-maintained-browser-runtime",
+      "files": 714,
+      "sourceFingerprint": "6e158a0a09964a89583d2fd9c60c8b29c5afc5abc25b7430ea3fb0a8753ecd9c",
+      "signature": "19b8b5d55b065d8d0cedc0388942406ec0a0ee8f3a9d095a848c89f7bbca6b9a",
+      "lockSha256": "1df9f908a4aead0990495bcf505176ab0842191051943e422635b28f23ccab94",
+      "assetCount": 14
+    }
+  ],
+  "allSourcePrefixes": "Exact course JSON differs only8browser_result_status values; every step.edits/assets/lock/frame field unchanged, preserving all1361 source prefixes by source-consumer contract. Nine actual bound prefixes verified above; no all1361 rebuild/execution claim.",
+  "checkerSha256": "ecbc4c716aa91a7aedc2532132c4b08e0a7d1e7511c380b0dbbba0152325a733",
+  "scope": [
+    "Exactly8browser_result_status fields changed. All startup/browser_status values, canonical harness/callback bytes, edits/assets/locks/frame fields retained.",
+    "Nine actual source-prefix/signature/lock/assets bindings verified by original receipt; no fresh1361build or execution claim.",
+    "Existing successful phase evidence retains its original source and course metadata bindings; explicit new metadata receipt permits relevant source-equivalent reuse.",
+    "Original70d and76d outer runs remain FAILED. No callback/feature/release count changes; maintained97 status remains intentionally unapplied."
+  ]
+}

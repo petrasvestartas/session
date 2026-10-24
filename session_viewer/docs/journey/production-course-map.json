@@ -3,8 +3,8 @@
   "scope": "Initial production-to-course source/coverage audit; proposals are not completed consolidation or rendering acceptance.",
   "sourceAuthority": "session_viewer/src",
   "endpoint": "96zzzzzzzq-draw-original-cad-wire-curves",
-  "endpointStatus": "Current fef4 native recovery is qualified1060 unchanged named PASS plus two corrected authored-fixture focused PASS, not a single unfiltered1062PASS. Current retained-release NVIDIA boot passes its separate scope. FinalCAD remains1/18 accepted,17callbacks left;15partial features and final release0/5 remain.70d outer capture failed with unresolved black striping.",
-  "courseSha256": "a0e3163a416e2c869fb42408bbedc7578e12f74d97b689238cc486d768bf364f",
+  "endpointStatus": "Current fef4 qualifiednative1060+2, compiler/artifact and scoped image proofs remain bound to their original inputs. Owned terminal-status metadata correction leaves runtime source unchanged. Both70d and76d outer captures FAILED; callbacks1/18accepted17left,features3/18complete15partial,fixtures1/4,release0/5.70d striping remains unresolved.",
+  "courseSha256": "7dc82d0cf71d86f7612e7b08dd2a9335394eebc79ce81a2b2bf136e3074be3d9",
   "chapters": 22,
   "existingSteps": 1361,
   "proposedReaderLessons": 111,
@@ -21678,7 +21678,7 @@
     "fingerprint": "fef4c7bdb6f4c0a6f7a7701b0ba5581469dd757a34eefbab030a06e92ce4e5a1",
     "files": 713,
     "recordedAt": "2026-10-23T17:02:35.831075+00:00",
-    "courseSha256": "d4ab046ec86c32ca3524afdf9f665dac30821367ce0bf5899f61ab7baf2f026e",
+    "courseSha256": "7dc82d0cf71d86f7612e7b08dd2a9335394eebc79ce81a2b2bf136e3074be3d9",
     "historicalCourseSha256": "8453513dc6d5ae34d081becc435ee893bbb82cc89d31386ed6fa7141e7576b1b",
     "scope": "Current fef4 cfg-test source713files is production-equivalent to e432. Original fullrun remainsFAIL1060/1062;two exact correctedfixturefocused cases qualify recovery. No singleunfiltered1062PASS. Feature3/15 andcallback17 unchanged;current frame/WASM/Trunk/browser/docs acceptance separate.",
     "state": "consolidation/current-state.json",
@@ -22251,7 +22251,19 @@
         "releaseGatesDone": 0,
         "releaseGatesTotal": 5
       },
-      "next": "Chapter14 original76d source-specific callback on verified NVIDIA, with actual Sheet-state observation; full acceptance remains pending."
+      "next": "Complete bounded common-original-archive input comparison and70d carried-state diagnosis under the root single-heavy-job lane, then original source-specific recovery with every assertion retained. Counts remain22/22authored,111lessons/0drafting,3/18finitefeatures,15partial,1/18callbacksaccepted17left,fixtures1/4,release0/5.",
+      "chapter14": {
+        "status": "FAIL original76d outer final-status assertion after complete canonical callback returned",
+        "record": "release/76d-browser-failure-review.json",
+        "visualReview": "Root individually inspected actual Sheet and final curve states; appearance proper within observed scope. Original outer status assertion failed; no acceptance."
+      },
+      "terminalStatusMetadata": {
+        "status": "APPLIED8owned terminal-status metadata corrections; no new browser acceptance",
+        "record": "release/terminal-status-metadata-review.json",
+        "courseSha256": "7dc82d0cf71d86f7612e7b08dd2a9335394eebc79ce81a2b2bf136e3074be3d9",
+        "previousCourseSha256": "d4ab046ec86c32ca3524afdf9f665dac30821367ce0bf5899f61ab7baf2f026e",
+        "scope": "Metadata only; source/compiler/harness equivalence receipt, no successful browser replay inferred."
+      }
     }
   },
   "authoringPrerequisiteRepair": {
