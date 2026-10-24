@@ -1,6 +1,6 @@
 # 14.5 · Round solids and exact planar conics
 
-**Goal:** Read the prepared start, apex and end from the checked local frame. · **Steps:** 11 · **Source:** [app/walk/sheet.rs](../../../src/app/walk/sheet.rs) · [app/sheet_query.rs](../../../src/app/sheet_query.rs) · [app/stream.rs](../../../src/app/stream.rs) · [app/cplane.rs](../../../src/app/cplane.rs) · [app/coords.rs](../../../src/app/coords.rs) · [app/command/tool/shape.rs](../../../src/app/command/tool/shape.rs) · [app/command/tool/gather.rs](../../../src/app/command/tool/gather.rs) · [app/deform.rs](../../../src/app/deform.rs) (`src/app/cplane.rs,src/app/primitives.rs,src/app/curves.rs`)
+**Goal:** Read the prepared start, apex and end from the checked local frame. · **Steps:** 11 · **Source:** [app/walk/sheet.rs](../../../src/app/walk/sheet.rs) · [app/sheet_query.rs](../../../src/app/sheet_query.rs) · [app/stream.rs](../../../src/app/stream.rs) · [app/cplane.rs](../../../src/app/cplane.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -48,7 +48,7 @@
 
 ## <a id="checkpoint-75-reuse-current-round-solid-builders"></a>1. Build tori with checked radii
 
-**What this code does:** Collect a center and two radii with the existing question owner.
+Collect a center and two radii with the existing question owner.
 
 ### 1. `src/round_torus.rs`
 
@@ -203,7 +203,7 @@ pub mod round_torus;
 
 ## <a id="checkpoint-75aa-build-original-capsules-with-shared-dimensions"></a>2. Build capsules with shared dimensions
 
-**What this code does:** Reuse the cylinder’s existing center, radius and signed-height questions.
+Reuse the cylinder’s existing center, radius and signed-height questions.
 
 ### 1. `src/round_capsule.rs`
 
@@ -349,7 +349,7 @@ pub mod round_capsule;
 
 ## <a id="checkpoint-75a-retain-mesh-only-round-families"></a>3. Mesh quad-sphere patches
 
-**What this code does:** Ask the kernel for six original quad-sphere patches.
+Ask the kernel for six original quad-sphere patches.
 
 ### 1. `src/round_quad_sphere.rs`
 
@@ -447,8 +447,6 @@ pub mod round_quad_sphere;
 
 ## <a id="checkpoint-75b-register-current-round-names-and-choices"></a>4. Register current round names and choices
 
-**What this code does:** Register current round names and choices.
-
 ### 1. `src/primitive_registry.rs`
 
 Expose every current round verb and only its supported representation choices.
@@ -504,8 +502,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ## <a id="checkpoint-75c-exercise-round-originals-and-one-transaction"></a>5. Exercise round originals and one transaction
-
-**What this code does:** Exercise round originals and one transaction.
 
 ### 1. `src/round_tests.rs`
 
@@ -690,7 +686,7 @@ mod round_tests;
 
 ## <a id="checkpoint-75za-build-original-planar-circles"></a>6. Build planar circles
 
-**What this code does:** Reuse the checked frame and positive-radius helpers from 73h–74.
+Reuse the checked frame and positive-radius helpers from 73h–74.
 
 ### 1. `src/freeform_circle.rs`
 
@@ -823,7 +819,7 @@ mod tests {
 
 ## <a id="checkpoint-75zb-build-original-planar-ellipses"></a>7. Build planar ellipses
 
-**What this code does:** Reuse the same checked frame and radius owner.
+Reuse the same checked frame and radius owner.
 
 ### 1. `src/freeform_ellipse.rs`
 
@@ -984,7 +980,7 @@ mod tests {
 
 ## <a id="checkpoint-75zc-build-exact-rational-arc-spans"></a>8. Build exact rational arc spans
 
-**What this code does:** Build the original circular arc from rational quadratic spans.
+Build the original circular arc from rational quadratic spans.
 
 ### 1. `src/freeform_arc.rs`
 
@@ -1091,7 +1087,7 @@ pub mod freeform_arc;
 
 ## <a id="checkpoint-75zd-read-original-arcs-from-center-and-angle"></a>9. Read arcs from center and angle
 
-**What this code does:** Read the existing center-based arc inputs using the checked frame.
+Read the existing center-based arc inputs using the checked frame.
 
 ### 1. `src/freeform_arc.rs`
 
@@ -1159,7 +1155,7 @@ fn read_center(frame: &Frame, answers: &[Answer]) -> Result<Part, String> {
 
 ## <a id="checkpoint-75ze-read-three-point-arcs-and-connect-the-recipe"></a>10. Read three-point arcs and connect the recipe
 
-**What this code does:** Complete the existing arc recipe with its two input modes.
+Complete the existing arc recipe with its two input modes.
 
 ### 1. `src/freeform_arc.rs`
 
@@ -1631,8 +1627,6 @@ mod tests {
 ```
 
 ## <a id="checkpoint-75zf-build-original-parabola-previews-and-sources"></a>11. Build parabola previews and sources
-
-**What this code does:** Read the prepared start, apex and end from the checked local frame.
 
 ### 1. `src/freeform_parabola.rs`
 

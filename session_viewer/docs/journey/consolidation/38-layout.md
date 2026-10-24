@@ -1,6 +1,6 @@
 # 5.4 · NURBS source ownership and derived samples
 
-**Goal:** Insert an original NURBS curve through real input and distinguish its actual curve pixels from its indexed control markers. · **Steps:** 5 · **Source:** [app/walk/curves.rs](../../../src/app/walk/curves.rs) · [engine/gpu/segments.rs](../../../src/engine/gpu/segments.rs) · [shaders/ribbon.wgsl](../../../src/shaders/ribbon.wgsl) · [shaders/vector.wgsl](../../../src/shaders/vector.wgsl) · [app/walk/points.rs](../../../src/app/walk/points.rs) · [shaders/glyph.wgsl](../../../src/shaders/glyph.wgsl) · [shaders/ink_visibility.wgsl](../../../src/shaders/ink_visibility.wgsl) · [shaders/triangle.wgsl](../../../src/shaders/triangle.wgsl) · [shaders/grid.wgsl](../../../src/shaders/grid.wgsl) (`src/shaders/ribbon.wgsl,src/shaders/glyph.wgsl,src/engine/gpu/segments.rs`)
+**Goal:** Insert an original NURBS curve through real input and distinguish its actual curve pixels from its indexed control markers. · **Steps:** 5 · **Source:** [app/walk/curves.rs](../../../src/app/walk/curves.rs) · [engine/gpu/segments.rs](../../../src/engine/gpu/segments.rs) · [shaders/ribbon.wgsl](../../../src/shaders/ribbon.wgsl) · [shaders/vector.wgsl](../../../src/shaders/vector.wgsl)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -48,7 +48,7 @@
 
 ## <a id="checkpoint-38-layout"></a>1. Validate an NURBS curve before sampling
 
-**What this code does:** Validate public kernel curve layout and domain before evaluating an original source.
+Validate public kernel curve layout and domain before evaluating an original source.
 
 ### 1. `src/curve.rs`
 
@@ -195,7 +195,7 @@ fn malicious_curve_layouts_return_errors_before_kernel_evaluation() {
 
 ## <a id="checkpoint-38a-samples"></a>2. Sample a validated curve without replacing its source
 
-**What this code does:** Build a bounded display approximation from an original curve and retain exact source controls separately.
+Build a bounded display approximation from an original curve and retain exact source controls separately.
 
 ### 1. `src/curve.rs`
 
@@ -403,7 +403,7 @@ fn straight_and_periodic_curves_keep_required_endpoints_and_knots() {
 
 ## <a id="checkpoint-38b-source"></a>3. Retain curves beside their display samples
 
-**What this code does:** Retain original NURBS ownership, cached double samples and placed curve bounds in the existing path document.
+Retain original NURBS ownership, cached double samples and placed curve bounds in the existing path document.
 
 ### 1. `src/chain.rs`
 
@@ -801,7 +801,7 @@ fn curve_rows_share_original_sources_and_samples_with_distinct_ids() {
 
 ## <a id="checkpoint-38c-controls"></a>4. Draw controls with their curve parent and index
 
-**What this code does:** Draw enabled curve controls through the real marker lane while retaining original parent IDs and control indices.
+Draw enabled curve controls through the real marker lane while retaining original parent IDs and control indices.
 
 ### 1. `src/scene.rs`
 
@@ -1097,8 +1097,6 @@ fn placed_controls_share_the_original_curve_but_keep_distinct_document_parents()
 ```
 
 ## <a id="checkpoint-38d-input"></a>5. Insert an curve and inspect its controls
-
-**What this code does:** Insert an original NURBS curve through real input and distinguish its actual curve pixels from its indexed control markers.
 
 ### 1. `src/editor.rs`
 

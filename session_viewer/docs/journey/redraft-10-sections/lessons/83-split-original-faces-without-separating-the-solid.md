@@ -1,6 +1,6 @@
 # 16.3 · Joined-face topology and exact surface measures
 
-**Goal:** Reuse mesh area for meshes, meshed BReps and Elements. · **Steps:** 4 · **Source:** [app/command/verbs/project_to_plane.rs](../../../../src/app/command/verbs/project_to_plane.rs) · [app/command/verbs/extend.rs](../../../../src/app/command/verbs/extend.rs) · [app/splitting.rs](../../../../src/app/splitting.rs) · [app/command/verbs/measure.rs](../../../../src/app/command/verbs/measure.rs) · [app/command/verbs/trim/parts.rs](../../../../src/app/command/verbs/trim/parts.rs) · [app/command/verbs/explode.rs](../../../../src/app/command/verbs/explode.rs) · [app/walk/frames.rs](../../../../src/app/walk/frames.rs) (`src/app/booleans.rs,src/app/measurements.rs,src/app/recipes.rs`)
+**Goal:** Reuse mesh area for meshes, meshed BReps and Elements. · **Steps:** 4 · **Source:** [app/command/verbs/project_to_plane.rs](../../../../src/app/command/verbs/project_to_plane.rs) · [app/command/verbs/extend.rs](../../../../src/app/command/verbs/extend.rs) · [app/splitting.rs](../../../../src/app/splitting.rs) · [app/command/verbs/measure.rs](../../../../src/app/command/verbs/measure.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -44,7 +44,7 @@
 
 ## <a id="checkpoint-83-split-original-faces-without-separating-the-solid"></a>1. Split faces without separating the solid
 
-**What this code does:** Divide a selected original surface face while preserving joined topology and one-step history.
+Divide a selected original surface face while preserving joined topology and one-step history.
 
 ### 1. `src/split_draft.rs`
 
@@ -368,7 +368,7 @@ mod split_face_tests;
 </svg>
 </div>
 
-**What this code does:** Write one visitor for the original mesh triangles in world coordinates.
+Write one visitor for the original mesh triangles in world coordinates.
 
 ### 1. `src/measure_math.rs`
 
@@ -482,7 +482,7 @@ pub mod source_mesh_topology;
 
 ## <a id="checkpoint-83zb-compute-original-mesh-measures-and-curve-length"></a>3. Compute mesh measures and curve length
 
-**What this code does:** Reuse the triangle visitor for face area, mesh area and signed swept volume.
+Reuse the triangle visitor for face area, mesh area and signed swept volume.
 
 ### 1. `src/measure_math.rs`
 
@@ -929,8 +929,6 @@ mod tests {
 ```
 
 ## <a id="checkpoint-83ze-integrate-original-surface-area"></a>4. Integrate surface area
-
-**What this code does:** Reuse mesh area for meshes, meshed BReps and Elements.
 
 ### 1. `src/measure_area.rs`
 

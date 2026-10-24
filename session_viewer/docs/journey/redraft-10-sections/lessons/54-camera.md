@@ -1,6 +1,6 @@
 # 8.4 · Navigation, delayed picks and direct dragging
 
-**Goal:** Exercise current navigation selection and delayed answers. · **Steps:** 18 · **Source:** [app/hierarchy.rs](../../../../src/app/hierarchy.rs) · [app/layers.rs](../../../../src/app/layers.rs) · [app/ui/layers.rs](../../../../src/app/ui/layers.rs) · [app/gesture/mod.rs](../../../../src/app/gesture/mod.rs) · [state/drag.rs](../../../../src/state/drag.rs) · [state/box_select.rs](../../../../src/state/box_select.rs) (`src/app/layers.rs,src/command_dock/mod.rs,src/app/gesture/box_select.rs`)
+**Goal:** Exercise current navigation selection and delayed answers. · **Steps:** 18 · **Source:** [app/hierarchy.rs](../../../../src/app/hierarchy.rs) · [app/layers.rs](../../../../src/app/layers.rs) · [app/ui/layers.rs](../../../../src/app/ui/layers.rs) · [app/gesture/mod.rs](../../../../src/app/gesture/mod.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -42,8 +42,6 @@
 </div>
 
 ## <a id="checkpoint-54-camera"></a>1. Navigate and fit inside the free canvas
-
-**What this code does:** Navigate and fit inside the free canvas.
 
 ### 1. `src/camera.rs`
 
@@ -299,8 +297,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-54aa-view-actions"></a>2. Route camera changes without consuming document history
 
-**What this code does:** Route camera changes without consuming document history.
-
 ### 1. `src/editor.rs`
 
 Route camera actions without consuming document history or cancelling a point tool.
@@ -445,8 +441,6 @@ pub enum Action {
 ```
 
 ## <a id="checkpoint-54a-selection"></a>3. Apply visible selection and modifier precedence
-
-**What this code does:** Apply visible selection and modifier precedence.
 
 ### 1. `src/shortcuts.rs`
 
@@ -674,8 +668,6 @@ pub enum Action {
 
 ## <a id="checkpoint-54b-finger"></a>4. Keep touch handles reachable without enlarging them
 
-**What this code does:** Keep touch handles reachable without enlarging them.
-
 ### 1. `src/editor.rs`
 
 Choose a finger hit aperture before starting the existing source-preserving handle preview.
@@ -888,8 +880,6 @@ Replace it with:
 
 ## <a id="checkpoint-54c-rectangle"></a>5. Distinguish window and crossing rectangles
 
-**What this code does:** Distinguish window and crossing rectangles.
-
 ### 1. `src/rect_select.rs`
 
 Define finite rectangles, direction, point containment, segment clipping and CSS projection.
@@ -1018,7 +1008,7 @@ pub mod rect_select;
 
 ## <a id="checkpoint-54d-samples"></a>6. Select projected geometry in one source pass
 
-**What this code does:** Select original projected geometry in one source pass.
+Select original projected geometry in one source pass.
 
 ### 1. `src/rect_select.rs`
 
@@ -1289,8 +1279,6 @@ mod rect_select_tests;
 
 ## <a id="checkpoint-54e-drag"></a>7. Freeze a released drag until its pick answers
 
-**What this code does:** Freeze a released drag until its pick answers.
-
 ### 1. `src/canvas_drag.rs`
 
 Store the captured drag and a fixed world plane without changing original geometry.
@@ -1460,8 +1448,6 @@ pub mod canvas_drag;
 ```
 
 ## <a id="checkpoint-54f-drag-state"></a>8. Own drag previews outside document history
-
-**What this code does:** Own drag previews outside document history.
 
 ### 1. `src/editor.rs`
 
@@ -2875,8 +2861,6 @@ impl Editor {
 
 ## <a id="checkpoint-54g-drag-actions"></a>9. Apply held released and cancelled drag outcomes
 
-**What this code does:** Apply held released and cancelled drag outcomes.
-
 ### 1. `src/editor.rs`
 
 Route captured drag actions, commit whole movement and invalidate snap caches after a document change.
@@ -3014,8 +2998,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ## <a id="checkpoint-54h-mouse"></a>10. Capture mouse gestures in CSS pixels
-
-**What this code does:** Capture mouse gestures in CSS pixels.
 
 ### 1. `src/gesture.rs`
 
@@ -3429,8 +3411,6 @@ fn cancellation_never_selects_and_allows_a_fresh_press() {
 
 ## <a id="checkpoint-54i-touch"></a>11. Orbit with one finger and pan pinch with two
 
-**What this code does:** Orbit with one finger and pan pinch with two.
-
 ### 1. `src/touch.rs`
 
 Track active fingers, CSS orbit and ordered two-finger camera changes.
@@ -3568,8 +3548,6 @@ pub mod touch;
 
 ## <a id="checkpoint-54j-taps"></a>12. Finish taps double taps and touch cancellation
 
-**What this code does:** Finish taps double taps and touch cancellation.
-
 ### 1. `src/touch.rs`
 
 Finish taps, nearby double-tap Fit and all-finger cancellation without changing document history.
@@ -3625,8 +3603,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ## <a id="checkpoint-54k-overlay"></a>13. Draw a thin selection rectangle above the canvas
-
-**What this code does:** Draw a thin selection rectangle above the canvas.
 
 ### 1. `src/panel.rs`
 
@@ -3848,8 +3824,6 @@ pub struct Panel {
 ```
 
 ## <a id="checkpoint-54l-navigation"></a>14. Route mouse touch and wheel after panel input
-
-**What this code does:** Route mouse touch and wheel after panel input.
 
 ### 1. `src/browser.rs`
 
@@ -4146,8 +4120,6 @@ Replace it with:
 
 ## <a id="checkpoint-54m-pick-release"></a>15. Retain the press pick through a quick release
 
-**What this code does:** Retain the press pick through a quick release.
-
 ### 1. `src/browser.rs`
 
 Dispatch late GPU hits to drags, preserve pending picks and route tap points through an active drawing tool.
@@ -4393,8 +4365,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-54n-cancellation"></a>16. Cancel owned gestures and preserve normal capture release
 
-**What this code does:** Cancel owned gestures and preserve normal capture release.
-
 ### 1. `src/browser.rs`
 
 Preserve frozen release ownership and choose the larger finger aperture before canvas navigation.
@@ -4554,8 +4524,6 @@ Replace it with:
 
 ## <a id="checkpoint-54o-frame"></a>17. Expose drag ownership and centre the available drawing
 
-**What this code does:** Expose drag ownership and centre the available drawing.
-
 ### 1. `src/browser.rs`
 
 Expose actual pending drag state, refresh the overlay and cancel a stale camera projection.
@@ -4637,8 +4605,6 @@ Replace it with:
 ```
 
 ## <a id="checkpoint-54p-navigation"></a>18. Exercise current navigation selection and delayed answers
-
-**What this code does:** Exercise current navigation selection and delayed answers.
 
 ### 1. `src/navigation_complete_tests.rs`
 

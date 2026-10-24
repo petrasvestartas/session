@@ -1,6 +1,6 @@
 # 14.2 · Precise coordinates and original drawing drafts
 
-**Goal:** Exercise current drawing tools and original persistence. · **Steps:** 20 · **Source:** [app/walk/sheet.rs](../../../src/app/walk/sheet.rs) · [app/sheet_query.rs](../../../src/app/sheet_query.rs) · [app/stream.rs](../../../src/app/stream.rs) · [app/cplane.rs](../../../src/app/cplane.rs) · [app/coords.rs](../../../src/app/coords.rs) · [app/command/tool/shape.rs](../../../src/app/command/tool/shape.rs) · [app/command/tool/gather.rs](../../../src/app/command/tool/gather.rs) · [app/deform.rs](../../../src/app/deform.rs) (`src/app/cplane.rs,src/app/primitives.rs,src/app/curves.rs`)
+**Goal:** Exercise current drawing tools and original persistence. · **Steps:** 20 · **Source:** [app/walk/sheet.rs](../../../src/app/walk/sheet.rs) · [app/sheet_query.rs](../../../src/app/sheet_query.rs) · [app/stream.rs](../../../src/app/stream.rs) · [app/cplane.rs](../../../src/app/cplane.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -48,7 +48,7 @@
 
 ## <a id="checkpoint-72-copy-current-construction-planes-and-coordinate-forms"></a>1. Place coordinates in the selected plane
 
-**What this code does:** Complete absolute coordinates, offsets and point placement with the original construction-plane rules.
+Complete absolute coordinates, offsets and point placement with the original construction-plane rules.
 
 ### 1. `src/drawing_coords.rs`
 
@@ -606,8 +606,6 @@ mod tests {
 
 ## <a id="checkpoint-72a-resolve-bounded-typed-batches-in-the-current-plane"></a>2. Resolve bounded typed batches in the current plane
 
-**What this code does:** Resolve bounded typed batches in the current plane.
-
 ### 1. `src/drawing_input.rs`
 
 Resolve current coordinate forms atomically before changing the draft.
@@ -697,8 +695,6 @@ pub mod drawing_input;
 
 ## <a id="checkpoint-72b-place-clicks-on-stable-construction-planes"></a>3. Place clicks on stable construction planes
 
-**What this code does:** Place clicks on stable construction planes.
-
 ### 1. `src/drawing_input.rs`
 
 Resolve finite construction-plane clicks and retain their original doubles.
@@ -775,8 +771,6 @@ pub fn on_at(
 
 ## <a id="checkpoint-72c-name-the-construction-plane-chooser-options"></a>4. Name the construction plane chooser options
 
-**What this code does:** Name the construction plane chooser options.
-
 ### 1. `src/drawing_input.rs`
 
 Describe current construction-plane options without silently changing a plane.
@@ -804,7 +798,7 @@ pub fn buttons() -> Vec<(String, String)> {
 
 ## <a id="checkpoint-72d-add-original-polylines-to-the-point-tool"></a>5. Add polylines to the point tool
 
-**What this code does:** Add original polylines to the point tool.
+Add original polylines to the point tool.
 
 ### 1. `src/tool.rs`
 
@@ -999,8 +993,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-72e-keep-construction-frames-and-plane-points-in-drafts"></a>6. Keep construction frames and plane points in drafts
 
-**What this code does:** Keep construction frames and plane points in drafts.
-
 ### 1. `src/tool.rs`
 
 Own separate construction-plane points and current drawing prompts.
@@ -1073,8 +1065,6 @@ impl Draft {
 ```
 
 ## <a id="checkpoint-72f-replay-finished-drafts-with-explicit-world-prefixes"></a>7. Replay finished drafts with explicit world prefixes
-
-**What this code does:** Replay finished drafts with explicit world prefixes.
 
 ### 1. `src/tool.rs`
 
@@ -1162,8 +1152,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-72g-own-the-fixed-construction-plane-in-the-editor"></a>8. Own the fixed construction plane in the editor
 
-**What this code does:** Own the fixed construction plane in the editor.
-
 ### 1. `src/editor.rs`
 
 Retain the current fixed plane and chooser with the owning Editor.
@@ -1238,7 +1226,7 @@ impl Default for Editor {
 
 ## <a id="checkpoint-72h-commit-completed-original-geometry-exactly-once"></a>9. Commit completed geometry exactly once
 
-**What this code does:** Commit completed original geometry exactly once.
+Commit completed original geometry exactly once.
 
 ### 1. `src/editor.rs`
 
@@ -1307,8 +1295,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ## <a id="checkpoint-72i-change-fixed-planes-without-rewriting-accepted-points"></a>10. Change fixed planes without rewriting accepted points
-
-**What this code does:** Change fixed planes without rewriting accepted points.
 
 ### 1. `src/editor.rs`
 
@@ -1430,8 +1416,6 @@ Replace it with:
 ```
 
 ## <a id="checkpoint-72j-open-the-plane-chooser-and-collect-its-frame"></a>11. Open the plane chooser and collect its frame
-
-**What this code does:** Open the plane chooser and collect its frame.
 
 ### 1. `src/editor.rs`
 
@@ -1604,8 +1588,6 @@ pub fn buttons() -> Vec<(String, String)> {
 
 ## <a id="checkpoint-72k-resolve-typed-input-against-the-current-draft"></a>12. Resolve typed input against the current draft
 
-**What this code does:** Resolve typed input against the current draft.
-
 ### 1. `src/editor.rs`
 
 Resolve typed batches before mutating the current original-point collector.
@@ -1658,8 +1640,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ## <a id="checkpoint-72l-finish-open-tools-with-enter-and-route-typed-forms"></a>13. Finish open tools with Enter and route typed forms
-
-**What this code does:** Finish open tools with Enter and route typed forms.
 
 ### 1. `src/editor.rs`
 
@@ -1811,8 +1791,6 @@ Replace it with:
 
 ## <a id="checkpoint-72m-validate-complete-drawing-commands-before-adoption"></a>14. Validate complete drawing commands before adoption
 
-**What this code does:** Validate complete drawing commands before adoption.
-
 ### 1. `src/editor.rs`
 
 Validate direct current-plane coordinate commands before changing the current draft.
@@ -1915,7 +1893,7 @@ Replace it with:
 
 ## <a id="checkpoint-72n-close-original-polylines-as-one-transaction"></a>15. Close polylines as one transaction
 
-**What this code does:** Close original polylines as one transaction.
+Close original polylines as one transaction.
 
 ### 1. `src/editor.rs`
 
@@ -2085,8 +2063,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-72o-snap-draft-starts-and-use-the-construction-frame-grid"></a>16. Snap draft starts and use the construction frame grid
 
-**What this code does:** Snap draft starts and use the construction frame grid.
-
 ### 1. `src/editor.rs`
 
 Snap current original targets and place finite free points on the current construction frame.
@@ -2170,8 +2146,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-72p-register-current-drawing-commands-and-plane-choices"></a>17. Register current drawing commands and plane choices
 
-**What this code does:** Register current drawing commands and plane choices.
-
 ### 1. `src/commands.rs`
 
 Register current original drawing tools, direct coordinates and explicit construction-plane choices.
@@ -2236,8 +2210,6 @@ Replace it with:
 
 ## <a id="checkpoint-72q-preview-accepted-segments-without-committing-originals"></a>18. Preview accepted segments without committing originals
 
-**What this code does:** Preview accepted segments without committing originals.
-
 ### 1. `src/tool_preview.rs`
 
 Preview accepted draft segments and cursor motion without scene or history changes.
@@ -2297,7 +2269,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-72r-expose-original-drawing-coordinates-and-cancellation-state"></a>19. Expose drawing coordinates and cancellation state
 
-**What this code does:** Expose original drawing coordinates and cancellation state.
+Expose original drawing coordinates and cancellation state.
 
 ### 1. `src/browser.rs`
 
@@ -2534,8 +2506,6 @@ Replace it with:
 ```
 
 ## <a id="checkpoint-72s-exercise-current-drawing-tools-and-original-persistence"></a>20. Exercise current drawing tools and persistence
-
-**What this code does:** Exercise current drawing tools and original persistence.
 
 ### 1. `src/drawing_tests.rs`
 

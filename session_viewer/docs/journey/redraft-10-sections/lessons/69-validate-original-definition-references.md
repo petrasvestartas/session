@@ -1,6 +1,6 @@
 # 13.1 · Shared original definitions and independently placed instances
 
-**Goal:** Check sharing precision history and release. · **Steps:** 9 · **Source:** [app/scene_instances.rs](../../../../src/app/scene_instances.rs) · [engine/gpu/instanced.rs](../../../../src/engine/gpu/instanced.rs) · [engine/gpu/slots.rs](../../../../src/engine/gpu/slots.rs) · [app/walk/brep_shapes.rs](../../../../src/app/walk/brep_shapes.rs) · [app/hierarchy.rs](../../../../src/app/hierarchy.rs) · [app/sheet_query.rs](../../../../src/app/sheet_query.rs) (`src/app/instances.rs,src/app/sheets.rs,src/engine/gpu/instances.rs`)
+**Goal:** Check sharing precision history and release. · **Steps:** 9 · **Source:** [app/scene_instances.rs](../../../../src/app/scene_instances.rs) · [engine/gpu/instanced.rs](../../../../src/engine/gpu/instanced.rs) · [engine/gpu/slots.rs](../../../../src/engine/gpu/slots.rs) · [app/walk/brep_shapes.rs](../../../../src/app/walk/brep_shapes.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -50,7 +50,7 @@
 
 ## <a id="checkpoint-69-validate-original-definition-references"></a>1. Validate definition references
 
-**What this code does:** Validate original definition references.
+Validate original definition references.
 
 ### 1. `src/instance_plan.rs`
 
@@ -293,8 +293,6 @@ mod tests {
 
 ## <a id="checkpoint-69b-prepare-each-used-definition-once"></a>2. Prepare each used definition once
 
-**What this code does:** Prepare each used definition once.
-
 ### 1. `src/instance_definition.rs`
 
 Prepare each referenced original definition once.
@@ -388,8 +386,6 @@ pub mod instance_definition;
 ```
 
 ## <a id="checkpoint-69c-keep-instance-bindings-through-scene-history"></a>3. Keep instance bindings through scene history
-
-**What this code does:** Keep instance bindings through scene history.
 
 ### 1. `src/scene.rs`
 
@@ -3105,8 +3101,6 @@ impl Scene {
 
 ## <a id="checkpoint-69d-append-independently-placed-shared-rows"></a>4. Append independently placed shared rows
 
-**What this code does:** Append independently placed shared rows.
-
 ### 1. `src/scene.rs`
 
 Append checked independent instance rows without cloning the growing scene.
@@ -3220,7 +3214,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-69e-import-canonical-original-instance-placements"></a>5. Import canonical instance placements
 
-**What this code does:** Import canonical original instance placements.
+Import canonical original instance placements.
 
 ### 1. `src/document_source.rs`
 
@@ -3412,8 +3406,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-69f-protect-shared-originals-during-part-edits"></a>6. Protect shared originals during part edits
 
-**What this code does:** Protect shared originals during part edits.
-
 ### 1. `src/part_preview.rs`
 
 Protect original definitions from unsupported source-part edits.
@@ -3436,8 +3428,6 @@ pub fn points(scene: &Scene, target: Target) -> Result<Vec<Point>, &'static str>
 ```
 
 ## <a id="checkpoint-69g-collect-shared-definitions-without-flattening"></a>7. Collect shared definitions without flattening
-
-**What this code does:** Collect shared definitions without flattening.
 
 ### 1. `src/instance_snapshot.rs`
 
@@ -3547,7 +3537,7 @@ pub mod instance_snapshot;
 
 ## <a id="checkpoint-69h-save-original-instance-references-and-namespaces"></a>8. Save instance references and namespaces
 
-**What this code does:** Save original instance references and namespaces.
+Save original instance references and namespaces.
 
 ### 1. `src/geometry_snapshot.rs`
 
@@ -3765,8 +3755,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ## <a id="checkpoint-69i-check-sharing-precision-history-and-release"></a>9. Check sharing precision, history, and release
-
-**What this code does:** Check sharing precision history and release.
 
 ### 1. `src/memory.rs`
 

@@ -1,6 +1,6 @@
 # 19.1 · Complete source metadata and the actual command contract
 
-**Goal:** Prove current source grammar and explicit differences. · **Steps:** 9 · **Source:** [app/session_io.rs](../../../src/app/session_io.rs) · [app/command/mod.rs](../../../src/app/command/mod.rs) · [app/hierarchy.rs](../../../src/app/hierarchy.rs) · [app/scene.rs](../../../src/app/scene.rs) · [app/selection.rs](../../../src/app/selection.rs) · [app/deform.rs](../../../src/app/deform.rs) · [app/walk/mod.rs](../../../src/app/walk/mod.rs) (`src/app/inspect.rs,src/app/families.rs,src/command_dock/families.rs`)
+**Goal:** Prove current source grammar and explicit differences. · **Steps:** 9 · **Source:** [app/session_io.rs](../../../src/app/session_io.rs) · [app/command/mod.rs](../../../src/app/command/mod.rs) · [app/hierarchy.rs](../../../src/app/hierarchy.rs) · [app/scene.rs](../../../src/app/scene.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -49,8 +49,6 @@
 </div>
 
 ## <a id="checkpoint-96-retain-non-drawing-originals-and-validate-raw-planes"></a>1. Retain non drawing originals and validate raw planes
-
-**What this code does:** Retain non drawing originals and validate raw planes.
 
 ### 1. `src/source_metadata.rs`
 
@@ -188,8 +186,6 @@ pub mod source_metadata;
 
 ## <a id="checkpoint-96a-merge-unused-definitions-with-displayed-instances"></a>2. Merge unused definitions with displayed instances
 
-**What this code does:** Merge unused definitions with displayed instances.
-
 ### 1. `src/definition_merge.rs`
 
 Merge exact retained definitions without losing unused originals.
@@ -276,8 +272,6 @@ pub mod source_mesh_topology;
 ```
 
 ## <a id="checkpoint-96b-preserve-component-and-interaction-metadata-in-archives"></a>3. Preserve component and interaction metadata in archives
-
-**What this code does:** Preserve component and interaction metadata in archives.
 
 ### 1. `src/origin.rs`
 
@@ -508,8 +502,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-96c-keep-current-element-and-frame-definition-families"></a>4. Keep current Element and frame definition families
 
-**What this code does:** Keep current Element and frame definition families.
-
 ### 1. `src/instance_plan.rs`
 
 Retain supported original definition families and per-instance feature records.
@@ -710,8 +702,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-96d-observe-the-real-current-registry-and-parser"></a>5. Observe the real current registry and parser
 
-**What this code does:** Observe the real current registry and parser.
-
 ### 1. `src/registry_audit.rs`
 
 Observe the compiled maintained command registry directly.
@@ -818,8 +808,6 @@ path = "src/inventory_example.rs"
 ```
 
 ## <a id="checkpoint-96e-verify-the-complete-declared-current-source-closure"></a>6. Verify the complete declared current source closure
-
-**What this code does:** Verify the complete declared current source closure.
 
 ### 1. `src/current_inventory.json`
 
@@ -3974,7 +3962,7 @@ pub mod source_mesh_topology;
 
 ## <a id="checkpoint-96f-report-retained-original-metadata-in-the-real-viewer"></a>7. Report retained metadata in the real viewer
 
-**What this code does:** Report retained original metadata in the real viewer.
+Report retained original metadata in the real viewer.
 
 ### 1. `src/browser.rs`
 
@@ -4002,8 +3990,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ## <a id="checkpoint-96g-prove-exact-metadata-and-definition-round-trips"></a>8. Prove exact metadata and definition round trips
-
-**What this code does:** Prove exact metadata and definition round trips.
 
 ### 1. `src/metadata_tests.rs`
 
@@ -4263,8 +4249,6 @@ pub mod source_mesh_topology;
 ```
 
 ## <a id="checkpoint-96h-prove-current-source-grammar-and-explicit-differences"></a>9. Prove current source grammar and explicit differences
-
-**What this code does:** Prove current source grammar and explicit differences.
 
 ### 1. `src/current_registry.json`
 

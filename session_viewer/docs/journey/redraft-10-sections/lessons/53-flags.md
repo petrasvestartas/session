@@ -1,6 +1,6 @@
 # 8.3 · Layers, visibility and source-preserving properties
 
-**Goal:** Exercise layers shortcuts colours and exact source ownership. · **Steps:** 23 · **Source:** [app/hierarchy.rs](../../../../src/app/hierarchy.rs) · [app/layers.rs](../../../../src/app/layers.rs) · [app/ui/layers.rs](../../../../src/app/ui/layers.rs) · [app/gesture/mod.rs](../../../../src/app/gesture/mod.rs) · [state/drag.rs](../../../../src/state/drag.rs) · [state/box_select.rs](../../../../src/state/box_select.rs) (`src/app/layers.rs,src/command_dock/mod.rs,src/app/gesture/box_select.rs`)
+**Goal:** Exercise layers shortcuts colours and exact source ownership. · **Steps:** 23 · **Source:** [app/hierarchy.rs](../../../../src/app/hierarchy.rs) · [app/layers.rs](../../../../src/app/layers.rs) · [app/ui/layers.rs](../../../../src/app/ui/layers.rs) · [app/gesture/mod.rs](../../../../src/app/gesture/mod.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -51,7 +51,7 @@
 
 ## <a id="checkpoint-53-flags"></a>1. Separate layer presentation from sources
 
-**What this code does:** Separate layer presentation from original sources.
+Separate layer presentation from original sources.
 
 ### 1. `src/view_flags.rs`
 
@@ -152,8 +152,6 @@ pub mod view_flags;
 ```
 
 ## <a id="checkpoint-53a-ids"></a>2. Index live identities and initialise view flags
-
-**What this code does:** Index live identities and initialise view flags.
 
 ### 1. `src/scene.rs`
 
@@ -493,7 +491,48 @@ impl Forest {
 
 ## <a id="checkpoint-53b-uniform"></a>3. Update surface colour and pickability in small GPU records
 
-**What this code does:** Update surface colour and pickability in small GPU records.
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="184" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">CPU Camera / View Uniform (16-Byte Aligned)</text>
+  <rect x="52" y="48" width="268" height="106" rx="6" fill="#f8fafc" stroke="#111111" stroke-width="1.75"/>
+  <rect x="66" y="58" width="240" height="38" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="81" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">view_proj: [[f32; 4]; 4] (64B)</text>
+  <rect x="66" y="104" width="240" height="36" fill="#fef08a" stroke="#d97706" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="126" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">eye_pos / viewport_px (16B)</text>
+  <line x1="358" y1="94" x2="384" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="388" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">queue.write_buffer -&gt; wgpu::BindGroup (@group(0))</text>
+  <rect x="424" y="50" width="272" height="102" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <rect x="442" y="64" width="236" height="32" rx="4" fill="#dcfce7" stroke="#16a34a" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="84" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">BufferUsages::UNIFORM | COPY_DST</text>
+  <rect x="442" y="106" width="236" height="32" rx="4" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="126" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#2563eb">pass.set_bind_group(0, &amp;bg, &amp;[])</text>
+  <line x1="732" y1="94" x2="758" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="762" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">GPU Shader Uniform Read: var&lt;uniform&gt;</text>
+  <rect x="806" y="44" width="256" height="118" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="76" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#2563eb">@group(0) @binding(0)</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="98" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">var&lt;uniform&gt; u: Uniforms;</text>
+  <rect x="828" y="114" width="212" height="32" rx="4" fill="#dcfce7" stroke="#16a34a" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="134" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">u.view_proj * vec4(p, 1.0)</text>
+</svg>
+</div>
 
 ### 1. `src/gpu_mesh.rs`
 
@@ -2129,8 +2168,6 @@ fn rgba(rgb: [u8; 3]) -> [f32; 4] {
 
 ## <a id="checkpoint-53bb-eligibility"></a>4. Resolve live visibility and selection eligibility
 
-**What this code does:** Resolve live visibility and selection eligibility.
-
 ### 1. `src/scene.rs`
 
 Resolve current source visibility, eligible picks and placed bounds from independent presentation.
@@ -2424,8 +2461,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ## <a id="checkpoint-53c-presentation"></a>5. Use current visibility and colours in every derived pass
-
-**What this code does:** Use current visibility and colours in every derived pass.
 
 ### 1. `src/renderer.rs`
 
@@ -2949,8 +2984,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-53d-hide-show"></a>6. Connect Hide Show and canvas Delete shortcuts
 
-**What this code does:** Connect Hide Show and canvas Delete shortcuts.
-
 ### 1. `src/editor.rs`
 
 Hide selected descendants without a document edit and reveal all sources with Show.
@@ -3210,8 +3243,6 @@ fn canvas_delete_hide_show_keep_focused_text_and_modifiers_owned_by_the_field() 
 
 ## <a id="checkpoint-53e-properties"></a>7. Apply eye lock and independent colour properties
 
-**What this code does:** Apply eye lock and independent colour properties.
-
 ### 1. `src/layer_properties.rs`
 
 Apply one property to a row and its descendants without mutating source geometry.
@@ -3451,8 +3482,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-53f-portable"></a>8. Keep tree identities stable across edits and saves
 
-**What this code does:** Keep tree identities stable across edits and saves.
-
 ### 1. `src/hierarchy.rs`
 
 Preserve portable UUIDs and rebuild immutable tree indexes after group edits.
@@ -3585,8 +3614,6 @@ pub struct Node {
 
 ## <a id="checkpoint-53g-branches"></a>9. Represent group edits with temporary branches
 
-**What this code does:** Represent group edits with temporary branches.
-
 ### 1. `src/layer_edit.rs`
 
 Represent atomic subtree edits without owning kernel geometry.
@@ -3675,8 +3702,6 @@ pub mod layer_edit;
 ```
 
 ## <a id="checkpoint-53h-layer-targets"></a>10. Validate current layers and protected ancestors
-
-**What this code does:** Validate current layers and protected ancestors.
 
 ### 1. `src/scene.rs`
 
@@ -3877,8 +3902,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-53i-copy-records"></a>11. Copy row identities while sharing source allocations
 
-**What this code does:** Copy row identities while sharing source allocations.
-
 ### 1. `src/scene.rs`
 
 Allocate copied rows without duplicating original CPU geometry or rewriting coordinates.
@@ -3981,8 +4004,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ## <a id="checkpoint-53j-transfers"></a>12. Move and copy objects between layer trees
-
-**What this code does:** Move and copy objects between layer trees.
 
 ### 1. `src/layer_edit.rs`
 
@@ -4149,8 +4170,6 @@ fn transfer(
 
 ## <a id="checkpoint-53k-new-rename"></a>13. Create and rename uniquely named layers
 
-**What this code does:** Create and rename uniquely named layers.
-
 ### 1. `src/layer_edit.rs`
 
 Create checked layer groups and rename labels without replacing their stable identities.
@@ -4252,8 +4271,6 @@ fn rename(scene: &mut Scene, key: &str, label: &str) -> Result<(), &'static str>
 
 ## <a id="checkpoint-53l-delete-duplicate"></a>14. Delete and duplicate complete layer contents
 
-**What this code does:** Delete and duplicate complete layer contents.
-
 ### 1. `src/layer_edit.rs`
 
 Delete protected subtrees and duplicate descendants while sharing original source geometry.
@@ -4335,8 +4352,6 @@ fn duplicate(scene: &mut Scene, key: &str) -> Result<(), &'static str> {
 ```
 
 ## <a id="checkpoint-53m-actions"></a>15. Commit group edits through one history boundary
-
-**What this code does:** Commit group edits through one history boundary.
 
 ### 1. `src/layer_edit.rs`
 
@@ -4434,8 +4449,6 @@ pub enum Action {
 ```
 
 ## <a id="checkpoint-53n-routing"></a>16. Create geometry on the current layer or Created
-
-**What this code does:** Create geometry on the current layer or Created.
 
 ### 1. `src/layer_edit.rs`
 
@@ -4735,8 +4748,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-53o-palette"></a>17. Supply nine colour swatches and RGB sliders
 
-**What this code does:** Supply nine colour swatches and RGB sliders.
-
 ### 1. `src/layer_palette.rs`
 
 Draw maintained colour swatches and checked RGB sliders without editing source geometry.
@@ -4841,8 +4852,6 @@ pub mod layer_palette;
 ```
 
 ## <a id="checkpoint-53p-panel-state"></a>18. Resolve layer presentation for real tree controls
-
-**What this code does:** Resolve layer presentation for real tree controls.
 
 ### 1. `src/tree_panel.rs`
 
@@ -4985,8 +4994,6 @@ pub struct TreePanel {
 ```
 
 ## <a id="checkpoint-53q-properties-ui"></a>19. Draw eye lock and independent colour menus
-
-**What this code does:** Draw eye lock and independent colour menus.
 
 ### 1. `src/tree_panel.rs`
 
@@ -5131,8 +5138,6 @@ fn properties(
 
 ## <a id="checkpoint-53r-name"></a>20. Own rename text and populated deletion confirmation
 
-**What this code does:** Own rename text and populated deletion confirmation.
-
 ### 1. `src/tree_panel.rs`
 
 Own name-field keys and show explicit populated-layer deletion controls.
@@ -5232,8 +5237,6 @@ fn dialogs(
 
 ## <a id="checkpoint-53s-tree-controls"></a>21. Connect group menus to the wider tree panel
 
-**What this code does:** Connect group menus to the wider tree panel.
-
 ### 1. `src/tree_panel.rs`
 
 Connect measured group menus and property controls while preserving read-only source selection guards.
@@ -5326,8 +5329,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ## <a id="checkpoint-53t-input"></a>22. Route layer controls before handles and canvas input
-
-**What this code does:** Route layer controls before handles and canvas input.
 
 ### 1. `src/panel.rs`
 
@@ -5551,8 +5552,6 @@ Replace it with:
 ```
 
 ## <a id="checkpoint-53u-layers"></a>23. Exercise layers shortcuts colours and exact source ownership
-
-**What this code does:** Exercise layers shortcuts colours and exact source ownership.
 
 ### 1. `src/shortcuts.rs`
 

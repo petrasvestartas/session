@@ -1,6 +1,6 @@
 # 5.6 · Original mesh colours and large index buffers
 
-**Goal:** Preserve kernel u32 indices through display and GPU drawing, with truthful payload and allocation accounting. · **Steps:** 3 · **Source:** [app/walk/curves.rs](../../../src/app/walk/curves.rs) · [engine/gpu/segments.rs](../../../src/engine/gpu/segments.rs) · [shaders/ribbon.wgsl](../../../src/shaders/ribbon.wgsl) · [shaders/vector.wgsl](../../../src/shaders/vector.wgsl) · [app/walk/points.rs](../../../src/app/walk/points.rs) · [shaders/glyph.wgsl](../../../src/shaders/glyph.wgsl) · [shaders/ink_visibility.wgsl](../../../src/shaders/ink_visibility.wgsl) · [shaders/triangle.wgsl](../../../src/shaders/triangle.wgsl) · [shaders/grid.wgsl](../../../src/shaders/grid.wgsl) (`src/shaders/ribbon.wgsl,src/shaders/glyph.wgsl,src/engine/gpu/segments.rs`)
+**Goal:** Preserve kernel u32 indices through display and GPU drawing, with truthful payload and allocation accounting. · **Steps:** 3 · **Source:** [app/walk/curves.rs](../../../src/app/walk/curves.rs) · [engine/gpu/segments.rs](../../../src/engine/gpu/segments.rs) · [shaders/ribbon.wgsl](../../../src/shaders/ribbon.wgsl) · [shaders/vector.wgsl](../../../src/shaders/vector.wgsl)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -50,7 +50,7 @@
 
 ## <a id="checkpoint-40-colour"></a>1. Carry the mesh colour mode into display data
 
-**What this code does:** Preserve original object, point and face colour modes through the kernel render adapter, including shared face boundaries.
+Preserve original object, point and face colour modes through the kernel render adapter, including shared face boundaries.
 
 ### 1. `src/colour.rs`
 
@@ -203,7 +203,7 @@ fn incomplete_active_arrays_use_object_colour_without_source_mutation() {
 
 ## <a id="checkpoint-40a-input"></a>2. Compare colour modes through actual input
 
-**What this code does:** Insert original object/point/face colour specimens through real input and preserve their modes through Save/reopen.
+Insert original object/point/face colour specimens through real input and preserve their modes through Save/reopen.
 
 ### 1. `src/editor.rs`
 
@@ -485,8 +485,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ## <a id="checkpoint-40b-indices"></a>3. Draw meshes beyond the sixteen-bit index limit
-
-**What this code does:** Preserve kernel u32 indices through display and GPU drawing, with truthful payload and allocation accounting.
 
 ### 1. `src/mesh.rs`
 

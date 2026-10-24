@@ -1,6 +1,6 @@
 # 6.4 · Ordered multi-selection and atomic edits
 
-**Goal:** Collect multiple objects with Shift-click and commands. · **Steps:** 5 · **Source:** [engine/gpu/pick.rs](../../../../src/engine/gpu/pick.rs) · [app/selection.rs](../../../../src/app/selection.rs) · [engine/gpu/faces.rs](../../../../src/engine/gpu/faces.rs) · [app/walk/mesh_topology.rs](../../../../src/app/walk/mesh_topology.rs) (`src/engine/gpu/pick.rs,src/app/selecting.rs,src/shaders/scene.wgsl`)
+**Goal:** Collect multiple objects with Shift-click and commands. · **Steps:** 5 · **Source:** [engine/gpu/pick.rs](../../../../src/engine/gpu/pick.rs) · [app/selection.rs](../../../../src/app/selection.rs) · [engine/gpu/faces.rs](../../../../src/engine/gpu/faces.rs) · [app/walk/mesh_topology.rs](../../../../src/app/walk/mesh_topology.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -51,8 +51,6 @@
 </div>
 
 ## <a id="checkpoint-45-order"></a>1. Preserve unique selections in pick order
-
-**What this code does:** Preserve unique selections in pick order.
 
 ### 1. `src/object_selection.rs`
 
@@ -238,8 +236,6 @@ mod object_selection_tests;
 ```
 
 ## <a id="checkpoint-45a-batch"></a>2. Commit mixed selection edits atomically
-
-**What this code does:** Commit mixed selection edits atomically.
 
 ### 1. `src/editor.rs`
 
@@ -569,8 +565,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ## <a id="checkpoint-45b-membership"></a>3. Connect multi-hit state and highlight every selected row
-
-**What this code does:** Connect multi-hit state and highlight every selected row.
 
 ### 1. `src/editor.rs`
 
@@ -1992,7 +1986,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-45bb-cycle"></a>4. Cycle every eligible geometry owner
 
-**What this code does:** Cycle visible unlocked mesh, line, path and point rows in stable owner order.
+Cycle visible unlocked mesh, line, path and point rows in stable owner order.
 
 ### 1. `src/scene.rs`
 
@@ -2137,8 +2131,6 @@ mod selection_cycle_tests;
 ```
 
 ## <a id="checkpoint-45c-input"></a>5. Collect multiple objects with Shift-click and commands
-
-**What this code does:** Collect multiple objects with Shift-click and commands.
 
 ### 1. `src/browser.rs`
 

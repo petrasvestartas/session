@@ -1,6 +1,6 @@
 # 5.2 · Joined paths and headed ends
 
-**Goal:** Insert source-backed joined paths and arrowheads through the real dock, then check their actual browser pixels. · **Steps:** 10 · **Source:** [app/walk/curves.rs](../../../src/app/walk/curves.rs) · [engine/gpu/segments.rs](../../../src/engine/gpu/segments.rs) · [shaders/ribbon.wgsl](../../../src/shaders/ribbon.wgsl) · [shaders/vector.wgsl](../../../src/shaders/vector.wgsl) · [app/walk/points.rs](../../../src/app/walk/points.rs) · [shaders/glyph.wgsl](../../../src/shaders/glyph.wgsl) · [shaders/ink_visibility.wgsl](../../../src/shaders/ink_visibility.wgsl) · [shaders/triangle.wgsl](../../../src/shaders/triangle.wgsl) · [shaders/grid.wgsl](../../../src/shaders/grid.wgsl) (`src/shaders/ribbon.wgsl,src/shaders/glyph.wgsl,src/engine/gpu/segments.rs`)
+**Goal:** Insert source-backed joined paths and arrowheads through the real dock, then check their actual browser pixels. · **Steps:** 10 · **Source:** [app/walk/curves.rs](../../../src/app/walk/curves.rs) · [engine/gpu/segments.rs](../../../src/engine/gpu/segments.rs) · [shaders/ribbon.wgsl](../../../src/shaders/ribbon.wgsl) · [shaders/vector.wgsl](../../../src/shaders/vector.wgsl)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -44,7 +44,7 @@
 
 ## <a id="checkpoint-36-chain"></a>1. Retain connected source geometry
 
-**What this code does:** Retain exact line or polyline owners while preparing checked shared display points.
+Retain exact line or polyline owners while preparing checked shared display points.
 
 ### 1. `src/chain.rs`
 
@@ -216,7 +216,7 @@ fn exact_sources_shared_display_points_and_invalid_input() {
 
 ## <a id="checkpoint-36a-links"></a>2. Link adjacent spans and headed ends
 
-**What this code does:** Link every nonzero span to its neighbours and identify free ends carrying arrowheads.
+Link every nonzero span to its neighbours and identify free ends carrying arrowheads.
 
 ### 1. `src/chain.rs`
 
@@ -419,7 +419,7 @@ mod chain_tests;
 
 ## <a id="checkpoint-36b-join"></a>3. Project neighbours for bounded stroke joins
 
-**What this code does:** Calculate a shared bounded cross-section from projected neighbour directions.
+Calculate a shared bounded cross-section from projected neighbour directions.
 
 ### 1. `src/chain.wgsl`
 
@@ -473,7 +473,50 @@ use session_rust::{Arrowhead, Line, Polyline};
 
 ## <a id="checkpoint-36ba-body"></a>4. Extrude the joined stroke body
 
-**What this code does:** Build joined stroke vertices and analytic coverage from the prepared projected cross-sections.
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="184" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Profile Curve C(u) + Extrude Vector d / Revolve Axis A</text>
+  <path d="M 64 138 Q 114 82 164 138" fill="none" stroke="#dc2626" stroke-width="3"/>
+  <line x1="114" y1="110" x2="114" y2="48" stroke="#16a34a" stroke-width="2.5" marker-end="url(#arrG)"/>
+  <line x1="234" y1="46" x2="234" y2="156" stroke="#2563eb" stroke-width="2" stroke-dasharray="5 3"/>
+  <path d="M 254 136 Q 282 100 254 64" fill="none" stroke="#dc2626" stroke-width="2.5"/>
+  <line x1="358" y1="94" x2="384" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="388" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">S_ext(u,v) = C(u) + v*d  |  S_rev(u,v) = Rot_A(v) * C(u)</text>
+  <polygon points="426,138 476,92 546,92 496,138" fill="#dbeafe" stroke="#111111" stroke-width="1.75"/>
+  <polygon points="426,96 476,50 546,50 496,96" fill="#93c5fd" stroke="#111111" stroke-width="1.75"/>
+  <line x1="426" y1="138" x2="426" y2="96" stroke="#16a34a" stroke-width="2"/>
+  <ellipse cx="638" cy="72" rx="42" ry="14" fill="#dbeafe" stroke="#111111" stroke-width="1.75"/>
+  <ellipse cx="638" cy="132" rx="42" ry="14" fill="#93c5fd" stroke="#111111" stroke-width="1.75"/>
+  <line x1="596" y1="72" x2="596" y2="132" stroke="#111111" stroke-width="1.75"/>
+  <line x1="680" y1="72" x2="680" y2="132" stroke="#111111" stroke-width="1.75"/>
+  <line x1="732" y1="94" x2="758" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="762" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Extruded Prism &amp; Revolved Surface of Revolution</text>
+  <rect x="806" y="44" width="256" height="118" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <polygon points="832,138 866,76 924,76 890,138" fill="#dbeafe" stroke="#111111" stroke-width="1.75"/>
+  <ellipse cx="992" cy="74" rx="36" ry="12" fill="#93c5fd" stroke="#111111" stroke-width="1.75"/>
+  <path d="M 956 74 L 956 134 A 36 12 0 0 0 1028 134 L 1028 74" fill="#dbeafe" stroke="#111111" stroke-width="1.75"/>
+</svg>
+</div>
+
+Build joined stroke vertices and analytic coverage from the prepared projected cross-sections.
 
 ### 1. `src/chain.wgsl`
 
@@ -529,7 +572,7 @@ fn fragment(input: Output) -> @location(0) vec4<f32> {
 
 ## <a id="checkpoint-36bb-heads"></a>5. Extrude free-end arrowheads
 
-**What this code does:** Draw flagged arrowheads with stable screen dimensions and limit their share of short spans.
+Draw flagged arrowheads with stable screen dimensions and limit their share of short spans.
 
 ### 1. `src/chain.wgsl`
 
@@ -669,7 +712,50 @@ fn fragment(input: Output) -> @location(0) vec4<f32> {
 
 ## <a id="checkpoint-36c-lane"></a>6. Share instance drawing with connected strokes
 
-**What this code does:** Reuse the stroke lane lifetime and view code with the connected 72-byte instance layout.
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="184" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">CPU Camera / View Uniform (16-Byte Aligned)</text>
+  <rect x="52" y="48" width="268" height="106" rx="6" fill="#f8fafc" stroke="#111111" stroke-width="1.75"/>
+  <rect x="66" y="58" width="240" height="38" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="81" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">view_proj: [[f32; 4]; 4] (64B)</text>
+  <rect x="66" y="104" width="240" height="36" fill="#fef08a" stroke="#d97706" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="126" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">eye_pos / viewport_px (16B)</text>
+  <line x1="358" y1="94" x2="384" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="388" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">queue.write_buffer -&gt; wgpu::BindGroup (@group(0))</text>
+  <rect x="424" y="50" width="272" height="102" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <rect x="442" y="64" width="236" height="32" rx="4" fill="#dcfce7" stroke="#16a34a" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="84" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">BufferUsages::UNIFORM | COPY_DST</text>
+  <rect x="442" y="106" width="236" height="32" rx="4" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="126" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#2563eb">pass.set_bind_group(0, &amp;bg, &amp;[])</text>
+  <line x1="732" y1="94" x2="758" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="762" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">GPU Shader Uniform Read: var&lt;uniform&gt;</text>
+  <rect x="806" y="44" width="256" height="118" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="76" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#2563eb">@group(0) @binding(0)</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="98" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">var&lt;uniform&gt; u: Uniforms;</text>
+  <rect x="828" y="114" width="212" height="32" rx="4" fill="#dcfce7" stroke="#16a34a" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="134" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">u.view_proj * vec4(p, 1.0)</text>
+</svg>
+</div>
+
+Reuse the stroke lane lifetime and view code with the connected 72-byte instance layout.
 
 ### 1. `src/stroke_gpu.rs`
 
@@ -1034,7 +1120,7 @@ impl Lane {
 
 ## <a id="checkpoint-36d-document"></a>7. Retain connected paths in document history
 
-**What this code does:** Retain exact connected source owners as independent document rows and history values.
+Retain exact connected source owners as independent document rows and history values.
 
 ### 1. `src/chain.rs`
 
@@ -1329,7 +1415,7 @@ fn connected_identity_and_history_preserve_original_sources() {
 
 ## <a id="checkpoint-36db-placement"></a>8. Place connected coordinates and count shared owners
 
-**What this code does:** Place original path coordinates before display conversion and count shared source/display owners once.
+Place original path coordinates before display conversion and count shared source/display owners once.
 
 ### 1. `src/chain.rs`
 
@@ -1563,7 +1649,7 @@ pub mod picking;
 
 ## <a id="checkpoint-36da-render"></a>9. Draw connected document rows
 
-**What this code does:** Synchronize placed connected paths into one shared lane and release every instance on Close.
+Synchronize placed connected paths into one shared lane and release every instance on Close.
 
 ### 1. `src/renderer.rs`
 
@@ -1776,8 +1862,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ## <a id="checkpoint-36e-input"></a>10. Insert connected paths and arrow examples
-
-**What this code does:** Insert source-backed joined paths and arrowheads through the real dock, then check their actual browser pixels.
 
 ### 1. `src/editor.rs`
 

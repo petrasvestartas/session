@@ -1,6 +1,6 @@
 # 8.2 · Tree presentation with explicit input ownership
 
-**Goal:** Exercise nested source ownership and exact undo. · **Steps:** 5 · **Source:** [app/hierarchy.rs](../../../src/app/hierarchy.rs) · [app/layers.rs](../../../src/app/layers.rs) · [app/ui/layers.rs](../../../src/app/ui/layers.rs) · [app/gesture/mod.rs](../../../src/app/gesture/mod.rs) · [state/drag.rs](../../../src/state/drag.rs) · [state/box_select.rs](../../../src/state/box_select.rs) (`src/app/layers.rs,src/command_dock/mod.rs,src/app/gesture/box_select.rs`)
+**Goal:** Exercise nested source ownership and exact undo. · **Steps:** 5 · **Source:** [app/hierarchy.rs](../../../src/app/hierarchy.rs) · [app/layers.rs](../../../src/app/layers.rs) · [app/ui/layers.rs](../../../src/app/ui/layers.rs) · [app/gesture/mod.rs](../../../src/app/gesture/mod.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -50,8 +50,6 @@
 </div>
 
 ## <a id="checkpoint-52g-rows"></a>1. Expose stable tree rows across geometry lanes
-
-**What this code does:** Expose stable tree rows across geometry lanes.
 
 ### 1. `src/hierarchy.rs`
 
@@ -194,8 +192,6 @@ impl Source {
 
 ## <a id="checkpoint-52h-expansion"></a>2. Keep expansion and paging as presentation state
 
-**What this code does:** Keep expansion and paging as presentation state.
-
 ### 1. `src/tree_panel.rs`
 
 Keep stable expansion keys, bounded pages and pending row selection outside saved geometry.
@@ -275,8 +271,6 @@ pub mod tree_panel;
 
 ## <a id="checkpoint-52i-panel"></a>3. Draw indented original-source tree controls
 
-**What this code does:** Draw indented original-source tree controls.
-
 ### 1. `src/tree_panel.rs`
 
 Draw bounded source rows with actual measured control rectangles and read-only explanations.
@@ -332,8 +326,6 @@ pub fn draw(
 ```
 
 ## <a id="checkpoint-52j-input"></a>4. Connect tree controls before canvas picking
-
-**What this code does:** Connect tree controls before canvas picking.
 
 ### 1. `src/panel.rs`
 
@@ -647,8 +639,6 @@ Replace it with:
 ```
 
 ## <a id="checkpoint-52k-tree"></a>5. Exercise nested source ownership and exact undo
-
-**What this code does:** Exercise nested source ownership and exact undo.
 
 ### 1. `src/tree_specimen.rs`
 

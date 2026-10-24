@@ -1,6 +1,6 @@
 # 15.2 · Profile collection and one surfacing transaction
 
-**Goal:** Exercise profiles exact surfaces and one undo transaction. · **Steps:** 14 · **Source:** [app/deform.rs](../../../src/app/deform.rs) · [state/edit.rs](../../../src/state/edit.rs) · [app/command/tool/gather.rs](../../../src/app/command/tool/gather.rs) · [app/command/tool/surfacing.rs](../../../src/app/command/tool/surfacing.rs) · [app/walk/mesh.rs](../../../src/app/walk/mesh.rs) · [app/walk/brep.rs](../../../src/app/walk/brep.rs) (`src/app/transforms.rs,src/app/surfacing.rs,src/app/nurbs_eval.rs`)
+**Goal:** Exercise profiles exact surfaces and one undo transaction. · **Steps:** 14 · **Source:** [app/deform.rs](../../../src/app/deform.rs) · [state/edit.rs](../../../src/state/edit.rs) · [app/command/tool/gather.rs](../../../src/app/command/tool/gather.rs) · [app/command/tool/surfacing.rs](../../../src/app/command/tool/surfacing.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -45,8 +45,6 @@
 </div>
 
 ## <a id="checkpoint-78-copy-current-curve-collection-and-surfacing-recipes"></a>1. Copy current curve collection and surfacing recipes
-
-**What this code does:** Copy current curve collection and surfacing recipes.
 
 ### 1. `src/lib.rs`
 
@@ -99,8 +97,6 @@ mod shader_check;
 ```
 
 ## <a id="checkpoint-78a-own-picked-originals-and-world-profile-copies"></a>2. Own picked originals and world profile copies
-
-**What this code does:** Own picked originals and world profile copies.
 
 ### 1. `src/gather_draft.rs`
 
@@ -234,8 +230,6 @@ pub mod source_mesh_topology;
 
 ## <a id="checkpoint-78b-resolve-a-recipe-input-and-guard-picked-source-freshness"></a>3. Resolve a recipe input and guard picked source freshness
 
-**What this code does:** Resolve a recipe input and guard picked source freshness.
-
 ### 1. `src/gather_draft.rs`
 
 Extend the pending gather owner with checked current recipe behavior.
@@ -332,8 +326,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-78c-accept-curve-picks-and-geometric-answers-atomically"></a>4. Accept curve picks and geometric answers atomically
 
-**What this code does:** Accept curve picks and geometric answers atomically.
-
 ### 1. `src/gather_draft.rs`
 
 Extend the pending gather owner with checked current recipe behavior.
@@ -406,8 +398,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ## <a id="checkpoint-78d-read-options-and-typed-batches-without-partial-results"></a>5. Read options and typed batches without partial results
-
-**What this code does:** Read options and typed batches without partial results.
 
 ### 1. `src/gather_draft.rs`
 
@@ -496,8 +486,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ## <a id="checkpoint-78e-constrain-distance-input-and-draw-lifted-profile-wires"></a>6. Constrain distance input and draw lifted profile wires
-
-**What this code does:** Constrain distance input and draw lifted profile wires.
 
 ### 1. `src/gather_draft.rs`
 
@@ -631,8 +619,6 @@ Replace it with:
 ```
 
 ## <a id="checkpoint-78f-carry-gather-state-through-the-current-tool-owner"></a>7. Carry gather state through the current tool owner
-
-**What this code does:** Carry gather state through the current tool owner.
 
 ### 1. `src/tool.rs`
 
@@ -861,7 +847,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-78g-adopt-every-generated-original-in-one-history-transaction"></a>8. Adopt every generated in one history transaction
 
-**What this code does:** Adopt every generated original in one history transaction.
+Adopt every generated original in one history transaction.
 
 ### 1. `src/editor.rs`
 
@@ -953,8 +939,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ## <a id="checkpoint-78h-start-and-advance-the-recipe-through-the-existing-editor"></a>9. Start and advance the recipe through the existing Editor
-
-**What this code does:** Start and advance the recipe through the existing Editor.
 
 ### 1. `src/editor.rs`
 
@@ -1048,8 +1032,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ## <a id="checkpoint-78i-route-typed-answers-and-axis-cursor-input"></a>10. Route typed answers and axis cursor input
-
-**What this code does:** Route typed answers and axis cursor input.
 
 ### 1. `src/editor.rs`
 
@@ -1218,8 +1200,6 @@ Replace it with:
 ```
 
 ## <a id="checkpoint-78j-restore-selection-and-preserve-the-gather-lifecycle"></a>11. Restore selection and preserve the gather lifecycle
-
-**What this code does:** Restore selection and preserve the gather lifecycle.
 
 ### 1. `src/editor.rs`
 
@@ -1437,8 +1417,6 @@ Replace it with:
 
 ## <a id="checkpoint-78k-register-extrusion-revolution-and-browser-curve-picking"></a>12. Register extrusion revolution and browser curve picking
 
-**What this code does:** Register extrusion revolution and browser curve picking.
-
 ### 1. `src/gather_registry.rs`
 
 Register maintained extrusion/revolution names and recipes.
@@ -1627,7 +1605,7 @@ pub fn parse(line: &str) -> Result<Command, String> {
 
 ## <a id="checkpoint-78l-pick-original-profiles-through-the-browser-integer-pass"></a>13. Pick profiles through the browser integer pass
 
-**What this code does:** Pick original profiles through the browser integer pass.
+Pick original profiles through the browser integer pass.
 
 ### 1. `src/browser.rs`
 
@@ -1831,8 +1809,6 @@ Replace it with:
 ```
 
 ## <a id="checkpoint-78m-exercise-profiles-exact-surfaces-and-one-undo-transaction"></a>14. Exercise profiles exact surfaces and one undo transaction
-
-**What this code does:** Exercise profiles exact surfaces and one undo transaction.
 
 ### 1. `src/gather_tests.rs`
 

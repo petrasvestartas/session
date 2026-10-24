@@ -1,6 +1,6 @@
 # 12.4 · Charged residency and current streamed pages
 
-**Goal:** Connect current pages to the browser renderer. · **Steps:** 31 · **Source:** [app/manifest.rs](../../../src/app/manifest.rs) · [app/session_io.rs](../../../src/app/session_io.rs) · [app/stream.rs](../../../src/app/stream.rs) · [app/range_gate.rs](../../../src/app/range_gate.rs) · [app/fetch.rs](../../../src/app/fetch.rs) · [app/loader.rs](../../../src/app/loader.rs) · [app/live.rs](../../../src/app/live.rs) (`src/app/manifest.rs,src/app/streaming.rs,src/app/archive.rs`)
+**Goal:** Connect current pages to the browser renderer. · **Steps:** 31 · **Source:** [app/manifest.rs](../../../src/app/manifest.rs) · [app/session_io.rs](../../../src/app/session_io.rs) · [app/stream.rs](../../../src/app/stream.rs) · [app/range_gate.rs](../../../src/app/range_gate.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -56,7 +56,46 @@
 
 ## <a id="checkpoint-68-reserve-page-bytes-before-reading"></a>1. Reserve page bytes before reading
 
-**What this code does:** Reserve page bytes before reading.
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="184" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">CPU Scheduler: Permit Pool + HTTP Range Request</text>
+  <rect x="52" y="50" width="268" height="44" rx="4" fill="#dbeafe" stroke="#2563eb" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="76" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">GET Range: bytes=off..off+len</text>
+  <rect x="52" y="104" width="268" height="44" rx="4" fill="#fef9c3" stroke="#d97706" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="130" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Bounded In-Flight Permits &amp; Epoch</text>
+  <line x1="358" y1="94" x2="384" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="388" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">CPU Byte Budget Check -&gt; queue.write_buffer(page)</text>
+  <rect x="424" y="52" width="272" height="96" rx="6" fill="#dcfce7" stroke="#16a34a" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="78" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">charged_bytes &lt;= max_residency</text>
+  <line x1="452" y1="100" x2="668" y2="100" stroke="#16a34a" stroke-width="3" marker-end="url(#arrG)"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="128" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#16a34a">Upload Decoded Page to GPU Slot</text>
+  <line x1="732" y1="94" x2="758" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="762" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Resident GPU Pages Rendered in Viewport</text>
+  <rect x="806" y="44" width="256" height="118" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="832" y="60" width="92" height="86" fill="#dcfce7" stroke="#16a34a" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="878" y="106" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#16a34a">Page #1 ✓</text>
+  <rect x="938" y="60" width="92" height="86" fill="#dbeafe" stroke="#2563eb" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="984" y="106" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#2563eb">Page #2 ✓</text>
+</svg>
+</div>
 
 ### 1. `src/page_cache.rs`
 
@@ -154,8 +193,6 @@ pub mod page_cache;
 
 ## <a id="checkpoint-68a-keep-shared-pages-alive-during-eviction"></a>2. Keep shared pages alive during eviction
 
-**What this code does:** Keep shared pages alive during eviction.
-
 ### 1. `src/page_cache.rs`
 
 Keep page values and their accounting alive across cache removal.
@@ -241,8 +278,6 @@ impl<K: Ord + Clone, T: ByteSize> Cache<K, T> {
 ```
 
 ## <a id="checkpoint-68b-evict-unpinned-pages-in-access-order"></a>3. Evict unpinned pages in access order
-
-**What this code does:** Evict unpinned pages in access order.
 
 ### 1. `src/page_cache.rs`
 
@@ -438,8 +473,6 @@ mod tests {
 
 ## <a id="checkpoint-68c-reject-late-source-generations"></a>4. Reject late source generations
 
-**What this code does:** Reject late source generations.
-
 ### 1. `src/stream_generation.rs`
 
 Check source generation and exactly one completion per request.
@@ -589,8 +622,6 @@ mod tests {
 
 ## <a id="checkpoint-68d-bound-source-prefixes-and-decode-work"></a>5. Bound source prefixes and decode work
 
-**What this code does:** Bound source prefixes and decode work.
-
 ### 1. `src/stream_budget.rs`
 
 Limit point ranges and reserve checked decode work.
@@ -693,7 +724,7 @@ mod tests {
 
 ## <a id="checkpoint-68e-validate-original-streamed-presentation"></a>6. Validate streamed presentation
 
-**What this code does:** Validate original streamed presentation.
+Validate original streamed presentation.
 
 ### 1. `src/stream_properties.rs`
 
@@ -828,8 +859,6 @@ mod tests {
 ```
 
 ## <a id="checkpoint-68f-reuse-a-checked-source-probe"></a>7. Reuse a checked source probe
-
-**What this code does:** Reuse a checked source probe.
 
 ### 1. `src/stream.rs`
 
@@ -970,7 +999,7 @@ impl Source {
 
 ## <a id="checkpoint-68fa-validate-complete-source-metadata"></a>8. Validate complete source metadata
 
-**What this code does:** Refuse mixed or placed originals before choosing sampled range display.
+Refuse mixed or placed originals before choosing sampled range display.
 
 ### 1. `src/range_shape.rs`
 
@@ -1222,7 +1251,7 @@ Replace it with:
 
 ## <a id="checkpoint-68g-slice-original-pages-without-losing-attributes"></a>9. Slice pages without losing attributes
 
-**What this code does:** Slice original pages without losing attributes.
+Slice original pages without losing attributes.
 
 ### 1. `src/range_page.rs`
 
@@ -1393,8 +1422,6 @@ impl Page {
 
 ## <a id="checkpoint-68h-prepare-shared-remote-source-owners"></a>10. Prepare shared remote source owners
 
-**What this code does:** Prepare shared remote source owners.
-
 ### 1. `src/range_cloud.rs`
 
 Own the complete remote descriptor and precise original bounds.
@@ -1499,8 +1526,6 @@ pub mod range_shape;
 
 ## <a id="checkpoint-68i-keep-independent-streamed-placements"></a>11. Keep independent streamed placements
 
-**What this code does:** Keep independent streamed placements.
-
 ### 1. `src/range_cloud.rs`
 
 Keep independent owner placements and precise world bounds.
@@ -1550,8 +1575,6 @@ impl Row {
 ```
 
 ## <a id="checkpoint-68j-pin-coarse-pages-and-adopt-checked-ranges"></a>12. Pin coarse pages and adopt checked ranges
-
-**What this code does:** Pin coarse pages and adopt checked ranges.
 
 ### 1. `src/range_cloud.rs`
 
@@ -1824,8 +1847,6 @@ mod tests {
 
 ## <a id="checkpoint-68k-supply-coarse-and-detailed-page-specimens"></a>13. Supply coarse and detailed page specimens
 
-**What this code does:** Supply coarse and detailed page specimens.
-
 ### 1. `src/range_example.rs`
 
 Copy source-page rendering and ownership specimens.
@@ -1926,8 +1947,6 @@ pub mod range_shape;
 ```
 
 ## <a id="checkpoint-68l-insert-streamed-rows-on-the-current-layer"></a>14. Insert streamed rows on the current layer
-
-**What this code does:** Insert streamed rows on the current layer.
 
 ### 1. `src/scene.rs`
 
@@ -2121,8 +2140,6 @@ Replace it with:
 ```
 
 ## <a id="checkpoint-68m-carry-source-placement-through-scene-operations"></a>15. Carry source placement through scene operations
-
-**What this code does:** Carry source placement through scene operations.
 
 ### 1. `src/scene.rs`
 
@@ -2448,7 +2465,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-68n-resolve-compact-picks-to-original-point-ids"></a>16. Resolve compact picks to point IDs
 
-**What this code does:** Resolve compact picks to original point IDs.
+Resolve compact picks to original point IDs.
 
 ### 1. `src/cloud_pick.rs`
 
@@ -5546,7 +5563,7 @@ pub fn save(scene: &Scene) -> Result<Vec<u8>, String> {
 
 ## <a id="checkpoint-68o-account-for-original-and-retained-source-data"></a>17. Account for and retained source data
 
-**What this code does:** Account for original and retained source data.
+Account for original and retained source data.
 
 ### 1. `src/memory.rs`
 
@@ -5760,7 +5777,7 @@ pub mod range_shape;
 
 ## <a id="checkpoint-68p-keep-original-attributes-in-ranged-pages"></a>18. Keep attributes in ranged pages
 
-**What this code does:** Keep original attributes in ranged pages.
+Keep original attributes in ranged pages.
 
 ### 1. `src/stream.rs`
 
@@ -5892,8 +5909,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-68q-retain-page-owners-beside-gpu-buffers"></a>19. Retain page owners beside GPU buffers
 
-**What this code does:** Retain page owners beside GPU buffers.
-
 ### 1. `src/cloud_gpu.rs`
 
 Retain charged original page owners with their derived GPU columns.
@@ -6014,8 +6029,6 @@ struct Columns {
 
 ## <a id="checkpoint-68r-describe-resident-and-streamed-draw-rows"></a>20. Describe resident and streamed draw rows
 
-**What this code does:** Describe resident and streamed draw rows.
-
 ### 1. `src/cloud_gpu.rs`
 
 Describe source ownership and compact retained-page addresses independently.
@@ -6107,8 +6120,6 @@ struct Draw {
 ```
 
 ## <a id="checkpoint-68s-draw-shared-source-pages-at-independent-placements"></a>21. Draw shared source pages at independent placements
-
-**What this code does:** Draw shared source pages at independent placements.
 
 ### 1. `src/cloud_gpu.rs`
 
@@ -6582,8 +6593,6 @@ fn actual_streamed_pages_pick_original_ids_share_uploads_and_release_after_evict
 
 ## <a id="checkpoint-68t-validate-encoded-source-metadata"></a>22. Validate encoded source metadata
 
-**What this code does:** Validate encoded source metadata.
-
 ### 1. `src/source_encoding.rs`
 
 Validate supported source encodings and exact decoded size.
@@ -6691,8 +6700,6 @@ mod tests {
 ```
 
 ## <a id="checkpoint-68u-decode-bounded-cancellable-source-streams"></a>23. Decode bounded cancellable source streams
-
-**What this code does:** Decode bounded cancellable source streams.
 
 ### 1. `Cargo.toml`
 
@@ -6834,8 +6841,6 @@ pub mod range_shape;
 
 ## <a id="checkpoint-68v-refuse-conflicting-source-encoding-revisions"></a>24. Refuse conflicting source encoding revisions
 
-**What this code does:** Refuse conflicting source encoding revisions.
-
 ### 1. `src/publication_index.rs`
 
 Validate manifest source formats before changing the original inventory.
@@ -6972,7 +6977,7 @@ Replace it with:
 
 ## <a id="checkpoint-68w-adopt-remote-original-revisions-independently"></a>25. Adopt remote revisions independently
 
-**What this code does:** Adopt remote original revisions independently.
+Adopt remote original revisions independently.
 
 ### 1. `src/publication_index.rs`
 
@@ -7120,8 +7125,6 @@ Replace it with:
 
 ## <a id="checkpoint-68x-prepare-a-coarse-pin-and-bounded-prefix"></a>26. Prepare a coarse pin and bounded prefix
 
-**What this code does:** Prepare a coarse pin and bounded prefix.
-
 ### 1. `src/stream_load.rs`
 
 Prepare a pinned original coarse page and a budgeted initial prefix.
@@ -7234,8 +7237,6 @@ pub mod range_shape;
 
 ## <a id="checkpoint-68y-redraw-before-reusing-evicted-page-addresses"></a>27. Redraw before reusing evicted page addresses
 
-**What this code does:** Redraw before reusing evicted page addresses.
-
 ### 1. `src/stream_load.rs`
 
 Synchronize visible eviction before reusing released page memory.
@@ -7288,8 +7289,6 @@ pub async fn start(
 ```
 
 ## <a id="checkpoint-68z-continue-pages-only-for-current-source-owners"></a>28. Continue pages only for current source owners
-
-**What this code does:** Continue pages only for current source owners.
 
 ### 1. `src/stream_load.rs`
 
@@ -7380,8 +7379,6 @@ pub fn continue_read(
 ```
 
 ## <a id="checkpoint-68aa-own-cancellation-for-each-published-source"></a>29. Own cancellation for each published source
-
-**What this code does:** Own cancellation for each published source.
 
 ### 1. `src/range_fetch.rs`
 
@@ -7634,8 +7631,6 @@ use std::{
 ```
 
 ## <a id="checkpoint-68ab-choose-bounded-range-loading-for-large-originals"></a>30. Choose bounded range loading for large originals
-
-**What this code does:** Choose bounded range loading for large originals.
 
 ### 1. `src/browser_publication.rs`
 
@@ -7954,8 +7949,6 @@ async fn read(
 ```
 
 ## <a id="checkpoint-68ac-connect-current-pages-to-the-browser-renderer"></a>31. Connect current pages to the browser renderer
-
-**What this code does:** Connect current pages to the browser renderer.
 
 ### 1. `src/browser_publication.rs`
 

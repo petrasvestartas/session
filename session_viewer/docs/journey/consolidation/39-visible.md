@@ -1,6 +1,6 @@
 # 5.5 · One visibility policy and shared surface depth
 
-**Goal:** Use one explicit depth format and policy for opaque surfaces and screen-space ink, then prove actual occlusion. · **Steps:** 2 · **Source:** [app/walk/curves.rs](../../../src/app/walk/curves.rs) · [engine/gpu/segments.rs](../../../src/engine/gpu/segments.rs) · [shaders/ribbon.wgsl](../../../src/shaders/ribbon.wgsl) · [shaders/vector.wgsl](../../../src/shaders/vector.wgsl) · [app/walk/points.rs](../../../src/app/walk/points.rs) · [shaders/glyph.wgsl](../../../src/shaders/glyph.wgsl) · [shaders/ink_visibility.wgsl](../../../src/shaders/ink_visibility.wgsl) · [shaders/triangle.wgsl](../../../src/shaders/triangle.wgsl) · [shaders/grid.wgsl](../../../src/shaders/grid.wgsl) (`src/shaders/ribbon.wgsl,src/shaders/glyph.wgsl,src/engine/gpu/segments.rs`)
+**Goal:** Use one explicit depth format and policy for opaque surfaces and screen-space ink, then prove actual occlusion. · **Steps:** 2 · **Source:** [app/walk/curves.rs](../../../src/app/walk/curves.rs) · [engine/gpu/segments.rs](../../../src/engine/gpu/segments.rs) · [shaders/ribbon.wgsl](../../../src/shaders/ribbon.wgsl) · [shaders/vector.wgsl](../../../src/shaders/vector.wgsl)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -47,7 +47,7 @@
 
 ## <a id="checkpoint-39-visible"></a>1. Resolve visibility for every drawing kind
 
-**What this code does:** Respect original source visibility consistently in drawing, Fit, control markers and mesh picking while retaining hidden sources.
+Respect original source visibility consistently in drawing, Fit, control markers and mesh picking while retaining hidden sources.
 
 ### 1. `src/chain.rs`
 
@@ -614,8 +614,6 @@ impl Object {
 ```
 
 ## <a id="checkpoint-39a-depth"></a>2. Share surface depth across all ink lanes
-
-**What this code does:** Use one explicit depth format and policy for opaque surfaces and screen-space ink, then prove actual occlusion.
 
 ### 1. `src/depth.rs`
 

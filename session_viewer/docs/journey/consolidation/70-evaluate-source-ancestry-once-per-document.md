@@ -1,6 +1,6 @@
 # 13.3 · Feature ancestry and canonical local-to-world placement
 
-**Goal:** Describe the original sheet side-table layout and entity identity fields. · **Steps:** 6 · **Source:** [app/scene_instances.rs](../../../src/app/scene_instances.rs) · [engine/gpu/instanced.rs](../../../src/engine/gpu/instanced.rs) · [engine/gpu/slots.rs](../../../src/engine/gpu/slots.rs) · [app/walk/brep_shapes.rs](../../../src/app/walk/brep_shapes.rs) · [app/hierarchy.rs](../../../src/app/hierarchy.rs) · [app/sheet_query.rs](../../../src/app/sheet_query.rs) (`src/app/instances.rs,src/app/sheets.rs,src/engine/gpu/instances.rs`)
+**Goal:** Describe the original sheet side-table layout and entity identity fields. · **Steps:** 6 · **Source:** [app/scene_instances.rs](../../../src/app/scene_instances.rs) · [engine/gpu/instanced.rs](../../../src/engine/gpu/instanced.rs) · [engine/gpu/slots.rs](../../../src/engine/gpu/slots.rs) · [app/walk/brep_shapes.rs](../../../src/app/walk/brep_shapes.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -49,8 +49,6 @@
 </div>
 
 ## <a id="checkpoint-70-evaluate-source-ancestry-once-per-document"></a>1. Evaluate source ancestry once per document
-
-**What this code does:** Evaluate source ancestry once per document.
 
 ### 1. `src/nested_placement.rs`
 
@@ -114,7 +112,7 @@ pub mod nested_placement;
 
 ## <a id="checkpoint-70a-keep-original-local-parent-and-world-matrices"></a>2. Keep local, parent, and world matrices
 
-**What this code does:** Keep original local parent and world matrices.
+Keep original local parent and world matrices.
 
 ### 1. `src/nested_placement.rs`
 
@@ -316,8 +314,6 @@ Replace it with:
 
 ## <a id="checkpoint-70b-connect-canonical-cached-models-to-every-source-owner"></a>3. Connect canonical cached models to every source owner
 
-**What this code does:** Connect canonical cached models to every source owner.
-
 ### 1. `src/document_source.rs`
 
 Connect cached canonical models and exact original tree placement records.
@@ -490,8 +486,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ## <a id="checkpoint-70c-save-nested-local-frames-without-flattening"></a>4. Save nested local frames without flattening
-
-**What this code does:** Save nested local frames without flattening.
 
 ### 1. `src/hierarchy.rs`
 
@@ -896,7 +890,7 @@ mod nested_placement_tests;
 
 ## <a id="checkpoint-70d-exercise-rotated-and-mirrored-original-references"></a>5. Exercise rotated and mirrored references
 
-**What this code does:** Exercise rotated and mirrored original references.
+Exercise rotated and mirrored original references.
 
 ### 1. `src/editor.rs`
 
@@ -1103,8 +1097,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ## <a id="checkpoint-70za-read-original-sheet-metadata-records"></a>6. Read sheet metadata records
-
-**What this code does:** Describe the original sheet side-table layout and entity identity fields.
 
 ### 1. `src/sheet_entity.rs`
 

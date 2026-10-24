@@ -1,6 +1,6 @@
 # 15.3 · Lofts, rail sweeps and network foundations
 
-**Goal:** Combine the two lofts minus their shared tensor. · **Steps:** 12 · **Source:** [app/deform.rs](../../../src/app/deform.rs) · [state/edit.rs](../../../src/state/edit.rs) · [app/command/tool/gather.rs](../../../src/app/command/tool/gather.rs) · [app/command/tool/surfacing.rs](../../../src/app/command/tool/surfacing.rs) · [app/walk/mesh.rs](../../../src/app/walk/mesh.rs) · [app/walk/brep.rs](../../../src/app/walk/brep.rs) (`src/app/transforms.rs,src/app/surfacing.rs,src/app/nurbs_eval.rs`)
+**Goal:** Combine the two lofts minus their shared tensor. · **Steps:** 12 · **Source:** [app/deform.rs](../../../src/app/deform.rs) · [state/edit.rs](../../../src/state/edit.rs) · [app/command/tool/gather.rs](../../../src/app/command/tool/gather.rs) · [app/command/tool/surfacing.rs](../../../src/app/command/tool/surfacing.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -45,8 +45,6 @@
 </div>
 
 ## <a id="checkpoint-79-retain-current-loft-section-order-and-degree-options"></a>1. Retain current loft section order and degree options
-
-**What this code does:** Retain current loft section order and degree options.
 
 ### 1. `src/loft_geometry.rs`
 
@@ -265,7 +263,7 @@ pub mod source_mesh_topology;
 
 ## <a id="checkpoint-79aa-frame-original-profiles-on-their-rail"></a>2. Frame profiles on their rail
 
-**What this code does:** Find each profile’s station from its sampled center and the nearest rail parameter.
+Find each profile’s station from its sampled center and the nearest rail parameter.
 
 ### 1. `src/sweep1_geometry.rs`
 
@@ -355,7 +353,7 @@ pub mod sweep1_geometry;
 
 ## <a id="checkpoint-79ab-carry-and-blend-original-profiles-along-the-rail"></a>3. Carry and blend profiles along the rail
 
-**What this code does:** Sort original profile stations, match their control rows with a straight kernel loft, and include their stations in the sampled rail frames.
+Sort original profile stations, match their control rows with a straight kernel loft, and include their stations in the sampled rail frames.
 
 ### 1. `src/sweep1_geometry.rs`
 
@@ -453,7 +451,7 @@ pub fn sweep1(
 
 ## <a id="checkpoint-79a-carry-original-profiles-along-one-rail"></a>4. Connect one-rail sweep inputs
 
-**What this code does:** Complete the existing gather recipe with one rail and one or more profiles.
+Complete the existing gather recipe with one rail and one or more profiles.
 
 ### 1. `src/sweep1_geometry.rs`
 
@@ -826,7 +824,7 @@ mod tests {
 
 ## <a id="checkpoint-79b-align-shape-curves-between-two-original-rails"></a>5. Align shape curves between two rails
 
-**What this code does:** Align shape curves between two original rails.
+Align shape curves between two original rails.
 
 ### 1. `src/sweep2_geometry.rs`
 
@@ -1005,8 +1003,6 @@ pub mod sweep2_geometry;
 
 ## <a id="checkpoint-79c-register-loft-sweep-names-options-and-aliases"></a>6. Register loft sweep names options and aliases
 
-**What this code does:** Register loft sweep names options and aliases.
-
 ### 1. `src/gather_registry.rs`
 
 Register maintained loft/sweep recipes and current aliases through shared gather input.
@@ -1151,7 +1147,7 @@ pub fn parse(line: &str) -> Result<Command, String> {
 
 ## <a id="checkpoint-79d-exercise-original-sections-rail-groups-and-exact-persistence"></a>7. Exercise sections rail groups and exact persistence
 
-**What this code does:** Exercise original sections rail groups and exact persistence.
+Exercise original sections rail groups and exact persistence.
 
 ### 1. `src/loft_tests.rs`
 
@@ -1482,7 +1478,7 @@ pub mod source_mesh_topology;
 </svg>
 </div>
 
-**What this code does:** Write control bounds, tolerant crossing checks and interpolation helpers.
+Write control bounds, tolerant crossing checks and interpolation helpers.
 
 ### 1. `src/network_geometry.rs`
 
@@ -1586,7 +1582,7 @@ pub mod source_mesh_topology;
 
 ## <a id="checkpoint-79zzb-classify-two-original-network-directions"></a>9. Classify two network directions
 
-**What this code does:** Find original curve crossings and assign opposite directions through their graph.
+Find original curve crossings and assign opposite directions through their graph.
 
 ### 1. `src/network_geometry.rs`
 
@@ -1691,7 +1687,7 @@ fn directions(cross: &Crossings) -> Result<(Vec<usize>, Vec<usize>), String> {
 
 ## <a id="checkpoint-79zzc-order-and-orient-original-network-curves"></a>10. Order and orient network curves
 
-**What this code does:** Sort each family along the other and orient its crossing parameters consistently.
+Sort each family along the other and orient its crossing parameters consistently.
 
 ### 1. `src/network_geometry.rs`
 
@@ -1770,7 +1766,7 @@ fn oriented(
 
 ## <a id="checkpoint-79zzd-sample-original-network-lofts-and-tensor"></a>11. Sample network lofts and tensor
 
-**What this code does:** Sample both curve-family lofts and the tensor through their shared crossings.
+Sample both curve-family lofts and the tensor through their shared crossings.
 
 ### 1. `src/network_geometry.rs`
 
@@ -1891,8 +1887,6 @@ fn sampled(
 ```
 
 ## <a id="checkpoint-79zze-fit-the-original-gordon-surface"></a>12. Fit the Gordon surface
-
-**What this code does:** Combine the two lofts minus their shared tensor.
 
 ### 1. `src/network_geometry.rs`
 

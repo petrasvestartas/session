@@ -1,6 +1,6 @@
 # 19.3 · Original owners across selection, copying and display
 
-**Goal:** Project only visible original features, with two-pixel lines and twelve-pixel point discs. · **Steps:** 8 · **Source:** [app/session_io.rs](../../../src/app/session_io.rs) · [app/command/mod.rs](../../../src/app/command/mod.rs) · [app/hierarchy.rs](../../../src/app/hierarchy.rs) · [app/scene.rs](../../../src/app/scene.rs) · [app/selection.rs](../../../src/app/selection.rs) · [app/deform.rs](../../../src/app/deform.rs) · [app/walk/mod.rs](../../../src/app/walk/mod.rs) (`src/app/inspect.rs,src/app/families.rs,src/command_dock/families.rs`)
+**Goal:** Project only visible original features, with two-pixel lines and twelve-pixel point discs. · **Steps:** 8 · **Source:** [app/session_io.rs](../../../src/app/session_io.rs) · [app/command/mod.rs](../../../src/app/command/mod.rs) · [app/hierarchy.rs](../../../src/app/hierarchy.rs) · [app/scene.rs](../../../src/app/scene.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -50,7 +50,7 @@
 
 ## <a id="checkpoint-96s-resolve-feature-rows-to-original-element-owners"></a>1. Resolve feature rows to Element owners
 
-**What this code does:** Trace each derived feature back to the nearest original Element without crossing an independent child Element.
+Trace each derived feature back to the nearest original Element without crossing an independent child Element.
 
 ### 1. `src/feature_owner.rs`
 
@@ -146,7 +146,7 @@ pub mod feature_owner;
 
 ## <a id="checkpoint-96t-select-and-highlight-original-feature-owners"></a>2. Select and highlight feature owners
 
-**What this code does:** Connect feature-row clicks to original-owner selection and the existing editing/history path.
+Connect feature-row clicks to original-owner selection and the existing editing/history path.
 
 ### 1. `src/tree_panel.rs`
 
@@ -661,7 +661,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-96u-fit-original-box-corners-to-the-free-canvas"></a>3. Fit box corners to the free canvas
 
-**What this code does:** Replace sphere fitting with the current projected-corner constraint and five-percent margin.
+Replace sphere fitting with the current projected-corner constraint and five-percent margin.
 
 ### 1. `src/camera.rs`
 
@@ -858,7 +858,7 @@ mod projected_fit_tests;
 
 ## <a id="checkpoint-96v-project-definition-and-per-instance-features"></a>4. Project definition and per-instance features
 
-**What this code does:** Reuse feature projection while keeping shared definitions and separate instance ownership.
+Reuse feature projection while keeping shared definitions and separate instance ownership.
 
 ### 1. `src/instance_features.rs`
 
@@ -1240,7 +1240,7 @@ mod projected_fit_tests;
 
 ## <a id="checkpoint-96w-detach-copied-original-source-identity"></a>5. Detach copied source identity
 
-**What this code does:** Detach copied original source identity
+Detach copied original source identity
 
 ### 1. `src/scene.rs`
 
@@ -1317,8 +1317,6 @@ Replace it with:
 ```
 
 ## <a id="checkpoint-96x-regenerate-display-for-copied-feature-owners"></a>6. Regenerate display for copied feature owners
-
-**What this code does:** Regenerate display for copied feature owners
 
 ### 1. `src/layer_edit.rs`
 
@@ -1723,7 +1721,7 @@ pub mod feature_owner;
 
 ## <a id="checkpoint-96y-address-feature-pixels-to-original-cad-owners"></a>7. Address feature pixels to CAD owners
 
-**What this code does:** Address feature pixels to original CAD owners
+Address feature pixels to original CAD owners
 
 ### 1. `src/feature_owner.rs`
 
@@ -2381,8 +2379,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ## <a id="checkpoint-96z-preserve-source-feature-visibility-and-pixel-styles"></a>8. Preserve source feature visibility and pixel styles
-
-**What this code does:** Project only visible original features, with two-pixel lines and twelve-pixel point discs.
 
 ### 1. `src/feature_display.rs`
 

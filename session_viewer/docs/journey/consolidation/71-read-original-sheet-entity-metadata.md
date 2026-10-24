@@ -1,6 +1,6 @@
 # 14.1 · Original drawings, entity queries and construction frames
 
-**Goal:** Recognize the existing world prefix and resolve parsed coordinates from the plane origin, previous point and current direction. · **Steps:** 42 · **Source:** [app/walk/sheet.rs](../../../src/app/walk/sheet.rs) · [app/sheet_query.rs](../../../src/app/sheet_query.rs) · [app/stream.rs](../../../src/app/stream.rs) · [app/cplane.rs](../../../src/app/cplane.rs) · [app/coords.rs](../../../src/app/coords.rs) · [app/command/tool/shape.rs](../../../src/app/command/tool/shape.rs) · [app/command/tool/gather.rs](../../../src/app/command/tool/gather.rs) · [app/deform.rs](../../../src/app/deform.rs) (`src/app/cplane.rs,src/app/primitives.rs,src/app/curves.rs`)
+**Goal:** Recognize the existing world prefix and resolve parsed coordinates from the plane origin, previous point and current direction. · **Steps:** 42 · **Source:** [app/walk/sheet.rs](../../../src/app/walk/sheet.rs) · [app/sheet_query.rs](../../../src/app/sheet_query.rs) · [app/stream.rs](../../../src/app/stream.rs) · [app/cplane.rs](../../../src/app/cplane.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -48,7 +48,7 @@
 
 ## <a id="checkpoint-71-read-original-sheet-entity-metadata"></a>1. Own cancellable sheet-entity lookups
 
-**What this code does:** Complete the original lookup owner with its query id, sheet row and entity index.
+Complete the original lookup owner with its query id, sheet row and entity index.
 
 ### 1. `src/sheet_entity.rs`
 
@@ -249,7 +249,7 @@ pub mod sheet_example;
 
 ## <a id="checkpoint-71a-bound-original-entity-records-before-reading"></a>2. Bound entity records before reading
 
-**What this code does:** Bound original entity records before reading.
+Bound original entity records before reading.
 
 ### 1. `src/sheet_entity.rs`
 
@@ -343,8 +343,6 @@ pub struct SheetTable {
 ```
 
 ## <a id="checkpoint-71b-give-metadata-reads-their-own-cancellation-signal"></a>3. Give metadata reads their own cancellation signal
-
-**What this code does:** Give metadata reads their own cancellation signal.
 
 ### 1. `src/range_fetch.rs`
 
@@ -550,8 +548,6 @@ pub mod sheet_entity_fetch;
 
 ## <a id="checkpoint-71c-fetch-one-revision-matched-metadata-answer"></a>4. Fetch one revision-matched metadata answer
 
-**What this code does:** Fetch one revision matched metadata answer.
-
 ### 1. `src/sheet_entity_fetch.rs`
 
 Read bounded original entity metadata under one owned signal.
@@ -667,7 +663,7 @@ async fn reply(
 
 ## <a id="checkpoint-71d-decode-precise-original-sheet-columns"></a>5. Decode precise sheet columns
 
-**What this code does:** Decode precise original sheet columns.
+Decode precise original sheet columns.
 
 ### 1. `src/sheet_page.rs`
 
@@ -783,7 +779,51 @@ pub mod sheet_page;
 
 ## <a id="checkpoint-71e-measure-original-sheet-pages-and-world-pens"></a>6. Measure sheet pages and world pens
 
-**What this code does:** Measure original sheet pages and world pens.
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="184" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Curve Quadrature ∑ w_i ||C'(t_i)|| &amp; Surface Patch dA = ||Su×Sv||</text>
+  <path d="M 56 138 Q 112 52 176 126" fill="none" stroke="#dc2626" stroke-width="2.5"/>
+  <circle cx="84" cy="98" r="4" fill="#fef08a" stroke="#111111" stroke-width="1.5"/>
+  <circle cx="116" cy="84" r="4" fill="#fef08a" stroke="#111111" stroke-width="1.5"/>
+  <circle cx="148" cy="98" r="4" fill="#fef08a" stroke="#111111" stroke-width="1.5"/>
+  <polygon points="196,136 226,74 288,74 258,136" fill="#dbeafe" stroke="#111111" stroke-width="1.75"/>
+  <line x1="226" y1="105" x2="268" y2="105" stroke="#2563eb" stroke-width="2" marker-end="url(#arrB)"/>
+  <line x1="226" y1="105" x2="242" y2="74" stroke="#16a34a" stroke-width="2" marker-end="url(#arrG)"/>
+  <line x1="358" y1="94" x2="384" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="388" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Divergence Volume: V = (1/6) ∑ det(v0, v1, v2) &amp; Centroid C_g</text>
+  <circle cx="448" cy="138" r="4.5" fill="#111111"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="448" y="154" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">Origin O</text>
+  <polygon points="448,138 556,58 656,92" fill="#dbeafe" fill-opacity="0.55" stroke="#2563eb" stroke-width="1.5" stroke-dasharray="4 3"/>
+  <polygon points="556,58 656,92 596,142" fill="#93c5fd" stroke="#111111" stroke-width="2"/>
+  <circle cx="576" cy="104" r="5" fill="#fef08a" stroke="#dc2626" stroke-width="2"/>
+  <line x1="732" y1="94" x2="758" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="762" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Exact Length, Area, Volume &amp; Centroid Marker</text>
+  <rect x="806" y="44" width="256" height="118" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <polygon points="846,136 894,64 988,64 940,136" fill="#dbeafe" stroke="#111111" stroke-width="2"/>
+  <circle cx="917" cy="100" r="6" fill="#fef08a" stroke="#dc2626" stroke-width="2.2"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="1016" y="96" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">C_g</text>
+</svg>
+</div>
+
+Measure original sheet pages and world pens.
 
 ### 1. `src/sheet_page.rs`
 
@@ -947,8 +987,6 @@ mod tests {
 
 ## <a id="checkpoint-71f-retain-charged-pages-beside-resident-pages"></a>7. Retain charged pages beside resident pages
 
-**What this code does:** Retain charged pages beside resident pages.
-
 ### 1. `src/sheet_stream.rs`
 
 Retain resident and charged streamed pages through one display interface.
@@ -1013,7 +1051,7 @@ pub mod sheet_stream;
 
 ## <a id="checkpoint-71g-own-the-complete-original-drawing-source"></a>8. Own the complete drawing source
 
-**What this code does:** Own the complete original drawing source.
+Own the complete original drawing source.
 
 ### 1. `src/sheet_source.rs`
 
@@ -1108,8 +1146,6 @@ pub mod sheet_source;
 ```
 
 ## <a id="checkpoint-71h-place-drawing-rows-without-changing-endpoints"></a>9. Place drawing rows without changing endpoints
-
-**What this code does:** Place drawing rows without changing endpoints.
 
 ### 1. `src/sheet_source.rs`
 
@@ -1290,7 +1326,7 @@ impl Row {
 
 ## <a id="checkpoint-71i-register-original-drawing-rows-on-the-current-layer"></a>10. Register drawing rows on the current layer
 
-**What this code does:** Register original drawing rows on the current layer.
+Register original drawing rows on the current layer.
 
 ### 1. `src/scene.rs`
 
@@ -1431,8 +1467,6 @@ Replace it with:
 ```
 
 ## <a id="checkpoint-71j-carry-drawing-identity-through-scene-operations"></a>11. Carry drawing identity through scene operations
-
-**What this code does:** Carry drawing identity through scene operations.
 
 ### 1. `src/scene.rs`
 
@@ -1784,7 +1818,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-71k-save-and-reopen-complete-original-sheets"></a>12. Save and reopen complete sheets
 
-**What this code does:** Save and reopen complete original sheets.
+Save and reopen complete original sheets.
 
 ### 1. `src/document_source.rs`
 
@@ -2040,7 +2074,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-71l-locate-original-drawing-identity-and-fixed-ranges"></a>13. Locate drawing identity and fixed ranges
 
-**What this code does:** Locate original drawing identity and fixed ranges.
+Locate original drawing identity and fixed ranges.
 
 ### 1. `src/sheet_range.rs`
 
@@ -2210,8 +2244,6 @@ mod tests {
 ```
 
 ## <a id="checkpoint-71m-validate-the-bounded-drawing-envelope-tail"></a>14. Validate the bounded drawing envelope tail
-
-**What this code does:** Validate the bounded drawing envelope tail.
 
 ### 1. `src/sheet_range.rs`
 
@@ -3272,8 +3304,6 @@ mod web {
 
 ## <a id="checkpoint-71n-scan-drawing-columns-under-one-revision"></a>15. Scan drawing columns under one revision
 
-**What this code does:** Scan drawing columns under one revision.
-
 ### 1. `src/sheet_range.rs`
 
 Scan original array positions and validate source revision before page reads.
@@ -3389,8 +3419,6 @@ impl Source {
 
 ## <a id="checkpoint-71o-read-drawing-page-columns-through-the-shared-queue"></a>16. Read drawing page columns through the shared queue
 
-**What this code does:** Read drawing page columns through the shared queue.
-
 ### 1. `src/sheet_range.rs`
 
 Read original page columns through the bounded source range queue.
@@ -3479,8 +3507,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ## <a id="checkpoint-71p-adopt-nonoverlapping-charged-drawing-pages"></a>17. Adopt nonoverlapping charged drawing pages
-
-**What this code does:** Adopt nonoverlapping charged drawing pages.
 
 ### 1. `src/sheet_stream.rs`
 
@@ -3623,8 +3649,6 @@ mod tests {
 ```
 
 ## <a id="checkpoint-71q-keep-partial-drawing-sources-explicit"></a>18. Keep partial drawing sources explicit
-
-**What this code does:** Keep partial drawing sources explicit.
 
 ### 1. `src/sheet_source.rs`
 
@@ -3842,8 +3866,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-71r-reserve-memory-before-the-drawing-prefix"></a>19. Reserve memory before the drawing prefix
 
-**What this code does:** Reserve memory before the drawing prefix.
-
 ### 1. `src/sheet_stream.rs`
 
 Reserve temporary memory and stage one checked original drawing prefix.
@@ -3927,8 +3949,6 @@ pub async fn start(
 
 ## <a id="checkpoint-71s-continue-drawing-reads-without-reviving-closed-sources"></a>20. Continue drawing reads without reviving closed sources
 
-**What this code does:** Continue drawing reads without reviving closed sources.
-
 ### 1. `src/sheet_stream.rs`
 
 Continue checked drawing pages with explicit ownership and visible eviction refresh.
@@ -4008,7 +4028,7 @@ pub fn continue_read(
 
 ## <a id="checkpoint-71t-resolve-sheet-picks-to-original-entity-ids"></a>21. Resolve sheet picks to entity IDs
 
-**What this code does:** Resolve sheet picks to original entity IDs.
+Resolve sheet picks to original entity IDs.
 
 ### 1. `src/pick_sources.rs`
 
@@ -4714,8 +4734,6 @@ mod tests {
 
 ## <a id="checkpoint-71u-project-authored-world-pens-into-drawing-quads"></a>22. Project authored world pens into drawing quads
 
-**What this code does:** Project authored world pens into drawing quads.
-
 ### 1. `src/sheet.wgsl`
 
 Project original physical sheet pens into covered quads.
@@ -4767,8 +4785,6 @@ fn geometry(start: vec3<f32>, end: vec3<f32>, radius: f32, packed: u32, vertex: 
 
 ## <a id="checkpoint-71v-use-the-same-sheet-coverage-for-color-and-picks"></a>23. Use the same sheet coverage for color and picks
 
-**What this code does:** Use the same sheet coverage for color and picks.
-
 ### 1. `src/sheet.wgsl`
 
 Connect original pen coverage to the color entry points.
@@ -4807,8 +4823,6 @@ fn pick_fragment(input:Output)->@location(0) vec2<u32> {if (!wanted(input.id.y,c
 ```
 
 ## <a id="checkpoint-71w-build-sheet-color-and-integer-pipelines"></a>24. Build sheet color and integer pipelines
-
-**What this code does:** Build sheet color and integer pipelines.
 
 ### 1. `src/sheet_pipeline.rs`
 
@@ -4912,7 +4926,48 @@ pub mod sheet_pipeline;
 
 ## <a id="checkpoint-71x-own-the-shared-drawing-lane-resources"></a>25. Own the shared drawing lane resources
 
-**What this code does:** Own the shared drawing lane resources.
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="184" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">CPU Camera / View Uniform (16-Byte Aligned)</text>
+  <rect x="52" y="48" width="268" height="106" rx="6" fill="#f8fafc" stroke="#111111" stroke-width="1.75"/>
+  <rect x="66" y="58" width="240" height="38" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="81" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">view_proj: [[f32; 4]; 4] (64B)</text>
+  <rect x="66" y="104" width="240" height="36" fill="#fef08a" stroke="#d97706" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="126" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">eye_pos / viewport_px (16B)</text>
+  <line x1="358" y1="94" x2="384" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="388" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">queue.write_buffer -&gt; wgpu::BindGroup (@group(0))</text>
+  <rect x="424" y="50" width="272" height="102" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <rect x="442" y="64" width="236" height="32" rx="4" fill="#dcfce7" stroke="#16a34a" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="84" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">BufferUsages::UNIFORM | COPY_DST</text>
+  <rect x="442" y="106" width="236" height="32" rx="4" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="126" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#2563eb">pass.set_bind_group(0, &amp;bg, &amp;[])</text>
+  <line x1="732" y1="94" x2="758" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="762" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">GPU Shader Uniform Read: var&lt;uniform&gt;</text>
+  <rect x="806" y="44" width="256" height="118" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="76" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#2563eb">@group(0) @binding(0)</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="98" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">var&lt;uniform&gt; u: Uniforms;</text>
+  <rect x="828" y="114" width="212" height="32" rx="4" fill="#dcfce7" stroke="#16a34a" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="134" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">u.view_proj * vec4(p, 1.0)</text>
+</svg>
+</div>
 
 ### 1. `src/sheet_gpu.rs`
 
@@ -5007,8 +5062,6 @@ pub mod sheet_gpu;
 
 ## <a id="checkpoint-71y-bound-drawing-buffers-and-pack-independent-settings"></a>26. Bound drawing buffers and pack independent settings
 
-**What this code does:** Bound drawing buffers and pack independent settings.
-
 ### 1. `src/sheet_gpu.rs`
 
 Bound source-buffer intervals and pack independent original owner settings. Copy exact original GPU interval fixtures.
@@ -5093,7 +5146,55 @@ fn settings(
 
 ## <a id="checkpoint-71z-upload-each-original-drawing-page-once"></a>27. Upload each drawing page once
 
-**What this code does:** Upload each original drawing page once.
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="184" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">CPU RAM: #[repr(C)] Structs -&gt; bytemuck::cast_slice</text>
+  <rect x="46" y="54" width="280" height="44" fill="#f8fafc" stroke="#111111" stroke-width="1.75"/>
+  <rect x="52" y="60" width="64" height="32" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="84" y="80" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">v0: 24B</text>
+  <rect x="122" y="60" width="64" height="32" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="154" y="80" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">v1: 24B</text>
+  <rect x="192" y="60" width="64" height="32" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="224" y="80" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">v2: 24B</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="290" y="80" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">...</text>
+  <rect x="66" y="112" width="240" height="34" rx="4" fill="#fef08a" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="133" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">&amp;[u8] Contiguous Byte Slice</text>
+  <line x1="358" y1="94" x2="384" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="388" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">CPU -&gt; GPU DMA: queue.write_buffer(buf, 0, bytes)</text>
+  <rect x="424" y="54" width="272" height="92" rx="6" fill="#dcfce7" stroke="#16a34a" stroke-width="1.75"/>
+  <line x1="448" y1="84" x2="672" y2="84" stroke="#16a34a" stroke-width="3" marker-end="url(#arrG)"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="74" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">create_buffer_init / write_buffer</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="112" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#16a34a">VERTEX | INDEX | COPY_DST</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="132" text-anchor="middle" font-family="monospace" font-size="9" fill="#111111">array_stride = size_of::&lt;Vertex&gt;()</text>
+  <line x1="732" y1="94" x2="758" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="762" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">GPU VRAM Buffer -&gt; @vertex Input Locations</text>
+  <rect x="806" y="44" width="256" height="118" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="822" y="56" width="224" height="40" rx="4" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="80" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">@location(0) pos: vec3&lt;f32&gt;</text>
+  <rect x="822" y="106" width="224" height="40" rx="4" fill="#fce7f3" stroke="#db2777" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="130" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">@location(1) color: vec3&lt;f32&gt;</text>
+</svg>
+</div>
+
+Upload each original drawing page once.
 
 ### 1. `src/sheet_gpu.rs`
 
@@ -5170,8 +5271,6 @@ pub fn chunks(
 ```
 
 ## <a id="checkpoint-71aa-reuse-independent-drawing-placement-records"></a>28. Reuse independent drawing placement records
-
-**What this code does:** Reuse independent drawing placement records.
 
 ### 1. `src/sheet_gpu.rs`
 
@@ -5267,7 +5366,50 @@ pub fn chunks(
 
 ## <a id="checkpoint-71ab-draw-world-pens-with-the-current-camera-lens"></a>29. Draw world pens with the current camera lens
 
-**What this code does:** Draw world pens with the current camera lens.
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="184" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">CPU CommandEncoder Records GPU Commands</text>
+  <rect x="54" y="50" width="264" height="102" rx="6" fill="#f8fafc" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="76" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">wgpu::CommandEncoder</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="100" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#2563eb">1. begin_render_pass (3D Scene)</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="122" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#16a34a">2. begin_render_pass (Overlay/UI)</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="142" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#dc2626">3. encoder.finish()</text>
+  <line x1="358" y1="94" x2="384" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="388" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Pass 1 (LoadOp::Clear) -&gt; Pass 2 (LoadOp::Load)</text>
+  <rect x="416" y="52" width="128" height="96" rx="4" fill="#dbeafe" stroke="#2563eb" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="480" y="76" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Pass 1: Clear</text>
+  <polygon points="452,132 480,88 508,132" fill="#93c5fd" stroke="#111111" stroke-width="1.5"/>
+  <line x1="544" y1="100" x2="572" y2="100" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="576" y="52" width="128" height="96" rx="4" fill="#dcfce7" stroke="#16a34a" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="640" y="76" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Pass 2: Load</text>
+  <polygon points="612,126 640,86 668,126" fill="#93c5fd" stroke="#111111" stroke-width="1.5"/>
+  <rect x="590" y="130" width="100" height="12" fill="#fef08a" stroke="#111111" stroke-width="1"/>
+  <line x1="732" y1="94" x2="758" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="762" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">queue.submit([cmd_buf]) -&gt; GPU Execution</text>
+  <rect x="806" y="44" width="256" height="118" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <polygon points="884,132 934,58 984,132" fill="#93c5fd" stroke="#111111" stroke-width="2"/>
+  <rect x="822" y="136" width="224" height="18" rx="3" fill="#f1f5f9" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="149" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Composited Frame Ready</text>
+</svg>
+</div>
 
 ### 1. `src/sheet_gpu.rs`
 
@@ -5365,8 +5507,6 @@ pub fn chunks(
 ```
 
 ## <a id="checkpoint-71ac-connect-sheet-batches-to-rendering-and-bounded-picks"></a>30. Connect sheet batches to rendering and bounded picks
-
-**What this code does:** Connect sheet batches to rendering and bounded picks.
 
 ### 1. `src/renderer.rs`
 
@@ -5832,8 +5972,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-71ad-own-metadata-delivery-without-pinning-drawings"></a>31. Own metadata delivery without pinning drawings
 
-**What this code does:** Own metadata delivery without pinning drawings.
-
 ### 1. `src/browser_sheet.rs`
 
 Own cancellation, revision cache and current weak metadata delivery.
@@ -5953,8 +6091,6 @@ pub mod browser_sheet;
 
 ## <a id="checkpoint-71ae-query-metadata-only-for-the-current-selected-entity"></a>32. Query metadata only for the current selected entity
 
-**What this code does:** Query metadata only for the current selected entity.
-
 ### 1. `src/browser_sheet.rs`
 
 Start one selected-entity query with independent cancellation and original URL identity.
@@ -6060,8 +6196,6 @@ impl Control {
 ```
 
 ## <a id="checkpoint-71af-keep-published-drawing-sources-and-url-bases-independent"></a>33. Keep published drawing sources and URL bases independent
-
-**What this code does:** Keep published drawing sources and URL bases independent.
 
 ### 1. `src/publication.rs`
 
@@ -6180,8 +6314,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ## <a id="checkpoint-71ag-retire-staged-drawing-reads-with-their-publication-owner"></a>34. Retire staged drawing reads with their publication owner
-
-**What this code does:** Retire staged drawing reads with their publication owner.
 
 ### 1. `src/browser_publication.rs`
 
@@ -6432,8 +6564,6 @@ Replace it with:
 
 ## <a id="checkpoint-71ah-stage-bounded-drawings-through-publication-loading"></a>35. Stage bounded drawings through publication loading
 
-**What this code does:** Stage bounded drawings through publication loading.
-
 ### 1. `src/browser_publication.rs`
 
 Connect checked single-sheet ranges and staged segment ceilings to publication delivery.
@@ -6548,8 +6678,6 @@ Replace it with:
 ```
 
 ## <a id="checkpoint-71ai-show-current-sheet-resources-and-selected-entity-answers"></a>36. Show current sheet resources and selected entity answers
-
-**What this code does:** Show current sheet resources and selected entity answers.
 
 ### 1. `src/memory.rs`
 
@@ -6716,7 +6844,7 @@ Replace it with:
 
 ## <a id="checkpoint-71aj-exercise-complete-and-ranged-original-drawings"></a>37. Exercise complete and ranged drawings
 
-**What this code does:** Exercise complete and ranged original drawings.
+Exercise complete and ranged original drawings.
 
 ### 1. `src/editor.rs`
 
@@ -7512,7 +7640,7 @@ fn select_all_moves_an_original_sheet_and_point_in_one_transaction_and_undo_rest
 
 ## <a id="checkpoint-71za-build-original-construction-plane-frames"></a>38. Build construction-plane frames
 
-**What this code does:** Describe the original world planes and a movable frame.
+Describe the original world planes and a movable frame.
 
 ### 1. `src/cplane.rs`
 
@@ -7636,7 +7764,7 @@ pub mod cplane;
 
 ## <a id="checkpoint-71zb-map-original-plane-and-world-coordinates"></a>39. Map plane and world coordinates
 
-**What this code does:** Reuse the existing origin and axes to map between plane and world coordinates.
+Reuse the existing origin and axes to map between plane and world coordinates.
 
 ### 1. `src/cplane.rs`
 
@@ -7705,7 +7833,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-71zc-guard-original-plane-and-ray-projections"></a>40. Guard plane and ray projections
 
-**What this code does:** Complete the original plane queries for view choice, nearest projection, facing and ray intersection.
+Complete the original plane queries for view choice, nearest projection, facing and ray intersection.
 
 ### 1. `src/cplane.rs`
 
@@ -8051,7 +8179,7 @@ mod tests {
 
 ## <a id="checkpoint-71zd-parse-original-drawing-coordinate-forms"></a>41. Parse drawing coordinate forms
 
-**What this code does:** Describe the original absolute, relative, polar and distance forms.
+Describe the original absolute, relative, polar and distance forms.
 
 ### 1. `src/drawing_coords.rs`
 
@@ -8181,8 +8309,6 @@ pub mod drawing_coords;
 ```
 
 ## <a id="checkpoint-71ze-resolve-original-relative-and-polar-coordinates"></a>42. Resolve relative and polar coordinates
-
-**What this code does:** Recognize the existing world prefix and resolve parsed coordinates from the plane origin, previous point and current direction.
 
 ### 1. `src/drawing_coords.rs`
 

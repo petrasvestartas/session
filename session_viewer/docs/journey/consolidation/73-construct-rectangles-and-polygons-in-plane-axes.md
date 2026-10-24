@@ -1,6 +1,6 @@
 # 14.3 · Planar boundaries and checked solid foundations
 
-**Goal:** Connect tetrahedron and octahedron constructors to the shared radius questions, unit-face cache and placed builder. · **Steps:** 21 · **Source:** [app/walk/sheet.rs](../../../src/app/walk/sheet.rs) · [app/sheet_query.rs](../../../src/app/sheet_query.rs) · [app/stream.rs](../../../src/app/stream.rs) · [app/cplane.rs](../../../src/app/cplane.rs) · [app/coords.rs](../../../src/app/coords.rs) · [app/command/tool/shape.rs](../../../src/app/command/tool/shape.rs) · [app/command/tool/gather.rs](../../../src/app/command/tool/gather.rs) · [app/deform.rs](../../../src/app/deform.rs) (`src/app/cplane.rs,src/app/primitives.rs,src/app/curves.rs`)
+**Goal:** Connect tetrahedron and octahedron constructors to the shared radius questions, unit-face cache and placed builder. · **Steps:** 21 · **Source:** [app/walk/sheet.rs](../../../src/app/walk/sheet.rs) · [app/sheet_query.rs](../../../src/app/sheet_query.rs) · [app/stream.rs](../../../src/app/stream.rs) · [app/cplane.rs](../../../src/app/cplane.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -47,8 +47,6 @@
 </div>
 
 ## <a id="checkpoint-73-construct-rectangles-and-polygons-in-plane-axes"></a>1. Construct rectangles and polygons in plane axes
-
-**What this code does:** Construct rectangles and polygons in plane axes.
 
 ### 1. `src/planar.rs`
 
@@ -130,7 +128,7 @@ pub mod planar;
 
 ## <a id="checkpoint-73a-bound-generated-original-construction-points"></a>2. Bound generated construction points
 
-**What this code does:** Bound generated original construction points.
+Bound generated original construction points.
 
 ### 1. `src/planar.rs`
 
@@ -178,8 +176,6 @@ pub fn points(
 
 ## <a id="checkpoint-73b-give-point-tools-a-plane-aware-construction-hook"></a>3. Give point tools a plane aware construction hook
 
-**What this code does:** Give point tools a plane aware construction hook.
-
 ### 1. `src/tool.rs`
 
 Extend the point-tool interface with original construction frames and temporary boundary hooks.
@@ -220,7 +216,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-73c-build-original-rectangle-and-polygon-tool-results"></a>4. Build rectangle and polygon tool results
 
-**What this code does:** Build original rectangle and polygon tool results.
+Build original rectangle and polygon tool results.
 
 ### 1. `src/tool.rs`
 
@@ -393,8 +389,6 @@ impl Tool for Shape {
 
 ## <a id="checkpoint-73d-preserve-world-replay-for-multiword-construction-names"></a>5. Preserve world replay for multiword construction names
 
-**What this code does:** Preserve world replay for multiword construction names.
-
 ### 1. `src/tool.rs`
 
 Replay original world points independently of multiword names and derive temporary construction boundaries.
@@ -441,8 +435,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ## <a id="checkpoint-73e-keep-polygon-sides-in-the-current-draft"></a>6. Keep polygon sides in the current draft
-
-**What this code does:** Keep polygon sides in the current draft.
 
 ### 1. `src/tool.rs`
 
@@ -622,8 +614,6 @@ Replace it with:
 
 ## <a id="checkpoint-73f-register-current-planar-options-and-temporary-outlines"></a>7. Register current planar options and temporary outlines
 
-**What this code does:** Register current planar options and temporary outlines.
-
 ### 1. `src/tool.rs`
 
 Offer current planar construction choices on the Polyline tools.
@@ -780,7 +770,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-73g-exercise-oriented-original-planar-constructions"></a>8. Exercise oriented planar constructions
 
-**What this code does:** Exercise oriented original planar constructions.
+Exercise oriented original planar constructions.
 
 ### 1. `src/planar_tests.rs`
 
@@ -987,7 +977,7 @@ mod planar_tests;
 
 ## <a id="checkpoint-73h-match-solid-command-options"></a>9. Match solid command options
 
-**What this code does:** Compare normalized option words while keeping Enter and Escape outside shape choices..
+Compare normalized option words while keeping Enter and Escape outside shape choices..
 
 ### 1. `src/primitive_options.rs`
 
@@ -1066,7 +1056,7 @@ pub mod primitive_options;
 
 ## <a id="checkpoint-73i-describe-solid-command-questions"></a>10. Describe solid command questions
 
-**What this code does:** Represent typed coordinates and numbers explicitly.
+Represent typed coordinates and numbers explicitly.
 
 ### 1. `src/primitive_shape.rs`
 
@@ -1175,7 +1165,7 @@ pub mod primitive_shape;
 
 ## <a id="checkpoint-73j-build-a-right-handed-solid-frame"></a>11. Build a right-handed solid frame
 
-**What this code does:** Place kernel coordinates in a construction-plane frame.
+Place kernel coordinates in a construction-plane frame.
 
 ### 1. `src/primitive_shape.rs`
 
@@ -1282,7 +1272,7 @@ impl Frame {
 
 ## <a id="checkpoint-73k-sample-solid-preview-wires"></a>12. Sample solid preview wires
 
-**What this code does:** Sample circles and boxes in the existing frame.
+Sample circles and boxes in the existing frame.
 
 ### 1. `src/primitive_shape.rs`
 
@@ -1349,7 +1339,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-73l-describe-solid-builders-and-dimensions"></a>13. Describe solid builders and dimensions
 
-**What this code does:** Read sizes and signed heights from answers, then describe one creation command through question, preview and kernel-build functions..
+Read sizes and signed heights from answers, then describe one creation command through question, preview and kernel-build functions..
 
 ### 1. `src/primitive_shape.rs`
 
@@ -1446,7 +1436,7 @@ impl Shape {
 
 ## <a id="checkpoint-73m-validate-solid-sizes-and-radius"></a>14. Validate solid sizes and radius
 
-**What this code does:** Reject nonfinite and degenerate dimensions.
+Reject nonfinite and degenerate dimensions.
 
 ### 1. `src/primitive_shape.rs`
 
@@ -1577,7 +1567,7 @@ pub fn sphere_outline(part: &Part) -> Vec<Vec<Point>> {
 </svg>
 </div>
 
-**What this code does:** Join kernel face meshes by reusing nearby corners, then retain either a placed BRep or its mesh representation.
+Join kernel face meshes by reusing nearby corners, then retain either a placed BRep or its mesh representation.
 
 ### 1. `src/primitive_shape.rs`
 
@@ -1680,7 +1670,7 @@ pub fn polyhedron(mut mesh: Mesh, option: &str, place: &Xform, name: &str) -> Ge
 
 ## <a id="checkpoint-73o-scale-and-cache-polyhedron-faces"></a>16. Scale and cache polyhedron faces
 
-**What this code does:** Cache unit polyhedron face outlines, then apply the requested circumradius and the existing placement frame.
+Cache unit polyhedron face outlines, then apply the requested circumradius and the existing placement frame.
 
 ### 1. `src/primitive_shape.rs`
 
@@ -1901,7 +1891,7 @@ pub mod tests {
 
 ## <a id="checkpoint-73p-build-a-placed-kernel-box"></a>17. Build a placed kernel box
 
-**What this code does:** Build a box through the Session kernel and place its center half a signed height above the construction plane.
+Build a box through the Session kernel and place its center half a signed height above the construction plane.
 
 ### 1. `src/primitive_box.rs`
 
@@ -1987,7 +1977,7 @@ pub mod primitive_box;
 
 ## <a id="checkpoint-73q-read-box-questions-and-corner-clicks"></a>18. Read box questions and corner clicks
 
-**What this code does:** Connect the box builder to its question sequence.
+Connect the box builder to its question sequence.
 
 ### 1. `src/primitive_box.rs`
 
@@ -2265,7 +2255,7 @@ mod tests {
 
 ## <a id="checkpoint-73r-build-an-oriented-kernel-pyramid"></a>19. Build an oriented kernel pyramid
 
-**What this code does:** Read a base diagonal and signed height.
+Read a base diagonal and signed height.
 
 ### 1. `src/primitive_pyramid.rs`
 
@@ -2461,7 +2451,7 @@ mod tests {
 
 ## <a id="checkpoint-73s-build-a-block-with-a-kernel-hole"></a>20. Build a block with a kernel hole
 
-**What this code does:** Reuse the existing box questions and dimension reader.
+Reuse the existing box questions and dimension reader.
 
 ### 1. `src/primitive_block_with_hole.rs`
 
@@ -2626,8 +2616,6 @@ mod tests {
 ```
 
 ## <a id="checkpoint-73t-build-regular-kernel-polyhedra"></a>21. Build regular kernel polyhedra
-
-**What this code does:** Connect tetrahedron and octahedron constructors to the shared radius questions, unit-face cache and placed builder.
 
 ### 1. `src/primitive_tetrahedron.rs`
 

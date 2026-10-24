@@ -1,6 +1,6 @@
 # 10.4 · Original world labels, plates and integer picks
 
-**Goal:** Create pick move and delete the original scene labels. · **Steps:** 37 · **Source:** [engine/text.rs](../../../../src/engine/text.rs) · [engine/gpu/text.rs](../../../../src/engine/gpu/text.rs) · [engine/gpu/text_plane.rs](../../../../src/engine/gpu/text_plane.rs) · [engine/gpu/text_plate.rs](../../../../src/engine/gpu/text_plate.rs) · [app/scene_text.rs](../../../../src/app/scene_text.rs) · [app/fonts.rs](../../../../src/app/fonts.rs) (`src/app/fonts.rs,src/shaders/matrix.wgsl,src/engine/gpu/matrices.rs`)
+**Goal:** Create pick move and delete the original scene labels. · **Steps:** 37 · **Source:** [engine/text.rs](../../../../src/engine/text.rs) · [engine/gpu/text.rs](../../../../src/engine/gpu/text.rs) · [engine/gpu/text_plane.rs](../../../../src/engine/gpu/text_plane.rs) · [engine/gpu/text_plate.rs](../../../../src/engine/gpu/text_plate.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -60,7 +60,7 @@
 
 ## <a id="checkpoint-62-source"></a>1. Own scene words and font metrics
 
-**What this code does:** Own original scene words and font metrics.
+Own original scene words and font metrics.
 
 ### 1. `src/scene_label.rs`
 
@@ -149,8 +149,6 @@ pub mod scene_label;
 ```
 
 ## <a id="checkpoint-62a-placements"></a>2. Transform the label frame without changing its source
-
-**What this code does:** Transform the label frame without changing its source.
 
 ### 1. `src/text.rs`
 
@@ -305,7 +303,49 @@ pub fn example(placement: TextPlacement) -> Source {
 
 ## <a id="checkpoint-62b-bounds"></a>3. Measure the world-sized label and its padded plate
 
-**What this code does:** Measure the world-sized label and its padded plate.
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="184" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Curve Quadrature ∑ w_i ||C'(t_i)|| &amp; Surface Patch dA = ||Su×Sv||</text>
+  <path d="M 56 138 Q 112 52 176 126" fill="none" stroke="#dc2626" stroke-width="2.5"/>
+  <circle cx="84" cy="98" r="4" fill="#fef08a" stroke="#111111" stroke-width="1.5"/>
+  <circle cx="116" cy="84" r="4" fill="#fef08a" stroke="#111111" stroke-width="1.5"/>
+  <circle cx="148" cy="98" r="4" fill="#fef08a" stroke="#111111" stroke-width="1.5"/>
+  <polygon points="196,136 226,74 288,74 258,136" fill="#dbeafe" stroke="#111111" stroke-width="1.75"/>
+  <line x1="226" y1="105" x2="268" y2="105" stroke="#2563eb" stroke-width="2" marker-end="url(#arrB)"/>
+  <line x1="226" y1="105" x2="242" y2="74" stroke="#16a34a" stroke-width="2" marker-end="url(#arrG)"/>
+  <line x1="358" y1="94" x2="384" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="388" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Divergence Volume: V = (1/6) ∑ det(v0, v1, v2) &amp; Centroid C_g</text>
+  <circle cx="448" cy="138" r="4.5" fill="#111111"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="448" y="154" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">Origin O</text>
+  <polygon points="448,138 556,58 656,92" fill="#dbeafe" fill-opacity="0.55" stroke="#2563eb" stroke-width="1.5" stroke-dasharray="4 3"/>
+  <polygon points="556,58 656,92 596,142" fill="#93c5fd" stroke="#111111" stroke-width="2"/>
+  <circle cx="576" cy="104" r="5" fill="#fef08a" stroke="#dc2626" stroke-width="2"/>
+  <line x1="732" y1="94" x2="758" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="762" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Exact Length, Area, Volume &amp; Centroid Marker</text>
+  <rect x="806" y="44" width="256" height="118" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <polygon points="846,136 894,64 988,64 940,136" fill="#dbeafe" stroke="#111111" stroke-width="2"/>
+  <circle cx="917" cy="100" r="6" fill="#fef08a" stroke="#dc2626" stroke-width="2.2"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="1016" y="96" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">C_g</text>
+</svg>
+</div>
 
 ### 1. `src/scene_label.rs`
 
@@ -368,8 +408,6 @@ pub fn example(placement: TextPlacement) -> Source {
 ```
 
 ## <a id="checkpoint-62c-rows"></a>4. Register text rows and release them with the scene
-
-**What this code does:** Register text rows and release them with the scene.
 
 ### 1. `src/scene.rs`
 
@@ -549,8 +587,6 @@ Replace it with:
 ```
 
 ## <a id="checkpoint-62d-identity"></a>5. Include label owners in selection layers and history
-
-**What this code does:** Include label owners in selection layers and history.
 
 ### 1. `src/scene.rs`
 
@@ -941,8 +977,6 @@ Replace it with:
 
 ## <a id="checkpoint-62e-rectangles"></a>6. Select a label through its projected plate
 
-**What this code does:** Select a label through its projected plate.
-
 ### 1. `src/scene_label_screen.rs`
 
 Project source-owned plate extents for rectangle selection.
@@ -1160,7 +1194,48 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-62f-gpu-support"></a>7. Supply the text buffer and target adapters
 
-**What this code does:** Supply the text buffer and target adapters.
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="184" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">CPU Camera / View Uniform (16-Byte Aligned)</text>
+  <rect x="52" y="48" width="268" height="106" rx="6" fill="#f8fafc" stroke="#111111" stroke-width="1.75"/>
+  <rect x="66" y="58" width="240" height="38" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="81" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">view_proj: [[f32; 4]; 4] (64B)</text>
+  <rect x="66" y="104" width="240" height="36" fill="#fef08a" stroke="#d97706" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="126" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">eye_pos / viewport_px (16B)</text>
+  <line x1="358" y1="94" x2="384" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="388" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">queue.write_buffer -&gt; wgpu::BindGroup (@group(0))</text>
+  <rect x="424" y="50" width="272" height="102" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <rect x="442" y="64" width="236" height="32" rx="4" fill="#dcfce7" stroke="#16a34a" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="84" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">BufferUsages::UNIFORM | COPY_DST</text>
+  <rect x="442" y="106" width="236" height="32" rx="4" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="126" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#2563eb">pass.set_bind_group(0, &amp;bg, &amp;[])</text>
+  <line x1="732" y1="94" x2="758" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="762" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">GPU Shader Uniform Read: var&lt;uniform&gt;</text>
+  <rect x="806" y="44" width="256" height="118" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="76" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#2563eb">@group(0) @binding(0)</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="98" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">var&lt;uniform&gt; u: Uniforms;</text>
+  <rect x="828" y="114" width="212" height="32" rx="4" fill="#dcfce7" stroke="#16a34a" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="134" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">u.view_proj * vec4(p, 1.0)</text>
+</svg>
+</div>
 
 ### 1. `src/text_gpu_support.rs`
 
@@ -1332,8 +1407,6 @@ pub mod text_gpu_support;
 
 ## <a id="checkpoint-62g-plane-shader"></a>8. Keep plane clipping correct in a small pick window
 
-**What this code does:** Keep plane clipping correct in a small pick window.
-
 ### 1. `src/text_plane.wgsl`
 
 Keep original clip coordinates through the bounded pick crop and shade actual rounded coverage.
@@ -1419,7 +1492,7 @@ fn fs_id(in: Vertex) -> @location(0) vec2<u32> {
 
 ## <a id="checkpoint-62h-plate-shader"></a>9. Draw the current rounded nameplate and its ID
 
-**What this code does:** Draw the current rounded nameplate and its original ID.
+Draw the current rounded nameplate and its original ID.
 
 ### 1. `src/text_plate.wgsl`
 
@@ -1490,7 +1563,7 @@ fn fs_id(in: PlateVertex) -> @location(0) vec2<u32> {
 
 ## <a id="checkpoint-62i-coverage"></a>10. Keep CSS pixels separate from framebuffer pixels
 
-**What this code does:** Validate one uniform device scale before allocating or positioning text. Keep world origins in f64 and GPU matrices in f32.
+Validate one uniform device scale before allocating or positioning text. Keep world origins in f64 and GPU matrices in f32.
 
 ### 1. `src/scene_text_gpu.rs`
 
@@ -1584,7 +1657,7 @@ pub mod scene_text_gpu;
 
 ## <a id="checkpoint-62ia-project-an-original-label-into-framebuffer-coordinates"></a>11. Project an label into framebuffer coordinates
 
-**What this code does:** Subtract the declared scene origin before projection. Cull invalid depth and apply the CSS/device scale once.
+Subtract the declared scene origin before projection. Cull invalid depth and apply the CSS/device scale once.
 
 ### 1. `src/scene_text_gpu.rs`
 
@@ -1697,7 +1770,7 @@ fn clip_bounds(label: &TextLabel, frame: &TextFrame, scale: f32) -> TextBounds {
 
 ## <a id="checkpoint-62ib-give-nameplate-vertices-one-gpu-owner"></a>12. Give nameplate vertices one GPU owner
 
-**What this code does:** Keep the rectangle input separate from the retained vertex buffer and its color/ID pipelines.
+Keep the rectangle input separate from the retained vertex buffer and its color/ID pipelines.
 
 ### 1. `src/text_plate.rs`
 
@@ -1749,7 +1822,7 @@ mod plate;
 
 ## <a id="checkpoint-62ic-build-nameplate-color-and-object-id-pipelines"></a>13. Build nameplate color and object-ID pipelines
 
-**What this code does:** Prepare color and original-ID pipelines for nameplate geometry.
+Prepare color and original-ID pipelines for nameplate geometry.
 
 ### 1. `src/text_plate.rs`
 
@@ -1826,7 +1899,52 @@ fn pipeline(ctx: &GpuCtx, target: Target, ids: bool) -> Pipeline {
 
 ## <a id="checkpoint-62id-own-and-release-nameplate-draw-resources"></a>14. Own and release nameplate draw resources
 
-**What this code does:** Construct the buffers and pipelines once, draw physical and overlay plates in their declared phases, and reset logical vertex counts independently of capacity.
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="184" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">CPU CommandEncoder Records GPU Commands</text>
+  <rect x="54" y="50" width="264" height="102" rx="6" fill="#f8fafc" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="76" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">wgpu::CommandEncoder</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="100" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#2563eb">1. begin_render_pass (3D Scene)</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="122" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#16a34a">2. begin_render_pass (Overlay/UI)</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="142" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#dc2626">3. encoder.finish()</text>
+  <line x1="358" y1="94" x2="384" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="388" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Pass 1 (LoadOp::Clear) -&gt; Pass 2 (LoadOp::Load)</text>
+  <rect x="416" y="52" width="128" height="96" rx="4" fill="#dbeafe" stroke="#2563eb" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="480" y="76" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Pass 1: Clear</text>
+  <polygon points="452,132 480,88 508,132" fill="#93c5fd" stroke="#111111" stroke-width="1.5"/>
+  <line x1="544" y1="100" x2="572" y2="100" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="576" y="52" width="128" height="96" rx="4" fill="#dcfce7" stroke="#16a34a" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="640" y="76" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Pass 2: Load</text>
+  <polygon points="612,126 640,86 668,126" fill="#93c5fd" stroke="#111111" stroke-width="1.5"/>
+  <rect x="590" y="130" width="100" height="12" fill="#fef08a" stroke="#111111" stroke-width="1"/>
+  <line x1="732" y1="94" x2="758" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="762" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">queue.submit([cmd_buf]) -&gt; GPU Execution</text>
+  <rect x="806" y="44" width="256" height="118" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <polygon points="884,132 934,58 984,132" fill="#93c5fd" stroke="#111111" stroke-width="2"/>
+  <rect x="822" y="136" width="224" height="18" rx="3" fill="#f1f5f9" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="149" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Composited Frame Ready</text>
+</svg>
+</div>
+
+Construct the buffers and pipelines once, draw physical and overlay plates in their declared phases, and reset logical vertex counts independently of capacity.
 
 ### 1. `src/text_plate.rs`
 
@@ -1909,7 +2027,7 @@ impl Plates {
 
 ## <a id="checkpoint-62ie-upload-nameplate-rectangles-in-one-physical-coordinate-system"></a>15. Upload nameplate rectangles in one physical coordinate system
 
-**What this code does:** Generate the packed rectangle vertices once and retain the split between depth-tested plates and screen overlays.
+Generate the packed rectangle vertices once and retain the split between depth-tested plates and screen overlays.
 
 ### 1. `src/text_plate.rs`
 
@@ -2010,7 +2128,7 @@ impl Plates {
 
 ## <a id="checkpoint-62if-place-the-plate-around-the-shaped-label"></a>16. Place the plate around the shaped label
 
-**What this code does:** Compute padding and rounded bounds in the same coordinate system as glyph placement. Define text statistics as observations, not source data.
+Compute padding and rounded bounds in the same coordinate system as glyph placement. Define text statistics as observations, not source data.
 
 ### 1. `src/scene_text_gpu.rs`
 
@@ -2122,7 +2240,7 @@ fn text_rectangle(
 
 ## <a id="checkpoint-62ig-give-world-text-a-bounded-coverage-cache"></a>17. Give world text a bounded coverage cache
 
-**What this code does:** A cached plane owns its texture and bind group. Drop destroys the texture; a changed placement may reuse the raster while font/text changes invalidate it.
+A cached plane owns its texture and bind group. Drop destroys the texture; a changed placement may reuse the raster while font/text changes invalidate it.
 
 ### 1. `src/text_plane.rs`
 
@@ -2224,7 +2342,7 @@ mod plane;
 
 ## <a id="checkpoint-62ih-choose-bounded-glyph-raster-resolution"></a>18. Choose bounded glyph raster resolution
 
-**What this code does:** Relate projected world height to framebuffer pixels, fit the shaped extent within the texture limit, and read mask/color/subpixel coverage consistently.
+Relate projected world height to framebuffer pixels, fit the shaped extent within the texture limit, and read mask/color/subpixel coverage consistently.
 
 ### 1. `src/text_plane.rs`
 
@@ -2325,7 +2443,7 @@ fn coverage(content: &SwashContent, data: &[u8], source: usize) -> u8 {
 
 ## <a id="checkpoint-62ii-rasterize-the-shaped-run-into-owned-coverage-bytes"></a>19. Rasterize the shaped run into owned coverage bytes
 
-**What this code does:** Allocate bounded coverage storage from the shaped glyph bounds.
+Allocate bounded coverage storage from the shaped glyph bounds.
 
 ### 1. `src/text_plane.rs`
 
@@ -2431,7 +2549,50 @@ fn rasterize(
 
 ## <a id="checkpoint-62ij-upload-and-bind-one-world-text-coverage-texture"></a>20. Upload and bind one world-text coverage texture
 
-**What this code does:** Create the R8 coverage texture, upload rows with the declared byte layout, and bind the texture/sampler into one cached owner.
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="184" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">CPU Rasterized Bytes (R8Unorm / Rgba8Unorm)</text>
+  <rect x="64" y="50" width="244" height="102" fill="#f8fafc" stroke="#111111" stroke-width="1.75"/>
+  <rect x="80" y="64" width="42" height="42" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="101" y="91" text-anchor="middle" font-family="monospace" font-size="16" font-weight="700" fill="#111111">A</text>
+  <rect x="130" y="64" width="42" height="42" fill="#fef08a" stroke="#dc2626" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="151" y="91" text-anchor="middle" font-family="monospace" font-size="16" font-weight="700" fill="#111111">B</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="134" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">CPU Shelf Bitmap &amp;[u8]</text>
+  <line x1="358" y1="94" x2="384" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="388" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">queue.write_texture(TexelCopyTextureInfo, Extent3d)</text>
+  <rect x="424" y="52" width="272" height="96" rx="6" fill="#dcfce7" stroke="#16a34a" stroke-width="1.75"/>
+  <line x1="448" y1="86" x2="672" y2="86" stroke="#16a34a" stroke-width="3" marker-end="url(#arrG)"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="74" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">queue.write_texture(...)</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="114" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#16a34a">TEXTURE_BINDING | COPY_DST</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="134" text-anchor="middle" font-family="monospace" font-size="9" fill="#111111">origin: (x, y, 0), size: (w, h, 1)</text>
+  <line x1="732" y1="94" x2="758" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="762" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">GPU Texture2D + Sampler in @fragment</text>
+  <rect x="806" y="44" width="256" height="118" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="76" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#2563eb">textureSample(t_atlas, s, uv).r</text>
+  <rect x="852" y="96" width="164" height="44" rx="4" fill="#fef08a" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="123" text-anchor="middle" font-family="monospace" font-size="13" font-weight="700" fill="#111111"> Crisp GPU Text </text>
+</svg>
+</div>
+
+Create the R8 coverage texture, upload rows with the declared byte layout, and bind the texture/sampler into one cached owner.
 
 ### 1. `src/text_plane.rs`
 
@@ -2510,7 +2671,7 @@ fn upload_plane(
 
 ## <a id="checkpoint-62ik-build-the-world-plane-text-quad"></a>21. Build the world-plane text quad
 
-**What this code does:** Transform the original text plane into rebased GPU vertices. Keep original label placement and color independent of the generated quad.
+Transform the original text plane into rebased GPU vertices. Keep original label placement and color independent of the generated quad.
 
 ### 1. `src/text_plane.rs`
 
@@ -2635,7 +2796,7 @@ fn append_quad(
 
 ## <a id="checkpoint-62il-build-world-text-color-and-id-pipelines"></a>22. Build world-text color and ID pipelines
 
-**What this code does:** The plane shader reads coverage while color and integer targets retain their distinct fragment contracts. Declare the same vertex layout for both passes.
+The plane shader reads coverage while color and integer targets retain their distinct fragment contracts. Declare the same vertex layout for both passes.
 
 ### 1. `src/text_plane.rs`
 
@@ -2696,7 +2857,7 @@ fn pipeline(
 
 ## <a id="checkpoint-62im-own-the-world-text-buffer-and-pipeline-lifetime"></a>23. Own the world-text buffer and pipeline lifetime
 
-**What this code does:** Create retained GPU resources, replace target-dependent pipelines on retarget, and distinguish reset, release and capacity accounting.
+Create retained GPU resources, replace target-dependent pipelines on retarget, and distinguish reset, release and capacity accounting.
 
 ### 1. `src/text_plane.rs`
 
@@ -2797,7 +2958,7 @@ impl Planes {
 
 ## <a id="checkpoint-62in-rebuild-only-invalid-world-text-cache-entries"></a>24. Rebuild only invalid world-text cache entries
 
-**What this code does:** Match a label to its cache entry, validate the total texture budget before upload, and replace or append one owned entry.
+Match a label to its cache entry, validate the total texture budget before upload, and replace or append one owned entry.
 
 ### 1. `src/text_plane.rs`
 
@@ -2893,7 +3054,7 @@ impl Planes {
 
 ## <a id="checkpoint-62io-prepare-and-draw-the-retained-world-text-planes"></a>25. Prepare and draw the retained world-text planes
 
-**What this code does:** Prune expired labels, skip clipped/empty planes, reuse valid rasters, build the current quads and issue draws from retained cache indices.
+Prune expired labels, skip clipped/empty planes, reuse valid rasters, build the current quads and issue draws from retained cache indices.
 
 ### 1. `src/text_plane.rs`
 
@@ -3011,7 +3172,7 @@ impl Planes {
 
 ## <a id="checkpoint-62ip-collect-anchored-and-overlay-glyph-work-separately"></a>26. Collect anchored and overlay glyph work separately
 
-**What this code does:** Return borrow-scoped TextAreas alongside plate inputs and per-label depths. The borrowed runs survive through preparation; no new source owner is created.
+Return borrow-scoped TextAreas alongside plate inputs and per-label depths. The borrowed runs survive through preparation; no new source owner is created.
 
 ### 1. `src/scene_text_gpu.rs`
 
@@ -3119,7 +3280,7 @@ fn areas<'a>(
 
 ## <a id="checkpoint-62iq-give-the-text-lane-its-retained-resource-owners"></a>27. Give the text lane its retained resource owners
 
-**What this code does:** Declare the lane and its caches, atlas, viewport, pipelines and preparation witness. Build glyph renderers against the appropriate depth predicates.
+Declare the lane and its caches, atlas, viewport, pipelines and preparation witness. Build glyph renderers against the appropriate depth predicates.
 
 ### 1. `src/scene_text_gpu.rs`
 
@@ -3198,7 +3359,7 @@ fn depth_for(depths: &HashMap<usize, f32>, id: usize) -> f32 {
 
 ## <a id="checkpoint-62ir-construct-and-rebuild-the-text-lane-once"></a>28. Construct and rebuild the text lane once
 
-**What this code does:** Initialize font/raster resources and world/plate owners. Rebuild atlas-dependent resources when fonts change while keeping original labels in the document.
+Initialize font/raster resources and world/plate owners. Rebuild atlas-dependent resources when fonts change while keeping original labels in the document.
 
 ### 1. `src/scene_text_gpu.rs`
 
@@ -3294,7 +3455,7 @@ impl Lane {
 
 ## <a id="checkpoint-62is-reset-the-text-lane-and-record-scoped-preparation-costs"></a>29. Reset the text lane and record scoped preparation costs
 
-**What this code does:** Retarget pipelines, clear logical work and release owned world/plate resources. Report raster images and buffer capacities with their actual scope.
+Retarget pipelines, clear logical work and release owned world/plate resources. Report raster images and buffer capacities with their actual scope.
 
 ### 1. `src/scene_text_gpu.rs`
 
@@ -3383,7 +3544,7 @@ impl Lane {
 
 ## <a id="checkpoint-62it-prepare-glyphs-only-when-the-witness-changes"></a>30. Prepare glyphs only when the witness changes
 
-**What this code does:** Skip text preparation when its complete frame witness is unchanged.
+Skip text preparation when its complete frame witness is unchanged.
 
 ### 1. `src/scene_text_gpu.rs`
 
@@ -3498,7 +3659,7 @@ impl Lane {
 
 ## <a id="checkpoint-62iu-draw-the-prepared-text-passes-in-order"></a>31. Draw the prepared text passes in order
 
-**What this code does:** Draw world planes, depth-tested plates and anchored glyphs before overlay plates/glyphs. Connect this completed lane to the frame in the next existing lesson.
+Draw world planes, depth-tested plates and anchored glyphs before overlay plates/glyphs. Connect this completed lane to the frame in the next existing lesson.
 
 ### 1. `src/scene_text_gpu.rs`
 
@@ -3704,8 +3865,6 @@ mod tests {
 
 ## <a id="checkpoint-62j-frame-pass"></a>32. Prepare the full text frame and load the scene depth
 
-**What this code does:** Prepare the full text frame and load the scene depth.
-
 ### 1. `src/renderer.rs`
 
 Prepare the complete current text frame and preserve already-rendered scene depth.
@@ -3883,7 +4042,7 @@ pub struct Renderer {
 
 ## <a id="checkpoint-62k-lane-labels"></a>33. Merge scene labels with the screen specimen
 
-**What this code does:** Merge original scene labels with the screen specimen.
+Merge original scene labels with the screen specimen.
 
 ### 1. `src/renderer.rs`
 
@@ -4069,7 +4228,55 @@ Replace it with:
 
 ## <a id="checkpoint-62l-picking"></a>34. Draw text IDs through bounded readback
 
-**What this code does:** Draw original text IDs through bounded readback.
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="184" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">CPU RAM: #[repr(C)] Structs -&gt; bytemuck::cast_slice</text>
+  <rect x="46" y="54" width="280" height="44" fill="#f8fafc" stroke="#111111" stroke-width="1.75"/>
+  <rect x="52" y="60" width="64" height="32" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="84" y="80" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">v0: 24B</text>
+  <rect x="122" y="60" width="64" height="32" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="154" y="80" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">v1: 24B</text>
+  <rect x="192" y="60" width="64" height="32" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="224" y="80" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">v2: 24B</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="290" y="80" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">...</text>
+  <rect x="66" y="112" width="240" height="34" rx="4" fill="#fef08a" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="133" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">&amp;[u8] Contiguous Byte Slice</text>
+  <line x1="358" y1="94" x2="384" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="388" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">CPU -&gt; GPU DMA: queue.write_buffer(buf, 0, bytes)</text>
+  <rect x="424" y="54" width="272" height="92" rx="6" fill="#dcfce7" stroke="#16a34a" stroke-width="1.75"/>
+  <line x1="448" y1="84" x2="672" y2="84" stroke="#16a34a" stroke-width="3" marker-end="url(#arrG)"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="74" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">create_buffer_init / write_buffer</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="112" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#16a34a">VERTEX | INDEX | COPY_DST</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="132" text-anchor="middle" font-family="monospace" font-size="9" fill="#111111">array_stride = size_of::&lt;Vertex&gt;()</text>
+  <line x1="732" y1="94" x2="758" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="762" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">GPU VRAM Buffer -&gt; @vertex Input Locations</text>
+  <rect x="806" y="44" width="256" height="118" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="822" y="56" width="224" height="40" rx="4" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="80" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">@location(0) pos: vec3&lt;f32&gt;</text>
+  <rect x="822" y="106" width="224" height="40" rx="4" fill="#fce7f3" stroke="#db2777" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="130" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">@location(1) color: vec3&lt;f32&gt;</text>
+</svg>
+</div>
+
+Draw original text IDs through bounded readback.
 
 ### 1. `src/renderer.rs`
 
@@ -4440,8 +4647,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-62m-whole-fonts"></a>35. Fetch missing whole fonts as one checked set
 
-**What this code does:** Fetch missing whole fonts as one checked set.
-
 ### 1. `src/text_fonts.rs`
 
 Fetch and validate the current whole fonts without letting stale replies survive Close.
@@ -4559,8 +4764,6 @@ pub mod text_fonts;
 ```
 
 ## <a id="checkpoint-62n-diagnostics"></a>36. Show current text sources metrics and preparation errors
-
-**What this code does:** Show current text sources metrics and preparation errors.
 
 ### 1. `src/browser.rs`
 
@@ -4742,8 +4945,6 @@ Replace it with:
 ```
 
 ## <a id="checkpoint-62o-labels"></a>37. Create pick move and delete the scene labels
-
-**What this code does:** Create pick move and delete the original scene labels.
 
 ### 1. `src/editor.rs`
 

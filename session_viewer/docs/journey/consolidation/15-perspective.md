@@ -1,6 +1,6 @@
 # 2.6 · Perspective picking and orbit navigation
 
-**Goal:** Orbit and tilt a perspective camera while keeping its target in place. · **Steps:** 2 · **Source:** `src/camera.rs,src/engine/gpu/render.rs,src/shaders/scene.wgsl`
+**Goal:** Orbit and tilt a perspective camera while keeping its target in place. · **Steps:** 2 · **Source:** `src/camera.rs` · `src/engine/gpu/render.rs` · `src/shaders/scene.wgsl`
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -45,7 +45,7 @@
 
 ## <a id="checkpoint-15-perspective"></a>1. Pick the nearest surface through the view
 
-**What this code does:** View the scene in perspective and select surfaces with a ray that agrees with the camera.
+View the scene in perspective and select surfaces with a ray that agrees with the camera.
 
 ### 1. `src/picking.rs`
 
@@ -379,8 +379,6 @@ Replace it with:
   <circle cx="934" cy="112" r="4" fill="#dc2626"/>
 </svg>
 </div>
-
-**What this code does:** Orbit and tilt a perspective camera while keeping its target in place.
 
 ### 1. `src/camera.rs`
 

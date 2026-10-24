@@ -1,6 +1,6 @@
 # 15.1 · Original transforms, part edits and solid recipes
 
-**Goal:** Turn original curves into exact kernel surfaces around a chosen axis. · **Steps:** 49 · **Source:** [app/deform.rs](../../../../src/app/deform.rs) · [state/edit.rs](../../../../src/state/edit.rs) · [app/command/tool/gather.rs](../../../../src/app/command/tool/gather.rs) · [app/command/tool/surfacing.rs](../../../../src/app/command/tool/surfacing.rs) · [app/walk/mesh.rs](../../../../src/app/walk/mesh.rs) · [app/walk/brep.rs](../../../../src/app/walk/brep.rs) (`src/app/transforms.rs,src/app/surfacing.rs,src/app/nurbs_eval.rs`)
+**Goal:** Turn original curves into exact kernel surfaces around a chosen axis. · **Steps:** 49 · **Source:** [app/deform.rs](../../../../src/app/deform.rs) · [state/edit.rs](../../../../src/state/edit.rs) · [app/command/tool/gather.rs](../../../../src/app/command/tool/gather.rs) · [app/command/tool/surfacing.rs](../../../../src/app/command/tool/surfacing.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -47,11 +47,7 @@
 
 ## <a id="checkpoint-77-copy-current-transformation-and-source-edit-algorithms"></a>1. Build directional scale transforms
 
-**What this code does:** Build directional scale transforms.
-
 ### 1. `src/transform_scale.rs`
-
-Build directional scale transforms.
 
 Create the file and type:
 
@@ -285,11 +281,7 @@ mod tests {
 
 ## <a id="checkpoint-77sa-compute-signed-construction-plane-rotation"></a>2. Compute signed construction-plane rotation
 
-**What this code does:** Compute signed construction-plane rotation.
-
 ### 1. `src/transform_rotate.rs`
-
-Compute signed construction-plane rotation.
 
 Create the file and type:
 
@@ -443,8 +435,6 @@ mod tests {
 
 ## <a id="checkpoint-77sb-address-original-controls-and-exclusive-part-selections"></a>3. Address controls and exclusive part selections
 
-**What this code does:** Address original controls and exclusive part selections.
-
 ### 1. `src/source_controls.rs`
 
 Address original controls and exclusive part selections.
@@ -565,8 +555,6 @@ pub mod source_controls;
 
 ## <a id="checkpoint-77sc-collect-finite-original-controls-and-mesh-vertices"></a>4. Collect finite controls and mesh vertices
 
-**What this code does:** Collect finite original controls and mesh vertices.
-
 ### 1. `src/source_controls.rs`
 
 Collect finite original controls and mesh vertices.
@@ -637,11 +625,7 @@ impl Controls {
 
 ## <a id="checkpoint-77sd-connect-curve-polygons-and-surface-control-nets"></a>5. Connect curve polygons and surface control nets
 
-**What this code does:** Connect curve polygons and surface control nets.
-
 ### 1. `src/source_controls.rs`
-
-Connect curve polygons and surface control nets.
 
 **Locate this existing block:**
 
@@ -721,8 +705,6 @@ impl Controls {
 ```
 
 ## <a id="checkpoint-77se-reuse-control-collectors-across-original-geometry-families"></a>6. Reuse control collectors across geometry families
-
-**What this code does:** Reuse control collectors across original geometry families.
 
 ### 1. `src/source_controls.rs`
 
@@ -856,8 +838,6 @@ mod tests {
 
 ## <a id="checkpoint-77sf-represent-original-geometry-edit-targets"></a>7. Represent geometry edit targets
 
-**What this code does:** Represent original geometry edit targets.
-
 ### 1. `src/source_deform.rs`
 
 Represent original geometry edit targets.
@@ -917,8 +897,6 @@ pub mod source_deform;
 ```
 
 ## <a id="checkpoint-77sg-resolve-original-mesh-vertices-for-part-edits"></a>8. Resolve mesh vertices for part edits
-
-**What this code does:** Resolve original mesh vertices for part edits.
 
 ### 1. `src/source_deform.rs`
 
@@ -989,11 +967,7 @@ pub(crate) fn mesh_keys(mesh: &Mesh, target: Target) -> Result<Vec<usize>, Strin
 
 ## <a id="checkpoint-77sh-resolve-surface-grids-and-individual-source-controls"></a>9. Resolve surface grids and individual source controls
 
-**What this code does:** Resolve surface grids and individual source controls.
-
 ### 1. `src/source_deform.rs`
-
-Resolve surface grids and individual source controls.
 
 **Locate this existing block:**
 
@@ -1056,11 +1030,7 @@ fn control_point(geometry: &Geometry, id: ControlId) -> Result<Point, String> {
 
 ## <a id="checkpoint-77si-collect-affected-points-across-cad-geometry-families"></a>10. Collect affected points across CAD geometry families
 
-**What this code does:** Collect affected points across CAD geometry families.
-
 ### 1. `src/source_deform.rs`
-
-Collect affected points across CAD geometry families.
 
 **Locate this existing block:**
 
@@ -1146,11 +1116,7 @@ pub fn points(geometry: &Geometry, target: Target) -> Result<Vec<Point>, String>
 
 ## <a id="checkpoint-77sj-preserve-rational-weights-and-validate-brep-boundaries"></a>11. Preserve rational weights and validate BRep boundaries
 
-**What this code does:** Preserve rational weights and validate BRep boundaries.
-
 ### 1. `src/source_deform.rs`
-
-Preserve rational weights and validate BRep boundaries.
 
 **Locate this existing block:**
 
@@ -1246,8 +1212,6 @@ fn validate_boundaries(
 
 ## <a id="checkpoint-77sk-transform-original-mesh-and-surface-controls"></a>12. Transform mesh and surface controls
 
-**What this code does:** Transform original mesh and surface controls.
-
 ### 1. `src/source_deform.rs`
 
 Transform original mesh and surface controls.
@@ -1311,8 +1275,6 @@ fn transform_nurbssurface(
 ```
 
 ## <a id="checkpoint-77sl-transform-original-line-polyline-point-and-curve-controls"></a>13. Transform line polyline point and curve controls
-
-**What this code does:** Transform original line polyline point and curve controls.
 
 ### 1. `src/source_deform.rs`
 
@@ -1405,11 +1367,7 @@ fn transform_point(
 
 ## <a id="checkpoint-77sm-transform-shared-brep-boundary-positions-coherently"></a>14. Transform shared BRep boundary positions coherently
 
-**What this code does:** Transform shared BRep boundary positions coherently.
-
 ### 1. `src/source_deform.rs`
-
-Transform shared BRep boundary positions coherently.
 
 **Locate this existing block:**
 
@@ -1484,8 +1442,6 @@ fn transform_brep(
 ```
 
 ## <a id="checkpoint-77sn-dispatch-original-part-edits-and-retain-element-ownership"></a>15. Dispatch part edits and retain Element ownership
-
-**What this code does:** Dispatch original part edits and retain Element ownership.
 
 ### 1. `src/source_deform.rs`
 
@@ -1565,7 +1521,7 @@ pub fn transform(
 
 ## <a id="checkpoint-77so-map-sparse-original-vertex-keys-to-display-slots"></a>16. Map sparse vertex keys to display slots
 
-**What this code does:** Map sparse original vertex keys to display slots.
+Map sparse original vertex keys to display slots.
 
 ### 1. `src/source_topology_colour.rs`
 
@@ -1670,8 +1626,6 @@ pub mod source_topology_colour;
 
 ## <a id="checkpoint-77sp-compute-polygon-normals-from-original-boundaries"></a>17. Compute polygon normals from boundaries
 
-**What this code does:** Compute polygon normals from original boundaries.
-
 ### 1. `src/source_mesh_topology.rs`
 
 Compute polygon normals from original boundaries.
@@ -1731,8 +1685,6 @@ fn face_key(face: &(usize, &Vec<usize>)) -> usize {
 ```
 
 ## <a id="checkpoint-77sq-build-one-original-edge-table-and-record-incident-faces"></a>18. Build one edge table and record incident faces
-
-**What this code does:** Build one original edge table and record incident faces.
 
 ### 1. `src/source_mesh_topology.rs`
 
@@ -1819,8 +1771,6 @@ impl EdgeTable {
 ```
 
 ## <a id="checkpoint-77sr-preserve-hole-winding-and-complete-original-mesh-topology"></a>19. Preserve hole winding and complete mesh topology
-
-**What this code does:** Preserve hole winding and complete original mesh topology.
 
 ### 1. `src/source_mesh_topology.rs`
 
@@ -2219,7 +2169,7 @@ mod tests {
 
 ## <a id="checkpoint-77a-own-transformation-questions-and-the-selected-original-targets"></a>20. Own transformation questions and the selected targets
 
-**What this code does:** Own transformation questions and the selected original targets.
+Own transformation questions and the selected original targets.
 
 ### 1. `src/transform_draft.rs`
 
@@ -2334,8 +2284,6 @@ pub mod transform_draft;
 ```
 
 ## <a id="checkpoint-77b-validate-point-and-number-transformation-answers"></a>21. Validate point and number transformation answers
-
-**What this code does:** Validate point and number transformation answers.
 
 ### 1. `src/transform_draft.rs`
 
@@ -2475,8 +2423,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-77c-resolve-typed-batches-and-temporary-transformation-previews"></a>22. Resolve typed batches and temporary transformation previews
 
-**What this code does:** Resolve typed batches and temporary transformation previews.
-
 ### 1. `src/transform_draft.rs`
 
 Resolve current options and atomic batches, temporary preview matrices and tool buttons.
@@ -2589,7 +2535,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-77d-resolve-original-cad-parts-and-complete-selected-bounds"></a>23. Resolve CAD parts and complete selected bounds
 
-**What this code does:** Resolve original CAD parts and complete selected bounds.
+Resolve original CAD parts and complete selected bounds.
 
 ### 1. `src/source_part.rs`
 
@@ -2732,7 +2678,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-77e-rebuild-an-edited-original-cad-source-before-adoption"></a>24. Rebuild an edited CAD source before adoption
 
-**What this code does:** Rebuild an edited original CAD source before adoption.
+Rebuild an edited original CAD source before adoption.
 
 ### 1. `src/scene.rs`
 
@@ -2906,7 +2852,7 @@ Replace it with:
 
 ## <a id="checkpoint-77f-copy-original-rows-beside-their-existing-parents"></a>25. Copy rows beside their existing parents
 
-**What this code does:** Copy original rows beside their existing parents.
+Copy original rows beside their existing parents.
 
 ### 1. `src/layer_edit.rs`
 
@@ -3029,8 +2975,6 @@ pub(crate) fn copy_objects(
 ```
 
 ## <a id="checkpoint-77g-carry-transformation-state-through-the-existing-drawing-owner"></a>26. Carry transformation state through the existing drawing owner
-
-**What this code does:** Carry transformation state through the existing drawing owner.
 
 ### 1. `src/tool.rs`
 
@@ -3337,8 +3281,6 @@ Replace it with:
 
 ## <a id="checkpoint-77h-validate-selected-originals-before-beginning-or-committing-a-transform"></a>27. Validate selected originals before beginning or committing a transform
 
-**What this code does:** Validate selected originals before beginning or committing a transform.
-
 ### 1. `src/editor.rs`
 
 Connect checked original transformations to the current Editor transaction boundary.
@@ -3435,8 +3377,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ## <a id="checkpoint-77i-adopt-validated-outcomes-and-preserve-repeat-copy-transactions"></a>28. Adopt validated outcomes and preserve repeat copy transactions
-
-**What this code does:** Adopt validated outcomes and preserve repeat copy transactions.
 
 ### 1. `src/editor.rs`
 
@@ -3542,8 +3482,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ## <a id="checkpoint-77j-route-transform-input-cancellation-and-current-plane-changes"></a>29. Route transform input cancellation and current plane changes
-
-**What this code does:** Route transform input cancellation and current plane changes.
 
 ### 1. `src/editor.rs`
 
@@ -3668,8 +3606,6 @@ Replace it with:
 ```
 
 ## <a id="checkpoint-77k-connect-transformation-lifecycle-and-part-move-dispatch"></a>30. Connect transformation lifecycle and part Move dispatch
-
-**What this code does:** Connect transformation lifecycle and part Move dispatch.
 
 ### 1. `src/editor.rs`
 
@@ -3974,8 +3910,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-77l-register-copy-scale-rotate-and-their-current-aliases"></a>31. Register Copy Scale Rotate and their current aliases
 
-**What this code does:** Register Copy Scale Rotate and their current aliases.
-
 ### 1. `src/transform_commands.rs`
 
 Parse current direct and interactive transform names, options and aliases.
@@ -4231,8 +4165,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-77m-apply-direct-scale-and-rotate-about-the-current-selection-center"></a>32. Apply direct Scale and Rotate about the current selection center
 
-**What this code does:** Apply direct Scale and Rotate about the current selection center.
-
 ### 1. `src/editor.rs`
 
 Apply direct current Scale and Rotate about the selection gizmo center.
@@ -4307,8 +4239,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-77n-retain-earlier-selection-checks-with-source-part-support"></a>33. Retain earlier selection checks with source part support
 
-**What this code does:** Retain earlier selection checks with source part support.
-
 ### 1. `src/edit_preview_tests.rs`
 
 Copy retained selection/preview fixtures with current source-part Move support.
@@ -4379,7 +4309,7 @@ fn preview_checks_locked_cold_and_stale_targets_and_routes_parts_to_source_editi
 
 ## <a id="checkpoint-77o-exercise-original-copy-transforms-history-and-exact-persistence"></a>34. Exercise copy transforms history and exact persistence
 
-**What this code does:** Exercise original copy transforms history and exact persistence.
+Exercise original copy transforms history and exact persistence.
 
 ### 1. `src/transform_tests.rs`
 
@@ -4871,7 +4801,7 @@ mod transform_tests;
 
 ## <a id="checkpoint-77zza-describe-curve-gathering-answers"></a>35. Describe curve gathering answers
 
-**What this code does:** Describe ordered curve questions and typed answers.
+Describe ordered curve questions and typed answers.
 
 ### 1. `src/gather_input.rs`
 
@@ -4964,7 +4894,7 @@ pub mod source_mesh_topology;
 
 ## <a id="checkpoint-77zzb-read-curve-gathering-values"></a>36. Read curve gathering values
 
-**What this code does:** Read finite numbers, absolute points and distance vectors through the existing coordinate reader.
+Read finite numbers, absolute points and distance vectors through the existing coordinate reader.
 
 ### 1. `src/gather_input.rs`
 
@@ -5040,7 +4970,7 @@ impl Step {
 
 ## <a id="checkpoint-77zzc-connect-gathering-recipes"></a>37. Connect gathering recipes
 
-**What this code does:** Connect typed input to a recipe, its questions and kernel builder.
+Connect typed input to a recipe, its questions and kernel builder.
 
 ### 1. `src/gather_input.rs`
 
@@ -5131,7 +5061,7 @@ impl Recipe {
 
 ## <a id="checkpoint-77zzd-parse-gathering-command-words"></a>38. Parse gathering command words
 
-**What this code does:** Read options anywhere in a command and consume other answers in order.
+Read options anywhere in a command and consume other answers in order.
 
 ### 1. `src/gather_input.rs`
 
@@ -5201,7 +5131,7 @@ pub fn read(recipe: &Recipe, words: &[&str]) -> Result<(usize, Vec<Answer>), Str
 
 ## <a id="checkpoint-77zze-track-ordered-curve-picks"></a>39. Track ordered curve picks
 
-**What this code does:** Track preselected curve rows and skip answers already typed.
+Track preselected curve rows and skip answers already typed.
 
 ### 1. `src/gather_input.rs`
 
@@ -5311,7 +5241,7 @@ pub fn count(count: usize, noun: &str) -> String {
 
 ## <a id="checkpoint-77zzf-advance-and-cancel-curve-picks"></a>40. Advance and cancel curve picks
 
-**What this code does:** Toggle a picked curve, reject duplicates across groups, and advance on a full group or Enter.
+Toggle a picked curve, reject duplicates across groups, and advance on a full group or Enter.
 
 ### 1. `src/gather_input.rs`
 
@@ -5408,7 +5338,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-77zzg-prepare-placed-kernel-curves"></a>41. Prepare placed kernel curves
 
-**What this code does:** Convert lines, polylines and NURBS curves to placed kernel curves.
+Convert lines, polylines and NURBS curves to placed kernel curves.
 
 ### 1. `src/gather_input.rs`
 
@@ -5694,7 +5624,7 @@ pub fn no_axis(_input: &Input) -> (Point, Vector) {
 
 ## <a id="checkpoint-77zzh-check-original-loops-and-surface-controls"></a>42. Check loops and surface controls
 
-**What this code does:** Find a loop’s unit normal and scale-aware planarity tolerance.
+Find a loop’s unit normal and scale-aware planarity tolerance.
 
 ### 1. `src/surfacing.rs`
 
@@ -5816,7 +5746,49 @@ pub mod surfacing;
 
 ## <a id="checkpoint-77zzi-align-original-sections-and-loft-through-them"></a>43. Align sections and loft through them
 
-**What this code does:** Align open curve directions and closed curve seams before asking the Session kernel for a loft.
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="184" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Section Profiles C_0(u)..C_k(u) + Rail Curve R(v)</text>
+  <path d="M 58 142 Q 112 96 168 142" fill="none" stroke="#2563eb" stroke-width="2.5"/>
+  <path d="M 88 106 Q 142 60 198 106" fill="none" stroke="#16a34a" stroke-width="2.5"/>
+  <path d="M 118 70 Q 172 24 228 70" fill="none" stroke="#dc2626" stroke-width="2.5"/>
+  <line x1="58" y1="142" x2="118" y2="70" stroke="#111111" stroke-width="1.5" stroke-dasharray="4 3"/>
+  <line x1="168" y1="142" x2="228" y2="70" stroke="#111111" stroke-width="1.5" stroke-dasharray="4 3"/>
+  <line x1="358" y1="94" x2="384" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="388" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Tensor-Product Loft / Sweep / Coons Patch S(u,v)</text>
+  <polygon points="434,142 494,66 664,66 604,142" fill="#dbeafe" stroke="#111111" stroke-width="2"/>
+  <line x1="464" y1="104" x2="634" y2="104" stroke="#2563eb" stroke-width="1.5"/>
+  <line x1="491" y1="142" x2="551" y2="66" stroke="#16a34a" stroke-width="1.5"/>
+  <line x1="548" y1="142" x2="608" y2="66" stroke="#16a34a" stroke-width="1.5"/>
+  <circle cx="550" cy="104" r="4.5" fill="#fef08a" stroke="#dc2626" stroke-width="1.75"/>
+  <line x1="732" y1="94" x2="758" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="762" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Shaded Freeform Surface + Tessellated Mesh</text>
+  <rect x="806" y="44" width="256" height="118" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <polygon points="838,138 888,68 1028,68 978,138" fill="#93c5fd" stroke="#111111" stroke-width="2"/>
+  <line x1="888" y1="68" x2="978" y2="138" stroke="#1e3a8a" stroke-width="1.2"/>
+  <line x1="863" y1="103" x2="1003" y2="103" stroke="#1e3a8a" stroke-width="1.2"/>
+</svg>
+</div>
+
+Align open curve directions and closed curve seams before asking the Session kernel for a loft.
 
 ### 1. `src/surfacing.rs`
 
@@ -6146,7 +6118,47 @@ pub mod tests {
 
 ## <a id="checkpoint-77zzj-find-extrusion-axes-and-cap-eligibility"></a>44. Find extrusion axes and cap eligibility
 
-**What this code does:** Reuse the original loop normal and planarity helpers to choose an extrusion axis.
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="184" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Corner Tangents t0, t1 &amp; Miter Vector m = (n0+n1)/dot</text>
+  <polyline points="58,136 164,66 270,136" fill="none" stroke="#111111" stroke-width="2" stroke-dasharray="4 3"/>
+  <polygon points="48,122 164,44 280,122 260,150 164,88 68,150" fill="#dbeafe" fill-opacity="0.7" stroke="#2563eb" stroke-width="1.75"/>
+  <line x1="164" y1="66" x2="164" y2="44" stroke="#dc2626" stroke-width="2.5" marker-end="url(#arrR)"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="192" y="54" font-family="monospace" font-size="9.5" font-weight="700" fill="#dc2626">m</text>
+  <line x1="358" y1="94" x2="384" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="388" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Round Cap SDF (||uv|| &lt;= 1) + Arc-Length Dash Modulo</text>
+  <circle cx="468" cy="102" r="28" fill="#dcfce7" stroke="#16a34a" stroke-width="2"/>
+  <line x1="468" y1="102" x2="496" y2="102" stroke="#dc2626" stroke-width="2"/>
+  <rect x="526" y="88" width="46" height="28" fill="#dbeafe" stroke="#111111" stroke-width="1.75"/>
+  <rect x="592" y="88" width="24" height="28" fill="none" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="3 3"/>
+  <rect x="636" y="88" width="46" height="28" fill="#dbeafe" stroke="#111111" stroke-width="1.75"/>
+  <line x1="732" y1="94" x2="758" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="762" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Clean Mitered Corners &amp; Dashed CAD Strokes</text>
+  <rect x="806" y="44" width="256" height="118" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <polyline points="834,136 904,68 974,136" fill="none" stroke="#111111" stroke-width="6" stroke-linejoin="miter" stroke-linecap="round"/>
+  <line x1="964" y1="74" x2="1044" y2="136" stroke="#2563eb" stroke-width="4" stroke-dasharray="10 6" stroke-linecap="round"/>
+</svg>
+</div>
+
+Reuse the original loop normal and planarity helpers to choose an extrusion axis.
 
 ### 1. `src/extrude_geometry.rs`
 
@@ -6255,7 +6267,7 @@ pub mod extrude_geometry;
 
 ## <a id="checkpoint-77zzk-map-cap-curves-to-surface-parameters"></a>45. Map cap curves to surface parameters
 
-**What this code does:** Build a planar cap patch around the original control points.
+Build a planar cap patch around the original control points.
 
 ### 1. `src/extrude_geometry.rs`
 
@@ -6383,7 +6395,7 @@ fn cap_face(
 
 ## <a id="checkpoint-77zzl-build-closed-curved-extrusion-topology"></a>46. Build closed curved extrusion topology
 
-**What this code does:** Build the side surface from an oriented original curve.
+Build the side surface from an oriented original curve.
 
 ### 1. `src/extrude_geometry.rs`
 
@@ -6493,7 +6505,7 @@ fn capped(
 
 ## <a id="checkpoint-77zzm-extrude-original-corners-and-curves"></a>47. Extrude corners and curves
 
-**What this code does:** Dispatch original corner chains and curved sections through the shared extrusion helpers.
+Dispatch original corner chains and curved sections through the shared extrusion helpers.
 
 ### 1. `src/extrude_geometry.rs`
 
@@ -6582,7 +6594,7 @@ fn extrude(
 
 ## <a id="checkpoint-77zzn-connect-the-original-extrusion-recipe"></a>48. Connect the extrusion recipe
 
-**What this code does:** Complete the original recipe with curve selection, signed distance and cap choices.
+Complete the original recipe with curve selection, signed distance and cap choices.
 
 ### 1. `src/extrude_geometry.rs`
 
@@ -6915,8 +6927,6 @@ const R: BRepOrientation = BRepOrientation::Reversed;
 ```
 
 ## <a id="checkpoint-77zzo-revolve-original-profiles-around-an-axis"></a>49. Revolve profiles around an axis
-
-**What this code does:** Turn original curves into exact kernel surfaces around a chosen axis.
 
 ### 1. `src/revolve_geometry.rs`
 

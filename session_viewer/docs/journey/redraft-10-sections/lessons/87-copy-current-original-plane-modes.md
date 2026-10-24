@@ -1,6 +1,6 @@
 # 17.3 · Original clipping half-spaces across drawing families
 
-**Goal:** Exercise original clipping color and picking. · **Steps:** 38 · **Source:** [engine/gpu/triangle_tiles.rs](../../../../src/engine/gpu/triangle_tiles.rs) · [shaders/project_triangles.wgsl](../../../../src/shaders/project_triangles.wgsl) · [shaders/ink_visibility.wgsl](../../../../src/shaders/ink_visibility.wgsl) · [shaders/ribbon.wgsl](../../../../src/shaders/ribbon.wgsl) · [shaders/vector.wgsl](../../../../src/shaders/vector.wgsl) · [engine/gpu/clip.rs](../../../../src/engine/gpu/clip.rs) · [shaders/cap.wgsl](../../../../src/shaders/cap.wgsl) · [engine/gpu/render.rs](../../../../src/engine/gpu/render.rs) · [engine/gpu/pass.rs](../../../../src/engine/gpu/pass.rs) (`src/engine/gpu/cull.rs,src/shaders/section.wgsl,src/app/section_plane.rs`)
+**Goal:** Exercise original clipping color and picking. · **Steps:** 38 · **Source:** [engine/gpu/triangle_tiles.rs](../../../../src/engine/gpu/triangle_tiles.rs) · [shaders/project_triangles.wgsl](../../../../src/shaders/project_triangles.wgsl) · [shaders/ink_visibility.wgsl](../../../../src/shaders/ink_visibility.wgsl) · [shaders/ribbon.wgsl](../../../../src/shaders/ribbon.wgsl)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -45,8 +45,6 @@
 </div>
 
 ## <a id="checkpoint-87-copy-current-original-plane-modes"></a>1. Describe clipping half-spaces
-
-**What this code does:** Describe original clipping half-spaces.
 
 ### 1. `src/clipping_geometry.rs`
 
@@ -148,11 +146,7 @@ pub mod source_mesh_topology;
 
 ## <a id="checkpoint-87sa-describe-clipping-construction-choices-once"></a>2. Describe clipping construction choices once
 
-**What this code does:** Describe clipping construction choices once.
-
 ### 1. `src/clipping_geometry.rs`
-
-Describe clipping construction choices once.
 
 **Locate this existing block:**
 
@@ -237,8 +231,6 @@ impl Mode {
 ```
 
 ## <a id="checkpoint-87sb-construct-and-reverse-original-clipping-planes"></a>3. Construct and reverse clipping planes
-
-**What this code does:** Construct and reverse original clipping planes.
 
 ### 1. `src/clipping_geometry.rs`
 
@@ -341,8 +333,6 @@ pub fn flipped(plane: &Plane) -> Plane {
 ```
 
 ## <a id="checkpoint-87sc-derive-placed-world-half-spaces-from-original-planes"></a>4. Derive placed world half-spaces from planes
-
-**What this code does:** Derive placed world half-spaces from original planes.
 
 ### 1. `src/clipping_geometry.rs`
 
@@ -505,7 +495,7 @@ mod tests {
 
 ## <a id="checkpoint-87a-gather-six-visible-original-world-planes"></a>5. Gather six visible world planes
 
-**What this code does:** Gather six visible original world planes.
+Gather six visible original world planes.
 
 ### 1. `src/clipping_rows.rs`
 
@@ -614,7 +604,7 @@ pub mod finite_project_source;
 
 ## <a id="checkpoint-87b-copy-the-maintained-clipping-uniform-layout"></a>6. Pack the clipping uniform with explicit byte offsets
 
-**What this code does:** Match six-plane CPU storage to the later WGSL layout without losing original f64 data.
+Match six-plane CPU storage to the later WGSL layout without losing original f64 data.
 
 ### 1. `src/clipping_uniform.rs`
 
@@ -676,8 +666,6 @@ pub mod finite_project_source;
 
 ## <a id="checkpoint-87c-copy-conditioned-screen-and-hatch-projections"></a>7. Condition the camera inverse for clipping
 
-**What this code does:** Scale matrix rows before inversion and undo that scaling on the inverse.
-
 ### 1. `src/clipping_uniform.rs`
 
 Scale matrix rows before inversion and undo that scaling on the inverse.
@@ -719,8 +707,6 @@ fn inverse(m: &Xform) -> Option<Xform> {
 ```
 
 ## <a id="checkpoint-87ca-project-a-stable-hatch-coordinate-onto-a-plane"></a>8. Project a stable hatch coordinate onto a plane
-
-**What this code does:** Build homogeneous hatch numerator and denominator from the projected plane.
 
 ### 1. `src/clipping_uniform.rs`
 
@@ -779,8 +765,6 @@ fn hatch_projection(
 ```
 
 ## <a id="checkpoint-87cb-fill-one-bounded-clipping-uniform-from-original-planes"></a>9. Fill one bounded clipping uniform from planes
-
-**What this code does:** Populate world and screen half-spaces and reuse the hatch projection helper.
 
 ### 1. `src/clipping_uniform.rs`
 
@@ -874,8 +858,6 @@ pub fn clip_uniform(planes: &[ClipPlane], fill: u32, v: &ClipView) -> ClipUnifor
 
 ## <a id="checkpoint-87cc-match-the-clipping-uniform-and-sample-conventions"></a>10. Match the clipping uniform and sample conventions
 
-**What this code does:** Match the Rust layout and define shared specialization and sample constants.
-
 ### 1. `src/clip.wgsl`
 
 Match the Rust layout and define shared specialization and sample constants.
@@ -929,8 +911,6 @@ fn clip_active() -> bool {
 ```
 
 ## <a id="checkpoint-87cd-apply-shared-original-half-space-tests"></a>11. Apply shared half-space tests
-
-**What this code does:** Reject points or segments on the cut side while preserving plane display rows.
 
 ### 1. `src/clip.wgsl`
 
@@ -993,8 +973,6 @@ fn clip_cut_both(flags: u32, a: vec3<f32>, b: vec3<f32>) -> bool {
 ```
 
 ## <a id="checkpoint-87ce-compute-clipping-coverage-in-framebuffer-sample-space"></a>12. Compute clipping coverage in framebuffer sample space
-
-**What this code does:** Convert framebuffer pixels to NDC and form per-sample half-space masks.
 
 ### 1. `src/clip.wgsl`
 
@@ -1076,7 +1054,45 @@ fn clip_mask(flags: u32, p: vec3<f32>) -> u32 {
 
 ## <a id="checkpoint-87cf-address-section-depth-and-original-cap-records"></a>13. Address section depth and cap records
 
-**What this code does:** Solve section depth and preserve the reserved cap and pick address conventions.
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="184" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Corner Tangents t0, t1 &amp; Miter Vector m = (n0+n1)/dot</text>
+  <polyline points="58,136 164,66 270,136" fill="none" stroke="#111111" stroke-width="2" stroke-dasharray="4 3"/>
+  <polygon points="48,122 164,44 280,122 260,150 164,88 68,150" fill="#dbeafe" fill-opacity="0.7" stroke="#2563eb" stroke-width="1.75"/>
+  <line x1="164" y1="66" x2="164" y2="44" stroke="#dc2626" stroke-width="2.5" marker-end="url(#arrR)"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="192" y="54" font-family="monospace" font-size="9.5" font-weight="700" fill="#dc2626">m</text>
+  <line x1="358" y1="94" x2="384" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="388" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Round Cap SDF (||uv|| &lt;= 1) + Arc-Length Dash Modulo</text>
+  <circle cx="468" cy="102" r="28" fill="#dcfce7" stroke="#16a34a" stroke-width="2"/>
+  <line x1="468" y1="102" x2="496" y2="102" stroke="#dc2626" stroke-width="2"/>
+  <rect x="526" y="88" width="46" height="28" fill="#dbeafe" stroke="#111111" stroke-width="1.75"/>
+  <rect x="592" y="88" width="24" height="28" fill="none" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="3 3"/>
+  <rect x="636" y="88" width="46" height="28" fill="#dbeafe" stroke="#111111" stroke-width="1.75"/>
+  <line x1="732" y1="94" x2="758" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="762" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Clean Mitered Corners &amp; Dashed CAD Strokes</text>
+  <rect x="806" y="44" width="256" height="118" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <polyline points="834,136 904,68 974,136" fill="none" stroke="#111111" stroke-width="6" stroke-linejoin="miter" stroke-linecap="round"/>
+  <line x1="964" y1="74" x2="1044" y2="136" stroke="#2563eb" stroke-width="4" stroke-dasharray="10 6" stroke-linecap="round"/>
+</svg>
+</div>
 
 ### 1. `src/clip.wgsl`
 
@@ -1131,8 +1147,6 @@ fn clip_pick_word(plane: u32, px: vec2<f32>, size: vec2<u32>) -> u32 {
 ```
 
 ## <a id="checkpoint-87d-parse-strict-clipping-modes-and-presentation-switches"></a>14. Parse strict clipping modes and presentation switches
-
-**What this code does:** Parse strict clipping modes and presentation switches.
 
 ### 1. `src/clipping_input.rs`
 
@@ -1218,8 +1232,6 @@ pub mod finite_project_source;
 ```
 
 ## <a id="checkpoint-87e-preserve-mode-prefixes-in-generic-point-drafts"></a>15. Preserve mode prefixes in generic point drafts
-
-**What this code does:** Preserve mode prefixes in generic point drafts.
 
 ### 1. `src/tool.rs`
 
@@ -1324,7 +1336,7 @@ Replace it with:
 
 ## <a id="checkpoint-87f-build-original-clipping-planes-through-the-shared-tool"></a>16. Build clipping planes through the shared tool
 
-**What this code does:** Build original clipping planes through the shared tool.
+Build original clipping planes through the shared tool.
 
 ### 1. `src/clipping_tool.rs`
 
@@ -1426,8 +1438,6 @@ pub mod finite_project_source;
 ```
 
 ## <a id="checkpoint-87g-own-clipping-presentation-and-one-history-transaction"></a>17. Own clipping presentation and one history transaction
-
-**What this code does:** Own clipping presentation and one history transaction.
 
 ### 1. `src/editor.rs`
 
@@ -1594,8 +1604,6 @@ pub struct Editor {
 ```
 
 ## <a id="checkpoint-87h-route-clipping-plane-and-preserve-pending-points"></a>18. Route Clipping Plane and preserve pending points
-
-**What this code does:** Route Clipping Plane and preserve pending points.
 
 ### 1. `src/editor.rs`
 
@@ -1771,7 +1779,48 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-87i-own-one-shared-clipping-gpu-uniform"></a>19. Own one shared clipping GPU uniform
 
-**What this code does:** Own one shared clipping GPU uniform.
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="184" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">CPU Camera / View Uniform (16-Byte Aligned)</text>
+  <rect x="52" y="48" width="268" height="106" rx="6" fill="#f8fafc" stroke="#111111" stroke-width="1.75"/>
+  <rect x="66" y="58" width="240" height="38" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="81" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">view_proj: [[f32; 4]; 4] (64B)</text>
+  <rect x="66" y="104" width="240" height="36" fill="#fef08a" stroke="#d97706" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="126" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">eye_pos / viewport_px (16B)</text>
+  <line x1="358" y1="94" x2="384" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="388" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">queue.write_buffer -&gt; wgpu::BindGroup (@group(0))</text>
+  <rect x="424" y="50" width="272" height="102" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <rect x="442" y="64" width="236" height="32" rx="4" fill="#dcfce7" stroke="#16a34a" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="84" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">BufferUsages::UNIFORM | COPY_DST</text>
+  <rect x="442" y="106" width="236" height="32" rx="4" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="126" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#2563eb">pass.set_bind_group(0, &amp;bg, &amp;[])</text>
+  <line x1="732" y1="94" x2="758" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="762" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">GPU Shader Uniform Read: var&lt;uniform&gt;</text>
+  <rect x="806" y="44" width="256" height="118" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="76" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#2563eb">@group(0) @binding(0)</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="98" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">var&lt;uniform&gt; u: Uniforms;</text>
+  <rect x="828" y="114" width="212" height="32" rx="4" fill="#dcfce7" stroke="#16a34a" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="134" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">u.view_proj * vec4(p, 1.0)</text>
+</svg>
+</div>
 
 ### 1. `src/clipping_gpu.rs`
 
@@ -1927,8 +1976,6 @@ pub mod finite_project_source;
 
 ## <a id="checkpoint-87j-retain-clipping-state-beside-the-renderer"></a>20. Retain clipping state beside the renderer
 
-**What this code does:** Retain clipping state beside the renderer.
-
 ### 1. `src/renderer.rs`
 
 Own current clipping independently of original uploads.
@@ -2038,8 +2085,6 @@ pub struct Renderer {
 
 ## <a id="checkpoint-87k-prepare-shared-clipping-shader-declarations"></a>21. Prepare shared clipping shader declarations
 
-**What this code does:** Prepare shared clipping shader declarations.
-
 ### 1. `src/pick_pipeline.rs`
 
 Connect matching source ownership and derived clipping.
@@ -2098,7 +2143,50 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-87l-connect-mesh-and-instance-color-half-spaces"></a>22. Connect mesh and instance color half-spaces
 
-**What this code does:** Connect mesh and instance color half-spaces.
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="184" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">CPU CommandEncoder Records GPU Commands</text>
+  <rect x="54" y="50" width="264" height="102" rx="6" fill="#f8fafc" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="76" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">wgpu::CommandEncoder</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="100" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#2563eb">1. begin_render_pass (3D Scene)</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="122" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#16a34a">2. begin_render_pass (Overlay/UI)</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="142" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#dc2626">3. encoder.finish()</text>
+  <line x1="358" y1="94" x2="384" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="388" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Pass 1 (LoadOp::Clear) -&gt; Pass 2 (LoadOp::Load)</text>
+  <rect x="416" y="52" width="128" height="96" rx="4" fill="#dbeafe" stroke="#2563eb" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="480" y="76" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Pass 1: Clear</text>
+  <polygon points="452,132 480,88 508,132" fill="#93c5fd" stroke="#111111" stroke-width="1.5"/>
+  <line x1="544" y1="100" x2="572" y2="100" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="576" y="52" width="128" height="96" rx="4" fill="#dcfce7" stroke="#16a34a" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="640" y="76" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Pass 2: Load</text>
+  <polygon points="612,126 640,86 668,126" fill="#93c5fd" stroke="#111111" stroke-width="1.5"/>
+  <rect x="590" y="130" width="100" height="12" fill="#fef08a" stroke="#111111" stroke-width="1"/>
+  <line x1="732" y1="94" x2="758" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="762" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">queue.submit([cmd_buf]) -&gt; GPU Execution</text>
+  <rect x="806" y="44" width="256" height="118" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <polygon points="884,132 934,58 984,132" fill="#93c5fd" stroke="#111111" stroke-width="2"/>
+  <rect x="822" y="136" width="224" height="18" rx="3" fill="#f1f5f9" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="149" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Composited Frame Ready</text>
+</svg>
+</div>
 
 ### 1. `src/gpu_mesh.rs`
 
@@ -2339,7 +2427,7 @@ Replace it with:
 
 ## <a id="checkpoint-87m-prepare-explicit-original-mesh-pick-clipping"></a>23. Prepare explicit mesh pick clipping
 
-**What this code does:** Prepare explicit original mesh pick clipping.
+Prepare explicit original mesh pick clipping.
 
 ### 1. `src/triangle_pick.wgsl`
 
@@ -2355,8 +2443,6 @@ struct MeshPickOutput{@builtin(position) position:vec4<f32>,@location(0) world:v
 ```
 
 ## <a id="checkpoint-87n-bind-shared-clipping-before-the-first-integer-request"></a>24. Bind shared clipping before the first integer request
-
-**What this code does:** Bind shared clipping before the first integer request.
 
 ### 1. `src/pick_gpu.rs`
 
@@ -2791,8 +2877,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-87o-preserve-sparse-source-face-ids-across-the-cut"></a>25. Preserve sparse source face IDs across the cut
 
-**What this code does:** Preserve sparse source face IDs across the cut.
-
 ### 1. `src/face_pick.rs`
 
 Connect matching source ownership and derived clipping.
@@ -2922,8 +3006,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ## <a id="checkpoint-87p-invalidate-selected-masks-on-clipping-changes"></a>26. Invalidate selected masks on clipping changes
-
-**What this code does:** Invalidate selected masks on clipping changes.
 
 ### 1. `src/outline_mask.wgsl`
 
@@ -3105,7 +3187,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-87q-share-clipping-at-finite-original-center-lines"></a>27. Share clipping at finite center lines
 
-**What this code does:** Share clipping at finite original center lines.
+Share clipping at finite original center lines.
 
 ### 1. `src/finite_visibility.wgsl`
 
@@ -3367,7 +3449,53 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-87r-cache-explicit-original-plane-ink-flags"></a>28. Cache explicit original-plane ink flags
 
-**What this code does:** Cache explicit original-plane ink flags.
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="184" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">CPU RAM: #[repr(C)] Structs -&gt; bytemuck::cast_slice</text>
+  <rect x="46" y="54" width="280" height="44" fill="#f8fafc" stroke="#111111" stroke-width="1.75"/>
+  <rect x="52" y="60" width="64" height="32" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="84" y="80" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">v0: 24B</text>
+  <rect x="122" y="60" width="64" height="32" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="154" y="80" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">v1: 24B</text>
+  <rect x="192" y="60" width="64" height="32" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="224" y="80" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">v2: 24B</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="290" y="80" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">...</text>
+  <rect x="66" y="112" width="240" height="34" rx="4" fill="#fef08a" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="133" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">&amp;[u8] Contiguous Byte Slice</text>
+  <line x1="358" y1="94" x2="384" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="388" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">CPU -&gt; GPU DMA: queue.write_buffer(buf, 0, bytes)</text>
+  <rect x="424" y="54" width="272" height="92" rx="6" fill="#dcfce7" stroke="#16a34a" stroke-width="1.75"/>
+  <line x1="448" y1="84" x2="672" y2="84" stroke="#16a34a" stroke-width="3" marker-end="url(#arrG)"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="74" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">create_buffer_init / write_buffer</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="112" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#16a34a">VERTEX | INDEX | COPY_DST</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="132" text-anchor="middle" font-family="monospace" font-size="9" fill="#111111">array_stride = size_of::&lt;Vertex&gt;()</text>
+  <line x1="732" y1="94" x2="758" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="762" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">GPU VRAM Buffer -&gt; @vertex Input Locations</text>
+  <rect x="806" y="44" width="256" height="118" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="822" y="56" width="224" height="40" rx="4" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="80" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">@location(0) pos: vec3&lt;f32&gt;</text>
+  <rect x="822" y="106" width="224" height="40" rx="4" fill="#fce7f3" stroke="#db2777" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="130" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">@location(1) color: vec3&lt;f32&gt;</text>
+</svg>
+</div>
 
 ### 1. `src/stroke_gpu.rs`
 
@@ -3531,7 +3659,7 @@ pub struct Lane {
 
 ## <a id="checkpoint-87s-bind-original-flags-without-changing-instance-strides"></a>29. Bind flags without changing instance strides
 
-**What this code does:** Bind original flags without changing instance strides.
+Bind original flags without changing instance strides.
 
 ### 1. `src/finite_ink.rs`
 
@@ -3701,8 +3829,6 @@ Replace it with:
 
 ## <a id="checkpoint-87t-keep-stroke-color-and-pick-exemptions-aligned"></a>30. Keep stroke color and pick exemptions aligned
 
-**What this code does:** Keep stroke color and pick exemptions aligned.
-
 ### 1. `src/finite_stroke.wgsl`
 
 Connect matching source ownership and derived clipping.
@@ -3869,8 +3995,6 @@ fn pick_fragment(input: PickOutput) -> @location(0) vec2<u32> {
 ```
 
 ## <a id="checkpoint-87u-keep-chain-color-and-pick-exemptions-aligned"></a>31. Keep chain color and pick exemptions aligned
-
-**What this code does:** Keep chain color and pick exemptions aligned.
 
 ### 1. `src/finite_chain.wgsl`
 
@@ -4107,8 +4231,6 @@ fn pick_fragment(input: PickOutput) -> @location(0) vec2<u32> {
 
 ## <a id="checkpoint-87v-keep-marker-color-and-pick-exemptions-aligned"></a>32. Keep marker color and pick exemptions aligned
 
-**What this code does:** Keep marker color and pick exemptions aligned.
-
 ### 1. `src/finite_marker.wgsl`
 
 Connect matching source ownership and derived clipping.
@@ -4246,7 +4368,7 @@ fn pick_fragment(input: PickOutput) -> @location(0) vec2<u32> {
 
 ## <a id="checkpoint-87w-resolve-locked-and-selected-original-plane-boundaries"></a>33. Resolve locked and selected plane boundaries
 
-**What this code does:** Resolve locked and selected original plane boundaries.
+Resolve locked and selected original plane boundaries.
 
 ### 1. `src/highlight.rs`
 
@@ -4434,7 +4556,7 @@ Replace it with:
 
 ## <a id="checkpoint-87x-clip-cached-original-point-cloud-discs"></a>34. Clip cached point cloud discs
 
-**What this code does:** Clip cached original point cloud discs.
+Clip cached original point cloud discs.
 
 ### 1. `src/cloud_gpu.rs`
 
@@ -4756,7 +4878,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-87y-clip-original-sheet-pens-and-integer-entities"></a>35. Clip sheet pens and integer entities
 
-**What this code does:** Clip original sheet pens and integer entities.
+Clip original sheet pens and integer entities.
 
 ### 1. `src/sheet_pipeline.rs`
 
@@ -4972,7 +5094,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-87z-clip-text-anchors-with-all-six-original-planes"></a>36. Clip text anchors with all six planes
 
-**What this code does:** Clip text anchors with all six original planes.
+Clip text anchors with all six original planes.
 
 ### 1. `src/scene_text_gpu.rs`
 
@@ -5080,8 +5202,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-87aa-observe-actual-clipping-resources-and-errors"></a>37. Observe actual clipping resources and errors
 
-**What this code does:** Observe actual clipping resources and errors.
-
 ### 1. `src/browser.rs`
 
 Connect matching source ownership and derived clipping.
@@ -5131,7 +5251,48 @@ Replace it with:
 
 ## <a id="checkpoint-87ab-exercise-original-clipping-color-and-picking"></a>38. Exercise clipping color and picking
 
-**What this code does:** Exercise original clipping color and picking.
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="184" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">GPU Offscreen Rg32Uint Texture (owner_id, sub_id)</text>
+  <rect x="74" y="48" width="224" height="106" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <rect x="146" y="76" width="80" height="50" fill="#fef08a" stroke="#dc2626" stroke-width="2"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="105" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">5×5 px Window</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="144" text-anchor="middle" font-family="monospace" font-size="9" fill="#2563eb">COPY_SRC Attachment</text>
+  <line x1="358" y1="94" x2="384" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="388" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">copy_texture_to_buffer (256B Row Pitch) -&gt; Staging</text>
+  <rect x="424" y="52" width="272" height="96" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="78" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Staging Buffer (MAP_READ | COPY_DST)</text>
+  <rect x="446" y="90" width="228" height="24" fill="#ffffff" stroke="#111111" stroke-width="1.2"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="106" text-anchor="middle" font-family="monospace" font-size="9" fill="#111111">bytes_per_row = 256 (WebGPU alignment)</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="134" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#16a34a">slice.map_async(MapMode::Read, ...)</text>
+  <line x1="732" y1="94" x2="758" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="762" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">CPU Callback Reads Mapped [u32; 2] Winner</text>
+  <rect x="806" y="44" width="256" height="118" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="826" y="58" width="216" height="44" rx="4" fill="#dcfce7" stroke="#16a34a" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="78" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">get_mapped_range() -&gt; (id, sub)</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="94" text-anchor="middle" font-family="monospace" font-size="9" fill="#16a34a">staging.unmap()</text>
+  <rect x="846" y="114" width="176" height="32" rx="4" fill="#fef08a" stroke="#dc2626" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="134" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Selected Owner Updated</text>
+</svg>
+</div>
 
 ### 1. `src/clipping_source_tests.rs`
 

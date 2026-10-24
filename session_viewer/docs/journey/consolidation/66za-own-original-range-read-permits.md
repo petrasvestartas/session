@@ -1,6 +1,6 @@
 # 12.3 · Bounded scheduling, exact replies and cancellation
 
-**Goal:** Cancel range work when its runtime closes. · **Steps:** 17 · **Source:** [app/manifest.rs](../../../src/app/manifest.rs) · [app/session_io.rs](../../../src/app/session_io.rs) · [app/stream.rs](../../../src/app/stream.rs) · [app/range_gate.rs](../../../src/app/range_gate.rs) · [app/fetch.rs](../../../src/app/fetch.rs) · [app/loader.rs](../../../src/app/loader.rs) · [app/live.rs](../../../src/app/live.rs) (`src/app/manifest.rs,src/app/streaming.rs,src/app/archive.rs`)
+**Goal:** Cancel range work when its runtime closes. · **Steps:** 17 · **Source:** [app/manifest.rs](../../../src/app/manifest.rs) · [app/session_io.rs](../../../src/app/session_io.rs) · [app/stream.rs](../../../src/app/stream.rs) · [app/range_gate.rs](../../../src/app/range_gate.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -56,7 +56,48 @@
 
 ## <a id="checkpoint-66za-own-original-range-read-permits"></a>1. Own range-read permits
 
-**What this code does:** Write the per-scene gate, queued turn, waiting-read and permit types.
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="184" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">CPU Scheduler: Permit Pool + HTTP Range Request</text>
+  <rect x="52" y="50" width="268" height="44" rx="4" fill="#dbeafe" stroke="#2563eb" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="76" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">GET Range: bytes=off..off+len</text>
+  <rect x="52" y="104" width="268" height="44" rx="4" fill="#fef9c3" stroke="#d97706" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="130" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Bounded In-Flight Permits &amp; Epoch</text>
+  <line x1="358" y1="94" x2="384" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="388" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">CPU Byte Budget Check -&gt; queue.write_buffer(page)</text>
+  <rect x="424" y="52" width="272" height="96" rx="6" fill="#dcfce7" stroke="#16a34a" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="78" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">charged_bytes &lt;= max_residency</text>
+  <line x1="452" y1="100" x2="668" y2="100" stroke="#16a34a" stroke-width="3" marker-end="url(#arrG)"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="128" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#16a34a">Upload Decoded Page to GPU Slot</text>
+  <line x1="732" y1="94" x2="758" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="762" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Resident GPU Pages Rendered in Viewport</text>
+  <rect x="806" y="44" width="256" height="118" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="832" y="60" width="92" height="86" fill="#dcfce7" stroke="#16a34a" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="878" y="106" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#16a34a">Page #1 ✓</text>
+  <rect x="938" y="60" width="92" height="86" fill="#dbeafe" stroke="#2563eb" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="984" y="106" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#2563eb">Page #2 ✓</text>
+</svg>
+</div>
+
+Write the per-scene gate, queued turn, waiting-read and permit types.
 
 ### 1. `src/range_gate.rs`
 
@@ -196,7 +237,7 @@ pub mod range_gate;
 
 ## <a id="checkpoint-67a-queue-range-reads-in-arrival-order"></a>2. Poll and cancel queued range reads
 
-**What this code does:** Complete the waiting-read Future and its Drop behavior.
+Complete the waiting-read Future and its Drop behavior.
 
 ### 1. `src/range_gate.rs`
 
@@ -403,8 +444,6 @@ mod tests {
 
 ## <a id="checkpoint-67b-validate-exact-http-range-replies"></a>3. Validate exact HTTP range replies
 
-**What this code does:** Validate exact HTTP range replies.
-
 ### 1. `src/range_rules.rs`
 
 Validate the source interval before issuing or accepting a read.
@@ -582,7 +621,7 @@ mod tests {
 
 ## <a id="checkpoint-67c-retain-original-point-page-values"></a>4. Retain point page values
 
-**What this code does:** Retain original point page values.
+Retain original point page values.
 
 ### 1. `src/range_page.rs`
 
@@ -764,8 +803,6 @@ mod tests {
 
 ## <a id="checkpoint-67d-own-cancellable-range-requests"></a>5. Own cancellable range requests
 
-**What this code does:** Own cancellable range requests.
-
 ### 1. `Cargo.toml`
 
 Enable browser CORS request configuration without changing package versions.
@@ -847,8 +884,6 @@ pub mod range_fetch;
 ```
 
 ## <a id="checkpoint-67e-time-out-stalled-source-reads"></a>6. Time out stalled source reads
-
-**What this code does:** Time out stalled source reads.
 
 ### 1. `src/range_fetch.rs`
 
@@ -942,8 +977,6 @@ pub fn retryable(error: &str) -> bool {
 
 ## <a id="checkpoint-67f-bound-incoming-range-body-chunks"></a>7. Bound incoming range body chunks
 
-**What this code does:** Bound incoming range body chunks.
-
 ### 1. `src/range_fetch.rs`
 
 Read bounded body chunks while retaining the checked source request owner.
@@ -1011,8 +1044,6 @@ async fn body(
 ```
 
 ## <a id="checkpoint-67g-request-and-accept-one-source-interval"></a>8. Request and accept one source interval
-
-**What this code does:** Request and accept one source interval.
 
 ### 1. `src/range_fetch.rs`
 
@@ -1128,8 +1159,6 @@ async fn body(
 
 ## <a id="checkpoint-67h-keep-range-revisions-and-background-results"></a>9. Keep range revisions and background results
 
-**What this code does:** Keep range revisions and background results.
-
 ### 1. `src/range_fetch.rs`
 
 Validate source revisions and provide background range reads.
@@ -1196,7 +1225,7 @@ impl<T: 'static> Task<T> {
 
 ## <a id="checkpoint-67hza-queue-original-source-range-reads"></a>10. Queue source range reads
 
-**What this code does:** Write the browser range-read owner and cached metadata-window read.
+Write the browser range-read owner and cached metadata-window read.
 
 ### 1. `src/stream.rs`
 
@@ -1315,7 +1344,7 @@ mod web {
 
 ## <a id="checkpoint-67hzb-probe-original-source-array-layouts"></a>11. Probe source array layouts
 
-**What this code does:** Start owned asynchronous range tasks and inspect the bounded file probe.
+Start owned asynchronous range tasks and inspect the bounded file probe.
 
 ### 1. `src/stream.rs`
 
@@ -1414,7 +1443,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-67hzc-read-original-cloud-node-tables"></a>12. Read cloud node tables
 
-**What this code does:** Read original node-table fields through the cached metadata window.
+Read original node-table fields through the cached metadata window.
 
 ### 1. `src/stream.rs`
 
@@ -1542,7 +1571,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-67i-read-source-arrays-through-the-bounded-queue"></a>13. Fetch coordinates, normals, and colours
 
-**What this code does:** Fetch bounded source-array slices through the queue already written.
+Fetch bounded source-array slices through the queue already written.
 
 ### 1. `src/stream.rs`
 
@@ -1655,7 +1684,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-67j-keep-original-ranged-source-identity"></a>14. Keep ranged source identity
 
-**What this code does:** Keep original ranged source identity.
+Keep original ranged source identity.
 
 ### 1. `src/stream.rs`
 
@@ -1709,8 +1738,6 @@ pub fn cloud_identity(head: &[u8]) -> Option<(String, String)> {
 ```
 
 ## <a id="checkpoint-67k-prepare-a-revision-bound-remote-source"></a>15. Prepare a revision-bound remote source
-
-**What this code does:** Prepare a revision bound remote source.
 
 ### 1. `src/range_source.rs`
 
@@ -1780,7 +1807,7 @@ pub mod range_source;
 
 ## <a id="checkpoint-67l-fetch-precise-coordinates-and-original-ids"></a>16. Fetch precise coordinates and IDs
 
-**What this code does:** Fetch precise coordinates and original IDs.
+Fetch precise coordinates and original IDs.
 
 ### 1. `src/range_source.rs`
 
@@ -1897,8 +1924,6 @@ mod tests {
 ```
 
 ## <a id="checkpoint-67m-cancel-range-work-when-its-runtime-closes"></a>17. Cancel range work when its runtime closes
-
-**What this code does:** Cancel range work when its runtime closes.
 
 ### 1. `src/browser_runtime.rs`
 

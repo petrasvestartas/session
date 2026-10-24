@@ -1,6 +1,6 @@
 # 3.5 · Save, replace and asynchronous transaction results
 
-**Goal:** Test partial replacement failure, preserved selection/Redo and placement upload limits. · **Steps:** 11 · **Source:** `src/app/decode.rs,src/app/loader.rs,src/state.rs`
+**Goal:** Test partial replacement failure, preserved selection/Redo and placement upload limits. · **Steps:** 11 · **Source:** `src/app/decode.rs` · `src/app/loader.rs` · `src/state.rs`
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -51,7 +51,7 @@
 
 ## <a id="checkpoint-29-identity"></a>1. Give each saved object a stable identity
 
-**What this code does:** Distinguish a scene object from the original geometry it shares.
+Distinguish a scene object from the original geometry it shares.
 
 ### 1. `Cargo.toml`
 
@@ -212,7 +212,7 @@ mod file_identity_tests;
 
 ## <a id="checkpoint-29a-snapshot"></a>2. Write a snapshot from the editable sources
 
-**What this code does:** Serialize live source meshes and their placements without changing the editor.
+Serialize live source meshes and their placements without changing the editor.
 
 ### 1. `src/document.rs`
 
@@ -390,7 +390,7 @@ mod source_tests;
 
 ## <a id="checkpoint-29b-placements"></a>3. Reopen source geometry with its placement
 
-**What this code does:** Validate stored placements before reconstructing source-backed objects.
+Validate stored placements before reconstructing source-backed objects.
 
 ### 1. `src/placement.rs`
 
@@ -768,7 +768,7 @@ mod placement_tests;
 
 ## <a id="checkpoint-29c-roundtrip"></a>4. Prove the saved document reopens faithfully
 
-**What this code does:** Check exact local source data, attributes, identities and placement through saving and loading.
+Check exact local source data, attributes, identities and placement through saving and loading.
 
 ### 1. `src/save_roundtrip_tests.rs`
 
@@ -888,7 +888,7 @@ mod selected_fit_tests;
 
 ## <a id="checkpoint-29d-save"></a>5. Download the editable document from the command line
 
-**What this code does:** Connect Save to a browser download and reopen the actual downloaded document.
+Connect Save to a browser download and reopen the actual downloaded document.
 
 ### 1. `Cargo.toml`
 
@@ -1058,7 +1058,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-30-feedback"></a>6. Report the result that actually committed
 
-**What this code does:** Keep failed reads and imports visible in command history without claiming success.
+Keep failed reads and imports visible in command history without claiming success.
 
 ### 1. `src/browser.rs`
 
@@ -1281,7 +1281,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-30a-tickets"></a>7. Give a pending read an explicit ticket
 
-**What this code does:** Describe latest-read ownership, cancellation and one-shot completion in ordinary Rust.
+Describe latest-read ownership, cancellation and one-shot completion in ordinary Rust.
 
 ### 1. `src/read_gate.rs`
 
@@ -1384,7 +1384,7 @@ pub mod renderer;
 
 ## <a id="checkpoint-30b-cancel"></a>8. Cancel reads without accepting their late result
 
-**What this code does:** Adopt one-shot tickets in the browser and give asynchronous results their own history entry.
+Adopt one-shot tickets in the browser and give asynchronous results their own history entry.
 
 ### 1. `src/file_input.rs`
 
@@ -1695,7 +1695,7 @@ Replace it with:
 
 ## <a id="checkpoint-30c-replace"></a>9. Replace a document as one reversible change
 
-**What this code does:** Prepare a whole replacement before changing live rows, then commit it through existing history.
+Prepare a whole replacement before changing live rows, then commit it through existing history.
 
 ### 1. `src/scene.rs`
 
@@ -1938,7 +1938,7 @@ mod save_roundtrip_tests;
 
 ## <a id="checkpoint-30d-bridge"></a>10. Choose append or replace before opening the picker
 
-**What this code does:** Carry the selected Open operation through asynchronous file reading and cancel older work immediately.
+Carry the selected Open operation through asynchronous file reading and cancel older work immediately.
 
 ### 1. `src/file_input.rs`
 
@@ -2388,8 +2388,6 @@ Replace it with:
 ```
 
 ## <a id="checkpoint-30e-recovery"></a>11. Prove recovery at the transaction and display boundaries
-
-**What this code does:** Test partial replacement failure, preserved selection/Redo and placement upload limits.
 
 ### 1. `src/placement.rs`
 

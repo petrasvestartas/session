@@ -1,6 +1,6 @@
 # 12.1 · Complete viewer files and published scene sources
 
-**Goal:** Connect browser save open and URL adoption. · **Steps:** 44 · **Source:** [app/manifest.rs](../../../src/app/manifest.rs) · [app/session_io.rs](../../../src/app/session_io.rs) · [app/stream.rs](../../../src/app/stream.rs) · [app/range_gate.rs](../../../src/app/range_gate.rs) · [app/fetch.rs](../../../src/app/fetch.rs) · [app/loader.rs](../../../src/app/loader.rs) · [app/live.rs](../../../src/app/live.rs) (`src/app/manifest.rs,src/app/streaming.rs,src/app/archive.rs`)
+**Goal:** Connect browser save open and URL adoption. · **Steps:** 44 · **Source:** [app/manifest.rs](../../../src/app/manifest.rs) · [app/session_io.rs](../../../src/app/session_io.rs) · [app/stream.rs](../../../src/app/stream.rs) · [app/range_gate.rs](../../../src/app/range_gate.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -56,7 +56,7 @@
 
 ## <a id="checkpoint-66-read-scene-manifests"></a>1. Parse and bound scene manifests
 
-**What this code does:** Parse supported manifest forms, then bound bytes, record counts and text content.
+Parse supported manifest forms, then bound bytes, record counts and text content.
 
 ### 1. `src/manifest.rs`
 
@@ -585,7 +585,7 @@ mod tests {
 
 ## <a id="checkpoint-66a-compare-live-byte-revisions"></a>2. Compare live byte revisions
 
-**What this code does:** Write per-URL ETag and byte-hash records.
+Write per-URL ETag and byte-hash records.
 
 ### 1. `src/live_revision.rs`
 
@@ -701,8 +701,6 @@ mod tests {
 ```
 
 ## <a id="checkpoint-66b-validate-source-records-before-allocation"></a>3. Bound finite coordinates and packed integer reads
-
-**What this code does:** Guard scalar finiteness, coordinate triples and arithmetic before allocating or indexing. Decode a bounded varint without shifts past sixty-three bits.
 
 ### 1. `src/source_validate.rs`
 
@@ -825,8 +823,6 @@ pub mod source_validate;
 
 ## <a id="checkpoint-66ba-validate-one-nurbs-knot-axis"></a>4. Validate one NURBS knot axis
 
-**What this code does:** Relate order, control count and knot count, then reject nonfinite or decreasing knots before a kernel constructor.
-
 ### 1. `src/source_validate.rs`
 
 Relate order, control count and knot count, then reject nonfinite or decreasing knots before a kernel constructor.
@@ -871,8 +867,6 @@ fn axis(order: i32, count: i32, knots: &[f64]) -> Result<usize, String> {
 ```
 
 ## <a id="checkpoint-66bb-read-bounded-json-count-and-knot-fields"></a>5. Read bounded JSON count and knot fields
-
-**What this code does:** Read unsigned JSON counts with defaults and explicit caps; reuse the knot-axis contract instead of writing a second validator.
 
 ### 1. `src/source_validate.rs`
 
@@ -947,8 +941,6 @@ fn json_axis(
 ```
 
 ## <a id="checkpoint-66bc-match-json-control-layout-to-declared-counts"></a>6. Match JSON control layout to declared counts
-
-**What this code does:** Check rational coordinate width, rows, columns and curve stride against the actual arrays before constructor allocation.
 
 ### 1. `src/source_validate.rs`
 
@@ -1025,8 +1017,6 @@ fn json_controls(source: &serde_json::Value) -> Result<(), String> {
 ```
 
 ## <a id="checkpoint-66bd-walk-json-records-within-a-depth-limit"></a>7. Walk JSON records within a depth limit
-
-**What this code does:** Use an explicit bounded stack to find original control records; reject excess nesting and reuse the already-written record validators.
 
 ### 1. `src/source_validate.rs`
 
@@ -1122,8 +1112,6 @@ mod shader_check;
 
 ## <a id="checkpoint-66be-validate-original-points-lines-and-placements"></a>8. Validate points, lines, and placements
 
-**What this code does:** Check original coordinate-bearing records and affine placement without changing source values or identity.
-
 ### 1. `src/source_validate.rs`
 
 Check original coordinate-bearing records and affine placement without changing source values or identity.
@@ -1198,8 +1186,6 @@ pub fn any<T>(_: &T) -> Result<(), String> {
 ```
 
 ## <a id="checkpoint-66bf-validate-original-mesh-indices-and-vertex-attributes"></a>9. Validate mesh indices and vertex attributes
-
-**What this code does:** Check source vertex keys, finite attributes, face rings and triangulation before constructing a mesh.
 
 ### 1. `src/source_validate.rs`
 
@@ -1279,8 +1265,6 @@ pub fn mesh(source: &proto::Mesh) -> Result<(), String> {
 ```
 
 ## <a id="checkpoint-66bg-validate-curve-and-surface-control-addresses"></a>10. Validate curve and surface control addresses
-
-**What this code does:** Use checked stride arithmetic to locate the final addressed control and reuse the shared knot and scalar contracts.
 
 ### 1. `src/source_validate.rs`
 
@@ -1375,8 +1359,6 @@ pub fn surface(source: &proto::NurbsSurface) -> Result<(), String> {
 
 ## <a id="checkpoint-66bh-validate-cloud-columns-and-octree-addresses"></a>11. Validate cloud columns and octree addresses
 
-**What this code does:** Match optional original cloud columns and octree ranges to actual point and node counts.
-
 ### 1. `src/source_validate.rs`
 
 Match optional original cloud columns and octree ranges to actual point and node counts.
@@ -1451,8 +1433,6 @@ pub fn cloud(source: &proto::PointCloud) -> Result<(), String> {
 ```
 
 ## <a id="checkpoint-66bi-validate-brep-element-payloads-and-shared-definitions"></a>12. Validate BRep Element payloads and shared definitions
-
-**What this code does:** Check BRep records and encoded Element geometry, then validate every shared definition without expanding instances into copied geometry.
 
 ### 1. `src/source_validate.rs`
 
@@ -1575,8 +1555,6 @@ pub fn definitions(d: &proto::Objects, instances: usize) -> Result<(), String> {
 
 ## <a id="checkpoint-66bj-validate-the-complete-original-protobuf-session"></a>13. Validate the complete protobuf session
 
-**What this code does:** Apply the existing per-record validators and enforce total original-object and hierarchy-depth budgets before allocation.
-
 ### 1. `src/source_validate.rs`
 
 Apply the existing per-record validators and enforce total original-object and hierarchy-depth budgets before allocation.
@@ -1679,8 +1657,6 @@ pub fn session(source: &proto::Session) -> Result<(), String> {
 ```
 
 ## <a id="checkpoint-66bk-connect-retained-session-validation-and-independent-witnesses"></a>14. Validate Retained Session Data
-
-**What this code does:** Reuse the protobuf validators for already-decoded original kernel objects and register independent malformed-record witnesses.
 
 ### 1. `src/source_validate.rs`
 
@@ -1799,7 +1775,7 @@ mod tests {
 
 ## <a id="checkpoint-66c-describe-the-saved-scene-metadata"></a>15. Define Saved Scene Metadata
 
-**What this code does:** Describe the saved scene metadata.
+Describe the saved scene metadata.
 
 ### 1. `src/archive.rs`
 
@@ -1922,7 +1898,7 @@ pub mod archive;
 
 ## <a id="checkpoint-66d-encode-decode-the-viewer-file"></a>16. Encode and Decode the Viewer File
 
-**What this code does:** Encode decode the viewer file.
+Encode decode the viewer file.
 
 ### 1. `src/archive.rs`
 
@@ -2190,7 +2166,7 @@ mod tests {
 
 ## <a id="checkpoint-66e-give-copied-lines-independent-identities"></a>17. Assign Independent IDs to Copied Lines
 
-**What this code does:** Give copied lines independent identities.
+Give copied lines independent identities.
 
 ### 1. `src/scene.rs`
 
@@ -2294,7 +2270,7 @@ pub struct LineObject {
 
 ## <a id="checkpoint-66f-snapshot-geometry-types"></a>18. Snapshot Geometry Types
 
-**What this code does:** Snapshot original geometry types.
+Snapshot original geometry types.
 
 ### 1. `src/geometry_snapshot.rs`
 
@@ -2537,8 +2513,6 @@ mod tests {
 ```
 
 ## <a id="checkpoint-66g-retain-geometry-free-document-headers"></a>19. Retain Geometry-Free Document Headers
-
-**What this code does:** Retain geometry free document headers.
 
 ### 1. `src/hierarchy.rs`
 
@@ -2830,7 +2804,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-66h-inventory-saved-document-namespaces"></a>20. Index Saved Document Namespaces
 
-**What this code does:** Inventory saved document namespaces.
+Inventory saved document namespaces.
 
 ### 1. `src/scene_archive.rs`
 
@@ -2927,8 +2901,6 @@ pub mod scene_archive;
 ```
 
 ## <a id="checkpoint-66i-map-saved-source-identities"></a>21. Map Saved Source Identities
-
-**What this code does:** Map saved source identities.
 
 ### 1. `src/archive_identity.rs`
 
@@ -3034,7 +3006,7 @@ pub mod archive_identity;
 
 ## <a id="checkpoint-66j-store-cloud-size-as-presentation"></a>22. Store Point-Cloud Size in Presentation
 
-**What this code does:** Store cloud size as presentation.
+Store cloud size as presentation.
 
 ### 1. `src/cloud.rs`
 
@@ -3147,7 +3119,7 @@ Replace it with:
 
 ## <a id="checkpoint-66k-prepare-saved-documents"></a>23. Prepare Saved Scene Documents
 
-**What this code does:** Prepare original saved documents.
+Prepare original saved documents.
 
 ### 1. `src/archive_document.rs`
 
@@ -3274,8 +3246,6 @@ pub mod archive_document;
 
 ## <a id="checkpoint-66l-save-document-display-settings"></a>24. Save Document Display Settings
 
-**What this code does:** Save document display settings.
-
 ### 1. `src/archive_presentation.rs`
 
 Address presentation settings by saved original document identities.
@@ -3364,7 +3334,7 @@ pub mod archive_presentation;
 
 ## <a id="checkpoint-66m-save-the-complete-supported-scene"></a>25. Serialize the Complete Scene
 
-**What this code does:** Save the complete supported scene.
+Save the complete supported scene.
 
 ### 1. `src/scene_archive.rs`
 
@@ -3561,7 +3531,7 @@ mod tests {
 
 ## <a id="checkpoint-66n-prepare-document-sources"></a>26. Prepare Document Sources
 
-**What this code does:** Prepare original document sources.
+Prepare original document sources.
 
 ### 1. `src/document_source.rs`
 
@@ -3692,7 +3662,7 @@ pub mod document_source;
 
 ## <a id="checkpoint-66o-prepare-every-supported-geometry-row"></a>27. Prepare Geometry Rows for Export
 
-**What this code does:** Prepare every supported geometry row.
+Prepare every supported geometry row.
 
 ### 1. `src/document_geometry.rs`
 
@@ -3824,7 +3794,7 @@ pub mod document_geometry;
 
 ## <a id="checkpoint-66p-adopt-a-complete-source-document"></a>28. Load a Complete Source Document
 
-**What this code does:** Adopt a complete source document.
+Adopt a complete source document.
 
 ### 1. `src/scene_document.rs`
 
@@ -3951,8 +3921,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-66q-restore-world-labels-layer-links"></a>29. Restore World Labels and Layer Links
 
-**What this code does:** Restore world labels and layer links.
-
 ### 1. `src/archive_restore_texts.rs`
 
 Restore saved world labels without serializing derived GPU addresses.
@@ -4059,8 +4027,6 @@ pub mod archive_restore_texts;
 ```
 
 ## <a id="checkpoint-66r-restore-scoped-presentation-settings"></a>30. Restore Scoped Presentation Settings
-
-**What this code does:** Restore scoped presentation settings.
 
 ### 1. `src/archive_restore_flags.rs`
 
@@ -4176,7 +4142,7 @@ pub mod archive_restore_flags;
 
 ## <a id="checkpoint-66s-reopen-a-complete-viewer-file"></a>31. Reopen a Saved Viewer File
 
-**What this code does:** Reopen a complete viewer file.
+Reopen a complete viewer file.
 
 ### 1. `src/scene_document.rs`
 
@@ -4668,7 +4634,7 @@ mod tests {
 
 ## <a id="checkpoint-66t-prepare-file-adoption-live-history"></a>32. Track File Loads in Scene History
 
-**What this code does:** Prepare file adoption and live history.
+Prepare file adoption and live history.
 
 ### 1. `src/publication.rs`
 
@@ -5099,8 +5065,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-66u-share-repeated-source-placements"></a>33. Share Repeated Source Placements
 
-**What this code does:** Share repeated source placements.
-
 ### 1. `src/scene.rs`
 
 Share complete original document rows while assigning independent instance identities.
@@ -5242,7 +5206,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-66v-start-an-empty-scene-without-examples"></a>34. Initialize an Empty Scene
 
-**What this code does:** Start an empty scene without examples.
+Start an empty scene without examples.
 
 ### 1. `src/scene.rs`
 
@@ -5346,8 +5310,6 @@ Replace it with:
 ```
 
 ## <a id="checkpoint-66w-assemble-placed-manifest-entries"></a>35. Assemble Placed Manifest Entries
-
-**What this code does:** Assemble placed manifest entries.
 
 ### 1. `src/scene_manifest.rs`
 
@@ -5594,8 +5556,6 @@ texts: [{text: 'CAD Ø25', at: [0,0,0], height: 0.1}]
 ```
 
 ## <a id="checkpoint-66x-resolve-scene-live-urls"></a>36. Resolve Scene and Live URLs
-
-**What this code does:** Resolve scene and live URLs.
 
 ### 1. `src/publication_route.rs`
 
@@ -5844,7 +5804,7 @@ mod tests {
 
 ## <a id="checkpoint-66y-retain-validated-live-source-revisions"></a>37. Retain Validated Source Revisions
 
-**What this code does:** Retain validated live source revisions.
+Retain validated live source revisions.
 
 ### 1. `src/publication_index.rs`
 
@@ -6156,7 +6116,7 @@ mod tests {
 
 ## <a id="checkpoint-66z-fetch-bounded-source-bodies"></a>38. Fetch Bounded Source Payloads
 
-**What this code does:** Fetch bounded source bodies.
+Fetch bounded source bodies.
 
 ### 1. `src/publication_fetch.rs`
 
@@ -6306,8 +6266,6 @@ pub mod publication_fetch;
 
 ## <a id="checkpoint-66aa-read-a-complete-url-source-revision"></a>39. Read a Complete URL Source Revision
 
-**What this code does:** Read a complete URL source revision.
-
 ### 1. `src/browser_publication.rs`
 
 Read complete original URL sources before publishing a replacement.
@@ -6425,7 +6383,7 @@ pub mod browser_publication;
 
 ## <a id="checkpoint-66ab-own-cancel-the-url-loader"></a>40. Manage and Cancel the URL Loader
 
-**What this code does:** Own and cancel the URL loader.
+Own and cancel the URL loader.
 
 ### 1. `src/browser_publication.rs`
 
@@ -6565,7 +6523,7 @@ async fn read(
 
 ## <a id="checkpoint-66ac-accept-only-current-url-completions"></a>41. Accept Current URL Completions
 
-**What this code does:** Accept only current URL completions.
+Accept only current URL completions.
 
 ### 1. `src/browser_publication.rs`
 
@@ -6662,7 +6620,7 @@ async fn read(
 
 ## <a id="checkpoint-66ad-watch-published-source-changes"></a>42. Poll Published Source Updates
 
-**What this code does:** Watch published source changes.
+Watch published source changes.
 
 ### 1. `src/browser_publication.rs`
 
@@ -6730,7 +6688,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-66ae-inspect-published-source-identities"></a>43. Inspect Published Source IDs
 
-**What this code does:** Inspect published source identities.
+Inspect published source identities.
 
 ### 1. `src/browser.rs`
 
@@ -6836,8 +6794,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ## <a id="checkpoint-66af-connect-browser-save-open-url-adoption"></a>44. Wire Browser Save, Open, and URL Loading
-
-**What this code does:** Connect browser save open and URL adoption.
 
 ### 1. `src/browser_runtime.rs`
 

@@ -1,6 +1,6 @@
 # 21.4 · Reversed depth and homogeneous near clipping
 
-**Goal:** Give every depth reader and writer the same near-one convention. · **Steps:** 3 · **Source:** [camera.rs](../../../../src/camera.rs) · [state.rs](../../../../src/state.rs) · [engine/gpu/objects.rs](../../../../src/engine/gpu/objects.rs) · [engine/gpu/frame.rs](../../../../src/engine/gpu/frame.rs) · [engine/gpu/targets.rs](../../../../src/engine/gpu/targets.rs) · [shaders/grid.wgsl](../../../../src/shaders/grid.wgsl) · [shaders/ribbon.wgsl](../../../../src/shaders/ribbon.wgsl) · [app/cplane.rs](../../../../src/app/cplane.rs) (`src/camera.rs,src/app/units.rs,src/engine/gpu/anchor.rs`)
+**Goal:** Give every depth reader and writer the same near-one convention. · **Steps:** 3 · **Source:** [camera.rs](../../../../src/camera.rs) · [state.rs](../../../../src/state.rs) · [engine/gpu/objects.rs](../../../../src/engine/gpu/objects.rs) · [engine/gpu/frame.rs](../../../../src/engine/gpu/frame.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -64,31 +64,34 @@
   </defs>
   <rect x="2" y="2" width="1116" height="184" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
   <rect x="14" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Large World Coordinates (f64): P_world = 10^7 m</text>
-  <circle cx="64" cy="138" r="4" fill="#111111"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="64" y="154" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">(0,0,0)</text>
-  <line x1="64" y1="138" x2="236" y2="74" stroke="#94a3b8" stroke-width="1.75" stroke-dasharray="5 3" marker-end="url(#arr)"/>
-  <circle cx="244" cy="70" r="5" fill="#dc2626"/>
-  <polygon points="244,70 278,54 272,92" fill="#dbeafe" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="218" y="54" font-family="monospace" font-size="9.5" font-weight="700" fill="#dc2626">Anchor_f64</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">CPU CommandEncoder Records GPU Commands</text>
+  <rect x="54" y="50" width="264" height="102" rx="6" fill="#f8fafc" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="76" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">wgpu::CommandEncoder</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="100" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#2563eb">1. begin_render_pass (3D Scene)</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="122" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#16a34a">2. begin_render_pass (Overlay/UI)</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="142" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#dc2626">3. encoder.finish()</text>
   <line x1="358" y1="94" x2="384" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
   <rect x="388" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">CPU f64 Delta: P_rel_f32 = (P_world_f64 - Anchor_f64) as f32</text>
-  <circle cx="486" cy="112" r="5" fill="#dc2626"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="486" y="132" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#dc2626">Anchor = (0,0,0)_rel</text>
-  <line x1="486" y1="112" x2="574" y2="82" stroke="#16a34a" stroke-width="2.5" marker-end="url(#arrG)"/>
-  <polygon points="574,82 634,58 622,118" fill="#bbf7d0" stroke="#111111" stroke-width="2"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="606" y="144" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#16a34a">||P_rel|| &lt; 10 m (Zero Jitter)</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Pass 1 (LoadOp::Clear) -&gt; Pass 2 (LoadOp::Load)</text>
+  <rect x="416" y="52" width="128" height="96" rx="4" fill="#dbeafe" stroke="#2563eb" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="480" y="76" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Pass 1: Clear</text>
+  <polygon points="452,132 480,88 508,132" fill="#93c5fd" stroke="#111111" stroke-width="1.5"/>
+  <line x1="544" y1="100" x2="572" y2="100" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="576" y="52" width="128" height="96" rx="4" fill="#dcfce7" stroke="#16a34a" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="640" y="76" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Pass 2: Load</text>
+  <polygon points="612,126 640,86 668,126" fill="#93c5fd" stroke="#111111" stroke-width="1.5"/>
+  <rect x="590" y="130" width="100" height="12" fill="#fef08a" stroke="#111111" stroke-width="1"/>
   <line x1="732" y1="94" x2="758" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
   <rect x="762" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Jitter-Free Far-Origin Orbit + Crisp Depth Precision</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">queue.submit([cmd_buf]) -&gt; GPU Execution</text>
   <rect x="806" y="44" width="256" height="118" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
-  <polygon points="866,142 934,58 1002,142" fill="#dbeafe" stroke="#111111" stroke-width="2.2"/>
-  <line x1="934" y1="58" x2="934" y2="142" stroke="#111111" stroke-width="1.75"/>
+  <polygon points="884,132 934,58 984,132" fill="#93c5fd" stroke="#111111" stroke-width="2"/>
+  <rect x="822" y="136" width="224" height="18" rx="3" fill="#f1f5f9" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="149" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Composited Frame Ready</text>
 </svg>
 </div>
 
-**What this code does:** Give frame depth state one explicit owner before changing its convention.
+Give frame depth state one explicit owner before changing its convention.
 
 ### 1. `src/depth.rs`
 
@@ -489,7 +492,7 @@ mod tests {
 
 ## <a id="checkpoint-96zzzzzu-share-homogeneous-near-plane-ink-clipping"></a>2. Share homogeneous near-plane ink clipping
 
-**What this code does:** Clip expanded original ink through one homogeneous recipe.
+Clip expanded original ink through one homogeneous recipe.
 
 ### 1. `src/near_clip.wgsl`
 
@@ -1040,7 +1043,47 @@ mod near_tests {
 
 ## <a id="checkpoint-96zzzzzz-use-reversed-depth-across-the-frame"></a>3. Use reversed depth across the frame
 
-**What this code does:** Give every depth reader and writer the same near-one convention.
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="184" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Large World Coordinates (f64): P_world = 10^7 m</text>
+  <circle cx="64" cy="138" r="4" fill="#111111"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="64" y="154" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">(0,0,0)</text>
+  <line x1="64" y1="138" x2="236" y2="74" stroke="#94a3b8" stroke-width="1.75" stroke-dasharray="5 3" marker-end="url(#arr)"/>
+  <circle cx="244" cy="70" r="5" fill="#dc2626"/>
+  <polygon points="244,70 278,54 272,92" fill="#dbeafe" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="218" y="54" font-family="monospace" font-size="9.5" font-weight="700" fill="#dc2626">Anchor_f64</text>
+  <line x1="358" y1="94" x2="384" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="388" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">CPU f64 Delta: P_rel_f32 = (P_world_f64 - Anchor_f64) as f32</text>
+  <circle cx="486" cy="112" r="5" fill="#dc2626"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="486" y="132" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#dc2626">Anchor = (0,0,0)_rel</text>
+  <line x1="486" y1="112" x2="574" y2="82" stroke="#16a34a" stroke-width="2.5" marker-end="url(#arrG)"/>
+  <polygon points="574,82 634,58 622,118" fill="#bbf7d0" stroke="#111111" stroke-width="2"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="606" y="144" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#16a34a">||P_rel|| &lt; 10 m (Zero Jitter)</text>
+  <line x1="732" y1="94" x2="758" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="762" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Jitter-Free Far-Origin Orbit + Crisp Depth Precision</text>
+  <rect x="806" y="44" width="256" height="118" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <polygon points="866,142 934,58 1002,142" fill="#dbeafe" stroke="#111111" stroke-width="2.2"/>
+  <line x1="934" y1="58" x2="934" y2="142" stroke="#111111" stroke-width="1.75"/>
+</svg>
+</div>
 
 ### 1. `src/depth.rs`
 

@@ -1,6 +1,6 @@
 # 9.1 · Original surfaces, analytic normals and trim boundaries
 
-**Goal:** Read ordered edge-use and interval labels from mesh vertices. · **Steps:** 11 · **Source:** [app/walk/brep.rs](../../../src/app/walk/brep.rs) · [app/walk/brep_edges.rs](../../../src/app/walk/brep_edges.rs) · [app/walk/brep_orient.rs](../../../src/app/walk/brep_orient.rs) · [app/walk/brep_shapes.rs](../../../src/app/walk/brep_shapes.rs) · [engine/gpu/faces.rs](../../../src/engine/gpu/faces.rs) (`src/app/walk/brep_shapes.rs,src/app/walk/brep_orient.rs,src/shaders/normals.wgsl`)
+**Goal:** Read ordered edge-use and interval labels from mesh vertices. · **Steps:** 11 · **Source:** [app/walk/brep.rs](../../../src/app/walk/brep.rs) · [app/walk/brep_edges.rs](../../../src/app/walk/brep_edges.rs) · [app/walk/brep_orient.rs](../../../src/app/walk/brep_orient.rs) · [app/walk/brep_shapes.rs](../../../src/app/walk/brep_shapes.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -48,7 +48,7 @@
 
 ## <a id="checkpoint-55-validation"></a>1. Validate surface control storage
 
-**What this code does:** Validate original surface control storage.
+Validate original surface control storage.
 
 ### 1. `src/surface.rs`
 
@@ -160,7 +160,7 @@ pub mod surface;
 
 ## <a id="checkpoint-55a-grid"></a>2. Keep UV coordinates beside world samples
 
-**What this code does:** Keep UV coordinates beside original world samples.
+Keep UV coordinates beside original world samples.
 
 ### 1. `src/surface.rs`
 
@@ -267,8 +267,6 @@ impl Grid {
 
 ## <a id="checkpoint-55b-normals"></a>3. Use analytic normals and finite singular-point fallbacks
 
-**What this code does:** Use analytic normals and finite singular-point fallbacks.
-
 ### 1. `src/surface.rs`
 
 Normalise analytic normals and safely handle singular sample positions.
@@ -327,8 +325,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ## <a id="checkpoint-55c-display"></a>4. Prepare derived surface display without losing its source
-
-**What this code does:** Prepare derived surface display without losing its source.
 
 ### 1. `src/surface.rs`
 
@@ -461,7 +457,7 @@ pub fn example() -> NurbsSurface {
 
 ## <a id="checkpoint-55d-source-row"></a>5. Attach surface ownership to existing scene rows
 
-**What this code does:** Attach original surface ownership to existing scene rows.
+Attach original surface ownership to existing scene rows.
 
 ### 1. `src/scene.rs`
 
@@ -621,7 +617,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-55e-identities"></a>6. Resolve surface face and domain edges
 
-**What this code does:** Resolve original surface face and domain edges.
+Resolve original surface face and domain edges.
 
 ### 1. `src/pick_sources.rs`
 
@@ -809,8 +805,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-55f-ownership"></a>7. Account for shared source and UV cache owners
 
-**What this code does:** Account for shared source and UV cache owners.
-
 ### 1. `src/memory.rs`
 
 Count source control/metadata bytes and cached UV/triangle/boundary allocations by unique owner.
@@ -904,7 +898,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-55g-surface"></a>8. Draw and pick the parametric roof
 
-**What this code does:** Draw and pick the original parametric roof.
+Draw and pick the original parametric roof.
 
 ### 1. `src/editor.rs`
 
@@ -1320,7 +1314,7 @@ fn actual_surface_pick_keeps_one_cad_face_and_four_domain_edge_ids() {
 
 ## <a id="checkpoint-55za-read-original-edge-use-samples"></a>9. Read edge-use samples
 
-**What this code does:** Write edge-use and chain records, parameter ordering and exact linear pcurve endpoints.
+Write edge-use and chain records, parameter ordering and exact linear pcurve endpoints.
 
 ### 1. `src/cad_edges.rs`
 
@@ -1442,7 +1436,7 @@ pub mod cad_edges;
 
 ## <a id="checkpoint-55zb-follow-original-isoparametric-boundaries"></a>10. Follow isoparametric boundaries
 
-**What this code does:** Follow an exact constant-u or constant-v boundary through the existing face mesh.
+Follow an exact constant-u or constant-v boundary through the existing face mesh.
 
 ### 1. `src/cad_edges.rs`
 
@@ -1550,8 +1544,6 @@ pub struct EdgeChain {
 ```
 
 ## <a id="checkpoint-55zc-follow-original-constrained-trim-labels"></a>11. Follow constrained trim labels
-
-**What this code does:** Read ordered edge-use and interval labels from mesh vertices.
 
 ### 1. `src/cad_edges.rs`
 

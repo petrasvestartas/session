@@ -1,6 +1,6 @@
 # 16.2 · Split original curves and joined faces
 
-**Goal:** Exercise curve pieces source inheritance and one-step Undo. · **Steps:** 8 · **Source:** [app/command/verbs/project_to_plane.rs](../../../src/app/command/verbs/project_to_plane.rs) · [app/command/verbs/extend.rs](../../../src/app/command/verbs/extend.rs) · [app/splitting.rs](../../../src/app/splitting.rs) · [app/command/verbs/measure.rs](../../../src/app/command/verbs/measure.rs) · [app/command/verbs/trim/parts.rs](../../../src/app/command/verbs/trim/parts.rs) · [app/command/verbs/explode.rs](../../../src/app/command/verbs/explode.rs) · [app/walk/frames.rs](../../../src/app/walk/frames.rs) (`src/app/booleans.rs,src/app/measurements.rs,src/app/recipes.rs`)
+**Goal:** Exercise curve pieces source inheritance and one-step Undo. · **Steps:** 8 · **Source:** [app/command/verbs/project_to_plane.rs](../../../src/app/command/verbs/project_to_plane.rs) · [app/command/verbs/extend.rs](../../../src/app/command/verbs/extend.rs) · [app/splitting.rs](../../../src/app/splitting.rs) · [app/command/verbs/measure.rs](../../../src/app/command/verbs/measure.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -44,7 +44,7 @@
 
 ## <a id="checkpoint-82-divide-current-original-curve-families"></a>1. Divide curves and joined faces
 
-**What this code does:** Bound the cutter count and dispatch original lines, polylines, curves, surfaces and selected BRep faces to the Session split algorithms.
+Bound the cutter count and dispatch original lines, polylines, curves, surfaces and selected BRep faces to the Session split algorithms.
 
 ### 1. `src/split_geometry.rs`
 
@@ -188,7 +188,7 @@ pub fn named(source: &Geometry, mut pieces: Vec<Geometry>) -> Vec<Geometry> {
 </svg>
 </div>
 
-**What this code does:** Own the split target and toggle original cutters.
+Own the split target and toggle original cutters.
 
 ### 1. `src/split_draft.rs`
 
@@ -274,8 +274,6 @@ pub mod split_draft;
 
 ## <a id="checkpoint-82b-transform-cutters-into-the-target-frame-before-dividing"></a>3. Transform cutters into the target frame before dividing
 
-**What this code does:** Transform cutters into the target frame before dividing.
-
 ### 1. `src/split_draft.rs`
 
 Prepare original split pieces from fresh local-frame cutter copies.
@@ -328,7 +326,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-82c-adopt-sibling-pieces-beside-the-original-target"></a>4. Adopt sibling pieces beside the target
 
-**What this code does:** Adopt sibling pieces beside the original target.
+Adopt sibling pieces beside the original target.
 
 ### 1. `src/split_draft.rs`
 
@@ -384,8 +382,6 @@ pub fn adopt(
 ```
 
 ## <a id="checkpoint-82d-connect-pending-split-completion-to-one-history-change"></a>5. Connect pending split completion to one history change
-
-**What this code does:** Connect pending split completion to one history change.
 
 ### 1. `src/editor.rs`
 
@@ -564,8 +560,6 @@ Replace it with:
 ```
 
 ## <a id="checkpoint-82e-route-cutter-picks-cancellation-and-temporary-highlights"></a>6. Route cutter picks cancellation and temporary highlights
-
-**What this code does:** Route cutter picks cancellation and temporary highlights.
 
 ### 1. `src/editor.rs`
 
@@ -755,8 +749,6 @@ Replace it with:
 ```
 
 ## <a id="checkpoint-82f-register-split-and-route-mouse-touch-and-confirmation"></a>7. Register Split and route mouse touch and confirmation
-
-**What this code does:** Register Split and route mouse touch and confirmation.
 
 ### 1. `src/commands.rs`
 
@@ -1100,8 +1092,6 @@ Replace it with:
 ```
 
 ## <a id="checkpoint-82g-exercise-curve-pieces-source-inheritance-and-one-step-undo"></a>8. Exercise curve pieces source inheritance and one-step Undo
-
-**What this code does:** Exercise curve pieces source inheritance and one-step Undo.
 
 ### 1. `src/split_tests.rs`
 

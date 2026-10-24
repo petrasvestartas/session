@@ -1,6 +1,6 @@
 # 21.3 · Browser ownership of frame matrices and wakeups
 
-**Goal:** Keep browser drawing and asynchronous interaction in one precise local frame. · **Steps:** 3 · **Source:** [camera.rs](../../../src/camera.rs) · [state.rs](../../../src/state.rs) · [engine/gpu/objects.rs](../../../src/engine/gpu/objects.rs) · [engine/gpu/frame.rs](../../../src/engine/gpu/frame.rs) · [engine/gpu/targets.rs](../../../src/engine/gpu/targets.rs) · [shaders/grid.wgsl](../../../src/shaders/grid.wgsl) · [shaders/ribbon.wgsl](../../../src/shaders/ribbon.wgsl) · [app/cplane.rs](../../../src/app/cplane.rs) (`src/camera.rs,src/app/units.rs,src/engine/gpu/anchor.rs`)
+**Goal:** Keep browser drawing and asynchronous interaction in one precise local frame. · **Steps:** 3 · **Source:** [camera.rs](../../../src/camera.rs) · [state.rs](../../../src/state.rs) · [engine/gpu/objects.rs](../../../src/engine/gpu/objects.rs) · [engine/gpu/frame.rs](../../../src/engine/gpu/frame.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -46,7 +46,7 @@
 
 ## <a id="checkpoint-96zzzzzq-prepare-one-shared-render-origin"></a>1. Prepare one shared render origin
 
-**What this code does:** Adopt one origin and synchronize original draw inputs before rendering or picking.
+Adopt one origin and synchronize original draw inputs before rendering or picking.
 
 ### 1. `src/render_space.rs`
 
@@ -411,7 +411,7 @@ fn actual_shared_origin_keeps_all_original_lanes_and_pending_picks_coherent() {
 
 ## <a id="checkpoint-96zzzzzr-prepare-browser-frame-matrices-and-owned-wakes"></a>2. Prepare browser frame matrices and owned wakes
 
-**What this code does:** Use one browser render matrix and prepare a wake owned by the runtime.
+Use one browser render matrix and prepare a wake owned by the runtime.
 
 ### 1. `src/timer.rs`
 
@@ -755,8 +755,6 @@ Replace it with:
 ```
 
 ## <a id="checkpoint-96zzzzzs-adopt-the-shared-origin-in-the-browser"></a>3. Adopt the shared origin in the browser
-
-**What this code does:** Keep browser drawing and asynchronous interaction in one precise local frame.
 
 ### 1. `src/browser_rebase.rs`
 

@@ -1,6 +1,6 @@
 # 16.1 · Projection, extension and stable edit targets
 
-**Goal:** Accept original cutter curves and a valid selected BRep face. · **Steps:** 31 · **Source:** [app/command/verbs/project_to_plane.rs](../../../../src/app/command/verbs/project_to_plane.rs) · [app/command/verbs/extend.rs](../../../../src/app/command/verbs/extend.rs) · [app/splitting.rs](../../../../src/app/splitting.rs) · [app/command/verbs/measure.rs](../../../../src/app/command/verbs/measure.rs) · [app/command/verbs/trim/parts.rs](../../../../src/app/command/verbs/trim/parts.rs) · [app/command/verbs/explode.rs](../../../../src/app/command/verbs/explode.rs) · [app/walk/frames.rs](../../../../src/app/walk/frames.rs) (`src/app/booleans.rs,src/app/measurements.rs,src/app/recipes.rs`)
+**Goal:** Accept original cutter curves and a valid selected BRep face. · **Steps:** 31 · **Source:** [app/command/verbs/project_to_plane.rs](../../../../src/app/command/verbs/project_to_plane.rs) · [app/command/verbs/extend.rs](../../../../src/app/command/verbs/extend.rs) · [app/splitting.rs](../../../../src/app/splitting.rs) · [app/command/verbs/measure.rs](../../../../src/app/command/verbs/measure.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -47,7 +47,7 @@
 
 ## <a id="checkpoint-81-project-originals-through-the-current-plane-algorithms"></a>1. Project originals in their placed frame
 
-**What this code does:** Conjugate the world projection through the original placement transform.
+Conjugate the world projection through the original placement transform.
 
 ### 1. `src/project_geometry.rs`
 
@@ -388,7 +388,7 @@ mod tests {
 
 ## <a id="checkpoint-81zza-read-original-cutters-in-object-frames"></a>2. Read cutters in object frames
 
-**What this code does:** Write the cutter records and convert supported originals to curves or planar boundaries.
+Write the cutter records and convert supported originals to curves or planar boundaries.
 
 ### 1. `src/source_cut.rs`
 
@@ -499,7 +499,7 @@ pub mod source_mesh_topology;
 
 ## <a id="checkpoint-81zzb-find-original-cutters-near-the-pointer"></a>3. Find cutters near the pointer
 
-**What this code does:** Build fence planes and unit rays in the original object frame.
+Build fence planes and unit rays in the original object frame.
 
 ### 1. `src/source_cut.rs`
 
@@ -770,7 +770,7 @@ mod tests {
 
 ## <a id="checkpoint-81zzc-grow-original-domains-and-extract-the-tail"></a>4. Grow domains and extract the tail
 
-**What this code does:** Define end and reach records.
+Define end and reach records.
 
 ### 1. `src/extend_reach.rs`
 
@@ -881,7 +881,51 @@ pub mod source_mesh_topology;
 
 ## <a id="checkpoint-81zzd-find-original-end-directions-and-length-reach"></a>5. Find end directions and length reach
 
-**What this code does:** Find outward directions for supported original curve families.
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="184" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Curve Quadrature ∑ w_i ||C'(t_i)|| &amp; Surface Patch dA = ||Su×Sv||</text>
+  <path d="M 56 138 Q 112 52 176 126" fill="none" stroke="#dc2626" stroke-width="2.5"/>
+  <circle cx="84" cy="98" r="4" fill="#fef08a" stroke="#111111" stroke-width="1.5"/>
+  <circle cx="116" cy="84" r="4" fill="#fef08a" stroke="#111111" stroke-width="1.5"/>
+  <circle cx="148" cy="98" r="4" fill="#fef08a" stroke="#111111" stroke-width="1.5"/>
+  <polygon points="196,136 226,74 288,74 258,136" fill="#dbeafe" stroke="#111111" stroke-width="1.75"/>
+  <line x1="226" y1="105" x2="268" y2="105" stroke="#2563eb" stroke-width="2" marker-end="url(#arrB)"/>
+  <line x1="226" y1="105" x2="242" y2="74" stroke="#16a34a" stroke-width="2" marker-end="url(#arrG)"/>
+  <line x1="358" y1="94" x2="384" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="388" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Divergence Volume: V = (1/6) ∑ det(v0, v1, v2) &amp; Centroid C_g</text>
+  <circle cx="448" cy="138" r="4.5" fill="#111111"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="448" y="154" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">Origin O</text>
+  <polygon points="448,138 556,58 656,92" fill="#dbeafe" fill-opacity="0.55" stroke="#2563eb" stroke-width="1.5" stroke-dasharray="4 3"/>
+  <polygon points="556,58 656,92 596,142" fill="#93c5fd" stroke="#111111" stroke-width="2"/>
+  <circle cx="576" cy="104" r="5" fill="#fef08a" stroke="#dc2626" stroke-width="2"/>
+  <line x1="732" y1="94" x2="758" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="762" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Exact Length, Area, Volume &amp; Centroid Marker</text>
+  <rect x="806" y="44" width="256" height="118" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <polygon points="846,136 894,64 988,64 940,136" fill="#dbeafe" stroke="#111111" stroke-width="2"/>
+  <circle cx="917" cy="100" r="6" fill="#fef08a" stroke="#dc2626" stroke-width="2.2"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="1016" y="96" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">C_g</text>
+</svg>
+</div>
+
+Find outward directions for supported original curve families.
 
 ### 1. `src/extend_reach.rs`
 
@@ -1061,7 +1105,7 @@ fn by_length(
 
 ## <a id="checkpoint-81zze-stop-straight-growth-at-the-first-boundary"></a>6. Stop straight growth at the first boundary
 
-**What this code does:** Find the nearest positive crossing of original planes, curves and transformed meshes along a straight end..
+Find the nearest positive crossing of original planes, curves and transformed meshes along a straight end..
 
 ### 1. `src/extend_reach.rs`
 
@@ -1190,7 +1234,7 @@ fn straight(from: &Point, direction: &Vector, reach: &Reach) -> Result<Point, St
 </svg>
 </div>
 
-**What this code does:** Grow the original NURBS domain and inspect curve or plane crossings beyond its old end.
+Grow the original NURBS domain and inspect curve or plane crossings beyond its old end.
 
 ### 1. `src/extend_reach.rs`
 
@@ -1321,7 +1365,7 @@ fn to_boundary(
 
 ## <a id="checkpoint-81zzg-dispatch-original-extension-families"></a>8. Dispatch extension families
 
-**What this code does:** Connect the existing reach helpers for lines, polylines and NURBS curves.
+Connect the existing reach helpers for lines, polylines and NURBS curves.
 
 ### 1. `src/extend_reach.rs`
 
@@ -1609,7 +1653,7 @@ fn straight(from: &Point, direction: &Vector, reach: &Reach) -> Result<Point, St
 
 ## <a id="checkpoint-81a-find-source-cutters-and-current-extension-reach"></a>9. Edit curve intervals
 
-**What this code does:** Trim or extend supported original curves by a normalized physical-length interval.
+Trim or extend supported original curves by a normalized physical-length interval.
 
 ### 1. `src/interval_geometry.rs`
 
@@ -1770,7 +1814,7 @@ mod tests {
 
 ## <a id="checkpoint-81b-capture-eligible-original-identity-and-placement"></a>10. Capture eligible identity and placement
 
-**What this code does:** Capture eligible original identity and placement.
+Capture eligible original identity and placement.
 
 ### 1. `src/source_edit.rs`
 
@@ -1866,7 +1910,7 @@ pub mod source_mesh_topology;
 
 ## <a id="checkpoint-81c-replace-an-original-without-replacing-its-row"></a>11. Replace an without replacing its row
 
-**What this code does:** Replace an original without replacing its row.
+Replace an original without replacing its row.
 
 ### 1. `src/scene.rs`
 
@@ -2009,8 +2053,6 @@ impl Scene {
 
 ## <a id="checkpoint-81d-own-the-originals-selected-for-projection"></a>12. Own the originals selected for projection
 
-**What this code does:** Own the originals selected for projection.
-
 ### 1. `src/project_draft.rs`
 
 Capture selected original projection owners.
@@ -2079,8 +2121,6 @@ pub mod source_mesh_topology;
 
 ## <a id="checkpoint-81e-validate-candidate-plane-answers-before-accepting-them"></a>13. Validate candidate plane answers before accepting them
 
-**What this code does:** Validate candidate plane answers before accepting them.
-
 ### 1. `src/project_draft.rs`
 
 Add complete source-editing methods at their dependency boundary.
@@ -2130,8 +2170,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ## <a id="checkpoint-81f-prepare-projection-results-as-one-transaction"></a>14. Prepare projection results as one transaction
-
-**What this code does:** Prepare projection results as one transaction.
 
 ### 1. `src/project_draft.rs`
 
@@ -2188,8 +2226,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ## <a id="checkpoint-81g-own-extension-candidates-and-screen-bounds"></a>15. Own extension candidates and screen bounds
-
-**What this code does:** Own extension candidates and screen bounds.
 
 ### 1. `src/extend_draft.rs`
 
@@ -2290,8 +2326,6 @@ pub mod source_mesh_topology;
 
 ## <a id="checkpoint-81h-gather-boundaries-and-sample-eligible-curve-owners"></a>16. Gather boundaries and sample eligible curve owners
 
-**What this code does:** Gather boundaries and sample eligible curve owners.
-
 ### 1. `src/extend_draft.rs`
 
 Add complete source-editing methods at their dependency boundary.
@@ -2373,8 +2407,6 @@ fn apart(a: [f64; 3], b: [f64; 3]) -> f64 {
 ```
 
 ## <a id="checkpoint-81i-cache-current-boundary-meshes-and-start-the-end-phase"></a>17. Cache current boundary meshes and start the end phase
-
-**What this code does:** Cache current boundary meshes and start the end phase.
 
 ### 1. `src/extend_draft.rs`
 
@@ -2482,8 +2514,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-81j-resolve-distance-and-boundary-reach-in-source-coordinates"></a>18. Resolve distance and boundary reach in source coordinates
 
-**What this code does:** Resolve distance and boundary reach in source coordinates.
-
 ### 1. `src/extend_draft.rs`
 
 Add complete source-editing methods at their dependency boundary.
@@ -2587,8 +2617,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-81k-find-the-nearest-visible-curve-end-in-css-pixels"></a>19. Find the nearest visible curve end in CSS pixels
 
-**What this code does:** Find the nearest visible curve end in CSS pixels.
-
 ### 1. `src/extend_draft.rs`
 
 Add complete source-editing methods at their dependency boundary.
@@ -2655,8 +2683,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ## <a id="checkpoint-81l-preview-extension-and-refresh-only-changed-originals"></a>20. Preview extension and refresh only changed originals
-
-**What this code does:** Preview extension and refresh only changed originals.
 
 ### 1. `src/extend_draft.rs`
 
@@ -2762,8 +2788,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ## <a id="checkpoint-81m-keep-projection-and-extension-in-the-pending-tool-owner"></a>21. Keep projection and extension in the pending tool owner
-
-**What this code does:** Keep projection and extension in the pending tool owner.
 
 ### 1. `src/tool.rs`
 
@@ -2969,8 +2993,6 @@ pub enum Shape {
 
 ## <a id="checkpoint-81n-connect-checked-projection-to-one-editor-transaction"></a>22. Connect checked projection to one editor transaction
 
-**What this code does:** Connect checked projection to one editor transaction.
-
 ### 1. `src/editor.rs`
 
 Connect complete source-editing methods to one checked history transaction.
@@ -3077,8 +3099,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ## <a id="checkpoint-81o-connect-boundary-picks-repeated-end-clicks-and-cancellation"></a>23. Connect boundary picks repeated end clicks and cancellation
-
-**What this code does:** Connect boundary picks repeated end clicks and cancellation.
 
 ### 1. `src/editor.rs`
 
@@ -3211,8 +3231,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-81p-expose-editing-actions-and-normalized-interval-extension"></a>24. Expose editing actions and normalized interval extension
 
-**What this code does:** Expose editing actions and normalized interval extension.
-
 ### 1. `src/editor.rs`
 
 Connect complete source-editing methods to one checked history transaction. Dispatch prepared projection, extension and interval actions.
@@ -3312,7 +3330,7 @@ Replace it with:
 
 ## <a id="checkpoint-81q-route-accepted-editing-input-and-owner-lifecycle-1"></a>25. Route answers to the active editing owner
 
-**What this code does:** Dispatch typed answers and world points to the current draft.
+Dispatch typed answers and world points to the current draft.
 
 ### 1. `src/editor.rs`
 
@@ -3558,7 +3576,7 @@ Replace it with:
 
 ## <a id="checkpoint-81r-route-accepted-editing-input-and-owner-lifecycle-2"></a>26. Finish a pending edit through one commit path
 
-**What this code does:** Keep navigation available while an edit is pending, then finish through its owner.
+Keep navigation available while an edit is pending, then finish through its owner.
 
 ### 1. `src/editor.rs`
 
@@ -3732,7 +3750,7 @@ Replace it with:
 
 ## <a id="checkpoint-81s-route-accepted-editing-input-and-owner-lifecycle-3"></a>27. Restore source selection when an edit is cancelled
 
-**What this code does:** Discard temporary previews and restore the captured selection on cancellation.
+Discard temporary previews and restore the captured selection on cancellation.
 
 ### 1. `src/editor.rs`
 
@@ -3767,8 +3785,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ## <a id="checkpoint-81t-register-current-projection-and-extension-commands"></a>28. Register current projection and extension commands
-
-**What this code does:** Register current projection and extension commands.
 
 ### 1. `src/editing_commands.rs`
 
@@ -3993,8 +4009,6 @@ pub fn parse(line: &str) -> Result<Command, String> {
 
 ## <a id="checkpoint-81u-route-whole-boundary-picks-and-observe-pending-edits"></a>29. Route whole boundary picks and observe pending edits
 
-**What this code does:** Route whole boundary picks and observe pending edits.
-
 ### 1. `src/browser.rs`
 
 Route editing pointer picks and expose pending-owner facts for browser acceptance.
@@ -4157,7 +4171,7 @@ Replace it with:
 
 ## <a id="checkpoint-81v-exercise-original-projection-retry-and-repeated-extension"></a>30. Exercise projection retry and repeated extension
 
-**What this code does:** Exercise original projection retry and repeated extension.
+Exercise original projection retry and repeated extension.
 
 ### 1. `src/editing_tests.rs`
 
@@ -4569,8 +4583,6 @@ pub mod source_mesh_topology;
 ```
 
 ## <a id="checkpoint-81za-validate-original-split-inputs-and-name-pieces"></a>31. Validate Split inputs and name pieces
-
-**What this code does:** Accept original cutter curves and a valid selected BRep face.
 
 ### 1. `src/split_geometry.rs`
 

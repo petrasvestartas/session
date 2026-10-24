@@ -1,6 +1,6 @@
 # 18.6 · Matched rendering comparisons from original sources
 
-**Goal:** Prove the original comparison and inspect differences. · **Steps:** 4 · **Source:** [engine/gpu/ssao.rs](../../../src/engine/gpu/ssao.rs) · [engine/gpu/ssao/pipelines.rs](../../../src/engine/gpu/ssao/pipelines.rs) · [shaders/ssao.wgsl](../../../src/shaders/ssao.wgsl) · [shaders/triangle.wgsl](../../../src/shaders/triangle.wgsl) · [shaders/ink_visibility.wgsl](../../../src/shaders/ink_visibility.wgsl) · [engine/gpu/surface_outline.rs](../../../src/engine/gpu/surface_outline.rs) · [engine/gpu/render.rs](../../../src/engine/gpu/render.rs) · [engine/performance.rs](../../../src/engine/performance.rs) · [engine/gpu/timing.rs](../../../src/engine/gpu/timing.rs) · [app/command/tool/elements.rs](../../../src/app/command/tool/elements.rs) (`src/shaders/hzb.wgsl,src/shaders/ssao.wgsl,src/app/wood_elements.rs`)
+**Goal:** Prove the original comparison and inspect differences. · **Steps:** 4 · **Source:** [engine/gpu/ssao.rs](../../../src/engine/gpu/ssao.rs) · [engine/gpu/ssao/pipelines.rs](../../../src/engine/gpu/ssao/pipelines.rs) · [shaders/ssao.wgsl](../../../src/shaders/ssao.wgsl) · [shaders/triangle.wgsl](../../../src/shaders/triangle.wgsl)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -44,8 +44,6 @@
 </div>
 
 ## <a id="checkpoint-94-declare-the-rendering-comparison-contract"></a>1. Declare the rendering comparison contract
-
-**What this code does:** Declare the rendering comparison contract.
 
 ### 1. `src/comparison.rs`
 
@@ -164,8 +162,6 @@ pub mod source_mesh_topology;
 
 ## <a id="checkpoint-94a-link-the-maintained-native-rendering-reference"></a>2. Link the maintained native rendering reference
 
-**What this code does:** Link the maintained native rendering reference.
-
 ### 1. `Cargo.toml`
 
 Link the exact maintained viewer from the reconstructed checkpoint.
@@ -188,8 +184,6 @@ current_viewer = { package = "session_viewer", path = "../.." }
 ```
 
 ## <a id="checkpoint-94b-read-actual-maintained-frames-without-source-mutation"></a>3. Read actual maintained frames without source mutation
-
-**What this code does:** Read actual maintained frames without source mutation.
 
 ### 1. `src/reference_example.rs`
 
@@ -339,8 +333,6 @@ pub mod source_mesh_topology;
 ```
 
 ## <a id="checkpoint-94c-prove-the-original-comparison-and-inspect-differences"></a>4. Prove the comparison and inspect differences
-
-**What this code does:** Prove the original comparison and inspect differences.
 
 ### 1. `src/comparison_tests.rs`
 

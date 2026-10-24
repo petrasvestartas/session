@@ -1,6 +1,6 @@
 # 2.5 · Document history and perspective rays
 
-**Goal:** Recover a finite ray through the near-to-far segment from a screen position. · **Steps:** 4 · **Source:** `src/camera.rs,src/engine/gpu/render.rs,src/shaders/scene.wgsl`
+**Goal:** Recover a finite ray through the near-to-far segment from a screen position. · **Steps:** 4 · **Source:** `src/camera.rs` · `src/engine/gpu/render.rs` · `src/shaders/scene.wgsl`
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -48,7 +48,7 @@
 
 ## <a id="checkpoint-13a-history"></a>1. Retain reversible scene snapshots
 
-**What this code does:** Restore scene contents without copying immutable mesh arrays or reusing IDs.
+Restore scene contents without copying immutable mesh arrays or reusing IDs.
 
 ### 1. `src/scene.rs`
 
@@ -310,7 +310,7 @@ pub mod mesh;
 
 ## <a id="checkpoint-14-history"></a>2. Run Undo and Redo from the command line
 
-**What this code does:** Undo and redo adding or deleting an object without changing the camera or losing identity.
+Undo and redo adding or deleting an object without changing the camera or losing identity.
 
 ### 1. `src/browser.rs`
 
@@ -471,7 +471,7 @@ use wasm_bindgen::{JsCast, JsValue, closure::Closure};
 
 ## <a id="checkpoint-14a-perspective"></a>3. Draw through a perspective camera
 
-**What this code does:** Draw nearer geometry through a perspective view while keeping typed commands working.
+Draw nearer geometry through a perspective view while keeping typed commands working.
 
 ### 1. `Cargo.toml`
 
@@ -910,8 +910,6 @@ Replace it with:
 ```
 
 ## <a id="checkpoint-14b-ray"></a>4. Turn a screen point into a bounded ray
-
-**What this code does:** Recover a finite ray through the near-to-far segment from a screen position.
 
 ### 1. `src/camera.rs`
 

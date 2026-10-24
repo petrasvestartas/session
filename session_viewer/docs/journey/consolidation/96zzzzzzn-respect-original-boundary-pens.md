@@ -1,6 +1,6 @@
 # 22.3 · Original boundary pens, joins and vertex markers
 
-**Goal:** Keep dense source vertices distinguishable while retaining explicit point sizes, editing controls and original ownership. · **Steps:** 4 · **Source:** [engine/gpu/render.rs](../../../src/engine/gpu/render.rs) · [engine/gpu/pass.rs](../../../src/engine/gpu/pass.rs) · [engine/gpu/targets.rs](../../../src/engine/gpu/targets.rs) · [engine/gpu/frame.rs](../../../src/engine/gpu/frame.rs) · [engine/gpu/view.rs](../../../src/engine/gpu/view.rs) · [engine/pipelines/mod.rs](../../../src/engine/pipelines/mod.rs) · [shaders/triangle.wgsl](../../../src/shaders/triangle.wgsl) · [shaders/ribbon.wgsl](../../../src/shaders/ribbon.wgsl) · [shaders/vector.wgsl](../../../src/shaders/vector.wgsl) · [shaders/ink_visibility.wgsl](../../../src/shaders/ink_visibility.wgsl) · [app/scene.rs](../../../src/app/scene.rs) (`src/shaders/scene.wgsl,src/engine/gpu/msaa.rs,src/engine/gpu/render.rs`)
+**Goal:** Keep dense source vertices distinguishable while retaining explicit point sizes, editing controls and original ownership. · **Steps:** 4 · **Source:** [engine/gpu/render.rs](../../../src/engine/gpu/render.rs) · [engine/gpu/pass.rs](../../../src/engine/gpu/pass.rs) · [engine/gpu/targets.rs](../../../src/engine/gpu/targets.rs) · [engine/gpu/frame.rs](../../../src/engine/gpu/frame.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -89,7 +89,7 @@
 </svg>
 </div>
 
-**What this code does:** Render original edge widths and colors, hide authored zero-width mesh edges, and omit coplanar seams without changing source face keys.
+Render original edge widths and colors, hide authored zero-width mesh edges, and omit coplanar seams without changing source face keys.
 
 ### 1. `src/mesh_pens.rs`
 
@@ -1278,7 +1278,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-96zzzzzzo-close-original-boundary-joins"></a>2. Close boundary joins
 
-**What this code does:** Close wide original boundary corners and preserve actual source queries at round ends and flat near-plane cuts.
+Close wide original boundary corners and preserve actual source queries at round ends and flat near-plane cuts.
 
 ### 1. `src/stroke_quad.wgsl`
 
@@ -2291,7 +2291,7 @@ fn frame_pixels(renderer: &Renderer, size: [u32; 2], matrix: [f32; 16]) -> Vec<u
 
 ## <a id="checkpoint-96zzzzzzp-draw-default-mesh-vertex-dots"></a>3. Draw default mesh vertex dots
 
-**What this code does:** Render the maintained default and authored mesh vertex dots without duplicating source meshes or endpoint positions.
+Render the maintained default and authored mesh vertex dots without duplicating source meshes or endpoint positions.
 
 ### 1. `src/mesh_pens.rs`
 
@@ -3533,8 +3533,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ## <a id="checkpoint-96zzzzzzq-taper-crowded-original-mesh-vertices"></a>4. Taper crowded mesh vertices
-
-**What this code does:** Keep dense source vertices distinguishable while retaining explicit point sizes, editing controls and original ownership.
 
 ### 1. `src/mesh.rs`
 

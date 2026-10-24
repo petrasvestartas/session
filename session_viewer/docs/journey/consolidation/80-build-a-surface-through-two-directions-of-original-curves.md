@@ -1,6 +1,6 @@
 # 15.4 · Two-direction networks and corner patches
 
-**Goal:** Reuse absolute coordinate parsing for named construction planes and three-point input. · **Steps:** 6 · **Source:** [app/deform.rs](../../../src/app/deform.rs) · [state/edit.rs](../../../src/state/edit.rs) · [app/command/tool/gather.rs](../../../src/app/command/tool/gather.rs) · [app/command/tool/surfacing.rs](../../../src/app/command/tool/surfacing.rs) · [app/walk/mesh.rs](../../../src/app/walk/mesh.rs) · [app/walk/brep.rs](../../../src/app/walk/brep.rs) (`src/app/transforms.rs,src/app/surfacing.rs,src/app/nurbs_eval.rs`)
+**Goal:** Reuse absolute coordinate parsing for named construction planes and three-point input. · **Steps:** 6 · **Source:** [app/deform.rs](../../../src/app/deform.rs) · [state/edit.rs](../../../src/state/edit.rs) · [app/command/tool/gather.rs](../../../src/app/command/tool/gather.rs) · [app/command/tool/surfacing.rs](../../../src/app/command/tool/surfacing.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -46,7 +46,7 @@
 
 ## <a id="checkpoint-80-build-a-surface-through-two-directions-of-original-curves"></a>1. Build a surface through curve networks
 
-**What this code does:** Connect the complete network helpers and retain the four-boundary Coons path.
+Connect the complete network helpers and retain the four-boundary Coons path.
 
 ### 1. `src/network_geometry.rs`
 
@@ -207,8 +207,6 @@ mod tests {
 
 ## <a id="checkpoint-80a-construct-the-patch-through-four-ordered-corners"></a>2. Construct the patch through four ordered corners
 
-**What this code does:** Construct the patch through four ordered corners.
-
 ### 1. `src/patch_geometry.rs`
 
 Type the original recipe and whole geometry helpers using the earlier shared owners. Supply only the unchanged original geometry validation fixtures.
@@ -326,8 +324,6 @@ pub mod source_mesh_topology;
 
 ## <a id="checkpoint-80b-guide-corner-questions-without-retaining-unrelated-profiles"></a>3. Guide corner questions without retaining unrelated profiles
 
-**What this code does:** Guide corner questions without retaining unrelated profiles.
-
 ### 1. `src/gather_draft.rs`
 
 Guide current point questions and retain original profile copies only for curve-gathering recipes.
@@ -430,8 +426,6 @@ Replace it with:
 ```
 
 ## <a id="checkpoint-80c-register-network-patch-aliases-and-initial-corner-arity"></a>4. Register network patch aliases and initial corner arity
-
-**What this code does:** Register network patch aliases and initial corner arity.
 
 ### 1. `src/gather_registry.rs`
 
@@ -575,7 +569,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-80d-exercise-networks-corner-retries-and-exact-original-archives"></a>5. Exercise networks corner retries and exact archives
 
-**What this code does:** Exercise networks corner retries and exact original archives.
+Exercise networks corner retries and exact original archives.
 
 ### 1. `src/network_tests.rs`
 
@@ -878,8 +872,6 @@ pub mod source_mesh_topology;
 ```
 
 ## <a id="checkpoint-80za-read-original-projection-planes"></a>6. Read projection planes
-
-**What this code does:** Reuse absolute coordinate parsing for named construction planes and three-point input.
 
 ### 1. `src/project_geometry.rs`
 

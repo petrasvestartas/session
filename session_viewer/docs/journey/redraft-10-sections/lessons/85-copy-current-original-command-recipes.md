@@ -1,6 +1,6 @@
 # 16.5 · Text, Plane, Trim and integrated editing commands
 
-**Goal:** Exercise current original commands together. · **Steps:** 52 · **Source:** [app/command/verbs/project_to_plane.rs](../../../../src/app/command/verbs/project_to_plane.rs) · [app/command/verbs/extend.rs](../../../../src/app/command/verbs/extend.rs) · [app/splitting.rs](../../../../src/app/splitting.rs) · [app/command/verbs/measure.rs](../../../../src/app/command/verbs/measure.rs) · [app/command/verbs/trim/parts.rs](../../../../src/app/command/verbs/trim/parts.rs) · [app/command/verbs/explode.rs](../../../../src/app/command/verbs/explode.rs) · [app/walk/frames.rs](../../../../src/app/walk/frames.rs) (`src/app/booleans.rs,src/app/measurements.rs,src/app/recipes.rs`)
+**Goal:** Exercise current original commands together. · **Steps:** 52 · **Source:** [app/command/verbs/project_to_plane.rs](../../../../src/app/command/verbs/project_to_plane.rs) · [app/command/verbs/extend.rs](../../../../src/app/command/verbs/extend.rs) · [app/splitting.rs](../../../../src/app/splitting.rs) · [app/command/verbs/measure.rs](../../../../src/app/command/verbs/measure.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -47,7 +47,7 @@
 
 ## <a id="checkpoint-85-copy-current-original-command-recipes"></a>1. Write text placement and curve heads
 
-**What this code does:** Build world-plane labels with readable axes and the original rounded scale steps.
+Build world-plane labels with readable axes and the original rounded scale steps.
 
 ### 1. `src/lib.rs`
 
@@ -338,8 +338,6 @@ pub mod source_shape;
 
 ## <a id="checkpoint-85a-validate-original-plane-display-and-precise-bounds"></a>2. Validate Plane display and precise bounds
 
-**What this code does:** Validate original Plane display and precise bounds.
-
 ### 1. `src/plane_original.rs`
 
 Validate original Plane display and precise bounds.
@@ -489,7 +487,7 @@ pub mod source_mesh_topology;
 
 ## <a id="checkpoint-85b-retain-original-plane-and-text-edit-eligibility"></a>3. Retain Plane and Text edit eligibility
 
-**What this code does:** Retain original Plane and Text edit eligibility.
+Retain original Plane and Text edit eligibility.
 
 ### 1. `src/source_edit.rs`
 
@@ -643,11 +641,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-85c-find-eligible-objects-by-name-or-world-size"></a>4. Find eligible objects by name or world size
 
-**What this code does:** Find eligible objects by name or world size.
-
 ### 1. `src/selection_query.rs`
-
-Find eligible objects by name or world size.
 
 Create the file and type:
 
@@ -735,8 +729,6 @@ pub mod source_mesh_topology;
 ```
 
 ## <a id="checkpoint-85d-plan-sibling-pieces-from-original-owners"></a>5. Plan sibling pieces from owners
-
-**What this code does:** Plan sibling pieces from original owners.
 
 ### 1. `src/explode_edit.rs`
 
@@ -827,11 +819,7 @@ pub mod source_mesh_topology;
 
 ## <a id="checkpoint-85e-own-text-height-and-words-before-placement"></a>6. Own Text height and words before placement
 
-**What this code does:** Own Text height and words before placement.
-
 ### 1. `src/text_draft.rs`
-
-Own Text height and words before placement.
 
 Create the file and type:
 
@@ -947,11 +935,7 @@ pub mod text_draft;
 
 ## <a id="checkpoint-85f-own-unpickable-cached-guide-data"></a>7. Own unpickable cached guide data
 
-**What this code does:** Own unpickable cached guide data.
-
 ### 1. `src/guide_gpu.rs`
-
-Own unpickable cached guide data.
 
 Create the file and type:
 
@@ -1031,11 +1015,7 @@ pub mod source_mesh_topology;
 
 ## <a id="checkpoint-85g-shade-explicit-dashed-guides"></a>8. Shade explicit dashed guides
 
-**What this code does:** Shade explicit dashed guides.
-
 ### 1. `src/guide.wgsl`
-
-Shade explicit dashed guides.
 
 Create the file and type:
 
@@ -1104,8 +1084,6 @@ struct PickOutput{@builtin(position)position:vec4<f32>}
 ```
 
 ## <a id="checkpoint-85h-cache-guide-buffers-and-actual-allocation"></a>9. Cache guide buffers and actual allocation
-
-**What this code does:** Cache guide buffers and actual allocation.
 
 ### 1. `src/stroke_gpu.rs`
 
@@ -1213,11 +1191,7 @@ Replace it with:
 
 ## <a id="checkpoint-85i-draw-cached-guides-through-the-overlay-owner"></a>10. Draw cached guides through the overlay owner
 
-**What this code does:** Draw cached guides through the overlay owner.
-
 ### 1. `src/guide_gpu.rs`
-
-Draw cached guides through the overlay owner.
 
 **Locate this existing block:**
 
@@ -1282,11 +1256,7 @@ impl Guide {
 
 ## <a id="checkpoint-85j-own-trim-targets-cutters-and-part-state"></a>11. Own Trim targets cutters and part state
 
-**What this code does:** Own Trim targets cutters and part state.
-
 ### 1. `src/trim_draft.rs`
-
-Own Trim targets cutters and part state.
 
 Create the file and type:
 
@@ -1447,11 +1417,7 @@ pub mod trim_draft;
 
 ## <a id="checkpoint-85k-prepare-local-cuts-from-world-cutters"></a>12. Prepare local cuts from world cutters
 
-**What this code does:** Prepare local cuts from world cutters.
-
 ### 1. `src/trim_draft.rs`
-
-Prepare local cuts from world cutters.
 
 **Locate this existing block:**
 
@@ -1574,11 +1540,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-85l-hit-remaining-trim-parts-in-canvas-pixels"></a>13. Hit remaining trim parts in canvas pixels
 
-**What this code does:** Hit remaining trim parts in canvas pixels.
-
 ### 1. `src/trim_draft.rs`
-
-Hit remaining trim parts in canvas pixels.
 
 **Locate this existing block:**
 
@@ -1659,11 +1621,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-85m-preview-cuts-without-changing-originals"></a>14. Preview cuts without changing originals
 
-**What this code does:** Preview cuts without changing originals.
-
 ### 1. `src/trim_draft.rs`
-
-Preview cuts without changing originals.
 
 **Locate this existing block:**
 
@@ -1737,11 +1695,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-85n-show-remaining-cuts-and-removed-part-guides"></a>15. Show remaining cuts and removed-part guides
 
-**What this code does:** Show remaining cuts and removed-part guides.
-
 ### 1. `src/trim_draft.rs`
-
-Show remaining cuts and removed-part guides.
 
 **Locate this existing block:**
 
@@ -1814,11 +1768,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-85o-sample-bounded-physical-pixel-lasso-loops"></a>16. Sample bounded physical-pixel lasso loops
 
-**What this code does:** Sample bounded physical-pixel lasso loops.
-
 ### 1. `src/lasso.rs`
-
-Sample bounded physical-pixel lasso loops.
 
 Create the file and type:
 
@@ -2009,8 +1959,6 @@ mod tests {
 
 ## <a id="checkpoint-85p-own-document-scoped-groups-and-links"></a>17. Own document-scoped groups and links
 
-**What this code does:** Own document-scoped groups and links.
-
 ### 1. `src/scene.rs`
 
 Own groups and graphs beside original document state.
@@ -2095,11 +2043,7 @@ impl Scene {
 
 ## <a id="checkpoint-85q-resolve-current-graph-and-group-identities"></a>18. Resolve current graph and group identities
 
-**What this code does:** Resolve current graph and group identities.
-
 ### 1. `src/graph_edit.rs`
-
-Resolve current graph and group identities.
 
 Create the file and type:
 
@@ -2195,8 +2139,6 @@ pub mod source_mesh_topology;
 ```
 
 ## <a id="checkpoint-85r-connect-two-original-owners-and-save-their-links"></a>19. Connect two owners and save their links
-
-**What this code does:** Connect two original owners and save their links.
 
 ### 1. `src/graph_edit.rs`
 
@@ -2294,11 +2236,7 @@ fn current(scene: &Scene, doc: &crate::hierarchy::Document) -> session_rust::Gra
 
 ## <a id="checkpoint-85s-remap-appended-links-and-remove-deleted-owners"></a>20. Remap appended links and remove deleted owners
 
-**What this code does:** Remap appended links and remove deleted owners.
-
 ### 1. `src/graph_edit.rs`
-
-Remap appended links and remove deleted owners.
 
 **Locate this existing block:**
 
@@ -2415,8 +2353,6 @@ pub fn rows(scene: &Scene) -> Vec<(String, String, String, String)> {
 ```
 
 ## <a id="checkpoint-85t-plan-world-preserving-original-groups"></a>21. Plan world-preserving groups
-
-**What this code does:** Plan world-preserving original groups.
 
 ### 1. `src/group_plan.rs`
 
@@ -2571,8 +2507,6 @@ pub mod source_mesh_topology;
 
 ## <a id="checkpoint-85u-adopt-group-branches-with-one-reversible-edit"></a>22. Adopt group branches with one reversible edit
 
-**What this code does:** Adopt group branches with one reversible edit.
-
 ### 1. `src/layer_edit.rs`
 
 Adopt a checked group and preserve copied group membership.
@@ -2703,7 +2637,7 @@ Replace it with:
 
 ## <a id="checkpoint-85v-append-namespaced-graphs-and-preserve-original-row-identities"></a>23. Append namespaced graphs and preserve row identities
 
-**What this code does:** Append namespaced graphs and preserve original row identities.
+Append namespaced graphs and preserve original row identities.
 
 ### 1. `src/scene.rs`
 
@@ -2867,7 +2801,7 @@ Replace it with:
 
 ## <a id="checkpoint-85w-replace-original-families-without-changing-world-placement"></a>24. Replace families without changing world placement
 
-**What this code does:** Replace original families without changing world placement.
+Replace original families without changing world placement.
 
 ### 1. `src/scene.rs`
 
@@ -3046,7 +2980,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-85x-save-group-namespaces-and-original-planes"></a>25. Save group namespaces and planes
 
-**What this code does:** Save group namespaces and original planes.
+Save group namespaces and original planes.
 
 ### 1. `src/archive_document.rs`
 
@@ -3305,8 +3239,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ## <a id="checkpoint-85y-keep-named-views-and-grid-on-the-drawing-plane"></a>26. Keep named views and grid on the drawing plane
-
-**What this code does:** Keep named views and grid on the drawing plane.
 
 ### 1. `src/camera.rs`
 
@@ -3667,11 +3599,7 @@ mod tests {
 
 ## <a id="checkpoint-85z-connect-cached-guide-and-placed-grid-lanes"></a>27. Connect cached guide and placed grid lanes
 
-**What this code does:** Connect cached guide and placed grid lanes.
-
 ### 1. `src/renderer.rs`
-
-Connect cached guide and placed grid lanes.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -3919,8 +3847,6 @@ pub struct Renderer {
 
 ## <a id="checkpoint-85aa-expose-graph-links-and-the-lasso-overlay"></a>28. Expose graph links and the lasso overlay
 
-**What this code does:** Expose graph links and the lasso overlay.
-
 ### 1. `src/tree_panel.rs`
 
 Present existing graph and pointer state without editing originals.
@@ -4142,8 +4068,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-85ab-own-current-pending-command-state"></a>29. Own current pending command state
 
-**What this code does:** Own current pending command state.
-
 ### 1. `src/editor.rs`
 
 Declare typed actions and their independent editor state.
@@ -4253,8 +4177,6 @@ pub enum Action {
 ```
 
 ## <a id="checkpoint-85ac-retain-text-answers-inside-the-existing-point-draft"></a>30. Retain Text answers inside the existing point draft
-
-**What this code does:** Retain Text answers inside the existing point draft.
 
 ### 1. `src/tool.rs`
 
@@ -4419,7 +4341,7 @@ impl Draft {
 </svg>
 </div>
 
-**What this code does:** Complete original Text and headed Arrow tools.
+Complete original Text and headed Arrow tools.
 
 ### 1. `src/tool.rs`
 
@@ -4913,11 +4835,7 @@ Replace it with:
 
 ## <a id="checkpoint-85ae-present-cached-extension-guides-and-error-endpoints"></a>32. Present cached extension guides and error endpoints
 
-**What this code does:** Present cached extension guides and error endpoints.
-
 ### 1. `src/editor.rs`
-
-Present cached extension guides and error endpoints.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -5044,11 +4962,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-85af-commit-prepared-trims-once"></a>33. Commit prepared trims once
 
-**What this code does:** Commit prepared trims once.
-
 ### 1. `src/editor.rs`
-
-Commit prepared trims once.
 
 **Locate this existing block:**
 
@@ -5102,11 +5016,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-85ag-advance-trim-through-targets-cutters-and-parts"></a>34. Advance Trim through targets cutters and parts
 
-**What this code does:** Advance Trim through targets cutters and parts.
-
 ### 1. `src/editor.rs`
-
-Advance Trim through targets cutters and parts.
 
 **Locate this existing block:**
 
@@ -5238,8 +5148,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-85ah-adopt-original-pieces-and-arrowhead-changes-atomically"></a>35. Adopt pieces and arrowhead changes atomically
 
-**What this code does:** Adopt original pieces and arrowhead changes atomically.
-
 ### 1. `src/editor.rs`
 
 Adopt original pieces and arrowhead changes atomically.
@@ -5310,7 +5218,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-85ai-dispatch-current-original-commands-through-checked-owners"></a>36. Dispatch current commands through checked owners
 
-**What this code does:** Dispatch current original commands through checked owners.
+Dispatch current original commands through checked owners.
 
 ### 1. `src/editor.rs`
 
@@ -5411,8 +5319,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ## <a id="checkpoint-85aj-preserve-previews-selection-and-accepted-tool-answers"></a>37. Preserve previews selection and accepted tool answers
-
-**What this code does:** Preserve previews selection and accepted tool answers.
 
 ### 1. `src/editor.rs`
 
@@ -5656,8 +5562,6 @@ Replace it with:
 
 ## <a id="checkpoint-85ak-keep-annotations-during-touch-navigation-and-capture-lasso-input"></a>38. Keep annotations during touch navigation and capture lasso input
 
-**What this code does:** Keep annotations during touch navigation and capture lasso input.
-
 ### 1. `src/editor.rs`
 
 Keep view controls and pending command lifecycles.
@@ -5867,8 +5771,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-85al-preserve-pending-originals-during-view-changes"></a>39. Preserve pending originals during view changes
 
-**What this code does:** Preserve pending originals during view changes.
-
 ### 1. `src/editor.rs`
 
 Keep view controls and pending command lifecycles.
@@ -5967,8 +5869,6 @@ Replace it with:
 ```
 
 ## <a id="checkpoint-85am-route-named-views-and-whole-trim-picks"></a>40. Route named views and whole trim picks
-
-**What this code does:** Route named views and whole trim picks.
 
 ### 1. `src/editor.rs`
 
@@ -6173,11 +6073,7 @@ Replace it with:
 
 ## <a id="checkpoint-85an-capture-source-backed-command-arguments"></a>41. Capture source-backed command arguments
 
-**What this code does:** Capture source-backed command arguments.
-
 ### 1. `src/command_request.rs`
-
-Capture source-backed command arguments.
 
 Create the file and type:
 
@@ -6288,11 +6184,7 @@ pub mod source_mesh_topology;
 
 ## <a id="checkpoint-85ao-restore-typed-requests-and-their-selected-owners"></a>42. Restore typed requests and their selected owners
 
-**What this code does:** Restore typed requests and their selected owners.
-
 ### 1. `src/command_request.rs`
-
-Restore typed requests and their selected owners.
 
 **Locate this existing block:**
 
@@ -6361,11 +6253,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-85ap-witness-identities-and-placement-during-source-loading"></a>43. Witness identities and placement during source loading
 
-**What this code does:** Witness identities and placement during source loading.
-
 ### 1. `src/command_request.rs`
-
-Witness identities and placement during source loading.
 
 **Locate this existing block:**
 
@@ -6425,8 +6313,6 @@ impl Pending {
 
 ## <a id="checkpoint-85aq-deduplicate-original-fetches-and-replay-safely"></a>44. Deduplicate fetches and replay safely
 
-**What this code does:** Deduplicate original fetches and replay safely.
-
 ### 1. `src/command_request.rs`
 
 Deduplicate original fetches and replay safely.
@@ -6485,8 +6371,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ## <a id="checkpoint-85ar-route-source-backed-edits-through-guarded-replay"></a>45. Route source-backed edits through guarded replay
-
-**What this code does:** Route source-backed edits through guarded replay.
 
 ### 1. `src/edit_intent.rs`
 
@@ -6625,8 +6509,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ## <a id="checkpoint-85as-register-current-names-views-and-command-aliases"></a>46. Register current names views and command aliases
-
-**What this code does:** Register current names views and command aliases.
 
 ### 1. `src/commands.rs`
 
@@ -6951,11 +6833,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-85at-validate-current-command-words-and-options"></a>47. Validate current command words and options
 
-**What this code does:** Validate current command words and options.
-
 ### 1. `src/commands.rs`
-
-Validate current command words and options.
 
 **Locate this existing block:**
 
@@ -7144,11 +7022,7 @@ pub fn parse(line: &str) -> Result<Command, String> {
 
 ## <a id="checkpoint-85au-capture-lasso-pointer-ownership-in-the-browser"></a>48. Capture lasso pointer ownership in the browser
 
-**What this code does:** Capture lasso pointer ownership in the browser.
-
 ### 1. `src/browser.rs`
-
-Capture lasso pointer ownership in the browser.
 
 **Locate this existing block:**
 
@@ -7220,8 +7094,6 @@ fn lasso_action(
 ```
 
 ## <a id="checkpoint-85av-route-trim-and-lasso-pointer-input"></a>49. Route trim and lasso pointer input
-
-**What this code does:** Route trim and lasso pointer input.
 
 ### 1. `src/browser.rs`
 
@@ -7431,8 +7303,6 @@ Replace it with:
 ```
 
 ## <a id="checkpoint-85aw-refresh-command-panels-source-loading-and-cached-previews"></a>50. Refresh command panels source loading and cached previews
-
-**What this code does:** Refresh command panels source loading and cached previews.
 
 ### 1. `src/browser.rs`
 
@@ -7803,7 +7673,7 @@ Replace it with:
 
 ## <a id="checkpoint-85ax-observe-current-original-command-state"></a>51. Observe current command state
 
-**What this code does:** Observe current original command state.
+Observe current original command state.
 
 ### 1. `src/browser.rs`
 
@@ -7854,8 +7724,6 @@ Replace it with:
 ```
 
 ## <a id="checkpoint-85ay-exercise-current-original-commands-together"></a>52. Exercise current commands together
-
-**What this code does:** Exercise current original commands together.
 
 ### 1. `src/command_inventory_tests.rs`
 

@@ -1,6 +1,6 @@
 # 18.7 · Measured frame costs and dependency-aware cache reports
 
-**Goal:** Prove cache invalidation and honest performance reports. · **Steps:** 7 · **Source:** [engine/gpu/ssao.rs](../../../src/engine/gpu/ssao.rs) · [engine/gpu/ssao/pipelines.rs](../../../src/engine/gpu/ssao/pipelines.rs) · [shaders/ssao.wgsl](../../../src/shaders/ssao.wgsl) · [shaders/triangle.wgsl](../../../src/shaders/triangle.wgsl) · [shaders/ink_visibility.wgsl](../../../src/shaders/ink_visibility.wgsl) · [engine/gpu/surface_outline.rs](../../../src/engine/gpu/surface_outline.rs) · [engine/gpu/render.rs](../../../src/engine/gpu/render.rs) · [engine/performance.rs](../../../src/engine/performance.rs) · [engine/gpu/timing.rs](../../../src/engine/gpu/timing.rs) · [app/command/tool/elements.rs](../../../src/app/command/tool/elements.rs) (`src/shaders/hzb.wgsl,src/shaders/ssao.wgsl,src/app/wood_elements.rs`)
+**Goal:** Prove cache invalidation and honest performance reports. · **Steps:** 7 · **Source:** [engine/gpu/ssao.rs](../../../src/engine/gpu/ssao.rs) · [engine/gpu/ssao/pipelines.rs](../../../src/engine/gpu/ssao/pipelines.rs) · [shaders/ssao.wgsl](../../../src/shaders/ssao.wgsl) · [shaders/triangle.wgsl](../../../src/shaders/triangle.wgsl)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -47,8 +47,6 @@
 </div>
 
 ## <a id="checkpoint-95-record-comparable-large-scene-conditions"></a>1. Record comparable large scene conditions
-
-**What this code does:** Record comparable large scene conditions.
 
 ### 1. `src/bench_config.rs`
 
@@ -129,8 +127,6 @@ pub mod finite_project_source;
 
 ## <a id="checkpoint-95a-measure-warmed-frame-times-and-the-slow-tail"></a>2. Measure warmed frame times and the slow tail
 
-**What this code does:** Measure warmed frame times and the slow tail.
-
 ### 1. `src/bench_samples.rs`
 
 Summarize real samples with an explicit warmup and slow-frame tail.
@@ -205,8 +201,6 @@ pub mod finite_project_source;
 ```
 
 ## <a id="checkpoint-95b-reject-incomparable-before-and-after-runs"></a>3. Reject incomparable before and after runs
-
-**What this code does:** Reject incomparable before and after runs.
 
 ### 1. `src/bench_compare.rs`
 
@@ -292,8 +286,6 @@ pub mod finite_project_source;
 ```
 
 ## <a id="checkpoint-95c-witness-immutable-tree-inputs-across-camera-frames"></a>4. Witness immutable tree inputs across camera frames
-
-**What this code does:** Witness immutable tree inputs across camera frames.
 
 ### 1. `src/tree_witness.rs`
 
@@ -391,8 +383,6 @@ pub mod tree_witness;
 ```
 
 ## <a id="checkpoint-95d-reuse-layer-rows-while-rotating-and-zooming"></a>5. Reuse layer rows while rotating and zooming
-
-**What this code does:** Reuse layer rows while rotating and zooming.
 
 ### 1. `src/tree_panel.rs`
 
@@ -544,8 +534,6 @@ Edit the existing block to match this code; keep unchanged lines:
 </svg>
 </div>
 
-**What this code does:** Borrow graph edges and index their labels.
-
 ### 1. `src/graph_edit.rs`
 
 Avoid full graph protobuf conversion and repeated node scans for display rows.
@@ -652,8 +640,6 @@ pub fn rows(scene: &Scene) -> Vec<(String, String, String, String)> {
 ```
 
 ## <a id="checkpoint-95f-prove-cache-invalidation-and-honest-performance-reports"></a>7. Prove cache invalidation and honest performance reports
-
-**What this code does:** Prove cache invalidation and honest performance reports.
 
 ### 1. `src/bench_tests.rs`
 

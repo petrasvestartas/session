@@ -1,6 +1,6 @@
 # 11.2 · Validated original cloud columns and placed owners
 
-**Goal:** Include clouds in whole selection history and rectangle checks. · **Steps:** 6 · **Source:** [engine/gpu/surface_outline.rs](../../../../src/engine/gpu/surface_outline.rs) · [engine/gpu/cloud.rs](../../../../src/engine/gpu/cloud.rs) · [engine/gpu/lod.rs](../../../../src/engine/gpu/lod.rs) · [engine/gpu/splat.rs](../../../../src/engine/gpu/splat.rs) · [shaders/splat.wgsl](../../../../src/shaders/splat.wgsl) · [shaders/splat_resolve.wgsl](../../../../src/shaders/splat_resolve.wgsl) · [app/cloud_query.rs](../../../../src/app/cloud_query.rs) (`src/engine/gpu/points.rs,src/shaders/point.wgsl,src/shaders/outline.wgsl`)
+**Goal:** Include clouds in whole selection history and rectangle checks. · **Steps:** 6 · **Source:** [engine/gpu/surface_outline.rs](../../../../src/engine/gpu/surface_outline.rs) · [engine/gpu/cloud.rs](../../../../src/engine/gpu/cloud.rs) · [engine/gpu/lod.rs](../../../../src/engine/gpu/lod.rs) · [engine/gpu/splat.rs](../../../../src/engine/gpu/splat.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -54,7 +54,7 @@
 
 ## <a id="checkpoint-64-nodes"></a>1. Check cloud cubes against their point rows
 
-**What this code does:** Check cloud cubes against their original point rows.
+Check cloud cubes against their original point rows.
 
 ### 1. `src/cloud.rs`
 
@@ -188,7 +188,7 @@ pub mod cloud;
 
 ## <a id="checkpoint-64a-tree"></a>2. Validate one rooted tree and disjoint ranges
 
-**What this code does:** Validate one rooted tree and disjoint original ranges.
+Validate one rooted tree and disjoint original ranges.
 
 ### 1. `src/cloud.rs`
 
@@ -267,8 +267,6 @@ fn checked_node(
 ```
 
 ## <a id="checkpoint-64b-source"></a>3. Prepare bounds and spacing without replacing source words
-
-**What this code does:** Prepare bounds and spacing without replacing source words.
 
 ### 1. `src/cloud.rs`
 
@@ -376,8 +374,6 @@ fn validate_nodes(source: &PointCloud) -> Result<Vec<LodNode>, &'static str> {
 
 ## <a id="checkpoint-64c-placements"></a>4. Place the cloud through an independent f64 instance model
 
-**What this code does:** Place the cloud through an independent f64 instance model.
-
 ### 1. `src/cloud.rs`
 
 Preserve original cloud ownership and derive world bounds from a separate f64 model.
@@ -440,8 +436,6 @@ fn checked_node(
 ```
 
 ## <a id="checkpoint-64d-scene"></a>5. Insert a checked cloud on the current layer
-
-**What this code does:** Insert a checked cloud on the current layer.
 
 ### 1. `src/scene.rs`
 
@@ -592,8 +586,6 @@ Replace it with:
 ```
 
 ## <a id="checkpoint-64e-identity"></a>6. Include clouds in whole selection history and rectangle checks
-
-**What this code does:** Include clouds in whole selection history and rectangle checks.
 
 ### 1. `src/scene.rs`
 

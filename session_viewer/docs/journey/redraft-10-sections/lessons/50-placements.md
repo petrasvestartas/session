@@ -1,6 +1,6 @@
 # 7.5 · Temporary transforms with a fixed baseline
 
-**Goal:** Cancel previews without consuming document history. · **Steps:** 5 · **Source:** [app/command/mod.rs](../../../../src/app/command/mod.rs) · [app/command/tool.rs](../../../../src/app/command/tool.rs) · [app/cplane.rs](../../../../src/app/cplane.rs) · [app/snap.rs](../../../../src/app/snap.rs) · [app/gizmo.rs](../../../../src/app/gizmo.rs) · [engine/gpu/widget.rs](../../../../src/engine/gpu/widget.rs) · [app/deform.rs](../../../../src/app/deform.rs) (`src/app/cplane.rs,src/app/gizmo.rs,src/app/gesture/gizmo.rs`)
+**Goal:** Cancel previews without consuming document history. · **Steps:** 5 · **Source:** [app/command/mod.rs](../../../../src/app/command/mod.rs) · [app/command/tool.rs](../../../../src/app/command/tool.rs) · [app/cplane.rs](../../../../src/app/cplane.rs) · [app/snap.rs](../../../../src/app/snap.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -48,7 +48,7 @@
 
 ## <a id="checkpoint-50-placements"></a>1. Address placements across geometry lanes
 
-**What this code does:** Address placements across original geometry lanes.
+Address placements across original geometry lanes.
 
 ### 1. `src/scene.rs`
 
@@ -112,8 +112,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ## <a id="checkpoint-50a-preview"></a>2. Keep temporary placements outside the document
-
-**What this code does:** Keep temporary placements outside the document.
 
 ### 1. `src/edit_preview.rs`
 
@@ -238,8 +236,6 @@ pub mod edit_preview;
 ```
 
 ## <a id="checkpoint-50b-display"></a>3. Present temporary edits through a separate scene view
-
-**What this code does:** Present temporary edits through a separate scene view.
 
 ### 1. `src/snap_index.rs`
 
@@ -479,8 +475,6 @@ Replace it with:
 ```
 
 ## <a id="checkpoint-50c-move"></a>4. Preview Move from a base point to a target
-
-**What this code does:** Preview Move from a base point to a target.
 
 ### 1. `src/tool.rs`
 
@@ -886,8 +880,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ## <a id="checkpoint-50d-ownership"></a>5. Cancel previews without consuming document history
-
-**What this code does:** Cancel previews without consuming document history.
 
 ### 1. `src/editor.rs`
 

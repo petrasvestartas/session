@@ -1,6 +1,6 @@
 # 4.5 · Measured phases and conservative GPU recovery
 
-**Goal:** Save device-loss diagnostics, reload once and draw conservatively until the next ordinary reload. · **Steps:** 15 · **Source:** `src/lib.rs,src/selftest/lifecycle.rs,src/engine/gpu/device.rs`
+**Goal:** Save device-loss diagnostics, reload once and draw conservatively until the next ordinary reload. · **Steps:** 15 · **Source:** `src/lib.rs` · `src/selftest/lifecycle.rs` · `src/engine/gpu/device.rs`
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -45,7 +45,7 @@
 
 ## <a id="checkpoint-34gc-messages"></a>1. Bound browser failure messages
 
-**What this code does:** Keep browser failure text readable and small enough for the existing report.
+Keep browser failure text readable and small enough for the existing report.
 
 ### 1. `src/error_message.rs`
 
@@ -175,7 +175,53 @@ pub mod gesture;
 
 ## <a id="checkpoint-34gca-errors"></a>2. Observe uncaught browser failures
 
-**What this code does:** Retain the first uncaught browser failure while later events remain bounded and drawing stays independently owned.
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="184" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">CPU (Rust / WASM): Adapter -&gt; (Device, Queue)</text>
+  <rect x="48" y="50" width="118" height="44" rx="4" fill="#dbeafe" stroke="#2563eb" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="107" y="76" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">wgpu::Instance</text>
+  <line x1="166" y1="72" x2="196" y2="72" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="200" y="46" width="124" height="52" rx="4" fill="#dcfce7" stroke="#16a34a" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="262" y="68" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">wgpu::Device</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="262" y="86" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#16a34a">+ wgpu::Queue</text>
+  <rect x="74" y="112" width="224" height="38" rx="4" fill="#f8fafc" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="135" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Rc&lt;RefCell&lt;BrowserState&gt;&gt;</text>
+  <line x1="358" y1="94" x2="384" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="388" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">CPU -&gt; GPU Bus: surface.configure(&amp;device, &amp;config)</text>
+  <rect x="424" y="50" width="272" height="98" rx="6" fill="#fef9c3" stroke="#d97706" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="74" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">SurfaceConfiguration</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="96" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#111111">format: Bgra8UnormSrgb</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="116" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#2563eb">width × height: clamp(1..max_2d)</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="136" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#16a34a">present_mode: Fifo (VSync)</text>
+  <line x1="732" y1="94" x2="758" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="762" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">GPU Swapchain Texture -&gt; Browser &lt;canvas&gt;</text>
+  <rect x="806" y="44" width="256" height="118" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="826" y="58" width="216" height="58" rx="4" fill="#dbeafe" stroke="#2563eb" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="84" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">get_current_texture()</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="102" text-anchor="middle" font-family="monospace" font-size="9" fill="#2563eb">-&gt; wgpu::TextureView</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="142" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#16a34a">frame.present() ✓</text>
+</svg>
+</div>
+
+Retain the first uncaught browser failure while later events remain bounded and drawing stays independently owned.
 
 ### 1. `src/browser_errors.rs`
 
@@ -330,7 +376,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-34gd-adapter"></a>3. Retain adapter identity in the report
 
-**What this code does:** Preserve bounded adapter identity even when recent events rotate out of the report.
+Preserve bounded adapter identity even when recent events rotate out of the report.
 
 ### 1. `src/adapter_info.rs`
 
@@ -612,7 +658,7 @@ pub mod bounds;
 
 ## <a id="checkpoint-34gda-browser"></a>4. Read the viewer’s adapter identity
 
-**What this code does:** Retain vendor and architecture from the same adapter request used for drawing.
+Retain vendor and architecture from the same adapter request used for drawing.
 
 ### 1. `src/adapter_info.js`
 
@@ -792,7 +838,7 @@ mod browser_errors;
 
 ## <a id="checkpoint-34gdb-phases"></a>5. Retain measured loading phases
 
-**What this code does:** Keep measured load operations after their recent event messages rotate away.
+Keep measured load operations after their recent event messages rotate away.
 
 ### 1. `src/load_phase.rs`
 
@@ -1300,7 +1346,51 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-34gdc-startup"></a>6. Measure GPU startup and the first frame
 
-**What this code does:** Download actual adapter, device, renderer and first completed frame timings.
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="184" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Curve Quadrature ∑ w_i ||C'(t_i)|| &amp; Surface Patch dA = ||Su×Sv||</text>
+  <path d="M 56 138 Q 112 52 176 126" fill="none" stroke="#dc2626" stroke-width="2.5"/>
+  <circle cx="84" cy="98" r="4" fill="#fef08a" stroke="#111111" stroke-width="1.5"/>
+  <circle cx="116" cy="84" r="4" fill="#fef08a" stroke="#111111" stroke-width="1.5"/>
+  <circle cx="148" cy="98" r="4" fill="#fef08a" stroke="#111111" stroke-width="1.5"/>
+  <polygon points="196,136 226,74 288,74 258,136" fill="#dbeafe" stroke="#111111" stroke-width="1.75"/>
+  <line x1="226" y1="105" x2="268" y2="105" stroke="#2563eb" stroke-width="2" marker-end="url(#arrB)"/>
+  <line x1="226" y1="105" x2="242" y2="74" stroke="#16a34a" stroke-width="2" marker-end="url(#arrG)"/>
+  <line x1="358" y1="94" x2="384" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="388" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Divergence Volume: V = (1/6) ∑ det(v0, v1, v2) &amp; Centroid C_g</text>
+  <circle cx="448" cy="138" r="4.5" fill="#111111"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="448" y="154" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">Origin O</text>
+  <polygon points="448,138 556,58 656,92" fill="#dbeafe" fill-opacity="0.55" stroke="#2563eb" stroke-width="1.5" stroke-dasharray="4 3"/>
+  <polygon points="556,58 656,92 596,142" fill="#93c5fd" stroke="#111111" stroke-width="2"/>
+  <circle cx="576" cy="104" r="5" fill="#fef08a" stroke="#dc2626" stroke-width="2"/>
+  <line x1="732" y1="94" x2="758" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="762" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Exact Length, Area, Volume &amp; Centroid Marker</text>
+  <rect x="806" y="44" width="256" height="118" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <polygon points="846,136 894,64 988,64 940,136" fill="#dbeafe" stroke="#111111" stroke-width="2"/>
+  <circle cx="917" cy="100" r="6" fill="#fef08a" stroke="#dc2626" stroke-width="2.2"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="1016" y="96" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">C_g</text>
+</svg>
+</div>
+
+Download actual adapter, device, renderer and first completed frame timings.
 
 ### 1. `src/browser_phase.rs`
 
@@ -1705,7 +1795,7 @@ Replace it with:
 
 ## <a id="checkpoint-34gdd-read"></a>7. Measure the selected file read
 
-**What this code does:** Retain the duration and byte count of the selected file’s actual read.
+Retain the duration and byte count of the selected file’s actual read.
 
 ### 1. `src/file_input.rs`
 
@@ -1752,7 +1842,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-34gde-measure"></a>8. Measure a completed CPU operation
 
-**What this code does:** Measure CPU work without changing its success or failure.
+Measure CPU work without changing its success or failure.
 
 ### 1. `src/load_measure.rs`
 
@@ -1911,7 +2001,7 @@ fn native_clock_is_finite_and_monotonic() {
 
 ## <a id="checkpoint-34gdea-import"></a>9. Measure each document preparation phase
 
-**What this code does:** Record decode, validation, kernel construction and display preparation at their actual boundaries.
+Record decode, validation, kernel construction and display preparation at their actual boundaries.
 
 ### 1. `src/document.rs`
 
@@ -2192,7 +2282,7 @@ fn failed_stages_stop_before_later_work() {
 
 ## <a id="checkpoint-34gdf-upload"></a>10. Measure upload preparation and GPU completion
 
-**What this code does:** Distinguish CPU buffer preparation from completion on the drawing queue.
+Distinguish CPU buffer preparation from completion on the drawing queue.
 
 ### 1. `src/geometry_cache.rs`
 
@@ -2364,7 +2454,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-34gdg-network"></a>11. Measure accepted source fetches
 
-**What this code does:** Retain real fetch and Resource Timing measurements only for the accepted reload ticket.
+Retain real fetch and Resource Timing measurements only for the accepted reload ticket.
 
 ### 1. `Cargo.toml`
 
@@ -2531,7 +2621,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-34gdga-revision"></a>12. Record accepted file revisions
 
-**What this code does:** Identify accepted source versions without recording rejected or stale documents.
+Identify accepted source versions without recording rejected or stale documents.
 
 ### 1. `src/revision.rs`
 
@@ -2697,7 +2787,7 @@ Replace it with:
 
 ## <a id="checkpoint-34ge-owner"></a>13. Keep the document outside the GPU runtime
 
-**What this code does:** Give GPU runtimes shared access to a separately owned CPU document.
+Give GPU runtimes shared access to a separately owned CPU document.
 
 ### 1. `src/drawing_document.rs`
 
@@ -2929,7 +3019,7 @@ pub fn document(
 
 ## <a id="checkpoint-34gea-policy"></a>14. Permit one conservative recovery reload
 
-**What this code does:** Allow one device-loss recovery reload and retain reduced quality until an ordinary reload.
+Allow one device-loss recovery reload and retain reduced quality until an ordinary reload.
 
 ### 1. `src/recovery.rs`
 
@@ -3017,8 +3107,6 @@ fn recovered_runs_refuse_repeated_reload_until_an_ordinary_reload() {
 ```
 
 ## <a id="checkpoint-34geb-reload"></a>15. Recover once at reduced canvas density
-
-**What this code does:** Save device-loss diagnostics, reload once and draw conservatively until the next ordinary reload.
 
 ### 1. `Cargo.toml`
 

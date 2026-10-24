@@ -1,6 +1,6 @@
 # 7.4 · Precise snapping with derived search caches
 
-**Goal:** Snap actual drawing input through the command dock. · **Steps:** 8 · **Source:** [app/command/mod.rs](../../../../src/app/command/mod.rs) · [app/command/tool.rs](../../../../src/app/command/tool.rs) · [app/cplane.rs](../../../../src/app/cplane.rs) · [app/snap.rs](../../../../src/app/snap.rs) · [app/gizmo.rs](../../../../src/app/gizmo.rs) · [engine/gpu/widget.rs](../../../../src/engine/gpu/widget.rs) · [app/deform.rs](../../../../src/app/deform.rs) (`src/app/cplane.rs,src/app/gizmo.rs,src/app/gesture/gizmo.rs`)
+**Goal:** Snap actual drawing input through the command dock. · **Steps:** 8 · **Source:** [app/command/mod.rs](../../../../src/app/command/mod.rs) · [app/command/tool.rs](../../../../src/app/command/tool.rs) · [app/cplane.rs](../../../../src/app/cplane.rs) · [app/snap.rs](../../../../src/app/snap.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -47,8 +47,6 @@
 </div>
 
 ## <a id="checkpoint-49-settings"></a>1. Separate object and grid snapping
-
-**What this code does:** Separate object and grid snapping.
 
 ### 1. `src/snap.rs`
 
@@ -205,8 +203,6 @@ pub mod snap;
 
 ## <a id="checkpoint-49a-math"></a>2. Keep snap math in world and plane coordinates
 
-**What this code does:** Keep snap math in world and plane coordinates.
-
 ### 1. `src/snap_math.rs`
 
 Resolve screen projection, local-plane rounding and nearest/perpendicular segment points.
@@ -355,7 +351,7 @@ pub mod snap_math;
 
 ## <a id="checkpoint-49b-sources"></a>3. Collect targets from placed geometry
 
-**What this code does:** Collect targets from original placed geometry.
+Collect targets from original placed geometry.
 
 ### 1. `src/snap_sources.rs`
 
@@ -537,8 +533,6 @@ pub mod snap_sources;
 
 ## <a id="checkpoint-49c-bins"></a>4. Search nearby screen cells
 
-**What this code does:** Search nearby screen cells.
-
 ### 1. `src/snap_bins.rs`
 
 Bound screen-cell insertion and deduplicate nearby candidate IDs.
@@ -624,8 +618,6 @@ pub mod snap_bins;
 ```
 
 ## <a id="checkpoint-49d-index"></a>5. Choose snap kinds before grid fallback
-
-**What this code does:** Choose snap kinds before grid fallback.
 
 ### 1. `src/snap_index.rs`
 
@@ -810,8 +802,6 @@ pub mod snap_index;
 ```
 
 ## <a id="checkpoint-49e-cache"></a>6. Invalidate snap caches after source edits
-
-**What this code does:** Invalidate snap caches after source edits.
 
 ### 1. `src/editor.rs`
 
@@ -1018,8 +1008,6 @@ pub struct Editor {
 
 ## <a id="checkpoint-49ea-state"></a>7. Preserve drafts while snapping
 
-**What this code does:** Preserve drafts while snapping.
-
 ### 1. `src/tool.rs`
 
 Connect snap actions and feedback while preserving accepted draft points and history.
@@ -1208,8 +1196,6 @@ pub enum Action {
 ```
 
 ## <a id="checkpoint-49f-input"></a>8. Snap actual drawing input through the command dock
-
-**What this code does:** Snap actual drawing input through the command dock.
 
 ### 1. `src/commands.rs`
 

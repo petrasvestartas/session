@@ -1,6 +1,6 @@
 # 19.4 · Family-aware original controls and source previews
 
-**Goal:** Replace Element display geometry while retaining its original CAD identity. · **Steps:** 7 · **Source:** [app/session_io.rs](../../../../src/app/session_io.rs) · [app/command/mod.rs](../../../../src/app/command/mod.rs) · [app/hierarchy.rs](../../../../src/app/hierarchy.rs) · [app/scene.rs](../../../../src/app/scene.rs) · [app/selection.rs](../../../../src/app/selection.rs) · [app/deform.rs](../../../../src/app/deform.rs) · [app/walk/mod.rs](../../../../src/app/walk/mod.rs) (`src/app/inspect.rs,src/app/families.rs,src/command_dock/families.rs`)
+**Goal:** Replace Element display geometry while retaining its original CAD identity. · **Steps:** 7 · **Source:** [app/session_io.rs](../../../../src/app/session_io.rs) · [app/command/mod.rs](../../../../src/app/command/mod.rs) · [app/hierarchy.rs](../../../../src/app/hierarchy.rs) · [app/scene.rs](../../../../src/app/scene.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -50,7 +50,7 @@
 
 ## <a id="checkpoint-96za-address-original-controls-with-family-keys"></a>1. Address controls with family keys
 
-**What this code does:** Address original controls with family keys.
+Address original controls with family keys.
 
 ### 1. `src/pick_sources.rs`
 
@@ -264,7 +264,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-96zb-draw-and-pick-original-cad-control-points"></a>2. Draw and pick CAD control points
 
-**What this code does:** Draw and pick original CAD control points.
+Draw and pick original CAD control points.
 
 ### 1. `src/scene.rs`
 
@@ -3895,7 +3895,7 @@ fn actual_mesh_control_pixel_keeps_sparse_vertex_key_at_both_densities() {
 
 ## <a id="checkpoint-96zc-share-the-current-control-point-style"></a>3. Share the current control-point style
 
-**What this code does:** Use seven CSS pixel blue controls and same-size yellow selection.
+Use seven CSS pixel blue controls and same-size yellow selection.
 
 ### 1. `src/scene.rs`
 
@@ -4177,7 +4177,7 @@ fn actual_controls_are_blue_seven_css_pixels_and_selected_yellow_at_both_densiti
 
 ## <a id="checkpoint-96zd-reuse-world-controls-for-their-display-nets"></a>4. Reuse world controls for their display nets
 
-**What this code does:** Draw placed control nets through the existing stroke lane.
+Draw placed control nets through the existing stroke lane.
 
 ### 1. `src/scene.rs`
 
@@ -4484,7 +4484,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-96ze-scope-controls-to-the-selected-original"></a>5. Scope controls to the selected original
 
-**What this code does:** Enter original control selection without competing object handles.
+Enter original control selection without competing object handles.
 
 ### 1. `src/scene.rs`
 
@@ -4852,7 +4852,7 @@ fn controls_scope_and_escape_preserve_original_ownership_and_history() {
 
 ## <a id="checkpoint-96zf-edit-original-controls-through-the-source-preview"></a>6. Edit controls through the source preview
 
-**What this code does:** Deform original control geometry without editing GPU records.
+Deform original control geometry without editing GPU records.
 
 ### 1. `src/source_part.rs`
 
@@ -5169,8 +5169,6 @@ fn original_sparse_control_preview_conjugates_placement_and_restores_source_hist
 ```
 
 ## <a id="checkpoint-96zg-rebuild-an-edited-element-without-replacing-its-owner"></a>7. Rebuild an edited Element without replacing its owner
-
-**What this code does:** Replace Element display geometry while retaining its original CAD identity.
 
 ### 1. `src/scene.rs`
 

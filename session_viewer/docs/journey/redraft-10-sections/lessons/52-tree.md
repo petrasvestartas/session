@@ -1,6 +1,6 @@
 # 8.1 · Nested original sources and exact parent edits
 
-**Goal:** Save nested rows and their local placements. · **Steps:** 7 · **Source:** [app/hierarchy.rs](../../../../src/app/hierarchy.rs) · [app/layers.rs](../../../../src/app/layers.rs) · [app/ui/layers.rs](../../../../src/app/ui/layers.rs) · [app/gesture/mod.rs](../../../../src/app/gesture/mod.rs) · [state/drag.rs](../../../../src/state/drag.rs) · [state/box_select.rs](../../../../src/state/box_select.rs) (`src/app/layers.rs,src/command_dock/mod.rs,src/app/gesture/box_select.rs`)
+**Goal:** Save nested rows and their local placements. · **Steps:** 7 · **Source:** [app/hierarchy.rs](../../../../src/app/hierarchy.rs) · [app/layers.rs](../../../../src/app/layers.rs) · [app/ui/layers.rs](../../../../src/app/ui/layers.rs) · [app/gesture/mod.rs](../../../../src/app/gesture/mod.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -50,8 +50,6 @@
 </div>
 
 ## <a id="checkpoint-52-tree"></a>1. Validate and place a nested source tree
-
-**What this code does:** Validate and place a nested source tree.
 
 ### 1. `src/hierarchy.rs`
 
@@ -152,8 +150,6 @@ pub mod hierarchy;
 
 ## <a id="checkpoint-52a-records"></a>2. Keep lightweight tree records outside kernel ownership
 
-**What this code does:** Keep lightweight tree records outside kernel ownership.
-
 ### 1. `src/hierarchy.rs`
 
 Store immutable document-scoped node records shared by previews and history.
@@ -216,8 +212,6 @@ pub struct ObjectId(u32);
 ```
 
 ## <a id="checkpoint-52b-index"></a>3. Index descendants and read-only attribute groups
-
-**What this code does:** Index descendants and read-only attribute groups.
 
 ### 1. `src/hierarchy.rs`
 
@@ -351,8 +345,6 @@ impl Forest {
 ```
 
 ## <a id="checkpoint-52c-load"></a>4. Import nested source identities and precise placements
-
-**What this code does:** Import nested source identities and precise placements.
 
 ### 1. `src/document.rs`
 
@@ -602,8 +594,6 @@ pub struct Scene {
 ```
 
 ## <a id="checkpoint-52d-preview"></a>5. Carry parent-owned descendants in one preview
-
-**What this code does:** Carry parent-owned descendants in one preview.
 
 ### 1. `src/scene.rs`
 
@@ -864,8 +854,6 @@ Replace it with:
 
 ## <a id="checkpoint-52e-edits"></a>6. Commit parent moves and deletions as one transaction
 
-**What this code does:** Commit parent moves and deletions as one transaction.
-
 ### 1. `src/editor.rs`
 
 Route group selection and parent edits through protected source ownership and one history boundary.
@@ -1084,8 +1072,6 @@ pub enum Action {
 ```
 
 ## <a id="checkpoint-52f-save"></a>7. Save nested rows and their local placements
-
-**What this code does:** Save nested rows and their local placements.
 
 ### 1. `src/hierarchy.rs`
 

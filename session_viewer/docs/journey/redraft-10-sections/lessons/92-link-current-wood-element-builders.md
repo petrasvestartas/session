@@ -1,6 +1,6 @@
 # 18.4 · Original Wood Elements and portable source records
 
-**Goal:** Prove Element recipes source history and archives. · **Steps:** 17 · **Source:** [engine/gpu/ssao.rs](../../../../src/engine/gpu/ssao.rs) · [engine/gpu/ssao/pipelines.rs](../../../../src/engine/gpu/ssao/pipelines.rs) · [shaders/ssao.wgsl](../../../../src/shaders/ssao.wgsl) · [shaders/triangle.wgsl](../../../../src/shaders/triangle.wgsl) · [shaders/ink_visibility.wgsl](../../../../src/shaders/ink_visibility.wgsl) · [engine/gpu/surface_outline.rs](../../../../src/engine/gpu/surface_outline.rs) · [engine/gpu/render.rs](../../../../src/engine/gpu/render.rs) · [engine/performance.rs](../../../../src/engine/performance.rs) · [engine/gpu/timing.rs](../../../../src/engine/gpu/timing.rs) · [app/command/tool/elements.rs](../../../../src/app/command/tool/elements.rs) (`src/shaders/hzb.wgsl,src/shaders/ssao.wgsl,src/app/wood_elements.rs`)
+**Goal:** Prove Element recipes source history and archives. · **Steps:** 17 · **Source:** [engine/gpu/ssao.rs](../../../../src/engine/gpu/ssao.rs) · [engine/gpu/ssao/pipelines.rs](../../../../src/engine/gpu/ssao/pipelines.rs) · [shaders/ssao.wgsl](../../../../src/shaders/ssao.wgsl) · [shaders/triangle.wgsl](../../../../src/shaders/triangle.wgsl)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -45,8 +45,6 @@
 
 ## <a id="checkpoint-92-link-current-wood-element-builders"></a>1. Link current Wood element builders
 
-**What this code does:** Link current Wood element builders.
-
 ### 1. `Cargo.toml`
 
 Link current Wood element builders beside the original kernel.
@@ -68,7 +66,7 @@ wasm-bindgen = "=0.2.128"
 
 ## <a id="checkpoint-91zza-write-original-beam-column-and-plate-builders"></a>2. Write beam column and plate builders
 
-**What this code does:** Parse positive finite lengths while retaining omitted defaults.
+Parse positive finite lengths while retaining omitted defaults.
 
 ### 1. `src/element_values.rs`
 
@@ -321,7 +319,7 @@ pub mod finite_project_source;
 
 ## <a id="checkpoint-92a-retain-current-positive-lengths-and-six-builders"></a>3. Write support variable beam and block builders
 
-**What this code does:** Add the remaining original Support, Beam Variable and Block wrappers.
+Add the remaining original Support, Beam Variable and Block wrappers.
 
 ### 1. `src/element_support.rs`
 
@@ -496,7 +494,7 @@ pub mod finite_project_source;
 
 ## <a id="checkpoint-92b-own-original-element-geometry"></a>4. Own Element geometry
 
-**What this code does:** Own original Element geometry.
+Own original Element geometry.
 
 ### 1. `src/element_original.rs`
 
@@ -570,8 +568,6 @@ pub mod finite_project_source;
 ```
 
 ## <a id="checkpoint-92c-read-current-element-command-defaults"></a>5. Read current Element command defaults
-
-**What this code does:** Read current Element command defaults.
 
 ### 1. `src/element_input.rs`
 
@@ -714,8 +710,6 @@ pub mod finite_project_source;
 
 ## <a id="checkpoint-92d-build-typed-elements-from-ordered-world-picks"></a>6. Build typed Elements from ordered world picks
 
-**What this code does:** Build typed Elements from ordered world picks.
-
 ### 1. `src/element_input.rs`
 
 Route ordered original sources into current Wood builders and base planes.
@@ -816,7 +810,7 @@ pub fn build(
 
 ## <a id="checkpoint-92e-capture-original-picks-while-the-tool-runs"></a>7. Capture picks while the tool runs
 
-**What this code does:** Capture original picks while the tool runs.
+Capture original picks while the tool runs.
 
 ### 1. `src/element_draft.rs`
 
@@ -969,8 +963,6 @@ pub mod finite_project_source;
 
 ## <a id="checkpoint-92f-teach-named-and-bare-element-values"></a>8. Teach named and bare Element values
 
-**What this code does:** Teach named and bare Element values.
-
 ### 1. `src/element_draft.rs`
 
 Adapt the maintained Element parameter word recipe without changing its semantics.
@@ -1046,8 +1038,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-92g-make-element-input-batches-atomic"></a>9. Make Element input batches atomic
 
-**What this code does:** Make Element input batches atomic.
-
 ### 1. `src/element_draft.rs`
 
 Adopt only validated current parameter batches.
@@ -1082,8 +1072,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ## <a id="checkpoint-92h-attach-readonly-element-attributes"></a>10. Attach readonly Element attributes
-
-**What this code does:** Attach readonly Element attributes.
 
 ### 1. `src/layer_edit.rs`
 
@@ -1164,8 +1152,6 @@ pub fn attach_attributes(
 ```
 
 ## <a id="checkpoint-92i-adopt-elements-and-consume-sources-once"></a>11. Adopt Elements and consume sources once
-
-**What this code does:** Adopt Elements and consume sources once.
 
 ### 1. `src/element_adopt.rs`
 
@@ -1309,7 +1295,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-92j-save-and-open-original-element-records"></a>12. Save and open Element records
 
-**What this code does:** Save and open original Element records.
+Save and open original Element records.
 
 ### 1. `src/geometry_snapshot.rs`
 
@@ -1422,8 +1408,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ## <a id="checkpoint-92k-own-independent-element-tool-state"></a>13. Own independent Element tool state
-
-**What this code does:** Own independent Element tool state.
 
 ### 1. `src/editor.rs`
 
@@ -1548,8 +1532,6 @@ pub struct Editor {
 
 ## <a id="checkpoint-92l-commit-one-element-creation-and-retry-errors"></a>14. Commit one Element creation and retry errors
 
-**What this code does:** Commit one Element creation and retry errors.
-
 ### 1. `src/editor.rs`
 
 Connect staged Element creation, named input and ordered picks.
@@ -1652,7 +1634,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-92m-route-current-element-commands-and-feature-visibility"></a>15. Route Element commands and independent visibility
 
-**What this code does:** Toggle Element Attributes and Element Interactions independently.
+Toggle Element Attributes and Element Interactions independently.
 
 ### 1. `src/editor.rs`
 
@@ -1890,8 +1872,6 @@ pub const ACTIONS: &[(&str, Factory)] = &[
 
 ## <a id="checkpoint-92n-pick-elements-through-the-real-command-dock"></a>16. Pick Elements through the real command dock
 
-**What this code does:** Pick Elements through the real command dock.
-
 ### 1. `src/browser.rs`
 
 Route actual browser original picks, command results and Element parameter controls.
@@ -2046,8 +2026,6 @@ Replace it with:
 ```
 
 ## <a id="checkpoint-92o-prove-element-recipes-source-history-and-archives"></a>17. Prove Element recipes source history and archives
-
-**What this code does:** Prove Element recipes source history and archives.
 
 ### 1. `src/element_tests.rs`
 

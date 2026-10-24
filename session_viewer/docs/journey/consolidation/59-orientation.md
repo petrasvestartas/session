@@ -1,6 +1,6 @@
 # 9.5 · Oriented CAD solids, original picks and empty bores
 
-**Goal:** Draw the original bore and prove its empty hole. · **Steps:** 7 · **Source:** [app/walk/brep.rs](../../../src/app/walk/brep.rs) · [app/walk/brep_edges.rs](../../../src/app/walk/brep_edges.rs) · [app/walk/brep_orient.rs](../../../src/app/walk/brep_orient.rs) · [app/walk/brep_shapes.rs](../../../src/app/walk/brep_shapes.rs) · [engine/gpu/faces.rs](../../../src/engine/gpu/faces.rs) (`src/app/walk/brep_shapes.rs,src/app/walk/brep_orient.rs,src/shaders/normals.wgsl`)
+**Goal:** Draw the original bore and prove its empty hole. · **Steps:** 7 · **Source:** [app/walk/brep.rs](../../../src/app/walk/brep.rs) · [app/walk/brep_edges.rs](../../../src/app/walk/brep_edges.rs) · [app/walk/brep_orient.rs](../../../src/app/walk/brep_orient.rs) · [app/walk/brep_shapes.rs](../../../src/app/walk/brep_shapes.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -48,7 +48,7 @@
 
 ## <a id="checkpoint-59-orientation"></a>1. Orient connected face groups
 
-**What this code does:** Propagate coherent signs and turn each closed face group outward.
+Propagate coherent signs and turn each closed face group outward.
 
 ### 1. `src/cad_orient.rs`
 
@@ -153,7 +153,7 @@ pub fn face_signs(b: &BRep, fms: &[Mesh], chains: &[Option<EdgeChain>]) -> Vec<f
 
 ## <a id="checkpoint-59a-face-data"></a>2. Map each display triangle to its CAD face
 
-**What this code does:** Map each display triangle to its original CAD face.
+Map each display triangle to its original CAD face.
 
 ### 1. `src/cad_face.rs`
 
@@ -282,7 +282,7 @@ pub mod cad_face;
 
 ## <a id="checkpoint-59b-display"></a>3. Retain source UVs and draw only CAD boundaries
 
-**What this code does:** Retain source UVs and draw only original CAD boundaries.
+Retain source UVs and draw only original CAD boundaries.
 
 ### 1. `src/cad_display.rs`
 
@@ -393,7 +393,7 @@ pub mod cad_display;
 
 ## <a id="checkpoint-59c-source-row"></a>4. Attach BRep ownership to existing rows
 
-**What this code does:** Attach original BRep ownership to existing rows.
+Attach original BRep ownership to existing rows.
 
 ### 1. `src/scene.rs`
 
@@ -542,7 +542,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-59d-identities"></a>5. Pick and highlight an CAD border
 
-**What this code does:** Pick and highlight an original CAD border.
+Pick and highlight an original CAD border.
 
 ### 1. `src/pick_sources.rs`
 
@@ -731,8 +731,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-59e-cache"></a>6. Inspect shared CAD owners and compact cache counts
 
-**What this code does:** Inspect shared CAD owners and compact cache counts.
-
 ### 1. `src/memory.rs`
 
 Expose unique CAD owners and original identity/UV-cache counts for acceptance.
@@ -805,8 +803,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ## <a id="checkpoint-59f-cad"></a>7. Draw the bore and prove its empty hole
-
-**What this code does:** Draw the original bore and prove its empty hole.
 
 ### 1. `src/editor.rs`
 

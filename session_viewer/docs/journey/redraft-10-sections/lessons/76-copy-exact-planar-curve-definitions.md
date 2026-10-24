@@ -1,6 +1,6 @@
 # 14.6 · Exact parabola recipes and editable freeform controls
 
-**Goal:** Exercise exact curves and rational control edits. · **Steps:** 5 · **Source:** [app/walk/sheet.rs](../../../../src/app/walk/sheet.rs) · [app/sheet_query.rs](../../../../src/app/sheet_query.rs) · [app/stream.rs](../../../../src/app/stream.rs) · [app/cplane.rs](../../../../src/app/cplane.rs) · [app/coords.rs](../../../../src/app/coords.rs) · [app/command/tool/shape.rs](../../../../src/app/command/tool/shape.rs) · [app/command/tool/gather.rs](../../../../src/app/command/tool/gather.rs) · [app/deform.rs](../../../../src/app/deform.rs) (`src/app/cplane.rs,src/app/primitives.rs,src/app/curves.rs`)
+**Goal:** Exercise exact curves and rational control edits. · **Steps:** 5 · **Source:** [app/walk/sheet.rs](../../../../src/app/walk/sheet.rs) · [app/sheet_query.rs](../../../../src/app/sheet_query.rs) · [app/stream.rs](../../../../src/app/stream.rs) · [app/cplane.rs](../../../../src/app/cplane.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -48,7 +48,7 @@
 
 ## <a id="checkpoint-76-copy-exact-planar-curve-definitions"></a>1. Read parabola inputs in a checked frame
 
-**What this code does:** Complete the original parabola questions and input reader.
+Complete the original parabola questions and input reader.
 
 ### 1. `src/freeform_parabola.rs`
 
@@ -280,8 +280,6 @@ mod tests {
 
 ## <a id="checkpoint-76a-expose-exact-curve-choices-in-the-existing-registry"></a>2. Expose exact curve choices in the existing registry
 
-**What this code does:** Expose exact curve choices in the existing registry.
-
 ### 1. `src/primitive_registry.rs`
 
 Register all current exact planar curve names and supported Arc options.
@@ -332,7 +330,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-76b-retain-editable-freeform-controls-in-the-point-collector"></a>3. Create editable freeform curves
 
-**What this code does:** Write the original degree and closure rules for collected control points.
+Write the original degree and closure rules for collected control points.
 
 ### 1. `src/freeform_curve.rs`
 
@@ -629,7 +627,7 @@ Replace it with:
 
 ## <a id="checkpoint-76c-inspect-original-curve-data-through-the-browser-contract"></a>4. Inspect curve data through the browser contract
 
-**What this code does:** Inspect original curve data through the browser contract.
+Inspect original curve data through the browser contract.
 
 ### 1. `src/browser.rs`
 
@@ -651,8 +649,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ## <a id="checkpoint-76d-exercise-exact-curves-and-rational-control-edits"></a>5. Exercise exact curves and rational control edits
-
-**What this code does:** Exercise exact curves and rational control edits.
 
 ### 1. `src/freeform_tests.rs`
 

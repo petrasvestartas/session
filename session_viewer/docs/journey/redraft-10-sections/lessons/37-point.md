@@ -1,6 +1,6 @@
 # 5.3 · Original point markers and curve control identities
 
-**Goal:** Refer to an original curve control by its shared curve owner and stable control index, preserving homogeneous source coordinates. · **Steps:** 7 · **Source:** [app/walk/curves.rs](../../../../src/app/walk/curves.rs) · [engine/gpu/segments.rs](../../../../src/engine/gpu/segments.rs) · [shaders/ribbon.wgsl](../../../../src/shaders/ribbon.wgsl) · [shaders/vector.wgsl](../../../../src/shaders/vector.wgsl) · [app/walk/points.rs](../../../../src/app/walk/points.rs) · [shaders/glyph.wgsl](../../../../src/shaders/glyph.wgsl) · [shaders/ink_visibility.wgsl](../../../../src/shaders/ink_visibility.wgsl) · [shaders/triangle.wgsl](../../../../src/shaders/triangle.wgsl) · [shaders/grid.wgsl](../../../../src/shaders/grid.wgsl) (`src/shaders/ribbon.wgsl,src/shaders/glyph.wgsl,src/engine/gpu/segments.rs`)
+**Goal:** Refer to an original curve control by its shared curve owner and stable control index, preserving homogeneous source coordinates. · **Steps:** 7 · **Source:** [app/walk/curves.rs](../../../../src/app/walk/curves.rs) · [engine/gpu/segments.rs](../../../../src/engine/gpu/segments.rs) · [shaders/ribbon.wgsl](../../../../src/shaders/ribbon.wgsl) · [shaders/vector.wgsl](../../../../src/shaders/vector.wgsl)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -45,7 +45,7 @@
 
 ## <a id="checkpoint-37-point"></a>1. Prepare an point for a screen marker
 
-**What this code does:** Retain exact kernel Point coordinates while preparing a finite 32-byte screen-marker record.
+Retain exact kernel Point coordinates while preparing a finite 32-byte screen-marker record.
 
 ### 1. `src/marker.rs`
 
@@ -208,7 +208,50 @@ fn marker_default_width_and_display_refusal_match_their_source_policy() {
 
 ## <a id="checkpoint-37a-disc"></a>2. Extrude a circular marker in screen pixels
 
-**What this code does:** Extrude a point into a depth-tested screen disc with analytic circular coverage.
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="184" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Profile Curve C(u) + Extrude Vector d / Revolve Axis A</text>
+  <path d="M 64 138 Q 114 82 164 138" fill="none" stroke="#dc2626" stroke-width="3"/>
+  <line x1="114" y1="110" x2="114" y2="48" stroke="#16a34a" stroke-width="2.5" marker-end="url(#arrG)"/>
+  <line x1="234" y1="46" x2="234" y2="156" stroke="#2563eb" stroke-width="2" stroke-dasharray="5 3"/>
+  <path d="M 254 136 Q 282 100 254 64" fill="none" stroke="#dc2626" stroke-width="2.5"/>
+  <line x1="358" y1="94" x2="384" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="388" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">S_ext(u,v) = C(u) + v*d  |  S_rev(u,v) = Rot_A(v) * C(u)</text>
+  <polygon points="426,138 476,92 546,92 496,138" fill="#dbeafe" stroke="#111111" stroke-width="1.75"/>
+  <polygon points="426,96 476,50 546,50 496,96" fill="#93c5fd" stroke="#111111" stroke-width="1.75"/>
+  <line x1="426" y1="138" x2="426" y2="96" stroke="#16a34a" stroke-width="2"/>
+  <ellipse cx="638" cy="72" rx="42" ry="14" fill="#dbeafe" stroke="#111111" stroke-width="1.75"/>
+  <ellipse cx="638" cy="132" rx="42" ry="14" fill="#93c5fd" stroke="#111111" stroke-width="1.75"/>
+  <line x1="596" y1="72" x2="596" y2="132" stroke="#111111" stroke-width="1.75"/>
+  <line x1="680" y1="72" x2="680" y2="132" stroke="#111111" stroke-width="1.75"/>
+  <line x1="732" y1="94" x2="758" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="762" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Extruded Prism &amp; Revolved Surface of Revolution</text>
+  <rect x="806" y="44" width="256" height="118" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <polygon points="832,138 866,76 924,76 890,138" fill="#dbeafe" stroke="#111111" stroke-width="1.75"/>
+  <ellipse cx="992" cy="74" rx="36" ry="12" fill="#93c5fd" stroke="#111111" stroke-width="1.75"/>
+  <path d="M 956 74 L 956 134 A 36 12 0 0 0 1028 134 L 1028 74" fill="#dbeafe" stroke="#111111" stroke-width="1.75"/>
+</svg>
+</div>
+
+Extrude a point into a depth-tested screen disc with analytic circular coverage.
 
 ### 1. `src/marker.wgsl`
 
@@ -269,7 +312,7 @@ use std::rc::Rc;
 
 ## <a id="checkpoint-37b-lane"></a>3. Draw markers with the shared instance lane
 
-**What this code does:** Bind actual 32-byte marker instances and verify their projected size, alpha and lifetime on the GPU.
+Bind actual 32-byte marker instances and verify their projected size, alpha and lifetime on the GPU.
 
 ### 1. `src/stroke_gpu.rs`
 
@@ -349,7 +392,7 @@ Replace it with:
 
 ## <a id="checkpoint-37c-document"></a>4. Retain point rows and placement
 
-**What this code does:** Give original point sources checked document identities, precise placement and undoable lifetimes.
+Give original point sources checked document identities, precise placement and undoable lifetimes.
 
 ### 1. `src/scene.rs`
 
@@ -658,7 +701,7 @@ fn original_point_rows_keep_precise_placement_shared_history_and_release() {
 
 ## <a id="checkpoint-37d-render"></a>5. Draw point rows and count their resources
 
-**What this code does:** Draw placed original point rows with truthful CPU/GPU counters and complete Close release.
+Draw placed original point rows with truthful CPU/GPU counters and complete Close release.
 
 ### 1. `src/renderer.rs`
 
@@ -906,7 +949,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-37da-input"></a>6. Insert points through the real dock
 
-**What this code does:** Insert one original Point through actual command input and prove its screen diameter, history and resource release.
+Insert one original Point through actual command input and prove its screen diameter, history and resource release.
 
 ### 1. `src/editor.rs`
 
@@ -1068,8 +1111,6 @@ fn point_command_preserves_source_identity_in_one_history_step() {
 ```
 
 ## <a id="checkpoint-37e-controls"></a>7. Identify controls on the curve owner
-
-**What this code does:** Refer to an original curve control by its shared curve owner and stable control index, preserving homogeneous source coordinates.
 
 ### 1. `src/controls.rs`
 

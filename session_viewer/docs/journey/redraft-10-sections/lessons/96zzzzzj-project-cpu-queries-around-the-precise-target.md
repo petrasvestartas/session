@@ -1,6 +1,6 @@
 # 21.2 · Precise CPU queries and origin-stamped picks
 
-**Goal:** Refresh local draw inputs without replacing the document or cancelling its gesture. · **Steps:** 7 · **Source:** [camera.rs](../../../../src/camera.rs) · [state.rs](../../../../src/state.rs) · [engine/gpu/objects.rs](../../../../src/engine/gpu/objects.rs) · [engine/gpu/frame.rs](../../../../src/engine/gpu/frame.rs) · [engine/gpu/targets.rs](../../../../src/engine/gpu/targets.rs) · [shaders/grid.wgsl](../../../../src/shaders/grid.wgsl) · [shaders/ribbon.wgsl](../../../../src/shaders/ribbon.wgsl) · [app/cplane.rs](../../../../src/app/cplane.rs) (`src/camera.rs,src/app/units.rs,src/engine/gpu/anchor.rs`)
+**Goal:** Refresh local draw inputs without replacing the document or cancelling its gesture. · **Steps:** 7 · **Source:** [camera.rs](../../../../src/camera.rs) · [state.rs](../../../../src/state.rs) · [engine/gpu/objects.rs](../../../../src/engine/gpu/objects.rs) · [engine/gpu/frame.rs](../../../../src/engine/gpu/frame.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -46,7 +46,7 @@
 
 ## <a id="checkpoint-96zzzzzj-project-cpu-queries-around-the-precise-target"></a>1. Project CPU queries around the precise target
 
-**What this code does:** Keep CPU screen queries precise before converting world points to pixels.
+Keep CPU screen queries precise before converting world points to pixels.
 
 ### 1. `src/snap_math.rs`
 
@@ -325,7 +325,7 @@ fn cpu_screen_queries_keep_distant_pixels_and_original_clip_guards() {
 
 ## <a id="checkpoint-96zzzzzk-prepare-precise-text-selection-polygons"></a>2. Prepare precise text selection polygons
 
-**What this code does:** Project original text bounds in a precise local query frame.
+Project original text bounds in a precise local query frame.
 
 ### 1. `src/snap_math.rs`
 
@@ -752,7 +752,7 @@ fn text_query_polygons_keep_precise_placements_sources_and_unclipped_rules() {
 
 ## <a id="checkpoint-96zzzzzl-connect-precise-rectangle-selection-queries"></a>3. Connect precise rectangle selection queries
 
-**What this code does:** Select original geometry and text through one precise CPU frame.
+Select original geometry and text through one precise CPU frame.
 
 ### 1. `src/rect_select.rs`
 
@@ -1342,7 +1342,7 @@ fn rectangle_queries_keep_distant_originals_and_exact_window_crossing_sets() {
 
 ## <a id="checkpoint-96zzzzzm-finish-precise-lasso-and-handle-queries"></a>4. Finish precise lasso and handle queries
 
-**What this code does:** Keep lasso selection and handle sizing in precise local frames.
+Keep lasso selection and handle sizing in precise local frames.
 
 ### 1. `src/lasso.rs`
 
@@ -1793,7 +1793,7 @@ fn actual_distant_widgets_keep_local_pixels_scale_picks_and_tile_release() {
 
 ## <a id="checkpoint-96zzzzzn-stamp-asynchronous-picks-with-the-origin"></a>5. Stamp asynchronous picks with the scene origin
 
-**What this code does:** Reject pick readbacks from a different local coordinate frame.
+Reject pick readbacks from a different local coordinate frame.
 
 ### 1. `src/pick_view.rs`
 
@@ -2153,7 +2153,50 @@ fn actual_origin_only_pick_views_discard_old_hits_and_restore_owners() {
 
 ## <a id="checkpoint-96zzzzzo-retry-rebased-picks-with-the-latest-cursor"></a>6. Retry rebased picks with the latest cursor
 
-**What this code does:** Finish a released gesture when its asynchronous pick frame is rebased.
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="184" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">CPU Camera / View Uniform (16-Byte Aligned)</text>
+  <rect x="52" y="48" width="268" height="106" rx="6" fill="#f8fafc" stroke="#111111" stroke-width="1.75"/>
+  <rect x="66" y="58" width="240" height="38" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="81" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">view_proj: [[f32; 4]; 4] (64B)</text>
+  <rect x="66" y="104" width="240" height="36" fill="#fef08a" stroke="#d97706" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="126" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">eye_pos / viewport_px (16B)</text>
+  <line x1="358" y1="94" x2="384" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="388" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">queue.write_buffer -&gt; wgpu::BindGroup (@group(0))</text>
+  <rect x="424" y="50" width="272" height="102" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <rect x="442" y="64" width="236" height="32" rx="4" fill="#dcfce7" stroke="#16a34a" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="84" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">BufferUsages::UNIFORM | COPY_DST</text>
+  <rect x="442" y="106" width="236" height="32" rx="4" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="126" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#2563eb">pass.set_bind_group(0, &amp;bg, &amp;[])</text>
+  <line x1="732" y1="94" x2="758" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="762" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">GPU Shader Uniform Read: var&lt;uniform&gt;</text>
+  <rect x="806" y="44" width="256" height="118" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="76" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#2563eb">@group(0) @binding(0)</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="98" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">var&lt;uniform&gt; u: Uniforms;</text>
+  <rect x="828" y="114" width="212" height="32" rx="4" fill="#dcfce7" stroke="#16a34a" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="134" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">u.view_proj * vec4(p, 1.0)</text>
+</svg>
+</div>
+
+Finish a released gesture when its asynchronous pick frame is rebased.
 
 ### 1. `src/renderer.rs`
 
@@ -4870,8 +4913,6 @@ fn actual_rebased_pending_cursor_stays_newest_and_cancellation_never_revives_it(
 ```
 
 ## <a id="checkpoint-96zzzzzp-share-derived-inputs-for-origin-refresh"></a>7. Share derived inputs for origin refresh
-
-**What this code does:** Refresh local draw inputs without replacing the document or cancelling its gesture.
 
 ### 1. `src/renderer.rs`
 

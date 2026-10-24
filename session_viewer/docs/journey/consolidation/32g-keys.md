@@ -1,6 +1,6 @@
 # 3.7 · Restore exact sources and replay the captured edit
 
-**Goal:** Verify automatic command failures preserve cold drawing, placement and history, including all-or-nothing multiple-source Save. · **Steps:** 26 · **Source:** `src/app/decode.rs,src/app/loader.rs,src/state.rs`
+**Goal:** Verify automatic command failures preserve cold drawing, placement and history, including all-or-nothing multiple-source Save. · **Steps:** 26 · **Source:** `src/app/decode.rs` · `src/app/loader.rs` · `src/state.rs`
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -51,7 +51,7 @@
 
 ## <a id="checkpoint-32g-keys"></a>1. Identify the source release a reload belongs to
 
-**What this code does:** Borrow the current imported release identity and epoch before asking for source data.
+Borrow the current imported release identity and epoch before asking for source data.
 
 ### 1. `src/lib.rs`
 
@@ -178,7 +178,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-32ga-prepare"></a>2. Prepare kernel data without rebuilding its display
 
-**What this code does:** Validate an immutable source version and restore its Session into a private reload candidate.
+Validate an immutable source version and restore its Session into a private reload candidate.
 
 ### 1. `src/document.rs`
 
@@ -324,7 +324,7 @@ impl PreparedReload {
 
 ## <a id="checkpoint-32gb-adopt"></a>3. Adopt restored source owners as one residency change
 
-**What this code does:** Validate current releases and all matching history rows before adopting any kernel candidate.
+Validate current releases and all matching history rows before adopting any kernel candidate.
 
 ### 1. `src/scene.rs`
 
@@ -432,7 +432,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-32gc-roundtrip"></a>4. Prove source restoration preserves display and history
 
-**What this code does:** Restore exact source coordinates and editing without reallocating retained display owners.
+Restore exact source coordinates and editing without reallocating retained display owners.
 
 ### 1. `src/lib.rs`
 
@@ -537,7 +537,7 @@ fn hydration_restores_original_doubles_without_rebuilding_rows_or_history() {
 
 ## <a id="checkpoint-32gd-rejections"></a>5. Reject stale or inconsistent source batches atomically
 
-**What this code does:** Keep rows cold on changed versions, missing source identity and obsolete release keys.
+Keep rows cold on changed versions, missing source identity and obsolete release keys.
 
 ### 1. `src/rehydrate_tests.rs`
 
@@ -658,7 +658,7 @@ use std::rc::Rc;
 
 ## <a id="checkpoint-32ge-stale"></a>6. Ignore old reload results before decoding them
 
-**What this code does:** Reject results for closed imports, loaded rows, duplicate keys and previous release epochs.
+Reject results for closed imports, loaded rows, duplicate keys and previous release epochs.
 
 ### 1. `src/rehydrate_tests.rs`
 
@@ -755,8 +755,6 @@ fn a_bad_second_version_rejects_the_entire_source_batch() {
 
 ## <a id="checkpoint-32gf-request"></a>7. Give each source request its own owner
 
-**What this code does:** Give each source request its own owner.
-
 ### 1. `src/lib.rs`
 
 Expose the native request owner without adding browser APIs to it.
@@ -851,8 +849,6 @@ impl ReloadJob {
 ```
 
 ## <a id="checkpoint-32gfa-ownership"></a>8. Prove cancelled work releases its source owners
-
-**What this code does:** Prove cancelled work releases its source owners.
 
 ### 1. `src/reload_job.rs`
 
@@ -957,8 +953,6 @@ mod tests {
 ```
 
 ## <a id="checkpoint-32gg-fetch"></a>9. Read a source response within its byte limit
-
-**What this code does:** Read a source response within its byte limit.
 
 ### 1. `Cargo.toml`
 
@@ -1082,8 +1076,6 @@ async fn read(
 
 ## <a id="checkpoint-32gga-flight"></a>10. Pair reload ownership with a browser abort controller
 
-**What this code does:** Pair reload ownership with a browser abort controller.
-
 ### 1. `src/lib.rs`
 
 Keep the browser flight beside the fetch adapter.
@@ -1161,8 +1153,6 @@ impl Flight {
 
 ## <a id="checkpoint-32ggb-delivery"></a>11. Deliver only the current completed reload batch
 
-**What this code does:** Deliver only the current completed reload batch.
-
 ### 1. `src/browser_reload.rs`
 
 Spawn bounded source reads and deliver only one current owned completion.
@@ -1227,8 +1217,6 @@ fn deliver(result: Reply, delivery: &Delivery) -> Result<(), wasm_bindgen::JsVal
 ```
 
 ## <a id="checkpoint-32gh-command"></a>12. Restore editable sources through the command line
-
-**What this code does:** Restore editable sources through the command line.
 
 ### 1. `src/browser.rs`
 
@@ -1389,8 +1377,6 @@ Replace it with:
 
 ## <a id="checkpoint-32gha-cancel"></a>13. Cancel reloads when their document context changes
 
-**What this code does:** Cancel reloads when their document context changes.
-
 ### 1. `src/browser.rs`
 
 Invalidate the old reload as soon as replacement intent begins. Remove reload keys and abort I/O before changing the current document context.
@@ -1506,7 +1492,7 @@ fn main() {
 
 ## <a id="checkpoint-32gi-capture"></a>14. Capture the requested edit before waiting
 
-**What this code does:** Retain the original object and arguments before any source request starts.
+Retain the original object and arguments before any source request starts.
 
 ### 1. `src/lib.rs`
 
@@ -1665,7 +1651,7 @@ mod tests {
 
 ## <a id="checkpoint-32gia-scope"></a>15. Load only the sources the requested edit needs
 
-**What this code does:** Select source requests from the original edit target, with Save covering the active document.
+Select source requests from the original edit target, with Save covering the active document.
 
 ### 1. `src/edit_intent.rs`
 
@@ -1873,7 +1859,7 @@ fn loaded_or_missing_target() {
 
 ## <a id="checkpoint-32gib-move"></a>16. Move the target from its current placement
 
-**What this code does:** Apply a captured Move to its original target, composing with the placement that exists at replay time.
+Apply a captured Move to its original target, composing with the placement that exists at replay time.
 
 ### 1. `src/editor.rs`
 
@@ -2063,7 +2049,7 @@ fn no_op_and_refused_moves_keep_redo() {
 
 ## <a id="checkpoint-32giba-delete"></a>17. Delete the target while keeping later selection
 
-**What this code does:** Delete a captured target by identity without redirecting the command to a later selection.
+Delete a captured target by identity without redirecting the command to a later selection.
 
 ### 1. `src/editor.rs`
 
@@ -2249,7 +2235,7 @@ fn refused_delete_keeps_redo_and_selection() {
 
 ## <a id="checkpoint-32gibb-reply"></a>18. Route captured Move, Delete and Save results
 
-**What this code does:** Return a scene change or original-precision save bytes from a captured intent.
+Return a scene change or original-precision save bytes from a captured intent.
 
 ### 1. `src/edit_replay.rs`
 
@@ -2373,7 +2359,7 @@ pub mod edit_replay;
 
 ## <a id="checkpoint-32gic-owner"></a>19. Own the intent with its pending source ticket
 
-**What this code does:** Store source keys and captured intent in one pending owner that current completion can consume once.
+Store source keys and captured intent in one pending owner that current completion can consume once.
 
 ### 1. `src/reload_job.rs`
 
@@ -2629,7 +2615,7 @@ fn cancelled_payload_keeps_no_document_owner_alive() {
 
 ## <a id="checkpoint-32gica-reply"></a>20. Pair captured intent with complete source bodies
 
-**What this code does:** Build a completion value that retains captured intent and rejects incomplete source-body pairings.
+Build a completion value that retains captured intent and rejects incomplete source-body pairings.
 
 ### 1. `src/reload_reply.rs`
 
@@ -2783,7 +2769,7 @@ fn failures_preserve_operation_and_refuse_partial_body_pairs() {
 
 ## <a id="checkpoint-32gicb-bridge"></a>21. Carry captured intent through browser completion
 
-**What this code does:** Carry optional captured intent through the abortable flight and deliver it beside complete source bodies or a current failure.
+Carry optional captured intent through the abortable flight and deliver it beside complete source bodies or a current failure.
 
 ### 1. `src/browser_reload.rs`
 
@@ -2992,7 +2978,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-32gid-complete"></a>22. Validate restoration before replaying the command
 
-**What this code does:** Complete source restoration and replay the captured operation only after current document validation.
+Complete source restoration and replay the captured operation only after current document validation.
 
 ### 1. `src/reload_reply.rs`
 
@@ -3149,7 +3135,7 @@ fn stale_context_and_failure_cannot_replay() {
 
 ## <a id="checkpoint-32gie-response"></a>23. Deliver restored edit and Save results to the dock
 
-**What this code does:** Route validated scene edits and original-precision downloads back to the captured command history.
+Route validated scene edits and original-precision downloads back to the captured command history.
 
 ### 1. `src/edit_intent.rs`
 
@@ -3273,7 +3259,7 @@ pub async fn run() -> Result<(), JsValue> {
 
 ## <a id="checkpoint-32gif-auto"></a>24. Automatically restore sources for Move, Delete and Save
 
-**What this code does:** Connect cold-source edits and Save to captured reload and validated replay without requiring Reload Sources first.
+Connect cold-source edits and Save to captured reload and validated replay without requiring Reload Sources first.
 
 ### 1. `src/browser_reload.rs`
 
@@ -3490,7 +3476,7 @@ Replace it with:
 
 ## <a id="checkpoint-32gj-precision"></a>25. Prove restored Save keeps the source doubles
 
-**What this code does:** Verify the automatic browser Save download retains exact source coordinates after display-only unloading.
+Verify the automatic browser Save download retains exact source coordinates after display-only unloading.
 
 ### 1. `src/specimen.rs`
 
@@ -3623,8 +3609,6 @@ fn cold_save_preserves_source_double_and_move_history() {
 ```
 
 ## <a id="checkpoint-32gja-failures"></a>26. Prove failed restoration cannot partly commit
-
-**What this code does:** Verify automatic command failures preserve cold drawing, placement and history, including all-or-nothing multiple-source Save.
 
 ### 1. `src/lib.rs`
 

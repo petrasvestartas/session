@@ -1,6 +1,6 @@
 # 7.3 · Construction-plane drafts and one final commit
 
-**Goal:** Draw points and lines through the shared command dock. · **Steps:** 5 · **Source:** [app/command/mod.rs](../../../src/app/command/mod.rs) · [app/command/tool.rs](../../../src/app/command/tool.rs) · [app/cplane.rs](../../../src/app/cplane.rs) · [app/snap.rs](../../../src/app/snap.rs) · [app/gizmo.rs](../../../src/app/gizmo.rs) · [engine/gpu/widget.rs](../../../src/engine/gpu/widget.rs) · [app/deform.rs](../../../src/app/deform.rs) (`src/app/cplane.rs,src/app/gizmo.rs,src/app/gesture/gizmo.rs`)
+**Goal:** Draw points and lines through the shared command dock. · **Steps:** 5 · **Source:** [app/command/mod.rs](../../../src/app/command/mod.rs) · [app/command/tool.rs](../../../src/app/command/tool.rs) · [app/cplane.rs](../../../src/app/cplane.rs) · [app/snap.rs](../../../src/app/snap.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -47,8 +47,6 @@
 </div>
 
 ## <a id="checkpoint-48-coordinates"></a>1. Resolve drawing points on the construction plane
-
-**What this code does:** Resolve drawing points on the construction plane.
 
 ### 1. `src/tool_coords.rs`
 
@@ -177,8 +175,6 @@ mod tool_coords_tests;
 ```
 
 ## <a id="checkpoint-48a-draft"></a>2. Keep unfinished point tools outside the document
-
-**What this code does:** Keep unfinished point tools outside the document.
 
 ### 1. `src/tool.rs`
 
@@ -313,8 +309,6 @@ pub mod tool;
 ```
 
 ## <a id="checkpoint-48b-preview"></a>3. Draw a temporary rubber band and cursor
-
-**What this code does:** Draw a temporary rubber band and cursor.
 
 ### 1. `src/tool_preview.rs`
 
@@ -650,8 +644,6 @@ fn actual_tool_preview_is_temporary_bounded_and_absent_from_object_picking() {
 
 ## <a id="checkpoint-48c-commit"></a>4. Commit completed tools in one Undo transaction
 
-**What this code does:** Commit completed tools in one Undo transaction.
-
 ### 1. `src/editor.rs`
 
 Own tool input, keep previews out of history and insert a completed source atomically.
@@ -975,8 +967,6 @@ mod selection_cycle_tests;
 ```
 
 ## <a id="checkpoint-48d-input"></a>5. Draw points and lines through the shared command dock
-
-**What this code does:** Draw points and lines through the shared command dock.
 
 ### 1. `src/panel.rs`
 

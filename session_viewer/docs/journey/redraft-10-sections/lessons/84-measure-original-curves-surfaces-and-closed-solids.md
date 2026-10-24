@@ -1,6 +1,6 @@
 # 16.4 · Measurements, temporary marks and retained CAD pieces
 
-**Goal:** Count derived pieces before allocating them. · **Steps:** 37 · **Source:** [app/command/verbs/project_to_plane.rs](../../../../src/app/command/verbs/project_to_plane.rs) · [app/command/verbs/extend.rs](../../../../src/app/command/verbs/extend.rs) · [app/splitting.rs](../../../../src/app/splitting.rs) · [app/command/verbs/measure.rs](../../../../src/app/command/verbs/measure.rs) · [app/command/verbs/trim/parts.rs](../../../../src/app/command/verbs/trim/parts.rs) · [app/command/verbs/explode.rs](../../../../src/app/command/verbs/explode.rs) · [app/walk/frames.rs](../../../../src/app/walk/frames.rs) (`src/app/booleans.rs,src/app/measurements.rs,src/app/recipes.rs`)
+**Goal:** Count derived pieces before allocating them. · **Steps:** 37 · **Source:** [app/command/verbs/project_to_plane.rs](../../../../src/app/command/verbs/project_to_plane.rs) · [app/command/verbs/extend.rs](../../../../src/app/command/verbs/extend.rs) · [app/splitting.rs](../../../../src/app/splitting.rs) · [app/command/verbs/measure.rs](../../../../src/app/command/verbs/measure.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -48,7 +48,7 @@
 
 ## <a id="checkpoint-84-measure-original-curves-surfaces-and-closed-solids"></a>1. Measure closed-solid volume
 
-**What this code does:** Reject open geometry, choose a world point near the mesh and reuse the shared swept-volume helper.
+Reject open geometry, choose a world point near the mesh and reuse the shared swept-volume helper.
 
 ### 1. `src/measure_volume.rs`
 
@@ -269,7 +269,7 @@ mod tests {
 
 ## <a id="checkpoint-84a-validate-an-original-box-and-derive-wire-only-display"></a>2. Validate an box and derive wire-only display
 
-**What this code does:** Validate an original box and derive wire-only display.
+Validate an original box and derive wire-only display.
 
 ### 1. `src/scene.rs`
 
@@ -433,7 +433,7 @@ pub mod source_mesh_topology;
 
 ## <a id="checkpoint-84b-adopt-original-boxes-and-retain-precise-placed-bounds"></a>3. Adopt boxes and retain precise placed bounds
 
-**What this code does:** Adopt original boxes and retain precise placed bounds.
+Adopt original boxes and retain precise placed bounds.
 
 ### 1. `src/bounds_original.rs`
 
@@ -721,7 +721,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-84c-save-and-reopen-the-original-box-frame"></a>4. Save and reopen the box frame
 
-**What this code does:** Save and reopen the original box frame.
+Save and reopen the original box frame.
 
 ### 1. `src/geometry_snapshot.rs`
 
@@ -889,8 +889,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-84d-own-temporary-measurement-labels-without-scene-identities"></a>5. Own temporary measurement labels without scene identities
 
-**What this code does:** Own temporary measurement labels without scene identities.
-
 ### 1. `src/measure_mark.rs`
 
 Own temporary points, unit suffixes and collision-free labels.
@@ -1005,8 +1003,6 @@ pub mod source_mesh_topology;
 
 ## <a id="checkpoint-84e-report-distance-and-world-bounding-lengths"></a>6. Report distance and world bounding lengths
 
-**What this code does:** Report distance and world bounding lengths.
-
 ### 1. `src/measure_mark.rs`
 
 Resolve world selected bounds and distance without changing source geometry.
@@ -1080,7 +1076,7 @@ pub enum Kind {
 
 ## <a id="checkpoint-84f-collect-only-supported-finite-original-measurements"></a>7. Collect only supported finite measurements
 
-**What this code does:** Collect only supported finite original measurements.
+Collect only supported finite original measurements.
 
 ### 1. `src/measure_mark.rs`
 
@@ -1168,8 +1164,6 @@ impl Total {
 ```
 
 ## <a id="checkpoint-84g-format-totals-refusals-and-three-axis-box-extents"></a>8. Format totals refusals and three-axis box extents
-
-**What this code does:** Format totals refusals and three-axis box extents.
 
 ### 1. `src/measure_mark.rs`
 
@@ -1284,8 +1278,6 @@ pub fn selection(
 ```
 
 ## <a id="checkpoint-84h-keep-measurements-outside-geometry-history"></a>9. Keep measurements outside geometry history
-
-**What this code does:** Keep measurements outside geometry history.
 
 ### 1. `src/editor.rs`
 
@@ -1425,8 +1417,6 @@ pub struct Editor {
 ```
 
 ## <a id="checkpoint-84i-accept-two-distance-points-through-the-drawing-tool"></a>10. Accept two distance points through the drawing tool
-
-**What this code does:** Accept two distance points through the drawing tool.
 
 ### 1. `src/tool.rs`
 
@@ -1961,8 +1951,6 @@ Replace it with:
 
 ## <a id="checkpoint-84j-register-measurements-and-end-temporary-marks-predictably"></a>11. Register measurements and end temporary marks predictably
 
-**What this code does:** Register measurements and end temporary marks predictably.
-
 ### 1. `src/editor.rs`
 
 Connect transient mark cleanup and completed-mark Escape.
@@ -2094,8 +2082,6 @@ Replace it with:
 
 ## <a id="checkpoint-84k-draw-cached-unpickable-measurement-strokes"></a>12. Draw cached unpickable measurement strokes
 
-**What this code does:** Draw cached unpickable measurement strokes.
-
 ### 1. `src/stroke_gpu.rs`
 
 Add a colour-only overlay lane with explicit depth behaviour.
@@ -2214,7 +2200,50 @@ pub mod source_mesh_topology;
 
 ## <a id="checkpoint-84l-merge-measurement-chips-with-cached-scene-text"></a>13. Merge measurement chips with cached scene text
 
-**What this code does:** Merge measurement chips with cached scene text.
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="184" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">CPU CommandEncoder Records GPU Commands</text>
+  <rect x="54" y="50" width="264" height="102" rx="6" fill="#f8fafc" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="76" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">wgpu::CommandEncoder</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="100" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#2563eb">1. begin_render_pass (3D Scene)</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="122" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#16a34a">2. begin_render_pass (Overlay/UI)</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="142" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#dc2626">3. encoder.finish()</text>
+  <line x1="358" y1="94" x2="384" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="388" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Pass 1 (LoadOp::Clear) -&gt; Pass 2 (LoadOp::Load)</text>
+  <rect x="416" y="52" width="128" height="96" rx="4" fill="#dbeafe" stroke="#2563eb" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="480" y="76" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Pass 1: Clear</text>
+  <polygon points="452,132 480,88 508,132" fill="#93c5fd" stroke="#111111" stroke-width="1.5"/>
+  <line x1="544" y1="100" x2="572" y2="100" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="576" y="52" width="128" height="96" rx="4" fill="#dcfce7" stroke="#16a34a" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="640" y="76" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Pass 2: Load</text>
+  <polygon points="612,126 640,86 668,126" fill="#93c5fd" stroke="#111111" stroke-width="1.5"/>
+  <rect x="590" y="130" width="100" height="12" fill="#fef08a" stroke="#111111" stroke-width="1"/>
+  <line x1="732" y1="94" x2="758" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="762" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">queue.submit([cmd_buf]) -&gt; GPU Execution</text>
+  <rect x="806" y="44" width="256" height="118" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <polygon points="884,132 934,58 984,132" fill="#93c5fd" stroke="#111111" stroke-width="2"/>
+  <rect x="822" y="136" width="224" height="18" rx="3" fill="#f1f5f9" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="149" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Composited Frame Ready</text>
+</svg>
+</div>
 
 ### 1. `src/renderer.rs`
 
@@ -2439,7 +2468,7 @@ pub struct Renderer {
 
 ## <a id="checkpoint-84m-exercise-original-boxes-and-temporary-distance-annotations"></a>14. Exercise boxes and temporary distance annotations
 
-**What this code does:** Exercise original boxes and temporary distance annotations.
+Exercise original boxes and temporary distance annotations.
 
 ### 1. `src/browser.rs`
 
@@ -2867,7 +2896,7 @@ pub mod source_mesh_topology;
 
 ## <a id="checkpoint-84zza-describe-removable-cad-parts"></a>15. Describe removable CAD parts
 
-**What this code does:** Represent curve intervals, BRep face groups and mesh sides without replacing the original CAD geometry.
+Represent curve intervals, BRep face groups and mesh sides without replacing the original CAD geometry.
 
 ### 1. `src/trim_parts.rs`
 
@@ -2989,7 +3018,7 @@ pub mod trim_parts;
 
 ## <a id="checkpoint-84zzb-read-trim-part-previews"></a>16. Read trim part previews
 
-**What this code does:** Expose part counts, sampled curve outlines, section edges and meshes through one Parts owner.
+Expose part counts, sampled curve outlines, section edges and meshes through one Parts owner.
 
 ### 1. `src/trim_parts.rs`
 
@@ -3115,7 +3144,7 @@ impl Parts {
 </svg>
 </div>
 
-**What this code does:** Collect kernel curve intersections, filter open endpoints and merge a closed seam.
+Collect kernel curve intersections, filter open endpoints and merge a closed seam.
 
 ### 1. `src/trim_parts.rs`
 
@@ -3317,7 +3346,7 @@ fn kept_of<T: Clone>(list: &[T], used: &[bool]) -> Vec<T> {
 
 ## <a id="checkpoint-84zzd-preserve-trimmed-source-types"></a>18. Preserve trimmed source types
 
-**What this code does:** Rebuild kept curves in their original source family with their presentation.
+Rebuild kept curves in their original source family with their presentation.
 
 ### 1. `src/trim_parts.rs`
 
@@ -3423,7 +3452,7 @@ fn planar_size(surface: &NurbsSurface) -> f64 {
 
 ## <a id="checkpoint-84zze-group-faces-by-cutting-planes"></a>19. Group faces by cutting planes
 
-**What this code does:** Extend a plane-plane intersection past surface control points.
+Extend a plane-plane intersection past surface control points.
 
 ### 1. `src/trim_parts.rs`
 
@@ -3513,7 +3542,7 @@ fn across(line: &Line, surface: &NurbsSurface) -> NurbsCurve {
 
 ## <a id="checkpoint-84zzf-cut-planar-brep-faces"></a>20. Cut planar BRep faces
 
-**What this code does:** Find crossed planar faces, split them through the kernel and collect section edges.
+Find crossed planar faces, split them through the kernel and collect section edges.
 
 ### 1. `src/trim_parts.rs`
 
@@ -3620,7 +3649,7 @@ fn cut_by_plane(brep: &mut BRep, plane: &Plane) -> Result<Vec<Vec<Point>>, Strin
 
 ## <a id="checkpoint-84zzg-assemble-removable-face-groups"></a>21. Assemble removable face groups
 
-**What this code does:** Combine curve regions, fallback fence planes and crossed plane sections into one Parts value.
+Combine curve regions, fallback fence planes and crossed plane sections into one Parts value.
 
 ### 1. `src/trim_parts.rs`
 
@@ -3739,7 +3768,7 @@ fn faces(brep: &BRep, blades: &[Blade]) -> Result<Parts, String> {
 
 ## <a id="checkpoint-84zzh-mark-retained-brep-topology"></a>22. Mark retained BRep topology
 
-**What this code does:** Walk retained faces through wires and edges to mark their surfaces, vertices and curve tables.
+Walk retained faces through wires and edges to mark their surfaces, vertices and curve tables.
 
 ### 1. `src/trim_parts.rs`
 
@@ -3839,7 +3868,7 @@ pub fn without_faces(brep: &BRep, removed: &[usize]) -> Result<BRep, String> {
 
 ## <a id="checkpoint-84zzi-rebuild-retained-brep-tables"></a>23. Rebuild retained BRep tables
 
-**What this code does:** Compact marked BRep tables and rewrite every reference.
+Compact marked BRep tables and rewrite every reference.
 
 ### 1. `src/trim_parts.rs`
 
@@ -3968,7 +3997,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-84zzj-split-mesh-faces-at-a-plane"></a>24. Split mesh faces at a plane
 
-**What this code does:** Classify mesh vertices, reuse one cut vertex per original edge and build both clipped face rings.
+Classify mesh vertices, reuse one cut vertex per original edge and build both clipped face rings.
 
 ### 1. `src/trim_parts.rs`
 
@@ -4091,7 +4120,7 @@ pub fn mesh_sides(
 
 ## <a id="checkpoint-84zzk-compact-both-trimmed-mesh-sides"></a>25. Compact both trimmed mesh sides
 
-**What this code does:** Compact each clipped mesh side to only its used vertices, rewrite its faces and preserve source name and color.
+Compact each clipped mesh side to only its used vertices, rewrite its faces and preserve source name and color.
 
 ### 1. `src/trim_parts.rs`
 
@@ -4143,7 +4172,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-84zzl-rebuild-kept-cad-parts"></a>26. Rebuild kept CAD parts
 
-**What this code does:** Merge adjacent kept curve intervals, remove BRep face groups and return the retained mesh half.
+Merge adjacent kept curve intervals, remove BRep face groups and return the retained mesh half.
 
 ### 1. `src/trim_parts.rs`
 
@@ -4238,7 +4267,7 @@ pub fn kept(
 
 ## <a id="checkpoint-84zzm-connect-original-trim-recipes"></a>27. Connect trim recipes
 
-**What this code does:** Route original curves, surfaces, BReps and meshes through the shared part builders.
+Route original curves, surfaces, BReps and meshes through the shared part builders.
 
 ### 1. `src/trim_parts.rs`
 
@@ -4739,7 +4768,7 @@ fn curve_cuts(curve: &NurbsCurve, blades: &[Blade]) -> Result<Vec<f64>, String> 
 
 ## <a id="checkpoint-84zna-index-selection-loops-by-pixel-row"></a>28. Index selection loops by pixel row
 
-**What this code does:** Build a row index for the even-odd point test.
+Build a row index for the even-odd point test.
 
 ### 1. `src/selection_region.rs`
 
@@ -4849,7 +4878,7 @@ pub mod selection_region;
 
 ## <a id="checkpoint-84znb-test-window-membership-and-segment-crossings"></a>29. Test window membership and segment crossings
 
-**What this code does:** Complete Region with point membership and segment clipping against the rectangle.
+Complete Region with point membership and segment clipping against the rectangle.
 
 ### 1. `src/selection_region.rs`
 
@@ -4916,7 +4945,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-84znc-sample-original-cad-families-for-selection"></a>30. Sample CAD families for selection
 
-**What this code does:** Reuse original curve corners, curved domains, mesh vertices and BRep references as bounded selection samples.
+Reuse original curve corners, curved domains, mesh vertices and BRep references as bounded selection samples.
 
 ### 1. `src/selection_region.rs`
 
@@ -5027,7 +5056,7 @@ fn brep_samples(brep: &BRep) -> impl Iterator<Item = [f64; 3]> + '_ {
 
 ## <a id="checkpoint-84znd-collect-original-boundary-strokes"></a>31. Collect boundary strokes
 
-**What this code does:** Build surface grids and closed mesh outlines, then combine BRep vertices, edges and curved faces.
+Build surface grids and closed mesh outlines, then combine BRep vertices, edges and curved faces.
 
 ### 1. `src/selection_region.rs`
 
@@ -5107,7 +5136,7 @@ fn brep_strokes(brep: &BRep) -> Vec<Vec<[f64; 3]>> {
 
 ## <a id="checkpoint-84zne-test-crossing-selection-on-original-strokes"></a>32. Test crossing selection on strokes
 
-**What this code does:** Dispatch original geometry families to their shared stroke builders.
+Dispatch original geometry families to their shared stroke builders.
 
 ### 1. `src/selection_region.rs`
 
@@ -5206,7 +5235,7 @@ fn strokes(geometry: &Geometry) -> Option<Vec<Vec<[f64; 3]>>> {
 
 ## <a id="checkpoint-84znf-connect-window-and-bounds-selection-tests"></a>33. Connect window and bounds selection tests
 
-**What this code does:** Add projection, conservative screen bounds and complete-enclosure dispatch.
+Add projection, conservative screen bounds and complete-enclosure dispatch.
 
 ### 1. `src/selection_region.rs`
 
@@ -5444,7 +5473,7 @@ pub(crate) fn touched(
 
 ## <a id="checkpoint-84zoa-classify-originals-and-isolate-one-mesh-face"></a>34. Classify originals and isolate one mesh face
 
-**What this code does:** Name each original geometry kind once.
+Name each original geometry kind once.
 
 ### 1. `src/source_shape.rs`
 
@@ -5603,7 +5632,7 @@ pub mod source_mesh_topology;
 
 ## <a id="checkpoint-84zob-copy-original-brep-edges-and-pcurves"></a>35. Copy BRep edges and pcurves
 
-**What this code does:** Copy an edge, its endpoint vertices and its surface pcurves into a new BRep.
+Copy an edge, its endpoint vertices and its surface pcurves into a new BRep.
 
 ### 1. `src/explode_geometry.rs`
 
@@ -5685,7 +5714,7 @@ fn copy_edge(
 
 ## <a id="checkpoint-84zoc-build-one-original-brep-face"></a>36. Build one BRep face
 
-**What this code does:** Reuse the copied-edge helper to rebuild one face surface, ordered wire references and one oriented shell.
+Reuse the copied-edge helper to rebuild one face surface, ordered wire references and one oriented shell.
 
 ### 1. `src/explode_geometry.rs`
 
@@ -5761,8 +5790,6 @@ fn face_brep(brep: &BRep, index: usize) -> Option<BRep> {
 ```
 
 ## <a id="checkpoint-84zod-explode-supported-original-families"></a>37. Explode supported families
-
-**What this code does:** Count derived pieces before allocating them.
 
 ### 1. `src/explode_geometry.rs`
 

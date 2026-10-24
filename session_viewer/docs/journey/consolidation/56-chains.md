@@ -1,6 +1,6 @@
 # 9.2 · Shared CAD boundaries across incident faces
 
-**Goal:** Prove straight and circular shared boundaries. · **Steps:** 3 · **Source:** [app/walk/brep.rs](../../../src/app/walk/brep.rs) · [app/walk/brep_edges.rs](../../../src/app/walk/brep_edges.rs) · [app/walk/brep_orient.rs](../../../src/app/walk/brep_orient.rs) · [app/walk/brep_shapes.rs](../../../src/app/walk/brep_shapes.rs) · [engine/gpu/faces.rs](../../../src/engine/gpu/faces.rs) (`src/app/walk/brep_shapes.rs,src/app/walk/brep_orient.rs,src/shaders/normals.wgsl`)
+**Goal:** Prove straight and circular shared boundaries. · **Steps:** 3 · **Source:** [app/walk/brep.rs](../../../src/app/walk/brep.rs) · [app/walk/brep_edges.rs](../../../src/app/walk/brep_edges.rs) · [app/walk/brep_orient.rs](../../../src/app/walk/brep_orient.rs) · [app/walk/brep_shapes.rs](../../../src/app/walk/brep_shapes.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -48,7 +48,7 @@
 
 ## <a id="checkpoint-56-chains"></a>1. Connect CAD edge chains
 
-**What this code does:** Reuse constrained-label and isoparametric lookup for each original edge.
+Reuse constrained-label and isoparametric lookup for each original edge.
 
 ### 1. `src/cad_edges.rs`
 
@@ -118,8 +118,6 @@ pub fn edge_chains(b: &BRep, fms: &[Mesh]) -> Vec<Option<EdgeChain>> {
 ```
 
 ## <a id="checkpoint-56a-shared"></a>2. Mesh incident faces with shared boundary constraints
-
-**What this code does:** Mesh incident faces with shared boundary constraints.
 
 ### 1. `src/cad_boundary.rs`
 
@@ -217,8 +215,6 @@ pub mod cad_boundary;
 ```
 
 ## <a id="checkpoint-56b-boundaries"></a>3. Prove straight and circular shared boundaries
-
-**What this code does:** Prove straight and circular shared boundaries.
 
 ### 1. `src/cad_boundary_tests.rs`
 

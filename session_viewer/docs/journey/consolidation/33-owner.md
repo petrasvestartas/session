@@ -1,6 +1,6 @@
 # 4.1 · Browser callbacks with a real lifetime
 
-**Goal:** Distinguish a reusable cached page from a final exit so Back navigation cannot restore an already-disposed viewer. · **Steps:** 3 · **Source:** `src/lib.rs,src/selftest/lifecycle.rs,src/engine/gpu/device.rs`
+**Goal:** Distinguish a reusable cached page from a final exit so Back navigation cannot restore an already-disposed viewer. · **Steps:** 3 · **Source:** `src/lib.rs` · `src/selftest/lifecycle.rs` · `src/engine/gpu/device.rs`
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -45,7 +45,7 @@
 
 ## <a id="checkpoint-33-owner"></a>1. Own browser listeners instead of forgetting callbacks
 
-**What this code does:** Build a browser listener owner that detaches every registered event before freeing the Rust callback and its captured data.
+Build a browser listener owner that detaches every registered event before freeing the Rust callback and its captured data.
 
 ### 1. `src/listeners.rs`
 
@@ -150,7 +150,7 @@ mod panel;
 
 ## <a id="checkpoint-33a-runtime"></a>2. Dispose the viewer without leaving pending work alive
 
-**What this code does:** Bind real viewer input to owned callbacks and cancel pending file/source authority when the page hides.
+Bind real viewer input to owned callbacks and cancel pending file/source authority when the page hides.
 
 ### 1. `src/browser_runtime.rs`
 
@@ -340,8 +340,6 @@ Replace it with:
 ```
 
 ## <a id="checkpoint-33b-cache"></a>3. Keep a cached viewer ready for Back navigation
-
-**What this code does:** Distinguish a reusable cached page from a final exit so Back navigation cannot restore an already-disposed viewer.
 
 ### 1. `Cargo.toml`
 

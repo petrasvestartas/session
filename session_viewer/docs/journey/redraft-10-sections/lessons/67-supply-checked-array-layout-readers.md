@@ -1,6 +1,6 @@
 # 12.2 · Locate original arrays without downloading their bodies
 
-**Goal:** Validate complete octrees before range streaming. · **Steps:** 10 · **Source:** [app/manifest.rs](../../../../src/app/manifest.rs) · [app/session_io.rs](../../../../src/app/session_io.rs) · [app/stream.rs](../../../../src/app/stream.rs) · [app/range_gate.rs](../../../../src/app/range_gate.rs) · [app/fetch.rs](../../../../src/app/fetch.rs) · [app/loader.rs](../../../../src/app/loader.rs) · [app/live.rs](../../../../src/app/live.rs) (`src/app/manifest.rs,src/app/streaming.rs,src/app/archive.rs`)
+**Goal:** Validate complete octrees before range streaming. · **Steps:** 10 · **Source:** [app/manifest.rs](../../../../src/app/manifest.rs) · [app/session_io.rs](../../../../src/app/session_io.rs) · [app/stream.rs](../../../../src/app/stream.rs) · [app/range_gate.rs](../../../../src/app/range_gate.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -56,11 +56,7 @@
 
 ## <a id="checkpoint-67-supply-checked-array-layout-readers"></a>1. Bound scalar headers and byte addresses
 
-**What this code does:** Bound scalar headers and byte addresses.
-
 ### 1. `src/stream.rs`
-
-Bound scalar headers and byte addresses.
 
 Create the file and type:
 
@@ -117,8 +113,6 @@ pub mod stream;
 ```
 
 ## <a id="checkpoint-67sa-locate-original-cloud-and-sheet-array-fields"></a>2. Locate cloud and sheet array fields
-
-**What this code does:** Locate original cloud and sheet array fields.
 
 ### 1. `src/stream.rs`
 
@@ -227,11 +221,7 @@ pub fn field_at(header: &[u8], at: u64, end: u64) -> Option<Field> {
 
 ## <a id="checkpoint-67sb-convert-bounded-doubles-and-cache-metadata-windows"></a>3. Convert bounded doubles and cache metadata windows
 
-**What this code does:** Convert bounded doubles and cache metadata windows.
-
 ### 1. `src/stream.rs`
-
-Convert bounded doubles and cache metadata windows.
 
 **Locate this existing block:**
 
@@ -312,11 +302,7 @@ impl MetadataWindow {
 
 ## <a id="checkpoint-67sc-decode-packed-arrays-for-existing-gpu-owners"></a>4. Decode packed arrays for existing GPU owners
 
-**What this code does:** Decode packed arrays for existing GPU owners.
-
 ### 1. `src/stream.rs`
-
-Decode packed arrays for existing GPU owners.
 
 **Locate this existing block:**
 
@@ -435,8 +421,6 @@ pub fn colors_from(raw: &[u8], count: u32) -> Option<(Vec<u32>, usize)> {
 
 ## <a id="checkpoint-67sd-descend-bounded-original-protobuf-messages"></a>5. Descend bounded protobuf messages
 
-**What this code does:** Descend bounded original protobuf messages.
-
 ### 1. `src/stream.rs`
 
 Descend bounded original protobuf messages.
@@ -504,11 +488,7 @@ fn descend_message(
 
 ## <a id="checkpoint-67se-find-coordinate-arrays-without-downloading-their-bodies"></a>6. Find coordinate arrays without downloading their bodies
 
-**What this code does:** Find coordinate arrays without downloading their bodies.
-
 ### 1. `src/stream.rs`
-
-Find coordinate arrays without downloading their bodies.
 
 **Locate this existing block:**
 
@@ -601,11 +581,7 @@ pub fn plain(head: &[u8]) -> bool {
 
 ## <a id="checkpoint-67sf-validate-sheet-side-array-lengths"></a>7. Validate sheet side-array lengths
 
-**What this code does:** Validate sheet side-array lengths.
-
 ### 1. `src/stream.rs`
-
-Validate sheet side-array lengths.
 
 **Locate this existing block:**
 
@@ -657,8 +633,6 @@ impl SheetFields {
 ```
 
 ## <a id="checkpoint-67sg-collect-original-octree-node-columns"></a>8. Collect octree node columns
-
-**What this code does:** Collect original octree node columns.
 
 ### 1. `src/stream.rs`
 
@@ -732,11 +706,7 @@ impl CloudLod {
 
 ## <a id="checkpoint-67sh-check-octree-bounds-and-unique-child-ownership"></a>9. Check octree bounds and unique child ownership
 
-**What this code does:** Check octree bounds and unique child ownership.
-
 ### 1. `src/stream.rs`
-
-Check octree bounds and unique child ownership.
 
 **Locate this existing block:**
 
@@ -825,8 +795,6 @@ impl CloudLod {
 ```
 
 ## <a id="checkpoint-67si-validate-complete-octrees-before-range-streaming"></a>10. Validate complete octrees before range streaming
-
-**What this code does:** Validate complete octrees before range streaming.
 
 ### 1. `src/stream.rs`
 

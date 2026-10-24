@@ -1,6 +1,6 @@
 # 9.4 · Periodic seams and face-edge direction
 
-**Goal:** Match shared BRep edges across independently keyed face meshes. · **Steps:** 3 · **Source:** [app/walk/brep.rs](../../../../src/app/walk/brep.rs) · [app/walk/brep_edges.rs](../../../../src/app/walk/brep_edges.rs) · [app/walk/brep_orient.rs](../../../../src/app/walk/brep_orient.rs) · [app/walk/brep_shapes.rs](../../../../src/app/walk/brep_shapes.rs) · [engine/gpu/faces.rs](../../../../src/engine/gpu/faces.rs) (`src/app/walk/brep_shapes.rs,src/app/walk/brep_orient.rs,src/shaders/normals.wgsl`)
+**Goal:** Match shared BRep edges across independently keyed face meshes. · **Steps:** 3 · **Source:** [app/walk/brep.rs](../../../../src/app/walk/brep.rs) · [app/walk/brep_edges.rs](../../../../src/app/walk/brep_edges.rs) · [app/walk/brep_orient.rs](../../../../src/app/walk/brep_orient.rs) · [app/walk/brep_shapes.rs](../../../../src/app/walk/brep_shapes.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -47,8 +47,6 @@
 </div>
 
 ## <a id="checkpoint-58-uses"></a>1. Keep both parameter-space uses of a seam
-
-**What this code does:** Keep both parameter-space uses of a seam.
 
 ### 1. `src/cad_seams.rs`
 
@@ -130,8 +128,6 @@ pub mod cad_seams;
 ```
 
 ## <a id="checkpoint-58a-periodic"></a>2. Prove seam continuity and suppress false open borders
-
-**What this code does:** Prove seam continuity and suppress false open borders.
 
 ### 1. `src/cad_seam_tests.rs`
 
@@ -235,8 +231,6 @@ mod cad_seam_tests;
 ```
 
 ## <a id="checkpoint-58za-match-original-face-edge-directions"></a>3. Match face edge directions
-
-**What this code does:** Match shared BRep edges across independently keyed face meshes.
 
 ### 1. `src/cad_orient.rs`
 
