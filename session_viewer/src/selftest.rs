@@ -383,6 +383,15 @@ pub fn render_scene(files: &[SceneFile], w: u32, h: u32, out: &str) -> String {
     let mut camera = camera_from_env(&gpu, aspect);
     // VIEWER_AO=1 turns ambient occlusion on
     gpu.view.ssao = std::env::var_os("VIEWER_AO").is_some();
+    // VIEWER_DPR=2 renders that many pixels per CSS pixel, as a high-density screen does, so the
+    // Arctic outline and the pens keep their on-screen width in a frame meant to be scaled down
+    if let Some(dpr) = std::env::var("VIEWER_DPR")
+        .ok()
+        .and_then(|v| v.parse::<f64>().ok())
+        .filter(|dpr| *dpr > 0.0)
+    {
+        gpu.logical_size = [f64::from(w) / dpr, f64::from(h) / dpr];
+    }
     // VIEWER_LABELS=screen|mixed adds labels fixed on screen, or also anchored in the scene
     if let Ok(kind) = std::env::var("VIEWER_LABELS") {
         let labels = bench_labels(&gpu, kind == "mixed");

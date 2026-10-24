@@ -270,6 +270,31 @@ fn constrained_chain(fm: &Mesh, edge: usize) -> Option<Vec<usize>> {
     None
 }
 
+/// Whether a chain runs between its edge's own two ends, in either direction: the mesh vertices
+/// tagged for the edge may be wrong, and a chain that is not on its edge must not lend it facets.
+fn chain_on_edge(b: &BRep, edge: usize, fm: &Mesh, keys: &[usize]) -> bool {
+    let Some(curve) = b
+        .m_edges
+        .get(edge)
+        .filter(|e| e.curve_3d_index >= 0)
+        .and_then(|e| b.m_curves_3d.get(e.curve_3d_index as usize))
+    else {
+        return true;
+    };
+    let (Some(first), Some(last)) = (keys.first(), keys.last()) else {
+        return false;
+    };
+    let start = curve.point_at_start();
+    let end = curve.point_at_end();
+    let (start, end) = ([start[0], start[1], start[2]], [end[0], end[1], end[2]]);
+    let (a, z) = (vertex_position(fm, *first), vertex_position(fm, *last));
+    let scale = start.iter().chain(end.iter()).fold(1.0f64, |m, v| m.max(v.abs()));
+    let tolerance = 1e-6 * scale;
+    let near = |p: [f64; 3], q: [f64; 3]| distance2(p, q).sqrt() <= tolerance;
+
+    (near(a, start) && near(z, end)) || (near(a, end) && near(z, start))
+}
+
 /// One chain per BRep edge, None when no mesh carries it.
 pub fn edge_chains(b: &BRep, fms: &[Mesh]) -> Vec<Option<EdgeChain>> {
     let mut out = Vec::with_capacity(b.m_edges.len());
@@ -296,6 +321,11 @@ pub fn edge_chains(b: &BRep, fms: &[Mesh]) -> Vec<Option<EdgeChain>> {
                     None => continue,
                 },
             };
+
+            if !chain_on_edge(b, ei, &fms[eu.face], &keys) {
+                continue;
+            }
+
             // the neighbouring face, if a different one
             let mut other = None;
 
@@ -322,9 +352,9 @@ pub fn edge_chains(b: &BRep, fms: &[Mesh]) -> Vec<Option<EdgeChain>> {
 }
 
 /// A BRep edge as it is drawn: points along its exact curve, every display segment mapped to the
-/// chain segment of the face mesh it lies on, with how far it rises off that mesh.
+/// chain segment of the face mesh it lies on, for its facing, with how far it rises off that mesh.
 pub struct DisplayChain {
-    pub points: Vec<[f64; 3]>, // display points; the first and last are the chain's end vertices
+    pub points: Vec<[f64; 3]>, // display points on the edge's exact curve, in chain order
     pub spans: Vec<usize>,     // per display segment: the chain segment (keys[k], keys[k+1]) it lies on
     pub sags: Vec<f32>,        // per display segment: its rise off the face mesh, mm; 0 on a straight edge
 }
@@ -355,6 +385,7 @@ fn distance2(a: [f64; 3], b: [f64; 3]) -> f64 {
 }
 
 /// Index of the sample nearest `p`.
+#[cfg(test)]
 fn nearest_index(samples: &[[f64; 3]], p: [f64; 3]) -> usize {
     let mut best = 0;
     let mut best_d = f64::INFINITY;
@@ -371,7 +402,8 @@ fn nearest_index(samples: &[[f64; 3]], p: [f64; 3]) -> usize {
     best
 }
 
-/// The chain as drawn straight from its mesh vertices: one display segment per chain segment.
+/// The chain as drawn straight from its mesh vertices: one display segment per chain segment; only
+/// for an edge with no 3D curve to draw.
 fn coarse_display(coarse: Vec<[f64; 3]>) -> DisplayChain {
     let segments = coarse.len().saturating_sub(1);
     DisplayChain {
@@ -381,9 +413,8 @@ fn coarse_display(coarse: Vec<[f64; 3]>) -> DisplayChain {
     }
 }
 
-/// The 3D curve of the chain's edge when its control polygon turns by more than one display
-/// chord; None keeps the mesh chain, which a straight edge draws with its two vertices.
-fn curved_edge<'a>(b: &'a BRep, chain: &EdgeChain) -> Option<&'a session_rust::NurbsCurve> {
+/// The 3D curve of the chain's edge, the curve its pipes are drawn on; None when it has none.
+fn edge_curve<'a>(b: &'a BRep, chain: &EdgeChain) -> Option<&'a session_rust::NurbsCurve> {
     let edge = b.m_edges.get(chain.edge)?;
 
     if edge.degenerated || edge.curve_3d_index < 0 || chain.keys.len() < 2 {
@@ -392,7 +423,7 @@ fn curved_edge<'a>(b: &'a BRep, chain: &EdgeChain) -> Option<&'a session_rust::N
 
     let curve = b.m_curves_3d.get(edge.curve_3d_index as usize)?;
 
-    if curve.cv_count() < 2 || !(turning_degrees(curve) > EDGE_DEGREES) || knobs::coarse_edges() {
+    if curve.cv_count() < 2 {
         return None;
     }
 
@@ -410,79 +441,110 @@ fn display_chords(curve: &session_rust::NurbsCurve, chain_segments: usize) -> us
         .min(EDGE_CHORDS_MAX.max(chain_segments))
 }
 
-/// The chain's edge drawn from its own curve: dense samples that pass exactly through every
-/// mesh vertex of the chain, so the face mesh and its edge meet at the mesh vertices and the
-/// curve shows between them. A straight edge keeps its mesh vertices.
+/// The parameter of the curve's point nearest `p`: the nearest of `count` even samples, refined
+/// by golden section between its two neighbours.
+fn curve_parameter(curve: &session_rust::NurbsCurve, p: [f64; 3], count: usize) -> f64 {
+    let (t0, t1) = curve.domain();
+    let distance = |t: f64| {
+        let q = curve.point_at(t);
+        distance2([q[0], q[1], q[2]], p)
+    };
+    let step = (t1 - t0) / count as f64;
+    let nearest = (0..=count).min_by(|&i, &j| distance(t0 + step * i as f64).total_cmp(&distance(t0 + step * j as f64))).unwrap_or(0);
+    let (mut lo, mut hi) = ((t0 + step * (nearest as f64 - 1.0)).max(t0), (t0 + step * (nearest as f64 + 1.0)).min(t1));
+    let ratio = 0.5 * (5.0f64.sqrt() - 1.0);
+
+    for _ in 0..60 {
+        let (m1, m2) = (hi - ratio * (hi - lo), lo + ratio * (hi - lo));
+
+        if distance(m1) < distance(m2) {
+            hi = m2;
+        } else {
+            lo = m1;
+        }
+    }
+
+    0.5 * (lo + hi)
+}
+
+/// The chain's edge drawn from its own exact curve, never from the mesh: every mesh vertex of the
+/// chain at its own parameter on the curve, and the curve between two of them cut into chords, one
+/// for a straight edge and one per few degrees of turning for a curved one, so every display
+/// segment lies on one chain segment of the face mesh, which gives it its facing and its rise off
+/// the mesh, the depth it may sink in.
 pub fn display_chain(b: &BRep, chain: &EdgeChain, fm: &Mesh) -> DisplayChain {
     let coarse: Vec<[f64; 3]> = chain
         .keys
         .iter()
         .map(|&key| vertex_position(fm, key))
         .collect();
-    let Some(curve) = curved_edge(b, chain) else {
+    let Some(curve) = edge_curve(b, chain) else {
         return coarse_display(coarse);
     };
-    let n = display_chords(curve, coarse.len() - 1);
+    let segments = coarse.len() - 1;
+    let straight = !(turning_degrees(curve) > EDGE_DEGREES) || knobs::coarse_edges();
+    let chords = if straight { segments } else { display_chords(curve, segments) };
     let (t0, t1) = curve.domain();
-    let mut samples: Vec<[f64; 3]> = (0..=n)
-        .map(|i| {
-            let p = curve.point_at(t0 + (t1 - t0) * i as f64 / n as f64);
-            [p[0], p[1], p[2]]
-        })
-        .collect();
+    let period = t1 - t0;
 
-    if !samples.iter().flatten().all(|v| v.is_finite()) {
+    // every mesh vertex's parameter, unwrapped across the seam of a closed curve so the chain runs on
+    let mut parameters: Vec<f64> = coarse.iter().map(|&p| curve_parameter(curve, p, 8 * chords)).collect();
+
+    if curve.is_closed() {
+        for k in 1..parameters.len() {
+            while parameters[k] - parameters[k - 1] > 0.5 * period {
+                parameters[k] -= period;
+            }
+
+            while parameters[k] - parameters[k - 1] < -0.5 * period {
+                parameters[k] += period;
+            }
+        }
+
+        // a closed chain ends where it starts, one turn on
+        if chain.keys.first() == chain.keys.last() && segments > 1 {
+            let turn = if parameters[segments - 1] > parameters[0] { period } else { -period };
+            parameters[segments] = parameters[0] + turn;
+        }
+    }
+
+    let wrap = |t: f64| if curve.is_closed() { t0 + (t - t0).rem_euclid(period) } else { t.clamp(t0, t1) };
+    let total: f64 = parameters.windows(2).map(|w| (w[1] - w[0]).abs()).sum();
+    let mut points = vec![coarse[0]];
+    let mut spans = Vec::with_capacity(chords);
+    let mut sags = Vec::with_capacity(chords);
+
+    for k in 0..segments {
+        let (a, z) = (coarse[k], coarse[k + 1]);
+        let share = if total > 0.0 { (parameters[k + 1] - parameters[k]).abs() / total } else { 0.0 };
+        let steps = if straight { 1 } else { ((chords as f64 * share).round() as usize).max(1) };
+        let mut previous = a;
+
+        for j in 1..=steps {
+            let p = if j == steps {
+                let q = curve.point_at(wrap(parameters[k + 1]));
+                [q[0], q[1], q[2]]
+            } else {
+                let q = curve.point_at(wrap(parameters[k] + (parameters[k + 1] - parameters[k]) * j as f64 / steps as f64));
+                [q[0], q[1], q[2]]
+            };
+            let rise = if straight { 0.0 } else { segment_distance(previous, a, z).max(segment_distance(p, a, z)) };
+            points.push(p);
+            spans.push(k);
+            sags.push((rise * SAG_MARGIN) as f32);
+            previous = p;
+        }
+    }
+
+    // the first point the curve's own too
+    let q = curve.point_at(wrap(parameters[0]));
+    points[0] = [q[0], q[1], q[2]];
+
+    if !points.iter().flatten().all(|v| v.is_finite()) {
         return coarse_display(coarse);
     }
 
-    // the chain may run the curve backwards: the mesh vertices then meet the samples in reverse
-    let mut at: Vec<usize> = coarse.iter().map(|&p| nearest_index(&samples, p)).collect();
-    let forward = at.windows(2).filter(|w| w[1] > w[0]).count();
-    let backward = at.windows(2).filter(|w| w[1] < w[0]).count();
-
-    if backward > forward {
-        samples.reverse();
-
-        for index in &mut at {
-            *index = n - *index;
-        }
-    }
-
-    // every mesh vertex replaces its nearest sample, in order; the ends are the ends
-    at[0] = 0;
-    *at.last_mut().unwrap() = n;
-
-    for k in 1..at.len() {
-        at[k] = at[k].max(at[k - 1] + 1).min(n - (at.len() - 1 - k));
-    }
-
-    if at.windows(2).any(|w| w[1] <= w[0]) {
-        return coarse_display(coarse); // more mesh vertices than samples
-    }
-
-    for (k, &index) in at.iter().enumerate() {
-        samples[index] = coarse[k];
-    }
-
-
-    let mut spans = Vec::with_capacity(n);
-    let mut sags = Vec::with_capacity(n);
-
-    for k in 0..at.len() - 1 {
-        let (a, z) = (coarse[k], coarse[k + 1]);
-
-        for j in at[k]..at[k + 1] {
-            let rise = segment_distance(samples[j], a, z).max(segment_distance(samples[j + 1], a, z));
-            spans.push(k);
-            sags.push((rise * SAG_MARGIN) as f32);
-        }
-    }
-
-    DisplayChain {
-        points: samples,
-        spans,
-        sags,
-    }
+    DisplayChain { points, spans, sags }
 }
 
 /// A triangle edge keyed by its two end positions.
@@ -1105,16 +1167,14 @@ mod tests {
     /// A segment that collapses in f32 pushes no pipe.
     #[test]
     fn collapsed_display_segments_do_not_create_pick_targets() {
-        let b = BRep::create_box(40.0, 30.0, 25.0);
-        let mut fms = b.face_meshes_q(Some(QUALITY));
+        let mut b = BRep::create_box(40.0, 30.0, 25.0);
+        let fms = b.face_meshes_q(Some(QUALITY));
         let chains = edge_chains(&b, &fms);
         let chain = chains[0].as_ref().unwrap();
+        let curve = &mut b.m_curves_3d[b.m_edges[chain.edge].curve_3d_index as usize];
 
-        for key in &chain.keys {
-            let vertex = fms[chain.face].vertex.get_mut(key).unwrap();
-            vertex.x = 1e20;
-            vertex.y = 1e20;
-            vertex.z = 1e20;
+        for index in 0..curve.cv_count() {
+            curve.set_cv(index, &session_rust::Point::new(1e20, 1e20, 1e20));
         }
 
         let signs = vec![1.0; fms.len()];
@@ -1134,9 +1194,9 @@ mod tests {
         assert!(seg.pipe_ids.is_empty());
     }
 
-    /// A circle edge is drawn from its curve, at least 64 chords through every mesh vertex of
-    /// its 16-step chain, each chord facing the facets of the chain segment it lies on and
-    /// rising off them by less than the chain's sag; a straight edge keeps its two vertices.
+    /// A circle edge is drawn from its curve, at least 64 chords along its 32-step chain, each
+    /// chord facing the facets of the chain segment it lies on and rising off them by less than
+    /// the chain's sag; a straight edge is drawn at its chain's steps, on its faces.
     #[test]
     fn curved_edges_draw_denser_than_their_face_mesh() {
         use crate::app::walk::encode::{FACING_UNKNOWN, Pen};
@@ -1210,13 +1270,15 @@ mod tests {
                 assert!(f64::from(display.sags[j]) <= sag * SAG_MARGIN * 1.001);
             }
 
-            // every mesh vertex of the chain is a display point, in order
-            let mut next = 0;
-
+            // every mesh vertex of the chain lies on the drawn line, within a chord's sag
             for &key in &chain.keys {
                 let v = vertex_position(&fms[chain.face], key);
-                let found = display.points[next..].iter().position(|p| *p == v).expect("mesh vertex on the edge");
-                next += found;
+                let nearest = display
+                    .points
+                    .windows(2)
+                    .map(|w| segment_distance(v, w[0], w[1]))
+                    .fold(f64::INFINITY, f64::min);
+                assert!(nearest < 0.05, "edge {} mesh vertex {v:?} is {nearest} off the drawn line", chain.edge);
             }
 
             assert!(display.sags.iter().any(|&sag| sag > 0.0));
@@ -1239,13 +1301,35 @@ mod tests {
         for chain in chains.iter().flatten().take(2) {
             let display = display_chain(&b, chain, &fms[chain.face]);
             let fm = &fms[chain.face];
-            assert_eq!(display.points[0], vertex_position(fm, chain.keys[0]));
-            assert_eq!(*display.points.last().unwrap(), vertex_position(fm, *chain.keys.last().unwrap()));
+            assert!(distance2(display.points[0], vertex_position(fm, chain.keys[0])).sqrt() < 1e-9);
+            assert!(distance2(*display.points.last().unwrap(), vertex_position(fm, *chain.keys.last().unwrap())).sqrt() < 1e-9);
             let second = vertex_position(fm, chain.keys[1]);
-            let at = display.points.iter().position(|p| *p == second).unwrap();
+            let at = nearest_index(&display.points, second);
             assert!(at > 0 && at < display.points.len() / 2, "the second mesh vertex comes early, not at the wrap");
             assert!(display.spans.windows(2).all(|w| w[1] >= w[0]));
         }
+    }
+
+    /// A chain counts for its edge only when it runs between the edge's own ends, either way round.
+    #[test]
+    fn chains_must_run_between_their_edges_ends() {
+        let b = BRep::create_box(400.0, 300.0, 250.0);
+        let fms = b.face_meshes_q(Some(QUALITY));
+        let chains = edge_chains(&b, &fms);
+        let chain = chains[0].as_ref().unwrap();
+        let fm = &fms[chain.face];
+        let mut reversed = chain.keys.clone();
+        reversed.reverse();
+        assert!(chain_on_edge(&b, chain.edge, fm, &chain.keys));
+        assert!(chain_on_edge(&b, chain.edge, fm, &reversed));
+
+        // the vertices of another edge of the same face, as a mis-tagged mesh would hand them
+        let other = chains
+            .iter()
+            .flatten()
+            .find(|c| c.face == chain.face && c.edge != chain.edge && c.keys.first() != chain.keys.first() && c.keys.last() != chain.keys.last())
+            .unwrap();
+        assert!(!chain_on_edge(&b, chain.edge, fm, &other.keys));
     }
 
     /// Pipe ids stay the BRep edge index after remeshing.
