@@ -3,8 +3,8 @@
   "scope": "Initial production-to-course source/coverage audit; proposals are not completed consolidation or rendering acceptance.",
   "sourceAuthority": "session_viewer/src",
   "endpoint": "96zzzzzzzq-draw-original-cad-wire-curves",
-  "endpointStatus": "Three of five final gates complete at current694/b031/course05b: runtime build, navigation/history and local publication/report. Remaining:7 source-specific callbacks and13 partial finite features. Eleven accepted callbacks and2/4 fixtures retain their recorded scopes. Source635 full original mesh-marker callback and all7 meaningful images accepted; no whole marker feature closure. Final native/runtime proofs unchanged.",
-  "courseSha256": "05b031571b9b18b4e2740898af6782e2c746cb6b1fcf35c73adb86c957869374",
+  "endpointStatus": "16/18 own-source callbacks accepted;2 remain:96h inventory and measured-reader96zzq. Features9/18 complete9partial,fixtures3/4,release3/5 unchanged. Own445current-commands fullcallback and readable2mm measurement accepted. Historical proofs retain their source scopes; final kept BRep/kernel integration remains queued.",
+  "courseSha256": "fd25625df40bee14e302a069448fa9510a87b90f80eee945f37b752fb1277726",
   "chapters": 22,
   "existingSteps": 1361,
   "proposedReaderLessons": 111,
@@ -1618,7 +1618,8 @@
           "release/cad-selected-native-review.json",
           "../../target/course-windows-20261018/selected-shortcuts-affected-modules/manifest.json",
           "release/76d-browser-review.json",
-          "release/network-browser-review.json"
+          "release/network-browser-review.json",
+          "release/current85ay-browser-review.json"
         ],
         "remainingAcceptance": [
           "Run current-commands and inventory entry callbacks at their declared checkpoints with recursive prerequisites. Source402 network callback is accepted at its own recorded scope.",
@@ -1662,7 +1663,17 @@
             "recursiveCallbackFingerprint": "ccd17c3381b2ece48d149b925cddbb5ed0b39c40cea6397f3ce7e610865a4b30",
             "scope": "Complete original callback at this exact recorded historical source/environment; no new final694/b031 execution or whole-feature acceptance."
           }
-        ]
+        ],
+        "satisfied85Component": {
+          "record": "release/current85ay-browser-review.json",
+          "callback": "journey/checks/browser/current-commands.cjs",
+          "sourceFiles": 445,
+          "sourceFingerprint": "a996eb6ee6c34ec807819036b39afe0311180060716447d0259680e3e87afc7c",
+          "sourceSignature": "3fdb780e82891834538760488b1378277727aa075b25415a9387eaa9221dd021",
+          "actualFullCallbackPassed": true,
+          "visibleMeasurementRootReviewed": true,
+          "remainingOwnCallback": "96h-prove-current-source-grammar-and-explicit-differences"
+        }
       }
     },
     {

@@ -622,9 +622,8 @@
     "Ambient contact source fixes and exact1x/4x production comparisons pass at their recorded identities; current694/b031 compiler/native1064/browser qualification is complete. Broader finite ambient controls and source-specific95f/measured-reader obligations retain their exact remaining criteria."
   ],
   "onlyHeavy": {
-    "status": "running",
-    "task": "First source-specific85ay native/WASM/optimized/frame/sample phases",
-    "sessionId": 87521,
+    "status": "preparing",
+    "task": "96h phase continuation after exact already-qualified checker comparison fix; native compiler passed",
     "memoryLimitMiB": 4096,
     "processors": 2
   },
@@ -1419,11 +1418,6 @@
     },
     "pendingHistoricalCallbacks": [
       {
-        "checkpoint": "85ay-exercise-current-original-commands-together",
-        "callback": "journey/checks/browser/current-commands.cjs",
-        "chapter": 16
-      },
-      {
         "checkpoint": "96h-prove-current-source-grammar-and-explicit-differences",
         "callback": "journey/checks/browser/inventory.cjs",
         "chapter": 19
@@ -1457,18 +1451,18 @@
       }
     ],
     "counting": {
-      "pendingHistoricalEntryCallbacks": 3,
+      "pendingHistoricalEntryCallbacks": 2,
       "additionalDeclaredCallbackEntries": 4,
       "pendingIntegrationActions": 3,
       "distinctSourceSpecificCallbackEntries": 18,
       "nonCallbackIntegrationActions": 3,
       "namedActions": 21,
       "remainingFeatureChecklists": 9,
-      "meaning": "Original18sourceentries:15actualaccepted,3historicalcallbacks85ay/96h/96zzqremain. Original21nameddenominatorretained;3noncallbackintegrationgroups remainindependentlyscoped. Fixtures3/4;features9/18;release3/5.",
+      "meaning": "Original18 source entries:16 actual accepted;2 historical callbacks96h and measured-reader96zzq remain. Original21 named denominator retained;3 independently scoped noncallback integration groups remain. Fixtures3/4;features9/18;release3/5.",
       "eta": "No total ETA; missing successful callback durations and unscopednative tuples prevent an honest walltime estimate.",
-      "acceptedSourceSpecificCallbackEntries": 15,
-      "pendingSourceSpecificCallbackEntries": 3,
-      "pendingNamedActions": 6,
+      "acceptedSourceSpecificCallbackEntries": 16,
+      "pendingSourceSpecificCallbackEntries": 2,
+      "pendingNamedActions": 5,
       "pendingAdditionalDeclaredCallbackEntries": 0
     },
     "phaseReuse94c": {
@@ -1940,15 +1934,15 @@
       "draftingRemaining": 0,
       "featuresComplete": 9,
       "featuresPartial": 9,
-      "callbacksAccepted": 15,
-      "callbacksRemaining": 3,
+      "callbacksAccepted": 16,
+      "callbacksRemaining": 2,
       "historicalFixturesAccepted": 3,
       "historicalFixturesTotal": 4,
       "releaseGatesDone": 3,
       "releaseGatesTotal": 5,
       "releaseGatesRemaining": 2
     },
-    "next": "15/18 callbacks accepted;3 remain.9/18 features complete;9 partial. Fixtures3/4 (96h left), releasegates3/5.85ay build phases are active. Recorded source/provenance limits remain explicit.",
+    "next": "16/18 callbacks accepted;2 remain:96h inventory and measured-reader96zzq. Features9/18,fixtures3/4,release3/5 unchanged.85full original callback and separately framed visible2mm measurement are accepted at own445source. Final BRep/kernel integration remains queued.",
     "chapter14": {
       "status": "PASS complete current76originalcanonicalbrowser callback",
       "record": "release/76d-browser-review.json",
@@ -2381,6 +2375,20 @@
       "elapsedSeconds": 640.221,
       "peakJobCommitBytes": 2213318656,
       "fixtureAccepted": true
+    },
+    "current85ay": {
+      "status": "PASS complete own445 original callback; canonical/native and visible framed2mm root-reviewed",
+      "record": "release/current85ay-browser-review.json",
+      "elapsedSeconds": 577.914,
+      "peakJobCommitBytes": 1865760768,
+      "sourceFingerprint": "a996eb6ee6c34ec807819036b39afe0311180060716447d0259680e3e87afc7c",
+      "sourceSignature": "3fdb780e82891834538760488b1378277727aa075b25415a9387eaa9221dd021",
+      "visibleMeasurementImage": {
+        "file": "journey/release/current85ay-visible-two-mm.png",
+        "sha256": "31b5b714a622595fa2b2c6a499c1d51e0d43b5d134af196ba009938888961e2c",
+        "rootPersonallyReviewed": true,
+        "description": "Root individually viewed fully readable black2mm pill, two endpoints and leader above well-framed gray slab."
+      }
     }
   },
   "currentRuntimeDocsQualification": {
