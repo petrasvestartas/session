@@ -187,9 +187,9 @@
       "runnableCheckpoint": "96zzzzzzzq-draw-original-cad-wire-curves",
       "evidence": "docs/journey/visual-review.json; docs/screenshots/journey/browser.json; chapter source checkpoints. Existence is not current acceptance.",
       "currentVerification": {
-        "status": "partial",
+        "status": "complete",
         "integration": "#/currentIntegration",
-        "acceptedScope": "Eight corrected actual-production/course Mesh pairs match full RGBA at their original a45 translated orthographic pose. Current97d native1060/1060 independently passes mesh-marker placement, sparse original-owner picks and source-lifetime assertions; this does not accept every material/lighting/opaque-transparent control against production. Seven separately reviewed current native bodies additionally cover bounded headlight/backface and unlit/sky restoration, ambient/depth-pyramid reuse, glass/Xray pixels and picks, and Xray commands; no independent production material/lighting comparison is implied. Eight exact actual-production/course material native pairs pass at97d,DPR1/samples1:unlit/headlight/backface/returned-unlit and closedMesh+hiddenLine opaque/glass/Xray/returned-opaque.26.285s,693067776B;16PNG conversions exact,all6unique images individually reviewed by root. Complete decodedProto+archiveMetadata source integrity; fresh production instances. No AO/sky/copied/locked/clipped/pick/browser or whole-feature closure. Separate finite native reconciliation also accepts four actual copied-selected/locked/clipped glass/Xray source states in material-transparency-native-criterion-review, at its retained e432/fef4 qualification. Original Arena603 and source-faces630 browser contracts are independently complete and root reviewed; this does not accept pending95f/Slot/measured-reader/635 or relabel those proofs to current694. Source635 full original mesh-marker callback now passes with six reviewed authored/coplanar/shared feature images plus meaningful final canonical source. Slot590 is independently accepted;95f and96zzq remain separate.",
+        "acceptedScope": "Eight corrected actual-production/course Mesh pairs match full RGBA at their original a45 translated orthographic pose. Current97d native1060/1060 independently passes mesh-marker placement, sparse original-owner picks and source-lifetime assertions; this does not accept every material/lighting/opaque-transparent control against production. Seven separately reviewed current native bodies additionally cover bounded headlight/backface and unlit/sky restoration, ambient/depth-pyramid reuse, glass/Xray pixels and picks, and Xray commands; no independent production material/lighting comparison is implied. Eight exact actual-production/course material native pairs pass at97d,DPR1/samples1:unlit/headlight/backface/returned-unlit and closedMesh+hiddenLine opaque/glass/Xray/returned-opaque.26.285s,693067776B;16PNG conversions exact,all6unique images individually reviewed by root. Complete decodedProto+archiveMetadata source integrity; fresh production instances. No AO/sky/copied/locked/clipped/pick/browser or whole-feature closure. Separate finite native reconciliation also accepts four actual copied-selected/locked/clipped glass/Xray source states in material-transparency-native-criterion-review, at its retained e432/fef4 qualification. Original Arena603 and source-faces630 browser contracts are independently complete and root reviewed; this does not accept pending95f/Slot/measured-reader/635 or relabel those proofs to current694. Source635 full original mesh-marker callback now passes with six reviewed authored/coplanar/shared feature images plus meaningful final canonical source. Slot590 is independently accepted;95f and96zzq remain separate. Finite declaredcriteria nowcomplete through acceptedownsource591reader+558inventory and retainednamednative/material/controlproofs, as qualifiedinreaderreview. Readeradds onlyatomicread/import/hierarchy/archivecoverage; oldproofsourceidentitiesandfutureGPUrecovery limitsremainexplicit.",
         "records": [
           "release/material-lighting-transparency-native-review.json",
           "release/mesh-native-review.json",
@@ -198,12 +198,10 @@
           "release/material-transparency-native-criterion-review.json",
           "release/arena-empty-browser-review.json",
           "release/source-faces-browser-review.json",
-          "release/mesh-markers-browser-review.json"
+          "release/mesh-markers-browser-review.json",
+          "release/reader96zzq-browser-review.json"
         ],
-        "remainingAcceptance": [
-          "Retain the accepted named material/lighting/opaque/glass/Xray comparisons and copied/locked/clipped-source controls. Validate only still-unproved material, normal and display controls outside those bounded actual-production records; no arbitrary control matrix is declared.",
-          "Run remaining95f performance and96zzq measured-reader source-specific entries and inspect their feature frames. Accepted590 Slot,603 Arena,630 source-faces and635 mesh-marker callbacks retain their original sources and need no repeat acceptance."
-        ],
+        "remainingAcceptance": [],
         "chapterBrowserEntries": [
           {
             "chapter": 18,
@@ -235,7 +233,22 @@
             "checkpoint": "96zzzzzzm-query-original-faces-under-contact-overlays",
             "callback": "journey/checks/browser/source-faces.cjs"
           }
-        ]
+        ],
+        "satisfiedCriteria": {
+          "original": [
+            "Retain the accepted named material/lighting/opaque/glass/Xray comparisons and copied/locked/clipped-source controls. Validate only still-unproved material, normal and display controls outside those bounded actual-production records; no arbitrary control matrix is declared.",
+            "Run remaining95f performance and96zzq measured-reader source-specific entries and inspect their feature frames. Accepted590 Slot,603 Arena,630 source-faces and635 mesh-marker callbacks retain their original sources and need no repeat acceptance."
+          ],
+          "record": "release/reader96zzq-browser-review.json",
+          "preAudit": {
+            "path": "target/course-windows-20261018/finite-after-reader-closure-preparation/audit.json",
+            "sha256": "ebb902d83dceb628f29f8eb5ea77bcce0daa9fcee76ab6f33d81a89da9b2e486"
+          },
+          "scope": {
+            "retained": "Material8 full-RGBA named headlight/backface/unlit/opaque/glass/Xray plus copied/locked/clipped4 accepted controls, actual1064 mirrored/perspective/orthographic light and authored-normal source/pick assertions;635,Slot,Arena,source-faces and95f accepted original callbacks.",
+            "readerAdds": "Atomic replacement/failure, real imported hierarchy visibility/editing and archive preservation. Reader does not independently exercise light, normal or opacity controls."
+          }
+        }
       }
     },
     {
@@ -816,9 +829,9 @@
       "runnableCheckpoint": "96zzzzzzzq-draw-original-cad-wire-curves",
       "evidence": "docs/journey/visual-review.json; docs/screenshots/journey/browser.json; chapter source checkpoints. Existence is not current acceptance.",
       "currentVerification": {
-        "status": "partial",
+        "status": "complete",
         "integration": "#/currentIntegration",
-        "acceptedScope": "Recorded Point/Mesh/wire native ownership checks, focused Escape repeated picking and complete96y feature-original-pick browser callback pass. Original ownership,locking,highlight,Delete/Undo and archive regeneration verified at recorded sources. FinalCAD97d, original603 Arena and630 source-faces callbacks also pass their recorded owner/selection/DeleteUndo/archive or sparse-face/cropped-query contracts with reviewed meaningful images. Final65 and555 Sphere witnesses add only their bounded raw13x13 original-owner/Xray restoration proof. No94c,96h,Slot or measured-reader full acceptance is inferred. Source54494c complete original comparison entry now passes with meaningful four-CAD comparison pedestal; original transitive compiler qualification remains explicit. Inventory96h andreader96zzq andunprovedstale/cropped/rebased obligations remainseparate.",
+        "acceptedScope": "Recorded Point/Mesh/wire native ownership checks, focused Escape repeated picking and complete96y feature-original-pick browser callback pass. Original ownership,locking,highlight,Delete/Undo and archive regeneration verified at recorded sources. FinalCAD97d, original603 Arena and630 source-faces callbacks also pass their recorded owner/selection/DeleteUndo/archive or sparse-face/cropped-query contracts with reviewed meaningful images. Final65 and555 Sphere witnesses add only their bounded raw13x13 original-owner/Xray restoration proof. No94c,96h,Slot or measured-reader full acceptance is inferred. Source54494c complete original comparison entry now passes with meaningful four-CAD comparison pedestal; original transitive compiler qualification remains explicit. Inventory96h andreader96zzq andunprovedstale/cropped/rebased obligations remainseparate. Finite declaredcriteria nowcomplete through acceptedownsource591reader+558inventory and retainednamednative/material/controlproofs, as qualifiedinreaderreview. Readeradds onlyatomicread/import/hierarchy/archivecoverage; oldproofsourceidentitiesandfutureGPUrecovery limitsremainexplicit.",
         "records": [
           "release/point-native-review.json",
           "release/mesh-native-review.json",
@@ -829,11 +842,10 @@
           "release/arena-empty-browser-review.json",
           "release/xray-current-browser-relevance-review.json",
           "release/ambient-final713-marker-browser-review.json",
-          "release/comparison94c-browser-review.json"
+          "release/comparison94c-browser-review.json",
+          "release/reader96zzq-browser-review.json"
         ],
-        "remainingAcceptance": [
-          "Run96h inventory at its own checkpoint and the remaining96zzq measured-reader ownership contracts, retaining still-unproved stale/cropped/rebased request checks. Accepted590 Slot,96y,Arena,source-faces,finalCAD and bounded Sphere evidence keeps its exact scope;96y alone does not close chapter19."
-        ],
+        "remainingAcceptance": [],
         "chapterBrowserEntries": [
           {
             "chapter": 19,
@@ -867,6 +879,20 @@
           "sourceFingerprint": "3f02a2d827ccc8944516c54f51ffec80739b95fa626a975906d664c43a0f793e",
           "recursiveCallbackFingerprint": "a9d077403a96d1d48b0c1abf80bbb6de5eb6bab0db405d041ff1a16cc707856b",
           "originalCriterion": "Complete94c recursive callback after approved shortcuts, retaining prior failure evidence."
+        },
+        "satisfiedCriteria": {
+          "original": [
+            "Run96h inventory at its own checkpoint and the remaining96zzq measured-reader ownership contracts, retaining still-unproved stale/cropped/rebased request checks. Accepted590 Slot,96y,Arena,source-faces,finalCAD and bounded Sphere evidence keeps its exact scope;96y alone does not close chapter19."
+          ],
+          "record": "release/reader96zzq-browser-review.json",
+          "preAudit": {
+            "path": "target/course-windows-20261018/finite-after-reader-closure-preparation/audit.json",
+            "sha256": "ebb902d83dceb628f29f8eb5ea77bcce0daa9fcee76ab6f33d81a89da9b2e486"
+          },
+          "scope": {
+            "retained": "96y/Slot/Arena/source-faces/CAD/94c browser ownership controls; actual1064 cropped DPR1/2 first-pick and survivor primitive-address assertions; actual rebased newest cursor, stale completion discard, cancel and scene-clear assertions; precise rebased color/owner preservation.",
+            "readerAdds": "Selection/camera/GPU state remains identical after failed, cancelled, superseded or exited file read; child original Delete/Undo plus two archives."
+          }
         }
       }
     },
@@ -1461,9 +1487,9 @@
       "runnableCheckpoint": "96zzzzzzzq-draw-original-cad-wire-curves",
       "evidence": "docs/journey/visual-review.json; docs/screenshots/journey/browser.json; chapter source checkpoints. Existence is not current acceptance.",
       "currentVerification": {
-        "status": "partial",
+        "status": "complete",
         "integration": "#/currentIntegration",
-        "acceptedScope": "Current97d native1060 individually passes three inspected opacity/Xray GPU bodies and the Xray semantic command body: closed-face glass reveals hidden original ink, Xray retains original ink picks while closed faces do not pick, open and mirrored surfaces retain their bounded contracts, scene refresh preserves Xray behavior, and opacity restoration preserves source and uploads. Historical a45 printed-fill and the bounded printed-lid Plane pair retain their original scope. These are course-native semantics, not actual-production material/blend parity or browser acceptance. Eight exact actual-production/course material native pairs pass at97d,DPR1/samples1:unlit/headlight/backface/returned-unlit and closedMesh+hiddenLine opaque/glass/Xray/returned-opaque.26.285s,693067776B;16PNG conversions exact,all6unique images individually reviewed by root. Complete decodedProto+archiveMetadata source integrity; fresh production instances. No AO/sky/copied/locked/clipped/pick/browser or whole-feature closure. Four additional fixed-source e432 actual-production/course native pairs are accepted separately: copied-selected-glass, locked-source-glass, copied-selected-clipped-glass and copied-selected-clipped-xray. Each compares all RGBA bytes at zero tolerance; the original eight pairs remain unchanged. Actual Scene::copy_rows, retained full source/archive metadata, original/copied owner identities, maintained Scene::selectable lock eligibility and selected-copy/clip upload state are observed. Qualified cfg-test-only e432-to-fef4 equivalence retains the original frame execution/hashes. These Scene API and explicit highlight observations do not establish production GPU/browser owner picking or browser acceptance. Five bounded closedMesh Sphere marker control comparisons are accepted through four historical V6 completed zero-RGBA cases plus one actual V10 Xray candidate pair, with current65f0013 source/control qualification. The whole V6 run remains FAILED; this is not five fresh current executions. Fixed opacity/thickness/feather, source/MVP/production rows and original-owner query limits are recorded. All ten original PNG sides match five root-reviewed image hashes. Each run independently preserves its complete decoded source and metadata; cross-run saved archive bytes differ. Broad authored normal/glyph controls, arbitrary placement and the full source-specific635 browser callback remain separate.",
+        "acceptedScope": "Current97d native1060 individually passes three inspected opacity/Xray GPU bodies and the Xray semantic command body: closed-face glass reveals hidden original ink, Xray retains original ink picks while closed faces do not pick, open and mirrored surfaces retain their bounded contracts, scene refresh preserves Xray behavior, and opacity restoration preserves source and uploads. Historical a45 printed-fill and the bounded printed-lid Plane pair retain their original scope. These are course-native semantics, not actual-production material/blend parity or browser acceptance. Eight exact actual-production/course material native pairs pass at97d,DPR1/samples1:unlit/headlight/backface/returned-unlit and closedMesh+hiddenLine opaque/glass/Xray/returned-opaque.26.285s,693067776B;16PNG conversions exact,all6unique images individually reviewed by root. Complete decodedProto+archiveMetadata source integrity; fresh production instances. No AO/sky/copied/locked/clipped/pick/browser or whole-feature closure. Four additional fixed-source e432 actual-production/course native pairs are accepted separately: copied-selected-glass, locked-source-glass, copied-selected-clipped-glass and copied-selected-clipped-xray. Each compares all RGBA bytes at zero tolerance; the original eight pairs remain unchanged. Actual Scene::copy_rows, retained full source/archive metadata, original/copied owner identities, maintained Scene::selectable lock eligibility and selected-copy/clip upload state are observed. Qualified cfg-test-only e432-to-fef4 equivalence retains the original frame execution/hashes. These Scene API and explicit highlight observations do not establish production GPU/browser owner picking or browser acceptance. Five bounded closedMesh Sphere marker control comparisons are accepted through four historical V6 completed zero-RGBA cases plus one actual V10 Xray candidate pair, with current65f0013 source/control qualification. The whole V6 run remains FAILED; this is not five fresh current executions. Fixed opacity/thickness/feather, source/MVP/production rows and original-owner query limits are recorded. All ten original PNG sides match five root-reviewed image hashes. Each run independently preserves its complete decoded source and metadata; cross-run saved archive bytes differ. Broad authored normal/glyph controls, arbitrary placement and the full source-specific635 browser callback remain separate. Finite declaredcriteria nowcomplete through acceptedownsource591reader+558inventory and retainednamednative/material/controlproofs, as qualifiedinreaderreview. Readeradds onlyatomicread/import/hierarchy/archivecoverage; oldproofsourceidentitiesandfutureGPUrecovery limitsremainexplicit.",
         "records": [
           "release/material-lighting-transparency-native-review.json",
           "release/plane-original-covered-review.json",
@@ -1473,11 +1499,10 @@
           "release/native-ribbon-v4-qualified-recovery-review.json",
           "release/material-transparency-native-criterion-review.json",
           "release/marker-control-native-qualified-review.json",
-          "release/arena-empty-browser-review.json"
+          "release/arena-empty-browser-review.json",
+          "release/reader96zzq-browser-review.json"
         ],
-        "remainingAcceptance": [
-          "Run remaining95f performance and96zzq measured-reader callbacks and inspect their actual blend/depth feature output. Accepted590 Slot and603 Arena, native material8+copied/locked/clipped4 and bounded Sphere owner controls retain their exact scopes; the printed-lid fixture alone does not establish opaque occlusion."
-        ],
+        "remainingAcceptance": [],
         "chapterBrowserEntries": [
           {
             "chapter": 18,
@@ -1517,7 +1542,21 @@
             "recursiveCallbackFingerprint": "16c6960647427f675a4a82573070c3b090c271164520ee60a6a7d7a64ec6ca18",
             "scope": "Complete original callback at this exact recorded historical source/environment; no new final694/b031 execution or whole-feature acceptance."
           }
-        ]
+        ],
+        "satisfiedCriteria": {
+          "original": [
+            "Run remaining95f performance and96zzq measured-reader callbacks and inspect their actual blend/depth feature output. Accepted590 Slot and603 Arena, native material8+copied/locked/clipped4 and bounded Sphere owner controls retain their exact scopes; the printed-lid fixture alone does not establish opaque occlusion."
+          ],
+          "record": "release/reader96zzq-browser-review.json",
+          "preAudit": {
+            "path": "target/course-windows-20261018/finite-after-reader-closure-preparation/audit.json",
+            "sha256": "ebb902d83dceb628f29f8eb5ea77bcce0daa9fcee76ab6f33d81a89da9b2e486"
+          },
+          "scope": {
+            "retained": "Accepted native material8 plus copied/locked/clipped4 zero-RGBA pairs, closed/open/mirrored glass and Xray native color/pick/source restoration, bounded Sphere rear-marker owner comparisons, Slot/Arena browser controls.95f complete inherited opacity/comparison prefix cycles0/.4/.7/1, rejects invalid input, restores originals.",
+            "readerAdds": "Imported interaction visibility, child ownership and atomic source/archive roundtrips. It does not assert a new blend benchmark."
+          }
+        }
       }
     },
     {
@@ -1755,19 +1794,17 @@
       "runnableCheckpoint": "96zzzzzzzq-draw-original-cad-wire-curves",
       "evidence": "docs/journey/visual-review.json; docs/screenshots/journey/browser.json; chapter source checkpoints. Existence is not current acceptance.",
       "currentVerification": {
-        "status": "partial",
+        "status": "complete",
         "integration": "#/currentIntegration",
-        "acceptedScope": "Measured browser scheduling preserves ordered input and coalesces a56-event burst to one frame with zero idle frames; lifecycle/disposal callback passed on63acaf79. Actual final fef4/713 quality prerequisites prove same-extent attachment retention, coherent depth/address resize-pair replacement, source/archive/original-owner stability under the existing quality and resize controls, and zero old-lost-device GPU calls during actual recovery. Streaming cancellation/generation/deferred-load criteria remain separate; no plate or unsaved-document restoration claim.",
+        "acceptedScope": "Measured browser scheduling preserves ordered input and coalesces a56-event burst to one frame with zero idle frames; lifecycle/disposal callback passed on63acaf79. Actual final fef4/713 quality prerequisites prove same-extent attachment retention, coherent depth/address resize-pair replacement, source/archive/original-owner stability under the existing quality and resize controls, and zero old-lost-device GPU calls during actual recovery. Streaming cancellation/generation/deferred-load criteria remain separate; no plate or unsaved-document restoration claim. Finite declaredcriteria nowcomplete through acceptedownsource591reader+558inventory and retainednamednative/material/controlproofs, as qualifiedinreaderreview. Readeradds onlyatomicread/import/hierarchy/archivecoverage; oldproofsourceidentitiesandfutureGPUrecovery limitsremainexplicit.",
         "records": [
           "release/runtime-performance-review.json",
           "release/final-quality-recovery-review.json",
           "release/arena-empty-browser-review.json",
-          "release/quality656-browser-review.json"
+          "release/quality656-browser-review.json",
+          "release/reader96zzq-browser-review.json"
         ],
-        "remainingAcceptance": [
-          "Run measured-file-reader.cjs at96zzq for its declared file/resource contract.",
-          "Qualify final browser cancellation, generation ownership and disposal after the Escape change through reviewed exact relevant inputs or the existing focused runtime-owner body. Retain accepted reload-grid latest-camera deferred replacement under its ten byte-identical relevant modules; it does not establish cancelled/overlapping-fetch or initial-fit cases."
-        ],
+        "remainingAcceptance": [],
         "chapterBrowserEntries": [
           {
             "chapter": 20,
@@ -1806,7 +1843,22 @@
             "recursiveCallbackFingerprint": "75158ad4c1082b014b27a83c69fc14a111dc46e48abdc889a7a8a9909fc742eb",
             "scope": "Complete original callback at this exact recorded historical source/environment; no new final694/b031 execution or whole-feature acceptance."
           }
-        ]
+        ],
+        "satisfiedCriteria": {
+          "original": [
+            "Run measured-file-reader.cjs at96zzq for its declared file/resource contract.",
+            "Qualify final browser cancellation, generation ownership and disposal after the Escape change through reviewed exact relevant inputs or the existing focused runtime-owner body. Retain accepted reload-grid latest-camera deferred replacement under its ten byte-identical relevant modules; it does not establish cancelled/overlapping-fetch or initial-fit cases."
+          ],
+          "record": "release/reader96zzq-browser-review.json",
+          "preAudit": {
+            "path": "target/course-windows-20261018/finite-after-reader-closure-preparation/audit.json",
+            "sha256": "ebb902d83dceb628f29f8eb5ea77bcce0daa9fcee76ab6f33d81a89da9b2e486"
+          },
+          "scope": {
+            "retained": "Recorded lifecycle/runtime-owner actual late reply/pagehide/abort/disposal assertions qualify through nine byte-identical694 modules and reviewed browser Escape-only branch; accepted Arena/resource contracts and original656 remain source-bound.",
+            "readerAdds": "Actual success, failure, cancel, superseded, exit read cases: incomplete read has no phase; revoked completion changes no state/image/diagnostics; only newest read owns measurement; actual pagehide stops runtime. Document decode/validation/kernel/display timing, failed decode atomicity and two imported archives."
+          }
+        }
       }
     },
     {
@@ -21972,8 +22024,8 @@
     "chaptersTotal": 22,
     "readerFacingLessons": 111,
     "preservedCheckpoints": 1361,
-    "featuresComplete": 10,
-    "featuresPartial": 8,
+    "featuresComplete": 14,
+    "featuresPartial": 4,
     "featuresTotal": 18
   },
   "authoredReaderLessons": 111,
@@ -22058,8 +22110,8 @@
       "hashPolicy": "Valid UTF-8 text hashes normalize CRLF to LF; invalid UTF-8 remains raw. All307 current src paths/hashes matched the dated inventory during this audit. Existing301 row sha256/classification/basis values remain historical; current hashes come from the dated inventory. Six appended rows use the dated current hash and explicitly scoped staged basis. Complete path accounting is not verified extraction or feature parity."
     },
     "featureStatusCounts": {
-      "complete": 10,
-      "partial": 8,
+      "complete": 14,
+      "partial": 4,
       "open": 0,
       "meaning": "Complete accepts the named finite feature requirements at recorded source/fixture/settings; it does not close global release. Partial rows retain specific unaccepted requirements."
     },

@@ -1,5 +1,5 @@
 {
-  "updated": "2026-10-24",
+  "updated": "2026-10-24T19:37:41.132Z",
   "platform": "windows",
   "scope": "Complete the 22-chapter viewer course and production reconciliation plan",
   "chaptersConsolidated": 22,
@@ -622,13 +622,12 @@
     "Ambient contact source fixes and exact1x/4x production comparisons pass at their recorded identities; current694/b031 compiler/native1064/browser qualification is complete. Broader finite ambient controls and source-specific95f/measured-reader obligations retain their exact remaining criteria."
   ],
   "onlyHeavy": {
-    "status": "running",
-    "task": "Measured reader591 first native/WASM/optimized/frame/sample phases",
-    "sessionId": 34591,
+    "status": "idle",
+    "task": "Reader591 accepted; preparing final production BRep/kernel transition",
     "memoryLimitMiB": 4096,
     "processors": 2
   },
-  "next": "Finish reader591 build phases and full browser callback. Then apply exact BRep/kernel transition, verify focused regressions and three representatives, and complete the final native/build/recovery/docs batch.",
+  "next": "Integrate exact kept production BRep/kernel fixes, run final source-bound native/compiler/browser checks and verify the preserved Vue tutorial site.",
   "currentDocsReview": {
     "status": "PASS current694/b031 book publication snapshot: desktop/390px phone roadmap and changed22.6 Rust/WGSL section; all three original PNGs root-reviewed",
     "record": "release/docs-progress-ambient-selector-current-visible-review.json",
@@ -664,7 +663,7 @@
       "readerFacingLessonsRemaining": 0
     },
     "display": {
-      "status": "Finite feature closure in progress:10/18 complete,8 partial; current detailed scopes are in production-course-map.json",
+      "status": "Finite feature closure:14/18 complete,4 partial; final BRep/curved-border/cap comparisons and startup recovery remain.",
       "groupsAccepted": 4,
       "groupsTotal": 5,
       "ordinaryLines": {
@@ -688,9 +687,9 @@
       "joinedVectorSheets": {
         "status": "Joined and Sheet/text finite criteria complete through their separately scoped native and browser proofs. Other family and source-specific callback obligations remain pending. See release/joined-line-finite-review.json and release/sheet-text-finite-review.json."
       },
-      "featuresComplete": 10,
+      "featuresComplete": 14,
       "featuresTotal": 18,
-      "featuresPartial": 8,
+      "featuresPartial": 4,
       "cadBaseline": {
         "status": "passed-bounded-native-baseline",
         "passed": 5,
@@ -726,7 +725,7 @@
       "record": "release/reload-grid-browser-review.json"
     },
     "finalIntegration": {
-      "status": "3/5 final gates complete;17/18 callbacks,4/4 fixtures,10/18 finite features accepted. Reader callback and final BRep/kernel integration, recovery and publication remain.",
+      "status": "3/5 final gates complete;18/18 callbacks,4/4 fixtures,14/18 finite features accepted. Final production BRep/kernel integration, recovery and publication remain.",
       "gatesDone": 3,
       "gatesTotal": 5,
       "gatesRemaining": 2,
@@ -1417,13 +1416,7 @@
       "readerEndpointsWithBrowserCallbacks": 85,
       "meaning": "Counts describe authored declarations, not required new GPU jobs. Preserve canonical source reconstruction, reproducibility and all actual declared lesson/feature assertions; retain old proof honestly. A missing aggregate record alone does not mandate fresh full execution for every historical ID."
     },
-    "pendingHistoricalCallbacks": [
-      {
-        "checkpoint": "96zzq-open-files-through-one-measured-session-reader",
-        "callback": "journey/checks/browser/measured-file-reader.cjs",
-        "chapter": 20
-      }
-    ],
+    "pendingHistoricalCallbacks": [],
     "pendingIntegrationActions": [
       {
         "id": "final-native-and-compiler-proof",
@@ -1447,18 +1440,18 @@
       }
     ],
     "counting": {
-      "pendingHistoricalEntryCallbacks": 1,
+      "pendingHistoricalEntryCallbacks": 0,
       "additionalDeclaredCallbackEntries": 4,
       "pendingIntegrationActions": 3,
       "distinctSourceSpecificCallbackEntries": 18,
       "nonCallbackIntegrationActions": 3,
       "namedActions": 21,
-      "remainingFeatureChecklists": 8,
-      "meaning": "17/18originalsourcecallbacksaccepted;96zzqreader remains. All4originalWindowsfixtures accepted;10finitefeaturescomplete8partial. Original21nameddenominator/noncallback3groups independent.",
+      "remainingFeatureChecklists": 4,
+      "meaning": "All18sourcecallbacksactualaccepted atrecordedscopes;all4Windowsfixtures;14finitefeaturescomplete4partial. Original21nameddenominator/noncallback3groupsandreleasestatusremainindependent.",
       "eta": "No total ETA; missing successful callback durations and unscopednative tuples prevent an honest walltime estimate.",
-      "acceptedSourceSpecificCallbackEntries": 17,
-      "pendingSourceSpecificCallbackEntries": 1,
-      "pendingNamedActions": 4,
+      "acceptedSourceSpecificCallbackEntries": 18,
+      "pendingSourceSpecificCallbackEntries": 0,
+      "pendingNamedActions": 3,
       "pendingAdditionalDeclaredCallbackEntries": 0
     },
     "phaseReuse94c": {
@@ -1928,10 +1921,10 @@
       "chaptersConsolidated": 22,
       "readerLessons": 111,
       "draftingRemaining": 0,
-      "featuresComplete": 10,
-      "featuresPartial": 8,
-      "callbacksAccepted": 17,
-      "callbacksRemaining": 1,
+      "featuresComplete": 14,
+      "featuresPartial": 4,
+      "callbacksAccepted": 18,
+      "callbacksRemaining": 0,
       "historicalFixturesAccepted": 4,
       "historicalFixturesTotal": 4,
       "releaseGatesDone": 3,
@@ -2394,6 +2387,15 @@
       "recursiveCallbackFingerprint": "b298f5a6a0fe1e9c0710912bc16721d9036c2fbb706021a4e8fe115fa9c03961",
       "elapsedSeconds": 625.367,
       "peakJobCommitBytes": 1935478784
+    },
+    "reader96zzq": {
+      "status": "PASS completeown591readerbody+reviewedElementfixture",
+      "record": "release/reader96zzq-browser-review.json",
+      "sourceFingerprint": "ec7838da503aa286222b3249277beb618b65ae5575d62dc1cf685a292b68e16f",
+      "sourceSignature": "7f259d1e86d763e36d5dbd98968abcb80a564279dab974394a74525a145f57b8",
+      "recursiveCallbackFingerprint": "96a72514115aaa4eafdd5bda1f2bd5c4735e60bc9a5ec207a8d5b12756b277ab",
+      "elapsedSeconds": 20.827,
+      "peakJobCommitBytes": 740282368
     }
   },
   "currentRuntimeDocsQualification": {

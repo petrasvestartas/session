@@ -1,0 +1,342 @@
+{
+  "status": "PASS complete original source591 measured-reader defaultcallback and bounded four finite criteria; scoped runtime-owner relevance",
+  "checkpoint": "96zzq-open-files-through-one-measured-session-reader",
+  "sourceFiles": 591,
+  "sourceFingerprint": "ec7838da503aa286222b3249277beb618b65ae5575d62dc1cf685a292b68e16f",
+  "sourceSignature": "7f259d1e86d763e36d5dbd98968abcb80a564279dab974394a74525a145f57b8",
+  "courseAtExecutionSha256": "fd25625df40bee14e302a069448fa9510a87b90f80eee945f37b752fb1277726",
+  "callback": {
+    "path": "journey/checks/browser/measured-file-reader.cjs",
+    "recursiveFingerprint": "96a72514115aaa4eafdd5bda1f2bd5c4735e60bc9a5ec207a8d5b12756b277ab",
+    "captureSha256": "730a2c8618175efe53a93be8f837fc14f91b5422375d8d0e699804d0c17e593a",
+    "completeDefaultBody": true,
+    "measuredErrorContract": "release/reader-measured-error-contract-review.json"
+  },
+  "browser": {
+    "report": {
+      "path": "target/course-windows-20261018/reader96zzq-acceptance-publication-preparation/raw/full-browser.json",
+      "sha256": "af5b8f86b705ed42e7554dbb8117be114d36f0161ecc20cc07097380848fb6fc"
+    },
+    "snapshot": {
+      "path": "target/course-windows-20261018/reader96zzq-acceptance-publication-preparation/raw/browser-snapshot.json",
+      "sha256": "c7121c05cd832561a81611b8010cf3a2bfd6ddcecc0cb1e3f5b58fa964793861"
+    },
+    "resources": {
+      "path": "target/course-windows-20261018/reader96zzq-acceptance-publication-preparation/raw/full-browser.resources.json",
+      "sha256": "3ad21c75039ff804eef3a8225c3d873c9a12cb0ac7f36e9b3c0c116505c41057",
+      "elapsedSeconds": 20.827,
+      "peakJobCommitBytes": 740282368,
+      "processors": 2,
+      "jobCommitLimitBytes": 6442450944
+    },
+    "served": {
+      "assets/pb/course-comparison.pb": "8d952b0ac17ebf0bb7c20704b45b95acbe5b4395ff809a38baacaad93de4bed5",
+      "assets/pb/course-feature-pick.pb": "e05c864d93c99b700665508eb8ddc630c637cec24b51558de97f26f05762387d",
+      "assets/pb/course-instance-features.pb": "3b9a0d162728849ff09fe9b8e77b877a4565e66b77b5c73d09422f362e816500",
+      "assets/pb/course-metadata.pb": "2cfe2ad9becff37d0fcca23f71e47b1c6e674d7934327120a9233efd0c2faf55",
+      "index.html": "2c8fee476993a97497a62272eba95919d1294f70df51fe08f082748e200b4bf5",
+      "snippets/session_viewer-568dd7ccbb8842dd/inline0.js": "bcd603923161001987d238655bc702c35aa98920d69d7c9793006792bd030104",
+      "snippets/session_viewer_freeze_d5dd5b80bb27fbf8bee367f3-429fbfd79e1a64b5/inline0.js": "bcd603923161001987d238655bc702c35aa98920d69d7c9793006792bd030104",
+      "snippets/viewer_journey-7519825317df163d/src/adapter_info.js": "3d87da73f9a18dd579c0e96f207899630a600a7839ff4d9857a87fe1211091bb",
+      "snippets/viewer_journey_713_555490d4cb3dd18014984afc-f2a8dc965501de35/src/adapter_info.js": "3d87da73f9a18dd579c0e96f207899630a600a7839ff4d9857a87fe1211091bb",
+      "snippets/viewer_journey_713_6947664b26863adf65ef7bfc-6ba2909db89e4682/src/adapter_info.js": "3d87da73f9a18dd579c0e96f207899630a600a7839ff4d9857a87fe1211091bb",
+      "snippets/viewer_journey_714_b0313bae6b71646b94247765-84d12fc9a0275994/src/adapter_info.js": "3d87da73f9a18dd579c0e96f207899630a600a7839ff4d9857a87fe1211091bb",
+      "snippets/viewer_journey_714_b5a415856167f657d7eb02e9-cb60b5505964b2a0/src/adapter_info.js": "3d87da73f9a18dd579c0e96f207899630a600a7839ff4d9857a87fe1211091bb",
+      "snippets/viewer_journey_85ay_a996eb6ee6c34ec807819036_approved5-1f15d30325c5d5ed/src/adapter_info.js": "3d87da73f9a18dd579c0e96f207899630a600a7839ff4d9857a87fe1211091bb",
+      "snippets/viewer_journey_88ad_8caaafa12e5a8295e8eef18c_approved5-e17de1028f81a8d4/src/adapter_info.js": "3d87da73f9a18dd579c0e96f207899630a600a7839ff4d9857a87fe1211091bb",
+      "snippets/viewer_journey_95f_3caa88eb8496ece322ed6f8c_approved5-671277802784d3a6/src/adapter_info.js": "3d87da73f9a18dd579c0e96f207899630a600a7839ff4d9857a87fe1211091bb",
+      "snippets/viewer_journey_96h_dfe346a7d230533e917c6809_approved5-012e2a34b76d6941/src/adapter_info.js": "3d87da73f9a18dd579c0e96f207899630a600a7839ff4d9857a87fe1211091bb",
+      "snippets/viewer_journey_96zzq_ec7838da503aa286222b3249_approved5-d3f9927b677daf62/src/adapter_info.js": "3d87da73f9a18dd579c0e96f207899630a600a7839ff4d9857a87fe1211091bb",
+      "text/NotoSans-Regular.subset.ttf": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09",
+      "text/NotoSans-Regular.ttf": "b85c38ecea8a7cfb39c24e395a4007474fa5a4fc864f6ee33309eb4948d232d5",
+      "text/NotoSansSymbols-Regular.subset.ttf": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3",
+      "text/NotoSansSymbols-Regular.ttf": "8f02f31959bbdf6061547a188248e13f84dc5fdd940326ec494675f453f072bb",
+      "text/NotoSansSymbols2-Regular.subset.ttf": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed",
+      "text/NotoSansSymbols2-Regular.ttf": "630846d528dbe4c4981370a4d0a9475a1fd1491a129bb411f8e157cdb5de13c6",
+      "text/OFL.txt": "0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb",
+      "viewer_journey_96zzq_ec7838da503aa286222b3249_approved5-5019fa4c8dda5e0b.js": "024775adebde7feef4a7f5fc1828dd0d8d3652a7dfa916ccfbf6ec7273512f5b",
+      "viewer_journey_96zzq_ec7838da503aa286222b3249_approved5-5019fa4c8dda5e0b_bg.wasm": "ec5e8550a92044fd603e53a67bdda7c3534edaea7e823d562dacdb12bc740923"
+    },
+    "adapter": {
+      "index": 0,
+      "name": "NVIDIA GeForce RTX 4080 Laptop GPU",
+      "vendor": 4318,
+      "device": 10208,
+      "luid": "0,86780",
+      "luidHigh": 0,
+      "luidLow": 86780,
+      "dedicatedVideoMemoryBytes": 12577669120,
+      "flags": 0,
+      "scope": "Browser NVIDIA DXGI selection only; original native build/frame remain WARP",
+      "bootProofPath": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\nvidia-hardware-browser-preparation\\nvidia-current-fef4-boot-v1\\proof.json",
+      "bootProofSha256": "1f47e818b919455adeb18bd96126cc316c09adf4b84513e6c05cb0c405578558",
+      "bootBrowserSha256": "2ab1e6da5eb50ce14f5053dfebd782e99ad50ea6d28081694877c2f2f9da981e"
+    }
+  },
+  "compiler": {
+    "proof": {
+      "path": "target/course-windows-20261018/reader96zzq-acceptance-publication-preparation/raw/compiler-proof.json",
+      "sha256": "f675ed498ec5f41dac387e0ab5fed175c460dbca1a22851e196aacd412bca155"
+    },
+    "phases": [
+      "native-check",
+      "wasm",
+      "web",
+      "frame",
+      "sample"
+    ],
+    "scope": "Actualown591sourceboundfivephases; nativeframeSHAderivedfromactualproof; nofullhistoricalnative run."
+  },
+  "nativeFrame": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\fresh-historical-approved-five-v2-preparation\\96zzq-open-files-through-one-measured-session-reader\\reader96zzq-two-corrections-phase-v2\\native-frame.png",
+    "sha256": "ed800db2b9cf80fa70a5df1ee086e4fa294f896a1a8d9fb6107da4dce036a366",
+    "ppmSha256": "a3e232e315d43fb3a4098145608f2e3d1af29edb4951c8173a715338792477ad",
+    "pixelsSha256": "002dc3bbbf4d12c8653a54a11d86c642edcba6f90b561cad700efdf5b7524f8b",
+    "width": 640,
+    "height": 480,
+    "inspection": "Root explicitly supplied exact frame PNG SHA",
+    "scope": "Actualsource591nativeframe androotreviewrecord preserved; neverborrow558D57unlessactualSHAequalandrootreviewed."
+  },
+  "image": {
+    "file": "reader96zzq-current-browser.png",
+    "sha256": "64202ce71fe3c0f7a3435c534afec3393279b249972604963c03d91048225b16",
+    "rootPersonallyReviewed": true,
+    "scope": "MeaningfulimportedElementfixture afterfulloriginalreaderbody;rootreviewedexactactualSHA."
+  },
+  "actualReaderScope": "Success/failure/cancel/superseded/exit read scenarios, measured decode/validation/kernel/display phases, source/selection/camera/GPU/diagnostics atomicity, importedchildediting/interactionvisibility andtwoeditablearchive roundtrips. Readerdoesnotexerciseanewopacity/blendbenchmark.",
+  "finiteClosure": {
+    "preAudit": {
+      "path": "target/course-windows-20261018/finite-after-reader-closure-preparation/audit.json",
+      "sha256": "ebb902d83dceb628f29f8eb5ea77bcce0daa9fcee76ab6f33d81a89da9b2e486"
+    },
+    "requiredActual96h": {
+      "path": "docs/journey/release/inventory96h-browser-review.json",
+      "sha256": "ef95aae761f5461750185e3786d49896576f4f0593bcf50f91d1dfe2599c83c8"
+    },
+    "rows": [
+      {
+        "index": 1,
+        "retainedScope": "Material8 full-RGBA named headlight/backface/unlit/opaque/glass/Xray plus copied/locked/clipped4 accepted controls, actual1064 mirrored/perspective/orthographic light and authored-normal source/pick assertions;635,Slot,Arena,source-faces and95f accepted original callbacks.",
+        "readerAdds": "Atomic replacement/failure, real imported hierarchy visibility/editing and archive preservation. Reader does not independently exercise light, normal or opacity controls.",
+        "declaredRemaining": [
+          "Retain the accepted named material/lighting/opaque/glass/Xray comparisons and copied/locked/clipped-source controls. Validate only still-unproved material, normal and display controls outside those bounded actual-production records; no arbitrary control matrix is declared.",
+          "Run remaining95f performance and96zzq measured-reader source-specific entries and inspect their feature frames. Accepted590 Slot,603 Arena,630 source-faces and635 mesh-marker callbacks retain their original sources and need no repeat acceptance."
+        ]
+      },
+      {
+        "index": 7,
+        "retainedScope": "96y/Slot/Arena/source-faces/CAD/94c browser ownership controls; actual1064 cropped DPR1/2 first-pick and survivor primitive-address assertions; actual rebased newest cursor, stale completion discard, cancel and scene-clear assertions; precise rebased color/owner preservation.",
+        "readerAdds": "Selection/camera/GPU state remains identical after failed, cancelled, superseded or exited file read; child original Delete/Undo plus two archives.",
+        "declaredRemaining": [
+          "Run96h inventory at its own checkpoint and the remaining96zzq measured-reader ownership contracts, retaining still-unproved stale/cropped/rebased request checks. Accepted590 Slot,96y,Arena,source-faces,finalCAD and bounded Sphere evidence keeps its exact scope;96y alone does not close chapter19."
+        ]
+      },
+      {
+        "index": 12,
+        "retainedScope": "Accepted native material8 plus copied/locked/clipped4 zero-RGBA pairs, closed/open/mirrored glass and Xray native color/pick/source restoration, bounded Sphere rear-marker owner comparisons, Slot/Arena browser controls.95f complete inherited opacity/comparison prefix cycles0/.4/.7/1, rejects invalid input, restores originals.",
+        "readerAdds": "Imported interaction visibility, child ownership and atomic source/archive roundtrips. It does not assert a new blend benchmark.",
+        "declaredRemaining": [
+          "Run remaining95f performance and96zzq measured-reader callbacks and inspect their actual blend/depth feature output. Accepted590 Slot and603 Arena, native material8+copied/locked/clipped4 and bounded Sphere owner controls retain their exact scopes; the printed-lid fixture alone does not establish opaque occlusion."
+        ]
+      },
+      {
+        "index": 14,
+        "retainedScope": "Recorded lifecycle/runtime-owner actual late reply/pagehide/abort/disposal assertions qualify through nine byte-identical694 modules and reviewed browser Escape-only branch; accepted Arena/resource contracts and original656 remain source-bound.",
+        "readerAdds": "Actual success, failure, cancel, superseded, exit read cases: incomplete read has no phase; revoked completion changes no state/image/diagnostics; only newest read owns measurement; actual pagehide stops runtime. Document decode/validation/kernel/display timing, failed decode atomicity and two imported archives.",
+        "declaredRemaining": [
+          "Run measured-file-reader.cjs at96zzq for its declared file/resource contract.",
+          "Qualify final browser cancellation, generation ownership and disposal after the Escape change through reviewed exact relevant inputs or the existing focused runtime-owner body. Retain accepted reload-grid latest-camera deferred replacement under its ten byte-identical relevant modules; it does not establish cancelled/overlapping-fetch or initial-fit cases."
+        ]
+      }
+    ],
+    "retainedRecords": [
+      {
+        "path": "docs/journey/release/material-production-pairs-native-review.json",
+        "sha256": "00bda278a9710e1064d81a4296885f8b0bd65cca869a29acc86690d53674105e"
+      },
+      {
+        "path": "docs/journey/release/material-transparency-native-criterion-review.json",
+        "sha256": "33a4e7f3fdb502877406d02715c14f94e81fceaee97c14c7fe32e09e4dea6784"
+      },
+      {
+        "path": "docs/journey/release/material-lighting-transparency-native-review.json",
+        "sha256": "2e438c8d05e3243d75513a4effaa51b458f91dfe0bb301d2c863872e3a938cf3"
+      },
+      {
+        "path": "docs/journey/release/mesh-native-review.json",
+        "sha256": "5c5d6cd327649390778a6e43b7ccb690f256b36c080aab0975cfaec62ad53b0f"
+      },
+      {
+        "path": "docs/journey/release/mesh-markers-browser-review.json",
+        "sha256": "029fb5fe7abbc29212b82e07a0a28ee4f68fc9b32a0f25806064d86ae7e3ebdc"
+      },
+      {
+        "path": "docs/journey/release/slot-pipeline-browser-review.json",
+        "sha256": "99945a79029671de32a07d1992be1ac1e5674191ab855a5dc464c2817b8695f4"
+      },
+      {
+        "path": "docs/journey/release/arena-empty-browser-review.json",
+        "sha256": "27d30b6953989ad5647d6a6192a8abb6a6d1982614cd3f7f5e26822c33230b42"
+      },
+      {
+        "path": "docs/journey/release/source-faces-browser-review.json",
+        "sha256": "012cc5b95e01c991aa76d98e04d6ed4409dcd0668ba0c1035c40dc2579e60e61"
+      },
+      {
+        "path": "docs/journey/release/comparison94c-browser-review.json",
+        "sha256": "f066edc6ccacd9c4f36dfe5e2119dad7ada45da2c99b275516c18b0466c4184d"
+      },
+      {
+        "path": "docs/journey/release/performance95f-browser-review.json",
+        "sha256": "53973a1846da2b7247bb9c72272c726adaa9eb777f9f29e5436cf1f1efb7eedb"
+      },
+      {
+        "path": "docs/journey/release/runtime-performance-review.json",
+        "sha256": "06941394b8794640e51aea35e422ca03b14ce1001c3ef364bd324d6a539c854a"
+      }
+    ],
+    "nativeNamedResults": {
+      "path": "target/course-windows-20261018/ambient-selector-refreeze-publication-preparation/native1064-named-results.json",
+      "sha256": "dec2d168cef96bbf5e89d3648800425f90214cd9798cc49e641ba7eb0fbdcac8"
+    },
+    "actualNamedPasses": [
+      "renderer::surface_controls_tests::actual_headlight_backfaces_and_original_record_restoration",
+      "scene::pick_gpu_tests::actual_pulled_source_normals_keep_shared_reflected_placements_and_original_picks",
+      "renderer::global_outline_tests::actual_first_pick_primitives_match_current_cropped_owners_before_color",
+      "renderer::global_outline_tests::actual_rebased_pending_cursor_stays_newest_and_cancellation_never_revives_it",
+      "renderer::global_outline_tests::actual_precise_object_rebase_matches_local_pixels_records_selection_and_owners",
+      "renderer::opacity_gpu_tests::actual_closed_faces_blend_hidden_ink_fades_and_xray_picks_original_ink",
+      "renderer::opacity_gpu_tests::actual_open_surfaces_remain_opaque_and_mirrored_closed_faces_keep_glass",
+      "renderer::opacity_gpu_tests::actual_xray_survives_scene_refresh_without_hiding_open_originals"
+    ]
+  },
+  "runtimeOwnerQualification": {
+    "originalActualRecord": {
+      "path": "docs/journey/release/runtime-performance-review.json",
+      "sha256": "06941394b8794640e51aea35e422ca03b14ce1001c3ef364bd324d6a539c854a"
+    },
+    "oldSource": "63acaf79da6dfdde9c35f32d917806560cca2d2b4e9bf73cb1129566076e4856",
+    "currentRelevantSource": "6947664b26863adf65ef7bfc879694bfedee853852bc2c7660d59f31d2e36ca9",
+    "readOnlySourceModuleEquality": [
+      {
+        "file": "browser_runtime.rs",
+        "old": {
+          "path": "target/course-endpoint-browser-disposal/src/browser_runtime.rs",
+          "sha256": "f886cf4dd85740ee2dce81f43ffd0c8f80bedd7d0780d4e0ca39900fc2731f78"
+        },
+        "current": {
+          "path": "target/course-windows-20261018/ambient-selector-refreeze-preparation/source-713/src/browser_runtime.rs",
+          "sha256": "f886cf4dd85740ee2dce81f43ffd0c8f80bedd7d0780d4e0ca39900fc2731f78"
+        },
+        "identical": true
+      },
+      {
+        "file": "browser_reload.rs",
+        "old": {
+          "path": "target/course-endpoint-browser-disposal/src/browser_reload.rs",
+          "sha256": "389bd9f70d16ce2ba690bf090871efb6edb1b904caca2fa2d045260c30387bc3"
+        },
+        "current": {
+          "path": "target/course-windows-20261018/ambient-selector-refreeze-preparation/source-713/src/browser_reload.rs",
+          "sha256": "389bd9f70d16ce2ba690bf090871efb6edb1b904caca2fa2d045260c30387bc3"
+        },
+        "identical": true
+      },
+      {
+        "file": "browser_network.rs",
+        "old": {
+          "path": "target/course-endpoint-browser-disposal/src/browser_network.rs",
+          "sha256": "43d9dcffe0e157e15ea079924b53173e817a6b8926b4e6402a0b354f96462e1e"
+        },
+        "current": {
+          "path": "target/course-windows-20261018/ambient-selector-refreeze-preparation/source-713/src/browser_network.rs",
+          "sha256": "43d9dcffe0e157e15ea079924b53173e817a6b8926b4e6402a0b354f96462e1e"
+        },
+        "identical": true
+      },
+      {
+        "file": "browser_frame.rs",
+        "old": {
+          "path": "target/course-endpoint-browser-disposal/src/browser_frame.rs",
+          "sha256": "b83d25e7e630d7d263ff813d9472f340ec3ebe57c27241992b26f0de52ef889b"
+        },
+        "current": {
+          "path": "target/course-windows-20261018/ambient-selector-refreeze-preparation/source-713/src/browser_frame.rs",
+          "sha256": "b83d25e7e630d7d263ff813d9472f340ec3ebe57c27241992b26f0de52ef889b"
+        },
+        "identical": true
+      },
+      {
+        "file": "frame_schedule.rs",
+        "old": {
+          "path": "target/course-endpoint-browser-disposal/src/frame_schedule.rs",
+          "sha256": "6ab0fbc0779317e6cf53bcc318e3c8d2c27d230e0347398f003cfff2ffa1532e"
+        },
+        "current": {
+          "path": "target/course-windows-20261018/ambient-selector-refreeze-preparation/source-713/src/frame_schedule.rs",
+          "sha256": "6ab0fbc0779317e6cf53bcc318e3c8d2c27d230e0347398f003cfff2ffa1532e"
+        },
+        "identical": true
+      },
+      {
+        "file": "read_gate.rs",
+        "old": {
+          "path": "target/course-endpoint-browser-disposal/src/read_gate.rs",
+          "sha256": "1b0ebf6acfc0a705d285e32460290de257c76e23e7c2feeefaca5e7f74505dcd"
+        },
+        "current": {
+          "path": "target/course-windows-20261018/ambient-selector-refreeze-preparation/source-713/src/read_gate.rs",
+          "sha256": "1b0ebf6acfc0a705d285e32460290de257c76e23e7c2feeefaca5e7f74505dcd"
+        },
+        "identical": true
+      },
+      {
+        "file": "file_input.rs",
+        "old": {
+          "path": "target/course-endpoint-browser-disposal/src/file_input.rs",
+          "sha256": "a07a039bfaacaec12d1ce1f42d68802e7ff248e45ad179dcb8e581df221eb1d2"
+        },
+        "current": {
+          "path": "target/course-windows-20261018/ambient-selector-refreeze-preparation/source-713/src/file_input.rs",
+          "sha256": "a07a039bfaacaec12d1ce1f42d68802e7ff248e45ad179dcb8e581df221eb1d2"
+        },
+        "identical": true
+      },
+      {
+        "file": "stream_generation.rs",
+        "old": {
+          "path": "target/course-endpoint-browser-disposal/src/stream_generation.rs",
+          "sha256": "bf0acc122d708ab7acd631dcedb141dce9fb20d427f7c26e691541cbb48ccad8"
+        },
+        "current": {
+          "path": "target/course-windows-20261018/ambient-selector-refreeze-preparation/source-713/src/stream_generation.rs",
+          "sha256": "bf0acc122d708ab7acd631dcedb141dce9fb20d427f7c26e691541cbb48ccad8"
+        },
+        "identical": true
+      },
+      {
+        "file": "stream_load.rs",
+        "old": {
+          "path": "target/course-endpoint-browser-disposal/src/stream_load.rs",
+          "sha256": "747390f3eee820558ac4ca2fdf5ec8cfeab6c0d87e0714b9b7e2a3aa8606b95e"
+        },
+        "current": {
+          "path": "target/course-windows-20261018/ambient-selector-refreeze-preparation/source-713/src/stream_load.rs",
+          "sha256": "747390f3eee820558ac4ca2fdf5ec8cfeab6c0d87e0714b9b7e2a3aa8606b95e"
+        },
+        "identical": true
+      }
+    ],
+    "sourceAudit": {
+      "path": "target/course-windows-20261018/final-startup-runtime-relevance-preparation/plan.json",
+      "sha256": "4261cf8ad57d63e448bf2b8eb5a284ed815ea2e9f2301e207ba29f81282bf672"
+    },
+    "scope": "Nineactualretainedlifecycle/read/reload/streammodulesrehashbyteequal. Reviewedbrowser.rsdeltaonlynavigationEscape→Action::Escape; oldruntime-ownerbody doesnotphysicalEscape andcurrenttrustedcommandhelpersendnone. Retainactualoldabort/pagehide/late-reply/URLrevoke/disposal assertions, notnewruntime-ownerexecution.",
+    "exclusions": "Reload-gridlatest-camera proofalone doesnotestablishcancelled/overlappingfetch. Thoseoriginalscopesremainexplicit; new591actualread scenariosareseparateevidence. FinalnewGPUquality/recovery afterambient/BRep remainsStartup obligation."
+  },
+  "limits": [
+    "Onlyfourroot-reviewedfiniteRow1/7/12/14closures afteractual96h+591; originalmaterial/pixel/testsource scopesretainidentities.",
+    "No fresholdruntime-ownerexecution, newopacitymatrix ornewestBRepkernelproof.",
+    "Releasegatesremain3/5untilindependentactualfinaldecisions. No finalnative/build/recovery acceptance inferred."
+  ]
+}

@@ -44,12 +44,14 @@ module.exports = async (original, helpers) => {
         await helpers.command(page, 'Redo');
         const acceptedState = await state(), acceptedImage = await helpers.drawing(page);
         await open(Buffer.from([0xff]));
-        await page.waitForFunction(contract => (contract === 'owned-browser-decode'
+        await page.waitForFunction(contract => (contract !== 'legacy-static-document-decode'
             ? document.getElementById('status').textContent.startsWith('Cannot open file:')
             : document.getElementById('status').textContent === 'Invalid session protobuf')
             && JSON.parse(window.wasmBindings.diagnostic_snapshot()).phases.some(phase => phase.name === 'decode failed'), errorContract);
         if (errorContract === 'owned-browser-decode') {
             assert.match(await page.locator('#status').textContent(), /failed to decode Protobuf message: invalid varint/);
+        } else if (errorContract === 'owned-measured-static-document-decode') {
+            assert.equal(await page.locator('#status').textContent(), 'Cannot open file: JsValue("Invalid session protobuf")');
         } else {
             assert.equal(await page.locator('#status').textContent(), 'Invalid session protobuf');
         }

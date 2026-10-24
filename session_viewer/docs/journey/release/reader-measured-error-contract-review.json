@@ -1,0 +1,94 @@
+{
+  "status": "PASS exact third measured-owned decode contract and subsequent complete original reader callback",
+  "application": {
+    "path": "target/course-windows-20261018/reader-measured-owned-error-preparation/application.json",
+    "sha256": "9fab4de6c370909200a040782dd79de7dc194b76cf1af6df0e10233f06c2602a"
+  },
+  "cpuProof": {
+    "path": "target/course-windows-20261018/reader-measured-owned-error-preparation/source-contract-tests.json",
+    "sha256": "7dcc7c71d1b139a2042237d0d97bd32e8930ad4a7cdd3fa055c3a77839f01579"
+  },
+  "sourcePaths": [
+    {
+      "id": "65c-cloud-point",
+      "expected": "legacy-static-document-decode",
+      "result": "PASS"
+    },
+    {
+      "id": "70d-exercise-rotated-and-mirrored-original-references",
+      "expected": "owned-browser-decode",
+      "result": "PASS"
+    },
+    {
+      "id": "94c-prove-the-original-comparison-and-inspect-differences",
+      "expected": "owned-browser-decode",
+      "result": "PASS"
+    },
+    {
+      "id": "96zzq-open-files-through-one-measured-session-reader",
+      "expected": "owned-measured-static-document-decode",
+      "result": "PASS"
+    },
+    {
+      "id": "wrong-decode",
+      "result": "PASSrejected"
+    },
+    {
+      "id": "wrong-import",
+      "result": "PASSrejected"
+    },
+    {
+      "id": "missing-measure",
+      "result": "PASSrejected"
+    },
+    {
+      "id": "ambiguous",
+      "result": "PASSrejected"
+    }
+  ],
+  "files": [
+    {
+      "file": "docs/journey/checks/browser/stage-error-contract.cjs",
+      "beforeSha256": "f6bafbf729db2570a614f3830951639d8b1d4619372fb256fdfdb5c2dee0f24d",
+      "afterSha256": "e6fe03ea46def38925fc94380e9ae43c22b62a4dd6e5d1be02147fa5a83326c9"
+    },
+    {
+      "file": "docs/journey/checks/browser/document-phases.cjs",
+      "beforeSha256": "53977374a7a2c63fed8cb90d5b53992a2c82437a94090507e5214a06a4446dc3",
+      "afterSha256": "bcfba9c2baa23b846110b58ba59a50ab287bc36318a2ab1290ade569b44b8af0"
+    }
+  ],
+  "recursiveFingerprints": {
+    "beforeFingerprint": "9801476368654b67d3f297f007646aaab047be84d722ab35cd5db06cd8cf92e5",
+    "afterFingerprint": "96a72514115aaa4eafdd5bda1f2bd5c4735e60bc9a5ec207a8d5b12756b277ab"
+  },
+  "staticAll7CallbackMap": {
+    "path": "target/course-windows-20261018/reader-measured-owned-error-preparation/callback-relevance.json",
+    "sha256": "ffb275fa1a095dfd8ce9cc67393db9047b5f49bec72bc70d41d53a2adb60022a"
+  },
+  "preservedOriginalFailure": {
+    "log": {
+      "path": "target/course-windows-20261018/reader-measured-owned-error-preparation/raw-failure/original-reader-failure.log",
+      "sha256": "e62d950dd4a0327dc8d0a25b0ab381c9056fd143ff467ce542dd5290fd4dd866"
+    },
+    "resources": {
+      "path": "target/course-windows-20261018/reader-measured-owned-error-preparation/raw-failure/original-reader-failure.resources.json",
+      "sha256": "50da9956a1bf7c922922d9d65678c69f573d6099fbc6628afab615dac45a04fb"
+    },
+    "diagnostic": {
+      "path": "target/course-windows-20261018/reader-measured-owned-error-preparation/raw-failure/original-reader-failure.json",
+      "sha256": "faa2249a937c598f2cdb048f0ea951ba68c9b00e51c9e258b9e6910afefdc73a"
+    }
+  },
+  "newActualFullBrowser": {
+    "path": "target/course-windows-20261018/reader96zzq-acceptance-publication-preparation/raw/full-browser.json",
+    "sha256": "af5b8f86b705ed42e7554dbb8117be114d36f0161ecc20cc07097380848fb6fc"
+  },
+  "sourceAndBuildsUnchanged": true,
+  "assertionScope": "Keep originallegacyexactInvalidsessionprotobuf andownedProstinvalidvarintassertions; addonlyexactCannotopenfile:JsValue(Invalidsessionprotobuf) measured-owned branch. Allphase/source/image/UndoRedo/atomicity assertions unchanged.",
+  "limits": [
+    "FourCPUpositive/fournegative sourcechecks; notGPUtests. ActualsubsequentfullreaderPASS separateandrequired.",
+    "All5source591compiledphases retained exact; no compiler/runtime/kernel edit or rebuild.",
+    "Other17acceptedcallbacks keep exactoldchecker/execution scopes; staticnewhashes are not reruns."
+  ]
+}

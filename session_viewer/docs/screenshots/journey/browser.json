@@ -7408,14 +7408,14 @@
       "keyboardRoundtrip": false
     },
     "96zzq-open-files-through-one-measured-session-reader": {
-      "source": "4225be593d935811ae5d7507147ab19122ad305dda19947f1407b779d82ab3aa",
-      "checker": "c3798c494d2de95a20d2f629a662e6b6b10394a1bbb09f157956bdc61fe37c66",
-      "extraChecker": "6aa1ade365fc1f7ce015e0d44a08b39586ba1b93ca0b99ee68f9f1c4a58ed828",
-      "browser": "153.0.8010.36",
-      "headless": false,
-      "captured": "2026-10-12T09:00:17.048Z",
+      "source": "7f259d1e86d763e36d5dbd98968abcb80a564279dab974394a74525a145f57b8",
+      "checker": "730a2c8618175efe53a93be8f837fc14f91b5422375d8d0e699804d0c17e593a",
+      "extraChecker": "96a72514115aaa4eafdd5bda1f2bd5c4735e60bc9a5ec207a8d5b12756b277ab",
+      "browser": "145.0.7632.6",
+      "headless": true,
+      "captured": "2026-10-24T19:36:25.305Z",
       "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
-      "canvas": "9ff454cc979bed1e3ad9e7126527b4d240cd2c5f4e29d611735319e40efb6773",
+      "canvas": "47171942138bf069e8520e622d341cf379b9033cc363f1807a3860c8cfa00fbc",
       "file": "96zzq-open-files-through-one-measured-session-reader-browser.png",
       "initialViewport": {
         "width": 900,
@@ -7431,7 +7431,7 @@
         "width": 900,
         "height": 760
       },
-      "bundle": "14701ab758799b49b83ae5e4fc00d3835c537dec77d33c46ef42fbf5128ff52e",
+      "bundle": "2c8fee476993a97497a62272eba95919d1294f70df51fe08f082748e200b4bf5",
       "commands": [],
       "keyboardRoundtrip": false
     },
