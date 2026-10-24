@@ -3,7 +3,7 @@
   "scope": "Initial production-to-course source/coverage audit; proposals are not completed consolidation or rendering acceptance.",
   "sourceAuthority": "session_viewer/src",
   "endpoint": "96zzzzzzzq-draw-original-cad-wire-curves",
-  "endpointStatus": "Currentonlyheavy93940 historical635-source mesh-marker build96zzzzzzp/stem96zzzzzzp-nvidia-current367-v1,4GiB/twoCPUs; no acceptance. Markerbuild23420PASS,first6.4srun failed rawproduction near-markerID predicate beforeRGBAcomparison; diagnosispending,notprovenrendererbug/no runtimechange/buildgate reopening.80dfocused253.712PASS andtwo inputexceptions pending; originalfull80d/Slot remainunaccepted. Counts6/18callbacks12left,features4/18complete14partial,fixtures2/4,release1/5done4remaining.",
+  "endpointStatus": "Currentonlyheavy54304 fulloriginalNVIDIA historical656quality browser, stem96zzzzzzzl-nvidia-current367-v1,6GiB/twoCPUs; allfivebuildphases/native055visualhashreview/phaseappendDONE. V6native31608 terminal: fourstrictzeroRGBA casesPASS, fifthXray fixturepredicateFAIL beforecoursequery; validproductionrearDISC policy, no runtimebugconfirmed. V7 onlyXray preparation/exactfourcase reuse pending.635fullcandidate607.752sPASS only; original635/80d/SlotFAIL andallthreeunanswered/unapplied inputexceptions retained. Counts6/18callbacks12pending,9historical;features4/18complete14partial,fixtures2/4,release1/5done4remaining.",
   "courseSha256": "367065739cee3cbf01e1b240c9eca4a1e0c12092eccab2fe2345cbc783a55197",
   "chapters": 22,
   "existingSteps": 1361,
@@ -22442,7 +22442,7 @@
         "releaseGatesDone": 1,
         "releaseGatesTotal": 5
       },
-      "next": "Currentonlyheavy93940 historical635-source mesh-marker build96zzzzzzp/stem96zzzzzzp-nvidia-current367-v1,4GiB/twoCPUs; no acceptance. Markerbuild23420PASS,first6.4srun failed rawproduction near-markerID predicate beforeRGBAcomparison; diagnosispending,notprovenrendererbug/no runtimechange/buildgate reopening.80dfocused253.712PASS andtwo inputexceptions pending; originalfull80d/Slot remainunaccepted. Counts6/18callbacks12left,features4/18complete14partial,fixtures2/4,release1/5done4remaining.",
+      "next": "Currentonlyheavy54304 fulloriginalNVIDIA historical656quality browser, stem96zzzzzzzl-nvidia-current367-v1,6GiB/twoCPUs; allfivebuildphases/native055visualhashreview/phaseappendDONE. V6native31608 terminal: fourstrictzeroRGBA casesPASS, fifthXray fixturepredicateFAIL beforecoursequery; validproductionrearDISC policy, no runtimebugconfirmed. V7 onlyXray preparation/exactfourcase reuse pending.635fullcandidate607.752sPASS only; original635/80d/SlotFAIL andallthreeunanswered/unapplied inputexceptions retained. Counts6/18callbacks12pending,9historical;features4/18complete14partial,fixtures2/4,release1/5done4remaining.",
       "chapter14": {
         "status": "PASS complete current76originalcanonicalbrowser callback",
         "record": "release/76d-browser-review.json",
@@ -22689,10 +22689,21 @@
         "scope": "Original80d fullFAIL561.265 remainsunaccepted. Originaltwo-click diagnosticomits alreadyproven120swait only. Candidate addsSelectNone beforeEscape; all20originalcases/assertions PASS. Newgpu-pick andexistingvertex exceptions bothpending/unanswered,notapplied."
       },
       "markerControlPairs": {
-        "status": "BuildPASS;firstwitnessrunFAILED beforeRGBAcomparison;no pairacceptance",
-        "folder": "target/course-windows-20261018/marker-control-pairs-preparation",
-        "buildRootSession": 23420,
-        "scope": "Unmeasuredrawproduction near-markerID predicate failed6.4s. Versioneddump/probegatingdiagnosis pending; notyetprovenrendererbug,canonicalruntime unchanged,buildgate1 not reopened."
+        "status": "V6 four priorcases PASS strictzeroRGBA; fifthXray fixturepredicate FAILED before coursequery; no fullfivepairacceptance",
+        "rootSession": 31608,
+        "passedCases": 4,
+        "pendingCases": 1,
+        "scope": "V6 corrected homogeneousMVP0.001 scale onbothsides preserves source/NDC. Allfour priorcases actualzeroRGBA andallotherassertionsPASS. Fifthcase productionfar2[2,DISC] violates oldexpectedfar!=DISC butis validXraypolicy; courseXrayquery NOTexecuted because predicate preceded it. No runtimebugconfirmed/rendererchange/buildgate1reopen. V7 prepares ONLYXray strictrearDISC+owner expectation with exactrelevance reuse offour verifiedV6cases; no repeatedfourrenders or five-newPASS claim. OldV5 falsefixtureMVP failures andall10root-reviewedimages retained."
+      },
+      "meshMarkerControlInput": {
+        "status": "PASS complete candidate635 defaultbody; originalcallbackFAIL retained; thirdexceptionpending/notapplied",
+        "record": "release/mesh-marker-control-input-review.json",
+        "rootSession": 8171,
+        "sourceFiles": 635,
+        "sourceFingerprint": "62d26c2c5f38cbe6fa7dcca9b4f16065154f80dc2bf8c45b84acffe140ab7e28",
+        "elapsedSeconds": 607.752,
+        "peakJobCommitBytes": 817344512,
+        "scope": "All28 originalrows/round-caps/contact assertions andsixroot-reviewedPNGs.39mirroredfiles,38byteidentical,oneconditionalEscape inputchange. No635acceptance/countchange."
       }
     },
     "sheetFiniteClosure": {
