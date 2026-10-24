@@ -3,7 +3,7 @@
   "scope": "Initial production-to-course source/coverage audit; proposals are not completed consolidation or rendering acceptance.",
   "sourceAuthority": "session_viewer/src",
   "endpoint": "96zzzzzzzq-draw-original-cad-wire-curves",
-  "endpointStatus": "Readercompiler101/101endpoints202/202phasescurrent:170qualifiedoriginalphases+32actualfreshphases; no all202newclaim. Corrected97 originalmaintainedDPR1/2NVIDIAbrowserPASS. Callbacks2/18accepted16pending; features3/18complete15partial; historicalfixtures1/4;release0/5. Source-bound original97failures/nativecfg/713frame reuse and V3docs5779 proofs preserved.",
+  "endpointStatus": "Current76fullcanonicalcallbackPASS withfreshSheet/finalcurve rootreview;finiteSheetcriteria complete. Callback3/18accepted15pending;features4/18complete14partial;compiler101/101endpoints202/202phases=170retained+32fresh;fixture1/4;release0/5. Current70fullcallback43071running-unaccepted. Alloriginalfailedruns/nativecriterion/source-qualifiedproofs retained.",
   "courseSha256": "367065739cee3cbf01e1b240c9eca4a1e0c12092eccab2fe2345cbc783a55197",
   "chapters": 22,
   "existingSteps": 1361,
@@ -961,7 +961,7 @@
         }
       ],
       "classification": "staged",
-      "remainingDefect": "Audit shaping, physical raster sizes, placements, clipping, source queries and retained resources.",
+      "remainingDefect": "Named finiteSheet/text criteria complete at recordednative/browser source scopes. Independenthistorical/currentglobalcallbacks and finalrelease remain open.",
       "proposedLessons": [
         "60-fonts",
         "60ba-validation",
@@ -981,16 +981,16 @@
       "runnableCheckpoint": "96zzzzzzzq-draw-original-cad-wire-curves",
       "evidence": "docs/journey/visual-review.json; docs/screenshots/journey/browser.json; chapter source checkpoints. Existence is not current acceptance.",
       "currentVerification": {
-        "status": "partial",
+        "status": "complete",
         "integration": "#/currentIntegration",
-        "acceptedScope": "Thirty-two actual resident Sheet ingress pairs passed projection, placement, DPR, samples and selection at their recorded inputs. Separate current97d native1060 assertions now fulfill the original text shaping, glyph scale, placements, clipping, original queries and retained-resource-lifetime criterion. These bounded native results do not accept network/browser workflows or all text shaping.",
+        "acceptedScope": "Finite Sheet/text criteria complete within separately recorded scopes: original32resident ingress pairs; native97d shaping/glyphscale/placements/clipping/originalqueries/resource-lifetime assertions with qualified laterrelevance; complete current377-file76drawing -> sheets -> nested placements default browser execution and fresh root-reviewed Sheet-before-replacement/finalcurve images. No wholehistorical76/final713source identity, universaltextshaping, cross-runtimeRGBA or globalrelease claim.",
         "records": [
           "../../target/course-windows-20261018/sheet-actual-ingress-camera-fixed.json",
-          "release/sheet-text-native-controls-review.json"
+          "release/sheet-text-native-controls-review.json",
+          "release/76d-browser-review.json",
+          "release/sheet-text-finite-review.json"
         ],
-        "remainingAcceptance": [
-          "Run the inherited sheets/drawing checks through the chapter13/14 entry callbacks and inspect the actual Sheet state before later scene replacement."
-        ],
+        "remainingAcceptance": [],
         "chapterBrowserEntries": [
           {
             "chapter": 13,
@@ -1012,7 +1012,14 @@
             "checkpoint": "96zzzzzzm-query-original-faces-under-contact-overlays",
             "callback": "journey/checks/browser/source-faces.cjs"
           }
-        ]
+        ],
+        "satisfiedBrowserCriterion": {
+          "literal": "Run the inherited sheets/drawing checks through the chapter13/14 entry callbacks and inspect the actual Sheet state before later scene replacement.",
+          "record": "release/76d-browser-review.json",
+          "sourceFingerprint": "be284802487701c94923dad393cec3b6cc3ba230bbffd61e949ceb62d8247482",
+          "sourceSignature": "96d355a623497a4a0a56eed9ab3ce0a4b60f6eedd1ec3e84107c70eedd0d3697"
+        },
+        "remainingGlobalObligations": "Other declared source-specific callbacks remain independent;70d and mappedchapter22entries are not accepted by this finiteSheet closure."
       }
     },
     {
@@ -21652,8 +21659,8 @@
     "chaptersTotal": 22,
     "readerFacingLessons": 111,
     "preservedCheckpoints": 1361,
-    "featuresComplete": 3,
-    "featuresPartial": 15,
+    "featuresComplete": 4,
+    "featuresPartial": 14,
     "featuresTotal": 18
   },
   "authoredReaderLessons": 111,
@@ -21861,8 +21868,8 @@
       "hashPolicy": "Valid UTF-8 text hashes normalize CRLF to LF; invalid UTF-8 remains raw. All307 current src paths/hashes matched the dated inventory during this audit. Existing301 row sha256/classification/basis values remain historical; current hashes come from the dated inventory. Six appended rows use the dated current hash and explicitly scoped staged basis. Complete path accounting is not verified extraction or feature parity."
     },
     "featureStatusCounts": {
-      "complete": 3,
-      "partial": 15,
+      "complete": 4,
+      "partial": 14,
       "open": 0,
       "meaning": "Complete accepts the named finite feature requirements at recorded source/fixture/settings; it does not close global release. Partial rows retain specific unaccepted requirements."
     },
@@ -21927,11 +21934,6 @@
           "chapter": 13
         },
         {
-          "checkpoint": "76d-exercise-exact-curves-and-rational-control-edits",
-          "callback": "journey/checks/browser/freeform.cjs",
-          "chapter": 14
-        },
-        {
           "checkpoint": "80d-exercise-networks-corner-retries-and-exact-original-archives",
           "callback": "journey/checks/browser/network.cjs",
           "chapter": 15
@@ -21983,7 +21985,10 @@
       "pendingIntegrationActions": [
         {
           "id": "final-native-and-compiler-proof",
-          "requirement": "One final integrated native regression plus required source-matching compiler/frame proof; reuse completed97d web where inputs match."
+          "requirement": "One final integrated native regression plus required source-matching compiler/frame proof; reuse completed97d web where inputs match.",
+          "nativeStatus": "Pending one unfiltered current final fef4 1062-test integration run. Original97d 1060/1060 remains accepted for its original source; current fef4 has separately qualified1060 unchanged namedPASS plus2focused recovery, not unfiltered1062PASS.",
+          "nativeRecord": "release/native-97d-integration-review.json",
+          "qualifiedCurrentNativeRecord": "release/native-ribbon-v4-qualified-recovery-review.json"
         },
         {
           "id": "declared-reader-checkpoint-proof-accounting",
@@ -21995,18 +22000,18 @@
         }
       ],
       "counting": {
-        "pendingHistoricalEntryCallbacks": 13,
+        "pendingHistoricalEntryCallbacks": 12,
         "additionalDeclaredCallbackEntries": 4,
         "pendingIntegrationActions": 3,
         "distinctSourceSpecificCallbackEntries": 18,
         "nonCallbackIntegrationActions": 3,
         "namedActions": 21,
-        "remainingFeatureChecklists": 15,
-        "meaning": "Original18source-specific entries retained: finalCAD andmaintained97 accepted2;pending16=13historical+3late display. Original4additionaldeclared entries remain listed, with97explicitlyaccepted. Three noncallback groups remain; original21named denominator retained,19pending groups overlap15partial features. No new GPU matrix.",
+        "remainingFeatureChecklists": 14,
+        "meaning": "Original18source-specific entries retained: finalCAD,maintained97 andcurrent76 accepted3;pending15=12historical+3late display. Original21named denominator retained;18pending groups overlap14partial finitefeatures.70d remains independent and unaccepted while its currentfullcallbackruns.",
         "eta": "No total ETA; missing successful callback durations and unscopednative tuples prevent an honest walltime estimate.",
-        "acceptedSourceSpecificCallbackEntries": 2,
-        "pendingSourceSpecificCallbackEntries": 16,
-        "pendingNamedActions": 19,
+        "acceptedSourceSpecificCallbackEntries": 3,
+        "pendingSourceSpecificCallbackEntries": 15,
+        "pendingNamedActions": 18,
         "pendingAdditionalDeclaredCallbackEntries": 3
       },
       "phaseReuse94c": {
@@ -22177,7 +22182,18 @@
             "status": "Required pending default source-face callback in current global queue; isometric interior-curve/surface-lighting/default parent assertions are not proved by separately exported helper calls."
           }
         ]
-      }
+      },
+      "acceptedHistoricalCallbacks": [
+        {
+          "checkpoint": "76d-exercise-exact-curves-and-rational-control-edits",
+          "callback": "journey/checks/browser/freeform.cjs",
+          "chapter": 14,
+          "status": "PASS complete current source-specific browser",
+          "record": "release/76d-browser-review.json",
+          "sourceFingerprint": "be284802487701c94923dad393cec3b6cc3ba230bbffd61e949ceb62d8247482",
+          "sourceSignature": "96d355a623497a4a0a56eed9ab3ce0a4b60f6eedd1ec3e84107c70eedd0d3697"
+        }
+      ]
     },
     "docsCurrent": {
       "status": "PASS actual5779 roadmap and changedChapter13desktop/phone; all3originalPNGindividuallyreviewed",
@@ -22300,26 +22316,50 @@
         "record": "release/70d-browser-failure-review.json",
         "actualFinalStatus": "Document closed.",
         "expectedFinalStatus": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
-        "visualCounterexample": "Original failed source had black striping. Focused historical mask projection repair is now clean in all four root-reviewed NVIDIA/WARP images; original fullcallback remains failed/unaccepted."
+        "visualCounterexample": "Original failed source had black striping. Focused historical mask projection repair is now clean in all four root-reviewed NVIDIA/WARP images; original fullcallback remains failed/unaccepted.",
+        "currentAttempt": {
+          "status": "running-unaccepted",
+          "rootSession": 43071,
+          "checkpoint": "70d-exercise-rotated-and-mirrored-original-references",
+          "scope": "Original canonical60msNVIDIAfullcallback after correctedmask+freshsample qualification; no acceptance yet."
+        }
       },
       "counts": {
         "chaptersConsolidated": 22,
         "readerLessons": 111,
         "draftingRemaining": 0,
-        "featuresComplete": 3,
-        "featuresPartial": 15,
-        "callbacksAccepted": 1,
-        "callbacksRemaining": 17,
+        "featuresComplete": 4,
+        "featuresPartial": 14,
+        "callbacksAccepted": 3,
+        "callbacksRemaining": 15,
         "historicalFixturesAccepted": 1,
         "historicalFixturesTotal": 4,
         "releaseGatesDone": 0,
         "releaseGatesTotal": 5
       },
-      "next": "Continue source-matching chapter14(76d) artifacts and its original browser callback, then remaining16source-specificcallbacks. Readercompiler101/101current; features3/18complete15partial,fixtures1/4,release0/5 unchanged. TypingV3 operational frozen-harness exception remains pending.",
+      "next": "Finish actual43071 current70fullcanonicalNVIDIAcallback, then remaining15source-specific entries according to currentqueue. Compiler101/101endpoints202/202phasescomplete; finitefeatures4/18complete14partial; callbacks3/18accepted15pending;fixtures1/4;release0/5. TypingV3operationalexception remains pending.",
       "chapter14": {
-        "status": "FAIL original76d outer final-status assertion after complete canonical callback returned",
-        "record": "release/76d-browser-failure-review.json",
-        "visualReview": "Root individually inspected actual Sheet and final curve states; appearance proper within observed scope. Original outer status assertion failed; no acceptance."
+        "status": "PASS complete current76originalcanonicalbrowser callback",
+        "record": "release/76d-browser-review.json",
+        "sourceFingerprint": "be284802487701c94923dad393cec3b6cc3ba230bbffd61e949ceb62d8247482",
+        "sourceSignature": "96d355a623497a4a0a56eed9ab3ce0a4b60f6eedd1ec3e84107c70eedd0d3697",
+        "sourceFiles": 377,
+        "elapsedSeconds": 1865.56,
+        "peakJobCommitBytes": 1834889216,
+        "priorFailedRecord": "release/76d-browser-failure-review.json",
+        "images": [
+          {
+            "figure": "journey/release/76d-current-sheet-before-drawing.png",
+            "sha256": "69698b390864f5ca72cfb3d5edbc50601fc56b3a8636b68171886118377696e8",
+            "rootIndividuallyReviewed": true
+          },
+          {
+            "figure": "journey/release/76d-current-final-curves.png",
+            "sha256": "4aa1f469da97467da184efd103cacc03f010318d5109951a6a89022f2e0bd013",
+            "rootIndividuallyReviewed": true
+          }
+        ],
+        "scope": "Only76callbackaccepted; old60306failedrun/nativecriterionoriginalsource remain preserved."
       },
       "terminalStatusMetadata": {
         "status": "APPLIED8owned terminal-status metadata corrections; no new browser acceptance",
@@ -22435,7 +22475,25 @@
         "currentPhases": 202,
         "pendingPhases": 0,
         "scope": "Only32affected compiler phases newlyexecuted; original170remain scoped/reused, no test/GPU/browser proof."
+      },
+      "sheetFiniteClosure": {
+        "status": "complete finiteSheet/textcriteria at recordedseparatesource scopes",
+        "record": "release/sheet-text-finite-review.json",
+        "browserRecord": "release/76d-browser-review.json",
+        "nativeCriterionRecord": "release/sheet-text-native-controls-review.json",
+        "browserSourceFingerprint": "be284802487701c94923dad393cec3b6cc3ba230bbffd61e949ceb62d8247482",
+        "browserSourceFiles": 377,
+        "scope": "OnlyfiniteSheet row; current76completebody+freshSheet/finalreview. Native97d+qualifiedfef4 andoriginal32pairs remain independentlysource-bound.70d/global22callbacks stillseparate."
       }
+    },
+    "sheetFiniteClosure": {
+      "status": "complete finiteSheet/textcriteria at recordedseparatesource scopes",
+      "record": "release/sheet-text-finite-review.json",
+      "browserRecord": "release/76d-browser-review.json",
+      "nativeCriterionRecord": "release/sheet-text-native-controls-review.json",
+      "browserSourceFingerprint": "be284802487701c94923dad393cec3b6cc3ba230bbffd61e949ceb62d8247482",
+      "browserSourceFiles": 377,
+      "scope": "OnlyfiniteSheet row; current76completebody+freshSheet/finalreview. Native97d+qualifiedfef4 andoriginal32pairs remain independentlysource-bound.70d/global22callbacks stillseparate."
     }
   },
   "authoringPrerequisiteRepair": {

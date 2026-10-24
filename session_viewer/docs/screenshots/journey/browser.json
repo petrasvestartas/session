@@ -10828,6 +10828,34 @@
       "bundle": "6f7874fcb8e862a53ce9ad72df8b2cfa223a2eea574d3eb397cfacbe92493e6d",
       "commands": [],
       "keyboardRoundtrip": false
+    },
+    "76d-exercise-exact-curves-and-rational-control-edits": {
+      "source": "96d355a623497a4a0a56eed9ab3ce0a4b60f6eedd1ec3e84107c70eedd0d3697",
+      "checker": "ecbc4c716aa91a7aedc2532132c4b08e0a7d1e7511c380b0dbbba0152325a733",
+      "extraChecker": "ccd17c3381b2ece48d149b925cddbb5ed0b39c40cea6397f3ce7e610865a4b30",
+      "browser": "145.0.7632.6",
+      "headless": true,
+      "captured": "2026-10-24T02:57:29.652Z",
+      "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "canvas": "e85d041e3f05d65f250efff280f59784e44c9b30c2b1e2d12394d2463c0a7beb",
+      "file": "76d-exercise-exact-curves-and-rational-control-edits-browser.png",
+      "initialViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "initialCanvas": {
+        "x": 0,
+        "y": 0,
+        "width": 900,
+        "height": 760
+      },
+      "screenshotViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "bundle": "ee988d00d040375cb16cb1271579b5c17f37334e2857aa6173dac2cc687f2cd9",
+      "commands": [],
+      "keyboardRoundtrip": false
     }
   }
 }
