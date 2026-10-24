@@ -622,9 +622,10 @@
     "Ambient contact source fixes and exact1x/4x production comparisons pass at their recorded identities; current694/b031 compiler/native1064/browser qualification is complete. Broader finite ambient controls and source-specific95f/measured-reader obligations retain their exact remaining criteria."
   ],
   "onlyHeavy": {
-    "status": "preparing",
-    "task": "96h phase continuation after exact already-qualified checker comparison fix; native compiler passed",
-    "memoryLimitMiB": 4096,
+    "status": "running",
+    "task": "Full96h source grammar and original-owner browser callback; all five phase proofs passed",
+    "sessionId": 15880,
+    "memoryLimitMiB": 6144,
     "processors": 2
   },
   "next": "Finish the remaining85ay,96h and measured-reader96zzq callbacks, each with its own first build phases.94c full comparison and fixture are accepted. Then integrate exact BRep/kernel changes and complete the final affected verification/publication batch.",
