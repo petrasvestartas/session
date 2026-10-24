@@ -8,6 +8,8 @@
 
 - [x] Final fixture-source authoring22/22, structure1,361/reference43, and lesson22.6 six-block desktop/phone publication pass; four original-resolution views inspected. [Lesson publication](../../session_viewer/docs/journey/release/clipping-guide-two-fixture-docs-visible-review.json).
 - [x] Current-source native frame, WASM compilation, optimized web packaging and browser boot/render pass; both saved frames individually inspected. [Artifact review](../../session_viewer/docs/journey/release/final-fef4-artifact-review.json).
+
+[Current native frame](../../session_viewer/docs/journey/release/final-fef4-native-frame.png) and [current browser frame](../../session_viewer/docs/journey/release/final-fef4-browser-boot.png): individually reviewed original images for the scoped artifact proof.
 - [ ] Full tutorial callbacks: 1/18 accepted, 17 left. Historical fixture callbacks: 1/4 accepted, 3 left. Final release: 0/5 gates closed. Counts overlap; chapter13 outer capture failed with an unresolved striped image. Chapter14 also failed outer status; the focused typing comparison remains unaccepted.
 
 - [x] Native integration has qualified recovery: original fullrun1,060PASS/2FAIL, followed by two exact corrected authored-fixture passes with unchanged production inputs. No single unfiltered1,062PASS claimed. [Native recovery](../../session_viewer/docs/journey/release/native-ribbon-v4-qualified-recovery-review.json).
