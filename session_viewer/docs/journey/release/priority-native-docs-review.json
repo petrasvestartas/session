@@ -1,0 +1,84 @@
+{
+  "date": "2026-10-25T21:40:00.028Z",
+  "status": "PASS: priority native publication documentation checkpoint",
+  "scope": "56 published native assets; existing desktop/phone layouts. Remaining image queue and final full-site acceptance pending.",
+  "build": {
+    "resources": {
+      "platform": "windows-job-object",
+      "startedUtc": "2026-10-25T21:25:09.0652888Z",
+      "executable": "C:\\Program Files\\nodejs\\node.exe",
+      "arguments": [
+        "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\node_modules\\vite\\bin\\vite.js",
+        "build",
+        "--outDir",
+        "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\docs\\vue"
+      ],
+      "workingDirectory": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests",
+      "timeoutSeconds": 1800,
+      "jobCommitLimitBytes": 6442450944,
+      "swapCapSupported": false,
+      "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+      "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+      "exitCode": 0,
+      "timedOut": false,
+      "elapsedSeconds": 43.011,
+      "peakJobCommitBytes": 1297199104,
+      "affinityMask": "0x3",
+      "processors": 2,
+      "processId": 27696,
+      "descendantsAtCleanup": 1
+    },
+    "resourcesPath": "target/course-checks/image-quality-priority-native-docs-20261025.resources.json",
+    "resourcesSha256": "747106281fa159aaaa646fcb775b426cc20ca8fa471cb9d75b979acba3f119aa",
+    "logPath": "target/course-checks/image-quality-priority-native-docs-20261025.log",
+    "logSha256": "1b7273a71e8f532b161d363d89bc32f825cd469ddb67d5ec2c307d8dbe66969d"
+  },
+  "browser": {
+    "date": "2026-10-25T21:29:27.839Z",
+    "status": "PASS: updated native figure loads in existing desktop and phone documentation layouts",
+    "previousAttempt": "Inspection waited on an intentionally collapsed recorded-image block. This attempt opens its existing details ancestors before inspection; no website source changed.",
+    "checks": [
+      {
+        "name": "desktop",
+        "state": {
+          "src": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/59f-cad.png?v=41b22675772f",
+          "natural": [
+            1280,
+            960
+          ],
+          "rendered": [
+            627.86669921875,
+            470.9000244140625
+          ],
+          "viewport": 960,
+          "bodyWidth": 960
+        },
+        "errors": [],
+        "screenshot": "target/course-windows-20261025/latest-commit-audit/priority-native-docs-desktop.png"
+      },
+      {
+        "name": "phone",
+        "state": {
+          "src": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/59f-cad.png?v=41b22675772f",
+          "natural": [
+            1280,
+            960
+          ],
+          "rendered": [
+            218.1333465576172,
+            163.60000610351562
+          ],
+          "viewport": 260,
+          "bodyWidth": 260
+        },
+        "errors": [],
+        "screenshot": "target/course-windows-20261025/latest-commit-audit/priority-native-docs-phone.png"
+      }
+    ]
+  },
+  "evidence": {
+    "path": "target/course-windows-20261025/latest-commit-audit/priority-native-docs-browser.json",
+    "sha256": "e715bdf00fc896cff034793a3082d0c62b2b3149cd14b2a1f311294d8598e125"
+  },
+  "websiteSourceChanged": false
+}
