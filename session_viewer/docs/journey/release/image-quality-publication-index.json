@@ -1,23 +1,23 @@
 {
-  "date": "2026-10-25T22:59:37.873Z",
+  "date": "2026-10-25T23:06:54.083Z",
   "status": "PASS: reviewed publication receipts reconciled with exact source and served file hashes",
   "scope": "Only explicitly reviewed publication receipts count; in-flight captures excluded. HTTP verification belongs to each linked publication receipt.",
   "inventory": {
     "path": "target/course-presentation/inventory-d09aa228601224bf4dfe.json",
     "sha256": "d09aa228601224bf4dfe01d6a1009a56357b2eb5e4b3baa5d88566b2c7a66eba"
   },
-  "published": 250,
-  "remaining": 1512,
+  "published": 252,
+  "remaining": 1510,
   "counts": {
     "native": 218,
-    "browser": 27,
+    "browser": 29,
     "variants": 0,
     "supporting": 5
   },
   "reader": {
-    "published": 74,
+    "published": 76,
     "total": 99,
-    "remaining": 25
+    "remaining": 23
   },
   "images": [
     {
@@ -718,6 +718,16 @@
       "receipt": {
         "path": "docs/journey/release/native-streaming-publication-146.json",
         "sha256": "c489129e13e9264d856bee3994598bde6b11543e7c24a4e579a3699eaa967525"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/22-shortcuts-browser.png",
+      "sha256": "cb6e693f68feb989022036c55fb00d9b34331299cf16d963cc2cd39ac64747a6",
+      "kind": "browser",
+      "queue": "reader-published",
+      "receipt": {
+        "path": "docs/journey/release/historical-browser-action-presentation-22-review.json",
+        "sha256": "90295a9ae018706a8e57c9eb89b281ee52b3efb310f14ab2a3f8d6cca8353a94"
       }
     },
     {
@@ -2388,6 +2398,16 @@
       "receipt": {
         "path": "docs/journey/release/priority-native-image-review.json",
         "sha256": "914706b6be25305b322efdd21b8a21c950fbcbbec3f9221984df2cc8a07f77e0"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/88ad-exercise-original-sections-bores-and-ink-browser.png",
+      "sha256": "67b726d020571c63a9ef143024a2e43e4c2f7a1954e6e88ac767e23172be5fb4",
+      "kind": "browser",
+      "queue": "reader-published",
+      "receipt": {
+        "path": "docs/journey/release/exported88ad-browser-image-review.json",
+        "sha256": "f8633d8413d82df925b16180f7c58d14fba780f84a7df8a9df0806f964bf5dc3"
       }
     },
     {

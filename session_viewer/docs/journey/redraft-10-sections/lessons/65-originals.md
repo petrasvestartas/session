@@ -787,6 +787,10 @@ fn f10_controls_only_when_the_canvas_owns_the_key() {
 
 ## <a id="checkpoint-65c-cloud-point"></a>4. Pick points and prove source query reuse
 
+With `Controls Off` and `Select None`, the same `Example Cloud` shows its stored RGB colors without the yellow selection overlay. These 1,681 points form a synthetic wave sampled on a 41 by 41 grid; this small color fixture does not represent a dense photographic scan.
+
+![Unselected RGB colors on the original 1,681-point synthetic cloud](../../release/cloud65c-unselected-rgb.png)
+
 ### 1. `src/cloud_pick_tests.rs`
 
 Create the file and type:

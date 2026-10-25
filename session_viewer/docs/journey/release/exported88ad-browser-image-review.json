@@ -1,0 +1,200 @@
+{
+  "date": "2026-10-25T23:06:07.036Z",
+  "status": "PASS root-reviewed source-bound high-density image published and HTTP bytes verified",
+  "rootPersonallyViewedOriginalResolution": true,
+  "scope": "Original88ad image regenerated with exact original visible-bore recipe; no inherited callback replay or full canonical acceptance claimed.",
+  "canonicalBehaviorExecuted": false,
+  "sourceRecord": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\exported-scenes\\88ad-exercise-original-sections-bores-and-ink-0c99a3ba609d3d19aa79\\capture.json",
+  "sourceRecordSha256": "84fca3dc3a4959f7b553652ba3c606a6ddb22243397ea342968ba0af29a5f9a8",
+  "source": {
+    "checkpoint": "88ad-exercise-original-sections-bores-and-ink",
+    "files": "53bb35fc1490f22640e9226843b9eda7aeba6ed61d5f4b25802e50ebe33f1bb4",
+    "lock": "f5295652adef20e61beafb5776445d44044a670b94774bf9b7273986cdd6c1ef",
+    "assets": {
+      "assets/text/NotoSans-Regular.subset.ttf": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09",
+      "assets/text/NotoSansSymbols2-Regular.subset.ttf": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed",
+      "assets/text/NotoSansSymbols-Regular.subset.ttf": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3",
+      "assets/text/OFL.txt": "0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb",
+      "assets/text/NotoSansSymbols-Regular.ttf": "8f02f31959bbdf6061547a188248e13f84dc5fdd940326ec494675f453f072bb",
+      "assets/text/NotoSans-Regular.ttf": "b85c38ecea8a7cfb39c24e395a4007474fa5a4fc864f6ee33309eb4948d232d5",
+      "assets/text/NotoSansSymbols2-Regular.ttf": "630846d528dbe4c4981370a4d0a9475a1fd1491a129bb411f8e157cdb5de13c6"
+    },
+    "dependencies": {},
+    "kernel": "c0acbde78685d127e98e1d13dd9c1fdff064277c38ce17fd7329a13459558b88",
+    "fixture": "b98e8a3e28c6638dba14ced97dd8a9cf362fc575d5baacfbb47c3b4ebbcc4287",
+    "harness": "cc7b0a195a93c6fde86a62e203c4ecabf74eb76ee256952dfd098796ca9c39a3",
+    "constructor": "make_renderer(device, queue, format)",
+    "logicalSize": [
+      640,
+      480
+    ],
+    "helper": "e2c028971ab9cc08c2b951bed543b025ccb6f17c8e0b844d5370e82abb3a7410"
+  },
+  "recipe": {
+    "module": "caps",
+    "file": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\checks\\browser\\caps.cjs",
+    "sha256": "2e447e8d14e4be533d1337b70d300a0df242ff98038e74f306b9096732334afe",
+    "kind": "original-visible-setup",
+    "authority": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\caps88ad-acceptance-publication-preparation\\capture-visible.cjs",
+      "sha256": "bdd317772ef42fa725e66d03c084821fc6fb4e289817c2b1cb402ca9c45b19da"
+    },
+    "viewport": {
+      "width": 900,
+      "height": 760
+    },
+    "scope": "Previously root-reviewed visible original fixture; the canonical callback ends Close and its empty termination frame is not used as a feature image."
+  },
+  "semantics": {
+    "clipping": {
+      "cap_error": null,
+      "caps": [
+        27360016,
+        1,
+        1,
+        292,
+        292
+      ],
+      "error": null,
+      "ink_flags": [
+        1104,
+        1104
+      ],
+      "rows": [
+        {
+          "id": 4,
+          "normal": [
+            0,
+            0,
+            -1
+          ],
+          "offset": 0
+        }
+      ],
+      "usage": [
+        1,
+        1,
+        1,
+        3,
+        448
+      ]
+    }
+  },
+  "helperSha256": "183ba75068a721d050fd3c155692a40a07c851b847a52493cf8c337f2113071e",
+  "host": {
+    "served": {
+      "88ad-exercise-original-sections-bores-and-ink/dist/index.html": "5f4db04e3f29443699e65a61e5821085ed794c9d326e3fdd8a5fac8678829f28",
+      "88ad-exercise-original-sections-bores-and-ink/dist/viewer_journey.js": "cf78948098a5fb237f58406b7f0db412e09d57ee437062382b510d2d7d33f666",
+      "88ad-exercise-original-sections-bores-and-ink/dist/snippets/image_incremental_3c24ef57ff7c60d718611464-082ea744cbc75a58/src/adapter_info.js": "3d87da73f9a18dd579c0e96f207899630a600a7839ff4d9857a87fe1211091bb",
+      "88ad-exercise-original-sections-bores-and-ink/dist/viewer_journey_bg.wasm": "54731c2630114457e61b8b5e1792747ed866cae6d57abe219f53afa3aee13cae"
+    },
+    "resources": {
+      "platform": "windows-job-object",
+      "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+      "laneMutex": "Local\\SessionViewerCourseImageJob",
+      "affinityOffset": 8,
+      "requiredAffinityMask": "0xFF00",
+      "maximumOtherLaneProcessors": 8,
+      "maximumOtherLaneMemoryMiB": 8192,
+      "maximumAggregateOurProcessors": 16,
+      "maximumAggregateOurMemoryMiB": 16384,
+      "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+      "requestedProcessors": 8,
+      "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+      "startedUtc": "2026-10-25T22:59:22.8521098Z",
+      "executable": "C:\\Program Files\\nodejs\\node.exe",
+      "arguments": [
+        "--require",
+        "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\warp-browser-timeout.cjs",
+        "--import",
+        "file:///C:/pc/3_code/code_rust/wood_research/session/session_tests/scripts/typescript.mjs",
+        "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\exported-browser-image-recipes.ts",
+        "--worker",
+        "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\exported-scenes\\88ad-exercise-original-sections-bores-and-ink-0c99a3ba609d3d19aa79\\config.json"
+      ],
+      "workingDirectory": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-builds\\cases\\88ad-exercise-original-sections-bores-and-ink-589b29a7f3516b63e6df\\workspace",
+      "timeoutSeconds": 2400,
+      "jobCommitLimitBytes": 8589934592,
+      "swapCapSupported": false,
+      "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+      "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+      "exitCode": 0,
+      "timedOut": false,
+      "elapsedSeconds": 5.465,
+      "peakJobCommitBytes": 821256192,
+      "affinityMask": "0xFF00",
+      "processors": 8,
+      "processId": 23084,
+      "descendantsAtCleanup": 0
+    },
+    "log": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\exported-scenes\\88ad-exercise-original-sections-bores-and-ink-0c99a3ba609d3d19aa79\\image-browser.log",
+    "logSha256": "c7e4fa65fb2a911a729bb124fe873b96bcad15b921a680c3a8ba36eec28dbad5",
+    "resourcesFile": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\exported-scenes\\88ad-exercise-original-sections-bores-and-ink-0c99a3ba609d3d19aa79\\image-resources.json",
+    "resourcesSha256": "b4dae2a421ec161606bf8f1374c7ee9298a475bac2b4021ab04acb719c0bcfc0",
+    "inputs": {
+      "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\parallel-image-guard.ps1": "ace35ad7068f780447b01bf5ec7d601058b20576f8b395d68d6c2f939c287932",
+      "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\exported-browser-image-recipes.ts": "183ba75068a721d050fd3c155692a40a07c851b847a52493cf8c337f2113071e",
+      "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-browsers\\chromium_headless_shell-1208\\chrome-headless-shell-win64\\chrome-headless-shell.exe": "ac9bc025ed6be1ba6cf403116a68d2467c3e8da03844e642498e77cc2c799ac2",
+      "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\nvidia-hardware-browser-preparation\\adapter-metadata.json": "b4d7b2594719ffed653cf5be91eb3ccb9e08fcfdbef7289d05f0383e2e738921",
+      "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\exported-scenes\\88ad-exercise-original-sections-bores-and-ink-0c99a3ba609d3d19aa79\\config.json": "21d49c84d22f84a473d2e3702764eb810e31acb64c4f98361de14fecf58e65e1"
+    },
+    "policy": "One image lane8CPU8GiB alongside at most one original controlled lane<=8CPU8GiB. Aggregate OUR guarded jobs<=16CPU16GiB; no whole-machine/external-process claim."
+  },
+  "resources": {
+    "platform": "windows-job-object",
+    "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+    "laneMutex": "Local\\SessionViewerCourseImageJob",
+    "affinityOffset": 8,
+    "requiredAffinityMask": "0xFF00",
+    "maximumOtherLaneProcessors": 8,
+    "maximumOtherLaneMemoryMiB": 8192,
+    "maximumAggregateOurProcessors": 16,
+    "maximumAggregateOurMemoryMiB": 16384,
+    "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+    "requestedProcessors": 8,
+    "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+    "startedUtc": "2026-10-25T22:59:22.8521098Z",
+    "executable": "C:\\Program Files\\nodejs\\node.exe",
+    "arguments": [
+      "--require",
+      "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\warp-browser-timeout.cjs",
+      "--import",
+      "file:///C:/pc/3_code/code_rust/wood_research/session/session_tests/scripts/typescript.mjs",
+      "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\exported-browser-image-recipes.ts",
+      "--worker",
+      "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\exported-scenes\\88ad-exercise-original-sections-bores-and-ink-0c99a3ba609d3d19aa79\\config.json"
+    ],
+    "workingDirectory": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-builds\\cases\\88ad-exercise-original-sections-bores-and-ink-589b29a7f3516b63e6df\\workspace",
+    "timeoutSeconds": 2400,
+    "jobCommitLimitBytes": 8589934592,
+    "swapCapSupported": false,
+    "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+    "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+    "exitCode": 0,
+    "timedOut": false,
+    "elapsedSeconds": 5.465,
+    "peakJobCommitBytes": 821256192,
+    "affinityMask": "0xFF00",
+    "processors": 8,
+    "processId": 23084,
+    "descendantsAtCleanup": 0
+  },
+  "rootReview": "Root personally viewed original1800x1520: central grey plane, clean circular bore and black section outline, no triangulation diagonals; expected source/framing.",
+  "images": [
+    {
+      "id": "88ad-exercise-original-sections-bores-and-ink",
+      "destination": "docs/screenshots/journey/88ad-exercise-original-sections-bores-and-ink-browser.png",
+      "sha256": "67b726d020571c63a9ef143024a2e43e4c2f7a1954e6e88ac767e23172be5fb4",
+      "width": 1800,
+      "height": 1520,
+      "sourceRecord": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\exported-scenes\\88ad-exercise-original-sections-bores-and-ink-0c99a3ba609d3d19aa79\\capture.json",
+      "sourceRecordSha256": "84fca3dc3a4959f7b553652ba3c606a6ddb22243397ea342968ba0af29a5f9a8",
+      "http": {
+        "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/88ad-exercise-original-sections-bores-and-ink-browser.png?v=67b726d02057",
+        "status": 200,
+        "sha256": "67b726d020571c63a9ef143024a2e43e4c2f7a1954e6e88ac767e23172be5fb4"
+      }
+    }
+  ],
+  "supplementalOutsideOriginal1762": false
+}
