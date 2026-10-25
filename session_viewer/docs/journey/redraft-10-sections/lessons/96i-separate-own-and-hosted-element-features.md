@@ -1,6 +1,6 @@
 # 19.2 · Original Element ancestry and derived feature trees
 
-**Goal:** Share the existing dictionary wrapper with the real widget regression and browser typing proof. · **Steps:** 10 · **Source:** [app/session_io.rs](../../../../src/app/session_io.rs) · [app/command/mod.rs](../../../../src/app/command/mod.rs) · [app/hierarchy.rs](../../../../src/app/hierarchy.rs) · [app/scene.rs](../../../../src/app/scene.rs)
+**Steps:** 10 · **Source:** [app/session_io.rs](../../../../src/app/session_io.rs) · [app/command/mod.rs](../../../../src/app/command/mod.rs) · [app/hierarchy.rs](../../../../src/app/hierarchy.rs) · [app/scene.rs](../../../../src/app/scene.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -50,11 +50,7 @@
 
 ## <a id="checkpoint-96i-separate-own-and-hosted-element-features"></a>1. Separate own attributes from hosted features
 
-Identify own attributes and interaction features by original feature type. Check readable names and face labels without changing any geometry.
-
 ### 1. `src/feature_plan.rs`
-
-Give this operation its own small owner.
 
 Create the file and type:
 
@@ -105,8 +101,6 @@ fn source_name<'a>(session: &'a Session, guid: &'a str) -> &'a str {
 ```
 
 ### 2. `src/lib.rs`
-
-Register the new owner without changing the browser entry point.
 
 **Locate this existing block:**
 
@@ -169,11 +163,7 @@ pub mod feature_plan;
 </svg>
 </div>
 
-Walk graph edges in their original order. Group contact and joint pieces under the full interaction type, using the relation name or source Element name, and retain unmatched features.
-
 ### 1. `src/feature_plan.rs`
-
-Claim each feature once in graph order; retain unknown and orphaned interaction features.
 
 **Locate this existing block:**
 
@@ -253,11 +243,7 @@ pub fn hosted(session: &Session, element: &Element) -> Vec<Hosted> {
 
 ## <a id="checkpoint-96k-separate-derived-rows-from-editable-elements"></a>3. Keep nested Elements editable and projections unsaved
 
-Mark generated display rows separately from original objects. Nested child Elements remain editable even inside attributes, and saved documents omit derived geometry.
-
 ### 1. `src/hierarchy.rs`
-
-Record display provenance explicitly on each tree node. Imported tree nodes initially belong to the source.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -300,8 +286,6 @@ pub struct Node {
 ```
 
 ### 2. `src/layer_edit.rs`
-
-Keep user-created groups and source objects in the saved tree.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -367,8 +351,6 @@ Replace it with:
 ```
 
 ### 3. `src/hierarchy.rs`
-
-Reset read-only inheritance at each real child Element; retain it for feature pieces. Skip projected subtrees when saving originals.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -451,8 +433,6 @@ Replace it with:
 
 ### 4. `src/scene_archive.rs`
 
-Only original tree objects enter each archive namespace. Do not reclassify derived paths as loose original objects.
-
 **Locate this existing block:**
 
 ```rust
@@ -517,11 +497,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-96l-attach-a-bounded-derived-feature-tree"></a>4. Attach a bounded feature tree to its host
 
-Build read-only attributes, interaction and piece rows under the owning Element. Validate the complete tree before replacing its saved structure.
-
 ### 1. `src/layer_edit.rs`
-
-Reuse the existing branch transaction and node/depth limits for feature rows.
 
 **Locate this existing block:**
 
@@ -626,11 +602,7 @@ pub fn attach_features(
 
 ## <a id="checkpoint-96m-project-original-feature-outlines"></a>5. Project outlines without changing their coordinates
 
-Create black display paths from original feature outlines, apply the host placement once, and keep attributes Off and interactions On by default.
-
 ### 1. `src/feature_display.rs`
-
-Give this operation its own small owner.
 
 Create the file and type:
 
@@ -715,8 +687,6 @@ pub fn append(
 
 ### 2. `src/lib.rs`
 
-Register the new owner without changing the browser entry point.
-
 **Locate this existing block:**
 
 ```rust
@@ -737,11 +707,7 @@ pub mod feature_display;
 
 ## <a id="checkpoint-96n-connect-imported-interaction-hierarchies"></a>6. Connect imported Elements to their feature hierarchy
 
-Import a document atomically, classify its editable child Elements, then attach feature projections from its original graph and retained Element payloads.
-
 ### 1. `src/scene_document.rs`
-
-Connect projections only after original tree placement and source retention are ready.
 
 **Locate this existing block:**
 
@@ -785,11 +751,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-96o-reuse-projections-for-created-elements"></a>7. Use the same projection path for created Elements
 
-Created Elements and imported Elements now share feature display ownership. Visibility commands stop at independent child Elements and collect each feature piece once.
-
 ### 1. `src/element_adopt.rs`
-
-Replace serialized display copies with the shared feature projection and preserve independent child owners.
 
 **Locate this existing block:**
 
@@ -955,11 +917,7 @@ fn group_ids(scene: &Scene, name: &str) -> Vec<ObjectId> {
 </svg>
 </div>
 
-Build a small original document with a host, an editable nested child, and a connector. Its contact, unnamed joint and orphan feature make the hierarchy inspectable without a large floor model.
-
 ### 1. `src/interaction_example.rs`
-
-Author the original geometry, graph and feature associations used by the exercise.
 
 Create the file and type:
 
@@ -1066,8 +1024,6 @@ pub fn bytes() -> Vec<u8> {
 
 ### 2. `src/lib.rs`
 
-Expose the specimen to native examples and tests.
-
 **Locate this existing block:**
 
 ```rust
@@ -1088,8 +1044,6 @@ pub mod interaction_example;
 
 ### 3. `examples/sample.rs`
 
-Supply this optional course-author fixture generator; browser exercises use the linked data files or recorded comparison.
-
 **Locate this existing block:**
 
 ```rust
@@ -1108,11 +1062,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-96q-prove-imported-feature-ownership-and-roundtrips"></a>9. Prove imported feature ownership and round trips
 
-Verify that feature projections follow their owner once, preserve original payloads, survive Delete/Undo, and rebuild after Save/Open without serializing display copies. Reject invalid outlines without changing the current document.
-
 ### 1. `src/interaction_bridge_tests.rs`
-
-Run supplied regression fixtures against original source payloads and the connected import path.
 
 Create the file and type:
 
@@ -1371,8 +1321,6 @@ fn malformed_feature_projection_does_not_replace_the_open_scene() {
 
 ### 2. `src/lib.rs`
 
-Include the ownership and archive proofs in the native suite.
-
 **Locate this existing block:**
 
 ```rust
@@ -1393,8 +1341,6 @@ mod ambient_shader_contract;
 ## <a id="checkpoint-96r-preserve-exact-command-completions"></a>10. Prove exact commands across the expanded vocabulary
 
 ### 1. `src/command_vocabulary.rs`
-
-Move the already-typed private Commands wrapper from panel.rs into this shared module; retain its existing methods. Import the existing dock trait and expose the shared wrapper and its input list to the panel.
 
 **Locate this existing block:**
 
@@ -1433,8 +1379,6 @@ impl command_dock::Commands for Commands {
 ```
 
 ### 2. `src/panel.rs`
-
-Use the exact-first vocabulary in the actual browser panel.
 
 **Locate this existing block:**
 
@@ -1475,8 +1419,6 @@ pub struct Panel {
 ```
 
 ### 3. `src/command_vocabulary.rs`
-
-Feed character-by-character input and Enter through the actual egui command field.
 
 **Locate this existing block:**
 

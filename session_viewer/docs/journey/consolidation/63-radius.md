@@ -1,6 +1,6 @@
 # 11.1 · Coverage-based screen-space outlines
 
-**Goal:** Check real contours widths reuse picks and cleanup. · **Steps:** 10 · **Source:** [engine/gpu/surface_outline.rs](../../../src/engine/gpu/surface_outline.rs) · [engine/gpu/cloud.rs](../../../src/engine/gpu/cloud.rs) · [engine/gpu/lod.rs](../../../src/engine/gpu/lod.rs) · [engine/gpu/splat.rs](../../../src/engine/gpu/splat.rs)
+**Steps:** 10 · **Source:** [engine/gpu/surface_outline.rs](../../../src/engine/gpu/surface_outline.rs) · [engine/gpu/cloud.rs](../../../src/engine/gpu/cloud.rs) · [engine/gpu/lod.rs](../../../src/engine/gpu/lod.rs) · [engine/gpu/splat.rs](../../../src/engine/gpu/splat.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -100,8 +100,6 @@
 
 ### 1. `src/outline_math.rs`
 
-Convert the current production CSS radius and build bounded nearest-first coverage taps.
-
 Create the file and type:
 
 ```rust
@@ -145,8 +143,6 @@ pub fn taps(radius: f32) -> Vec<[f32; 4]> {
 
 ### 2. `src/lib.rs`
 
-Register the source component.
-
 **Locate this existing block:**
 
 ```rust
@@ -165,11 +161,7 @@ pub mod outline_math;
 
 ## <a id="checkpoint-63a-coverage"></a>2. Convolve solid coverage into external contour ink
 
-Write bounded contour sampling and black-alpha composition.
-
 ### 1. `src/outline.wgsl`
-
-Type the bounded contour predicate and separate composition entry points.
 
 Create the file and type:
 
@@ -258,8 +250,6 @@ fn fs_main(@builtin(position) position: vec4<f32>) -> @location(0) vec4<f32> {
 
 ### 2. `src/outline_mask.wgsl`
 
-Transform the original solid vertices and write only depth-visible coverage.
-
 Create the file and type:
 
 ```wgsl
@@ -273,11 +263,7 @@ struct Object {model:mat4x4<f32>,selection:vec4<u32>,normal_matrix:mat4x4<f32>,f
 
 ## <a id="checkpoint-63aa-pool-and-dilate-a-conservative-outline-mask"></a>3. Pool and dilate a conservative outline mask
 
-Accelerate bounded contour sampling with conservative coarse coverage.
-
 ### 1. `src/outline.wgsl`
-
-Pool and dilate coverage without losing a possible contour hit.
 
 **Locate this existing block:**
 
@@ -377,8 +363,6 @@ fn fs_dilate(@builtin(position) position: vec4<f32>) -> @location(0) vec4<f32> {
 </div>
 
 ### 1. `src/outline_gpu.rs`
-
-Own R8 images, frame keys, pipeline state and the reusable fullscreen preparation pass.
 
 Create the file and type:
 
@@ -497,8 +481,6 @@ fn raster(
 
 ### 2. `src/lib.rs`
 
-Register the source component.
-
 **Locate this existing block:**
 
 ```rust
@@ -520,8 +502,6 @@ pub mod outline_gpu;
 ## <a id="checkpoint-63c-pipelines"></a>5. Create the mask and fullscreen pipeline layouts
 
 ### 1. `src/outline_gpu.rs`
-
-Create compatible mask and fullscreen pipelines without reallocating primary geometry.
 
 **Locate this existing block:**
 
@@ -669,8 +649,6 @@ fn mask_pipeline(device: &wgpu::Device) -> wgpu::RenderPipeline {
 </div>
 
 ### 1. `src/outline_gpu.rs`
-
-Build explicit current shader bindings and fixed parameter capacity.
 
 **Locate this existing block:**
 
@@ -860,8 +838,6 @@ fn raster(
 </div>
 
 ### 1. `src/outline_gpu.rs`
-
-Prepare exact-size derived targets, bounded tap bytes and truthful resource counters.
 
 **Locate this existing block:**
 
@@ -1062,8 +1038,6 @@ fn raster(
 
 ### 1. `src/gpu_mesh.rs`
 
-Read whole-selection state from the existing uploaded object uniform.
-
 **Locate this existing block:**
 
 ```rust
@@ -1085,8 +1059,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 2. `src/outline_gpu.rs`
-
-Encode visible selected coverage, cached alpha and a black compositor after geometry ink.
 
 **Locate this existing block:**
 
@@ -1207,8 +1179,6 @@ fn raster(
 ## <a id="checkpoint-63g-composite"></a>9. Connect a lazy silhouette owner to the renderer
 
 ### 1. `src/renderer.rs`
-
-Connect whole-object silhouette invalidation, lazy compositing, current allocation counters and immediate owner release.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -1490,8 +1460,6 @@ pub struct Renderer {
 
 ### 1. `src/outline_gpu.rs`
 
-Copy the test-only actual-alpha readback accessor.
-
 **Locate this existing block:**
 
 ```rust
@@ -1522,8 +1490,6 @@ impl Outline {
 ```
 
 ### 2. `src/renderer.rs`
-
-Copy test-only R8 alpha readback with bounded row pitch and wait.
 
 **Locate this existing block:**
 
@@ -1605,8 +1571,6 @@ impl Renderer {
 
 ### 3. `src/outline_math_tests.rs`
 
-Copy the current production radius, tap capacity and order regressions.
-
 Create the file and type:
 
 ```rust
@@ -1636,8 +1600,6 @@ fn current_outline_radius_and_sorted_taps_keep_css_width_independent_of_geometry
 
 ### 4. `src/lib.rs`
 
-Register the source component.
-
 **Locate this existing block:**
 
 ```rust
@@ -1658,8 +1620,6 @@ mod outline_math_tests;
 ```
 
 ### 5. `src/pick_gpu_tests.rs`
-
-Copy actual joined-solid, occlusion, curved/flat density, bore-contour, source/pick/reuse/release regressions.
 
 **Locate this existing block:**
 
@@ -1931,8 +1891,6 @@ fn actual_selected_bore_keeps_its_open_center_and_black_inner_contour() {
 ```
 
 ### 6. `src/browser.rs`
-
-Expose actual outline allocation, rebuild, skip and compositor draw counters.
 
 **Locate this existing block:**
 

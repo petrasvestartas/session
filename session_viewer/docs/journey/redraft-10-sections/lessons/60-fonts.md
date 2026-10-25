@@ -1,6 +1,6 @@
 # 10.1 · Explicit fonts and source label placement
 
-**Goal:** Load explicit fonts and inspect missing coverage. · **Steps:** 3 · **Source:** [engine/text.rs](../../../../src/engine/text.rs) · [engine/gpu/text.rs](../../../../src/engine/gpu/text.rs) · [engine/gpu/text_plane.rs](../../../../src/engine/gpu/text_plane.rs) · [engine/gpu/text_plate.rs](../../../../src/engine/gpu/text_plate.rs)
+**Steps:** 3 · **Source:** [engine/text.rs](../../../../src/engine/text.rs) · [engine/gpu/text.rs](../../../../src/engine/gpu/text.rs) · [engine/gpu/text_plane.rs](../../../../src/engine/gpu/text_plane.rs) · [engine/gpu/text_plate.rs](../../../../src/engine/gpu/text_plate.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -62,8 +62,6 @@
 
 ### 1. `Cargo.toml`
 
-Pin the production text renderer and explicit glyph coverage parser.
-
 **Locate this existing block:**
 
 ```toml
@@ -86,8 +84,6 @@ ttf-parser = {version="=0.25.1",default-features=false}
 
 ### 2. `index.html`
 
-Make the supplied whole fonts available at the current text asset URLs.
-
 **Locate this existing block:**
 
 ```html
@@ -106,8 +102,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ## <a id="checkpoint-60a-labels"></a>2. Keep source words metrics and placement together
 
 ### 1. `src/text.rs`
-
-Define current label/source placement types and explicit bundled font constants.
 
 Create the file and type:
 
@@ -196,8 +190,6 @@ impl TextLabel {
 
 ### 2. `src/lib.rs`
 
-Register the source component.
-
 **Locate this existing block:**
 
 ```rust
@@ -217,8 +209,6 @@ pub mod text;
 ## <a id="checkpoint-60b-coverage"></a>3. Load explicit fonts and inspect missing coverage
 
 ### 1. `src/text.rs`
-
-Load shared font bytes and inspect their actual Unicode coverage.
 
 **Locate this existing block:**
 

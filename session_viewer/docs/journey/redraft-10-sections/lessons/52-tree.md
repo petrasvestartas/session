@@ -1,6 +1,6 @@
 # 8.1 · Nested original sources and exact parent edits
 
-**Goal:** Save nested rows and their local placements. · **Steps:** 7 · **Source:** [app/hierarchy.rs](../../../../src/app/hierarchy.rs) · [app/layers.rs](../../../../src/app/layers.rs) · [app/ui/layers.rs](../../../../src/app/ui/layers.rs) · [app/gesture/mod.rs](../../../../src/app/gesture/mod.rs)
+**Steps:** 7 · **Source:** [app/hierarchy.rs](../../../../src/app/hierarchy.rs) · [app/layers.rs](../../../../src/app/layers.rs) · [app/ui/layers.rs](../../../../src/app/ui/layers.rs) · [app/gesture/mod.rs](../../../../src/app/gesture/mod.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -52,8 +52,6 @@
 ## <a id="checkpoint-52-tree"></a>1. Validate and place a nested source tree
 
 ### 1. `src/hierarchy.rs`
-
-Bound tree walks and compose precise placements along source paths.
 
 Create the file and type:
 
@@ -130,8 +128,6 @@ pub fn world(
 
 ### 2. `src/lib.rs`
 
-Register the new source component.
-
 **Locate this existing block:**
 
 ```rust
@@ -151,8 +147,6 @@ pub mod hierarchy;
 ## <a id="checkpoint-52a-records"></a>2. Keep lightweight tree records outside kernel ownership
 
 ### 1. `src/hierarchy.rs`
-
-Store immutable document-scoped node records shared by previews and history.
 
 **Locate this existing block:**
 
@@ -191,8 +185,6 @@ impl Forest {}
 
 ### 2. `src/scene.rs`
 
-Allow stable row identities to participate in deduplication sets.
-
 **Locate this existing block:**
 
 ```rust
@@ -214,8 +206,6 @@ pub struct ObjectId(u32);
 ## <a id="checkpoint-52b-index"></a>3. Index descendants and read-only attribute groups
 
 ### 1. `src/hierarchy.rs`
-
-Create stable document-scoped nodes and deduplicate parent-owned descendants.
 
 **Locate this existing block:**
 
@@ -347,8 +337,6 @@ impl Forest {
 ## <a id="checkpoint-52c-load"></a>4. Import nested source identities and precise placements
 
 ### 1. `src/document.rs`
-
-Capture nested tree metadata and replace flat-only validation with the bounded source walk.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -489,8 +477,6 @@ pub fn load(bytes: &[u8]) -> Result<Loaded, &'static str> {
 
 ### 2. `src/scene.rs`
 
-Bind imported tree nodes to fresh row IDs and release their records when the document closes.
-
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -596,8 +582,6 @@ pub struct Scene {
 ## <a id="checkpoint-52d-preview"></a>5. Carry parent-owned descendants in one preview
 
 ### 1. `src/scene.rs`
-
-Protect independent attribute edits while exposing the checked descendant path for parent-owned transformations.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -730,8 +714,6 @@ Replace it with:
 
 ### 2. `src/edit_preview.rs`
 
-Capture selected roots separately from their unique following descendants.
-
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -855,8 +837,6 @@ Replace it with:
 ## <a id="checkpoint-52e-edits"></a>6. Commit parent moves and deletions as one transaction
 
 ### 1. `src/editor.rs`
-
-Route group selection and parent edits through protected source ownership and one history boundary.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -1075,8 +1055,6 @@ pub enum Action {
 
 ### 1. `src/hierarchy.rs`
 
-Rebuild nested portable nodes and recover local placements from the edited world scene.
-
 **Locate this existing block:**
 
 ```rust
@@ -1159,8 +1137,6 @@ fn save_node(
 ```
 
 ### 2. `src/document.rs`
-
-Preserve nested imported trees while keeping generated objects beside them in the saved document.
 
 **Locate this existing block:**
 

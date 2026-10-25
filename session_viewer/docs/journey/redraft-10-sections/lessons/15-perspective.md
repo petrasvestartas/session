@@ -1,55 +1,64 @@
 # 2.6 · Perspective picking and orbit navigation
 
-**Goal:** Orbit and tilt a perspective camera while keeping its target in place. · **Steps:** 2 · **Source:** `src/camera.rs` · `src/engine/gpu/render.rs` · `src/shaders/scene.wgsl`
-
-<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
-<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
-  <defs>
-    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
-    </marker>
-    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
-    </marker>
-    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
-    </marker>
-  </defs>
-  <rect x="2" y="2" width="1116" height="184" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
-  <rect x="14" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Perspective Frustum (w = -z_eye) vs Ortho Box (w = 1)</text>
-  <circle cx="58" cy="102" r="4.5" fill="#111111"/>
-  <polygon points="58,102 158,52 158,152" fill="#fef9c3" fill-opacity="0.45" stroke="#111111" stroke-width="1.5" stroke-dasharray="4 3"/>
-  <rect x="184" y="56" width="102" height="92" fill="#dbeafe" fill-opacity="0.45" stroke="#2563eb" stroke-width="1.75"/>
-  <line x1="184" y1="78" x2="286" y2="78" stroke="#2563eb" stroke-width="1.2" marker-end="url(#arrB)"/>
-  <line x1="184" y1="126" x2="286" y2="126" stroke="#2563eb" stroke-width="1.2" marker-end="url(#arrB)"/>
-  <line x1="358" y1="94" x2="384" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
-  <rect x="388" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Foreshortening x_ndc = x/(z*tan(fov/2)) vs Parallel x/s</text>
-  <polygon points="432,140 468,62 544,82 518,140" fill="#fce7f3" stroke="#db2777" stroke-width="1.75"/>
-  <rect x="582" y="66" width="96" height="72" fill="#dbeafe" stroke="#2563eb" stroke-width="1.75"/>
-  <line x1="582" y1="66" x2="678" y2="66" stroke="#16a34a" stroke-width="2"/>
-  <line x1="582" y1="138" x2="678" y2="138" stroke="#16a34a" stroke-width="2"/>
-  <line x1="732" y1="94" x2="758" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
-  <rect x="762" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">True-Scale Parallel CAD Elevation View</text>
-  <rect x="806" y="44" width="256" height="118" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
-  <rect x="844" y="62" width="82" height="82" fill="#dbeafe" stroke="#111111" stroke-width="2"/>
-  <line x1="844" y1="103" x2="926" y2="103" stroke="#2563eb" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="992" y="106" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">Top / Front</text>
-</svg>
-</div>
+**Steps:** 2 · **Source:** `src/camera.rs` · `src/engine/gpu/render.rs` · `src/shaders/scene.wgsl`
 
 ## <a id="checkpoint-15-perspective"></a>1. Pick the nearest surface through the view
 
-View the scene in perspective and select surfaces with a ray that agrees with the camera.
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="214" viewBox="0 0 1120 214" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr-7950a6c3" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arr-r-7950a6c3" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arr-g-7950a6c3" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arr-b-7950a6c3" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+    <pattern id="grid-7950a6c3" width="20" height="20" patternUnits="userSpaceOnUse">
+      <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#f1f5f9" stroke-width="1"/>
+    </pattern>
+  </defs>
+  <rect x="2" y="2" width="1116" height="210" rx="8" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="2" y="2" width="1116" height="28" rx="6" fill="#f8fafc" stroke="#111111" stroke-width="1.5"/>
+  <line x1="2" y1="30" x2="1118" y2="30" stroke="#111111" stroke-width="1.5"/>
+  <rect x="12" y="7" width="176" height="18" rx="3" fill="#111111"/>
+  <text x="100" y="19.5" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#ffffff" paint-order="normal" stroke="none">15-PERSPECTIVE · RAY HIT</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="518" y="20" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Möller–Trumbore 3D Ray-Triangle Intersection in World Space</text>
+  <rect x="838" y="7" width="268" height="18" rx="3" fill="#ffffff" stroke="#111111" stroke-width="1.2"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="972" y="19.5" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#2563eb">O + t*d = (1-u-v)V0 + uV1 + vV2</text>
+  <rect x="14" y="38" width="344" height="164" rx="6" fill="url(#grid-7950a6c3)" stroke="#111111" stroke-width="1.5"/>
+  <line x1="14" y1="60" x2="358" y2="60" stroke="#cbd5e1" stroke-width="1"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="186" y="53" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1 · Edge Vectors e1 = V1-V0, e2 = V2-V0</text>
+  <polygon points="84,168 186,74 288,158" fill="#dbeafe" stroke="#111111" stroke-width="1.75"/>
+  <line x1="84" y1="168" x2="186" y2="74" stroke="#2563eb" stroke-width="2.2" marker-end="url(#arr-b-7950a6c3)"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="118" y="112" font-family="monospace" font-size="9.5" font-weight="700" fill="#2563eb">e1</text>
+  <line x1="84" y1="168" x2="288" y2="158" stroke="#16a34a" stroke-width="2.2" marker-end="url(#arr-g-7950a6c3)"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="186" y="182" font-family="monospace" font-size="9.5" font-weight="700" fill="#16a34a">e2</text>
+  <line x1="358" y1="120" x2="384" y2="120" stroke="#111111" stroke-width="2" marker-end="url(#arr-7950a6c3)"/>
+  <rect x="388" y="38" width="344" height="164" rx="6" fill="url(#grid-7950a6c3)" stroke="#111111" stroke-width="1.5"/>
+  <line x1="388" y1="60" x2="732" y2="60" stroke="#cbd5e1" stroke-width="1"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="53" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2 · Cramers Rule: det = dot(e1, d × e2)</text>
+  <rect x="416" y="76" width="288" height="104" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="98" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">pvec = cross(d, e2); det = dot(e1, pvec)</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="122" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#2563eb">u = dot(T, pvec) / det  ∈ [0, 1]</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="144" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#16a34a">v = dot(d, qvec) / det  (u + v &lt;= 1)</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="166" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#dc2626">t = dot(e2, qvec) / det  (min t &gt; 0)</text>
+  <line x1="732" y1="120" x2="758" y2="120" stroke="#111111" stroke-width="2" marker-end="url(#arr-7950a6c3)"/>
+  <rect x="762" y="38" width="344" height="164" rx="6" fill="url(#grid-7950a6c3)" stroke="#111111" stroke-width="1.75"/>
+  <line x1="762" y1="60" x2="1106" y2="60" stroke="#cbd5e1" stroke-width="1"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="934" y="53" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3 · Nearest Visible 3D Surface Selected</text>
+  <rect x="806" y="68" width="256" height="122" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <polygon points="852,166 934,80 1016,166" fill="#fef08a" stroke="#dc2626" stroke-width="2.2"/>
+  <circle cx="934" cy="132" r="5.5" fill="#dc2626"/>
+</svg>
+</div>
 
 ### 1. `src/picking.rs`
-
-Replace the flat coverage query with ray–triangle intersections and update the visibility tests for the new camera.
 
 **Locate this existing block:**
 
@@ -249,8 +258,6 @@ mod tests {
 
 ### 2. `src/lib.rs`
 
-Register the camera-ray query now that its input is available.
-
 **Locate this existing block:**
 
 ```rust
@@ -267,8 +274,6 @@ pub mod renderer;
 ```
 
 ### 3. `src/browser.rs`
-
-Convert a canvas click to a camera ray and highlight its nearest valid object. Report that perspective picking is ready.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -334,55 +339,65 @@ Replace it with:
 ## <a id="checkpoint-16-orbit"></a>2. Walk around the model
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
-<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="214" viewBox="0 0 1120 214" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
   <defs>
-    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+    <marker id="arr-205f2df5" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
-    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+    <marker id="arr-r-205f2df5" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
     </marker>
-    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+    <marker id="arr-g-205f2df5" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
     </marker>
-    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+    <marker id="arr-b-205f2df5" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
     </marker>
+    <pattern id="grid-205f2df5" width="20" height="20" patternUnits="userSpaceOnUse">
+      <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#f1f5f9" stroke-width="1"/>
+    </pattern>
   </defs>
-  <rect x="2" y="2" width="1116" height="184" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
-  <rect x="14" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">3D World Space (x, y, z, 1)</text>
-  <line x1="110" y1="136" x2="250" y2="136" stroke="#dc2626" stroke-width="2" marker-end="url(#arrR)"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="262" y="140" font-family="monospace" font-size="10" font-weight="700" fill="#dc2626">+X</text>
-  <line x1="110" y1="136" x2="110" y2="50" stroke="#2563eb" stroke-width="2" marker-end="url(#arrB)"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="110" y="44" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#2563eb">+Z</text>
-  <line x1="110" y1="136" x2="62" y2="164" stroke="#16a34a" stroke-width="2" marker-end="url(#arrG)"/>
-  <polygon points="156,118 216,96 184,58" fill="#dbeafe" stroke="#111111" stroke-width="1.75"/>
-  <circle cx="80" cy="76" r="5" fill="#facc15" stroke="#111111" stroke-width="1.5"/>
-  <line x1="85" y1="78" x2="176" y2="94" stroke="#111111" stroke-width="1.5" stroke-dasharray="3 3" marker-end="url(#arr)"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="80" y="66" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">eye</text>
-  <line x1="358" y1="94" x2="384" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
-  <rect x="388" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">@vertex: clip = M_proj * M_view * p</text>
-  <polygon points="444,82 516,50 516,158 444,126" fill="#f8fafc" stroke="#111111" stroke-width="1.5"/>
-  <line x1="444" y1="82" x2="660" y2="46" stroke="#64748b" stroke-width="1.25" stroke-dasharray="3 3"/>
-  <line x1="444" y1="126" x2="660" y2="162" stroke="#64748b" stroke-width="1.25" stroke-dasharray="3 3"/>
-  <polygon points="600,56 668,46 668,162 600,148" fill="none" stroke="#111111" stroke-width="1.5"/>
-  <polygon points="536,84 584,72 562,130" fill="#bfdbfe" stroke="#2563eb" stroke-width="2"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="164" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">ndc = clip.xyz / clip.w</text>
-  <line x1="732" y1="94" x2="758" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
-  <rect x="762" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Viewer Perspective / Orbit Frame</text>
-  <rect x="814" y="44" width="240" height="118" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
-  <path d="M 858 124 A 78 28 0 1 1 1010 124" fill="none" stroke="#2563eb" stroke-width="1.75" stroke-dasharray="4 3" marker-end="url(#arrB)"/>
-  <polygon points="934,60 886,128 986,136" fill="#93c5fd" stroke="#111111" stroke-width="2"/>
-  <circle cx="934" cy="112" r="4" fill="#dc2626"/>
+  <rect x="2" y="2" width="1116" height="210" rx="8" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="2" y="2" width="1116" height="28" rx="6" fill="#f8fafc" stroke="#111111" stroke-width="1.5"/>
+  <line x1="2" y1="30" x2="1118" y2="30" stroke="#111111" stroke-width="1.5"/>
+  <rect x="12" y="7" width="176" height="18" rx="3" fill="#111111"/>
+  <text x="100" y="19.5" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#ffffff" paint-order="normal" stroke="none">16-ORBIT · SPHERICAL EYE</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="518" y="20" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Spherical Orbit (Azimuth θ, Elevation φ, Radius r), View-Plane Pan &amp; Dolly</text>
+  <rect x="838" y="7" width="268" height="18" rx="3" fill="#ffffff" stroke="#111111" stroke-width="1.2"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="972" y="19.5" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#2563eb">eye = target + r*(cosφ sinθ, sinφ, cosφ cosθ)</text>
+  <rect x="14" y="38" width="344" height="164" rx="6" fill="url(#grid-205f2df5)" stroke="#111111" stroke-width="1.5"/>
+  <line x1="14" y1="60" x2="358" y2="60" stroke="#cbd5e1" stroke-width="1"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="186" y="53" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1 · Azimuth θ &amp; Clamped Elevation φ</text>
+  <ellipse cx="186" cy="134" rx="108" ry="36" fill="none" stroke="#2563eb" stroke-width="1.5" stroke-dasharray="4 3"/>
+  <path d="M 110 134 A 76 62 0 0 1 244 82" fill="none" stroke="#16a34a" stroke-width="1.75"/>
+  <circle cx="186" cy="134" r="4.5" fill="#dc2626"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="186" y="152" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#dc2626">Target C</text>
+  <circle cx="244" cy="82" r="6" fill="#2563eb" stroke="#111111" stroke-width="1.5"/>
+  <line x1="244" y1="82" x2="190" y2="130" stroke="#111111" stroke-width="1.75" marker-end="url(#arr-205f2df5)"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="278" y="84" font-family="monospace" font-size="9.5" font-weight="700" fill="#2563eb">Eye(θ,φ,r)</text>
+  <line x1="358" y1="120" x2="384" y2="120" stroke="#111111" stroke-width="2" marker-end="url(#arr-205f2df5)"/>
+  <rect x="388" y="38" width="344" height="164" rx="6" fill="url(#grid-205f2df5)" stroke="#111111" stroke-width="1.5"/>
+  <line x1="388" y1="60" x2="732" y2="60" stroke="#cbd5e1" stroke-width="1"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="53" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2 · Orthonormal Camera Basis (Right, Up, Fwd)</text>
+  <circle cx="540" cy="138" r="4.5" fill="#111111"/>
+  <line x1="540" y1="138" x2="626" y2="138" stroke="#dc2626" stroke-width="2.2" marker-end="url(#arr-r-205f2df5)"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="648" y="142" font-family="monospace" font-size="9.5" font-weight="700" fill="#dc2626">Right</text>
+  <line x1="540" y1="138" x2="540" y2="74" stroke="#16a34a" stroke-width="2.2" marker-end="url(#arr-g-205f2df5)"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="540" y="68" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#16a34a">Up</text>
+  <line x1="540" y1="138" x2="476" y2="174" stroke="#2563eb" stroke-width="2.2" marker-end="url(#arr-b-205f2df5)"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="456" y="184" font-family="monospace" font-size="9.5" font-weight="700" fill="#2563eb">Fwd</text>
+  <line x1="732" y1="120" x2="758" y2="120" stroke="#111111" stroke-width="2" marker-end="url(#arr-205f2df5)"/>
+  <rect x="762" y="38" width="344" height="164" rx="6" fill="url(#grid-205f2df5)" stroke="#111111" stroke-width="1.75"/>
+  <line x1="762" y1="60" x2="1106" y2="60" stroke="#cbd5e1" stroke-width="1"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="934" y="53" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3 · Interactive 3D Inspection</text>
+  <rect x="806" y="68" width="256" height="122" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <polygon points="884,96 944,74 1004,96 944,118" fill="#bfdbfe" stroke="#111111" stroke-width="1.5"/>
+  <polygon points="884,96 944,118 944,174 884,152" fill="#60a5fa" stroke="#111111" stroke-width="1.5"/>
+  <polygon points="944,118 1004,96 1004,152 944,174" fill="#2563eb" stroke="#111111" stroke-width="1.5"/>
 </svg>
 </div>
 
 ### 1. `src/camera.rs`
-
-Use the kernel’s rotation representation alongside its points, vectors and matrices. Store a 3D target and orientation instead of a flat centre and one angle. Keep the same initial eye and up directions as the perspective lesson. Move the target in the camera’s current right/up plane, including its world-z component. Add world-up orbit and a named pose. Keep rotate as the existing Turn view action. Calculate eye and up from the orientation, then reuse the existing view and projection construction. Extend the target-centering test to include a 3D orbit. Check the rotation invariant after many small updates, not just one convenient angle.
 
 **Locate this existing block:**
 
@@ -683,8 +698,6 @@ mod tests {
 ```
 
 ### 2. `src/browser.rs`
-
-Add vertical orbit and isometric commands. Apply vertical orbit or the isometric orientation. Report that orbit preserves the target.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 

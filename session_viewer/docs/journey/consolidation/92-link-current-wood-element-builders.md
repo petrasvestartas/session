@@ -1,6 +1,6 @@
 # 18.4 · Original Wood Elements and portable source records
 
-**Goal:** Prove Element recipes source history and archives. · **Steps:** 17 · **Source:** [engine/gpu/ssao.rs](../../../src/engine/gpu/ssao.rs) · [engine/gpu/ssao/pipelines.rs](../../../src/engine/gpu/ssao/pipelines.rs) · [shaders/ssao.wgsl](../../../src/shaders/ssao.wgsl) · [shaders/triangle.wgsl](../../../src/shaders/triangle.wgsl)
+**Steps:** 17 · **Source:** [engine/gpu/ssao.rs](../../../src/engine/gpu/ssao.rs) · [engine/gpu/ssao/pipelines.rs](../../../src/engine/gpu/ssao/pipelines.rs) · [shaders/ssao.wgsl](../../../src/shaders/ssao.wgsl) · [shaders/triangle.wgsl](../../../src/shaders/triangle.wgsl)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -47,8 +47,6 @@
 
 ### 1. `Cargo.toml`
 
-Link current Wood element builders beside the original kernel.
-
 **Locate this existing block:**
 
 ```toml
@@ -66,11 +64,7 @@ wasm-bindgen = "=0.2.128"
 
 ## <a id="checkpoint-91zza-write-original-beam-column-and-plate-builders"></a>2. Write beam column and plate builders
 
-Parse positive finite lengths while retaining omitted defaults.
-
 ### 1. `src/element_values.rs`
-
-Adapt the maintained positive-length recipe to the earlier number parser.
 
 Create the file and type:
 
@@ -100,8 +94,6 @@ pub fn lengths<const N: usize>(
 ```
 
 ### 2. `src/lib.rs`
-
-Register the completed Element component.
 
 **Locate this existing block:**
 
@@ -137,8 +129,6 @@ pub mod source_mesh_topology;
 
 ### 3. `src/element_beam.rs`
 
-Type the whole original helpers introduced today.
-
 Create the file and type:
 
 ```rust
@@ -170,8 +160,6 @@ pub fn build(axes: &[Polyline], width: f64, height: f64) -> Result<Vec<Beam>, St
 
 ### 4. `src/lib.rs`
 
-Register this original element builder.
-
 **Locate this existing block:**
 
 ```rust
@@ -197,8 +185,6 @@ pub mod finite_project_source;
 ```
 
 ### 5. `src/element_column.rs`
-
-Type the whole original helpers introduced today.
 
 Create the file and type:
 
@@ -239,8 +225,6 @@ pub fn build(axes: &[Polyline], width: f64, depth: f64) -> Result<Vec<Column>, S
 
 ### 6. `src/lib.rs`
 
-Register this original element builder.
-
 **Locate this existing block:**
 
 ```rust
@@ -267,8 +251,6 @@ pub mod finite_project_source;
 
 ### 7. `src/element_plate.rs`
 
-Type the whole original helpers introduced today.
-
 Create the file and type:
 
 ```rust
@@ -290,8 +272,6 @@ pub fn build(outlines: &[Polyline], thickness: f64) -> Result<Vec<Plate>, String
 ```
 
 ### 8. `src/lib.rs`
-
-Register this original element builder.
 
 **Locate this existing block:**
 
@@ -319,11 +299,7 @@ pub mod finite_project_source;
 
 ## <a id="checkpoint-92a-retain-current-positive-lengths-and-six-builders"></a>3. Write support variable beam and block builders
 
-Add the remaining original Support, Beam Variable and Block wrappers.
-
 ### 1. `src/element_support.rs`
-
-Type the whole original helpers introduced today.
 
 Create the file and type:
 
@@ -346,8 +322,6 @@ pub fn build(planes: &[Plane]) -> Result<Vec<Support>, String> {
 ```
 
 ### 2. `src/lib.rs`
-
-Register this original element builder.
 
 **Locate this existing block:**
 
@@ -374,8 +348,6 @@ pub mod finite_project_source;
 ```
 
 ### 3. `src/element_beam_variable.rs`
-
-Type the whole original helpers introduced today.
 
 Create the file and type:
 
@@ -408,8 +380,6 @@ pub fn build(sections: Vec<Polyline>) -> Result<BeamVariable, String> {
 
 ### 4. `src/lib.rs`
 
-Register this original element builder.
-
 **Locate this existing block:**
 
 ```rust
@@ -435,8 +405,6 @@ pub mod finite_project_source;
 ```
 
 ### 5. `src/element_block.rs`
-
-Type the whole original helpers introduced today.
 
 Create the file and type:
 
@@ -466,8 +434,6 @@ pub fn build(loops: Vec<Polyline>) -> Result<Block, String> {
 
 ### 6. `src/lib.rs`
 
-Register this original element builder.
-
 **Locate this existing block:**
 
 ```rust
@@ -494,11 +460,7 @@ pub mod finite_project_source;
 
 ## <a id="checkpoint-92b-own-original-element-geometry"></a>4. Own Element geometry
 
-Own original Element geometry.
-
 ### 1. `src/element_original.rs`
-
-Retain the original Element beside its derived display.
 
 Create the file and type:
 
@@ -541,8 +503,6 @@ pub fn insert(
 
 ### 2. `src/lib.rs`
 
-Register the completed Element component.
-
 **Locate this existing block:**
 
 ```rust
@@ -570,8 +530,6 @@ pub mod finite_project_source;
 ## <a id="checkpoint-92c-read-current-element-command-defaults"></a>5. Read current Element command defaults
 
 ### 1. `src/element_input.rs`
-
-Own the six current command kinds and exact defaults.
 
 Create the file and type:
 
@@ -682,8 +640,6 @@ pub fn visibility(words: &[&str]) -> Result<Option<bool>, String> {
 
 ### 2. `src/lib.rs`
 
-Register the completed Element component.
-
 **Locate this existing block:**
 
 ```rust
@@ -711,8 +667,6 @@ pub mod finite_project_source;
 ## <a id="checkpoint-92d-build-typed-elements-from-ordered-world-picks"></a>6. Build typed Elements from ordered world picks
 
 ### 1. `src/element_input.rs`
-
-Route ordered original sources into current Wood builders and base planes.
 
 **Locate this existing block:**
 
@@ -810,11 +764,7 @@ pub fn build(
 
 ## <a id="checkpoint-92e-capture-original-picks-while-the-tool-runs"></a>7. Capture picks while the tool runs
 
-Capture original picks while the tool runs.
-
 ### 1. `src/element_draft.rs`
-
-Capture fitting original sources and ordered tool state.
 
 Create the file and type:
 
@@ -935,8 +885,6 @@ impl Draft {
 
 ### 2. `src/lib.rs`
 
-Register the completed Element component.
-
 **Locate this existing block:**
 
 ```rust
@@ -964,8 +912,6 @@ pub mod finite_project_source;
 ## <a id="checkpoint-92f-teach-named-and-bare-element-values"></a>8. Teach named and bare Element values
 
 ### 1. `src/element_draft.rs`
-
-Adapt the maintained Element parameter word recipe without changing its semantics.
 
 **Locate this existing block:**
 
@@ -1040,8 +986,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 1. `src/element_draft.rs`
 
-Adopt only validated current parameter batches.
-
 **Locate this existing block:**
 
 ```rust
@@ -1074,8 +1018,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ## <a id="checkpoint-92h-attach-readonly-element-attributes"></a>10. Attach readonly Element attributes
 
 ### 1. `src/layer_edit.rs`
-
-Attach generated original attributes under their Element owner.
 
 **Locate this existing block:**
 
@@ -1154,8 +1096,6 @@ pub fn attach_attributes(
 ## <a id="checkpoint-92i-adopt-elements-and-consume-sources-once"></a>11. Adopt Elements and consume sources once
 
 ### 1. `src/element_adopt.rs`
-
-Adopt original Element payloads and readonly attributes as one edit.
 
 Create the file and type:
 
@@ -1248,8 +1188,6 @@ pub fn interaction_ids(scene: &Scene) -> Vec<ObjectId> {
 
 ### 2. `src/lib.rs`
 
-Register the completed Element component.
-
 **Locate this existing block:**
 
 ```rust
@@ -1276,8 +1214,6 @@ pub mod finite_project_source;
 
 ### 3. `src/source_edit.rs`
 
-Validate captured original Element identity by shared source ownership.
-
 **Locate this existing block:**
 
 ```rust
@@ -1295,11 +1231,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-92j-save-and-open-original-element-records"></a>12. Save and open Element records
 
-Save and open original Element records.
-
 ### 1. `src/geometry_snapshot.rs`
-
-Route original Element records through mixed-document archives.
 
 **Locate this existing block:**
 
@@ -1321,8 +1253,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 2. `src/archive_identity.rs`
 
-Route original Element records through mixed-document archives.
-
 **Locate this existing block:**
 
 ```rust
@@ -1339,8 +1269,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 3. `src/document_source.rs`
-
-Route original Element records through mixed-document archives.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -1385,8 +1313,6 @@ Replace it with:
 
 ### 4. `src/document_geometry.rs`
 
-Route original Element records through mixed-document archives.
-
 **Locate this existing block:**
 
 ```rust
@@ -1410,8 +1336,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ## <a id="checkpoint-92k-own-independent-element-tool-state"></a>13. Own independent Element tool state
 
 ### 1. `src/editor.rs`
-
-Own Element draft state and cleanup before routing its commands.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -1534,8 +1458,6 @@ pub struct Editor {
 
 ### 1. `src/editor.rs`
 
-Connect staged Element creation, named input and ordered picks.
-
 **Locate this existing block:**
 
 ```rust
@@ -1634,11 +1556,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-92m-route-current-element-commands-and-feature-visibility"></a>15. Route Element commands and independent visibility
 
-Toggle Element Attributes and Element Interactions independently.
-
 ### 1. `src/editor.rs`
-
-Route Element actions and current feature presentation.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -1750,8 +1668,6 @@ pub enum Action {
 ```
 
 ### 2. `src/commands.rs`
-
-Register current Element commands and strict argument parsing.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -1873,8 +1789,6 @@ pub const ACTIONS: &[(&str, Factory)] = &[
 ## <a id="checkpoint-92n-pick-elements-through-the-real-command-dock"></a>16. Pick Elements through the real command dock
 
 ### 1. `src/browser.rs`
-
-Route actual browser original picks, command results and Element parameter controls.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -2028,8 +1942,6 @@ Replace it with:
 ## <a id="checkpoint-92o-prove-element-recipes-source-history-and-archives"></a>17. Prove Element recipes source history and archives
 
 ### 1. `src/element_tests.rs`
-
-Copy supplied original Element adapter and archive fixtures.
 
 Create the file and type:
 
@@ -2408,8 +2320,6 @@ fn attributes_and_interactions_have_independent_defaults_and_keep_originals() {
 
 ### 2. `src/lib.rs`
 
-Register the completed Element component.
-
 **Locate this existing block:**
 
 ```rust
@@ -2436,8 +2346,6 @@ pub mod finite_project_source;
 ```
 
 ### 3. `src/element_beam.rs`
-
-Copy maintained beam solid and command fixtures.
 
 **Locate this existing block:**
 
@@ -2491,8 +2399,6 @@ mod tests {
 
 ### 4. `src/element_column.rs`
 
-Copy maintained column solid and command fixtures.
-
 **Locate this existing block:**
 
 ```rust
@@ -2536,8 +2442,6 @@ mod tests {
 
 ### 5. `src/element_plate.rs`
 
-Copy maintained plate solid and command fixtures.
-
 **Locate this existing block:**
 
 ```rust
@@ -2578,8 +2482,6 @@ mod tests {
 
 ### 6. `src/element_support.rs`
 
-Copy maintained support solid and command fixtures.
-
 **Locate this existing block:**
 
 ```rust
@@ -2617,8 +2519,6 @@ mod tests {
 ```
 
 ### 7. `src/element_beam_variable.rs`
-
-Copy maintained beam variable solid and command fixtures.
 
 **Locate this existing block:**
 
@@ -2662,8 +2562,6 @@ mod tests {
 ```
 
 ### 8. `src/element_block.rs`
-
-Copy maintained block solid and command fixtures.
 
 **Locate this existing block:**
 

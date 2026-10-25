@@ -1,6 +1,6 @@
 # 12.2 · Locate original arrays without downloading their bodies
 
-**Goal:** Validate complete octrees before range streaming. · **Steps:** 10 · **Source:** [app/manifest.rs](../../../src/app/manifest.rs) · [app/session_io.rs](../../../src/app/session_io.rs) · [app/stream.rs](../../../src/app/stream.rs) · [app/range_gate.rs](../../../src/app/range_gate.rs)
+**Steps:** 10 · **Source:** [app/manifest.rs](../../../src/app/manifest.rs) · [app/session_io.rs](../../../src/app/session_io.rs) · [app/stream.rs](../../../src/app/stream.rs) · [app/range_gate.rs](../../../src/app/range_gate.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -92,8 +92,6 @@ fn body_end(at: u64, length: u64, end: u64) -> Option<u64> {
 
 ### 2. `src/lib.rs`
 
-Register the source component.
-
 **Locate this existing block:**
 
 ```rust
@@ -115,8 +113,6 @@ pub mod stream;
 ## <a id="checkpoint-67sa-locate-original-cloud-and-sheet-array-fields"></a>2. Locate cloud and sheet array fields
 
 ### 1. `src/stream.rs`
-
-Locate original cloud and sheet array fields.
 
 **Locate this existing block:**
 
@@ -423,8 +419,6 @@ pub fn colors_from(raw: &[u8], count: u32) -> Option<(Vec<u32>, usize)> {
 
 ### 1. `src/stream.rs`
 
-Descend bounded original protobuf messages.
-
 **Locate this existing block:**
 
 ```rust
@@ -636,8 +630,6 @@ impl SheetFields {
 
 ### 1. `src/stream.rs`
 
-Collect original octree node columns.
-
 **Locate this existing block:**
 
 ```rust
@@ -797,8 +789,6 @@ impl CloudLod {
 ## <a id="checkpoint-67si-validate-complete-octrees-before-range-streaming"></a>10. Validate complete octrees before range streaming
 
 ### 1. `src/stream.rs`
-
-Validate complete octrees before range streaming. Supply independent malformed-layout and original-source value fixtures.
 
 **Locate this existing block:**
 

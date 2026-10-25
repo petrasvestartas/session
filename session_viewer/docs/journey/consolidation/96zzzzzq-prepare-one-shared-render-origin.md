@@ -1,6 +1,6 @@
 # 21.3 · Browser ownership of frame matrices and wakeups
 
-**Goal:** Keep browser drawing and asynchronous interaction in one precise local frame. · **Steps:** 3 · **Source:** [camera.rs](../../../src/camera.rs) · [state.rs](../../../src/state.rs) · [engine/gpu/objects.rs](../../../src/engine/gpu/objects.rs) · [engine/gpu/frame.rs](../../../src/engine/gpu/frame.rs)
+**Steps:** 3 · **Source:** [camera.rs](../../../src/camera.rs) · [state.rs](../../../src/state.rs) · [engine/gpu/objects.rs](../../../src/engine/gpu/objects.rs) · [engine/gpu/frame.rs](../../../src/engine/gpu/frame.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -46,11 +46,7 @@
 
 ## <a id="checkpoint-96zzzzzq-prepare-one-shared-render-origin"></a>1. Prepare one shared render origin
 
-Adopt one origin and synchronize original draw inputs before rendering or picking.
-
 ### 1. `src/render_space.rs`
-
-Expose a finite bounded delay beyond the existing strict 200ms throttle.
 
 **Locate this existing block:**
 
@@ -74,8 +70,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 2. `src/renderer.rs`
-
-Adopt one origin without source cancellation; reuse existing input owners and skip unchanged data.
 
 **Locate this existing block:**
 
@@ -138,8 +132,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 3. `src/render_space.rs`
 
-Supply deterministic throttle-deadline and invalid-clock checks without requiring native tests in the learner project.
-
 **Locate this existing block:**
 
 ```rust
@@ -184,8 +176,6 @@ mod delay_tests {
 ```
 
 ### 4. `src/global_outline_tests.rs`
-
-Supply aggregate original mesh/ink/point/cloud/sheet/text/grid pixels, precise ground, unchanged records, throttled wake timing, preserved pending flight/retry and exact restoration/source ownership.
 
 **Locate this existing block:**
 
@@ -411,11 +401,7 @@ fn actual_shared_origin_keeps_all_original_lanes_and_pending_picks_coherent() {
 
 ## <a id="checkpoint-96zzzzzr-prepare-browser-frame-matrices-and-owned-wakes"></a>2. Prepare browser frame matrices and owned wakes
 
-Use one browser render matrix and prepare a wake owned by the runtime.
-
 ### 1. `src/timer.rs`
-
-Retain the kind of owned browser timer for cancellation. Reuse the existing callback owner for both repeating reports and one-shot wakes. Schedule the requested timer kind through the same owned callback. Keep the callback alive exactly as long as its timer owner. Cancel the matching interval or timeout when its owner exits.
 
 **Locate this existing block:**
 
@@ -511,8 +497,6 @@ impl Drop for Timer {
 ```
 
 ### 2. `src/browser.rs`
-
-Use the matching renderer matrix for every existing browser draw, request and readback path. Expose the actual local frame without replacing the existing precise world-camera diagnostic. Report the matrix after initial viewport layout so it matches the first presented frame.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -726,6 +710,8 @@ Replace it with:
 **Locate this block:**
 
 ```rust
+        &mut editor,
+    ) {
         panel.update(None, &canvas)?;
         let frame_started = crate::browser_phase::now();
         present(
@@ -741,6 +727,8 @@ Replace it with:
 Replace it with:
 
 ```rust
+        &mut editor,
+    ) {
         panel.update(None, &canvas)?;
         inspect(&editor, &renderer)?;
         let frame_started = crate::browser_phase::now();
@@ -754,11 +742,55 @@ Replace it with:
         )?;
 ```
 
+**Locate this block:**
+
+```rust
+    let limit = device.limits().max_texture_dimension_2d;
+    let density = window.device_pixel_ratio();
+    let density = if density.is_finite() && density > 0.0 {
+        density
+    } else {
+        1.0
+    };
+    let width = ((window
+        .inner_width()?
+        .as_f64()
+        .ok_or("No window width")?
+        * density)
+        .round() as u32)
+        .clamp(1, limit);
+    let height = ((window
+        .inner_height()?
+        .as_f64()
+        .ok_or("No window height")?
+        * density)
+        .round() as u32)
+        .clamp(1, limit);
+    canvas.set_width(width);
+    canvas.set_height(height);
+```
+
+Replace it with:
+
+```rust
+    let limit = device.limits().max_texture_dimension_2d;
+    let width = (window
+        .inner_width()?
+        .as_f64()
+        .ok_or("No window width")? as u32)
+        .clamp(1, limit);
+    let height = (window
+        .inner_height()?
+        .as_f64()
+        .ok_or("No window height")? as u32)
+        .clamp(1, limit);
+    canvas.set_width(width);
+    canvas.set_height(height);
+```
+
 ## <a id="checkpoint-96zzzzzs-adopt-the-shared-origin-in-the-browser"></a>3. Adopt the shared origin in the browser
 
 ### 1. `src/browser_rebase.rs`
-
-Connect the existing origin policy and timer owner without retaining an editor or scene in a wake.
 
 Create the file and type:
 
@@ -830,8 +862,6 @@ impl Wake {
 
 ### 2. `src/lib.rs`
 
-Compile the browser-only frame and wake adapter.
-
 **Locate this existing block:**
 
 ```rust
@@ -849,8 +879,6 @@ mod browser_report;
 ```
 
 ### 3. `src/browser.rs`
-
-Prepare actual origin-relative inputs before the initial frame and its diagnostics. Keep the wake owner inside the runtime-owned input closure. Use the current origin before judging or queueing asynchronous picks. Adopt action changes before temporary inputs, avoid duplicate selection uploads, and schedule only a pending origin move. Deliver the owned wake through the existing runtime listener owner. Expose the actual precise camera target used by the origin policy for controlled browser frame checks.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 

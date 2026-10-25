@@ -1,6 +1,6 @@
 # 18.5 · Glass, X-ray and shared visibility rules
 
-**Goal:** Prove actual glass x-ray and source ownership. · **Steps:** 9 · **Source:** [engine/gpu/ssao.rs](../../../src/engine/gpu/ssao.rs) · [engine/gpu/ssao/pipelines.rs](../../../src/engine/gpu/ssao/pipelines.rs) · [shaders/ssao.wgsl](../../../src/shaders/ssao.wgsl) · [shaders/triangle.wgsl](../../../src/shaders/triangle.wgsl)
+**Steps:** 9 · **Source:** [engine/gpu/ssao.rs](../../../src/engine/gpu/ssao.rs) · [engine/gpu/ssao/pipelines.rs](../../../src/engine/gpu/ssao/pipelines.rs) · [shaders/ssao.wgsl](../../../src/shaders/ssao.wgsl) · [shaders/triangle.wgsl](../../../src/shaders/triangle.wgsl)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -94,11 +94,7 @@
 </svg>
 </div>
 
-Classify original solids independently of clipping.
-
 ### 1. `src/caps_gpu.rs`
-
-Reuse original closedness for surfaces while keeping section tokens lazy.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -194,8 +190,6 @@ Replace it with:
 ```
 
 ### 2. `src/gpu_mesh.rs`
-
-Own explicit derived x-ray flags without changing original geometry.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -391,8 +385,6 @@ Replace it with:
 </div>
 
 ### 1. `src/renderer.rs`
-
-Own opaque-default presentation alpha in the existing surface frame.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -594,8 +586,6 @@ pub struct Renderer {
 
 ### 1. `src/triangle.wgsl`
 
-Adapt current closed/open alpha and mirrored-front behavior to the earlier source shader.
-
 **Locate this existing block:**
 
 ```wgsl
@@ -675,11 +665,7 @@ fn fragment(input: VertexOutput, @builtin(front_facing) front: bool) -> @locatio
 
 ## <a id="checkpoint-93c-exclude-x-ray-faces-from-original-picks-and-masks"></a>4. Exclude x-ray faces from picks and masks
 
-Exclude x-ray faces from original picks and masks.
-
 ### 1. `src/triangle_pick.wgsl`
-
-Apply one derived x-ray face predicate without source mutation.
 
 **Locate this existing block:**
 
@@ -696,8 +682,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 2. `src/face_pick.wgsl`
-
-Apply one derived x-ray face predicate without source mutation.
 
 **Locate this existing block:**
 
@@ -717,8 +701,6 @@ fn face_fragment(input: FaceOutput) -> @location(0) vec2<u32> {
 
 ### 3. `src/outline_mask.wgsl`
 
-Apply one derived x-ray face predicate without source mutation.
-
 **Locate this existing block:**
 
 ```wgsl
@@ -734,8 +716,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 4. `src/ambient_sources.wgsl`
-
-Apply one derived x-ray face predicate without source mutation.
 
 **Locate this existing block:**
 
@@ -755,11 +735,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-93d-carry-opacity-into-finite-original-ink"></a>5. Carry opacity into finite ink
 
-Carry opacity into finite original ink.
-
 ### 1. `src/stroke_gpu.rs`
-
-Carry view opacity through compatible finite-ink frames and alpha helpers.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -857,8 +833,6 @@ pub struct Lane {
 
 ### 2. `src/highlight.rs`
 
-Carry view opacity through compatible finite-ink frames and alpha helpers.
-
 **Locate this existing block:**
 
 ```rust
@@ -880,8 +854,6 @@ impl Highlight {
 ```
 
 ### 3. `src/finite_visibility.wgsl`
-
-Carry view opacity through compatible finite-ink frames and alpha helpers.
 
 **Locate this existing block:**
 
@@ -906,8 +878,6 @@ fn finite_alpha(pixel:vec2<f32>,axis:vec4<f32>,depths:vec2<f32>,flags:u32)->f32{
 
 ### 4. `src/finite_stroke.wgsl`
 
-Name the opacity scalar in the existing compatible lane frame.
-
 **Locate this existing block:**
 
 ```wgsl
@@ -924,8 +894,6 @@ struct View { transform: mat4x4<f32>, size: vec2<f32>, density: f32, opacity:f32
 
 ### 5. `src/finite_chain.wgsl`
 
-Name the opacity scalar in the existing compatible lane frame.
-
 **Locate this existing block:**
 
 ```wgsl
@@ -941,8 +909,6 @@ struct View { transform: mat4x4<f32>, size: vec2<f32>, density: f32, opacity:f32
 ```
 
 ### 6. `src/finite_marker.wgsl`
-
-Name the opacity scalar in the existing compatible lane frame.
 
 **Locate this existing block:**
 
@@ -961,8 +927,6 @@ struct View { transform: mat4x4<f32>, size: vec2<f32>, density: f32, opacity:f32
 ## <a id="checkpoint-93e-fade-hidden-ink-without-showing-clipped-geometry"></a>6. Fade hidden ink without showing clipped geometry
 
 ### 1. `src/finite_stroke.wgsl`
-
-Use the same original ink visibility alpha for color and integer picks.
 
 **Locate this existing block:**
 
@@ -986,8 +950,6 @@ fn fragment(input: Output) -> @location(0) vec4<f32> {let alpha=finite_alpha(inp
 
 ### 2. `src/finite_chain.wgsl`
 
-Use the same original ink visibility alpha for color and integer picks.
-
 **Locate this existing block:**
 
 ```wgsl
@@ -1009,8 +971,6 @@ fn fragment(input: Output) -> @location(0) vec4<f32> {let alpha=finite_alpha(inp
 ```
 
 ### 3. `src/finite_marker.wgsl`
-
-Use the same original ink visibility alpha for color and integer picks.
 
 **Locate this existing block:**
 
@@ -1034,8 +994,6 @@ fn fragment(input: Output) -> @location(0) vec4<f32> {let alpha=finite_alpha(inp
 
 ### 4. `src/finite_stroke_pick.wgsl`
 
-Use the same original ink visibility alpha for color and integer picks.
-
 **Locate this existing block:**
 
 ```wgsl
@@ -1054,8 +1012,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 5. `src/finite_chain_pick.wgsl`
 
-Use the same original ink visibility alpha for color and integer picks.
-
 **Locate this existing block:**
 
 ```wgsl
@@ -1073,8 +1029,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 6. `src/finite_marker_pick.wgsl`
-
-Use the same original ink visibility alpha for color and integer picks.
 
 **Locate this existing block:**
 
@@ -1095,8 +1049,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ## <a id="checkpoint-93f-invalidate-presentation-and-preserve-cached-geometry"></a>7. Invalidate presentation and preserve cached geometry
 
 ### 1. `src/renderer.rs`
-
-Connect opacity changes to compatible original source flags and presentation caches.
 
 **Locate this existing block:**
 
@@ -1149,8 +1101,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ## <a id="checkpoint-93g-connect-strict-opacity-presentation-commands"></a>8. Connect strict Opacity presentation commands
 
 ### 1. `src/editor.rs`
-
-Connect strict presentation alpha and truthful browser state.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -1272,8 +1222,6 @@ Replace it with:
 
 ### 2. `src/commands.rs`
 
-Connect strict presentation alpha and truthful browser state.
-
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -1324,8 +1272,6 @@ Replace it with:
 
 ### 3. `src/browser.rs`
 
-Connect strict presentation alpha and truthful browser state.
-
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -1370,8 +1316,6 @@ Replace it with:
 ## <a id="checkpoint-93h-prove-actual-glass-x-ray-and-source-ownership"></a>9. Prove actual glass x-ray and source ownership
 
 ### 1. `src/opacity_gpu_tests.rs`
-
-Copy supplied actual alpha, hidden ink, original pick and refresh fixtures.
 
 Create the file and type:
 
@@ -1535,8 +1479,6 @@ fn actual_xray_survives_scene_refresh_without_hiding_open_originals() {
 
 ### 2. `src/renderer.rs`
 
-Register actual renderer-local transparency fixtures.
-
 **Locate this existing block:**
 
 ```rust
@@ -1556,8 +1498,6 @@ mod opacity_gpu_tests;
 ```
 
 ### 3. `src/opacity_command_tests.rs`
-
-Copy supplied strict presentation/pending-point/history fixtures.
 
 Create the file and type:
 
@@ -1620,8 +1560,6 @@ fn opacity_strict_presentation_keeps_original_pending_points_and_redo() {
 ```
 
 ### 4. `src/lib.rs`
-
-Register the completed transparency component.
 
 **Locate this existing block:**
 

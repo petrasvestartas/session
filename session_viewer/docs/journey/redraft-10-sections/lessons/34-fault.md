@@ -1,55 +1,67 @@
 # 4.2 · First failure and independent diagnostic reports
 
-**Goal:** Download a current ready-run report with Report and attempt one independent first-failure download after GPU disposal. · **Steps:** 6 · **Source:** `src/lib.rs` · `src/selftest/lifecycle.rs` · `src/engine/gpu/device.rs`
-
-<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
-<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
-  <defs>
-    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
-    </marker>
-    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
-    </marker>
-    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
-    </marker>
-  </defs>
-  <rect x="2" y="2" width="1116" height="184" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
-  <rect x="14" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">DOM Resize / Visibility Events</text>
-  <rect x="64" y="54" width="108" height="72" rx="4" fill="#f8fafc" stroke="#111111" stroke-width="1.5" stroke-dasharray="3 3"/>
-  <rect x="64" y="54" width="224" height="98" rx="4" fill="none" stroke="#2563eb" stroke-width="2"/>
-  <line x1="172" y1="90" x2="276" y2="90" stroke="#2563eb" stroke-width="2" marker-end="url(#arrB)"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="224" y="140" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Resize (W, H, DPR)</text>
-  <line x1="358" y1="94" x2="384" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
-  <rect x="388" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Matched Color + Depth32Float Attachments</text>
-  <rect x="444" y="56" width="104" height="84" rx="4" fill="#dbeafe" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="496" y="102" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Surface</text>
-  <rect x="572" y="56" width="104" height="84" rx="4" fill="#fef9c3" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="624" y="102" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Depth32</text>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="156" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">aspect = W / H</text>
-  <line x1="732" y1="94" x2="758" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
-  <rect x="762" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Unstretched Aspect-Correct View</text>
-  <rect x="802" y="44" width="264" height="118" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
-  <polygon points="934,58 994,84 934,110 874,84" fill="#93c5fd" stroke="#111111" stroke-width="1.75"/>
-  <polygon points="874,84 934,110 934,150 874,124" fill="#60a5fa" stroke="#111111" stroke-width="1.75"/>
-  <polygon points="934,110 994,84 994,124 934,150" fill="#2563eb" stroke="#111111" stroke-width="1.75"/>
-</svg>
-</div>
+**Steps:** 6 · **Source:** `src/lib.rs` · `src/selftest/lifecycle.rs` · `src/engine/gpu/device.rs`
 
 ## <a id="checkpoint-34-fault"></a>1. Keep the first GPU failure with its device
 
-Give asynchronous GPU callbacks one shared first-failure value without confusing an older device with its replacement.
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="214" viewBox="0 0 1120 214" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr-430deea4" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arr-r-430deea4" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arr-g-430deea4" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arr-b-430deea4" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+    <pattern id="grid-430deea4" width="20" height="20" patternUnits="userSpaceOnUse">
+      <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#f1f5f9" stroke-width="1"/>
+    </pattern>
+  </defs>
+  <rect x="2" y="2" width="1116" height="210" rx="8" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="2" y="2" width="1116" height="28" rx="6" fill="#f8fafc" stroke="#111111" stroke-width="1.5"/>
+  <line x1="2" y1="30" x2="1118" y2="30" stroke="#111111" stroke-width="1.5"/>
+  <rect x="12" y="7" width="176" height="18" rx="3" fill="#111111"/>
+  <text x="100" y="19.5" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#ffffff" paint-order="normal" stroke="none">34..34F · FAULT &amp; RING</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="518" y="20" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">First-Fault Latch (Device Lost / Validation), Render Stop &amp; 3-Run localStorage Ring</text>
+  <rect x="838" y="7" width="268" height="18" rx="3" fill="#ffffff" stroke="#111111" stroke-width="1.2"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="972" y="19.5" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#2563eb">latched_fault.get_or_init(err) · ring[0..3]</text>
+  <rect x="14" y="38" width="344" height="164" rx="6" fill="url(#grid-430deea4)" stroke="#111111" stroke-width="1.5"/>
+  <line x1="14" y1="60" x2="358" y2="60" stroke="#cbd5e1" stroke-width="1"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="186" y="53" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1 · First GPU Fault Latched (Zero Cascade)</text>
+  <rect x="44" y="76" width="284" height="104" rx="4" fill="#fee2e2" stroke="#dc2626" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="186" y="100" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#dc2626">onuncapturederror / device.lost</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="186" y="122" text-anchor="middle" font-family="monospace" font-size="9" fill="#111111">1. Latch root-cause FaultRecord once</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="186" y="142" text-anchor="middle" font-family="monospace" font-size="9" fill="#111111">2. Halt requestAnimationFrame loop</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="186" y="162" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#2563eb">3. Surface copyable JSON report in UI</text>
+  <line x1="358" y1="120" x2="384" y2="120" stroke="#111111" stroke-width="2" marker-end="url(#arr-430deea4)"/>
+  <rect x="388" y="38" width="344" height="164" rx="6" fill="url(#grid-430deea4)" stroke="#111111" stroke-width="1.5"/>
+  <line x1="388" y1="60" x2="732" y2="60" stroke="#cbd5e1" stroke-width="1"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="53" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2 · Bounded 3-Run localStorage Ring</text>
+  <rect x="414" y="84" width="90" height="76" rx="4" fill="#f1f5f9" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="459" y="116" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">Run n-2</text>
+  <rect x="515" y="84" width="90" height="76" rx="4" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="116" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#2563eb">Run n-1</text>
+  <rect x="616" y="84" width="90" height="76" rx="4" fill="#dcfce7" stroke="#16a34a" stroke-width="2"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="661" y="116" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#16a34a">Run n</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="180" text-anchor="middle" font-family="monospace" font-size="8.5" fill="#111111">Evicts oldest run &amp; corrupt schema entries</text>
+  <line x1="732" y1="120" x2="758" y2="120" stroke="#111111" stroke-width="2" marker-end="url(#arr-430deea4)"/>
+  <rect x="762" y="38" width="344" height="164" rx="6" fill="url(#grid-430deea4)" stroke="#111111" stroke-width="1.75"/>
+  <line x1="762" y1="60" x2="1106" y2="60" stroke="#cbd5e1" stroke-width="1"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="934" y="53" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3 · Diagnostic Report Download</text>
+  <rect x="806" y="68" width="256" height="122" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="826" y="86" width="216" height="40" rx="4" fill="#fef9c3" stroke="#d97706" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="934" y="110" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Download fault-report.json</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="934" y="156" text-anchor="middle" font-family="monospace" font-size="9" fill="#16a34a">Survives browser tab crash ✓</text>
+</svg>
+</div>
 
 ### 1. `src/gpu_fault.rs`
-
-Create the shared first-failure value; callback clones identify the same device lifetime.
 
 Create the file and type:
 
@@ -80,8 +92,6 @@ impl Fault {
 ```
 
 ### 2. `src/gpu_fault_tests.rs`
-
-Optional authoring fixture. Verify first-reason retention, replacement-device isolation and concurrent callback delivery.
 
 Create the file and type:
 
@@ -132,8 +142,6 @@ fn concurrent_callbacks_accept_exactly_one_reason() {
 ```
 
 ### 3. `src/lib.rs`
-
-Expose the signal and include its native tests.
 
 **Locate this existing block:**
 
@@ -200,11 +208,7 @@ pub mod history;
 </svg>
 </div>
 
-Connect actual GPU failure callbacks, stop new UI and GPU work, and dispose only the runtime that belongs to the failed device.
-
 ### 1. `src/browser_runtime.rs`
-
-Retain the device failure identity beside the callbacks that use that device. Only the matching device may dispose the active runtime; drop its owner after the slot borrow ends.
 
 **Locate this existing block:**
 
@@ -282,8 +286,6 @@ pub fn stop_if(fault: &crate::gpu_fault::Fault) -> bool {
 
 ### 2. `src/browser.rs`
 
-Mark failure immediately, then defer identity-checked disposal and visible feedback until callbacks return. Connect the real error and device-loss callbacks to this device’s shared signal. Refuse new input, UI updates and GPU work as soon as the callback marks a failure. Install the runtime with the same device identity used by its failure callbacks.
-
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -346,8 +348,8 @@ Replace it with:
         report(&error.to_string())
     }));
     let limit = device.limits().max_texture_dimension_2d;
-    let width = (window
-        .inner_width()?
+    let density = window.device_pixel_ratio();
+    let density = if density.is_finite() && density > 0.0 {
 ```
 
 Replace it with:
@@ -372,8 +374,8 @@ Replace it with:
         )
     });
     let limit = device.limits().max_texture_dimension_2d;
-    let width = (window
-        .inner_width()?
+    let density = window.device_pixel_ratio();
+    let density = if density.is_finite() && density > 0.0 {
 ```
 
 **Locate this block:**
@@ -409,11 +411,7 @@ fn save_result(bytes: &[u8]) -> Result<String, String> {
 
 ## <a id="checkpoint-34b-report"></a>3. Describe a viewer run without keeping its document
 
-Define owned diagnostic context and a serializable run outcome, without retaining scene or GPU owners.
-
 ### 1. `src/diagnostic.rs`
-
-Create a serializable report header with owned browser context and explicit run outcome.
 
 Create the file and type:
 
@@ -468,8 +466,6 @@ impl Report {
 ```
 
 ### 2. `src/diagnostic_tests.rs`
-
-Optional authoring fixture. Check the actual JSON field names, round trip and independence of a retained snapshot.
 
 Create the file and type:
 
@@ -530,8 +526,6 @@ fn report_snapshot_keeps_its_own_context() {
 
 ### 3. `src/lib.rs`
 
-Expose the report model and include its native tests.
-
 **Locate this existing block:**
 
 ```rust
@@ -551,11 +545,7 @@ mod diagnostic_tests;
 
 ## <a id="checkpoint-34ba-events"></a>4. Keep recent events without losing the first failure
 
-Bound diagnostic observations while keeping the original failure independently of recent event rotation.
-
 ### 1. `src/diagnostic.rs`
-
-Describe an observation separately from its bounded owner and preserve its relative timing. Retain the recent event window separately from the first failure, so rotation cannot erase it. Validate relative time, bound observation text/history, and make failure survive later milestones and event rotation.
 
 **Locate this existing block:**
 
@@ -665,8 +655,6 @@ impl Report {
 
 ### 2. `src/diagnostic_tests.rs`
 
-Optional authoring fixture. Prove bounded history/text, retained first failure, ready-state semantics and atomic rejection of invalid timing.
-
 **Locate this existing block:**
 
 ```rust
@@ -771,11 +759,7 @@ fn invalid_time_is_atomic_and_text_is_bounded() {
 
 ## <a id="checkpoint-34c-browser"></a>5. Read live diagnostic context outside the GPU runtime
 
-Start a bounded page report and read real browser context independently of the renderer’s lifetime.
-
 ### 1. `src/browser_report.rs`
-
-Own one bounded report for the page and read actual browser metadata without keeping any viewer or GPU owner.
 
 Create the file and type:
 
@@ -865,8 +849,6 @@ pub fn diagnostic_snapshot() -> Result<String, JsValue> {
 
 ### 2. `Cargo.toml`
 
-Enable typed browser address, identity and monotonic-clock access.
-
 **Locate this existing block:**
 
 ```toml
@@ -884,8 +866,6 @@ console_error_panic_hook = "=0.1.7"
 ```
 
 ### 3. `src/lib.rs`
-
-Compile the browser report bridge only for WebAssembly.
 
 **Locate this existing block:**
 
@@ -905,8 +885,6 @@ mod browser_runtime;
 
 ### 4. `src/browser.rs`
 
-Start diagnostic context before awaiting the GPU connection; failure observation and downloads are connected next.
-
 **Locate this existing block:**
 
 ```rust
@@ -925,8 +903,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ## <a id="checkpoint-34d-download"></a>6. Download diagnostics through the real command line
 
 ### 1. `src/file_output.rs`
-
-Reuse the existing owned Blob/anchor cleanup for a named report while keeping Save’s filename unchanged. Choose the diagnostic JSON filename without changing the document download contract.
 
 **Locate this existing block:**
 
@@ -962,8 +938,6 @@ pub fn download_named(bytes: &[u8], name: &str) -> Result<(), JsValue> {
 
 ### 2. `src/browser_report.rs`
 
-Download a current metadata snapshot and attempt one automatic download for the first fatal observation.
-
 **Locate this existing block:**
 
 ```rust
@@ -997,8 +971,6 @@ pub fn fatal(message: &str) {
 ```
 
 ### 3. `src/browser.rs`
-
-Keep the matching device’s failure evidence after its GPU runtime is disposed. Expose diagnostics through the actual command dock without an HTML feature button. Mark the report ready only after the initial scene frame is presented. Handle the typed report command separately from document Save and edit history.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -1092,8 +1064,6 @@ Replace it with:
 ```
 
 ### 4. `src/lib.rs`
-
-Capture startup failure after diagnostic initialization, even when no GPU runtime could be installed.
 
 **Locate this existing block:**
 

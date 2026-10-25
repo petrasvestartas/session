@@ -1,6 +1,6 @@
 # 8.3 · Layers, visibility and source-preserving properties
 
-**Goal:** Exercise layers shortcuts colours and exact source ownership. · **Steps:** 23 · **Source:** [app/hierarchy.rs](../../../src/app/hierarchy.rs) · [app/layers.rs](../../../src/app/layers.rs) · [app/ui/layers.rs](../../../src/app/ui/layers.rs) · [app/gesture/mod.rs](../../../src/app/gesture/mod.rs)
+**Steps:** 23 · **Source:** [app/hierarchy.rs](../../../src/app/hierarchy.rs) · [app/layers.rs](../../../src/app/layers.rs) · [app/ui/layers.rs](../../../src/app/ui/layers.rs) · [app/gesture/mod.rs](../../../src/app/gesture/mod.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -51,11 +51,7 @@
 
 ## <a id="checkpoint-53-flags"></a>1. Separate layer presentation from sources
 
-Separate layer presentation from original sources.
-
 ### 1. `src/view_flags.rs`
-
-Store presentation identities and independent colour channels outside source geometry.
 
 Create the file and type:
 
@@ -133,8 +129,6 @@ impl Flags {
 
 ### 2. `src/lib.rs`
 
-Register the new source component.
-
 **Locate this existing block:**
 
 ```rust
@@ -154,8 +148,6 @@ pub mod view_flags;
 ## <a id="checkpoint-53a-ids"></a>2. Index live identities and initialise view flags
 
 ### 1. `src/scene.rs`
-
-Maintain live identities and initialise independent flags in every source insertion and removal path.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -415,8 +407,6 @@ pub struct Scene {
 
 ### 2. `src/hierarchy.rs`
 
-Index read-only identities once instead of walking the tree for each surface pick.
-
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -535,8 +525,6 @@ impl Forest {
 </div>
 
 ### 1. `src/gpu_mesh.rs`
-
-Extend surface settings without changing original geometry or integer identity precision.
 
 **Locate this existing block:**
 
@@ -744,8 +732,6 @@ impl GpuMesh {
 
 ### 2. `src/triangle.wgsl`
 
-Extend surface settings without changing original geometry or integer identity precision.
-
 **Locate this existing block:**
 
 ```wgsl
@@ -794,8 +780,6 @@ fn geometry(position: vec3<f32>, colour: vec3<f32>, normal: vec3<f32>) -> Vertex
 
 ### 3. `src/face_pick.rs`
 
-Extend surface settings without changing original geometry or integer identity precision.
-
 **Locate this existing block:**
 
 ```rust
@@ -813,8 +797,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 4. `src/renderer.rs`
-
-Derive dynamic pick ownership and face colour while reusing surface geometry buffers.
 
 **Locate this existing block:**
 
@@ -2170,8 +2152,6 @@ fn rgba(rgb: [u8; 3]) -> [f32; 4] {
 
 ### 1. `src/scene.rs`
 
-Resolve current source visibility, eligible picks and placed bounds from independent presentation.
-
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -2416,8 +2396,6 @@ Replace it with:
 
 ### 2. `src/multi_selection_tests.rs`
 
-Copy the complete selection regression with real view-state fixtures.
-
 **Locate this existing block:**
 
 ```rust
@@ -2440,8 +2418,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 3. `src/pick_gpu_tests.rs`
 
-Copy the integer-pick regression using actual presentation locks.
-
 **Locate this existing block:**
 
 ```rust
@@ -2463,8 +2439,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ## <a id="checkpoint-53c-presentation"></a>5. Use current visibility and colours in every derived pass
 
 ### 1. `src/renderer.rs`
-
-Apply independent face, edge and object colours across every derived rendering lane.
 
 **Locate this existing block:**
 
@@ -2610,8 +2584,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 2. `src/highlight.rs`
 
-Use current presentation eligibility while preserving original source records.
-
 **Locate this existing block:**
 
 ```rust
@@ -2681,8 +2653,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 3. `src/pick_sources.rs`
-
-Use current presentation eligibility while preserving original source records.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -2809,8 +2779,6 @@ Replace it with:
 ```
 
 ### 4. `src/snap_sources.rs`
-
-Use current presentation eligibility while preserving original source records.
 
 **Locate this existing block:**
 
@@ -2942,8 +2910,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 5. `src/picking.rs`
 
-Use current presentation eligibility while preserving original source records.
-
 **Locate this existing block:**
 
 ```rust
@@ -2961,8 +2927,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 6. `src/pick_gpu_tests.rs`
-
-Copy the preserved integer-pick regression with current visibility and lock fixtures.
 
 **Locate this existing block:**
 
@@ -2985,8 +2949,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ## <a id="checkpoint-53d-hide-show"></a>6. Connect Hide Show and canvas Delete shortcuts
 
 ### 1. `src/editor.rs`
-
-Hide selected descendants without a document edit and reveal all sources with Show.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -3044,8 +3006,6 @@ Replace it with:
 
 ### 2. `src/history.rs`
 
-Keep canvas shortcuts and presentation separate from text editing and document history.
-
 **Locate this existing block:**
 
 ```rust
@@ -3064,8 +3024,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 3. `src/commands.rs`
 
-Keep canvas shortcuts and presentation separate from text editing and document history.
-
 **Locate this existing block:**
 
 ```rust
@@ -3083,8 +3041,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 4. `src/shortcuts.rs`
-
-Keep canvas shortcuts and presentation separate from text editing and document history.
 
 **Locate this existing block:**
 
@@ -3186,8 +3142,6 @@ pub fn key(
 
 ### 5. `src/shortcuts_tests.rs`
 
-Copy the preserved focus/modifier cases and new H/S/Delete ownership checks.
-
 **Locate this existing block:**
 
 ```rust
@@ -3244,8 +3198,6 @@ fn canvas_delete_hide_show_keep_focused_text_and_modifiers_owned_by_the_field() 
 ## <a id="checkpoint-53e-properties"></a>7. Apply eye lock and independent colour properties
 
 ### 1. `src/layer_properties.rs`
-
-Apply one property to a row and its descendants without mutating source geometry.
 
 Create the file and type:
 
@@ -3328,8 +3280,6 @@ pub fn apply(
 
 ### 2. `src/lib.rs`
 
-Register the new source component.
-
 **Locate this existing block:**
 
 ```rust
@@ -3349,8 +3299,6 @@ pub mod layer_properties;
 ```
 
 ### 3. `src/editor.rs`
-
-Route layer properties through selection repair and snap-cache invalidation.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -3409,8 +3357,6 @@ pub enum Action {
 
 ### 4. `src/hierarchy.rs`
 
-Resolve nearest source tree colours once when a document is imported.
-
 **Locate this existing block:**
 
 ```rust
@@ -3460,8 +3406,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 5. `src/scene.rs`
 
-Seed inherited source-node colours without rewriting their original records.
-
 **Locate this existing block:**
 
 ```rust
@@ -3483,8 +3427,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ## <a id="checkpoint-53f-portable"></a>8. Keep tree identities stable across edits and saves
 
 ### 1. `src/hierarchy.rs`
-
-Preserve portable UUIDs and rebuild immutable tree indexes after group edits.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -3616,8 +3558,6 @@ pub struct Node {
 
 ### 1. `src/layer_edit.rs`
 
-Represent atomic subtree edits without owning kernel geometry.
-
 Create the file and type:
 
 ```rust
@@ -3681,8 +3621,6 @@ fn flatten(root: Branch, parent: Option<usize>, depth: usize, nodes: &mut Vec<No
 
 ### 2. `src/lib.rs`
 
-Register the new source component.
-
 **Locate this existing block:**
 
 ```rust
@@ -3704,8 +3642,6 @@ pub mod layer_edit;
 ## <a id="checkpoint-53h-layer-targets"></a>10. Validate current layers and protected ancestors
 
 ### 1. `src/scene.rs`
-
-Retain the generated-document identity separately from the selected current layer.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -3771,8 +3707,6 @@ pub struct Scene {
 ```
 
 ### 2. `src/layer_edit.rs`
-
-Resolve eligible groups and current-layer ancestry without changing source records.
 
 **Locate this existing block:**
 
@@ -3874,8 +3808,6 @@ fn replace(scene: &mut Scene, owner: usize, tree: Branch) {
 
 ### 3. `src/layer_properties.rs`
 
-Protect the current layer and every ancestor from hiding.
-
 **Locate this existing block:**
 
 ```rust
@@ -3903,8 +3835,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ## <a id="checkpoint-53i-copy-records"></a>11. Copy row identities while sharing source allocations
 
 ### 1. `src/scene.rs`
-
-Allocate copied rows without duplicating original CPU geometry or rewriting coordinates.
 
 **Locate this existing block:**
 
@@ -4006,8 +3936,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ## <a id="checkpoint-53j-transfers"></a>12. Move and copy objects between layer trees
 
 ### 1. `src/layer_edit.rs`
-
-Transfer source-owned branches and copy explicit selections with checked node and depth limits.
 
 **Locate this existing block:**
 
@@ -4172,8 +4100,6 @@ fn transfer(
 
 ### 1. `src/layer_edit.rs`
 
-Create checked layer groups and rename labels without replacing their stable identities.
-
 **Locate this existing block:**
 
 ```rust
@@ -4273,8 +4199,6 @@ fn rename(scene: &mut Scene, key: &str, label: &str) -> Result<(), &'static str>
 
 ### 1. `src/layer_edit.rs`
 
-Delete protected subtrees and duplicate descendants while sharing original source geometry.
-
 **Locate this existing block:**
 
 ```rust
@@ -4355,8 +4279,6 @@ fn duplicate(scene: &mut Scene, key: &str) -> Result<(), &'static str> {
 
 ### 1. `src/layer_edit.rs`
 
-Dispatch current selection and document layer edits through their separate ownership boundaries.
-
 **Locate this existing block:**
 
 ```rust
@@ -4392,8 +4314,6 @@ pub fn apply(scene: &mut Scene, key: &str, edit: Edit) -> Result<(), &'static st
 ```
 
 ### 2. `src/editor.rs`
-
-Commit each successful layer document action once and preserve redo on failure.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -4451,8 +4371,6 @@ pub enum Action {
 ## <a id="checkpoint-53n-routing"></a>16. Create geometry on the current layer or Created
 
 ### 1. `src/layer_edit.rs`
-
-Attach new geometry to checked current groups or the generated root.
 
 **Locate this existing block:**
 
@@ -4518,8 +4436,6 @@ fn take(root: &mut Branch, id: crate::scene::ObjectId) -> Option<Branch> {
 ```
 
 ### 2. `src/scene.rs`
-
-Route generated geometry through one stable layer attachment in every insertion lane.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -4684,8 +4600,6 @@ Replace it with:
 
 ### 3. `src/hierarchy.rs`
 
-Avoid duplicate fallback rows once generated lines, curves and points have tree nodes.
-
 **Locate this existing block:**
 
 ```rust
@@ -4703,8 +4617,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 4. `src/snapshot_tests.rs`
-
-Copy the preserved source/placement regression with its generated Created hierarchy assertion.
 
 **Locate this existing block:**
 
@@ -4749,8 +4661,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ## <a id="checkpoint-53o-palette"></a>17. Supply nine colour swatches and RGB sliders
 
 ### 1. `src/layer_palette.rs`
-
-Draw maintained colour swatches and checked RGB sliders without editing source geometry.
 
 Create the file and type:
 
@@ -4831,8 +4741,6 @@ pub fn draw(
 
 ### 2. `src/lib.rs`
 
-Register the new source component.
-
 **Locate this existing block:**
 
 ```rust
@@ -4854,8 +4762,6 @@ pub mod layer_palette;
 ## <a id="checkpoint-53p-panel-state"></a>18. Resolve layer presentation for real tree controls
 
 ### 1. `src/tree_panel.rs`
-
-Keep row presentation and pending layer drafts separate from source and history ownership.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -4996,8 +4902,6 @@ pub struct TreePanel {
 ## <a id="checkpoint-53q-properties-ui"></a>19. Draw eye lock and independent colour menus
 
 ### 1. `src/tree_panel.rs`
-
-Draw actual layer property controls and record colour-popup rectangles for input ownership.
 
 **Locate this existing block:**
 
@@ -5140,8 +5044,6 @@ fn properties(
 
 ### 1. `src/tree_panel.rs`
 
-Own name-field keys and show explicit populated-layer deletion controls.
-
 **Locate this existing block:**
 
 ```rust
@@ -5239,8 +5141,6 @@ fn dialogs(
 
 ### 1. `src/tree_panel.rs`
 
-Connect measured group menus and property controls while preserving read-only source selection guards.
-
 **Locate this existing block:**
 
 ```rust
@@ -5331,8 +5231,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ## <a id="checkpoint-53t-input"></a>22. Route layer controls before handles and canvas input
 
 ### 1. `src/panel.rs`
-
-Preserve active text-field focus and let popup rectangles own pointer and wheel input.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -5428,8 +5326,6 @@ Replace it with:
 ```
 
 ### 2. `src/browser.rs`
-
-Route pending layer edits and properties first, retain errors and expose current presentation diagnostics.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -5555,8 +5451,6 @@ Replace it with:
 
 ### 1. `src/shortcuts.rs`
 
-Add field-aware Select All alongside the already taught history and H/S/F keys.
-
 **Locate this existing block:**
 
 ```rust
@@ -5600,8 +5494,6 @@ pub fn context_key(
 ```
 
 ### 2. `src/command_dock/mod.rs`
-
-Request command focus once; an open dock must allow the layer name to own typing. Show completions only while their actual field owns focus. Keep Escape with its focused field; an open dock is not keyboard ownership.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -5670,8 +5562,6 @@ Replace it with:
 ```
 
 ### 3. `src/view_flags_tests.rs`
-
-Copy the full source ownership, history and actual control regressions.
 
 Create the file and type:
 
@@ -5967,8 +5857,6 @@ fn parent_lamp_preserves_child_visibility_and_child_lamps() {
 
 ### 4. `src/lib.rs`
 
-Register the new source component.
-
 **Locate this existing block:**
 
 ```rust
@@ -5989,8 +5877,6 @@ mod view_flags_tests;
 ```
 
 ### 5. `src/layer_edit_tests.rs`
-
-Copy the full source ownership, history and actual control regressions.
 
 Create the file and type:
 
@@ -6463,8 +6349,6 @@ fn portable_tree_identity_is_stable_across_repeated_saves_and_distinct_across_im
 
 ### 6. `src/lib.rs`
 
-Register the new source component.
-
 **Locate this existing block:**
 
 ```rust
@@ -6483,8 +6367,6 @@ mod layer_edit_tests;
 ```
 
 ### 7. `src/layer_ui_tests.rs`
-
-Copy the full source ownership, history and actual control regressions.
 
 Create the file and type:
 
@@ -6883,8 +6765,6 @@ fn an_open_command_dock_does_not_steal_layer_editing_focus() {
 
 ### 8. `src/lib.rs`
 
-Register the new source component.
-
 **Locate this existing block:**
 
 ```rust
@@ -6903,8 +6783,6 @@ mod layer_ui_tests;
 ```
 
 ### 9. `src/pick_gpu_tests.rs`
-
-Copy the actual GPU colour, independent channel and geometry-reuse regression.
 
 **Locate this existing block:**
 

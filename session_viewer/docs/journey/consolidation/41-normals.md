@@ -1,57 +1,68 @@
 # 5.7 · Normals, placement and a depth-correct construction grid
 
-**Goal:** Enable the finite depth-correct grid through actual dock input, preserving grid view state, source history and unchanged geometry during camera navigation. · **Steps:** 8 · **Source:** [app/walk/curves.rs](../../../src/app/walk/curves.rs) · [engine/gpu/segments.rs](../../../src/engine/gpu/segments.rs) · [shaders/ribbon.wgsl](../../../src/shaders/ribbon.wgsl) · [shaders/vector.wgsl](../../../src/shaders/vector.wgsl)
-
-<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
-<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
-  <defs>
-    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
-    </marker>
-    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
-    </marker>
-    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
-    </marker>
-  </defs>
-  <rect x="2" y="2" width="1116" height="184" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
-  <rect x="14" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Unit Normal Vector N = (nx, ny, nz)</text>
-  <polygon points="84,138 186,98 288,138 186,162" fill="#dbeafe" stroke="#111111" stroke-width="1.75"/>
-  <circle cx="186" cy="128" r="4.5" fill="#111111"/>
-  <line x1="186" y1="128" x2="186" y2="48" stroke="#2563eb" stroke-width="2.5" marker-end="url(#arrB)"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="206" y="56" font-family="monospace" font-size="10" font-weight="700" fill="#2563eb">N (||N||=1)</text>
-  <line x1="358" y1="94" x2="384" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
-  <rect x="388" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">@fragment: rgb = N * 0.5 + 0.5</text>
-  <rect x="448" y="54" width="66" height="88" rx="4" fill="#fca5a5" stroke="#111111" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="481" y="102" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">+X→R</text>
-  <rect x="527" y="54" width="66" height="88" rx="4" fill="#86efac" stroke="#111111" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="102" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">+Y→G</text>
-  <rect x="606" y="54" width="66" height="88" rx="4" fill="#93c5fd" stroke="#111111" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="639" y="102" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">+Z→B</text>
-  <line x1="732" y1="94" x2="758" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
-  <rect x="762" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Normal Map &amp; Needle Overlay in Viewer</text>
-  <rect x="806" y="44" width="256" height="118" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
-  <polygon points="934,62 1002,90 934,116 866,90" fill="#93c5fd" stroke="#111111" stroke-width="1.5"/>
-  <polygon points="866,90 934,116 934,154 866,126" fill="#86efac" stroke="#111111" stroke-width="1.5"/>
-  <polygon points="934,116 1002,90 1002,126 934,154" fill="#fca5a5" stroke="#111111" stroke-width="1.5"/>
-  <line x1="934" y1="88" x2="934" y2="48" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
-</svg>
-</div>
+**Steps:** 8 · **Source:** [app/walk/curves.rs](../../../src/app/walk/curves.rs) · [engine/gpu/segments.rs](../../../src/engine/gpu/segments.rs) · [shaders/ribbon.wgsl](../../../src/shaders/ribbon.wgsl) · [shaders/vector.wgsl](../../../src/shaders/vector.wgsl)
 
 ## <a id="checkpoint-41-normals"></a>1. Retain checked source normals beside display positions
 
-Retain a checked normal stream from the original kernel adapter while preserving source attributes and the existing position/colour layout.
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="214" viewBox="0 0 1120 214" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr-73ea7abd" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arr-r-73ea7abd" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arr-g-73ea7abd" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arr-b-73ea7abd" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+    <pattern id="grid-73ea7abd" width="20" height="20" patternUnits="userSpaceOnUse">
+      <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#f1f5f9" stroke-width="1"/>
+    </pattern>
+  </defs>
+  <rect x="2" y="2" width="1116" height="210" rx="8" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="2" y="2" width="1116" height="28" rx="6" fill="#f8fafc" stroke="#111111" stroke-width="1.5"/>
+  <line x1="2" y1="30" x2="1118" y2="30" stroke="#111111" stroke-width="1.5"/>
+  <rect x="12" y="7" width="176" height="18" rx="3" fill="#111111"/>
+  <text x="100" y="19.5" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#ffffff" paint-order="normal" stroke="none">39..41 · COFACTOR NORMALS</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="518" y="20" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Non-Uniform Scale Normal Cofactor N_w = normalize((M⁻¹)ᵀ · N_l), Hedgehog &amp; Ground Grid</text>
+  <rect x="838" y="7" width="268" height="18" rx="3" fill="#ffffff" stroke="#111111" stroke-width="1.2"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="972" y="19.5" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#2563eb">N_world = normalize(cofactor(M) * N_local)</text>
+  <rect x="14" y="38" width="344" height="164" rx="6" fill="url(#grid-73ea7abd)" stroke="#111111" stroke-width="1.5"/>
+  <line x1="14" y1="60" x2="358" y2="60" stroke="#cbd5e1" stroke-width="1"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="186" y="53" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1 · Why M*N Fails Under Non-Uniform Scale</text>
+  <polygon points="64,166 176,112 288,166" fill="#dbeafe" stroke="#111111" stroke-width="1.75"/>
+  <line x1="120" y1="139" x2="104" y2="82" stroke="#dc2626" stroke-width="2" stroke-dasharray="3 2" marker-end="url(#arr-r-73ea7abd)"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="84" y="78" font-family="monospace" font-size="8.5" font-weight="700" fill="#dc2626">M*N (skewed ✗)</text>
+  <line x1="148" y1="126" x2="118" y2="70" stroke="#16a34a" stroke-width="2.5" marker-end="url(#arr-g-73ea7abd)"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="176" y="76" font-family="monospace" font-size="9" font-weight="700" fill="#16a34a">(M⁻¹)ᵀ*N ⊥ surface ✓</text>
+  <line x1="358" y1="120" x2="384" y2="120" stroke="#111111" stroke-width="2" marker-end="url(#arr-73ea7abd)"/>
+  <rect x="388" y="38" width="344" height="164" rx="6" fill="url(#grid-73ea7abd)" stroke="#111111" stroke-width="1.5"/>
+  <line x1="388" y1="60" x2="732" y2="60" stroke="#cbd5e1" stroke-width="1"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="53" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2 · Vertex vs Face Centroid Normal Vectors</text>
+  <polygon points="432,166 560,86 688,166" fill="#bfdbfe" stroke="#111111" stroke-width="1.75"/>
+  <circle cx="560" cy="139" r="4" fill="#dc2626"/>
+  <line x1="560" y1="139" x2="560" y2="72" stroke="#dc2626" stroke-width="2.5" marker-end="url(#arr-r-73ea7abd)"/>
+  <line x1="432" y1="166" x2="404" y2="112" stroke="#2563eb" stroke-width="2" marker-end="url(#arr-b-73ea7abd)"/>
+  <line x1="688" y1="166" x2="716" y2="112" stroke="#2563eb" stroke-width="2" marker-end="url(#arr-b-73ea7abd)"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="184" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">C = (v0 + v1 + v2) / 3 -&gt; C + L*N_f</text>
+  <line x1="732" y1="120" x2="758" y2="120" stroke="#111111" stroke-width="2" marker-end="url(#arr-73ea7abd)"/>
+  <rect x="762" y="38" width="344" height="164" rx="6" fill="url(#grid-73ea7abd)" stroke="#111111" stroke-width="1.75"/>
+  <line x1="762" y1="60" x2="1106" y2="60" stroke="#cbd5e1" stroke-width="1"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="934" y="53" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3 · Depth-Tested Ground Grid + Normals</text>
+  <rect x="806" y="68" width="256" height="122" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <line x1="818" y1="164" x2="1050" y2="164" stroke="#dc2626" stroke-width="1.75"/>
+  <line x1="934" y1="78" x2="934" y2="182" stroke="#16a34a" stroke-width="1.75"/>
+  <polygon points="874,154 934,88 994,154" fill="#93c5fd" stroke="#111111" stroke-width="1.75"/>
+  <line x1="904" y1="121" x2="872" y2="92" stroke="#dc2626" stroke-width="2" marker-end="url(#arr-r-73ea7abd)"/>
+  <line x1="964" y1="121" x2="996" y2="92" stroke="#dc2626" stroke-width="2" marker-end="url(#arr-r-73ea7abd)"/>
+</svg>
+</div>
 
 ### 1. `src/normals.rs`
-
-Normalize bounded display directions safely while preserving an explicit flat fallback.
 
 Create the file and type:
 
@@ -79,8 +90,6 @@ pub fn unit(vector: [f32; 3]) -> Result<[f32; 3], &'static str> {
 
 ### 2. `src/lib.rs`
 
-Register normal preparation and its source checks.
-
 **Locate this existing block:**
 
 ```rust
@@ -99,8 +108,6 @@ pub mod offset;
 ```
 
 ### 3. `src/mesh.rs`
-
-Retain normal data independently of the established position/colour stream. Give manually created display meshes explicit flat normals by default. Carry kernel-extracted normal directions into checked display preparation. Require one finite checked normal per display vertex without touching original geometry. Count actual retained normal capacity in CPU display bytes.
 
 **Locate this existing block:**
 
@@ -243,8 +250,6 @@ impl Mesh {
 
 ### 4. `src/memory.rs`
 
-Copy the normal-capacity oracle for a display mesh retaining three normals.
-
 **Locate this existing block:**
 
 ```rust
@@ -265,8 +270,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 5. `src/normal_source_tests.rs`
-
-Copy exact original attributes, normalized directions, flat zeros, malformed data and overflow-safe checks.
 
 Create the file and type:
 
@@ -372,11 +375,7 @@ fn normal_streams_refuse_mismatches_and_nonfinite_values_without_overflow() {
 </svg>
 </div>
 
-Prepare a finite oriented normal matrix that stays perpendicular under nonuniform scale, shear, reflection and flattening.
-
 ### 1. `src/normals.rs`
-
-Prepare bounded cofactor columns for oriented affine normal transformation.
 
 **Locate this existing block:**
 
@@ -431,8 +430,6 @@ pub fn matrix(model: &session_rust::Xform) -> Result<[f32; 16], &'static str> {
 
 ### 2. `src/lib.rs`
 
-Register nonuniform, reflected and singular placement checks.
-
 **Locate this existing block:**
 
 ```rust
@@ -450,8 +447,6 @@ mod normal_source_tests;
 ```
 
 ### 3. `src/normal_matrix_tests.rs`
-
-Copy perpendicularity, translation independence, winding, collapse and finite-range checks.
 
 Create the file and type:
 
@@ -568,11 +563,7 @@ fn reflections_flattening_and_extreme_scale_keep_finite_oriented_normals() {
 </svg>
 </div>
 
-Upload the retained source normal stream and its oriented placement matrix, with real smooth interpolation and explicit flat-face fallback.
-
 ### 1. `src/gpu_geometry.rs`
-
-Share the checked normal stream with the geometry’s existing GPU lifetime. Upload three finite floats for each display vertex normal. Retain the normal allocation beside position and index buffers. Report actual normal allocation bytes as shared geometry. Bind the normal stream independently from position and colour attributes.
 
 **Locate this existing block:**
 
@@ -688,8 +679,6 @@ impl GpuGeometry {
 
 ### 2. `src/renderer.rs`
 
-Describe three normal floats in shader attribute two.
-
 **Locate this existing block:**
 
 ```rust
@@ -708,8 +697,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 3. `src/gpu_mesh.rs`
-
-Retain previous model, selection and normal-matrix settings for change-only writes. Allocate 64 model bytes, 16 selection bytes and 64 normal-matrix bytes. Serialize bounded normal cofactors after model and selection settings. Rewrite only the settings region whose bytes changed.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -788,8 +775,6 @@ fn settings(object: &Object, selected: bool) -> [u8; 144] {
 
 ### 4. `src/scene.rs`
 
-Refuse invalid initial placement before consuming an ID or creating a row.
-
 **Locate this existing block:**
 
 ```rust
@@ -808,8 +793,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 5. `src/geometry_cache.rs`
-
-Count initialized normal payload separately from retained GPU capacity.
 
 **Locate this existing block:**
 
@@ -832,8 +815,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 6. `src/renderer.rs`
 
-Count complete initial object settings without confusing the separate ink view uniform.
-
 **Locate this existing block:**
 
 ```rust
@@ -851,8 +832,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 7. `src/triangle.wgsl`
-
-Keep the shader uniform layout identical to the 144-byte host settings. Interpolate the placed source normal across the rasterized face. Read the normal attribute from the separate shared stream. Transform a direction without adding the object’s translation. Choose source smoothing or sharp derivatives, then normalize without zero division or squaring huge vectors.
 
 **Locate this existing block:**
 
@@ -923,8 +902,6 @@ fn fragment(input: VertexOutput) -> @location(0) vec4<f32> {
 
 ### 8. `src/lib.rs`
 
-Register atomic placement and normal-stream GPU boundary checks.
-
 **Locate this existing block:**
 
 ```rust
@@ -942,8 +919,6 @@ mod normal_matrix_tests;
 ```
 
 ### 9. `src/normal_gpu_tests.rs`
-
-Copy invalid-placement refusal and unchanged identity-allocation checks.
 
 Create the file and type:
 
@@ -1017,11 +992,7 @@ fn invalid_initial_normal_placement_does_not_consume_an_object_identity() {
 </svg>
 </div>
 
-Draw an oriented world-normal diagnostic with sharp-face winding and finite source smoothing, independently of source history.
-
 ### 1. `src/editor.rs`
-
-Expose source insertion and normal diagnostics as separate editor actions. Retain the diagnostic view outside source document history. Start with ordinary surface lighting. Change normal visualization without adding document history.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -1111,8 +1082,6 @@ Replace it with:
 
 ### 2. `src/triangle.wgsl`
 
-Describe camera transform and diagnostic mode in the view uniform. Use the transform field of the extended view settings. Receive actual face orientation rather than inferring winding from lighting. Recover oriented sharp-face normals from raster derivatives and actual front-facing state. Map oriented world-normal components into visible diagnostic RGB.
-
 **Locate this existing block:**
 
 ```wgsl
@@ -1199,8 +1168,6 @@ fn fragment(input: VertexOutput, @builtin(front_facing) front: bool) -> @locatio
 
 ### 3. `src/renderer.rs`
 
-Allocate the complete camera and diagnostic uniform. Draw either actual surface lighting or normal diagnostics with shared geometry and ink.
-
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -1277,8 +1244,6 @@ Replace it with:
 ```
 
 ### 4. `src/browser.rs`
-
-Pass the editor’s diagnostic setting to actual initial or subsequent browser drawing. Carry diagnostic mode through browser surface presentation. Present actual diagnostic pixels through the maintained surface renderer. Expose current view mode for actual command verification. Offer normal visualization through completion and Help. Connect actual typed commands to the independent view setting.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -1447,8 +1412,6 @@ Replace it with:
 ```
 
 ### 5. `src/lib.rs`
-
-Register the source-history independence check.
 
 **Locate this existing block:**
 
@@ -1725,8 +1688,6 @@ mod source_visibility_tests;
 
 ### 6. `src/normal_view_tests.rs`
 
-Copy the check that viewing normals preserves geometry, identity and Undo.
-
 Create the file and type:
 
 ```rust
@@ -1784,11 +1745,7 @@ fn normal_view_changes_without_consuming_source_history() {
 
 ## <a id="checkpoint-41ca-input"></a>5. Inspect smooth normals and face winding through commands
 
-Compare sharp/smooth source surfaces and actual face winding through real commands, retaining source history and editable normal attributes.
-
 ### 1. `src/normal_example.rs`
-
-Create original source specimens with missing, smooth or oppositely wound normals.
 
 Create the file and type:
 
@@ -1857,8 +1814,6 @@ pub fn specimen(mode: Mode) -> Mesh {
 
 ### 2. `src/editor.rs`
 
-Expose source insertion and normal diagnostics as separate editor actions. Commit one original normal specimen in a single undoable insertion.
-
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -1908,8 +1863,6 @@ Replace it with:
 ```
 
 ### 3. `src/browser.rs`
-
-Expose normal specimens and diagnostics in actual dock completion and Help. Dispatch real command input through source and view actions.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -1964,8 +1917,6 @@ Replace it with:
 ```
 
 ### 4. `src/lib.rs`
-
-Register source normal attributes, view independence, history and editable roundtrip checks.
 
 **Locate this existing block:**
 
@@ -2051,8 +2002,6 @@ pub mod colour;
 
 ### 5. `src/normal_input_tests.rs`
 
-Copy source normal attributes, exact protobuf roundtrip, independent view mode, one-step history and Close checks.
-
 Create the file and type:
 
 ```rust
@@ -2106,11 +2055,50 @@ fn normal_commands_preserve_original_attributes_history_and_roundtrips() {
 
 ## <a id="checkpoint-41d-grid"></a>6. Bound the ground grid and its camera depth range
 
-Prepare a finite bounded ground grid with current BRG axis colours and include its distant corners in the camera depth range.
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="184" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Unit Normal Vector N = (nx, ny, nz)</text>
+  <polygon points="84,138 186,98 288,138 186,162" fill="#dbeafe" stroke="#111111" stroke-width="1.75"/>
+  <circle cx="186" cy="128" r="4.5" fill="#111111"/>
+  <line x1="186" y1="128" x2="186" y2="48" stroke="#2563eb" stroke-width="2.5" marker-end="url(#arrB)"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="206" y="56" font-family="monospace" font-size="10" font-weight="700" fill="#2563eb">N (||N||=1)</text>
+  <line x1="358" y1="94" x2="384" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="388" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">@fragment: rgb = N * 0.5 + 0.5</text>
+  <rect x="448" y="54" width="66" height="88" rx="4" fill="#fca5a5" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="481" y="102" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">+X→R</text>
+  <rect x="527" y="54" width="66" height="88" rx="4" fill="#86efac" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="102" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">+Y→G</text>
+  <rect x="606" y="54" width="66" height="88" rx="4" fill="#93c5fd" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="639" y="102" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">+Z→B</text>
+  <line x1="732" y1="94" x2="758" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="762" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Normal Map &amp; Needle Overlay in Viewer</text>
+  <rect x="806" y="44" width="256" height="118" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <polygon points="934,62 1002,90 934,116 866,90" fill="#93c5fd" stroke="#111111" stroke-width="1.5"/>
+  <polygon points="866,90 934,116 934,154 866,126" fill="#86efac" stroke="#111111" stroke-width="1.5"/>
+  <polygon points="934,116 1002,90 1002,126 934,154" fill="#fca5a5" stroke="#111111" stroke-width="1.5"/>
+  <line x1="934" y1="88" x2="934" y2="48" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+</svg>
+</div>
 
 ### 1. `src/grid.rs`
-
-Validate and prepare finite grid lines, current axis colours and depth-reach reference points.
 
 Create the file and type:
 
@@ -2225,8 +2213,6 @@ impl Settings {
 
 ### 2. `src/lib.rs`
 
-Register bounded ground-grid preparation and camera-range checks.
-
 **Locate this existing block:**
 
 ```rust
@@ -2245,8 +2231,6 @@ mod grid_source_tests;
 ```
 
 ### 3. `src/camera.rs`
-
-Retain the enabled grid extent independently of source scene bounds. Keep prior camera drawing unchanged until actual grid input enables it. Include grid corners in enabled far depth without altering source Fit bounds.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -2317,8 +2301,6 @@ impl Default for Camera {
 ```
 
 ### 4. `src/grid_source_tests.rs`
-
-Copy checked grid capacity, source colour values, invalid input and actual camera corner-depth checks.
 
 Create the file and type:
 
@@ -2433,8 +2415,6 @@ fn small_scene_camera_depth_reaches_visible_distant_grid_corners_without_changin
 
 ### 5. `src/camera.rs`
 
-Cover enabled grid corners in the same orthographic depth interval.
-
 **Locate this existing block:**
 
 ```rust
@@ -2453,11 +2433,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-41e-drawing"></a>7. Draw a depth-correct grid with shared stroke buffers
 
-Draw the bounded grid and BRG axes using the shared CSS stroke layout, with actual surface depth and exact independent grid-resource accounting.
-
 ### 1. `src/depth.rs`
-
-Hide coplanar grid ink without changing source strokes’ equal-depth drawing policy.
 
 **Locate this existing block:**
 
@@ -2479,8 +2455,6 @@ fn state(write: bool, compare: wgpu::CompareFunction) -> wgpu::DepthStencilState
 ```
 
 ### 2. `src/stroke_gpu.rs`
-
-Share stroke preparation while choosing a separate grid depth policy. Use the caller’s explicit ink or grid depth policy.
 
 **Locate this existing block:**
 
@@ -2587,8 +2561,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 3. `src/renderer.rs`
-
-Own grid display data independently from document geometry. Create an empty depth-correct grid pipeline. Retain the grid lane for the renderer lifetime. Validate grid settings before mutation and expose actual grid bytes and uploads. Include initialized grid payload in cumulative uploads without mixing current allocations. Update only grid view settings when the camera or display density changes. Draw the grid against actual surface depth before original source ink.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -2763,8 +2735,6 @@ Replace it with:
 
 ### 1. `src/editor.rs`
 
-Expose checked viewport grid state through editor input. Validate finite grid settings before changing viewport state. Reset camera pose while preserving the existing grid view setting.
-
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -2835,8 +2805,6 @@ Replace it with:
 ```
 
 ### 2. `src/browser.rs`
-
-Expose actual grid input in dock completion and Help. Dispatch real viewport grid commands through checked editor actions. Synchronize cached grid state before reporting or presenting the actual frame. Expose actual enabled state and grid allocation/upload counters.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -2942,8 +2910,6 @@ Replace it with:
 
 ### 3. `src/lib.rs`
 
-Register atomic grid state, camera reset and source-history checks.
-
 **Locate this existing block:**
 
 ```rust
@@ -2961,8 +2927,6 @@ mod grid_source_tests;
 ```
 
 ### 4. `src/grid_input_tests.rs`
-
-Copy validation atomicity, reset preservation, view-only history and independent source/grid release checks.
 
 Create the file and type:
 

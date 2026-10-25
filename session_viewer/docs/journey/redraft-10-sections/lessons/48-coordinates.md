@@ -1,6 +1,6 @@
 # 7.3 · Construction-plane drafts and one final commit
 
-**Goal:** Draw points and lines through the shared command dock. · **Steps:** 5 · **Source:** [app/command/mod.rs](../../../../src/app/command/mod.rs) · [app/command/tool.rs](../../../../src/app/command/tool.rs) · [app/cplane.rs](../../../../src/app/cplane.rs) · [app/snap.rs](../../../../src/app/snap.rs)
+**Steps:** 5 · **Source:** [app/command/mod.rs](../../../../src/app/command/mod.rs) · [app/command/tool.rs](../../../../src/app/command/tool.rs) · [app/cplane.rs](../../../../src/app/cplane.rs) · [app/snap.rs](../../../../src/app/snap.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -50,8 +50,6 @@
 
 ### 1. `src/tool_coords.rs`
 
-Validate world coordinates and intersect the current ray with the XY plane.
-
 Create the file and type:
 
 ```rust
@@ -97,8 +95,6 @@ pub fn on_xy(camera: &crate::camera::Camera, screen: [f32; 2]) -> Option<[f64; 3
 ```
 
 ### 2. `src/tool_coords_tests.rs`
-
-Copy finite-coordinate, camera round-trip and invalid-ray checks.
 
 Create the file and type:
 
@@ -152,8 +148,6 @@ fn plane_points_use_the_current_camera_and_reject_parallel_or_clipped_rays() {
 
 ### 3. `src/lib.rs`
 
-Register the tool component and copied checks.
-
 **Locate this existing block:**
 
 ```rust
@@ -177,8 +171,6 @@ mod tool_coords_tests;
 ## <a id="checkpoint-48a-draft"></a>2. Keep unfinished point tools outside the document
 
 ### 1. `src/tool.rs`
-
-Define Point and Line tools with temporary accepted points and a cursor.
 
 Create the file and type:
 
@@ -288,8 +280,6 @@ impl Draft {
 
 ### 2. `src/lib.rs`
 
-Register the tool component and copied checks.
-
 **Locate this existing block:**
 
 ```rust
@@ -311,8 +301,6 @@ pub mod tool;
 ## <a id="checkpoint-48b-preview"></a>3. Draw a temporary rubber band and cursor
 
 ### 1. `src/tool_preview.rs`
-
-Draw and release a bounded temporary band and cursor.
 
 Create the file and type:
 
@@ -384,8 +372,6 @@ impl Preview {
 
 ### 2. `src/lib.rs`
 
-Register the tool component and copied checks.
-
 **Locate this existing block:**
 
 ```rust
@@ -405,8 +391,6 @@ pub mod tool_preview;
 ```
 
 ### 3. `src/renderer.rs`
-
-Keep tool preview presentation separate from primary geometry and integer picking.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -581,8 +565,6 @@ Replace it with:
 
 ### 4. `src/pick_gpu_tests.rs`
 
-Copy actual preview pixels, bounded bytes, no pick ownership and resource release checks.
-
 **Locate this existing block:**
 
 ```rust
@@ -645,8 +627,6 @@ fn actual_tool_preview_is_temporary_bounded_and_absent_from_object_picking() {
 ## <a id="checkpoint-48c-commit"></a>4. Commit completed tools in one Undo transaction
 
 ### 1. `src/editor.rs`
-
-Own tool input, keep previews out of history and insert a completed source atomically.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -804,8 +784,6 @@ pub enum Action {
 
 ### 2. `src/tool_tests.rs`
 
-Copy source precision, one-Undo completion, invalid draft input and cancellation/history checks.
-
 Create the file and type:
 
 ```rust
@@ -947,8 +925,6 @@ fn absolute_points_validate_before_draft_changes_and_empty_enter_cancels() {
 
 ### 3. `src/lib.rs`
 
-Register the tool component and copied checks.
-
 **Locate this existing block:**
 
 ```rust
@@ -969,8 +945,6 @@ mod selection_cycle_tests;
 ## <a id="checkpoint-48d-input"></a>5. Draw points and lines through the shared command dock
 
 ### 1. `src/panel.rs`
-
-Route tool coordinates and canvas gestures, own cancellation and show one command answer.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -1026,8 +1000,6 @@ Replace it with:
 
 ### 2. `src/commands.rs`
 
-Route tool coordinates and canvas gestures, own cancellation and show one command answer.
-
 **Locate this existing block:**
 
 ```rust
@@ -1049,8 +1021,6 @@ pub const ACTIONS: &[(&str, Factory)] = &[
 ```
 
 ### 3. `src/browser.rs`
-
-Route tool coordinates and canvas gestures, own cancellation and show one command answer.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -1284,8 +1254,6 @@ Replace it with:
 ```
 
 ### 4. `src/panel.rs`
-
-Release the old option rectangle when a tool completes or cancels.
 
 **Locate this existing block:**
 

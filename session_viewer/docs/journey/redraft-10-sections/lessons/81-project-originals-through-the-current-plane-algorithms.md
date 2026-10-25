@@ -1,6 +1,6 @@
 # 16.1 · Projection, extension and stable edit targets
 
-**Goal:** Accept original cutter curves and a valid selected BRep face. · **Steps:** 31 · **Source:** [app/command/verbs/project_to_plane.rs](../../../../src/app/command/verbs/project_to_plane.rs) · [app/command/verbs/extend.rs](../../../../src/app/command/verbs/extend.rs) · [app/splitting.rs](../../../../src/app/splitting.rs) · [app/command/verbs/measure.rs](../../../../src/app/command/verbs/measure.rs)
+**Steps:** 31 · **Source:** [app/command/verbs/project_to_plane.rs](../../../../src/app/command/verbs/project_to_plane.rs) · [app/command/verbs/extend.rs](../../../../src/app/command/verbs/extend.rs) · [app/splitting.rs](../../../../src/app/splitting.rs) · [app/command/verbs/measure.rs](../../../../src/app/command/verbs/measure.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -47,11 +47,7 @@
 
 ## <a id="checkpoint-81-project-originals-through-the-current-plane-algorithms"></a>1. Project originals in their placed frame
 
-Conjugate the world projection through the original placement transform.
-
 ### 1. `src/project_geometry.rs`
-
-Extend this original owner with today’s complete helper. Supply only the unchanged original validation fixtures.
 
 **Locate this existing block:**
 
@@ -388,11 +384,7 @@ mod tests {
 
 ## <a id="checkpoint-81zza-read-original-cutters-in-object-frames"></a>2. Read cutters in object frames
 
-Write the cutter records and convert supported originals to curves or planar boundaries.
-
 ### 1. `src/source_cut.rs`
-
-Type the whole original helpers introduced today.
 
 Create the file and type:
 
@@ -479,8 +471,6 @@ pub fn plane_moved(plane: &Plane, xform: &Xform) -> Option<Plane> {
 
 ### 2. `src/lib.rs`
 
-Register this original curve-editing owner.
-
 **Locate this existing block:**
 
 ```rust
@@ -499,11 +489,7 @@ pub mod source_mesh_topology;
 
 ## <a id="checkpoint-81zzb-find-original-cutters-near-the-pointer"></a>3. Find cutters near the pointer
 
-Build fence planes and unit rays in the original object frame.
-
 ### 1. `src/source_cut.rs`
-
-Extend this original owner with today’s complete helper. Supply only the unchanged original validation fixtures.
 
 **Locate this existing block:**
 
@@ -770,11 +756,7 @@ mod tests {
 
 ## <a id="checkpoint-81zzc-grow-original-domains-and-extract-the-tail"></a>4. Grow domains and extract the tail
 
-Define end and reach records.
-
 ### 1. `src/extend_reach.rs`
-
-Type the whole original helpers introduced today.
 
 Create the file and type:
 
@@ -861,8 +843,6 @@ fn fit_colors(curve: &mut NurbsCurve) {
 
 ### 2. `src/lib.rs`
 
-Register this original curve-editing owner.
-
 **Locate this existing block:**
 
 ```rust
@@ -925,11 +905,7 @@ pub mod source_mesh_topology;
 </svg>
 </div>
 
-Find outward directions for supported original curve families.
-
 ### 1. `src/extend_reach.rs`
-
-Extend this original owner with today’s complete helper.
 
 **Locate this existing block:**
 
@@ -1105,11 +1081,7 @@ fn by_length(
 
 ## <a id="checkpoint-81zze-stop-straight-growth-at-the-first-boundary"></a>6. Stop straight growth at the first boundary
 
-Find the nearest positive crossing of original planes, curves and transformed meshes along a straight end..
-
 ### 1. `src/extend_reach.rs`
-
-Extend this original owner with today’s complete helper.
 
 **Locate this existing block:**
 
@@ -1234,11 +1206,7 @@ fn straight(from: &Point, direction: &Vector, reach: &Reach) -> Result<Point, St
 </svg>
 </div>
 
-Grow the original NURBS domain and inspect curve or plane crossings beyond its old end.
-
 ### 1. `src/extend_reach.rs`
-
-Extend this original owner with today’s complete helper.
 
 **Locate this existing block:**
 
@@ -1365,11 +1333,7 @@ fn to_boundary(
 
 ## <a id="checkpoint-81zzg-dispatch-original-extension-families"></a>8. Dispatch extension families
 
-Connect the existing reach helpers for lines, polylines and NURBS curves.
-
 ### 1. `src/extend_reach.rs`
-
-Extend this original owner with today’s complete helper. Supply only the unchanged original validation fixtures.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -1653,11 +1617,7 @@ fn straight(from: &Point, direction: &Vector, reach: &Reach) -> Result<Point, St
 
 ## <a id="checkpoint-81a-find-source-cutters-and-current-extension-reach"></a>9. Edit curve intervals
 
-Trim or extend supported original curves by a normalized physical-length interval.
-
 ### 1. `src/interval_geometry.rs`
-
-Type the whole original helpers introduced today.
 
 Create the file and type:
 
@@ -1729,8 +1689,6 @@ pub fn edited(source: &Geometry, interval: Interval) -> Result<Geometry, String>
 
 ### 2. `src/lib.rs`
 
-Register this original curve-editing owner.
-
 **Locate this existing block:**
 
 ```rust
@@ -1748,8 +1706,6 @@ pub mod source_mesh_topology;
 ```
 
 ### 3. `src/interval_geometry.rs`
-
-Supply only the unchanged original validation fixtures.
 
 **Locate this existing block:**
 
@@ -1814,11 +1770,7 @@ mod tests {
 
 ## <a id="checkpoint-81b-capture-eligible-original-identity-and-placement"></a>10. Capture eligible identity and placement
 
-Capture eligible original identity and placement.
-
 ### 1. `src/source_edit.rs`
-
-Capture and validate original allocation, placement and editing eligibility.
 
 Create the file and type:
 
@@ -1890,8 +1842,6 @@ impl Owner {
 
 ### 2. `src/lib.rs`
 
-Register the editing component.
-
 **Locate this existing block:**
 
 ```rust
@@ -1910,11 +1860,7 @@ pub mod source_mesh_topology;
 
 ## <a id="checkpoint-81c-replace-an-original-without-replacing-its-row"></a>11. Replace an without replacing its row
 
-Replace an original without replacing its row.
-
 ### 1. `src/scene.rs`
-
-Prepare replacement originals before adopting them on the same source row.
 
 **Locate this existing block:**
 
@@ -2055,8 +2001,6 @@ impl Scene {
 
 ### 1. `src/project_draft.rs`
 
-Capture selected original projection owners.
-
 Create the file and type:
 
 ```rust
@@ -2101,8 +2045,6 @@ impl Draft {
 
 ### 2. `src/lib.rs`
 
-Register the editing component.
-
 **Locate this existing block:**
 
 ```rust
@@ -2122,8 +2064,6 @@ pub mod source_mesh_topology;
 ## <a id="checkpoint-81e-validate-candidate-plane-answers-before-accepting-them"></a>13. Validate candidate plane answers before accepting them
 
 ### 1. `src/project_draft.rs`
-
-Add complete source-editing methods at their dependency boundary.
 
 **Locate this existing block:**
 
@@ -2172,8 +2112,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ## <a id="checkpoint-81f-prepare-projection-results-as-one-transaction"></a>14. Prepare projection results as one transaction
 
 ### 1. `src/project_draft.rs`
-
-Add complete source-editing methods at their dependency boundary.
 
 **Locate this existing block:**
 
@@ -2228,8 +2166,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ## <a id="checkpoint-81g-own-extension-candidates-and-screen-bounds"></a>15. Own extension candidates and screen bounds
 
 ### 1. `src/extend_draft.rs`
-
-Own temporary extension state and screen-search helpers.
 
 Create the file and type:
 
@@ -2306,8 +2242,6 @@ fn boxed(
 
 ### 2. `src/lib.rs`
 
-Register the editing component.
-
 **Locate this existing block:**
 
 ```rust
@@ -2327,8 +2261,6 @@ pub mod source_mesh_topology;
 ## <a id="checkpoint-81h-gather-boundaries-and-sample-eligible-curve-owners"></a>16. Gather boundaries and sample eligible curve owners
 
 ### 1. `src/extend_draft.rs`
-
-Add complete source-editing methods at their dependency boundary.
 
 **Locate this existing block:**
 
@@ -2409,8 +2341,6 @@ fn apart(a: [f64; 3], b: [f64; 3]) -> f64 {
 ## <a id="checkpoint-81i-cache-current-boundary-meshes-and-start-the-end-phase"></a>17. Cache current boundary meshes and start the end phase
 
 ### 1. `src/extend_draft.rs`
-
-Add complete source-editing methods at their dependency boundary.
 
 **Locate this existing block:**
 
@@ -2516,8 +2446,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 1. `src/extend_draft.rs`
 
-Add complete source-editing methods at their dependency boundary.
-
 **Locate this existing block:**
 
 ```rust
@@ -2619,8 +2547,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 1. `src/extend_draft.rs`
 
-Add complete source-editing methods at their dependency boundary.
-
 **Locate this existing block:**
 
 ```rust
@@ -2685,8 +2611,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ## <a id="checkpoint-81l-preview-extension-and-refresh-only-changed-originals"></a>20. Preview extension and refresh only changed originals
 
 ### 1. `src/extend_draft.rs`
-
-Add complete source-editing methods at their dependency boundary.
 
 **Locate this existing block:**
 
@@ -2790,8 +2714,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ## <a id="checkpoint-81m-keep-projection-and-extension-in-the-pending-tool-owner"></a>21. Keep projection and extension in the pending tool owner
 
 ### 1. `src/tool.rs`
-
-Connect projection and extension to pending prompts, buttons and temporary guides.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -2995,8 +2917,6 @@ pub enum Shape {
 
 ### 1. `src/editor.rs`
 
-Connect complete source-editing methods to one checked history transaction.
-
 **Locate this existing block:**
 
 ```rust
@@ -3101,8 +3021,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ## <a id="checkpoint-81o-connect-boundary-picks-repeated-end-clicks-and-cancellation"></a>23. Connect boundary picks repeated end clicks and cancellation
 
 ### 1. `src/editor.rs`
-
-Connect complete source-editing methods to one checked history transaction.
 
 **Locate this existing block:**
 
@@ -3233,8 +3151,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 1. `src/editor.rs`
 
-Connect complete source-editing methods to one checked history transaction. Dispatch prepared projection, extension and interval actions.
-
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -3330,11 +3246,7 @@ Replace it with:
 
 ## <a id="checkpoint-81q-route-accepted-editing-input-and-owner-lifecycle-1"></a>25. Route answers to the active editing owner
 
-Dispatch typed answers and world points to the current draft.
-
 ### 1. `src/editor.rs`
-
-Recognize the pending owner’s typed grammar. Dispatch world points before generic point construction. Show pending boundary or gather highlights. Validate gather input and commit projection as one history edit. Accumulate projection points and start extension from captured originals. Commit interval edits and dispatch tool text. Accept projection coordinates before the generic point draft. Restrict self-endpoint snapping to the ordinary curve draft.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -3576,11 +3488,7 @@ Replace it with:
 
 ## <a id="checkpoint-81r-route-accepted-editing-input-and-owner-lifecycle-2"></a>26. Finish a pending edit through one commit path
 
-Keep navigation available while an edit is pending, then finish through its owner.
-
 ### 1. `src/editor.rs`
-
-Retain drafts during navigation and cancel on unrelated actions. Reject Close for non-curve owners and incomplete curves. Delegate Finish to extension, projection or gather ownership. Route extension screen clicks and ordinary endpoint closure.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -3750,11 +3658,7 @@ Replace it with:
 
 ## <a id="checkpoint-81s-route-accepted-editing-input-and-owner-lifecycle-3"></a>27. Restore source selection when an edit is cancelled
 
-Discard temporary previews and restore the captured selection on cancellation.
-
 ### 1. `src/editor.rs`
-
-Restore captured selection and release preview ownership on Cancel.
 
 **Locate this existing block:**
 
@@ -3787,8 +3691,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ## <a id="checkpoint-81t-register-current-projection-and-extension-commands"></a>28. Register current projection and extension commands
 
 ### 1. `src/editing_commands.rs`
-
-Register current projection and extension names and initial argument guards.
 
 Create the file and type:
 
@@ -3859,8 +3761,6 @@ pub fn action(name: &str, words: &[&str]) -> Option<Result<Action, String>> {
 
 ### 2. `src/lib.rs`
 
-Register the editing component.
-
 **Locate this existing block:**
 
 ```rust
@@ -3878,8 +3778,6 @@ pub mod source_mesh_topology;
 ```
 
 ### 3. `src/commands.rs`
-
-Connect the source-editing registry to command vocabulary and parsing.
 
 **Locate this existing block:**
 
@@ -4010,8 +3908,6 @@ pub fn parse(line: &str) -> Result<Command, String> {
 ## <a id="checkpoint-81u-route-whole-boundary-picks-and-observe-pending-edits"></a>29. Route whole boundary picks and observe pending edits
 
 ### 1. `src/browser.rs`
-
-Route editing pointer picks and expose pending-owner facts for browser acceptance.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -4171,11 +4067,7 @@ Replace it with:
 
 ## <a id="checkpoint-81v-exercise-original-projection-retry-and-repeated-extension"></a>30. Exercise projection retry and repeated extension
 
-Exercise original projection retry and repeated extension.
-
 ### 1. `src/editing_tests.rs`
-
-Copy integrated original-edit, retry, stale-owner, history and archive fixtures.
 
 Create the file and type:
 
@@ -4563,8 +4455,6 @@ fn stale_extension_sources_and_missed_end_clicks_never_create_history() {
 
 ### 2. `src/lib.rs`
 
-Register the editing component.
-
 **Locate this existing block:**
 
 ```rust
@@ -4585,8 +4475,6 @@ pub mod source_mesh_topology;
 ## <a id="checkpoint-81za-validate-original-split-inputs-and-name-pieces"></a>31. Validate Split inputs and name pieces
 
 ### 1. `src/split_geometry.rs`
-
-Type the whole original helpers introduced today.
 
 Create the file and type:
 
@@ -4675,8 +4563,6 @@ pub fn named(source: &Geometry, mut pieces: Vec<Geometry>) -> Vec<Geometry> {
 ```
 
 ### 2. `src/lib.rs`
-
-Register this original source-splitting owner.
 
 **Locate this existing block:**
 

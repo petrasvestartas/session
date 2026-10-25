@@ -1,6 +1,6 @@
 # 10.4 · Original world labels, plates and integer picks
 
-**Goal:** Create pick move and delete the original scene labels. · **Steps:** 37 · **Source:** [engine/text.rs](../../../src/engine/text.rs) · [engine/gpu/text.rs](../../../src/engine/gpu/text.rs) · [engine/gpu/text_plane.rs](../../../src/engine/gpu/text_plane.rs) · [engine/gpu/text_plate.rs](../../../src/engine/gpu/text_plate.rs)
+**Steps:** 37 · **Source:** [engine/text.rs](../../../src/engine/text.rs) · [engine/gpu/text.rs](../../../src/engine/gpu/text.rs) · [engine/gpu/text_plane.rs](../../../src/engine/gpu/text_plane.rs) · [engine/gpu/text_plate.rs](../../../src/engine/gpu/text_plate.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -60,11 +60,7 @@
 
 ## <a id="checkpoint-62-source"></a>1. Own scene words and font metrics
 
-Own original scene words and font metrics.
-
 ### 1. `src/scene_label.rs`
-
-Own immutable original label data and derive measured bounds separately.
 
 Create the file and type:
 
@@ -130,8 +126,6 @@ pub fn example(placement: TextPlacement) -> Source {
 
 ### 2. `src/lib.rs`
 
-Register the source component.
-
 **Locate this existing block:**
 
 ```rust
@@ -152,8 +146,6 @@ pub mod scene_label;
 
 ### 1. `src/text.rs`
 
-Reuse the checked current label validator for placed labels.
-
 **Locate this existing block:**
 
 ```rust
@@ -173,8 +165,6 @@ pub fn validate_label(label: &TextLabel) -> anyhow::Result<()> {
 ```
 
 ### 2. `src/scene_label.rs`
-
-Derive world labels and GPU addresses from stable source and instance identities.
 
 **Locate this existing block:**
 
@@ -349,8 +339,6 @@ pub fn example(placement: TextPlacement) -> Source {
 
 ### 1. `src/scene_label.rs`
 
-Derive source-owned world bounds without replacing f64 coordinates by display floats.
-
 **Locate this existing block:**
 
 ```rust
@@ -410,8 +398,6 @@ pub fn example(placement: TextPlacement) -> Source {
 ## <a id="checkpoint-62c-rows"></a>4. Register text rows and release them with the scene
 
 ### 1. `src/scene.rs`
-
-Add checked text rows, stable allocation and explicit source cleanup.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -589,8 +575,6 @@ Replace it with:
 ## <a id="checkpoint-62d-identity"></a>5. Include label owners in selection layers and history
 
 ### 1. `src/scene.rs`
-
-Connect text to the existing owner, bounds, placement, copy and removal routes.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -828,8 +812,6 @@ Replace it with:
 
 ### 2. `src/hierarchy.rs`
 
-Include text identities and truthful source capacity; reject incomplete mixed saves.
-
 **Locate this existing block:**
 
 ```rust
@@ -852,8 +834,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 3. `src/document.rs`
 
-Include text identities and truthful source capacity; reject incomplete mixed saves.
-
 **Locate this existing block:**
 
 ```rust
@@ -872,8 +852,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 4. `src/memory.rs`
-
-Include text identities and truthful source capacity; reject incomplete mixed saves.
 
 **Locate this existing block:**
 
@@ -911,8 +889,6 @@ pub fn texts<'a>(scenes: impl IntoIterator<Item = &'a Scene>) -> [usize; 4] {
 ```
 
 ### 5. `src/editor.rs`
-
-Make generic whole-owner Move and Select All include the text lane.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -978,8 +954,6 @@ Replace it with:
 ## <a id="checkpoint-62e-rectangles"></a>6. Select a label through its projected plate
 
 ### 1. `src/scene_label_screen.rs`
-
-Project source-owned plate extents for rectangle selection.
 
 Create the file and type:
 
@@ -1145,8 +1119,6 @@ pub fn matches(
 
 ### 2. `src/lib.rs`
 
-Register the source component.
-
 **Locate this existing block:**
 
 ```rust
@@ -1166,8 +1138,6 @@ pub mod scene_label_screen;
 ```
 
 ### 3. `src/rect_select.rs`
-
-Include only eligible original label owners in rectangle results.
 
 **Locate this existing block:**
 
@@ -1238,8 +1208,6 @@ Edit the existing block to match this code; keep unchanged lines:
 </div>
 
 ### 1. `src/text_gpu_support.rs`
-
-Adapt current text buffers and bindings to this cumulative renderer.
 
 Create the file and type:
 
@@ -1385,8 +1353,6 @@ pub fn resource_group<'a, const N: usize>(
 
 ### 2. `src/lib.rs`
 
-Register the source component.
-
 **Locate this existing block:**
 
 ```rust
@@ -1408,8 +1374,6 @@ pub mod text_gpu_support;
 ## <a id="checkpoint-62g-plane-shader"></a>8. Keep plane clipping correct in a small pick window
 
 ### 1. `src/text_plane.wgsl`
-
-Keep original clip coordinates through the bounded pick crop and shade actual rounded coverage.
 
 Create the file and type:
 
@@ -1492,11 +1456,7 @@ fn fs_id(in: Vertex) -> @location(0) vec2<u32> {
 
 ## <a id="checkpoint-62h-plate-shader"></a>9. Draw the current rounded nameplate and its ID
 
-Draw the current rounded nameplate and its original ID.
-
 ### 1. `src/text_plate.wgsl`
-
-Shade current rounded plates and preserve integer coverage ownership.
 
 Create the file and type:
 
@@ -1563,11 +1523,7 @@ fn fs_id(in: PlateVertex) -> @location(0) vec2<u32> {
 
 ## <a id="checkpoint-62i-coverage"></a>10. Keep CSS pixels separate from framebuffer pixels
 
-Validate one uniform device scale before allocating or positioning text. Keep world origins in f64 and GPU matrices in f32.
-
 ### 1. `src/scene_text_gpu.rs`
-
-Add this part of keep css pixels separate from framebuffer pixels.
 
 Create the file and type:
 
@@ -1635,8 +1591,6 @@ impl TextFrame {
 
 ### 2. `src/lib.rs`
 
-Compile the text-frame preparation in the cumulative browser crate.
-
 **Locate this existing block:**
 
 ```rust
@@ -1657,11 +1611,7 @@ pub mod scene_text_gpu;
 
 ## <a id="checkpoint-62ia-project-an-original-label-into-framebuffer-coordinates"></a>11. Project an label into framebuffer coordinates
 
-Subtract the declared scene origin before projection. Cull invalid depth and apply the CSS/device scale once.
-
 ### 1. `src/scene_text_gpu.rs`
-
-Add this part of project an original label into framebuffer coordinates.
 
 **Locate this existing block:**
 
@@ -1770,11 +1720,7 @@ fn clip_bounds(label: &TextLabel, frame: &TextFrame, scale: f32) -> TextBounds {
 
 ## <a id="checkpoint-62ib-give-nameplate-vertices-one-gpu-owner"></a>12. Give nameplate vertices one GPU owner
 
-Keep the rectangle input separate from the retained vertex buffer and its color/ID pipelines.
-
 ### 1. `src/text_plate.rs`
-
-Add this part of give nameplate vertices one gpu owner.
 
 Create the file and type:
 
@@ -1799,8 +1745,6 @@ pub(super) struct Plates {
 
 ### 2. `src/scene_text_gpu.rs`
 
-Compile the already-created child owner in the text lane.
-
 **Locate this existing block:**
 
 ```rust
@@ -1822,11 +1766,7 @@ mod plate;
 
 ## <a id="checkpoint-62ic-build-nameplate-color-and-object-id-pipelines"></a>13. Build nameplate color and object-ID pipelines
 
-Prepare color and original-ID pipelines for nameplate geometry.
-
 ### 1. `src/text_plate.rs`
-
-Add this part of build nameplate color and object-id pipelines.
 
 **Locate this existing block:**
 
@@ -1944,11 +1884,7 @@ fn pipeline(ctx: &GpuCtx, target: Target, ids: bool) -> Pipeline {
 </svg>
 </div>
 
-Construct the buffers and pipelines once, draw physical and overlay plates in their declared phases, and reset logical vertex counts independently of capacity.
-
 ### 1. `src/text_plate.rs`
-
-Add this part of own and release nameplate draw resources.
 
 **Locate this existing block:**
 
@@ -2027,11 +1963,7 @@ impl Plates {
 
 ## <a id="checkpoint-62ie-upload-nameplate-rectangles-in-one-physical-coordinate-system"></a>15. Upload nameplate rectangles in one physical coordinate system
 
-Generate the packed rectangle vertices once and retain the split between depth-tested plates and screen overlays.
-
 ### 1. `src/text_plate.rs`
-
-Add this part of upload nameplate rectangles in one physical coordinate system.
 
 **Locate this existing block:**
 
@@ -2128,11 +2060,7 @@ impl Plates {
 
 ## <a id="checkpoint-62if-place-the-plate-around-the-shaped-label"></a>16. Place the plate around the shaped label
 
-Compute padding and rounded bounds in the same coordinate system as glyph placement. Define text statistics as observations, not source data.
-
 ### 1. `src/scene_text_gpu.rs`
-
-Add this part of place the plate around the shaped label.
 
 **Locate this existing block:**
 
@@ -2240,11 +2168,7 @@ fn text_rectangle(
 
 ## <a id="checkpoint-62ig-give-world-text-a-bounded-coverage-cache"></a>17. Give world text a bounded coverage cache
 
-A cached plane owns its texture and bind group. Drop destroys the texture; a changed placement may reuse the raster while font/text changes invalidate it.
-
 ### 1. `src/text_plane.rs`
-
-Add this part of give world text a bounded coverage cache.
 
 Create the file and type:
 
@@ -2319,8 +2243,6 @@ fn project(world: [f64; 3], frame: &TextFrame) -> [f32; 4] {
 
 ### 2. `src/scene_text_gpu.rs`
 
-Compile the already-created child owner in the text lane.
-
 **Locate this existing block:**
 
 ```rust
@@ -2342,11 +2264,7 @@ mod plane;
 
 ## <a id="checkpoint-62ih-choose-bounded-glyph-raster-resolution"></a>18. Choose bounded glyph raster resolution
 
-Relate projected world height to framebuffer pixels, fit the shaped extent within the texture limit, and read mask/color/subpixel coverage consistently.
-
 ### 1. `src/text_plane.rs`
-
-Add this part of choose bounded glyph raster resolution.
 
 **Locate this existing block:**
 
@@ -2443,11 +2361,7 @@ fn coverage(content: &SwashContent, data: &[u8], source: usize) -> u8 {
 
 ## <a id="checkpoint-62ii-rasterize-the-shaped-run-into-owned-coverage-bytes"></a>19. Rasterize the shaped run into owned coverage bytes
 
-Allocate bounded coverage storage from the shaped glyph bounds.
-
 ### 1. `src/text_plane.rs`
-
-Add this part of rasterize the shaped run into owned coverage bytes.
 
 **Locate this existing block:**
 
@@ -2592,11 +2506,7 @@ fn rasterize(
 </svg>
 </div>
 
-Create the R8 coverage texture, upload rows with the declared byte layout, and bind the texture/sampler into one cached owner.
-
 ### 1. `src/text_plane.rs`
-
-Add this part of upload and bind one world-text coverage texture.
 
 **Locate this existing block:**
 
@@ -2671,11 +2581,7 @@ fn upload_plane(
 
 ## <a id="checkpoint-62ik-build-the-world-plane-text-quad"></a>21. Build the world-plane text quad
 
-Transform the original text plane into rebased GPU vertices. Keep original label placement and color independent of the generated quad.
-
 ### 1. `src/text_plane.rs`
-
-Add this part of build the world-plane text quad.
 
 **Locate this existing block:**
 
@@ -2796,11 +2702,7 @@ fn append_quad(
 
 ## <a id="checkpoint-62il-build-world-text-color-and-id-pipelines"></a>22. Build world-text color and ID pipelines
 
-The plane shader reads coverage while color and integer targets retain their distinct fragment contracts. Declare the same vertex layout for both passes.
-
 ### 1. `src/text_plane.rs`
-
-Add this part of build world-text color and id pipelines.
 
 **Locate this existing block:**
 
@@ -2857,11 +2759,7 @@ fn pipeline(
 
 ## <a id="checkpoint-62im-own-the-world-text-buffer-and-pipeline-lifetime"></a>23. Own the world-text buffer and pipeline lifetime
 
-Create retained GPU resources, replace target-dependent pipelines on retarget, and distinguish reset, release and capacity accounting.
-
 ### 1. `src/text_plane.rs`
-
-Add this part of own the world-text buffer and pipeline lifetime.
 
 **Locate this existing block:**
 
@@ -2958,11 +2856,7 @@ impl Planes {
 
 ## <a id="checkpoint-62in-rebuild-only-invalid-world-text-cache-entries"></a>24. Rebuild only invalid world-text cache entries
 
-Match a label to its cache entry, validate the total texture budget before upload, and replace or append one owned entry.
-
 ### 1. `src/text_plane.rs`
-
-Add this part of rebuild only invalid world-text cache entries.
 
 **Locate this existing block:**
 
@@ -3054,11 +2948,7 @@ impl Planes {
 
 ## <a id="checkpoint-62io-prepare-and-draw-the-retained-world-text-planes"></a>25. Prepare and draw the retained world-text planes
 
-Prune expired labels, skip clipped/empty planes, reuse valid rasters, build the current quads and issue draws from retained cache indices.
-
 ### 1. `src/text_plane.rs`
-
-Add this part of prepare and draw the retained world-text planes.
 
 **Locate this existing block:**
 
@@ -3172,11 +3062,7 @@ impl Planes {
 
 ## <a id="checkpoint-62ip-collect-anchored-and-overlay-glyph-work-separately"></a>26. Collect anchored and overlay glyph work separately
 
-Return borrow-scoped TextAreas alongside plate inputs and per-label depths. The borrowed runs survive through preparation; no new source owner is created.
-
 ### 1. `src/scene_text_gpu.rs`
-
-Add this part of collect anchored and overlay glyph work separately.
 
 **Locate this existing block:**
 
@@ -3280,11 +3166,7 @@ fn areas<'a>(
 
 ## <a id="checkpoint-62iq-give-the-text-lane-its-retained-resource-owners"></a>27. Give the text lane its retained resource owners
 
-Declare the lane and its caches, atlas, viewport, pipelines and preparation witness. Build glyph renderers against the appropriate depth predicates.
-
 ### 1. `src/scene_text_gpu.rs`
-
-Add this part of give the text lane its retained resource owners.
 
 **Locate this existing block:**
 
@@ -3359,11 +3241,7 @@ fn depth_for(depths: &HashMap<usize, f32>, id: usize) -> f32 {
 
 ## <a id="checkpoint-62ir-construct-and-rebuild-the-text-lane-once"></a>28. Construct and rebuild the text lane once
 
-Initialize font/raster resources and world/plate owners. Rebuild atlas-dependent resources when fonts change while keeping original labels in the document.
-
 ### 1. `src/scene_text_gpu.rs`
-
-Add this part of construct and rebuild the text lane once.
 
 **Locate this existing block:**
 
@@ -3455,11 +3333,7 @@ impl Lane {
 
 ## <a id="checkpoint-62is-reset-the-text-lane-and-record-scoped-preparation-costs"></a>29. Reset the text lane and record scoped preparation costs
 
-Retarget pipelines, clear logical work and release owned world/plate resources. Report raster images and buffer capacities with their actual scope.
-
 ### 1. `src/scene_text_gpu.rs`
-
-Add this part of reset the text lane and record scoped preparation costs.
 
 **Locate this existing block:**
 
@@ -3544,11 +3418,7 @@ impl Lane {
 
 ## <a id="checkpoint-62it-prepare-glyphs-only-when-the-witness-changes"></a>30. Prepare glyphs only when the witness changes
 
-Skip text preparation when its complete frame witness is unchanged.
-
 ### 1. `src/scene_text_gpu.rs`
-
-Add this part of prepare glyphs only when the witness changes.
 
 **Locate this existing block:**
 
@@ -3659,11 +3529,7 @@ impl Lane {
 
 ## <a id="checkpoint-62iu-draw-the-prepared-text-passes-in-order"></a>31. Draw the prepared text passes in order
 
-Draw world planes, depth-tested plates and anchored glyphs before overlay plates/glyphs. Connect this completed lane to the frame in the next existing lesson.
-
 ### 1. `src/scene_text_gpu.rs`
-
-Add this part of draw the prepared text passes in order. Keep the existing numerical regression fixtures as supplied validation.
 
 **Locate this existing block:**
 
@@ -3867,8 +3733,6 @@ mod tests {
 
 ### 1. `src/renderer.rs`
 
-Prepare the complete current text frame and preserve already-rendered scene depth.
-
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -4042,11 +3906,7 @@ pub struct Renderer {
 
 ## <a id="checkpoint-62k-lane-labels"></a>33. Merge scene labels with the screen specimen
 
-Merge original scene labels with the screen specimen.
-
 ### 1. `src/renderer.rs`
-
-Adopt visible source-owned labels and presentation text in one cached lane.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -4276,11 +4136,7 @@ Replace it with:
 </svg>
 </div>
 
-Draw original text IDs through bounded readback.
-
 ### 1. `src/renderer.rs`
-
-Connect bounded text IDs, current metrics and atomic accepted-font adoption.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -4437,8 +4293,6 @@ Replace it with:
 
 ### 2. `src/pick_gpu.rs`
 
-Draw existing text plate and plane integer IDs in the bounded pick window.
-
 **Locate this existing block:**
 
 ```rust
@@ -4555,8 +4409,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 3. `src/pick_encode.rs`
 
-Draw existing text plate and plane integer IDs in the bounded pick window.
-
 **Locate this existing block:**
 
 ```rust
@@ -4648,8 +4500,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ## <a id="checkpoint-62m-whole-fonts"></a>35. Fetch missing whole fonts as one checked set
 
 ### 1. `src/text_fonts.rs`
-
-Fetch and validate the current whole fonts without letting stale replies survive Close.
 
 Create the file and type:
 
@@ -4743,8 +4593,6 @@ async fn fetch() -> Result<Vec<Vec<u8>>, String> {
 
 ### 2. `src/lib.rs`
 
-Register the source component.
-
 **Locate this existing block:**
 
 ```rust
@@ -4766,8 +4614,6 @@ pub mod text_fonts;
 ## <a id="checkpoint-62n-diagnostics"></a>36. Show current text sources metrics and preparation errors
 
 ### 1. `src/browser.rs`
-
-Connect epoch-guarded fonts, current source/resource diagnostics and visible text errors.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -4948,8 +4794,6 @@ Replace it with:
 
 ### 1. `src/editor.rs`
 
-Connect original label examples through the existing scene transactions and command dock.
-
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -4997,8 +4841,6 @@ Replace it with:
 
 ### 2. `src/commands.rs`
 
-Connect original label examples through the existing scene transactions and command dock.
-
 **Locate this existing block:**
 
 ```rust
@@ -5041,8 +4883,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 3. `src/scene_label_tests.rs`
-
-Copy original-word/f64 placement, source sharing, layer/copy/delete/Undo/Close, bounds, rectangle and invalid-source regressions.
 
 Create the file and type:
 
@@ -5285,8 +5125,6 @@ fn invalid_scene_labels_do_not_consume_history_or_turn_screen_overlays_into_sour
 
 ### 4. `src/lib.rs`
 
-Register the source component.
-
 **Locate this existing block:**
 
 ```rust
@@ -5307,8 +5145,6 @@ mod scene_label_tests;
 ```
 
 ### 5. `src/pick_gpu_tests.rs`
-
-Copy actual plane/anchor/billboard/nameplate depth, integer IDs, rounded styles, clip-window agreement, atomic fonts and resource-release checks.
 
 **Locate this existing block:**
 

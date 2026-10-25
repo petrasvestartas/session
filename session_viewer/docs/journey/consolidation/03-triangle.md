@@ -1,110 +1,71 @@
 # 1.3 · Shaders and the command dock
 
-**Goal:** Use a command to switch backgrounds without changing the triangle. · **Steps:** 26 · **Source:** [`lib.rs`](../../../src/lib.rs) · [`engine/pipelines/mod.rs`](../../../src/engine/pipelines/mod.rs) · [`command_dock/mod.rs`](../../../src/command_dock/mod.rs) · [`view.rs`](../../../src/command_dock/view.rs)
-
-<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
-<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
-  <defs>
-    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
-    </marker>
-    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
-    </marker>
-    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
-    </marker>
-  </defs>
-  <rect x="2" y="2" width="1116" height="184" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
-  <rect x="14" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">@vertex: vertex_index (0, 1, 2)</text>
-  <rect x="66" y="44" width="240" height="118" fill="#f8fafc" stroke="#111111" stroke-width="1.5"/>
-  <line x1="66" y1="103" x2="306" y2="103" stroke="#94a3b8" stroke-width="1" stroke-dasharray="3 3"/>
-  <line x1="186" y1="44" x2="186" y2="162" stroke="#94a3b8" stroke-width="1" stroke-dasharray="3 3"/>
-  <circle cx="186" cy="62" r="5" fill="#dc2626" stroke="#111111" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="55" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">i=0 (0.0, +0.5)</text>
-  <circle cx="116" cy="144" r="5" fill="#16a34a" stroke="#111111" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="112" y="158" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">i=1 (-0.5,-0.5)</text>
-  <circle cx="256" cy="144" r="5" fill="#2563eb" stroke="#111111" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="260" y="158" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">i=2 (+0.5,-0.5)</text>
-  <line x1="358" y1="94" x2="384" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
-  <rect x="388" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Rasterizer Coverage &amp; @fragment</text>
-  <rect x="440" y="44" width="240" height="118" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <polygon points="560,58 486,146 634,146" fill="#fce7f3" stroke="#db2777" stroke-width="2"/>
-  <circle cx="560" cy="96" r="3.5" fill="#db2777"/>
-  <circle cx="540" cy="116" r="3.5" fill="#db2777"/>
-  <circle cx="560" cy="116" r="3.5" fill="#db2777"/>
-  <circle cx="580" cy="116" r="3.5" fill="#db2777"/>
-  <circle cx="520" cy="134" r="3.5" fill="#db2777"/>
-  <circle cx="560" cy="134" r="3.5" fill="#db2777"/>
-  <circle cx="600" cy="134" r="3.5" fill="#db2777"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="158" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">vec4(0.93, 0.36, 0.53, 1.0)</text>
-  <line x1="732" y1="94" x2="758" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
-  <rect x="762" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Viewer Output (Pass 1 + Pass 2 UI)</text>
-  <rect x="806" y="44" width="256" height="118" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
-  <rect x="816" y="52" width="236" height="22" rx="3" fill="#f8fafc" stroke="#111111" stroke-width="1.25"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="67" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Command: Background</text>
-  <polygon points="934,82 872,150 996,150" fill="#ed5c87" stroke="#111111" stroke-width="2"/>
-</svg>
-</div>
+**Steps:** 26 · **Source:** [`lib.rs`](../../../src/lib.rs) · [`engine/pipelines/mod.rs`](../../../src/engine/pipelines/mod.rs) · [`command_dock/mod.rs`](../../../src/command_dock/mod.rs) · [`view.rs`](../../../src/command_dock/view.rs)
 
 ## <a id="checkpoint-03-triangle"></a>1. Give the GPU three corners
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
-<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="214" viewBox="0 0 1120 214" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
   <defs>
-    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+    <marker id="arr-503a46c5" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
-    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+    <marker id="arr-r-503a46c5" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
     </marker>
-    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+    <marker id="arr-g-503a46c5" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
     </marker>
-    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+    <marker id="arr-b-503a46c5" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
     </marker>
+    <pattern id="grid-503a46c5" width="20" height="20" patternUnits="userSpaceOnUse">
+      <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#f1f5f9" stroke-width="1"/>
+    </pattern>
   </defs>
-  <rect x="2" y="2" width="1116" height="184" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
-  <rect x="14" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">CPU CommandEncoder Records GPU Commands</text>
-  <rect x="54" y="50" width="264" height="102" rx="6" fill="#f8fafc" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="76" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">wgpu::CommandEncoder</text>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="100" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#2563eb">1. begin_render_pass (3D Scene)</text>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="122" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#16a34a">2. begin_render_pass (Overlay/UI)</text>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="142" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#dc2626">3. encoder.finish()</text>
-  <line x1="358" y1="94" x2="384" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
-  <rect x="388" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Pass 1 (LoadOp::Clear) -&gt; Pass 2 (LoadOp::Load)</text>
-  <rect x="416" y="52" width="128" height="96" rx="4" fill="#dbeafe" stroke="#2563eb" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="480" y="76" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Pass 1: Clear</text>
-  <polygon points="452,132 480,88 508,132" fill="#93c5fd" stroke="#111111" stroke-width="1.5"/>
-  <line x1="544" y1="100" x2="572" y2="100" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
-  <rect x="576" y="52" width="128" height="96" rx="4" fill="#dcfce7" stroke="#16a34a" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="640" y="76" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Pass 2: Load</text>
-  <polygon points="612,126 640,86 668,126" fill="#93c5fd" stroke="#111111" stroke-width="1.5"/>
-  <rect x="590" y="130" width="100" height="12" fill="#fef08a" stroke="#111111" stroke-width="1"/>
-  <line x1="732" y1="94" x2="758" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
-  <rect x="762" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">queue.submit([cmd_buf]) -&gt; GPU Execution</text>
-  <rect x="806" y="44" width="256" height="118" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
-  <polygon points="884,132 934,58 984,132" fill="#93c5fd" stroke="#111111" stroke-width="2"/>
-  <rect x="822" y="136" width="224" height="18" rx="3" fill="#f1f5f9" stroke="#111111" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="149" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Composited Frame Ready</text>
+  <rect x="2" y="2" width="1116" height="210" rx="8" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="2" y="2" width="1116" height="28" rx="6" fill="#f8fafc" stroke="#111111" stroke-width="1.5"/>
+  <line x1="2" y1="30" x2="1118" y2="30" stroke="#111111" stroke-width="1.5"/>
+  <rect x="12" y="7" width="176" height="18" rx="3" fill="#111111"/>
+  <text x="100" y="19.5" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#ffffff" paint-order="normal" stroke="none">03-TRIANGLE · WGSL PIPELINE</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="518" y="20" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Procedural @vertex Clip-Space Corners &amp; @fragment Rasterization</text>
+  <rect x="838" y="7" width="268" height="18" rx="3" fill="#ffffff" stroke="#111111" stroke-width="1.2"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="972" y="19.5" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#2563eb">NDC ∈ [-1, +1]² · draw(0..3, 0..1)</text>
+  <rect x="14" y="38" width="344" height="164" rx="6" fill="url(#grid-503a46c5)" stroke="#111111" stroke-width="1.5"/>
+  <line x1="14" y1="60" x2="358" y2="60" stroke="#cbd5e1" stroke-width="1"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="186" y="53" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1 · @vertex fn vertex(@builtin(vertex_index) i: u32)</text>
+  <rect x="64" y="68" width="244" height="122" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <line x1="64" y1="129" x2="308" y2="129" stroke="#cbd5e1" stroke-width="1" stroke-dasharray="3 3"/>
+  <line x1="186" y1="68" x2="186" y2="190" stroke="#cbd5e1" stroke-width="1" stroke-dasharray="3 3"/>
+  <polygon points="186,82 114,172 258,172" fill="#fce7f3" fill-opacity="0.6" stroke="#111111" stroke-width="1.75"/>
+  <circle cx="186" cy="82" r="4.5" fill="#dc2626"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="186" y="77" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#dc2626">i=0: (0.0, 0.6)</text>
+  <circle cx="114" cy="172" r="4.5" fill="#16a34a"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="106" y="185" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#16a34a">i=1: (-0.6,-0.6)</text>
+  <circle cx="258" cy="172" r="4.5" fill="#2563eb"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="266" y="185" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#2563eb">i=2: (0.6,-0.6)</text>
+  <line x1="358" y1="120" x2="384" y2="120" stroke="#111111" stroke-width="2" marker-end="url(#arr-503a46c5)"/>
+  <rect x="388" y="38" width="344" height="164" rx="6" fill="url(#grid-503a46c5)" stroke="#111111" stroke-width="1.5"/>
+  <line x1="388" y1="60" x2="732" y2="60" stroke="#cbd5e1" stroke-width="1"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="53" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2 · RenderPipeline &amp; Barycentric Coverage</text>
+  <polygon points="560,76 472,172 648,172" fill="#fbcfe8" stroke="#111111" stroke-width="1.75"/>
+  <line x1="560" y1="76" x2="560" y2="140" stroke="#dc2626" stroke-width="1.2" stroke-dasharray="3 2"/>
+  <line x1="472" y1="172" x2="560" y2="140" stroke="#16a34a" stroke-width="1.2" stroke-dasharray="3 2"/>
+  <line x1="648" y1="172" x2="560" y2="140" stroke="#2563eb" stroke-width="1.2" stroke-dasharray="3 2"/>
+  <circle cx="560" cy="140" r="4.5" fill="#111111"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="128" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">P = λ₀v₀ + λ₁v₁ + λ₂v₂</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="186" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#db2777">@fragment -&gt; vec4(0.95, 0.35, 0.6, 1.0)</text>
+  <line x1="732" y1="120" x2="758" y2="120" stroke="#111111" stroke-width="2" marker-end="url(#arr-503a46c5)"/>
+  <rect x="762" y="38" width="344" height="164" rx="6" fill="url(#grid-503a46c5)" stroke="#111111" stroke-width="1.75"/>
+  <line x1="762" y1="60" x2="1106" y2="60" stroke="#cbd5e1" stroke-width="1"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="934" y="53" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3 · Pass: set_pipeline + draw(0..3, 0..1)</text>
+  <rect x="806" y="68" width="256" height="122" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <polygon points="934,82 862,172 1006,172" fill="#f25999" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="934" y="152" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#ffffff">Pink Triangle</text>
 </svg>
 </div>
 
-Draw a pink triangle on the white background.
-
 ### 1. `src/triangle.wgsl`
-
-Create GPU vertex and fragment functions; the vertex function chooses a corner and the fragment function returns pink.
 
 Create the file and type:
 
@@ -126,8 +87,6 @@ fn fragment() -> @location(0) vec4<f32> {
 ```
 
 ### 2. `src/renderer.rs`
-
-Create and retain the triangle shader pipeline. Bind the pipeline and draw its three vertices.
 
 **Locate this existing block:**
 
@@ -243,8 +202,6 @@ impl Renderer {
 
 ### 3. `src/browser.rs`
 
-Pass the surface format to the renderer; a pipeline must agree with the texture it draws into.
-
 **Locate this existing block:**
 
 ```rust
@@ -272,51 +229,70 @@ Edit the existing block to match this code; keep unchanged lines:
 ## <a id="checkpoint-03a-fonts"></a>2. Prepare the command fonts and painter
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
-<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="214" viewBox="0 0 1120 214" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
   <defs>
-    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+    <marker id="arr-8d115a62" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
-    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+    <marker id="arr-r-8d115a62" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
     </marker>
-    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+    <marker id="arr-g-8d115a62" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
     </marker>
-    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+    <marker id="arr-b-8d115a62" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
     </marker>
+    <pattern id="grid-8d115a62" width="20" height="20" patternUnits="userSpaceOnUse">
+      <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#f1f5f9" stroke-width="1"/>
+    </pattern>
   </defs>
-  <rect x="2" y="2" width="1116" height="184" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
-  <rect x="14" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Pixel Rect (x, y, w, h) in Screen Space (0..W, 0..H)</text>
-  <rect x="56" y="48" width="228" height="106" fill="#f8fafc" stroke="#111111" stroke-width="1.75"/>
-  <rect x="70" y="118" width="200" height="24" rx="3" fill="#dbeafe" stroke="#2563eb" stroke-width="2"/>
-  <circle cx="70" cy="118" r="4" fill="#dc2626"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="126" y="110" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">(x0, y0)..(x1, y1)</text>
-  <line x1="358" y1="94" x2="384" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
-  <rect x="388" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Pixel-to-NDC: ndc_x = 2x/W - 1, ndc_y = 1 - 2y/H</text>
-  <rect x="436" y="48" width="248" height="106" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <line x1="560" y1="48" x2="560" y2="154" stroke="#cbd5e1" stroke-width="1.2" stroke-dasharray="3 3"/>
-  <line x1="436" y1="101" x2="684" y2="101" stroke="#cbd5e1" stroke-width="1.2" stroke-dasharray="3 3"/>
-  <polygon points="454,122 666,122 666,144 454,144" fill="#dcfce7" stroke="#16a34a" stroke-width="2"/>
-  <line x1="454" y1="144" x2="666" y2="122" stroke="#16a34a" stroke-width="1.2" stroke-dasharray="3 3"/>
-  <line x1="732" y1="94" x2="758" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
-  <rect x="762" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">GPU-Rendered Command Dock Overlay</text>
-  <rect x="806" y="44" width="256" height="118" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
-  <polygon points="894,114 934,56 974,114" fill="#fce7f3" stroke="#111111" stroke-width="1.5"/>
-  <rect x="818" y="126" width="232" height="24" rx="3" fill="#f1f5f9" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="830" y="142" font-family="monospace" font-size="10" font-weight="700" fill="#111111">&gt; line</text>
+  <rect x="2" y="2" width="1116" height="210" rx="8" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="2" y="2" width="1116" height="28" rx="6" fill="#f8fafc" stroke="#111111" stroke-width="1.5"/>
+  <line x1="2" y1="30" x2="1118" y2="30" stroke="#111111" stroke-width="1.5"/>
+  <rect x="12" y="7" width="176" height="18" rx="3" fill="#111111"/>
+  <text x="100" y="19.5" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#ffffff" paint-order="normal" stroke="none">03A-PAINT · ATLAS + PASS 2</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="518" y="20" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">TTF Glyph Rasterization, R8Unorm Texture Upload &amp; Pass 2 LoadOp::Load Overlay</text>
+  <rect x="838" y="7" width="268" height="18" rx="3" fill="#ffffff" stroke="#111111" stroke-width="1.2"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="972" y="19.5" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#2563eb">Pass 1 (Clear) -&gt; Pass 2 (Load + Alpha)</text>
+  <rect x="14" y="38" width="344" height="164" rx="6" fill="url(#grid-8d115a62)" stroke="#111111" stroke-width="1.5"/>
+  <line x1="14" y1="60" x2="358" y2="60" stroke="#cbd5e1" stroke-width="1"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="186" y="53" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1 · Embedded TTF -&gt; Shelf Glyph Atlas</text>
+  <rect x="48" y="72" width="276" height="112" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <rect x="62" y="84" width="38" height="40" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="81" y="110" text-anchor="middle" font-family="monospace" font-size="16" font-weight="700" fill="#111111">C</text>
+  <rect x="108" y="84" width="38" height="40" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="127" y="110" text-anchor="middle" font-family="monospace" font-size="16" font-weight="700" fill="#111111">o</text>
+  <rect x="154" y="84" width="38" height="40" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="173" y="110" text-anchor="middle" font-family="monospace" font-size="16" font-weight="700" fill="#111111">m</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="186" y="148" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#16a34a">queue.write_texture(R8Unorm)</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="186" y="168" text-anchor="middle" font-family="monospace" font-size="9" fill="#111111">uv_rect = (u0, v0, u1, v1)</text>
+  <line x1="358" y1="120" x2="384" y2="120" stroke="#111111" stroke-width="2" marker-end="url(#arr-8d115a62)"/>
+  <rect x="388" y="38" width="344" height="164" rx="6" fill="url(#grid-8d115a62)" stroke="#111111" stroke-width="1.5"/>
+  <line x1="388" y1="60" x2="732" y2="60" stroke="#cbd5e1" stroke-width="1"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="53" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2 · Two-Pass Frame Recording</text>
+  <rect x="414" y="74" width="132" height="108" rx="4" fill="#fce7f3" stroke="#db2777" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="480" y="94" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Pass 1: Scene</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="480" y="112" text-anchor="middle" font-family="monospace" font-size="8.5" fill="#db2777">LoadOp::Clear(White)</text>
+  <polygon points="480,122 448,168 512,168" fill="#f25999" stroke="#111111" stroke-width="1.2"/>
+  <line x1="546" y1="128" x2="572" y2="128" stroke="#111111" stroke-width="1.75" marker-end="url(#arr-8d115a62)"/>
+  <rect x="576" y="74" width="132" height="108" rx="4" fill="#dcfce7" stroke="#16a34a" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="642" y="94" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Pass 2: Dock</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="642" y="112" text-anchor="middle" font-family="monospace" font-size="8.5" fill="#16a34a">LoadOp::Load (Keep!)</text>
+  <rect x="590" y="152" width="104" height="20" rx="2" fill="#ffffff" stroke="#111111" stroke-width="1.2"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="642" y="166" text-anchor="middle" font-family="monospace" font-size="8.5" font-weight="700" fill="#111111">Command: _</text>
+  <line x1="732" y1="120" x2="758" y2="120" stroke="#111111" stroke-width="2" marker-end="url(#arr-8d115a62)"/>
+  <rect x="762" y="38" width="344" height="164" rx="6" fill="url(#grid-8d115a62)" stroke="#111111" stroke-width="1.75"/>
+  <line x1="762" y1="60" x2="1106" y2="60" stroke="#cbd5e1" stroke-width="1"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="934" y="53" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3 · Composited Scene + GPU Text Overlay</text>
+  <rect x="806" y="68" width="256" height="122" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <polygon points="934,78 874,152 994,152" fill="#f25999" stroke="#111111" stroke-width="1.5"/>
+  <rect x="818" y="158" width="232" height="24" rx="3" fill="#f8fafc" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="830" y="174" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Command: Ready</text>
 </svg>
 </div>
 
-Create the font and GPU painter owner while keeping the triangle.
-
 ### 1. `Cargo.toml`
-
-Add egui and its GPU painter.
 
 **Locate this existing block:**
 
@@ -338,8 +314,6 @@ egui-wgpu = { version = "=0.34.3", default-features = false }
 ```
 
 ### 2. `src/panel.rs`
-
-Keep the context and painter together.
 
 Create the file and type:
 
@@ -373,8 +347,6 @@ impl Panel {
 
 ### 3. `src/browser.rs`
 
-Create the painter owner before presenting the scene.
-
 **Locate this existing block:**
 
 ```rust
@@ -391,8 +363,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 4. `src/lib.rs`
-
-Register the browser-only drawing modules.
 
 **Locate this existing block:**
 
@@ -414,8 +384,6 @@ mod panel;
 ```
 
 ### 5. `src/command_dock/theme.rs`
-
-Configure Noto fonts and the light theme.
 
 Create the file and type:
 
@@ -478,8 +446,6 @@ pub(crate) fn visuals() -> egui::Visuals {
 
 ### 6. `src/command_dock/mod.rs`
 
-Register the shared styling module.
-
 Create the file and type:
 
 ```rust
@@ -506,39 +472,34 @@ pub(crate) mod theme;
   </defs>
   <rect x="2" y="2" width="1116" height="184" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
   <rect x="14" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">CPU (Rust / WASM): Adapter -&gt; (Device, Queue)</text>
-  <rect x="48" y="50" width="118" height="44" rx="4" fill="#dbeafe" stroke="#2563eb" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="107" y="76" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">wgpu::Instance</text>
-  <line x1="166" y1="72" x2="196" y2="72" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
-  <rect x="200" y="46" width="124" height="52" rx="4" fill="#dcfce7" stroke="#16a34a" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="262" y="68" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">wgpu::Device</text>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="262" y="86" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#16a34a">+ wgpu::Queue</text>
-  <rect x="74" y="112" width="224" height="38" rx="4" fill="#f8fafc" stroke="#111111" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="135" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Rc&lt;RefCell&lt;BrowserState&gt;&gt;</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">CPU CommandEncoder Records GPU Commands</text>
+  <rect x="54" y="50" width="264" height="102" rx="6" fill="#f8fafc" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="76" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">wgpu::CommandEncoder</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="100" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#2563eb">1. begin_render_pass (3D Scene)</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="122" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#16a34a">2. begin_render_pass (Overlay/UI)</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="142" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#dc2626">3. encoder.finish()</text>
   <line x1="358" y1="94" x2="384" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
   <rect x="388" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">CPU -&gt; GPU Bus: surface.configure(&amp;device, &amp;config)</text>
-  <rect x="424" y="50" width="272" height="98" rx="6" fill="#fef9c3" stroke="#d97706" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="74" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">SurfaceConfiguration</text>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="96" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#111111">format: Bgra8UnormSrgb</text>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="116" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#2563eb">width × height: clamp(1..max_2d)</text>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="136" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#16a34a">present_mode: Fifo (VSync)</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Pass 1 (LoadOp::Clear) -&gt; Pass 2 (LoadOp::Load)</text>
+  <rect x="416" y="52" width="128" height="96" rx="4" fill="#dbeafe" stroke="#2563eb" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="480" y="76" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Pass 1: Clear</text>
+  <polygon points="452,132 480,88 508,132" fill="#93c5fd" stroke="#111111" stroke-width="1.5"/>
+  <line x1="544" y1="100" x2="572" y2="100" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="576" y="52" width="128" height="96" rx="4" fill="#dcfce7" stroke="#16a34a" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="640" y="76" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Pass 2: Load</text>
+  <polygon points="612,126 640,86 668,126" fill="#93c5fd" stroke="#111111" stroke-width="1.5"/>
+  <rect x="590" y="130" width="100" height="12" fill="#fef08a" stroke="#111111" stroke-width="1"/>
   <line x1="732" y1="94" x2="758" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
   <rect x="762" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">GPU Swapchain Texture -&gt; Browser &lt;canvas&gt;</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">queue.submit([cmd_buf]) -&gt; GPU Execution</text>
   <rect x="806" y="44" width="256" height="118" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
-  <rect x="826" y="58" width="216" height="58" rx="4" fill="#dbeafe" stroke="#2563eb" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="84" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">get_current_texture()</text>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="102" text-anchor="middle" font-family="monospace" font-size="9" fill="#2563eb">-&gt; wgpu::TextureView</text>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="142" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#16a34a">frame.present() ✓</text>
+  <polygon points="884,132 934,58 984,132" fill="#93c5fd" stroke="#111111" stroke-width="2"/>
+  <rect x="822" y="136" width="224" height="18" rx="3" fill="#f1f5f9" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="149" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Composited Frame Ready</text>
 </svg>
 </div>
 
-Draw a Command label over the triangle using the same GPU.
-
 ### 1. `src/panel.rs`
-
-Lay out the label, upload its font atlas and draw over the scene.
 
 **Locate this existing block:**
 
@@ -624,8 +585,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 2. `src/browser.rs`
 
-Create the panel and pass it into presentation. Draw the panel over the scene before presenting.
-
 **Locate this existing block:**
 
 ```rust
@@ -694,11 +653,73 @@ fn present(
 
 ## <a id="checkpoint-03a-panel"></a>4. Lay out the command field
 
-Draw the production command field beside its label.
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="214" viewBox="0 0 1120 214" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr-69cc9127" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arr-r-69cc9127" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arr-g-69cc9127" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arr-b-69cc9127" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+    <pattern id="grid-69cc9127" width="20" height="20" patternUnits="userSpaceOnUse">
+      <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#f1f5f9" stroke-width="1"/>
+    </pattern>
+  </defs>
+  <rect x="2" y="2" width="1116" height="210" rx="8" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="2" y="2" width="1116" height="28" rx="6" fill="#f8fafc" stroke="#111111" stroke-width="1.5"/>
+  <line x1="2" y1="30" x2="1118" y2="30" stroke="#111111" stroke-width="1.5"/>
+  <rect x="12" y="7" width="176" height="18" rx="3" fill="#111111"/>
+  <text x="100" y="19.5" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#ffffff" paint-order="normal" stroke="none">03A-PANEL · SCREEN QUADS</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="518" y="20" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Screen-Space Command Dock Layout, Margins &amp; Pixel-to-NDC Quad Conversion</text>
+  <rect x="838" y="7" width="268" height="18" rx="3" fill="#ffffff" stroke="#111111" stroke-width="1.2"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="972" y="19.5" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#2563eb">x_ndc = 2*x_px/W - 1 · y_ndc = 1 - 2*y_px/H</text>
+  <rect x="14" y="38" width="344" height="164" rx="6" fill="url(#grid-69cc9127)" stroke="#111111" stroke-width="1.5"/>
+  <line x1="14" y1="60" x2="358" y2="60" stroke="#cbd5e1" stroke-width="1"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="186" y="53" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1 · Viewport Bottom-Anchored Dock Rects</text>
+  <rect x="48" y="70" width="276" height="118" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <rect x="60" y="96" width="252" height="44" rx="3" fill="#f8fafc" stroke="#2563eb" stroke-width="1.5" stroke-dasharray="4 2"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="186" y="122" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#2563eb">History Transcript Rows</text>
+  <rect x="60" y="146" width="252" height="32" rx="3" fill="#fef9c3" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="140" y="166" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Command: input█</text>
+  <rect x="236" y="151" width="68" height="22" rx="2" fill="#dcfce7" stroke="#16a34a" stroke-width="1.2"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="270" y="166" text-anchor="middle" font-family="monospace" font-size="8.5" font-weight="700" fill="#16a34a">Status</text>
+  <line x1="358" y1="120" x2="384" y2="120" stroke="#111111" stroke-width="2" marker-end="url(#arr-69cc9127)"/>
+  <rect x="388" y="38" width="344" height="164" rx="6" fill="url(#grid-69cc9127)" stroke="#111111" stroke-width="1.5"/>
+  <line x1="388" y1="60" x2="732" y2="60" stroke="#cbd5e1" stroke-width="1"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="53" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2 · UTF-8 Byte Cursor &amp; Edit Buffer</text>
+  <rect x="416" y="78" width="288" height="44" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <rect x="424" y="84" width="44" height="32" fill="#dbeafe" stroke="#2563eb" stroke-width="1.2"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="446" y="104" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">H</text>
+  <rect x="472" y="84" width="44" height="32" fill="#dbeafe" stroke="#2563eb" stroke-width="1.2"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="494" y="104" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">e</text>
+  <rect x="520" y="84" width="44" height="32" fill="#dbeafe" stroke="#2563eb" stroke-width="1.2"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="542" y="104" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">l</text>
+  <rect x="568" y="84" width="44" height="32" fill="#dbeafe" stroke="#2563eb" stroke-width="1.2"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="590" y="104" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">p</text>
+  <line x1="616" y1="80" x2="616" y2="120" stroke="#dc2626" stroke-width="3"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="148" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#dc2626">cursor: char_boundary_index</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="170" text-anchor="middle" font-family="monospace" font-size="9" fill="#111111">Left / Right / Backspace / Enter</text>
+  <line x1="732" y1="120" x2="758" y2="120" stroke="#111111" stroke-width="2" marker-end="url(#arr-69cc9127)"/>
+  <rect x="762" y="38" width="344" height="164" rx="6" fill="url(#grid-69cc9127)" stroke="#111111" stroke-width="1.75"/>
+  <line x1="762" y1="60" x2="1106" y2="60" stroke="#cbd5e1" stroke-width="1"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="934" y="53" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3 · Autocomplete Popup &amp; Hit Rects</text>
+  <rect x="794" y="72" width="280" height="68" rx="4" fill="#ffffff" stroke="#2563eb" stroke-width="1.75"/>
+  <rect x="802" y="78" width="264" height="24" rx="2" fill="#dbeafe"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="814" y="94" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">▸ Clear White</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="814" y="122" font-family="monospace" font-size="9.5" fill="#111111">  Clear Grey</text>
+  <rect x="794" y="148" width="280" height="36" rx="4" fill="#f8fafc" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="810" y="170" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Command: Clear█</text>
+</svg>
+</div>
 
 ### 1. `src/panel.rs`
-
-Own the field text in Panel and import its layout helpers. Initialize empty text and limit input to one layout pass. Lay out the command label, field and history fold control.
 
 **Locate this existing block:**
 
@@ -830,8 +851,6 @@ impl Panel {
 
 ### 2. `src/command_dock/theme.rs`
 
-Style selection and the caret for the command field.
-
 **Locate this existing block:**
 
 ```rust
@@ -851,8 +870,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 3. `src/command_dock/mod.rs`
 
-Register the shared field layout.
-
 Replace the entire file with:
 
 ```rust
@@ -861,8 +878,6 @@ pub(crate) mod view;
 ```
 
 ### 4. `src/command_dock/view.rs`
-
-Add reusable panel, spacing and field functions.
 
 Create the file and type:
 
@@ -937,11 +952,7 @@ pub(crate) fn field(
 
 ## <a id="checkpoint-03b-memory"></a>5. Give the command field its memory
 
-Store the field text and history in one owned model.
-
 ### 1. `src/panel.rs`
-
-Replace the local String with an owned CommandLine. Give the model its initial status; keep all other fields at their defaults. Borrow the model text for editing and its status for the empty-field hint.
 
 **Locate this existing block:**
 
@@ -1072,8 +1083,6 @@ impl Panel {
 
 ### 2. `src/browser.rs`
 
-Report that the field now uses the command model.
-
 **Locate this existing block:**
 
 ```rust
@@ -1091,8 +1100,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 3. `src/command_dock/mod.rs`
-
-Define the state and choose the empty-field hint from borrowed text.
 
 Replace the entire file with:
 
@@ -1141,11 +1148,7 @@ pub(crate) fn placeholder<'a>(
 
 ## <a id="checkpoint-03b-state"></a>6. Prepare the dock completion helpers
 
-Give the upcoming layout a vocabulary contract and caret helpers.
-
 ### 1. `Cargo.toml`
-
-Enable the browser event, canvas geometry and focus bindings. Add serde serialization and JSON inspection dependencies.
 
 **Locate this existing block:**
 
@@ -1181,8 +1184,6 @@ serde_json = "1.0"
 ```
 
 ### 2. `src/command_dock/mod.rs`
-
-Define the application vocabulary contract without coupling the dock to scene types. Record actual widget bounds only when inspection is enabled. Add character-based caret and prefix helpers for the dock. Keep the helper declarations separated by a blank line.
 
 **Locate this existing block:**
 
@@ -1351,8 +1352,6 @@ pub(crate) fn command_cursor_select(
 
 ### 3. `src/panel.rs`
 
-Import the module name for the following shared helper calls.
-
 **Locate this existing block:**
 
 ```rust
@@ -1369,11 +1368,7 @@ use crate::renderer::Renderer;
 
 ## <a id="checkpoint-03c-history"></a>7. Draw retained command history
 
-Draw retained history above the field.
-
 ### 1. `src/browser.rs`
-
-Report that history is drawn.
 
 **Locate this existing block:**
 
@@ -1392,8 +1387,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 2. `src/command_dock/mod.rs`
-
-Draw retained history and its divider.
 
 **Locate this existing block:**
 
@@ -1460,8 +1453,6 @@ pub(crate) fn history(
 ```
 
 ### 3. `src/panel.rs`
-
-Start with expanded history and one retained sentence. Choose panel height from the expanded state. Draw history before laying out the field. Use the expanded state for the hint and fold symbol.
 
 **Locate this existing block:**
 
@@ -1572,11 +1563,63 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-03ca-typing"></a>8. Type directly into the command field
 
-Send the first printable key directly into the field.
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="214" viewBox="0 0 1120 214" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr-115b5fa0" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arr-r-115b5fa0" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arr-g-115b5fa0" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arr-b-115b5fa0" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+    <pattern id="grid-115b5fa0" width="20" height="20" patternUnits="userSpaceOnUse">
+      <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#f1f5f9" stroke-width="1"/>
+    </pattern>
+  </defs>
+  <rect x="2" y="2" width="1116" height="210" rx="8" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="2" y="2" width="1116" height="28" rx="6" fill="#f8fafc" stroke="#111111" stroke-width="1.5"/>
+  <line x1="2" y1="30" x2="1118" y2="30" stroke="#111111" stroke-width="1.5"/>
+  <rect x="12" y="7" width="176" height="18" rx="3" fill="#111111"/>
+  <text x="100" y="19.5" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#ffffff" paint-order="normal" stroke="none">03C · TRIE &amp; CARET</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="518" y="20" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Prefix Autocomplete Vocabulary, Keyboard Cursor Editing &amp; Caret Pixel Offset</text>
+  <rect x="838" y="7" width="268" height="18" rx="3" fill="#ffffff" stroke="#111111" stroke-width="1.2"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="972" y="19.5" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#2563eb">x_caret = pad_x + col_idx * 8px</text>
+  <rect x="14" y="38" width="344" height="164" rx="6" fill="url(#grid-115b5fa0)" stroke="#111111" stroke-width="1.5"/>
+  <line x1="14" y1="60" x2="358" y2="60" stroke="#cbd5e1" stroke-width="1"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="186" y="53" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1 · Edit Buffer &amp; Caret Index (0 .. len)</text>
+  <rect x="44" y="78" width="284" height="44" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="60" y="105" font-family="monospace" font-size="11" font-weight="700" fill="#111111">Command: Backgr</text>
+  <line x1="184" y1="84" x2="184" y2="116" stroke="#dc2626" stroke-width="2.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="184" y="142" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#dc2626">caret = 6 (x = 6*8 = 48px)</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="186" y="168" text-anchor="middle" font-family="monospace" font-size="8.5" fill="#111111">Left/Right/Home/End/Backspace</text>
+  <line x1="358" y1="120" x2="384" y2="120" stroke="#111111" stroke-width="2" marker-end="url(#arr-115b5fa0)"/>
+  <rect x="388" y="38" width="344" height="164" rx="6" fill="url(#grid-115b5fa0)" stroke="#111111" stroke-width="1.5"/>
+  <line x1="388" y1="60" x2="732" y2="60" stroke="#cbd5e1" stroke-width="1"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="53" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2 · Case-Insensitive Prefix Match &amp; Tab Accept</text>
+  <rect x="414" y="74" width="292" height="34" rx="4" fill="#fef08a" stroke="#dc2626" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="95" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">[0] Background  (prefix match ✓)</text>
+  <rect x="414" y="114" width="292" height="32" rx="4" fill="#f8fafc" stroke="#111111" stroke-width="1.25"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="134" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#111111">[1] Box         (Up/Down browse)</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="172" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#16a34a">Tab / Enter completes canonical name</text>
+  <line x1="732" y1="120" x2="758" y2="120" stroke="#111111" stroke-width="2" marker-end="url(#arr-115b5fa0)"/>
+  <rect x="762" y="38" width="344" height="164" rx="6" fill="url(#grid-115b5fa0)" stroke="#111111" stroke-width="1.75"/>
+  <line x1="762" y1="60" x2="1106" y2="60" stroke="#cbd5e1" stroke-width="1"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="934" y="53" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3 · Live Popup Under Command Bar</text>
+  <rect x="806" y="68" width="256" height="122" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="818" y="76" width="232" height="24" rx="3" fill="#f8fafc" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="828" y="92" font-family="monospace" font-size="9" font-weight="700" fill="#111111">&gt; Backgr|ound</text>
+  <rect x="818" y="104" width="160" height="24" rx="3" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="898" y="120" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#2563eb">Background [Tab]</text>
+</svg>
+</div>
 
 ### 1. `src/browser.rs`
-
-Retain the panel in keyboard callbacks; redraw and inspect accepted input.
 
 **Locate this existing block:**
 
@@ -1616,8 +1659,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 2. `src/panel.rs`
-
-Store pending egui events in Panel. Initialize the empty event queue. Focus before queuing printable text or Backspace; expose the current text. Move queued events into the frame once. Draw the field with its current input focus.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -1762,11 +1803,7 @@ impl Panel {
 
 ## <a id="checkpoint-03cb-submit"></a>9. Submit command text once
 
-Clear submitted text and retain one history entry.
-
 ### 1. `src/browser.rs`
-
-Expose the actual retained history to browser inspection. Report that Enter submits text.
 
 **Locate this existing block:**
 
@@ -1808,8 +1845,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 2. `src/command_dock/mod.rs`
 
-Take nonblank owned text and retain at most 200 history entries.
-
 **Locate this existing block:**
 
 ```rust
@@ -1843,8 +1878,6 @@ impl CommandLine {
 ```
 
 ### 3. `src/panel.rs`
-
-Expose the model’s retained history by reference. Recognize Enter as an editing key. Queue the corresponding Enter or Backspace event. Consume Enter once; retain the submitted line and answer.
 
 **Locate this existing block:**
 
@@ -1981,11 +2014,48 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-03cc-edit"></a>10. Edit the command text
 
-Keep text selection, deletion and Escape in the field.
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="184" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Pixel Rect (x, y, w, h) in Screen Space (0..W, 0..H)</text>
+  <rect x="56" y="48" width="228" height="106" fill="#f8fafc" stroke="#111111" stroke-width="1.75"/>
+  <rect x="70" y="118" width="200" height="24" rx="3" fill="#dbeafe" stroke="#2563eb" stroke-width="2"/>
+  <circle cx="70" cy="118" r="4" fill="#dc2626"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="126" y="110" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">(x0, y0)..(x1, y1)</text>
+  <line x1="358" y1="94" x2="384" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="388" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Pixel-to-NDC: ndc_x = 2x/W - 1, ndc_y = 1 - 2y/H</text>
+  <rect x="436" y="48" width="248" height="106" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <line x1="560" y1="48" x2="560" y2="154" stroke="#cbd5e1" stroke-width="1.2" stroke-dasharray="3 3"/>
+  <line x1="436" y1="101" x2="684" y2="101" stroke="#cbd5e1" stroke-width="1.2" stroke-dasharray="3 3"/>
+  <polygon points="454,122 666,122 666,144 454,144" fill="#dcfce7" stroke="#16a34a" stroke-width="2"/>
+  <line x1="454" y1="144" x2="666" y2="122" stroke="#16a34a" stroke-width="1.2" stroke-dasharray="3 3"/>
+  <line x1="732" y1="94" x2="758" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="762" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">GPU-Rendered Command Dock Overlay</text>
+  <rect x="806" y="44" width="256" height="118" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <polygon points="894,114 934,56 974,114" fill="#fce7f3" stroke="#111111" stroke-width="1.5"/>
+  <rect x="818" y="126" width="232" height="24" rx="3" fill="#f1f5f9" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="830" y="142" font-family="monospace" font-size="10" font-weight="700" fill="#111111">&gt; line</text>
+</svg>
+</div>
 
 ### 1. `src/browser.rs`
-
-Report that editing stays in the field.
 
 **Locate this existing block:**
 
@@ -2005,8 +2075,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 2. `src/command_dock/mod.rs`
 
-Separate the model helpers with a blank line.
-
 **Locate this existing block:**
 
 ```rust
@@ -2024,8 +2092,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 3. `src/panel.rs`
-
-Translate modifiers and named editing keys; ignore composing text. Consume Escape, clear text and surrender field focus.
 
 **Locate this existing block:**
 
@@ -2186,11 +2252,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-03cd-vocabulary"></a>11. Recognize Help
 
-Connect known names and useful unknown-command replies.
-
 ### 1. `src/command_vocabulary.rs`
-
-Rank exact words, then a whole-word extension, then remaining prefixes without replacing typed command meaning.
 
 Create the file and type:
 
@@ -2222,8 +2284,6 @@ pub(crate) fn ranked(names: &[&'static str], line: &str) -> Vec<&'static str> {
 ```
 
 ### 2. `src/browser.rs`
-
-Supply Help as the initial application vocabulary. Report that Help is recognized.
 
 **Locate this existing block:**
 
@@ -2305,8 +2365,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 3. `src/panel.rs`
-
-Import the vocabulary trait methods. Normalize names, find completions and answer Help or unknown input. Store the vocabulary adapter in Panel. Accept a static vocabulary in the constructor. Initialize the supplied vocabulary. Answer the submitted line through the vocabulary adapter.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -2450,8 +2508,6 @@ pub struct Panel {
 
 ### 4. `src/lib.rs`
 
-Compile the shared ranking helper alongside the first command dictionary.
-
 **Locate this existing block:**
 
 ```rust
@@ -2471,11 +2527,7 @@ mod command_vocabulary;
 
 ## <a id="checkpoint-03ce-complete"></a>12. Complete a command name
 
-Select only the suggested suffix while retaining typed text.
-
 ### 1. `src/browser.rs`
-
-Report that inline completion is connected.
 
 **Locate this existing block:**
 
@@ -2494,8 +2546,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 2. `src/command_dock/mod.rs`
-
-Match names after changes and select only the suggested suffix.
 
 **Locate this existing block:**
 
@@ -2570,8 +2620,6 @@ pub(crate) fn refresh(
 
 ### 3. `src/panel.rs`
 
-Keep the field response and refresh completion after editing.
-
 **Locate this existing block:**
 
 ```rust
@@ -2620,11 +2668,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-03cf-accept"></a>13. Accept or cancel a completion
 
-Use Tab, Enter and Escape without losing input ownership.
-
 ### 1. `src/command_dock/mod.rs`
-
-Retain the editing-key results for this frame. Accept completion, submit Enter or cancel Escape once.
 
 **Locate this existing block:**
 
@@ -2821,8 +2865,6 @@ pub(crate) fn finish(
 
 ### 2. `src/panel.rs`
 
-Consume Enter and Tab before the field handles input. Route completion and submission through finish.
-
 **Locate this existing block:**
 
 ```rust
@@ -2946,11 +2988,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-03cg-keys"></a>14. Read editing keys before the field
 
-Consume command editing once and restore field focus.
-
 ### 1. `src/browser.rs`
-
-Report that editing keys are read first.
 
 **Locate this existing block:**
 
@@ -2969,8 +3007,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 2. `src/command_dock/mod.rs`
-
-Handle a space inside the selected suffix; centralize editing and focus keys.
 
 **Locate this existing block:**
 
@@ -3066,8 +3102,6 @@ pub(crate) fn refresh(
 
 ### 3. `src/panel.rs`
 
-Restore field focus before accepting the first text event. Remove the replaced inline key collection. Read the editing keys before drawing the field.
-
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -3135,11 +3169,7 @@ Replace it with:
 
 ## <a id="checkpoint-03ch-popup"></a>15. Show matching commands
 
-Draw the matching names above the field.
-
 ### 1. `src/browser.rs`
-
-Report that matching commands are drawn.
 
 **Locate this existing block:**
 
@@ -3158,8 +3188,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 2. `src/command_dock/mod.rs`
-
-Draw matching names in a bounded popup and remember its rectangle.
 
 **Locate this existing block:**
 
@@ -3235,8 +3263,6 @@ pub(crate) fn finish(
 ```
 
 ### 3. `src/panel.rs`
-
-Clear the previous popup rectangle before layout. Draw current matches; preserve Tab acceptance.
 
 **Locate this existing block:**
 
@@ -3347,11 +3373,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-03ci-browse"></a>16. Browse matching names
 
-Move through matching command names without changing the scene.
-
 ### 1. `src/browser.rs`
-
-Report that arrow browsing is connected.
 
 **Locate this existing block:**
 
@@ -3370,8 +3392,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 2. `src/command_dock/mod.rs`
-
-Wrap the match index and retain the original typed prefix.
 
 **Locate this existing block:**
 
@@ -3470,8 +3490,6 @@ pub(crate) fn finish(
 
 ### 3. `src/panel.rs`
 
-Use browse for arrow keys, Tab and popup choices.
-
 **Locate this existing block:**
 
 ```rust
@@ -3518,11 +3536,65 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-03cj-prepare"></a>17. Prepare the dock before painting
 
-Keep UI output owned until one GPU submission.
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="214" viewBox="0 0 1120 214" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr-82ba244a" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arr-r-82ba244a" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arr-g-82ba244a" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arr-b-82ba244a" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+    <pattern id="grid-82ba244a" width="20" height="20" patternUnits="userSpaceOnUse">
+      <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#f1f5f9" stroke-width="1"/>
+    </pattern>
+  </defs>
+  <rect x="2" y="2" width="1116" height="210" rx="8" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="2" y="2" width="1116" height="28" rx="6" fill="#f8fafc" stroke="#111111" stroke-width="1.5"/>
+  <line x1="2" y1="30" x2="1118" y2="30" stroke="#111111" stroke-width="1.5"/>
+  <rect x="12" y="7" width="176" height="18" rx="3" fill="#111111"/>
+  <text x="100" y="19.5" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#ffffff" paint-order="normal" stroke="none">03CK · DOCK HIT &amp; SCROLL</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="518" y="20" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">2D Screen-Space AABB Rect Hit-Testing, Wheel Scroll Clamping &amp; Event Consumption</text>
+  <rect x="838" y="7" width="268" height="18" rx="3" fill="#ffffff" stroke="#111111" stroke-width="1.2"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="972" y="19.5" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#2563eb">hit = (px ∈ [x0, x1]) ∧ (py ∈ [y0, y1])</text>
+  <rect x="14" y="38" width="344" height="164" rx="6" fill="url(#grid-82ba244a)" stroke="#111111" stroke-width="1.5"/>
+  <line x1="14" y1="60" x2="358" y2="60" stroke="#cbd5e1" stroke-width="1"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="186" y="53" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1 · Chip AABB Hit Test [x0, y0, x1, y1]</text>
+  <rect x="64" y="84" width="240" height="64" rx="5" fill="#dbeafe" stroke="#2563eb" stroke-width="2"/>
+  <circle cx="64" cy="84" r="4" fill="#dc2626"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="64" y="76" text-anchor="middle" font-family="monospace" font-size="8.5" font-weight="700" fill="#dc2626">(x0,y0)</text>
+  <circle cx="304" cy="148" r="4" fill="#16a34a"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="304" y="166" text-anchor="middle" font-family="monospace" font-size="8.5" font-weight="700" fill="#16a34a">(x1,y1)</text>
+  <circle cx="184" cy="116" r="5.5" fill="#fef08a" stroke="#dc2626" stroke-width="2"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="184" y="136" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">Cursor (px, py) inside ✓</text>
+  <line x1="358" y1="120" x2="384" y2="120" stroke="#111111" stroke-width="2" marker-end="url(#arr-82ba244a)"/>
+  <rect x="388" y="38" width="344" height="164" rx="6" fill="url(#grid-82ba244a)" stroke="#111111" stroke-width="1.5"/>
+  <line x1="388" y1="60" x2="732" y2="60" stroke="#cbd5e1" stroke-width="1"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="53" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2 · Clamped Scroll Window &amp; Event Guard</text>
+  <rect x="414" y="76" width="292" height="50" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="96" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">scroll = clamp(s + Δy, 0, max_rows)</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="114" text-anchor="middle" font-family="monospace" font-size="8.5" fill="#2563eb">Slices visible popup rows [scroll .. scroll+K]</text>
+  <rect x="414" y="134" width="292" height="46" rx="4" fill="#dcfce7" stroke="#16a34a" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="156" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#16a34a">Dock Consumes Click -&gt; Skip 3D Pick</text>
+  <line x1="732" y1="120" x2="758" y2="120" stroke="#111111" stroke-width="2" marker-end="url(#arr-82ba244a)"/>
+  <rect x="762" y="38" width="344" height="164" rx="6" fill="url(#grid-82ba244a)" stroke="#111111" stroke-width="1.75"/>
+  <line x1="762" y1="60" x2="1106" y2="60" stroke="#cbd5e1" stroke-width="1"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="934" y="53" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3 · Clickable Option Chips in Dock</text>
+  <rect x="806" y="68" width="256" height="122" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="822" y="78" width="98" height="26" rx="4" fill="#fef08a" stroke="#dc2626" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="871" y="95" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">[Background]</text>
+  <rect x="930" y="78" width="84" height="26" rx="4" fill="#f1f5f9" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="972" y="95" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">[Clear]</text>
+</svg>
+</div>
 
 ### 1. `src/browser.rs`
-
-Report that prepared UI is painted once.
 
 **Locate this existing block:**
 
@@ -3541,8 +3613,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 2. `src/panel.rs`
-
-Own prepared output and the screen descriptor. Initialize pending output and screen size. Move input and layout into prepare. Convert physical dimensions into egui points. Append prepared output; take it once for GPU painting. Use the retained screen descriptor when uploading UI buffers. Use the same screen descriptor when painting UI.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -3728,11 +3798,7 @@ impl Panel {
 
 ## <a id="checkpoint-03ck-rects"></a>18. Remember where the dock is drawn
 
-Record actual widget bounds for mouse ownership.
-
 ### 1. `src/browser.rs`
-
-Expose actual dock state and rectangles for inspection. Report that drawn bounds are recorded.
 
 **Locate this existing block:**
 
@@ -3793,8 +3859,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 2. `src/command_dock/mod.rs`
 
-Record the fold control and toggle expanded history on click.
-
 **Locate this existing block:**
 
 ```rust
@@ -3834,8 +3898,6 @@ pub(crate) fn collapse(
 ```
 
 ### 3. `src/panel.rs`
-
-Store current control bounds and the panel’s top edge. Initialize inspection storage and the top edge. Serialize actual widget bounds, text, history and focus. Start a fresh control list for each layout. Keep the panel response to read its drawn bounds. Collect controls while drawing history. Record the actual field rectangle. Collect controls while drawing suggestions. Draw the recorded fold control. Retain the panel’s top edge for pointer ownership. Prepare the updated layout before painting.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -4053,11 +4115,7 @@ Replace it with:
 
 ## <a id="checkpoint-03ck-pointer"></a>19. Click the command dock
 
-Use pointer ownership to edit, choose a name and fold history.
-
 ### 1. `src/browser.rs`
-
-Dispatch keyboard and pointer events through one retained callback. Register pointer press, movement, release and cancellation. Report that mouse input is connected.
 
 **Locate this existing block:**
 
@@ -4150,8 +4208,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 2. `src/panel.rs`
-
-Retain pointer ownership between press and release. Initialize pointer ownership. Translate canvas coordinates, preserve drag ownership and release cancelled buttons. Expose pointer ownership so cancellation can be checked against the actual event handler.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -4295,11 +4351,7 @@ Replace it with:
 
 ## <a id="checkpoint-03cl-wheel"></a>20. Scroll through command names
 
-Keep scrolling over the dock inside the command list.
-
 ### 1. `src/browser.rs`
-
-Dispatch wheel events to Panel. Register wheel input with preventDefault enabled. Report that scrolling selects command names.
 
 **Locate this existing block:**
 
@@ -4404,8 +4456,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 2. `src/command_dock/mod.rs`
-
-Consume wheel movement over the field or previous popup. Focus the field when scrolling its command names. Give wheel browsing priority over arrow browsing.
 
 **Locate this existing block:**
 
@@ -4557,8 +4607,6 @@ pub(crate) fn keys(
 
 ### 3. `src/panel.rs`
 
-Queue wheel units and deltas at the canvas pointer position. Take the previous popup rectangle before drawing. Pass previous popup bounds to key and wheel handling.
-
 **Locate this existing block:**
 
 ```rust
@@ -4676,11 +4724,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-03c-layout"></a>21. Share the production dock layout
 
-Connect the existing row and history to one shared layout.
-
 ### 1. `src/browser.rs`
-
-Report that the shared production layout is connected.
 
 **Locate this existing block:**
 
@@ -4699,8 +4743,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 2. `src/command_dock/mod.rs`
-
-Combine the connected field, history and controls into row and draw.
 
 **Locate this existing block:**
 
@@ -4818,8 +4860,6 @@ pub fn draw(
 ```
 
 ### 3. `src/panel.rs`
-
-Remove imports now owned by the shared layout. Remove inline setup handled by command_dock::draw. Retain an accepted command for this layout. Call the same command_dock layout as production. Read the drawn top edge and answer accepted commands.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -4998,11 +5038,7 @@ struct Commands(&'static [&'static str]);
 </svg>
 </div>
 
-Align label and field text, and record the dock edge for later fitting.
-
 ### 1. `src/command_dock/mod.rs`
-
-Use the field height and centre the row’s children. Keep the actual dock edge as optional layout metadata. Record the dock edge from the current drawn rectangle.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -5093,11 +5129,7 @@ Replace it with:
 
 ## <a id="checkpoint-03cp-options"></a>23. Reserve command-row space for active tool values
 
-Own active-tool value buttons beside the command field.
-
 ### 1. `src/command_dock/mod.rs`
-
-Measure active value buttons, reserve field width and return their owned commands.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -5258,8 +5290,6 @@ Replace it with:
 
 ### 2. `src/lib.rs`
 
-Compile the shared dock for native widget checks.
-
 **Locate this existing block:**
 
 ```rust
@@ -5291,8 +5321,6 @@ mod tool_buttons_tests;
 ```
 
 ### 3. `src/command_dock/tool_buttons_tests.rs`
-
-Copy actual value-button, focus, text, completion and Enter checks.
 
 Create the file and type:
 
@@ -5488,11 +5516,7 @@ fn a_running_tool_suppresses_suggestions_and_empty_enter_reaches_the_owner() {
 
 ## <a id="checkpoint-03cn-handoff"></a>24. Return accepted application commands
 
-Keep editing local and return accepted names to the caller.
-
 ### 1. `src/browser.rs`
-
-Prepare the initial dock before presenting. Use Panel.update for input and the final layout pass. Remove inspection writes now handled inside update. Report that Panel returns application commands.
 
 **Locate this existing block:**
 
@@ -5605,8 +5629,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 2. `src/panel.rs`
-
-Remove replies now handled by Panel.update. Expose whether the dock consumed this event. Initialize event consumption. Start with folded history and focus the command field. Answer local commands; return accepted application names from update. Allow prepare to set viewport input scale. Supply the physical pixel scale to egui. Move command answers out of prepare. Return the accepted line from prepare. Paint prepared output without replaying input.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -5857,11 +5879,7 @@ pub struct Panel {
 
 ## <a id="checkpoint-03d-input"></a>25. Hand commands to the application
 
-Return accepted commands while keeping editing inside Panel.
-
 ### 1. `src/browser.rs`
-
-Import the retained Closure type. Keep canvas acquisition ready for canvas-owned input. Keep GPU setup with the final browser event owner. Remove the intermediate event callback setup. Keep surface configuration before the canvas input owner. Handle command update errors in the canvas callback. Stop the callback after a layout failure. Present after preparing the final command layout. Register drawing and keyboard events on the canvas. Retain the wheel callback for the page lifetime. Give surface presentation its complete function. Return a useful error when the surface is unavailable.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -5986,57 +6004,62 @@ pub fn report(message: &str) {
 ## <a id="checkpoint-04-input"></a>26. Make a choice change the picture
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
-<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="214" viewBox="0 0 1120 214" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
   <defs>
-    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+    <marker id="arr-7092c15f" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
-    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+    <marker id="arr-r-7092c15f" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
     </marker>
-    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+    <marker id="arr-g-7092c15f" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
     </marker>
-    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+    <marker id="arr-b-7092c15f" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
     </marker>
+    <pattern id="grid-7092c15f" width="20" height="20" patternUnits="userSpaceOnUse">
+      <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#f1f5f9" stroke-width="1"/>
+    </pattern>
   </defs>
-  <rect x="2" y="2" width="1116" height="184" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
-  <rect x="14" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">CSS Viewport (W × H × DPR)</text>
-  <rect x="56" y="46" width="260" height="114" fill="#f8fafc" stroke="#111111" stroke-width="1.5" stroke-dasharray="4 3"/>
-  <line x1="56" y1="42" x2="316" y2="42" stroke="#2563eb" stroke-width="1.75" marker-end="url(#arrB)"/>
-  <line x1="48" y1="46" x2="48" y2="160" stroke="#dc2626" stroke-width="1.75" marker-end="url(#arrR)"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="64" text-anchor="middle" font-family="monospace" font-size="10" fill="#2563eb">width = clientWidth * dpr</text>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="108" text-anchor="middle" font-family="monospace" font-size="10" fill="#111111">(0, 0) ────────► +X (px)</text>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="144" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#dc2626">▼ +Y (px)   clamped 1..max_2d</text>
-  <line x1="358" y1="94" x2="384" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
-  <rect x="388" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">RenderPass LoadOp::Clear(r,g,b,1)</text>
-  <rect x="440" y="48" width="240" height="110" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <line x1="440" y1="76" x2="680" y2="76" stroke="#e2e8f0" stroke-width="1"/>
-  <line x1="440" y1="104" x2="680" y2="104" stroke="#e2e8f0" stroke-width="1"/>
-  <line x1="440" y1="132" x2="680" y2="132" stroke="#e2e8f0" stroke-width="1"/>
-  <line x1="500" y1="48" x2="500" y2="158" stroke="#e2e8f0" stroke-width="1"/>
-  <line x1="560" y1="48" x2="560" y2="158" stroke="#e2e8f0" stroke-width="1"/>
-  <line x1="620" y1="48" x2="620" y2="158" stroke="#e2e8f0" stroke-width="1"/>
-  <circle cx="470" cy="62" r="5" fill="#facc15" stroke="#111111" stroke-width="1.25"/>
-  <circle cx="530" cy="62" r="5" fill="#facc15" stroke="#111111" stroke-width="1.25"/>
-  <circle cx="590" cy="62" r="5" fill="#facc15" stroke="#111111" stroke-width="1.25"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="122" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">wgpu::Color { r, g, b, a: 1.0 }</text>
-  <line x1="732" y1="94" x2="758" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
-  <rect x="762" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Viewer Swapchain Surface</text>
-  <rect x="802" y="46" width="124" height="112" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="864" y="106" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">rgb(1.0)</text>
-  <rect x="942" y="46" width="124" height="112" rx="4" fill="#e2e8f0" stroke="#111111" stroke-width="2"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="1004" y="106" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">rgb(0.9)</text>
+  <rect x="2" y="2" width="1116" height="210" rx="8" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="2" y="2" width="1116" height="28" rx="6" fill="#f8fafc" stroke="#111111" stroke-width="1.5"/>
+  <line x1="2" y1="30" x2="1118" y2="30" stroke="#111111" stroke-width="1.5"/>
+  <rect x="12" y="7" width="176" height="18" rx="3" fill="#111111"/>
+  <text x="100" y="19.5" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#ffffff" paint-order="normal" stroke="none">04-INPUT · COMMAND → GPU</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="518" y="20" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Command Dock Handoff to Application State &amp; Dynamic GPU RenderPass Clear</text>
+  <rect x="838" y="7" width="268" height="18" rx="3" fill="#ffffff" stroke="#111111" stroke-width="1.2"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="972" y="19.5" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#2563eb">Command("Clear Pink") -&gt; wgpu::Color</text>
+  <rect x="14" y="38" width="344" height="164" rx="6" fill="url(#grid-7092c15f)" stroke="#111111" stroke-width="1.5"/>
+  <line x1="14" y1="60" x2="358" y2="60" stroke="#cbd5e1" stroke-width="1"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="186" y="53" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1 · Accepted Dock Command Token</text>
+  <rect x="48" y="84" width="276" height="44" rx="4" fill="#fef9c3" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="186" y="110" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">&gt; Clear Pink [Enter]</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="186" y="156" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#2563eb">dock.key_down("Enter") -&gt; Some(cmd)</text>
+  <line x1="358" y1="120" x2="384" y2="120" stroke="#111111" stroke-width="2" marker-end="url(#arr-7092c15f)"/>
+  <rect x="388" y="38" width="344" height="164" rx="6" fill="url(#grid-7092c15f)" stroke="#111111" stroke-width="1.5"/>
+  <line x1="388" y1="60" x2="732" y2="60" stroke="#cbd5e1" stroke-width="1"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="53" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2 · State::apply_command -&gt; Clear Color</text>
+  <rect x="416" y="74" width="288" height="110" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <rect x="432" y="86" width="80" height="42" rx="3" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="472" y="111" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">White</text>
+  <rect x="520" y="86" width="80" height="42" rx="3" fill="#e5e7eb" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="111" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">Grey</text>
+  <rect x="608" y="86" width="80" height="42" rx="3" fill="#fce7f3" stroke="#db2777" stroke-width="2"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="648" y="111" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#db2777">Pink ✓</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="162" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#16a34a">LoadOp::Clear(state.background)</text>
+  <line x1="732" y1="120" x2="758" y2="120" stroke="#111111" stroke-width="2" marker-end="url(#arr-7092c15f)"/>
+  <rect x="762" y="38" width="344" height="164" rx="6" fill="url(#grid-7092c15f)" stroke="#111111" stroke-width="1.75"/>
+  <line x1="762" y1="60" x2="1106" y2="60" stroke="#cbd5e1" stroke-width="1"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="934" y="53" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3 · Immediate GPU Frame Redraw</text>
+  <rect x="806" y="68" width="256" height="122" rx="4" fill="#fce7f3" stroke="#111111" stroke-width="2"/>
+  <polygon points="934,80 874,152 994,152" fill="#f25999" stroke="#111111" stroke-width="1.5"/>
+  <rect x="818" y="158" width="232" height="24" rx="3" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="934" y="174" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#16a34a">Background cleared to pink.</text>
 </svg>
 </div>
 
 ### 1. `src/background.rs`
-
-Create the small piece of application state. It knows colours, but knows nothing about HTML or GPU resources.
 
 Create the file and type:
 
@@ -6063,8 +6086,6 @@ impl Background {
 
 ### 2. `src/lib.rs`
 
-Register the state module so both the browser and the renderer can use it.
-
 **Locate this existing block:**
 
 ```rust
@@ -6081,8 +6102,6 @@ mod browser;
 ```
 
 ### 3. `src/renderer.rs`
-
-Borrow Background in draw and read its RGB value. Clear the render target with that RGB value.
 
 **Locate this existing block:**
 
@@ -6139,8 +6158,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 4. `src/browser.rs`
-
-Import the background state. Own the background and toggle it when the dock submits Background. Pass the background into presentation and update the status message. Draw the scene with the current background.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 

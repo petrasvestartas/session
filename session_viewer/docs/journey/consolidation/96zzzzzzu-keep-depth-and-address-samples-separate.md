@@ -1,6 +1,6 @@
 # 22.5 · Coherent multisampling and frame-resource ownership
 
-**Goal:** Choose coherent colour samples from actual geometry, physical viewport, device budget and recovery without changing original sources or owner queries. · **Steps:** 19 · **Source:** [engine/gpu/render.rs](../../../src/engine/gpu/render.rs) · [engine/gpu/pass.rs](../../../src/engine/gpu/pass.rs) · [engine/gpu/targets.rs](../../../src/engine/gpu/targets.rs) · [engine/gpu/frame.rs](../../../src/engine/gpu/frame.rs)
+**Steps:** 19 · **Source:** [engine/gpu/render.rs](../../../src/engine/gpu/render.rs) · [engine/gpu/pass.rs](../../../src/engine/gpu/pass.rs) · [engine/gpu/targets.rs](../../../src/engine/gpu/targets.rs) · [engine/gpu/frame.rs](../../../src/engine/gpu/frame.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -92,11 +92,7 @@
 </svg>
 </div>
 
-Define matching frame attachments without averaging depth or physical primitive addresses.
-
 ### 1. `src/frame_targets.rs`
-
-Own matching depth and primitive samples; keep the optional colour image as the only resolve source.
 
 Create the file and type:
 
@@ -176,8 +172,6 @@ impl Targets {
 
 ### 2. `src/primitive_image.rs`
 
-Keep request-owned queries single-sample. Four-sample integer images are sampled directly and never copied or resolved.
-
 **Locate this existing block:**
 
 ```rust
@@ -230,8 +224,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 3. `src/lib.rs`
 
-Register the attachment owner. The main renderer remains single-sample.
-
 **Locate this existing block:**
 
 ```rust
@@ -248,8 +240,6 @@ pub mod geometry_cache;
 ```
 
 ### 4. `src/frame_target_tests.rs`
-
-Read every actual depth/ID sample, resolve only colour and retain readable old bound views across replacement.
 
 Create the file and type:
 
@@ -624,8 +614,6 @@ struct Hit { @location(0) color:vec4f, @location(1) primitive:vec2u, @builtin(fr
 
 ### 5. `src/lib.rs`
 
-Register the supplied real-GPU sample fixture.
-
 **Locate this existing block:**
 
 ```rust
@@ -644,11 +632,7 @@ mod frame_targets;
 
 ## <a id="checkpoint-96zzzzzzv-reuse-coherent-frame-targets"></a>2. Reuse coherent frame targets
 
-Retain frame attachments at equal extent and replace them coherently during real resizing.
-
 ### 1. `src/renderer.rs`
-
-Move every existing depth field reference under the target owner; preserve longer names.
 
 Use your editor’s **whole-word Replace All** in this file. Find this field reference:
 
@@ -664,8 +648,6 @@ self.targets.depth
 
 ### 2. `src/renderer.rs`
 
-Move every existing primitive field reference under the target owner; preserve longer names.
-
 Use your editor’s **whole-word Replace All** in this file. Find this field reference:
 
 ```rust
@@ -679,8 +661,6 @@ self.targets.primitive
 ```
 
 ### 3. `src/renderer.rs`
-
-Wire the existing renderer to its persistent, coherent target owner.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -863,8 +843,6 @@ Replace it with:
 
 ### 4. `src/lib.rs`
 
-Retain the existing validation assertions while using the new target owner.
-
 **Locate this existing block:**
 
 ```rust
@@ -882,8 +860,6 @@ mod frame_targets;
 ```
 
 ### 5. `src/renderer.rs`
-
-Retain the existing validation assertions while using the new target owner.
 
 **Locate this existing block:**
 
@@ -904,8 +880,6 @@ mod frame_target_tests;
 ```
 
 ### 6. `src/global_outline_tests.rs`
-
-Retain the existing validation assertions while using the new target owner.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -1519,8 +1493,6 @@ Replace it with:
 
 ### 7. `src/contact_feature_tests.rs`
 
-Retain the existing validation assertions while using the new target owner.
-
 **Locate this existing block:**
 
 ```rust
@@ -1538,8 +1510,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 8. `src/ambient_input_tests.rs`
-
-Retain the existing validation assertions while using the new target owner.
 
 **Locate this existing block:**
 
@@ -1559,8 +1529,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 9. `src/ambient_contact_tests.rs`
 
-Retain the existing validation assertions while using the new target owner.
-
 **Locate this existing block:**
 
 ```rust
@@ -1578,8 +1546,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 10. `src/frame_target_tests.rs`
-
-Append the actual unchanged-extent, coherent-resize, nonblank pixels, full sources, geometry identity and release witness.
 
 **Locate this existing block:**
 
@@ -1717,11 +1683,7 @@ fn export(name: &str, image: &[u8]) {
 
 ## <a id="checkpoint-96zzzzzzw-match-resolve-base-and-view-formats"></a>3. Keep resolved colours in the canvas format
 
-Preserve flat colours by matching the base texture formats and rendering view formats at both ends of a resolve.
-
 ### 1. `src/frame_targets.rs`
-
-Retain identical-format callers and accept an explicit compatible base/view pair. Give the image allocator separate base and view formats. Create the actual texture in the output base format. Permit the requested render view. Create the existing colour view explicitly. Keep depth storage and view formats identical. Match the resolve output base while retaining the colour view.
 
 **Locate this existing block:**
 
@@ -1812,8 +1774,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 2. `src/renderer.rs`
-
-Keep the output base format beside the existing colour view format. Retain the existing constructor and accept explicit base/view formats at the browser boundary. Use the same base format as the eventual resolve output. Store the supplied output format once. Keep matching base/view formats during real resizing.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -1949,8 +1909,6 @@ Replace it with:
 
 ### 3. `src/browser.rs`
 
-Pass the actual canvas base and rendering view formats separately.
-
 **Locate this existing block:**
 
 ```rust
@@ -1973,8 +1931,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 4. `src/frame_target_tests.rs`
-
-Extend the existing actual GPU fixture across matching base/view pairs while retaining every depth/address, resize and release assertion.
 
 **Locate this existing block:**
 
@@ -2698,11 +2654,7 @@ struct Hit { @location(0) color:vec4f, @location(1) primitive:vec2u, @builtin(fr
 </svg>
 </div>
 
-Match ordinary and shared surface shaders and pipeline descriptors to the requested sample count while retaining original geometry and previously compiled variants.
-
 ### 1. `src/sample_pipelines.rs`
-
-Retain only active and alternate pipeline/layout recipes for counts1 and4; never retain inactive frame images.
 
 Create the file and type:
 
@@ -2735,8 +2687,6 @@ impl<T> Variants<T> {
 ```
 
 ### 2. `src/surface_pipelines.rs`
-
-Declare the existing surface descriptor factory interface and pair return. Move the exact previously typed shader constructor. Move the exact previously typed layout and descriptor closure. Assemble the count-specific surface inputs from one original shader. Borrow the existing caller-owned layouts. Use the existing device reference. Use the same shared geometry layout. Apply one explicit colour sample count. Use sample-qualified colour/world/normal inputs only for4x.
 
 Create the file and type:
 
@@ -2830,8 +2780,6 @@ pub fn sampled(source: String, samples: u32) -> String {
 ```
 
 ### 3. `src/renderer.rs`
-
-Remove the shader constructor after moving its exact bytes into the surface factory. Remove the descriptor closure after moving its exact bytes into the surface factory. Keep the existing ordinary and highlight surface recipes in the shared sample-count cache.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -3138,8 +3086,6 @@ Replace it with:
 
 ### 4. `src/instance_gpu.rs`
 
-Extract the existing shared-surface descriptor behind the same count-specific factory interface. Move the exact previously typed shared shader and pipeline descriptor. Remove the original descriptor copy after moving it. Reuse the shared pipeline pair without rebuilding source geometry, records or slots. Borrow the existing shared record layout in the extracted factory. Match the shared surface pipeline to its actual sample count.
-
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -3430,8 +3376,6 @@ Replace it with:
 
 ### 5. `src/global_outline_tests.rs`
 
-Keep existing assertions on the same active ordinary pipeline.
-
 **Locate this existing block:**
 
 ```rust
@@ -3449,8 +3393,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 6. `src/lib.rs`
-
-Register the two small pipeline recipe modules.
 
 **Locate this existing block:**
 
@@ -3470,8 +3412,6 @@ mod surface_pipelines;
 ```
 
 ### 7. `src/global_outline_tests.rs`
-
-Retain all unchanged outline and arena assertions after the ordinary surface owner moves.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -3551,8 +3491,6 @@ Replace it with:
 ```
 
 ### 8. `src/sample_surface_tests.rs`
-
-Render actual ordinary and shared surfaces at both counts, inspect every physical depth/address, require exact return and cached pipeline identity, preserve original records and GPU geometry, then freshly query both original shared owners.
 
 Create the file and type:
 
@@ -3938,8 +3876,6 @@ fn original_and_shared_meshes_switch_samples_without_source_or_geometry_rebuilds
 
 ### 9. `src/sample_test_proof.rs`
 
-Export actual Native diagnostic pixels only when the caller opts into a proof directory; run all assertions without filesystem output by default.
-
 Create the file and type:
 
 ```rust
@@ -3962,8 +3898,6 @@ pub fn write(path: impl AsRef<Path>, bytes: impl AsRef<[u8]>) -> io::Result<()> 
 
 ### 10. `src/renderer.rs`
 
-Register the actual Native surface witness.
-
 **Locate this existing block:**
 
 ```rust
@@ -3984,8 +3918,6 @@ mod sample_tests;
 
 ### 11. `src/lib.rs`
 
-Keep optional diagnostic exports Native-only.
-
 **Locate this existing block:**
 
 ```rust
@@ -4005,11 +3937,7 @@ mod sample_test_proof;
 
 ## <a id="checkpoint-96zzzzzzy-generate-ink-for-physical-samples"></a>5. Generate ink shaders for physical samples
 
-Carry an explicit physical sample through finite-ink visibility and generate colour shaders whose coordinates, depth, primitive addresses and pipeline descriptor use the same sample count.
-
 ### 1. `src/ink_plane.wgsl`
-
-Carry the explicit physical sample through original finite-ink visibility; single-sample queries continue passing0.
 
 **Locate this existing block:**
 
@@ -4036,8 +3964,6 @@ fn finite_source_hidden(pixel:vec2<f32>,axis:InkAxis,sample:u32)->bool{
 ```
 
 ### 2. `src/finite_visibility.wgsl`
-
-Carry the explicit physical sample through original finite-ink visibility; single-sample queries continue passing0.
 
 **Locate this existing block:**
 
@@ -4159,8 +4085,6 @@ fn finite_visible(pixel:vec2<f32>,ends:vec4<f32>,depths:vec2<f32>,flags:u32,sag:
 
 ### 3. `src/finite_stroke.wgsl`
 
-Carry the explicit physical sample through original finite-ink visibility; single-sample queries continue passing0.
-
 **Locate this existing block:**
 
 ```wgsl
@@ -4182,8 +4106,6 @@ fn fragment(input: Output,@builtin(sample_index) sample:u32) -> @location(0) vec
 ```
 
 ### 4. `src/finite_chain.wgsl`
-
-Carry the explicit physical sample through original finite-ink visibility; single-sample queries continue passing0.
 
 **Locate this existing block:**
 
@@ -4207,8 +4129,6 @@ fn fragment(input: Output,@builtin(sample_index) sample:u32) -> @location(0) vec
 
 ### 5. `src/finite_marker.wgsl`
 
-Carry the explicit physical sample through original finite-ink visibility; single-sample queries continue passing0.
-
 **Locate this existing block:**
 
 ```wgsl
@@ -4231,8 +4151,6 @@ fn fragment(input: Output,@builtin(sample_index) sample:u32) -> @location(0) vec
 
 ### 6. `src/finite_stroke_pick.wgsl`
 
-Carry the explicit physical sample through original finite-ink visibility; single-sample queries continue passing0.
-
 **Locate this existing block:**
 
 ```wgsl
@@ -4250,8 +4168,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 7. `src/finite_chain_pick.wgsl`
-
-Carry the explicit physical sample through original finite-ink visibility; single-sample queries continue passing0.
 
 **Locate this existing block:**
 
@@ -4271,8 +4187,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 8. `src/finite_marker_pick.wgsl`
 
-Carry the explicit physical sample through original finite-ink visibility; single-sample queries continue passing0.
-
 **Locate this existing block:**
 
 ```wgsl
@@ -4290,8 +4204,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 9. `src/finite_sources.rs`
-
-Generate only four-sample actual depth/address access and sample-qualified coverage; retain the original one-sample marker position.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -4404,8 +4316,6 @@ pub fn source_with_samples(
 
 ### 10. `src/tile_shader_tests.rs`
 
-Retain every original compute/colour/query shader recipe and validate both counts across all six finite-ink styles with the same parser and full Naga assertions.
-
 **Locate this existing block:**
 
 ```rust
@@ -4448,8 +4358,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 11. `src/finite_ink.rs`
-
-Carry the requested count from the pipeline descriptor into its shader recipe. Assemble the shader for the same count as the pipeline. Use the explicit count in the finite-ink pipeline descriptor. Keep current colour construction single-sample until the owner is connected. Keep the independent integer query factory single-sample.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -4557,11 +4465,7 @@ Replace it with:
 
 ## <a id="checkpoint-96zzzzzzz-cache-ink-pipelines-with-independent-queries"></a>6. Cache matching ink pipelines and bindings
 
-Retain matching finite-ink colour pipelines and binding layouts for both sample counts while keeping integer queries independent and sharing the original vertex-layout constants.
-
 ### 1. `src/stroke_gpu.rs`
-
-Declare one shared static vertex-layout recipe; retain the original field offsets and strides. Move the exact previously typed finite-ink vertex attributes. Use the shared static layout without changing the original vertex data. Reuse the same static guide, wide-line and grid vertex layout.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -4733,8 +4637,6 @@ pub struct Lane {
 ```
 
 ### 2. `src/finite_ink.rs`
-
-Extract the binding recipe behind an explicit count parameter. Move the exact existing finite-ink binding descriptor. Remove the original descriptor copy after moving it. Match the depth binding to its physical sample count. Match the primitive-address binding without averaging integer words. Retain only count-specific colour pipeline/layout recipes and one independent query recipe. Retain existing one-sample callers and accept a matching initial colour count. Borrow the shared static attributes instead of allocating a second vector. Build matching colour resources while retaining the single-sample original-owner query. Compile the alternate recipe only once and release stale image bindings on a real switch. Build current-colour and independent query bindings from their own layouts. Use the requested binding layout. Cache only current colour bindings. Draw with the selected colour recipe. Keep original queries on their single-sample layout. Register actual Native cache, physical-colour and independent-query witnesses.
 
 **Locate this existing block:**
 
@@ -5192,8 +5094,6 @@ mod pixels_tests;
 
 ### 3. `src/finite_sample_tests.rs`
 
-Exercise actual six-family GPU colour coverage0..4, fresh independent original queries, exact return and cached pipeline/layout identities; optional proof exports remain portable.
-
 Create the file and type:
 
 ```rust
@@ -5298,8 +5198,6 @@ fn actual_colour_variants_reuse_pipelines_and_keep_fresh_queries_single_sample()
 ```
 
 ### 4. `src/ink_pixels_tests.rs`
-
-Exercise actual six-family GPU colour coverage0..4, fresh independent original queries, exact return and cached pipeline/layout identities; optional proof exports remain portable.
 
 Create the file and type:
 
@@ -5834,11 +5732,7 @@ fn actual_four_sample_ink_reads_each_depth_and_keeps_queries_independent() {
 </svg>
 </div>
 
-Apply one requested sample count through existing overlay lanes while retaining their original vertices, IDs, query pipelines and previously compiled colour recipes.
-
 ### 1. `src/stroke_gpu.rs`
-
-Add only count-specific sample coordinates and the existing colour factory interface. Move the exact previously typed layout descriptor into the shared colour factory. Move the exact previously typed shader descriptor into the shared colour factory. Move the exact previously typed render descriptor into the shared colour factory. Remove the constructor descriptor copy after moving its exact bytes. Remove the original shader copy after moving it. Use one cached colour recipe and retain the original query constructor. Match the colour descriptor to its actual sample count. Cache only pipeline recipes and retain the pending count. Adopt the requested count only after actual vertices arrive. Reconcile a late-created finite owner with the pending count. Retain vertices and IDs, delay empty variants, clear stale finite bindings and reuse compiled recipes. Skip empty finite lanes before binding images of a different sample count. Draw the selected colour recipe. Retain the immutable format/depth recipe and initial count.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -6235,8 +6129,6 @@ pub(crate) fn attributes(stride: u64) -> &'static [wgpu::VertexAttribute] {
 
 ### 2. `src/highlight.rs`
 
-Delegate the same count through existing highlight, preview, measurement and guide lanes.
-
 **Locate this existing block:**
 
 ```rust
@@ -6262,8 +6154,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 3. `src/tool_preview.rs`
 
-Delegate the same count through existing highlight, preview, measurement and guide lanes.
-
 **Locate this existing block:**
 
 ```rust
@@ -6284,8 +6174,6 @@ impl Preview {
 
 ### 4. `src/measure_gpu.rs`
 
-Delegate the same count through existing highlight, preview, measurement and guide lanes.
-
 **Locate this existing block:**
 
 ```rust
@@ -6304,8 +6192,6 @@ impl Measurement {
 ```
 
 ### 5. `src/guide_gpu.rs`
-
-Delegate the same count through existing highlight, preview, measurement and guide lanes.
 
 **Locate this existing block:**
 
@@ -6328,8 +6214,6 @@ impl Guide {
 
 ### 6. `src/stroke_gpu.rs`
 
-Register the actual Native overlay/cache/empty-lane witness.
-
 **Locate this existing block:**
 
 ```rust
@@ -6349,8 +6233,6 @@ mod sample_tests;
 ```
 
 ### 7. `src/stroke_sample_tests.rs`
-
-Draw six actual overlay families at both counts, preserve vertices/IDs/uploads and query pipelines, delay empty variants, and validate late finite data plus both empty-depth combinations without mismatched bindings.
 
 Create the file and type:
 
@@ -6667,11 +6549,7 @@ fn actual_overlay_colours_retarget_lazily_without_reuploading_vertices_or_querie
 </svg>
 </div>
 
-Match section crossing images and cap colour/depth to each physical sample while retaining original solid geometry, cached recipes and independent single-sample original-owner queries.
-
 ### 1. `src/cap_pipeline.rs`
-
-Match active cap image, pipeline and physical sample count while retaining original geometry and independent one-sample queries.
 
 **Locate this existing block:**
 
@@ -7043,8 +6921,6 @@ fn colour_source(samples: u32) -> String {
 
 ### 2. `src/cap_color.wgsl`
 
-Use the actual physical sample in the same cap fragment calculation at both counts. Read one matching crossing and selection word directly, preserving the single-sample calculation without duplicated shader source.
-
 **Locate this existing block:**
 
 ```wgsl
@@ -7122,8 +6998,6 @@ fn fs_cap(in:CapVertex,@builtin(sample_index) sample:u32)->CapOut {
 ```
 
 ### 3. `src/cap_pick_pipeline.rs`
-
-Match active cap image, pipeline and physical sample count while retaining original geometry and independent one-sample queries.
 
 **Locate this existing block:**
 
@@ -7251,8 +7125,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 4. `src/caps_gpu.rs`
-
-Match active cap image, pipeline and physical sample count while retaining original geometry and independent one-sample queries.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -7451,8 +7323,6 @@ Replace it with:
 
 ### 5. `src/cap_image.rs`
 
-Match active cap image, pipeline and physical sample count while retaining original geometry and independent one-sample queries.
-
 **Locate this existing block:**
 
 ```rust
@@ -7520,8 +7390,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 6. `src/sample_surface_tests.rs`
-
-Retain the complete existing ordinary/shared surface fixture and add actual solid, hatch, selected cap, original-owner query, geometry/source preservation and exact return checks at both counts.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -7898,11 +7766,7 @@ Replace it with:
 </svg>
 </div>
 
-Make nearer original clouds agree across visible colour, physical depth/addresses and independent original-owner queries, including ink in front and behind.
-
 ### 1. `src/cloud_gpu.rs`
-
-Keep cloud colour, physical depth/addresses and original-owner queries coherent without changing original sources or adding GPU images.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -8097,8 +7961,6 @@ Replace it with:
 
 ### 2. `src/cloud_resolve.wgsl`
 
-Keep cloud colour, physical depth/addresses and original-owner queries coherent without changing original sources or adding GPU images.
-
 **Locate this existing block:**
 
 ```wgsl
@@ -8158,8 +8020,6 @@ struct Pick {@location(0) owner:vec2<u32>,@location(1) primitive:vec2<u32>,@buil
 ```
 
 ### 3. `src/renderer.rs`
-
-Skip absent cloud lanes before opening their composite pass. Cloud colour/depth replaces occluded physical surface words with zero in the same pass. Draw the lane already borrowed by the pass guard.
 
 **Locate this existing block:**
 
@@ -8240,8 +8100,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 4. `src/sheet_gpu.rs`
 
-Skip empty sheet lanes before binding their unused colour or query recipe.
-
 **Locate this existing block:**
 
 ```rust
@@ -8292,8 +8150,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 5. `src/finite_visibility.wgsl`
 
-Keep cloud colour, physical depth/addresses and original-owner queries coherent without changing original sources or adding GPU images.
-
 **Locate this existing block:**
 
 ```wgsl
@@ -8310,8 +8166,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 6. `src/pick_encode.rs`
-
-Reuse the existing readonly integer overlay query pass. Cloud depth is established before readonly original ink queries. Write actual cloud query depth and zero physical words before the finite query reads them. Reuse the existing query pass and attachments through a stack-only helper. Reuse the exact previously typed owner attachment in the shared query pass. Reuse the exact previously typed primitive attachment in the shared query pass. Reuse the exact previously typed owner pass in the shared query pass. Keep cloud colour, physical depth/addresses and original-owner queries coherent without changing original sources or adding GPU images.
 
 **Locate this existing block:**
 
@@ -8542,8 +8396,6 @@ fn overlay<'a>(
 ```
 
 ### 7. `src/cloud_address_tests.rs`
-
-Supplied actual one-sample physical cloud face/cap addresses and dense rear/front-line colour/query/source/placement/cache witnesses at both physical densities. Four-sample resources are connected next.
 
 Create the file and type:
 
@@ -8967,8 +8819,6 @@ fn actual_nearer_cloud_hides_original_ink_without_hiding_front_sources() {
 
 ### 8. `src/cloud_composite_reference.rs`
 
-Independently render the exact maintained cloud WGSL on the same original cached point inputs; Native-only validation data.
-
 Create the file and type:
 
 ```rust
@@ -9243,8 +9093,6 @@ fn fs_main(in: VsOut) -> FsOut {
 
 ### 9. `src/cloud_composite_tests.rs`
 
-Actual one-sample independent RGBA comparison for source alpha0/255, shading0/.25, viewport edges and whole/default output, preserving original sources, owner queries and cached raster.
-
 Create the file and type:
 
 ```rust
@@ -9407,8 +9255,6 @@ fn actual_cloud_composite_matches_current_opaque_and_eye_dome_pixels() {
 
 ### 10. `src/renderer.rs`
 
-Register supplied Native physical-depth/owner and independent shader witnesses.
-
 **Locate this existing block:**
 
 ```rust
@@ -9433,8 +9279,6 @@ mod cloud_composite_tests;
 
 ### 11. `src/cloud_gpu.rs`
 
-Register the optional Native exact maintained compositor reference.
-
 **Locate this existing block:**
 
 ```rust
@@ -9455,11 +9299,7 @@ pub(crate) mod composite_reference;
 
 ## <a id="checkpoint-96zzzzzzzca-cache-cloud-and-sheet-samples"></a>10. Cache cloud and sheet sample recipes
 
-Cache count-specific original cloud and sheet colour recipes while retaining original source geometry, point images/raster, drawing placements/IDs and independent one-sample owner queries.
-
 ### 1. `src/cloud_gpu.rs`
-
-Cache matching cloud colour recipes while retaining source columns, point images/raster, original-owner queries and current appearance.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -9780,8 +9620,6 @@ use crate::{
 
 ### 2. `src/renderer.rs`
 
-Late-created clouds adopt the current count before preparing source records.
-
 **Locate this existing block:**
 
 ```rust
@@ -9798,8 +9636,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 3. `src/sheet_gpu.rs`
-
-Retain original drawing, raster/font resources and independent owner queries while caching matching colour recipes.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -9939,8 +9775,6 @@ Replace it with:
 
 ### 4. `src/sheet_pipeline.rs`
 
-Retain original drawing, raster/font resources and independent owner queries while caching matching colour recipes. Add only physical-sample source qualification around the previously typed colour recipe. Reuse exact previously typed sheet view/model in the alternate colour recipe. Reuse exact previously typed sheet clipping layout in the alternate colour recipe. Reuse exact previously typed sheet expanded source in the alternate colour recipe. Reuse exact previously typed sheet source reference in the alternate colour recipe. Reuse exact previously typed sheet shader in the alternate colour recipe. Reuse exact previously typed sheet colour layout in the alternate colour recipe. Reuse exact previously typed sheet render in the alternate colour recipe. Match the alternate sheet colour descriptor to the actual pass.
-
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -10064,8 +9898,6 @@ pub fn pipelines(
 ```
 
 ### 5. `src/cloud_address_tests.rs`
-
-Extend every existing physical address/rear-front source/cropped-query assertion to both counts and require real exact sample returns with full cached cloud usage retained.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -10244,8 +10076,6 @@ fn physical(r: &Renderer) -> Vec<[u32; 4]> {
 
 ### 6. `src/cloud_composite_tests.rs`
 
-Retain existing alpha/shading/viewport-edge/default/full-frame/original-owner parity assertions and extend them to all16settings at both physical counts.
-
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -10291,8 +10121,6 @@ Replace it with:
 ```
 
 ### 7. `src/sample_surface_tests.rs`
-
-Retain every prior surface/section assertion and add actual sheet/cloud composition at both counts, complete sources/geometry/cache retention, exact returns and fresh original owners.
 
 **Locate this existing block:**
 
@@ -10432,11 +10260,7 @@ fn cached_clouds_and_original_sheets_draw_in_the_actual_four_sample_main_frame()
 
 ## <a id="checkpoint-96zzzzzzzd-retarget-cached-text"></a>11. Retarget cached text colour
 
-Match world text, nameplates and screen glyph colour to physical sample counts while retaining original sources, shaping, fonts, atlas contents, world-plane raster images and independent original-owner queries.
-
 ### 1. `src/text_plate.rs`
-
-Retain original drawing, raster/font resources and independent owner queries while caching matching colour recipes.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -10581,8 +10405,6 @@ use crate::text_gpu_support::{Pipeline, Target};
 
 ### 2. `src/text_plane.rs`
 
-Retain original drawing, raster/font resources and independent owner queries while caching matching colour recipes.
-
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -10686,8 +10508,6 @@ Replace it with:
 
 ### 3. `src/scene_text_gpu.rs`
 
-Retain original drawing, raster/font resources and independent owner queries while caching matching colour recipes.
-
 **Locate this existing block:**
 
 ```rust
@@ -10719,8 +10539,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 4. `src/renderer.rs`
 
-Late-created text adopts the current renderer count.
-
 **Locate this existing block:**
 
 ```rust
@@ -10738,8 +10556,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 5. `src/sample_surface_tests.rs`
-
-Extend the supplied actual fixture to cached text colour without introducing the complete renderer API before all remaining consumers. Actual world/nameplate/screen text source/font/shaping/raster/atlas retention, late creation, exact count returns and fresh original-owner queries.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -10933,11 +10749,7 @@ fn cached_clouds_and_original_sheets_draw_in_the_actual_four_sample_main_frame()
 </svg>
 </div>
 
-Prepare count-specific section coverage and outline colour recipes while retaining original addresses, one-sample search images and one final black blend.
-
 ### 1. `src/outline_caps.rs`
-
-Match physical face/section coverage and colour recipes while retaining one-sample outline search images and a single final blend. Reuse the previously typed immutable outline descriptor.
 
 Replace the entire file with:
 
@@ -11104,8 +10916,6 @@ fn source(samples: u32) -> String {
 ```
 
 ### 2. `src/outline_composite.rs`
-
-Match physical face/section coverage and colour recipes while retaining one-sample outline search images and a single final blend. Reuse the previously typed immutable outline descriptor.
 
 Replace the entire file with:
 
@@ -11276,8 +11086,6 @@ fn pipeline(
 
 ### 3. `src/outline_gpu.rs`
 
-Keep this prerequisite independently compilable: its current coverage producer is still one-sample. The next lesson passes the active physical count.
-
 **Locate this existing block:**
 
 ```rust
@@ -11296,11 +11104,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-96zzzzzzzf-resolve-float-outline-coverage"></a>13. Resolve float outline coverage
 
-Feed physical face and section coverage into the retained one-sample outline search and blend the selected/global result once, without resolving integer addresses or depth.
-
 ### 1. `src/outline_gpu.rs`
-
-Match physical face/section coverage and colour recipes while retaining one-sample outline search images and a single final blend.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -11966,8 +11770,6 @@ use crate::{
 
 ### 2. `src/outline_caps.rs`
 
-An empty section recipe no longer needs a device; allocate only when first used.
-
 **Locate this existing block:**
 
 ```rust
@@ -11985,8 +11787,6 @@ impl Caps {
 ```
 
 ### 3. `src/renderer.rs`
-
-Late-created outline and final-blend owners adopt the current physical count. Do not prepare a section coverage recipe when no active section can contribute.
 
 **Locate this existing block:**
 
@@ -12149,8 +11949,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 4. `src/sample_surface_tests.rs`
 
-Extend the supplied actual sample-count fixture to current outline owners; do not introduce the complete production renderer API before its remaining consumers. Actual selected/global face and section coverage, bounded active-image memory, single black blend, exact returns and fresh original owners; retain every previous assertion.
-
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -12306,11 +12104,7 @@ fn cached_clouds_and_original_sheets_draw_in_the_actual_four_sample_main_frame()
 
 ## <a id="checkpoint-96zzzzzzzg-retarget-original-ambient-properties"></a>14. Retarget ambient properties
 
-Prepare cached physical-sample original radius and normal sources while retaining original geometry and the one-sample ambient hierarchy, filters and history images.
-
 ### 1. `src/ambient_source_pipeline.rs`
-
-Prepare cached original-radius/normal sample recipes and retarget only their full-resolution source images; retain the one-sample ambient hierarchy and filters.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -12394,8 +12188,6 @@ Replace it with:
 ```
 
 ### 2. `src/ambient_source_gpu.rs`
-
-Prepare cached original-radius/normal sample recipes and retarget only their full-resolution source images; retain the one-sample ambient hierarchy and filters.
 
 **Locate this existing block:**
 
@@ -12529,8 +12321,6 @@ impl Sources {
 
 ### 3. `src/ambient_image.rs`
 
-Prepare cached original-radius/normal sample recipes and retarget only their full-resolution source images; retain the one-sample ambient hierarchy and filters.
-
 **Locate this existing block:**
 
 ```rust
@@ -12600,8 +12390,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 4. `src/ambient_images.rs`
-
-Prepare cached original-radius/normal sample recipes and retarget only their full-resolution source images; retain the one-sample ambient hierarchy and filters.
 
 **Locate this existing block:**
 
@@ -12724,8 +12512,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 5. `src/ambient.wgsl`
-
-Prepare cached original-radius/normal sample recipes and retarget only their full-resolution source images; retain the one-sample ambient hierarchy and filters.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -12858,8 +12644,6 @@ fn normal_of(pixel:vec2<f32>,p:vec3<f32>,sample:i32)->vec3<f32>{
 
 ### 6. `src/ambient_pipeline.rs`
 
-Assemble the matching original-property/depth input declarations while keeping the coarse hierarchy single-sample. Use the assembled single-sample source without changing the current ambient owner.
-
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -12928,8 +12712,6 @@ Replace it with:
 
 ### 7. `src/ambient_shader_contract.rs`
 
-Retain both existing full Naga contracts and additionally validate both assembled original-property sample modes before their consumer is connected.
-
 **Locate this existing block:**
 
 ```rust
@@ -12991,11 +12773,7 @@ Edit the existing block to match this code; keep unchanged lines:
 </svg>
 </div>
 
-Reuse ambient shader modules and one pipeline factory, prepare matching physical input layouts and connect retained composition bindings before activating sparse sample corrections.
-
 ### 1. `src/ambient_pipeline.rs`
-
-Share actual ambient shader modules, match physical inputs and prepare bounded sparse sample corrections while retaining the coarse one-sample recipes.
 
 **Locate this existing block:**
 
@@ -13532,8 +13310,6 @@ pub(crate) fn shader_source(samples: u32) -> String {
 
 ### 2. `src/ambient_groups.rs`
 
-Share actual ambient shader modules, match physical inputs and prepare bounded sparse sample corrections while retaining the coarse one-sample recipes.
-
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -13667,8 +13443,6 @@ fn sampled(
 
 ### 3. `src/ambient_gpu.rs`
 
-Connect the retained camera and bounded one-sample work buffers to the current ambient groups. Bind the existing sparse-composition input group while the current ambient owner remains single-sample.
-
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -13716,11 +13490,7 @@ Replace it with:
 
 ## <a id="checkpoint-96zzzzzzzi-correct-ambient-at-physical-samples"></a>16. Correct ambient at physical samples
 
-Connect matching original depth/address/radius/normal samples to bounded sparse ambient correction while retaining coarse images, source geometry and cached recipes.
-
 ### 1. `src/ambient_gpu.rs`
-
-Retain coarse ambient images while matching physical inputs and execute bounded sparse per-sample corrections without runtime readback flags.
 
 **Locate this existing block:**
 
@@ -14348,8 +14118,6 @@ impl Ambient {
 
 ### 2. `src/ambient_groups.rs`
 
-Retain coarse ambient images while matching physical inputs and execute bounded sparse per-sample corrections without runtime readback flags.
-
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -14442,8 +14210,6 @@ Replace it with:
 
 ### 3. `src/renderer.rs`
 
-Late-enabled ambient sources and colour recipes adopt the current frame count.
-
 **Locate this existing block:**
 
 ```rust
@@ -14470,8 +14236,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 4. `src/ambient_sample_inspect.rs`
-
-Supplied Native actual GPU resource handles expose existing inputs for independent compute; production images/buffers do not gain readback flags.
 
 Create the file and type:
 
@@ -14504,8 +14268,6 @@ impl Ambient {
 
 ### 5. `src/ambient_gpu.rs`
 
-Register only the optional Native original-property/sparse-work observer.
-
 **Locate this existing block:**
 
 ```rust
@@ -14525,8 +14287,6 @@ mod sample_inspect;
 ```
 
 ### 6. `src/sample_surface_tests.rs`
-
-Extend the supplied Native count fixture to enabled ambient resources while retaining every prior owner. Read all actual physical depth/address/radius/normal samples, bounded sparse tiles/indirect work, retained coarse images and exact current output through repeated counts and ordinary/shared source paths.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -14950,11 +14710,7 @@ fn retarget_basic_fixture(r: &mut Renderer, count: u32) {
 
 ## <a id="checkpoint-96zzzzzzzj-cache-physical-depth-pyramid-inputs"></a>17. Cache physical depth-pyramid inputs
 
-Cache physical depth inputs while retaining the six one-sample coarse images and their encoded radius/pixel addresses.
-
 ### 1. `src/pyramid_pipeline.rs`
-
-Cache the matching physical-depth input recipe; retain the exact render descriptor, one-sample reductions and six coarse image levels.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -15136,8 +14892,6 @@ fn pipeline(
 
 ### 2. `src/pyramid_gpu.rs`
 
-Retain coarse image identities and reduction groups; invalidate only an incompatible physical-depth input binding and its prepared result.
-
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -15238,8 +14992,6 @@ Replace it with:
 ```
 
 ### 3. `src/pyramid_gpu_tests.rs`
-
-Extend the existing actual six-level positive-depth/radius-address GPU assertions to both physical inputs. The isolated fixture retargets only its active consumers until the next production API step.
 
 **Locate this existing block:**
 
@@ -15600,11 +15352,7 @@ fn actual_pyramid_uses_six_nearest_positive_depth_levels_and_keeps_radius_addres
 </svg>
 </div>
 
-Retarget every active colour consumer and frame attachment through one production API while preserving independent original-owner queries.
-
 ### 1. `src/renderer.rs`
-
-Retarget every active physical-colour consumer through one production API; preserve independent query resources and no-op repeated counts. A late-enabled depth pyramid adopts the current physical input count.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -15725,8 +15473,6 @@ Replace it with:
 ```
 
 ### 2. `src/browser.rs`
-
-Keep one optional diagnostic override; automatic default policy is connected next. Choose matching physical consumers on the initial viewport. Apply the same physical count choice after input and resize. Use the existing browser event path for actual count validation; semantic editor/source actions retain their existing dispatch. Register the bounded count override on the existing listener owner. Observe the actual production target count for source-bound Chrome assertions. Pass the single override into actual viewport configuration. Retarget colour consumers before drawing; the unchanged default remains one until the following automatic-quality lesson.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -15925,8 +15671,6 @@ Replace it with:
 
 ### 3. `src/cloud_address_tests.rs`
 
-Exercise the production retarget API through every existing physical-colour regression; retain all source, pixel, cache and original-owner assertions.
-
 **Locate this existing block:**
 
 ```rust
@@ -15986,8 +15730,6 @@ fn physical(r: &Renderer) -> Vec<[u32; 4]> {
 
 ### 4. `src/sample_surface_tests.rs`
 
-Exercise the production retarget API through every existing physical-colour regression; retain all source, pixel, cache and original-owner assertions.
-
 **Locate this existing block:**
 
 ```rust
@@ -16032,8 +15774,6 @@ fn retarget_basic_fixture(r: &mut Renderer, count: u32) {
 ```
 
 ### 5. `src/pyramid_gpu_tests.rs`
-
-Exercise the production retarget API through every existing physical-colour regression; retain all source, pixel, cache and original-owner assertions.
 
 **Locate this existing block:**
 
@@ -16093,8 +15833,6 @@ fn level(
 ```
 
 ### 6. `src/sample_surface_tests.rs`
-
-Actual pending independent GPU owner queries survive colour-only count changes; repeated counts preserve target identity, source uploads and exact pixels.
 
 **Locate this existing block:**
 
@@ -16161,8 +15899,6 @@ fn a_colour_sample_count_change_preserves_an_inflight_independent_owner_query() 
 ```
 
 ### 7. `src/sample_composition_tests.rs`
-
-Supplied complete original mixed-source GPU scene with both physical counts/projections, white top/clipped bores, every original owner/source/archive/geometry, and exact return pixels.
 
 Create the file and type:
 
@@ -16639,8 +16375,6 @@ fn combined_original_families_keep_holes_ink_text_queries_and_exact_sample_retur
 
 ### 8. `src/renderer.rs`
 
-Register the supplied actual combined original-family GPU witness.
-
 **Locate this existing block:**
 
 ```rust
@@ -16662,8 +16396,6 @@ mod composition_tests;
 ## <a id="checkpoint-96zzzzzzzl-choose-bounded-frame-quality"></a>19. Choose bounded frame quality
 
 ### 1. `src/sample_quality.rs`
-
-Choose a bounded physical count using active world geometry, exact device budgets, physical density and reduced-mode precedence. Supplied Native boundary/overflow/override/recovery cases for the same production policy.
 
 Create the file and type:
 
@@ -16833,8 +16565,6 @@ mod tests {
 
 ### 2. `src/lib.rs`
 
-Register the one shared sampling policy used by the browser.
-
 **Locate this existing block:**
 
 ```rust
@@ -16851,8 +16581,6 @@ pub mod sample_quality;
 ```
 
 ### 3. `src/renderer.rs`
-
-Automatic quality follows actual active faces and filled world lettering rather than drawing ribbons or hidden sources.
 
 **Locate this existing block:**
 
@@ -16888,8 +16616,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 4. `src/browser.rs`
-
-Read the adapter budget and optional unsigned ?msaa= override once, retaining the same override owner used by diagnostics. The shared policy gives reduced recovery precedence. Apply the same automatic policy on the initial viewport. Apply actual geometry, density and recovery policy after scene/input/extent changes. Pass the retained device budget alongside the optional override. Use actual physical pixels per CSS width. Reduced recovery wins even over an explicit four-sample override.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -17019,8 +16745,6 @@ Replace it with:
 
 ### 5. `src/browser_recovery.rs`
 
-Query the existing recovery owner rather than introducing another policy flag.
-
 **Locate this existing block:**
 
 ```rust
@@ -17042,8 +16766,6 @@ pub fn density(value: f64) -> f64 {
 ```
 
 ### 6. `src/sample_surface_tests.rs`
-
-Supplied actual renderer geometry/visibility/world-lettering eligibility regression. Original sheets remain source drawing ribbons. Validate actual isolated source vertices and visible/hidden original surface, CAD and plane families without adding speculative GPU classification.
 
 **Locate this existing block:**
 
@@ -17177,8 +16899,6 @@ fn automatic_sampling_eligibility_follows_active_faces_and_world_lettering() {
 ```
 
 ### 7. `src/sample_positions_tests.rs`
-
-Supplied independent actual GPU observation of the implementation sample coordinates. Retain all coordinate/coverage/owner assertions without prescribing a fixed hardware pattern.
 
 Create the file and type:
 
@@ -17377,8 +17097,6 @@ struct Vertex { @builtin(position) position:vec4f, @location(0) @interpolate(lin
 
 ### 8. `src/lib.rs`
 
-Register the optional actual GPU sample-coordinate observer.
-
 **Locate this existing block:**
 
 ```rust
@@ -17397,8 +17115,6 @@ pub mod sample_quality;
 ```
 
 ### 9. `src/browser.rs`
-
-Accept the same unsigned override domain as the URL parser; leave negative, fractional and out-of-range diagnostic values unchanged.
 
 **Locate this existing block:**
 

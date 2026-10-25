@@ -1,6 +1,6 @@
 # 20.5 · Original picks, ambient metadata and cap consumers
 
-**Goal:** Connect both cap crossing passes to current records and retain original owners. · **Steps:** 16 · **Source:** [engine/gpu/arena.rs](../../../src/engine/gpu/arena.rs) · [engine/gpu/buffers.rs](../../../src/engine/gpu/buffers.rs) · [engine/gpu/objects.rs](../../../src/engine/gpu/objects.rs) · [engine/gpu/slots.rs](../../../src/engine/gpu/slots.rs)
+**Steps:** 16 · **Source:** [engine/gpu/arena.rs](../../../src/engine/gpu/arena.rs) · [engine/gpu/buffers.rs](../../../src/engine/gpu/buffers.rs) · [engine/gpu/objects.rs](../../../src/engine/gpu/objects.rs) · [engine/gpu/slots.rs](../../../src/engine/gpu/slots.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -46,11 +46,7 @@
 
 ## <a id="checkpoint-96zzzs-allocate-stable-object-record-rows"></a>1. Allocate stable object record rows
 
-Prepare bounded row reuse without moving surviving originals.
-
 ### 1. `src/instance_gpu.rs`
-
-Retain surviving original IDs, reuse the lowest free row and enforce the shared device bound. Supply original-ID reorder, retired-hole reuse, bounded growth, overflow and empty-release checks.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -196,11 +192,7 @@ pub(crate) fn source() -> String {
 </svg>
 </div>
 
-Connect stable row reuse to the existing surface record table.
-
 ### 1. `src/instance_gpu.rs`
-
-Reserve surviving rows before regrouping instance geometry and reuse retired holes. Point each instance slot at its stable original record row. Write the packed instance record in place, leaving retired holes zero. Use the same retained-row lookup for ordinary and individually blended surfaces.
 
 **Locate this existing block:**
 
@@ -329,8 +321,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 2. `src/global_outline_tests.rs`
 
-Supply retained original-row checks through removal and insertion, exact mapped records and full release.
-
 **Locate this existing block:**
 
 ```rust
@@ -439,11 +429,7 @@ Edit the existing block to match this code; keep unchanged lines:
 </svg>
 </div>
 
-Share the storage layout and shader adaptation before connecting first picks.
-
 ### 1. `src/object_rows.rs`
-
-Own the record layout and shader adaptation once for every shared consumer.
 
 **Locate this existing block:**
 
@@ -486,8 +472,6 @@ pub struct Rows {
 ```
 
 ### 2. `src/instance_gpu.rs`
-
-Reuse the exact existing storage binding contract. Adapt the same surface shader through the shared owner.
 
 **Locate this existing block:**
 
@@ -550,8 +534,6 @@ impl Lane {
 ```
 
 ### 3. `src/triangle_pick.wgsl`
-
-Carry the original owner as a flat unsigned vertex result. Share one pick geometry function between ordinary and slot-selected object records. Use the selected original owner without reading a per-object uniform in the fragment.
 
 Replace the entire file with:
 
@@ -618,11 +600,7 @@ struct PickFragment{@location(0) owner:vec2<u32>,@location(1) primitive:vec2<u32
 </svg>
 </div>
 
-Connect first surface picks to current shared object records.
-
 ### 1. `src/instance_gpu.rs`
-
-Share current-record validation and the existing record/slot draw across color and first picks. Use the requested pipeline with the same object row, slot and geometry.
 
 **Locate this existing block:**
 
@@ -661,8 +639,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 2. `src/pick_pipeline.rs`
-
-Reuse one pick pipeline descriptor for the uniform and shared-record entries. Adapt the existing pick shader through the shared record owner. Choose the slot-aware entry for shared records. Read the same eight-byte object-row and primitive-base slot.
 
 **Locate this existing block:**
 
@@ -778,8 +754,6 @@ pub fn mesh_with(
 ```
 
 ### 3. `src/pick_gpu.rs`
-
-Own the shared pick state beside the existing fallback state. Create the shared pick state from the same descriptor and record layout. Retain the shared pick state for the browser lifetime. Keep isolated picker fixtures on the existing uniform path. Pass the existing shared record owner into first picking. Pair the current table with its shared pick state without changing readback ownership.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -922,8 +896,6 @@ Replace it with:
 
 ### 4. `src/pick_encode.rs`
 
-Accept shared surface records without altering the other pick passes. Draw through current records or the earlier exact uniform fallback.
-
 **Locate this existing block:**
 
 ```rust
@@ -1033,8 +1005,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 5. `src/renderer.rs`
 
-Use the renderer’s existing record owner for original first picks.
-
 **Locate this existing block:**
 
 ```rust
@@ -1070,36 +1040,32 @@ Edit the existing block to match this code; keep unchanged lines:
   </defs>
   <rect x="2" y="2" width="1116" height="184" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
   <rect x="14" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Contiguous GPU Arena: [Slice 0 (v0..vn)] [Slice 1] [Slice 2]</text>
-  <rect x="48" y="68" width="244" height="56" fill="#f8fafc" stroke="#111111" stroke-width="2"/>
-  <rect x="52" y="72" width="84" height="48" fill="#dbeafe" stroke="#2563eb" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="94" y="100" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Slice 0</text>
-  <rect x="140" y="72" width="72" height="48" fill="#bbf7d0" stroke="#16a34a" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="176" y="100" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Slice 1</text>
-  <rect x="216" y="72" width="72" height="48" fill="#fef08a" stroke="#d97706" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="252" y="100" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Slice 2</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">CPU Camera / View Uniform (16-Byte Aligned)</text>
+  <rect x="52" y="48" width="268" height="106" rx="6" fill="#f8fafc" stroke="#111111" stroke-width="1.75"/>
+  <rect x="66" y="58" width="240" height="38" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="81" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">view_proj: [[f32; 4]; 4] (64B)</text>
+  <rect x="66" y="104" width="240" height="36" fill="#fef08a" stroke="#d97706" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="126" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">eye_pos / viewport_px (16B)</text>
   <line x1="358" y1="94" x2="384" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
   <rect x="388" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Vertex Pulling: idx = indices[base + vid]; v = arena[idx]</text>
-  <rect x="424" y="54" width="272" height="40" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="78" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">var&lt;storage, read&gt; vertices: array&lt;GpuVertex&gt;</text>
-  <rect x="454" y="110" width="212" height="36" fill="#dcfce7" stroke="#16a34a" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="132" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">Dirty Sub-Range -> write_buffer()</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">queue.write_buffer -&gt; wgpu::BindGroup (@group(0))</text>
+  <rect x="424" y="50" width="272" height="102" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <rect x="442" y="64" width="236" height="32" rx="4" fill="#dcfce7" stroke="#16a34a" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="84" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">BufferUsages::UNIFORM | COPY_DST</text>
+  <rect x="442" y="106" width="236" height="32" rx="4" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="126" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#2563eb">pass.set_bind_group(0, &amp;bg, &amp;[])</text>
   <line x1="732" y1="94" x2="758" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
   <rect x="762" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Single-Bind-Group Multi-Slice Scene Draw</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">GPU Shader Uniform Read: var&lt;uniform&gt;</text>
   <rect x="806" y="44" width="256" height="118" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
-  <polygon points="828,138 864,72 900,138" fill="#dbeafe" stroke="#111111" stroke-width="1.75"/>
-  <polygon points="904,138 940,72 976,138" fill="#bbf7d0" stroke="#111111" stroke-width="1.75"/>
-  <polygon points="980,138 1016,72 1052,138" fill="#fef08a" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="76" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#2563eb">@group(0) @binding(0)</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="98" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">var&lt;uniform&gt; u: Uniforms;</text>
+  <rect x="828" y="114" width="212" height="32" rx="4" fill="#dcfce7" stroke="#16a34a" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="134" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">u.view_proj * vec4(p, 1.0)</text>
 </svg>
 </div>
 
-Connect original source-face picking to the same current object records.
-
 ### 1. `src/instance_gpu.rs`
-
-Reuse current-record validation and slot binding for consumers with different geometry layouts. Bind only the shared object record and slot; let each consumer draw its own geometry.
 
 **Locate this existing block:**
 
@@ -1143,8 +1109,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 2. `src/face_pick.wgsl`
 
-Carry original ownership into the source-face fragment as an unsigned value. Share one source-face geometry function between ordinary and slot-selected records. Read the original owner selected by the source-face vertex.
-
 **Locate this existing block:**
 
 ```wgsl
@@ -1185,8 +1149,6 @@ fn face_fragment(input: FaceOutput) -> @location(0) vec2<u32> {
 ```
 
 ### 3. `src/face_pick.rs`
-
-Keep a shared-record source-face state beside the existing fallback. Share the source-face pipeline descriptor across both record resources. Use the shared storage contract or the current uniform contract. Adapt the same source-face shader through the existing record owner. Preserve source-face clipping after shader adaptation. Select the source-face record entry and existing draw-slot layout. Build both source-face states from one descriptor and shader. Accept the existing renderer record owner for original source-face reads. Use current records or the exact uniform fallback, retaining original face metadata and crop bindings.
 
 **Locate this existing block:**
 
@@ -1566,8 +1528,6 @@ impl Faces {
 
 ### 4. `src/pick_encode.rs`
 
-Share the original object table with both first and source-face pick passes.
-
 **Locate this existing block:**
 
 ```rust
@@ -1592,11 +1552,50 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-96zzzx-pack-existing-ambient-radius-in-object-records"></a>6. Pack existing ambient radius in object records
 
-Carry the existing source radius in a spare aligned record word.
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="184" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Contiguous GPU Arena: [Slice 0 (v0..vn)] [Slice 1] [Slice 2]</text>
+  <rect x="48" y="68" width="244" height="56" fill="#f8fafc" stroke="#111111" stroke-width="2"/>
+  <rect x="52" y="72" width="84" height="48" fill="#dbeafe" stroke="#2563eb" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="94" y="100" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Slice 0</text>
+  <rect x="140" y="72" width="72" height="48" fill="#bbf7d0" stroke="#16a34a" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="176" y="100" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Slice 1</text>
+  <rect x="216" y="72" width="72" height="48" fill="#fef08a" stroke="#d97706" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="252" y="100" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Slice 2</text>
+  <line x1="358" y1="94" x2="384" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="388" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Vertex Pulling: idx = indices[base + vid]; v = arena[idx]</text>
+  <rect x="424" y="54" width="272" height="40" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="78" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">var&lt;storage, read&gt; vertices: array&lt;GpuVertex&gt;</text>
+  <rect x="454" y="110" width="212" height="36" fill="#dcfce7" stroke="#16a34a" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="132" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">Dirty Sub-Range -> write_buffer()</text>
+  <line x1="732" y1="94" x2="758" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="762" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Single-Bind-Group Multi-Slice Scene Draw</text>
+  <rect x="806" y="44" width="256" height="118" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <polygon points="828,138 864,72 900,138" fill="#dbeafe" stroke="#111111" stroke-width="1.75"/>
+  <polygon points="904,138 940,72 976,138" fill="#bbf7d0" stroke="#111111" stroke-width="1.75"/>
+  <polygon points="980,138 1016,72 1052,138" fill="#fef08a" stroke="#111111" stroke-width="1.75"/>
+</svg>
+</div>
 
 ### 1. `src/gpu_mesh.rs`
-
-Store the existing source radius in the spare aligned word and write only a changed value. Retain derived source metadata when rebuilding the current record. Selection and style updates keep the current radius bits.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -1673,8 +1672,6 @@ Replace it with:
 
 ### 2. `src/renderer.rs`
 
-Reuse the existing source-bound calculations before refreshing shared records.
-
 **Locate this existing block:**
 
 ```rust
@@ -1706,8 +1703,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 3. `src/ambient_sources.wgsl`
 
-Reuse the surface view and object declarations instead of repeating their storage contract. Carry the exact per-object radius into the property fragment. Share one property vertex function and prepare a slot-selected record entry without changing the earlier normal policy. Use the radius carried by the selected vertex entry.
-
 Replace the entire file with:
 
 ```wgsl
@@ -1728,8 +1723,6 @@ struct Source{@location(0) radius:f32,@location(1) normal:vec2<f32>}
 ```
 
 ### 4. `src/ambient_source_pipeline.rs`
-
-Assemble property shading with the surface record and geometry helpers already written.
 
 **Locate this existing block:**
 
@@ -1760,11 +1753,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-96zzzy-read-ambient-properties-through-shared-records"></a>7. Read ambient properties through shared records
 
-Connect source normal and radius drawing to the existing object table.
-
 ### 1. `src/ambient_source_pipeline.rs`
-
-Own the shared property state beside its existing fallback. Move the fallback radius layout to the shared descriptor owner. Build both property states from one descriptor. Select the current shared record layout or the earlier uniform layout. Use the existing arena geometry binding for pulled properties. Shared properties read radius from their record; fallback properties retain their uniform. Adapt the same property shader through the existing record owner. Share the shader source across both property states. Select the slot-aware property entry for shared records. Keep the indexed vertex attributes alive while creating either property state. Read draw slots for shared properties and retain the earlier indexed vertex format for fallback. Create both states with the same property outputs and depth policy.
 
 **Locate this existing block:**
 
@@ -1955,8 +1944,6 @@ impl Pipeline {
 
 ### 2. `src/ambient_source_gpu.rs`
 
-Accept the existing renderer object table. Read current shared properties or the earlier exact uniform fallback.
-
 **Locate this existing block:**
 
 ```rust
@@ -2045,8 +2032,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 3. `src/ambient_gpu.rs`
-
-Keep the object table available while preparing original source properties. Pass the existing record owner through the unchanged ambient recipe.
 
 **Locate this existing block:**
 
@@ -2150,8 +2135,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 4. `src/renderer.rs`
 
-Use the same current object records for rendering, picking and ambient properties.
-
 **Locate this existing block:**
 
 ```rust
@@ -2168,8 +2151,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 5. `src/ambient_gpu_tests.rs`
-
-Supply an exact shared-versus-uniform ambient comparison while retaining every original cache, source, shading and release assertion.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -2233,11 +2214,7 @@ Replace it with:
 
 ## <a id="checkpoint-96zzzz-share-the-object-record-shader-schema"></a>8. Share the object record shader schema
 
-Keep one aligned object record declaration across drawing, caps and projection.
-
 ### 1. `src/object_settings.wgsl`
-
-Write the existing aligned record schema once.
 
 Create the file and type:
 
@@ -2252,8 +2229,6 @@ struct ObjectSettings {
 ```
 
 ### 2. `src/triangle.wgsl`
-
-Use the record declaration supplied by shared shader assembly.
 
 **Locate this existing block:**
 
@@ -2278,8 +2253,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 3. `src/cap_count.wgsl`
 
-Cap crossings use the identical record declaration.
-
 **Locate this existing block:**
 
 ```wgsl
@@ -2303,8 +2276,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 4. `src/finite_project.wgsl`
 
-Projection uses the same byte-compatible model and range fields.
-
 **Locate this existing block:**
 
 ```wgsl
@@ -2321,8 +2292,6 @@ struct TileLine {thickness:f32,proj_y:f32,ortho_h:f32,vp_h:f32,vp_w:f32}
 ```
 
 ### 5. `src/object_record.rs`
-
-Expose the shared declaration through the existing record owner.
 
 **Locate this existing block:**
 
@@ -2342,8 +2311,6 @@ pub fn shader() -> &'static str {
 ```
 
 ### 6. `src/clipping_gpu.rs`
-
-Assemble every clipped raster consumer with the shared record declaration. Keep the shared declaration separate from shader resource bindings.
 
 **Locate this existing block:**
 
@@ -2368,8 +2335,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 7. `src/finite_project_source.rs`
 
-Compute projection includes the same declaration before its packed geometry helper.
-
 **Locate this existing block:**
 
 ```rust
@@ -2389,8 +2354,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 8. `src/object_record_tests.rs`
 
-Verify that projection uses the same aligned members as both raster states after consolidating the flag vector.
-
 **Locate this existing block:**
 
 ```rust
@@ -2409,11 +2372,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-96zzzza-prepare-shared-record-triangle-projection"></a>9. Prepare shared record triangle projection
 
-Prepare the compute shader to select the same current object row.
-
 ### 1. `src/instance_gpu.rs`
-
-Use one packed-record match guard for raster and compute consumers.
 
 **Locate this existing block:**
 
@@ -2447,8 +2406,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 2. `src/finite_project.wgsl`
-
-Use the shared object shader adaptation without duplicating the projection algorithm. Read the selected row from the existing unsigned projection interval.
 
 **Locate this existing block:**
 
@@ -2489,8 +2446,6 @@ fn physical_clip_corner(index:u32)->vec4<f32>{
 ```
 
 ### 3. `src/finite_project_source.rs`
-
-Prepare the storage compute source through the existing record owner. Supply validation of both uniform and storage compute interfaces. Both assembled shader sources must retain the existing compute entry.
 
 **Locate this existing block:**
 
@@ -2557,11 +2512,7 @@ mod tests {
 
 ## <a id="checkpoint-96zzzzb-project-triangles-through-shared-records"></a>10. Project triangles through shared records
 
-Connect finite triangle projection to the current shared object table.
-
 ### 1. `src/tile_pipelines.rs`
-
-Own a shared projection binding state beside the earlier fallback. Keep both compute states with the existing projection owner. Build uniform and record projection states from one binding recipe and algorithm. Remove the replaced single-state constructor. Retain the shared projection state with the existing scans and bins.
 
 **Locate this existing block:**
 
@@ -2814,8 +2765,6 @@ impl Pipelines {
 ```
 
 ### 2. `src/tile_gpu.rs`
-
-Observe source arena offsets and stable row selectors as well as model and buffer identity. Each projection row selects its current resource contract. Preserve isolated original fixtures while connecting the renderer’s record owner. Use current table rows or the exact earlier model buffer. Invalidate moved arena intervals and changed record selectors without reprojecting selection-only changes. Store the current object row in the existing sixteen-byte interval. Bind the selected model resource without a second table. Use the matching uniform or storage layout for the cached projection group. Dispatch the same projection algorithm through the selected resource state.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -3076,8 +3025,6 @@ struct Row {
 
 ### 3. `src/renderer.rs`
 
-Refresh projection after the object table, so its row selectors and replacement buffers are current. Use the renderer’s current table for finite projection.
-
 **Locate this existing block:**
 
 ```rust
@@ -3176,8 +3123,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 4. `src/global_outline_tests.rs`
 
-Supply exact storage-versus-uniform projected bytes and color comparisons while retaining the original range, owner and release assertions.
-
 **Locate this existing block:**
 
 ```rust
@@ -3258,11 +3203,7 @@ Edit the existing block to match this code; keep unchanged lines:
 </svg>
 </div>
 
-Separate cap crossing geometry from the object resource and vertex format.
-
 ### 1. `src/cap_count.wgsl`
-
-Use the existing object shader adapter for cap crossing entries. Share the closed-solid crossing algorithm across object resource paths. Keep vs_count on its current object and plane path. Keep vs_pick_count on its current object and plane path.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -3342,8 +3283,6 @@ struct CountOut {
 ```
 
 ### 2. `src/cap_pipeline.rs`
-
-Reuse the existing pipeline descriptor with an explicit vertex-buffer format. Remove the repeated format owner from the shared descriptor. Use the selected format without changing targets, blending or depth policy.
 
 **Locate this existing block:**
 
@@ -3435,54 +3374,7 @@ pub(crate) fn pipeline_buffers(
 
 ## <a id="checkpoint-96zzzzd-prepare-cap-plane-and-arena-bindings"></a>12. Prepare cap plane and arena bindings
 
-<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
-<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
-  <defs>
-    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
-    </marker>
-    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
-    </marker>
-    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
-    </marker>
-  </defs>
-  <rect x="2" y="2" width="1116" height="184" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
-  <rect x="14" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">CPU Camera / View Uniform (16-Byte Aligned)</text>
-  <rect x="52" y="48" width="268" height="106" rx="6" fill="#f8fafc" stroke="#111111" stroke-width="1.75"/>
-  <rect x="66" y="58" width="240" height="38" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="81" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">view_proj: [[f32; 4]; 4] (64B)</text>
-  <rect x="66" y="104" width="240" height="36" fill="#fef08a" stroke="#d97706" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="126" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">eye_pos / viewport_px (16B)</text>
-  <line x1="358" y1="94" x2="384" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
-  <rect x="388" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">queue.write_buffer -&gt; wgpu::BindGroup (@group(0))</text>
-  <rect x="424" y="50" width="272" height="102" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <rect x="442" y="64" width="236" height="32" rx="4" fill="#dcfce7" stroke="#16a34a" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="84" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">BufferUsages::UNIFORM | COPY_DST</text>
-  <rect x="442" y="106" width="236" height="32" rx="4" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="126" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#2563eb">pass.set_bind_group(0, &amp;bg, &amp;[])</text>
-  <line x1="732" y1="94" x2="758" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
-  <rect x="762" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">GPU Shader Uniform Read: var&lt;uniform&gt;</text>
-  <rect x="806" y="44" width="256" height="118" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="76" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#2563eb">@group(0) @binding(0)</text>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="98" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">var&lt;uniform&gt; u: Uniforms;</text>
-  <rect x="828" y="114" width="212" height="32" rx="4" fill="#dcfce7" stroke="#16a34a" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="134" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">u.view_proj * vec4(p, 1.0)</text>
-</svg>
-</div>
-
-Prepare explicit plane parameters with current immutable arena bindings.
-
 ### 1. `src/cap_geometry.rs`
-
-Keep explicit plane parameters and arena binding replacement in one resource owner.
 
 Create the file and type:
 
@@ -3577,8 +3469,6 @@ impl Geometry {
 
 ### 2. `src/lib.rs`
 
-Declare the resource without connecting it to drawing yet.
-
 **Locate this existing block:**
 
 ```rust
@@ -3601,8 +3491,6 @@ pub mod cap_pick_pipeline;
 ```
 
 ### 3. `src/cap_geometry.rs`
-
-Supply actual mapped plane values, exact binding reuse/replacement through arena growth, bounded refusal and full release.
 
 **Locate this existing block:**
 
@@ -3753,11 +3641,7 @@ mod tests {
 </svg>
 </div>
 
-Connect cap crossing color to current object records and explicit planes.
-
 ### 1. `src/cap_count.wgsl`
-
-Pull the current arena range and keep explicit plane selection independent of the object slot.
 
 **Locate this existing block:**
 
@@ -3778,8 +3662,6 @@ fn behind(plane: u32, p: vec3<f32>) -> f32 {
 ```
 
 ### 2. `src/cap_pipeline.rs`
-
-Own the shared crossing state with the existing cap color pipeline. Reuse the crossing descriptor, shader, additive blend and depth policy with current records. Retain the shared count state beside the earlier uniform fallback.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -3892,8 +3774,6 @@ Replace it with:
 ```
 
 ### 3. `src/caps_gpu.rs`
-
-Let the existing crossing target own its plane parameters and cached geometry groups. Drop stale geometry references when scene ownership changes. Keep the new resource under the existing count-image release lifetime. Prepare bounded plane values before encoding crossings. Create current immutable arena bindings on the existing device. Use the renderer’s current record owner for cap color crossings. Refresh the crossing target’s cached geometry groups as needed. Reuse groups for current records and retain exact target-plane filtering. Draw one object slot with an explicit plane, or use the unchanged uniform crossing path. Account plane parameters once and release them with the crossing image.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -4127,8 +4007,6 @@ pub struct Caps {
 
 ### 4. `src/renderer.rs`
 
-Pass the existing device to cap count resource preparation. Use the same current object records for cap color, ordinary surfaces and property consumers.
-
 **Locate this existing block:**
 
 ```rust
@@ -4170,8 +4048,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 5. `src/cap_gpu_tests.rs`
-
-Include the one actual sixteen-byte plane parameter in exact cap ownership accounting. Supply an exact shared/uniform cap comparison and restoration while retaining selected pixels, original closedness cache and full release.
 
 **Locate this existing block:**
 
@@ -4254,8 +4130,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 6. `src/renderer.rs`
 
-Supply test-only access to the uniform fallback without exposing renderer internals in the browser application.
-
 **Locate this existing block:**
 
 ```rust
@@ -4279,11 +4153,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-96zzzzf-prepare-shared-record-cap-picks"></a>14. Prepare shared record cap picks
 
-Prepare both cap pick crossing states without changing original ownership.
-
 ### 1. `src/cap_count.wgsl`
-
-Retain the original atomic, crop and frame bindings while adding pulled geometry to the shared pick vertex entry.
 
 **Locate this existing block:**
 
@@ -4304,8 +4174,6 @@ fn wanted(pixel: u32, mode: u32) -> bool {
 ```
 
 ### 2. `src/cap_pick_pipeline.rs`
-
-Own both shared crossing passes beside the original fallback. Extend the pick group without replacing its atomic crossing, crop or frame resources. Reuse the original empty color target for both shared passes. Reuse both fragment algorithms, the crop transform and crossing descriptor with the current object record. Keep the preparatory shared states under the original pick pipeline owner.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -4451,8 +4319,6 @@ pub struct Pipelines {
 
 ### 3. `src/current_inventory.json`
 
-Copy the dated current runtime-input inventory after kernel/wood changes. This supplied data refresh preserves the historical inventory and every viewer source hash; it does not replace implementation work.
-
 **Locate this existing block:**
 
 ```json
@@ -4469,11 +4335,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-96zzzzg-own-shared-record-cap-pick-resources"></a>15. Own shared record cap pick resources
 
-Reuse explicit plane and arena bindings under the existing pick lifetime.
-
 ### 1. `src/cap_geometry.rs`
-
-Reuse the same plane and arena resource owner for groups with retained pick bindings. Append geometry bindings after existing pick resources; color keeps the original three entries.
 
 **Locate this existing block:**
 
@@ -4544,8 +4406,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 2. `src/cap_pick_gpu.rs`
-
-Keep cap-pick plane parameters and geometry groups under the existing pick lifetime. Initialize the resource owner without allocating a new arena. Invalidate immutable pick groups when crossing buffers or crop bindings can change, then prepare bounded plane values. Count plane parameters once; arena and borrowed crop allocations retain their original owners.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -4641,8 +4501,6 @@ pub struct Pick {
 
 ### 3. `src/current_inventory.json`
 
-Copy the supplied checkpoint inventory after regeneration of Session protocol documentation comments. This records current inputs without changing the strict inventory check or historical evidence.
-
 **Locate this existing block:**
 
 ```json
@@ -4660,8 +4518,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ## <a id="checkpoint-96zzzzh-pick-caps-through-shared-records"></a>16. Pick caps through shared records
 
 ### 1. `src/cap_pick_gpu.rs`
-
-Prepare immutable current arena groups before encoding either crossing pass. Use the existing renderer record owner without introducing another table. Prepare exact target-plane groups once and reuse them across count and nearest-owner passes. Count and resolve owners from current records, retaining the original uniform path for changed packed records.
 
 **Locate this existing block:**
 
@@ -4825,8 +4681,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 2. `src/caps_gpu.rs`
 
-Thread the same optional object owner through cap picking. Keep preparation and encoding under the existing bounded cap pick owner.
-
 **Locate this existing block:**
 
 ```rust
@@ -4910,8 +4764,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 3. `src/pick_encode.rs`
 
-Share object records with first picks, source faces and cap picks in the existing submission.
-
 **Locate this existing block:**
 
 ```rust
@@ -4928,8 +4780,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 4. `src/cap_pick_tests.rs`
-
-Supply full-u32 shared/fallback owner comparison and restoration before a color frame, retaining all original geometry assertions.
 
 **Locate this existing block:**
 

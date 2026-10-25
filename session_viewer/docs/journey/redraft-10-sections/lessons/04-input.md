@@ -1,61 +1,66 @@
 # 1.4 · Commands that change the view
 
-**Goal:** Use a command to switch backgrounds without changing the triangle. · **Steps:** 1 · **Source:** [`State`](../../../../src/state.rs) · [`engine/gpu/frame.rs`](../../../../src/engine/gpu/frame.rs)
+**Steps:** 1 · **Source:** [`State`](../../../../src/state.rs) · [`engine/gpu/frame.rs`](../../../../src/engine/gpu/frame.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
-<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="214" viewBox="0 0 1120 214" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
   <defs>
-    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+    <marker id="arr-34ed3cbb" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
-    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+    <marker id="arr-r-34ed3cbb" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
     </marker>
-    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+    <marker id="arr-g-34ed3cbb" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
     </marker>
-    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+    <marker id="arr-b-34ed3cbb" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
     </marker>
+    <pattern id="grid-34ed3cbb" width="20" height="20" patternUnits="userSpaceOnUse">
+      <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#f1f5f9" stroke-width="1"/>
+    </pattern>
   </defs>
-  <rect x="2" y="2" width="1116" height="184" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
-  <rect x="14" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">CSS Viewport (W × H × DPR)</text>
-  <rect x="56" y="46" width="260" height="114" fill="#f8fafc" stroke="#111111" stroke-width="1.5" stroke-dasharray="4 3"/>
-  <line x1="56" y1="42" x2="316" y2="42" stroke="#2563eb" stroke-width="1.75" marker-end="url(#arrB)"/>
-  <line x1="48" y1="46" x2="48" y2="160" stroke="#dc2626" stroke-width="1.75" marker-end="url(#arrR)"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="64" text-anchor="middle" font-family="monospace" font-size="10" fill="#2563eb">width = clientWidth * dpr</text>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="108" text-anchor="middle" font-family="monospace" font-size="10" fill="#111111">(0, 0) ────────► +X (px)</text>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="144" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#dc2626">▼ +Y (px)   clamped 1..max_2d</text>
-  <line x1="358" y1="94" x2="384" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
-  <rect x="388" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">RenderPass LoadOp::Clear(r,g,b,1)</text>
-  <rect x="440" y="48" width="240" height="110" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <line x1="440" y1="76" x2="680" y2="76" stroke="#e2e8f0" stroke-width="1"/>
-  <line x1="440" y1="104" x2="680" y2="104" stroke="#e2e8f0" stroke-width="1"/>
-  <line x1="440" y1="132" x2="680" y2="132" stroke="#e2e8f0" stroke-width="1"/>
-  <line x1="500" y1="48" x2="500" y2="158" stroke="#e2e8f0" stroke-width="1"/>
-  <line x1="560" y1="48" x2="560" y2="158" stroke="#e2e8f0" stroke-width="1"/>
-  <line x1="620" y1="48" x2="620" y2="158" stroke="#e2e8f0" stroke-width="1"/>
-  <circle cx="470" cy="62" r="5" fill="#facc15" stroke="#111111" stroke-width="1.25"/>
-  <circle cx="530" cy="62" r="5" fill="#facc15" stroke="#111111" stroke-width="1.25"/>
-  <circle cx="590" cy="62" r="5" fill="#facc15" stroke="#111111" stroke-width="1.25"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="122" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">wgpu::Color { r, g, b, a: 1.0 }</text>
-  <line x1="732" y1="94" x2="758" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
-  <rect x="762" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Viewer Swapchain Surface</text>
-  <rect x="802" y="46" width="124" height="112" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="864" y="106" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">rgb(1.0)</text>
-  <rect x="942" y="46" width="124" height="112" rx="4" fill="#e2e8f0" stroke="#111111" stroke-width="2"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="1004" y="106" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">rgb(0.9)</text>
+  <rect x="2" y="2" width="1116" height="210" rx="8" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="2" y="2" width="1116" height="28" rx="6" fill="#f8fafc" stroke="#111111" stroke-width="1.5"/>
+  <line x1="2" y1="30" x2="1118" y2="30" stroke="#111111" stroke-width="1.5"/>
+  <rect x="12" y="7" width="176" height="18" rx="3" fill="#111111"/>
+  <text x="100" y="19.5" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#ffffff" paint-order="normal" stroke="none">04-INPUT · COMMAND → GPU</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="518" y="20" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Command Dock Handoff to Application State &amp; Dynamic GPU RenderPass Clear</text>
+  <rect x="838" y="7" width="268" height="18" rx="3" fill="#ffffff" stroke="#111111" stroke-width="1.2"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="972" y="19.5" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#2563eb">Command("Clear Pink") -&gt; wgpu::Color</text>
+  <rect x="14" y="38" width="344" height="164" rx="6" fill="url(#grid-34ed3cbb)" stroke="#111111" stroke-width="1.5"/>
+  <line x1="14" y1="60" x2="358" y2="60" stroke="#cbd5e1" stroke-width="1"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="186" y="53" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1 · Accepted Dock Command Token</text>
+  <rect x="48" y="84" width="276" height="44" rx="4" fill="#fef9c3" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="186" y="110" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">&gt; Clear Pink [Enter]</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="186" y="156" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#2563eb">dock.key_down("Enter") -&gt; Some(cmd)</text>
+  <line x1="358" y1="120" x2="384" y2="120" stroke="#111111" stroke-width="2" marker-end="url(#arr-34ed3cbb)"/>
+  <rect x="388" y="38" width="344" height="164" rx="6" fill="url(#grid-34ed3cbb)" stroke="#111111" stroke-width="1.5"/>
+  <line x1="388" y1="60" x2="732" y2="60" stroke="#cbd5e1" stroke-width="1"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="53" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2 · State::apply_command -&gt; Clear Color</text>
+  <rect x="416" y="74" width="288" height="110" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <rect x="432" y="86" width="80" height="42" rx="3" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="472" y="111" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">White</text>
+  <rect x="520" y="86" width="80" height="42" rx="3" fill="#e5e7eb" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="111" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">Grey</text>
+  <rect x="608" y="86" width="80" height="42" rx="3" fill="#fce7f3" stroke="#db2777" stroke-width="2"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="648" y="111" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#db2777">Pink ✓</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="162" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#16a34a">LoadOp::Clear(state.background)</text>
+  <line x1="732" y1="120" x2="758" y2="120" stroke="#111111" stroke-width="2" marker-end="url(#arr-34ed3cbb)"/>
+  <rect x="762" y="38" width="344" height="164" rx="6" fill="url(#grid-34ed3cbb)" stroke="#111111" stroke-width="1.75"/>
+  <line x1="762" y1="60" x2="1106" y2="60" stroke="#cbd5e1" stroke-width="1"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="934" y="53" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3 · Immediate GPU Frame Redraw</text>
+  <rect x="806" y="68" width="256" height="122" rx="4" fill="#fce7f3" stroke="#111111" stroke-width="2"/>
+  <polygon points="934,80 874,152 994,152" fill="#f25999" stroke="#111111" stroke-width="1.5"/>
+  <rect x="818" y="158" width="232" height="24" rx="3" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="934" y="174" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#16a34a">Background cleared to pink.</text>
 </svg>
 </div>
 
 <a id="checkpoint-04-input"></a>
 
 ## 1. `src/background.rs`
-
-Create the small piece of application state. It knows colours, but knows nothing about HTML or GPU resources.
 
 Create the file and type:
 
@@ -127,8 +132,6 @@ impl Background {
 
 ## 2. `src/lib.rs`
 
-Register the state module so both the browser and the renderer can use it.
-
 **Locate this existing block:**
 
 ```rust
@@ -145,8 +148,6 @@ mod browser;
 ```
 
 ## 3. `src/renderer.rs`
-
-Borrow Background in draw and read its RGB value. Clear the render target with that RGB value.
 
 **Locate this existing block:**
 
@@ -203,8 +204,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ## 4. `src/browser.rs`
-
-Import the background state. Own the background and toggle it when the dock submits Background. Pass the background into presentation and update the status message. Draw the scene with the current background.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 

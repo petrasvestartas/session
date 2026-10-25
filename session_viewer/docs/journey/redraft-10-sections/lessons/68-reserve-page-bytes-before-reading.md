@@ -1,6 +1,6 @@
 # 12.4 · Charged residency and current streamed pages
 
-**Goal:** Connect current pages to the browser renderer. · **Steps:** 31 · **Source:** [app/manifest.rs](../../../../src/app/manifest.rs) · [app/session_io.rs](../../../../src/app/session_io.rs) · [app/stream.rs](../../../../src/app/stream.rs) · [app/range_gate.rs](../../../../src/app/range_gate.rs)
+**Steps:** 31 · **Source:** [app/manifest.rs](../../../../src/app/manifest.rs) · [app/session_io.rs](../../../../src/app/session_io.rs) · [app/stream.rs](../../../../src/app/stream.rs) · [app/range_gate.rs](../../../../src/app/range_gate.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -99,8 +99,6 @@
 
 ### 1. `src/page_cache.rs`
 
-Reserve bytes before allocation and release them with the owning charge.
-
 Create the file and type:
 
 ```rust
@@ -171,8 +169,6 @@ impl Drop for Charge {
 
 ### 2. `src/lib.rs`
 
-Register the source component.
-
 **Locate this existing block:**
 
 ```rust
@@ -194,8 +190,6 @@ pub mod page_cache;
 ## <a id="checkpoint-68a-keep-shared-pages-alive-during-eviction"></a>2. Keep shared pages alive during eviction
 
 ### 1. `src/page_cache.rs`
-
-Keep page values and their accounting alive across cache removal.
 
 **Locate this existing block:**
 
@@ -280,8 +274,6 @@ impl<K: Ord + Clone, T: ByteSize> Cache<K, T> {
 ## <a id="checkpoint-68b-evict-unpinned-pages-in-access-order"></a>3. Evict unpinned pages in access order
 
 ### 1. `src/page_cache.rs`
-
-Reclaim sufficient unpinned payload before reserving a new page. Copy cache ownership, reservation and eviction regression fixtures.
 
 **Locate this existing block:**
 
@@ -475,8 +467,6 @@ mod tests {
 
 ### 1. `src/stream_generation.rs`
 
-Check source generation and exactly one completion per request.
-
 Create the file and type:
 
 ```rust
@@ -540,8 +530,6 @@ impl Generation {
 
 ### 2. `src/lib.rs`
 
-Register the source component.
-
 **Locate this existing block:**
 
 ```rust
@@ -561,8 +549,6 @@ pub mod stream_generation;
 ```
 
 ### 3. `src/stream_generation.rs`
-
-Copy concurrent completion, cancellation and overflow tests.
 
 **Locate this existing block:**
 
@@ -624,8 +610,6 @@ mod tests {
 
 ### 1. `src/stream_budget.rs`
 
-Limit point ranges and reserve checked decode work.
-
 Create the file and type:
 
 ```rust
@@ -657,8 +641,6 @@ pub fn temporary_page_bytes(count: u32) -> Option<usize> {
 
 ### 2. `src/lib.rs`
 
-Register the source component.
-
 **Locate this existing block:**
 
 ```rust
@@ -678,8 +660,6 @@ pub mod stream_budget;
 ```
 
 ### 3. `src/stream_budget.rs`
-
-Copy range ceiling and allocation overflow fixtures.
 
 **Locate this existing block:**
 
@@ -724,11 +704,7 @@ mod tests {
 
 ## <a id="checkpoint-68e-validate-original-streamed-presentation"></a>6. Validate streamed presentation
 
-Validate original streamed presentation.
-
 ### 1. `src/stream_properties.rs`
-
-Retain and validate original presentation fields.
 
 Create the file and type:
 
@@ -784,8 +760,6 @@ impl Properties {
 
 ### 2. `src/lib.rs`
 
-Register the source component.
-
 **Locate this existing block:**
 
 ```rust
@@ -805,8 +779,6 @@ pub mod stream_properties;
 ```
 
 ### 3. `src/stream_properties.rs`
-
-Copy original presentation value/error fixtures.
 
 **Locate this existing block:**
 
@@ -862,8 +834,6 @@ mod tests {
 
 ### 1. `src/stream.rs`
 
-Read checked original style fields through bounded metadata windows.
-
 **Locate this existing block:**
 
 ```rust
@@ -918,8 +888,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 2. `src/range_source.rs`
-
-Reuse the probe and retain original source properties.
 
 **Locate this existing block:**
 
@@ -999,11 +967,7 @@ impl Source {
 
 ## <a id="checkpoint-68fa-validate-complete-source-metadata"></a>8. Validate complete source metadata
 
-Refuse mixed or placed originals before choosing sampled range display.
-
 ### 1. `src/range_shape.rs`
-
-Validate single-cloud layout and complete original metadata before sampling. Copy original placement, source extension and metadata refusal fixtures.
 
 Create the file and type:
 
@@ -1113,8 +1077,6 @@ mod tests {
 
 ### 2. `src/lib.rs`
 
-Register complete original metadata validation.
-
 **Locate this existing block:**
 
 ```rust
@@ -1134,8 +1096,6 @@ pub mod range_shape;
 ```
 
 ### 3. `src/range_source.rs`
-
-Refuse unapplied original metadata and mixed source geometry before range adoption.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -1251,11 +1211,7 @@ Replace it with:
 
 ## <a id="checkpoint-68g-slice-original-pages-without-losing-attributes"></a>9. Slice pages without losing attributes
 
-Slice original pages without losing attributes.
-
 ### 1. `src/range_page.rs`
-
-Keep original attributes and slices with checked page lengths. Copy exact attribute and slice regression fixtures.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -1424,8 +1380,6 @@ impl Page {
 
 ### 1. `src/range_cloud.rs`
 
-Own the complete remote descriptor and precise original bounds.
-
 Create the file and type:
 
 ```rust
@@ -1504,8 +1458,6 @@ impl Prepared {
 
 ### 2. `src/lib.rs`
 
-Register the source component.
-
 **Locate this existing block:**
 
 ```rust
@@ -1527,8 +1479,6 @@ pub mod range_shape;
 ## <a id="checkpoint-68i-keep-independent-streamed-placements"></a>11. Keep independent streamed placements
 
 ### 1. `src/range_cloud.rs`
-
-Keep independent owner placements and precise world bounds.
 
 **Locate this existing block:**
 
@@ -1577,8 +1527,6 @@ impl Row {
 ## <a id="checkpoint-68j-pin-coarse-pages-and-adopt-checked-ranges"></a>12. Pin coarse pages and adopt checked ranges
 
 ### 1. `src/range_cloud.rs`
-
-Adopt checked original pages and retain a coarse fallback. Copy source descriptor, page identity and lifetime fixtures.
 
 **Locate this existing block:**
 
@@ -1849,8 +1797,6 @@ mod tests {
 
 ### 1. `src/range_example.rs`
 
-Copy source-page rendering and ownership specimens.
-
 Create the file and type:
 
 ```rust
@@ -1926,8 +1872,6 @@ pub fn prepared() -> Rc<Prepared> {
 
 ### 2. `src/lib.rs`
 
-Register the source component.
-
 **Locate this existing block:**
 
 ```rust
@@ -1949,8 +1893,6 @@ pub mod range_shape;
 ## <a id="checkpoint-68l-insert-streamed-rows-on-the-current-layer"></a>14. Insert streamed rows on the current layer
 
 ### 1. `src/scene.rs`
-
-Insert validated streamed rows and release them with the scene.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -2142,8 +2084,6 @@ Replace it with:
 ## <a id="checkpoint-68m-carry-source-placement-through-scene-operations"></a>15. Carry source placement through scene operations
 
 ### 1. `src/scene.rs`
-
-Carry streamed owners through scene identity and placement operations.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -2441,8 +2381,6 @@ Replace it with:
 
 ### 2. `src/hierarchy.rs`
 
-Name streamed source rows in the original hierarchy.
-
 **Locate this existing block:**
 
 ```rust
@@ -2465,11 +2403,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-68n-resolve-compact-picks-to-original-point-ids"></a>16. Resolve compact picks to point IDs
 
-Resolve compact picks to original point IDs.
-
 ### 1. `src/cloud_pick.rs`
-
-Connect streamed selection and original identities while refusing incomplete editable Save.
 
 **Locate this existing block:**
 
@@ -2560,8 +2494,6 @@ pub fn position(
 
 ### 2. `src/pick_sources.rs`
 
-Connect streamed selection and original identities while refusing incomplete editable Save.
-
 **Locate this existing block:**
 
 ```rust
@@ -2580,8 +2512,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 3. `src/editor.rs`
-
-Connect streamed selection and original identities while refusing incomplete editable Save.
 
 **Locate this existing block:**
 
@@ -5542,8 +5472,6 @@ impl Editor {
 
 ### 4. `src/scene_archive.rs`
 
-Connect streamed selection and original identities while refusing incomplete editable Save.
-
 **Locate this existing block:**
 
 ```rust
@@ -5563,11 +5491,7 @@ pub fn save(scene: &Scene) -> Result<Vec<u8>, String> {
 
 ## <a id="checkpoint-68o-account-for-original-and-retained-source-data"></a>17. Account for and retained source data
 
-Account for original and retained source data.
-
 ### 1. `src/memory.rs`
-
-Count shared streamed sources and retained payload separately.
 
 **Locate this existing block:**
 
@@ -5608,8 +5532,6 @@ pub fn streams<'a>(scenes: impl IntoIterator<Item = &'a Scene>) -> [usize; 5] {
 ```
 
 ### 2. `src/stream_row_tests.rs`
-
-Copy streamed identity, placement, accounting and lifetime regressions.
 
 Create the file and type:
 
@@ -5754,8 +5676,6 @@ fn shared_streamed_owners_report_original_and_retained_counts_separately() {
 
 ### 3. `src/lib.rs`
 
-Register the source component. Keep regression fixtures outside browser builds.
-
 **Locate this existing block:**
 
 ```rust
@@ -5777,11 +5697,7 @@ pub mod range_shape;
 
 ## <a id="checkpoint-68p-keep-original-attributes-in-ranged-pages"></a>18. Keep attributes in ranged pages
 
-Keep original attributes in ranged pages.
-
 ### 1. `src/stream.rs`
-
-Validate present colour and normal columns before decoding.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -5856,8 +5772,6 @@ Replace it with:
 
 ### 2. `src/range_source.rs`
 
-Read matching original attributes for each source page.
-
 **Locate this existing block:**
 
 ```rust
@@ -5910,8 +5824,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ## <a id="checkpoint-68q-retain-page-owners-beside-gpu-buffers"></a>19. Retain page owners beside GPU buffers
 
 ### 1. `src/cloud_gpu.rs`
-
-Retain charged original page owners with their derived GPU columns.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -6031,8 +5943,6 @@ struct Columns {
 
 ### 1. `src/cloud_gpu.rs`
 
-Describe source ownership and compact retained-page addresses independently.
-
 **Locate this existing block:**
 
 ```rust
@@ -6122,8 +6032,6 @@ struct Draw {
 ## <a id="checkpoint-68s-draw-shared-source-pages-at-independent-placements"></a>21. Draw shared source pages at independent placements
 
 ### 1. `src/cloud_gpu.rs`
-
-Connect resident and streamed original columns to compact bounded draw records.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -6435,8 +6343,6 @@ struct Draw {
 
 ### 2. `src/cloud_points.wgsl`
 
-Connect resident and streamed original columns to compact bounded draw records.
-
 **Locate this existing block:**
 
 ```wgsl
@@ -6455,8 +6361,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 3. `src/renderer.rs`
 
-Connect resident and streamed original columns to compact bounded draw records.
-
 **Locate this existing block:**
 
 ```rust
@@ -6474,8 +6378,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 4. `src/pick_gpu_tests.rs`
-
-Copy actual GPU source ID, page ownership, colour, reuse, eviction and cleanup fixtures.
 
 **Locate this existing block:**
 
@@ -6595,8 +6497,6 @@ fn actual_streamed_pages_pick_original_ids_share_uploads_and_release_after_evict
 
 ### 1. `src/source_encoding.rs`
 
-Validate supported source encodings and exact decoded size.
-
 Create the file and type:
 
 ```rust
@@ -6642,8 +6542,6 @@ impl Encoding {
 
 ### 2. `src/lib.rs`
 
-Register the source component.
-
 **Locate this existing block:**
 
 ```rust
@@ -6663,8 +6561,6 @@ pub mod range_shape;
 ```
 
 ### 3. `src/source_encoding.rs`
-
-Copy encoded size and codec refusal fixtures.
 
 **Locate this existing block:**
 
@@ -6703,8 +6599,6 @@ mod tests {
 
 ### 1. `Cargo.toml`
 
-Copy the pinned browser stream dependency configuration.
-
 **Locate this existing block:**
 
 ```toml
@@ -6722,8 +6616,6 @@ console_error_panic_hook = "=0.1.7"
 ```
 
 ### 2. `src/source_unpack.rs`
-
-Decode bounded cancellable original source streams.
 
 Create the file and type:
 
@@ -6818,8 +6710,6 @@ async fn read(
 
 ### 3. `src/lib.rs`
 
-Register the source component.
-
 **Locate this existing block:**
 
 ```rust
@@ -6842,8 +6732,6 @@ pub mod range_shape;
 ## <a id="checkpoint-68v-refuse-conflicting-source-encoding-revisions"></a>24. Refuse conflicting source encoding revisions
 
 ### 1. `src/publication_index.rs`
-
-Validate manifest source formats before changing the original inventory.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -6977,11 +6865,7 @@ Replace it with:
 
 ## <a id="checkpoint-68w-adopt-remote-original-revisions-independently"></a>25. Adopt remote revisions independently
 
-Adopt remote original revisions independently.
-
 ### 1. `src/publication_index.rs`
-
-Adopt versioned remote originals while retaining complete-source byte identity for whole documents. Copy remote revision, placement and previous-scene retention fixtures.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -7127,8 +7011,6 @@ Replace it with:
 
 ### 1. `src/stream_load.rs`
 
-Prepare a pinned original coarse page and a budgeted initial prefix.
-
 Create the file and type:
 
 ```rust
@@ -7214,8 +7096,6 @@ pub async fn start(
 
 ### 2. `src/lib.rs`
 
-Register the source component.
-
 **Locate this existing block:**
 
 ```rust
@@ -7238,8 +7118,6 @@ pub mod range_shape;
 ## <a id="checkpoint-68y-redraw-before-reusing-evicted-page-addresses"></a>27. Redraw before reusing evicted page addresses
 
 ### 1. `src/stream_load.rs`
-
-Synchronize visible eviction before reusing released page memory.
 
 **Locate this existing block:**
 
@@ -7291,8 +7169,6 @@ pub async fn start(
 ## <a id="checkpoint-68z-continue-pages-only-for-current-source-owners"></a>28. Continue pages only for current source owners
 
 ### 1. `src/stream_load.rs`
-
-Continue checked source pages only while their scene/runtime owner remains current.
 
 **Locate this existing block:**
 
@@ -7381,8 +7257,6 @@ pub fn continue_read(
 ## <a id="checkpoint-68aa-own-cancellation-for-each-published-source"></a>29. Own cancellation for each published source
 
 ### 1. `src/range_fetch.rs`
-
-Cancel active range reads belonging to replaced source URLs.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -7528,8 +7402,6 @@ pub fn cancel() {
 
 ### 2. `src/browser_publication.rs`
 
-Own pending source cursors and close every source reader with its publication.
-
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -7633,8 +7505,6 @@ use std::{
 ## <a id="checkpoint-68ab-choose-bounded-range-loading-for-large-originals"></a>30. Choose bounded range loading for large originals
 
 ### 1. `src/browser_publication.rs`
-
-Stage original ranged prefixes and keep failed revisions off the current scene.
 
 **Locate this existing block:**
 
@@ -7952,8 +7822,6 @@ async fn read(
 
 ### 1. `src/browser_publication.rs`
 
-Connect current streamed page delivery, original source diagnostics and bounded runtime ownership.
-
 **Locate this existing block:**
 
 ```rust
@@ -8045,8 +7913,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 2. `src/browser.rs`
-
-Connect current streamed page delivery, original source diagnostics and bounded runtime ownership.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 

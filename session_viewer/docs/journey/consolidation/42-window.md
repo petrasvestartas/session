@@ -1,60 +1,77 @@
 # 6.1 · A bounded integer picking pass
 
-**Goal:** Connect real canvas input to bounded integer GPU picking for meshes and ink. · **Steps:** 12 · **Source:** [engine/gpu/pick.rs](../../../src/engine/gpu/pick.rs) · [app/selection.rs](../../../src/app/selection.rs) · [engine/gpu/faces.rs](../../../src/engine/gpu/faces.rs) · [app/walk/mesh_topology.rs](../../../src/app/walk/mesh_topology.rs)
-
-<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
-<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
-  <defs>
-    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
-    </marker>
-    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
-    </marker>
-    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
-    </marker>
-  </defs>
-  <rect x="2" y="2" width="1116" height="184" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
-  <rect x="14" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Cursor Pick Crop Window (r_px Radius)</text>
-  <rect x="68" y="46" width="236" height="114" fill="#f8fafc" stroke="#111111" stroke-width="1.5"/>
-  <line x1="104" y1="138" x2="268" y2="66" stroke="#2563eb" stroke-width="3"/>
-  <circle cx="186" cy="102" r="5" fill="#dc2626"/>
-  <rect x="158" y="74" width="56" height="56" fill="none" stroke="#111111" stroke-width="2" stroke-dasharray="3 2"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="66" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">15×15 Crop</text>
-  <line x1="358" y1="94" x2="384" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
-  <rect x="388" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Rg32Uint Attachment: vec2&lt;u32&gt;(owner, part)</text>
-  <rect x="466" y="46" width="188" height="112" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <line x1="528" y1="46" x2="528" y2="158" stroke="#111111" stroke-width="1"/>
-  <line x1="592" y1="46" x2="592" y2="158" stroke="#111111" stroke-width="1"/>
-  <line x1="466" y1="83" x2="654" y2="83" stroke="#111111" stroke-width="1"/>
-  <line x1="466" y1="121" x2="654" y2="121" stroke="#111111" stroke-width="1"/>
-  <rect x="528" y="83" width="64" height="38" fill="#fef08a" stroke="#111111" stroke-width="2"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="106" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">[7, 2]</text>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="497" y="68" text-anchor="middle" font-family="monospace" font-size="9" fill="#64748b">[0,0]</text>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="623" y="144" text-anchor="middle" font-family="monospace" font-size="9" fill="#16a34a">[7,1]</text>
-  <line x1="732" y1="94" x2="758" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
-  <rect x="762" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Priority: Point &gt; Edge &gt; Face Hit</text>
-  <rect x="806" y="44" width="256" height="118" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
-  <polygon points="866,138 934,62 1002,138" fill="#dbeafe" stroke="#111111" stroke-width="1.75"/>
-  <line x1="866" y1="138" x2="934" y2="62" stroke="#f59e0b" stroke-width="4"/>
-  <circle cx="934" cy="62" r="7" fill="#fef08a" stroke="#dc2626" stroke-width="2.5"/>
-</svg>
-</div>
+**Steps:** 12 · **Source:** [engine/gpu/pick.rs](../../../src/engine/gpu/pick.rs) · [app/selection.rs](../../../src/app/selection.rs) · [engine/gpu/faces.rs](../../../src/engine/gpu/faces.rs) · [app/walk/mesh_topology.rs](../../../src/app/walk/mesh_topology.rs)
 
 ## <a id="checkpoint-42-window"></a>1. Bound the cursor image and decode a hit
 
-Bound picking work around the cursor independently of the canvas size.
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="214" viewBox="0 0 1120 214" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr-1ffb3705" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arr-r-1ffb3705" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arr-g-1ffb3705" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arr-b-1ffb3705" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+    <pattern id="grid-1ffb3705" width="20" height="20" patternUnits="userSpaceOnUse">
+      <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#f1f5f9" stroke-width="1"/>
+    </pattern>
+  </defs>
+  <rect x="2" y="2" width="1116" height="210" rx="8" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="2" y="2" width="1116" height="28" rx="6" fill="#f8fafc" stroke="#111111" stroke-width="1.5"/>
+  <line x1="2" y1="30" x2="1118" y2="30" stroke="#111111" stroke-width="1.5"/>
+  <rect x="12" y="7" width="176" height="18" rx="3" fill="#111111"/>
+  <text x="100" y="19.5" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#ffffff" paint-order="normal" stroke="none">42..45 · RG32UINT GPU PICK</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="518" y="20" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Offscreen Rg32Uint (owner_id, sub_id) Pass, 5×5 Readback &amp; Sub-Object Priority</text>
+  <rect x="838" y="7" width="268" height="18" rx="3" fill="#ffffff" stroke="#111111" stroke-width="1.2"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="972" y="19.5" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#2563eb">sub_id = (Tag &lt;&lt; 28) | PrimIdx · Pt &gt; Edge &gt; Face</text>
+  <rect x="14" y="38" width="344" height="164" rx="6" fill="url(#grid-1ffb3705)" stroke="#111111" stroke-width="1.5"/>
+  <line x1="14" y1="60" x2="358" y2="60" stroke="#cbd5e1" stroke-width="1"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="186" y="53" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1 · Offscreen Rg32Uint 5×5 Cursor Window</text>
+  <rect x="86" y="72" width="160" height="100" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <line x1="118" y1="72" x2="118" y2="172" stroke="#cbd5e1" stroke-width="1"/>
+  <line x1="150" y1="72" x2="150" y2="172" stroke="#cbd5e1" stroke-width="1"/>
+  <line x1="182" y1="72" x2="182" y2="172" stroke="#cbd5e1" stroke-width="1"/>
+  <line x1="214" y1="72" x2="214" y2="172" stroke="#cbd5e1" stroke-width="1"/>
+  <line x1="86" y1="92" x2="246" y2="92" stroke="#cbd5e1" stroke-width="1"/>
+  <line x1="86" y1="112" x2="246" y2="112" stroke="#cbd5e1" stroke-width="1"/>
+  <line x1="86" y1="132" x2="246" y2="132" stroke="#cbd5e1" stroke-width="1"/>
+  <line x1="86" y1="152" x2="246" y2="152" stroke="#cbd5e1" stroke-width="1"/>
+  <rect x="150" y="112" width="32" height="20" fill="#fef08a" stroke="#dc2626" stroke-width="2"/>
+  <rect x="118" y="132" width="32" height="20" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="186" y="186" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">copy_texture_to_buffer (pitch=256B)</text>
+  <line x1="358" y1="120" x2="384" y2="120" stroke="#111111" stroke-width="2" marker-end="url(#arr-1ffb3705)"/>
+  <rect x="388" y="38" width="344" height="164" rx="6" fill="url(#grid-1ffb3705)" stroke="#111111" stroke-width="1.5"/>
+  <line x1="388" y1="60" x2="732" y2="60" stroke="#cbd5e1" stroke-width="1"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="53" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2 · Ticket Guard + Priority (Point &gt; Edge &gt; Face)</text>
+  <rect x="414" y="74" width="292" height="52" rx="4" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="94" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">PickTicket { seq, camera_gen, scene_rev }</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="112" text-anchor="middle" font-family="monospace" font-size="8.5" fill="#2563eb">Rejects stale map_async if view changed</text>
+  <circle cx="458" cy="154" r="10" fill="#fef08a" stroke="#dc2626" stroke-width="2"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="458" y="182" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#dc2626">1.Point</text>
+  <line x1="528" y1="164" x2="582" y2="144" stroke="#2563eb" stroke-width="4.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="555" y="182" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#2563eb">2.Edge</text>
+  <polygon points="628,166 656,138 684,166" fill="#bbf7d0" stroke="#16a34a" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="656" y="182" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#16a34a">3.Face</text>
+  <line x1="732" y1="120" x2="758" y2="120" stroke="#111111" stroke-width="2" marker-end="url(#arr-1ffb3705)"/>
+  <rect x="762" y="38" width="344" height="164" rx="6" fill="url(#grid-1ffb3705)" stroke="#111111" stroke-width="1.75"/>
+  <line x1="762" y1="60" x2="1106" y2="60" stroke="#cbd5e1" stroke-width="1"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="934" y="53" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3 · Sub-Object &amp; Ordered Multi-Selection</text>
+  <rect x="806" y="68" width="256" height="122" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <polygon points="856,166 934,80 1012,166" fill="#f1f5f9" stroke="#111111" stroke-width="1.75"/>
+  <line x1="856" y1="166" x2="934" y2="80" stroke="#2563eb" stroke-width="4.5"/>
+  <circle cx="934" cy="80" r="7" fill="#fef08a" stroke="#dc2626" stroke-width="2.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="934" y="182" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">Shift+Click Order · Tab Cycle</text>
+</svg>
+</div>
 
 ### 1. `src/pick_window.rs`
-
-Bound the cursor window and decode exact integer owners.
 
 Create the file and type:
 
@@ -169,8 +186,6 @@ impl Window {
 
 ### 2. `src/lib.rs`
 
-Register the new picking component.
-
 **Locate this existing block:**
 
 ```rust
@@ -188,8 +203,6 @@ pub mod pick_window;
 ```
 
 ### 3. `src/pick_window_tests.rs`
-
-Copy the focused checks.
 
 Create the file and type:
 
@@ -321,8 +334,6 @@ fn pick_decoding_ignores_padding_and_prefers_visible_ink_within_the_tolerance() 
 
 ### 4. `src/lib.rs`
 
-Register the copied checks.
-
 **Locate this existing block:**
 
 ```rust
@@ -387,11 +398,7 @@ mod pick_window_tests;
 </svg>
 </div>
 
-Share explicit uniform layouts between visible drawing and integer picking.
-
 ### 1. `src/gpu_layout.rs`
-
-Share explicit uniform bindings between draw passes.
 
 Create the file and type:
 
@@ -431,8 +438,6 @@ pub fn group(
 
 ### 2. `src/lib.rs`
 
-Register the new picking component.
-
 **Locate this existing block:**
 
 ```rust
@@ -450,8 +455,6 @@ pub mod gpu_layout;
 ```
 
 ### 3. `src/gpu_mesh.rs`
-
-Preserve exact IDs and the current visible drawing policy.
 
 **Locate this existing block:**
 
@@ -482,8 +485,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 4. `src/triangle.wgsl`
-
-Preserve exact IDs and the current visible drawing policy.
 
 **Locate this existing block:**
 
@@ -537,8 +538,6 @@ fn vertex(@location(0) position: vec3<f32>, @location(1) colour: vec3<f32>, @loc
 
 ### 5. `src/chain.rs`
 
-Preserve exact IDs and the current visible drawing policy.
-
 **Locate this existing block:**
 
 ```rust
@@ -562,8 +561,6 @@ impl Source {
 ```
 
 ### 6. `src/scene.rs`
-
-Resolve only current visible, unlocked object rows.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -639,8 +636,6 @@ pub struct Object {
 
 ### 7. `src/renderer.rs`
 
-Use the same explicit mesh settings layout for both drawing passes.
-
 **Locate this existing block:**
 
 ```rust
@@ -670,11 +665,53 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-42b-ink"></a>3. Share point and stroke coverage with picking
 
-Use the same marker and stroke geometry in visible and ID shaders.
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="184" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Cursor Pick Crop Window (r_px Radius)</text>
+  <rect x="68" y="46" width="236" height="114" fill="#f8fafc" stroke="#111111" stroke-width="1.5"/>
+  <line x1="104" y1="138" x2="268" y2="66" stroke="#2563eb" stroke-width="3"/>
+  <circle cx="186" cy="102" r="5" fill="#dc2626"/>
+  <rect x="158" y="74" width="56" height="56" fill="none" stroke="#111111" stroke-width="2" stroke-dasharray="3 2"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="66" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">15×15 Crop</text>
+  <line x1="358" y1="94" x2="384" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="388" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Rg32Uint Attachment: vec2&lt;u32&gt;(owner, part)</text>
+  <rect x="466" y="46" width="188" height="112" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <line x1="528" y1="46" x2="528" y2="158" stroke="#111111" stroke-width="1"/>
+  <line x1="592" y1="46" x2="592" y2="158" stroke="#111111" stroke-width="1"/>
+  <line x1="466" y1="83" x2="654" y2="83" stroke="#111111" stroke-width="1"/>
+  <line x1="466" y1="121" x2="654" y2="121" stroke="#111111" stroke-width="1"/>
+  <rect x="528" y="83" width="64" height="38" fill="#fef08a" stroke="#111111" stroke-width="2"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="106" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">[7, 2]</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="497" y="68" text-anchor="middle" font-family="monospace" font-size="9" fill="#64748b">[0,0]</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="623" y="144" text-anchor="middle" font-family="monospace" font-size="9" fill="#16a34a">[7,1]</text>
+  <line x1="732" y1="94" x2="758" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="762" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Priority: Point &gt; Edge &gt; Face Hit</text>
+  <rect x="806" y="44" width="256" height="118" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <polygon points="866,138 934,62 1002,138" fill="#dbeafe" stroke="#111111" stroke-width="1.75"/>
+  <line x1="866" y1="138" x2="934" y2="62" stroke="#f59e0b" stroke-width="4"/>
+  <circle cx="934" cy="62" r="7" fill="#fef08a" stroke="#dc2626" stroke-width="2.5"/>
+</svg>
+</div>
 
 ### 1. `src/stroke.wgsl`
-
-Share the existing geometry and coverage calculations.
 
 **Locate this existing block:**
 
@@ -753,8 +790,6 @@ fn fragment(input: Output) -> @location(0) vec4<f32> { return colour(input); }
 
 ### 2. `src/marker.wgsl`
 
-Share the existing geometry and coverage calculations.
-
 **Locate this existing block:**
 
 ```wgsl
@@ -810,8 +845,6 @@ fn fragment(input: Output) -> @location(0) vec4<f32> { return colour(input); }
 
 ### 3. `src/stroke_pick.wgsl`
 
-Output an integer owner only where ink is visible.
-
 Create the file and type:
 
 ```wgsl
@@ -844,8 +877,6 @@ fn pick_fragment(input: PickOutput) -> @location(0) vec2<u32> {
 ```
 
 ### 4. `src/marker_pick.wgsl`
-
-Output an integer owner only where ink is visible.
 
 Create the file and type:
 
@@ -919,11 +950,7 @@ fn pick_fragment(input: PickOutput) -> @location(0) vec2<u32> {
 </svg>
 </div>
 
-Keep joined strokes and shaped arrowheads consistent in both passes.
-
 ### 1. `src/chain.wgsl`
-
-Share connected geometry and shaped coverage.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -1001,8 +1028,6 @@ fn geometry(start: vec3<f32>, end: vec3<f32>, colour: vec4<f32>, width: f32, pre
 ```
 
 ### 2. `src/chain_pick.wgsl`
-
-Return owners from the visible connected ink.
 
 Create the file and type:
 
@@ -1094,11 +1119,7 @@ fn pick_fragment(input: PickOutput) -> @location(0) vec2<u32> {
 </svg>
 </div>
 
-Keep picking identities separate from display coordinates and GPU geometry.
-
 ### 1. `src/stroke_gpu.rs`
-
-Validate and cache original owners separately from display data.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -1204,8 +1225,6 @@ Replace it with:
 
 ### 2. `src/renderer.rs`
 
-Match every visible instance to its source owner in the same order.
-
 **Locate this existing block:**
 
 ```rust
@@ -1291,8 +1310,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 3. `src/scene.rs`
 
-Remove a selected original row of any current geometry kind. Retain selection for every original geometry kind.
-
 **Locate this existing block:**
 
 ```rust
@@ -1346,8 +1363,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 4. `src/editor.rs`
 
-Delete ink rows while preserving the existing cold-mesh source guard.
-
 **Locate this existing block:**
 
 ```rust
@@ -1380,8 +1395,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 5. `src/edit_intent.rs`
-
-Let original ink deletion proceed without requesting mesh rehydration.
 
 **Locate this existing block:**
 
@@ -1462,11 +1475,7 @@ Edit the existing block to match this code; keep unchanged lines:
 </svg>
 </div>
 
-Add integer pipelines without another geometry upload.
-
 ### 1. `src/stroke_gpu.rs`
-
-Reuse visible geometry in the integer ink pass.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -1661,11 +1670,7 @@ Replace it with:
 
 ## <a id="checkpoint-42f-mesh"></a>7. Draw depth-tested mesh owners into an integer attachment
 
-Use original mesh buffers and placements for exact visible owner IDs.
-
 ### 1. `src/triangle_pick.wgsl`
-
-Draw exact mesh owners at the original placed depth.
 
 Create the file and type:
 
@@ -1680,8 +1685,6 @@ fn pick_fragment() -> @location(0) vec2<u32> { return vec2<u32>(object.selection
 ```
 
 ### 2. `src/pick_pipeline.rs`
-
-Create the integer mesh attachment and shared bindings.
 
 Create the file and type:
 
@@ -1729,8 +1732,6 @@ pub fn mesh(
 
 ### 3. `src/lib.rs`
 
-Register the new picking component.
-
 **Locate this existing block:**
 
 ```rust
@@ -1752,53 +1753,62 @@ pub mod pick_pipeline;
 ## <a id="checkpoint-42g-image"></a>8. Own a small ID image, depth target and readback buffer
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
-<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="214" viewBox="0 0 1120 214" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
   <defs>
-    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+    <marker id="arr-9c9e11fd" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
-    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+    <marker id="arr-r-9c9e11fd" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
     </marker>
-    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+    <marker id="arr-g-9c9e11fd" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
     </marker>
-    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+    <marker id="arr-b-9c9e11fd" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
     </marker>
+    <pattern id="grid-9c9e11fd" width="20" height="20" patternUnits="userSpaceOnUse">
+      <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#f1f5f9" stroke-width="1"/>
+    </pattern>
   </defs>
-  <rect x="2" y="2" width="1116" height="184" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
-  <rect x="14" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">GPU Offscreen Rg32Uint Texture (owner_id, sub_id)</text>
-  <rect x="74" y="48" width="224" height="106" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <rect x="146" y="76" width="80" height="50" fill="#fef08a" stroke="#dc2626" stroke-width="2"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="105" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">5×5 px Window</text>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="144" text-anchor="middle" font-family="monospace" font-size="9" fill="#2563eb">COPY_SRC Attachment</text>
-  <line x1="358" y1="94" x2="384" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
-  <rect x="388" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">copy_texture_to_buffer (256B Row Pitch) -&gt; Staging</text>
-  <rect x="424" y="52" width="272" height="96" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="78" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Staging Buffer (MAP_READ | COPY_DST)</text>
-  <rect x="446" y="90" width="228" height="24" fill="#ffffff" stroke="#111111" stroke-width="1.2"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="106" text-anchor="middle" font-family="monospace" font-size="9" fill="#111111">bytes_per_row = 256 (WebGPU alignment)</text>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="134" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#16a34a">slice.map_async(MapMode::Read, ...)</text>
-  <line x1="732" y1="94" x2="758" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
-  <rect x="762" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">CPU Callback Reads Mapped [u32; 2] Winner</text>
-  <rect x="806" y="44" width="256" height="118" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
-  <rect x="826" y="58" width="216" height="44" rx="4" fill="#dcfce7" stroke="#16a34a" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="78" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">get_mapped_range() -&gt; (id, sub)</text>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="94" text-anchor="middle" font-family="monospace" font-size="9" fill="#16a34a">staging.unmap()</text>
-  <rect x="846" y="114" width="176" height="32" rx="4" fill="#fef08a" stroke="#dc2626" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="134" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Selected Owner Updated</text>
+  <rect x="2" y="2" width="1116" height="210" rx="8" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="2" y="2" width="1116" height="28" rx="6" fill="#f8fafc" stroke="#111111" stroke-width="1.5"/>
+  <line x1="2" y1="30" x2="1118" y2="30" stroke="#111111" stroke-width="1.5"/>
+  <rect x="12" y="7" width="176" height="18" rx="3" fill="#111111"/>
+  <text x="100" y="19.5" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#ffffff" paint-order="normal" stroke="none">42G..42K · 256B READBACK</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="518" y="20" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">WebGPU 256-Byte Row Pitch Alignment (copy_texture_to_buffer) &amp; Spiral Cursor Search</text>
+  <rect x="838" y="7" width="268" height="18" rx="3" fill="#ffffff" stroke="#111111" stroke-width="1.2"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="972" y="19.5" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#2563eb">bytes_per_row = align_to(w * 8, 256) = 256 B</text>
+  <rect x="14" y="38" width="344" height="164" rx="6" fill="url(#grid-9c9e11fd)" stroke="#111111" stroke-width="1.5"/>
+  <line x1="14" y1="60" x2="358" y2="60" stroke="#cbd5e1" stroke-width="1"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="186" y="53" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1 · Rg32Uint Crop Copy to MAP_READ Buffer</text>
+  <rect x="44" y="76" width="284" height="104" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="186" y="98" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">5×5 Window = 5 * 8B = 40B useful/row</text>
+  <rect x="64" y="110" width="68" height="28" fill="#dcfce7" stroke="#16a34a" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="98" y="128" text-anchor="middle" font-family="monospace" font-size="8.5" font-weight="700" fill="#16a34a">40B Data</text>
+  <rect x="132" y="110" width="176" height="28" fill="#f1f5f9" stroke="#94a3b8" stroke-width="1.2" stroke-dasharray="3 2"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="220" y="128" text-anchor="middle" font-family="monospace" font-size="8.5" fill="#64748b">216B Padding (pitch = 256B)</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="186" y="164" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#2563eb">COPY_BYTES_PER_ROW_ALIGNMENT = 256</text>
+  <line x1="358" y1="120" x2="384" y2="120" stroke="#111111" stroke-width="2" marker-end="url(#arr-9c9e11fd)"/>
+  <rect x="388" y="38" width="344" height="164" rx="6" fill="url(#grid-9c9e11fd)" stroke="#111111" stroke-width="1.5"/>
+  <line x1="388" y1="60" x2="732" y2="60" stroke="#cbd5e1" stroke-width="1"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="53" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2 · Center-Outward Euclidean Spiral Search</text>
+  <rect x="480" y="76" width="160" height="100" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <circle cx="560" cy="126" r="6" fill="#dc2626"/>
+  <circle cx="560" cy="126" r="22" fill="none" stroke="#2563eb" stroke-width="1.5" stroke-dasharray="3 2"/>
+  <circle cx="560" cy="126" r="40" fill="none" stroke="#16a34a" stroke-width="1.5" stroke-dasharray="3 2"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="188" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">Min dist² within highest priority class</text>
+  <line x1="732" y1="120" x2="758" y2="120" stroke="#111111" stroke-width="2" marker-end="url(#arr-9c9e11fd)"/>
+  <rect x="762" y="38" width="344" height="164" rx="6" fill="url(#grid-9c9e11fd)" stroke="#111111" stroke-width="1.75"/>
+  <line x1="762" y1="60" x2="1106" y2="60" stroke="#cbd5e1" stroke-width="1"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="934" y="53" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3 · Sub-Millisecond GPU Pick Result</text>
+  <rect x="806" y="68" width="256" height="122" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="934" y="108" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">[owner_id, sub_id]</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="934" y="138" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#16a34a">Decoded on CPU ✓</text>
 </svg>
 </div>
 
-Allocate bounded picking resources with checked padded rows.
-
 ### 1. `src/pick_image.rs`
-
-Allocate only the bounded target and padded readback.
 
 Create the file and type:
 
@@ -1864,8 +1874,6 @@ impl Image {
 
 ### 2. `src/lib.rs`
 
-Register the new picking component.
-
 **Locate this existing block:**
 
 ```rust
@@ -1886,11 +1894,7 @@ mod pick_image;
 
 ## <a id="checkpoint-42h-owner"></a>9. Bound asynchronous picking ownership
 
-Own one active request and one latest pending cursor.
-
 ### 1. `src/pick_gpu.rs`
-
-Own bounded requests and release them on cancellation.
 
 Create the file and type:
 
@@ -2016,8 +2020,6 @@ impl Picker {
 
 ### 2. `src/lib.rs`
 
-Register the new picking component.
-
 **Locate this existing block:**
 
 ```rust
@@ -2056,36 +2058,32 @@ pub mod pick_gpu;
   </defs>
   <rect x="2" y="2" width="1116" height="184" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
   <rect x="14" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">CPU Rasterized Bytes (R8Unorm / Rgba8Unorm)</text>
-  <rect x="64" y="50" width="244" height="102" fill="#f8fafc" stroke="#111111" stroke-width="1.75"/>
-  <rect x="80" y="64" width="42" height="42" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="101" y="91" text-anchor="middle" font-family="monospace" font-size="16" font-weight="700" fill="#111111">A</text>
-  <rect x="130" y="64" width="42" height="42" fill="#fef08a" stroke="#dc2626" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="151" y="91" text-anchor="middle" font-family="monospace" font-size="16" font-weight="700" fill="#111111">B</text>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="134" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">CPU Shelf Bitmap &amp;[u8]</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">GPU Offscreen Rg32Uint Texture (owner_id, sub_id)</text>
+  <rect x="74" y="48" width="224" height="106" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <rect x="146" y="76" width="80" height="50" fill="#fef08a" stroke="#dc2626" stroke-width="2"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="105" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">5×5 px Window</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="144" text-anchor="middle" font-family="monospace" font-size="9" fill="#2563eb">COPY_SRC Attachment</text>
   <line x1="358" y1="94" x2="384" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
   <rect x="388" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">queue.write_texture(TexelCopyTextureInfo, Extent3d)</text>
-  <rect x="424" y="52" width="272" height="96" rx="6" fill="#dcfce7" stroke="#16a34a" stroke-width="1.75"/>
-  <line x1="448" y1="86" x2="672" y2="86" stroke="#16a34a" stroke-width="3" marker-end="url(#arrG)"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="74" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">queue.write_texture(...)</text>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="114" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#16a34a">TEXTURE_BINDING | COPY_DST</text>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="134" text-anchor="middle" font-family="monospace" font-size="9" fill="#111111">origin: (x, y, 0), size: (w, h, 1)</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">copy_texture_to_buffer (256B Row Pitch) -&gt; Staging</text>
+  <rect x="424" y="52" width="272" height="96" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="78" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Staging Buffer (MAP_READ | COPY_DST)</text>
+  <rect x="446" y="90" width="228" height="24" fill="#ffffff" stroke="#111111" stroke-width="1.2"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="106" text-anchor="middle" font-family="monospace" font-size="9" fill="#111111">bytes_per_row = 256 (WebGPU alignment)</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="134" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#16a34a">slice.map_async(MapMode::Read, ...)</text>
   <line x1="732" y1="94" x2="758" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
   <rect x="762" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">GPU Texture2D + Sampler in @fragment</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">CPU Callback Reads Mapped [u32; 2] Winner</text>
   <rect x="806" y="44" width="256" height="118" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="76" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#2563eb">textureSample(t_atlas, s, uv).r</text>
-  <rect x="852" y="96" width="164" height="44" rx="4" fill="#fef08a" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="123" text-anchor="middle" font-family="monospace" font-size="13" font-weight="700" fill="#111111"> Crisp GPU Text </text>
+  <rect x="826" y="58" width="216" height="44" rx="4" fill="#dcfce7" stroke="#16a34a" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="78" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">get_mapped_range() -&gt; (id, sub)</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="94" text-anchor="middle" font-family="monospace" font-size="9" fill="#16a34a">staging.unmap()</text>
+  <rect x="846" y="114" width="176" height="32" rx="4" fill="#fef08a" stroke="#dc2626" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="134" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Selected Owner Updated</text>
 </svg>
 </div>
 
-Submit surfaces and ink to a bounded image before copying its cursor region.
-
 ### 1. `src/pick_encode.rs`
-
-Record depth-correct IDs and copy the bounded cursor region.
 
 Create the file and type:
 
@@ -2169,8 +2167,6 @@ pub(crate) fn draw(
 
 ### 2. `src/lib.rs`
 
-Register the new picking component.
-
 **Locate this existing block:**
 
 ```rust
@@ -2191,11 +2187,7 @@ mod pick_encode;
 
 ## <a id="checkpoint-42j-read"></a>11. Map the integer hit without blocking browser input
 
-Read completed GPU bytes asynchronously and reuse bounded resources.
-
 ### 1. `src/pick_gpu.rs`
-
-Map asynchronously and decode only completed bytes.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -2328,8 +2320,6 @@ use std::sync::{
 
 ### 2. `src/browser_pick.rs`
 
-Wake the browser owner when GPU mapping completes.
-
 Create the file and type:
 
 ```rust
@@ -2344,8 +2334,6 @@ pub fn wake() {
 ```
 
 ### 3. `src/lib.rs`
-
-Register the browser-only completion wakeup.
 
 **Locate this existing block:**
 
@@ -2369,8 +2357,6 @@ pub mod browser_pick;
 ## <a id="checkpoint-42k-input"></a>12. Select rows through actual GPU canvas clicks
 
 ### 1. `src/renderer.rs`
-
-Queue bounded GPU requests and reuse the visible geometry.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -2572,8 +2558,6 @@ impl Renderer {
 ```
 
 ### 2. `src/editor.rs`
-
-Resolve accepted picks without changing document history.
 
 **Locate this existing block:**
 
@@ -3017,8 +3001,6 @@ impl Editor {
 
 ### 3. `src/browser.rs`
 
-Route actual clicks and completion events through the owning renderer.
-
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -3112,8 +3094,6 @@ Replace it with:
 
 ### 4. `src/pick_input_tests.rs`
 
-Copy current-row resolution and history checks.
-
 Create the file and type:
 
 ```rust
@@ -3201,8 +3181,6 @@ fn original_lines_paths_arrows_and_control_parents_share_selection_and_delete_hi
 
 ### 5. `src/lib.rs`
 
-Register the copied input checks.
-
 **Locate this existing block:**
 
 ```rust
@@ -3221,8 +3199,6 @@ mod pick_input_tests;
 ```
 
 ### 6. `src/pick_gpu_tests.rs`
-
-Copy actual GPU depth, ink, density, bounded work and cancellation checks.
 
 Create the file and type:
 
@@ -3459,8 +3435,6 @@ fn cancelled_readback_cannot_select_a_new_document_or_keep_its_source_alive() {
 ```
 
 ### 7. `src/scene.rs`
-
-Register actual GPU checks with private checked scene IDs.
 
 **Locate this existing block:**
 

@@ -1,6 +1,6 @@
 # 16.2 · Split original curves and joined faces
 
-**Goal:** Exercise curve pieces source inheritance and one-step Undo. · **Steps:** 8 · **Source:** [app/command/verbs/project_to_plane.rs](../../../src/app/command/verbs/project_to_plane.rs) · [app/command/verbs/extend.rs](../../../src/app/command/verbs/extend.rs) · [app/splitting.rs](../../../src/app/splitting.rs) · [app/command/verbs/measure.rs](../../../src/app/command/verbs/measure.rs)
+**Steps:** 8 · **Source:** [app/command/verbs/project_to_plane.rs](../../../src/app/command/verbs/project_to_plane.rs) · [app/command/verbs/extend.rs](../../../src/app/command/verbs/extend.rs) · [app/splitting.rs](../../../src/app/splitting.rs) · [app/command/verbs/measure.rs](../../../src/app/command/verbs/measure.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -44,11 +44,7 @@
 
 ## <a id="checkpoint-82-divide-current-original-curve-families"></a>1. Divide curves and joined faces
 
-Bound the cutter count and dispatch original lines, polylines, curves, surfaces and selected BRep faces to the Session split algorithms.
-
 ### 1. `src/split_geometry.rs`
-
-Extend this original owner with today’s complete helper.
 
 **Locate this existing block:**
 
@@ -188,11 +184,7 @@ pub fn named(source: &Geometry, mut pieces: Vec<Geometry>) -> Vec<Geometry> {
 </svg>
 </div>
 
-Own the split target and toggle original cutters.
-
 ### 1. `src/split_draft.rs`
-
-Own the curve target and bounded original cutter toggles.
 
 Create the file and type:
 
@@ -246,8 +238,6 @@ impl Draft {
 
 ### 2. `src/lib.rs`
 
-Register the source-splitting component.
-
 **Locate this existing block:**
 
 ```rust
@@ -275,8 +265,6 @@ pub mod split_draft;
 ## <a id="checkpoint-82b-transform-cutters-into-the-target-frame-before-dividing"></a>3. Transform cutters into the target frame before dividing
 
 ### 1. `src/split_draft.rs`
-
-Prepare original split pieces from fresh local-frame cutter copies.
 
 **Locate this existing block:**
 
@@ -326,11 +314,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-82c-adopt-sibling-pieces-beside-the-original-target"></a>4. Adopt sibling pieces beside the target
 
-Adopt sibling pieces beside the original target.
-
 ### 1. `src/split_draft.rs`
-
-Adopt named original sibling pieces with inherited source parent, placement and colours.
 
 **Locate this existing block:**
 
@@ -384,8 +368,6 @@ pub fn adopt(
 ## <a id="checkpoint-82d-connect-pending-split-completion-to-one-history-change"></a>5. Connect pending split completion to one history change
 
 ### 1. `src/editor.rs`
-
-Connect pending split actions, checked completion and one original adoption transaction.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -562,8 +544,6 @@ Replace it with:
 ## <a id="checkpoint-82e-route-cutter-picks-cancellation-and-temporary-highlights"></a>6. Route cutter picks cancellation and temporary highlights
 
 ### 1. `src/editor.rs`
-
-Route split input, cutter highlights, gizmo visibility and pending-owner lifecycle.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -752,8 +732,6 @@ Replace it with:
 
 ### 1. `src/commands.rs`
 
-Register current Split vocabulary and argument-free dispatch.
-
 **Locate this existing block:**
 
 ```rust
@@ -883,8 +861,6 @@ pub fn parse(line: &str) -> Result<Command, String> {
 ```
 
 ### 2. `src/browser.rs`
-
-Route whole original cutters and expose pending split facts and options.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -1094,8 +1070,6 @@ Replace it with:
 ## <a id="checkpoint-82g-exercise-curve-pieces-source-inheritance-and-one-step-undo"></a>8. Exercise curve pieces source inheritance and one-step Undo
 
 ### 1. `src/split_tests.rs`
-
-Copy integrated source split, tree, placement, colour, stale, history and archive fixtures.
 
 Create the file and type:
 
@@ -1423,8 +1397,6 @@ fn split_arity_undo_and_new_commands_end_pending_state_while_fit_preserves_it() 
 ```
 
 ### 2. `src/lib.rs`
-
-Register the source-splitting component.
 
 **Locate this existing block:**
 

@@ -1,6 +1,6 @@
 # 13.2 · Independent presentation and reusable CAD preparation
 
-**Goal:** Exercise independent original CAD reuse. · **Steps:** 15 · **Source:** [app/scene_instances.rs](../../../../src/app/scene_instances.rs) · [engine/gpu/instanced.rs](../../../../src/engine/gpu/instanced.rs) · [engine/gpu/slots.rs](../../../../src/engine/gpu/slots.rs) · [app/walk/brep_shapes.rs](../../../../src/app/walk/brep_shapes.rs)
+**Steps:** 15 · **Source:** [app/scene_instances.rs](../../../../src/app/scene_instances.rs) · [engine/gpu/instanced.rs](../../../../src/engine/gpu/instanced.rs) · [engine/gpu/slots.rs](../../../../src/engine/gpu/slots.rs) · [app/walk/brep_shapes.rs](../../../../src/app/walk/brep_shapes.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -50,11 +50,7 @@
 
 ## <a id="checkpoint-69j-preserve-per-instance-original-colours"></a>1. Preserve per-instance colours
 
-Preserve per instance original colours.
-
 ### 1. `src/gpu_mesh.rs`
-
-Resolve instance colours without mutating original shared geometry.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -129,8 +125,6 @@ fn settings(object: &Object, style: Style) -> [u8; 160] {
 
 ### 2. `src/cloud_gpu.rs`
 
-Resolve instance colours without mutating original shared geometry.
-
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -198,8 +192,6 @@ struct Image {
 ```
 
 ### 3. `src/renderer.rs`
-
-Apply per-instance original colour to mesh, point, path and line lanes.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -301,8 +293,6 @@ Replace it with:
 
 ### 4. `src/gpu_geometry.rs`
 
-Draw shared indexed geometry with a bounded instance count.
-
 **Locate this existing block:**
 
 ```rust
@@ -387,8 +377,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 1. `src/instance_gpu.rs`
 
-Create a storage-backed shared-definition colour pipeline.
-
 Create the file and type:
 
 ```rust
@@ -458,8 +446,6 @@ impl Lane {
 
 ### 2. `src/lib.rs`
 
-Register the source component.
-
 **Locate this existing block:**
 
 ```rust
@@ -524,8 +510,6 @@ pub mod instance_gpu;
 </div>
 
 ### 1. `src/instance_gpu.rs`
-
-Reuse bounded shared-definition draw batches and changed-only record uploads.
 
 **Locate this existing block:**
 
@@ -686,8 +670,6 @@ Edit the existing block to match this code; keep unchanged lines:
 </div>
 
 ### 1. `src/renderer.rs`
-
-Draw original definition faces in shared batches while retaining independent source picking.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -900,8 +882,6 @@ Replace it with:
 
 ### 2. `src/pick_gpu_tests.rs`
 
-Copy actual GPU batching, full integer owner IDs, source colour, reuse and release regressions.
-
 **Locate this existing block:**
 
 ```rust
@@ -1016,11 +996,7 @@ fn actual_definition_instances_batch_one_geometry_keep_integer_picks_and_release
 
 ## <a id="checkpoint-69n-inspect-and-exercise-original-definition-instances"></a>5. Inspect and exercise definition instances
 
-Inspect and exercise original definition instances.
-
 ### 1. `src/editor.rs`
-
-Connect original instance examples and separate source, placement and GPU diagnostics.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -1081,8 +1057,6 @@ Replace it with:
 
 ### 2. `src/commands.rs`
 
-Connect original instance examples and separate source, placement and GPU diagnostics.
-
 **Locate this existing block:**
 
 ```rust
@@ -1099,8 +1073,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 3. `src/browser.rs`
-
-Connect original instance examples and separate source, placement and GPU diagnostics.
 
 **Locate this existing block:**
 
@@ -1131,11 +1103,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-69zza-move-between-original-rigid-frames"></a>6. Move between rigid frames
 
-Write local coordinates and the rotation between two right-handed frames.
-
 ### 1. `src/cad_shape_key.rs`
-
-Type the whole original helpers introduced today.
 
 Create the file and type:
 
@@ -1253,8 +1221,6 @@ fn unit(a: [f64; 3]) -> [f64; 3] {
 
 ### 2. `src/lib.rs`
 
-Register the original rigid-frame and shape-key owner.
-
 **Locate this existing block:**
 
 ```rust
@@ -1275,11 +1241,7 @@ pub mod cad_shape_key;
 
 ## <a id="checkpoint-69zzb-find-an-original-frame-and-pack-key-words"></a>7. Find an frame and pack key words
 
-Choose well-separated original surface control points for a right-handed frame.
-
 ### 1. `src/cad_shape_key.rs`
-
-Extend this original owner with today’s complete helper.
 
 **Locate this existing block:**
 
@@ -1397,11 +1359,7 @@ impl ShapeKey {
 
 ## <a id="checkpoint-69zzc-encode-original-parameters-and-topology"></a>8. Encode parameters and topology
 
-Encode knots, local points, pcurve values and curve descriptors.
-
 ### 1. `src/cad_shape_key.rs`
-
-Extend this original owner with today’s complete helper.
 
 **Locate this existing block:**
 
@@ -1570,11 +1528,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-69a-describe-a-rigid-frame-and-original-shape-key"></a>9. Assemble an rigid shape key
 
-Assemble the existing encoders for every original surface, curve, vertex and topology record.
-
 ### 1. `src/cad_shape_key.rs`
-
-Extend this original owner with today’s complete helper.
 
 **Locate this existing block:**
 
@@ -1654,8 +1608,6 @@ impl ShapeKey {
 
 ### 1. `src/mesh.rs`
 
-Separate original validation and cloneable derived CAD values.
-
 **Locate this existing block:**
 
 ```rust
@@ -1673,8 +1625,6 @@ pub struct Mesh {
 
 ### 2. `src/mesh_parts.rs`
 
-Separate original validation and cloneable derived CAD values.
-
 **Locate this existing block:**
 
 ```rust
@@ -1690,8 +1640,6 @@ pub struct Parts {
 ```
 
 ### 3. `src/cad_face.rs`
-
-Separate original validation and cloneable derived CAD values.
 
 **Locate this existing block:**
 
@@ -1709,8 +1657,6 @@ pub struct Sample {
 ```
 
 ### 4. `src/cad_display.rs`
-
-Separate original validation and cloneable derived CAD values.
 
 **Locate this existing block:**
 
@@ -1740,107 +1686,20 @@ pub struct Prepared {
 
 ### 5. `src/cad_boundary.rs`
 
-Separate original validation and cloneable derived CAD values.
+Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-**Locate this existing block:**
+**Locate this block:**
 
 ```rust
-    pub fn new(source: Rc<BRep>) -> Result<Self, &'static str> {
-        if !source.is_valid() {
-            return Err("BRep topology contains an invalid reference");
-        }
-        if source.m_faces.len() > 65_536 || source.m_edges.len() > 262_144 {
-            return Err("BRep topology exceeds the display budget");
-        }
-        for surface in &source.m_surfaces {
-            crate::surface::validate(surface)?;
-        }
-        for curve in source
-            .m_curves_3d
-            .iter()
-            .chain(&source.m_curves_2d)
-        {
-            crate::curve::validate(curve)?;
-        }
-        let _ = source.guid();
-        let faces = source.face_meshes_q(Some(QUALITY));
-        if faces.len() != source.m_faces.len()
-            || faces.iter().any(|face| face.face.is_empty())
-        {
-            return Err("BRep face could not be tessellated");
-        }
-        let chains = crate::cad_edges::edge_chains(&source, &faces);
-        for (index, (edge, chain)) in source
-            .m_edges
-            .iter()
-            .zip(&chains)
-            .enumerate()
-        {
-            if !edge.degenerated
-                && !source.edge_faces(index).is_empty()
-                && chain.is_none()
-            {
-                return Err("A CAD edge has no coherent face boundary");
-            }
-        }
-        Ok(Self {
-            source,
-            faces,
-            chains,
-        })
-    }
-    pub fn points(&self, edge: usize) -> Option<Vec<[f64; 3]>> {
-        let chain = self.chains.get(edge)?.as_ref()?;
-        let face = self.faces.get(chain.face)?;
-        chain
-            .keys
-            .iter()
-            .map(|key| face.vertex.get(key).map(|v| [v.x, v.y, v.z]))
-            .collect()
+        Some((points, spans))
     }
 }
 ```
 
-Edit the existing block to match this code; keep unchanged lines:
+Replace it with:
 
 ```rust
-    pub fn new(source: Rc<BRep>) -> Result<Self, &'static str> {
-        validate(&source)?;
-        let _ = source.guid();
-        let faces = source.face_meshes_q(Some(QUALITY));
-        if faces.len() != source.m_faces.len()
-            || faces.iter().any(|face| face.face.is_empty())
-        {
-            return Err("BRep face could not be tessellated");
-        }
-        let chains = crate::cad_edges::edge_chains(&source, &faces);
-        for (index, (edge, chain)) in source
-            .m_edges
-            .iter()
-            .zip(&chains)
-            .enumerate()
-        {
-            if !edge.degenerated
-                && !source.edge_faces(index).is_empty()
-                && chain.is_none()
-            {
-                return Err("A CAD edge has no coherent face boundary");
-            }
-        }
-        Ok(Self {
-            source,
-            faces,
-            chains,
-        })
-    }
-    pub fn points(&self, edge: usize) -> Option<Vec<[f64; 3]>> {
-        let chain = self.chains.get(edge)?.as_ref()?;
-        let face = self.faces.get(chain.face)?;
-        chain
-            .keys
-            .iter()
-            .map(|key| face.vertex.get(key).map(|v| [v.x, v.y, v.z]))
-            .collect()
+        Some((points, spans))
     }
 }
 
@@ -1865,11 +1724,44 @@ pub fn validate(source: &BRep) -> Result<(), &'static str> {
 }
 ```
 
+**Locate this block:**
+
+```rust
+    pub fn new(source: Rc<BRep>) -> Result<Self, &'static str> {
+        if !source.is_valid() {
+            return Err("BRep topology contains an invalid reference");
+        }
+        if source.m_faces.len() > 65_536 || source.m_edges.len() > 262_144 {
+            return Err("BRep topology exceeds the display budget");
+        }
+        for surface in &source.m_surfaces {
+            crate::surface::validate(surface)?;
+        }
+        for curve in source
+            .m_curves_3d
+            .iter()
+            .chain(&source.m_curves_2d)
+        {
+            crate::curve::validate(curve)?;
+        }
+        let _ = source.guid();
+        let faces = source.face_meshes_q(Some(QUALITY));
+        if faces.len() != source.m_faces.len()
+```
+
+Replace it with:
+
+```rust
+    pub fn new(source: Rc<BRep>) -> Result<Self, &'static str> {
+        validate(&source)?;
+        let _ = source.guid();
+        let faces = source.face_meshes_q(Some(QUALITY));
+        if faces.len() != source.m_faces.len()
+```
+
 ## <a id="checkpoint-69ab-replay-sampled-geometry-in-the-new-rigid-frame"></a>11. Replay sampled geometry in the new rigid frame
 
 ### 1. `src/cad_shape_cache.rs`
-
-Replay recorded display values with the correct independent original owner.
 
 Create the file and type:
 
@@ -1978,8 +1870,6 @@ impl Recording {
 
 ### 2. `src/lib.rs`
 
-Register the CAD preparation component.
-
 **Locate this existing block:**
 
 ```rust
@@ -2001,8 +1891,6 @@ pub mod cad_shape_cache;
 ## <a id="checkpoint-69ac-guard-reusable-walks-with-source-validity-and-size"></a>12. Guard reusable walks with source validity and size
 
 ### 1. `src/cad_shape_cache.rs`
-
-Validate original sources and physical size before reusing a display walk. Copy congruent-source, chord/normal, shape-refusal and scoped-release regressions.
 
 **Locate this existing block:**
 
@@ -2194,8 +2082,6 @@ mod tests {
 ## <a id="checkpoint-69ad-share-recordings-only-during-document-preparation"></a>13. Share recordings only during document preparation
 
 ### 1. `src/scene.rs`
-
-Reuse scoped CAD recordings across original objects and definition templates.
 
 **Locate this existing block:**
 
@@ -4901,8 +4787,6 @@ impl Scene {
 
 ### 2. `src/document_geometry.rs`
 
-Reuse scoped CAD recordings across original objects and definition templates.
-
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -5002,8 +4886,6 @@ Replace it with:
 ```
 
 ### 3. `src/instance_definition.rs`
-
-Reuse scoped CAD recordings across original objects and definition templates.
 
 **Locate this existing block:**
 
@@ -5133,8 +5015,6 @@ pub fn templates(
 
 ### 1. `src/pick_gpu_tests.rs`
 
-Copy actual GPU independent face, boundary ink, integer ownership and source-release comparison.
-
 **Locate this existing block:**
 
 ```rust
@@ -5228,8 +5108,6 @@ fn actual_congruent_cad_replay_matches_independent_faces_ink_and_owner_picks() {
 
 ### 1. `src/cad_shape_example.rs`
 
-Copy congruent original CAD and document persistence/release fixtures.
-
 Create the file and type:
 
 ```rust
@@ -5310,8 +5188,6 @@ mod tests {
 
 ### 2. `src/lib.rs`
 
-Register the CAD preparation component.
-
 **Locate this existing block:**
 
 ```rust
@@ -5331,8 +5207,6 @@ pub mod cad_shape_example;
 ```
 
 ### 3. `src/editor.rs`
-
-Connect congruent original CAD examples and document-scoped preparation counters.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -5393,8 +5267,6 @@ Replace it with:
 
 ### 4. `src/commands.rs`
 
-Connect congruent original CAD examples and document-scoped preparation counters.
-
 **Locate this existing block:**
 
 ```rust
@@ -5413,8 +5285,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 5. `src/browser.rs`
-
-Connect congruent original CAD examples and document-scoped preparation counters.
 
 **Locate this existing block:**
 

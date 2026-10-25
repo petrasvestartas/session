@@ -1,60 +1,72 @@
 # 6.4 · Ordered multi-selection and atomic edits
 
-**Goal:** Collect multiple objects with Shift-click and commands. · **Steps:** 5 · **Source:** [engine/gpu/pick.rs](../../../src/engine/gpu/pick.rs) · [app/selection.rs](../../../src/app/selection.rs) · [engine/gpu/faces.rs](../../../src/engine/gpu/faces.rs) · [app/walk/mesh_topology.rs](../../../src/app/walk/mesh_topology.rs)
-
-<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
-<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
-  <defs>
-    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
-    </marker>
-    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
-    </marker>
-    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
-    </marker>
-  </defs>
-  <rect x="2" y="2" width="1116" height="184" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
-  <rect x="14" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">5×5 Pixel Readback Window Around Cursor (cx, cy)</text>
-  <rect x="88" y="48" width="164" height="106" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <line x1="121" y1="48" x2="121" y2="154" stroke="#cbd5e1" stroke-width="1"/>
-  <line x1="154" y1="48" x2="154" y2="154" stroke="#cbd5e1" stroke-width="1"/>
-  <line x1="187" y1="48" x2="187" y2="154" stroke="#cbd5e1" stroke-width="1"/>
-  <line x1="220" y1="48" x2="220" y2="154" stroke="#cbd5e1" stroke-width="1"/>
-  <line x1="88" y1="74" x2="252" y2="74" stroke="#cbd5e1" stroke-width="1"/>
-  <line x1="88" y1="101" x2="252" y2="101" stroke="#cbd5e1" stroke-width="1"/>
-  <line x1="88" y1="128" x2="252" y2="128" stroke="#cbd5e1" stroke-width="1"/>
-  <rect x="154" y="74" width="33" height="27" fill="#fef08a" stroke="#dc2626" stroke-width="2"/>
-  <rect x="121" y="101" width="33" height="27" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
-  <line x1="358" y1="94" x2="384" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
-  <rect x="388" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Score = Priority(Point &gt; Edge &gt; Face) * 100 - d_px²</text>
-  <circle cx="464" cy="96" r="14" fill="#fef08a" stroke="#dc2626" stroke-width="2.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="464" y="132" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#dc2626">1. Point</text>
-  <line x1="532" y1="112" x2="588" y2="80" stroke="#2563eb" stroke-width="5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="132" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#2563eb">2. Edge</text>
-  <polygon points="628,116 658,74 688,116" fill="#bbf7d0" stroke="#16a34a" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="658" y="132" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#16a34a">3. Face</text>
-  <line x1="732" y1="94" x2="758" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
-  <rect x="762" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Sub-Object Highlight (Vertex / Edge / Face)</text>
-  <rect x="806" y="44" width="256" height="118" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
-  <polygon points="856,138 934,60 1012,138" fill="#f1f5f9" stroke="#111111" stroke-width="1.75"/>
-  <line x1="856" y1="138" x2="934" y2="60" stroke="#2563eb" stroke-width="4"/>
-  <circle cx="934" cy="60" r="7.5" fill="#fef08a" stroke="#dc2626" stroke-width="2.5"/>
-</svg>
-</div>
+**Steps:** 5 · **Source:** [engine/gpu/pick.rs](../../../src/engine/gpu/pick.rs) · [app/selection.rs](../../../src/app/selection.rs) · [engine/gpu/faces.rs](../../../src/engine/gpu/faces.rs) · [app/walk/mesh_topology.rs](../../../src/app/walk/mesh_topology.rs)
 
 ## <a id="checkpoint-45-order"></a>1. Preserve unique selections in pick order
 
-### 1. `src/object_selection.rs`
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="214" viewBox="0 0 1120 214" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr-6e696b9c" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arr-r-6e696b9c" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arr-g-6e696b9c" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arr-b-6e696b9c" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+    <pattern id="grid-6e696b9c" width="20" height="20" patternUnits="userSpaceOnUse">
+      <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#f1f5f9" stroke-width="1"/>
+    </pattern>
+  </defs>
+  <rect x="2" y="2" width="1116" height="210" rx="8" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="2" y="2" width="1116" height="28" rx="6" fill="#f8fafc" stroke="#111111" stroke-width="1.5"/>
+  <line x1="2" y1="30" x2="1118" y2="30" stroke="#111111" stroke-width="1.5"/>
+  <rect x="12" y="7" width="176" height="18" rx="3" fill="#111111"/>
+  <text x="100" y="19.5" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#ffffff" paint-order="normal" stroke="none">45-ORDER · SELECTION ORDER</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="518" y="20" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Insertion-Ordered Selection Vec (1st, 2nd, ...) &amp; Tab Cycling Through Ranked Overlaps</text>
+  <rect x="838" y="7" width="268" height="18" rx="3" fill="#ffffff" stroke="#111111" stroke-width="1.2"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="972" y="19.5" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#2563eb">Shift+Click toggles membership · Tab cycles rank[(i+1) mod k]</text>
+  <rect x="14" y="38" width="344" height="164" rx="6" fill="url(#grid-6e696b9c)" stroke="#111111" stroke-width="1.5"/>
+  <line x1="14" y1="60" x2="358" y2="60" stroke="#cbd5e1" stroke-width="1"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="186" y="53" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1 · Insertion-Ordered Selection Vec</text>
+  <rect x="44" y="84" width="86" height="64" rx="4" fill="#fef08a" stroke="#dc2626" stroke-width="2"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="87" y="110" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#dc2626">#0 (1st)</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="87" y="128" text-anchor="middle" font-family="monospace" font-size="8.5" fill="#111111">Base A</text>
+  <line x1="130" y1="116" x2="148" y2="116" stroke="#111111" stroke-width="1.75" marker-end="url(#arr-6e696b9c)"/>
+  <rect x="152" y="84" width="86" height="64" rx="4" fill="#dbeafe" stroke="#2563eb" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="195" y="110" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#2563eb">#1 (2nd)</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="195" y="128" text-anchor="middle" font-family="monospace" font-size="8.5" fill="#111111">Cutter B</text>
+  <line x1="238" y1="116" x2="256" y2="116" stroke="#111111" stroke-width="1.75" marker-end="url(#arr-6e696b9c)"/>
+  <rect x="260" y="84" width="72" height="64" rx="4" fill="#dcfce7" stroke="#16a34a" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="296" y="110" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#16a34a">#2 (3rd)</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="186" y="174" text-anchor="middle" font-family="monospace" font-size="8.5" font-weight="700" fill="#111111">Order matters: A \ B != B \ A</text>
+  <line x1="358" y1="120" x2="384" y2="120" stroke="#111111" stroke-width="2" marker-end="url(#arr-6e696b9c)"/>
+  <rect x="388" y="38" width="344" height="164" rx="6" fill="url(#grid-6e696b9c)" stroke="#111111" stroke-width="1.5"/>
+  <line x1="388" y1="60" x2="732" y2="60" stroke="#cbd5e1" stroke-width="1"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="53" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2 · Tab Cycling Ranked Candidates at Same Pixel</text>
+  <rect x="414" y="76" width="292" height="104" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="98" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Candidates in 5×5 Window:</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="120" text-anchor="middle" font-family="monospace" font-size="9" fill="#dc2626">[0] Vertex #4  &lt;-- Click 1</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="140" text-anchor="middle" font-family="monospace" font-size="9" fill="#2563eb">[1] Edge #12   &lt;-- Press Tab</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="160" text-anchor="middle" font-family="monospace" font-size="9" fill="#16a34a">[2] Face #2    &lt;-- Press Tab again</text>
+  <line x1="732" y1="120" x2="758" y2="120" stroke="#111111" stroke-width="2" marker-end="url(#arr-6e696b9c)"/>
+  <rect x="762" y="38" width="344" height="164" rx="6" fill="url(#grid-6e696b9c)" stroke="#111111" stroke-width="1.75"/>
+  <line x1="762" y1="60" x2="1106" y2="60" stroke="#cbd5e1" stroke-width="1"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="934" y="53" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3 · Ordered CAD Multi-Selection</text>
+  <rect x="806" y="68" width="256" height="122" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="836" y="88" width="76" height="76" fill="#fef08a" stroke="#dc2626" stroke-width="2.2"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="874" y="130" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#dc2626">1st</text>
+  <rect x="948" y="88" width="76" height="76" fill="#dbeafe" stroke="#2563eb" stroke-width="2.2"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="986" y="130" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#2563eb">2nd</text>
+</svg>
+</div>
 
-Keep unique current owners in their original pick order.
+### 1. `src/object_selection.rs`
 
 Create the file and type:
 
@@ -106,8 +118,6 @@ impl Objects {
 
 ### 2. `src/lib.rs`
 
-Register the component and copied checks.
-
 **Locate this existing block:**
 
 ```rust
@@ -125,8 +135,6 @@ pub mod object_selection;
 ```
 
 ### 3. `src/scene.rs`
-
-Collect selected bounds and move mixed original row placements.
 
 **Locate this existing block:**
 
@@ -189,8 +197,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 4. `src/object_selection_tests.rs`
 
-Copy unique order and additive miss checks.
-
 Create the file and type:
 
 ```rust
@@ -214,8 +220,6 @@ fn repeated_and_blank_additive_picks_keep_unique_original_order() {
 
 ### 5. `src/lib.rs`
 
-Register the component and copied checks.
-
 **Locate this existing block:**
 
 ```rust
@@ -238,8 +242,6 @@ mod object_selection_tests;
 ## <a id="checkpoint-45a-batch"></a>2. Commit mixed selection edits atomically
 
 ### 1. `src/editor.rs`
-
-Own ordered selections and commit Move or Delete as one original-row transaction.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -542,8 +544,6 @@ Replace it with:
 
 ### 2. `src/rehydrate_tests.rs`
 
-Copy the existing hydration precision proof using its explicit row fixture placement, without selecting a locked row through input.
-
 **Locate this existing block:**
 
 ```rust
@@ -566,9 +566,55 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-45b-membership"></a>3. Connect multi-hit state and highlight every selected row
 
-### 1. `src/editor.rs`
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="184" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">5×5 Pixel Readback Window Around Cursor (cx, cy)</text>
+  <rect x="88" y="48" width="164" height="106" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <line x1="121" y1="48" x2="121" y2="154" stroke="#cbd5e1" stroke-width="1"/>
+  <line x1="154" y1="48" x2="154" y2="154" stroke="#cbd5e1" stroke-width="1"/>
+  <line x1="187" y1="48" x2="187" y2="154" stroke="#cbd5e1" stroke-width="1"/>
+  <line x1="220" y1="48" x2="220" y2="154" stroke="#cbd5e1" stroke-width="1"/>
+  <line x1="88" y1="74" x2="252" y2="74" stroke="#cbd5e1" stroke-width="1"/>
+  <line x1="88" y1="101" x2="252" y2="101" stroke="#cbd5e1" stroke-width="1"/>
+  <line x1="88" y1="128" x2="252" y2="128" stroke="#cbd5e1" stroke-width="1"/>
+  <rect x="154" y="74" width="33" height="27" fill="#fef08a" stroke="#dc2626" stroke-width="2"/>
+  <rect x="121" y="101" width="33" height="27" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
+  <line x1="358" y1="94" x2="384" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="388" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Score = Priority(Point &gt; Edge &gt; Face) * 100 - d_px²</text>
+  <circle cx="464" cy="96" r="14" fill="#fef08a" stroke="#dc2626" stroke-width="2.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="464" y="132" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#dc2626">1. Point</text>
+  <line x1="532" y1="112" x2="588" y2="80" stroke="#2563eb" stroke-width="5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="132" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#2563eb">2. Edge</text>
+  <polygon points="628,116 658,74 688,116" fill="#bbf7d0" stroke="#16a34a" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="658" y="132" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#16a34a">3. Face</text>
+  <line x1="732" y1="94" x2="758" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="762" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Sub-Object Highlight (Vertex / Edge / Face)</text>
+  <rect x="806" y="44" width="256" height="118" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <polygon points="856,138 934,60 1012,138" fill="#f1f5f9" stroke="#111111" stroke-width="1.75"/>
+  <line x1="856" y1="138" x2="934" y2="60" stroke="#2563eb" stroke-width="4"/>
+  <circle cx="934" cy="60" r="7.5" fill="#fef08a" stroke="#dc2626" stroke-width="2.5"/>
+</svg>
+</div>
 
-Adopt unique multi-hit membership and repair it after source changes.
+### 1. `src/editor.rs`
 
 **Locate this existing block:**
 
@@ -1559,8 +1605,6 @@ impl Editor {
 
 ### 2. `src/highlight.rs`
 
-Present every selected original row while sharing primary geometry.
-
 **Locate this existing block:**
 
 ```rust
@@ -1628,8 +1672,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 3. `src/renderer.rs`
 
-Present every selected original row while sharing primary geometry.
-
 **Locate this existing block:**
 
 ```rust
@@ -1671,8 +1713,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 4. `src/multi_selection_tests.rs`
-
-Copy ordering, exclusive parts, mixed transactions, rollback, eligibility and release checks.
 
 Create the file and type:
 
@@ -1876,8 +1916,6 @@ fn select_all_filters_locked_and_hidden_rows_and_close_retains_only_ids() {
 
 ### 5. `src/lib.rs`
 
-Register the component and copied checks.
-
 **Locate this existing block:**
 
 ```rust
@@ -1896,8 +1934,6 @@ mod multi_selection_tests;
 ```
 
 ### 6. `src/pick_gpu_tests.rs`
-
-Copy actual multiple-mesh pixels, shared geometry and preserved pick ownership.
 
 **Locate this existing block:**
 
@@ -1967,8 +2003,6 @@ fn actual_multiple_mesh_selection_reuses_geometry_and_pick_ownership() {
 
 ### 7. `src/browser.rs`
 
-Refresh cached selection settings after Select All, even when the editor returns a view-only change.
-
 **Locate this existing block:**
 
 ```rust
@@ -1986,11 +2020,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-45bb-cycle"></a>4. Cycle every eligible geometry owner
 
-Cycle visible unlocked mesh, line, path and point rows in stable owner order.
-
 ### 1. `src/scene.rs`
-
-Cycle all original owners after applying visibility and locking.
 
 **Locate this existing block:**
 
@@ -2049,8 +2079,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 2. `src/selection_cycle_tests.rs`
-
-Copy mixed-owner, visibility, lock and wraparound checks.
 
 Create the file and type:
 
@@ -2111,8 +2139,6 @@ fn cycling_skips_locked_and_hidden_rows_and_wraps_across_geometry_lanes() {
 
 ### 3. `src/lib.rs`
 
-Register the copied original-owner cycling check.
-
 **Locate this existing block:**
 
 ```rust
@@ -2133,8 +2159,6 @@ mod selection_cycle_tests;
 ## <a id="checkpoint-45c-input"></a>5. Collect multiple objects with Shift-click and commands
 
 ### 1. `src/browser.rs`
-
-Capture additive pointer ownership and route ordered selection, batch edits and inspection.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 

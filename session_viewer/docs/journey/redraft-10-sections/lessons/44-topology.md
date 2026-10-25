@@ -1,60 +1,67 @@
 # 6.3 · Pick original faces, edges and controls
 
-**Goal:** Select and inspect original faces, edges and controls. · **Steps:** 14 · **Source:** [engine/gpu/pick.rs](../../../../src/engine/gpu/pick.rs) · [app/selection.rs](../../../../src/app/selection.rs) · [engine/gpu/faces.rs](../../../../src/engine/gpu/faces.rs) · [app/walk/mesh_topology.rs](../../../../src/app/walk/mesh_topology.rs)
-
-<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
-<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
-  <defs>
-    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
-    </marker>
-    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
-    </marker>
-    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
-    </marker>
-  </defs>
-  <rect x="2" y="2" width="1116" height="184" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
-  <rect x="14" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">5×5 Pixel Readback Window Around Cursor (cx, cy)</text>
-  <rect x="88" y="48" width="164" height="106" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <line x1="121" y1="48" x2="121" y2="154" stroke="#cbd5e1" stroke-width="1"/>
-  <line x1="154" y1="48" x2="154" y2="154" stroke="#cbd5e1" stroke-width="1"/>
-  <line x1="187" y1="48" x2="187" y2="154" stroke="#cbd5e1" stroke-width="1"/>
-  <line x1="220" y1="48" x2="220" y2="154" stroke="#cbd5e1" stroke-width="1"/>
-  <line x1="88" y1="74" x2="252" y2="74" stroke="#cbd5e1" stroke-width="1"/>
-  <line x1="88" y1="101" x2="252" y2="101" stroke="#cbd5e1" stroke-width="1"/>
-  <line x1="88" y1="128" x2="252" y2="128" stroke="#cbd5e1" stroke-width="1"/>
-  <rect x="154" y="74" width="33" height="27" fill="#fef08a" stroke="#dc2626" stroke-width="2"/>
-  <rect x="121" y="101" width="33" height="27" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
-  <line x1="358" y1="94" x2="384" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
-  <rect x="388" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Score = Priority(Point &gt; Edge &gt; Face) * 100 - d_px²</text>
-  <circle cx="464" cy="96" r="14" fill="#fef08a" stroke="#dc2626" stroke-width="2.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="464" y="132" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#dc2626">1. Point</text>
-  <line x1="532" y1="112" x2="588" y2="80" stroke="#2563eb" stroke-width="5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="132" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#2563eb">2. Edge</text>
-  <polygon points="628,116 658,74 688,116" fill="#bbf7d0" stroke="#16a34a" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="658" y="132" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#16a34a">3. Face</text>
-  <line x1="732" y1="94" x2="758" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
-  <rect x="762" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Sub-Object Highlight (Vertex / Edge / Face)</text>
-  <rect x="806" y="44" width="256" height="118" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
-  <polygon points="856,138 934,60 1012,138" fill="#f1f5f9" stroke="#111111" stroke-width="1.75"/>
-  <line x1="856" y1="138" x2="934" y2="60" stroke="#2563eb" stroke-width="4"/>
-  <circle cx="934" cy="60" r="7.5" fill="#fef08a" stroke="#dc2626" stroke-width="2.5"/>
-</svg>
-</div>
+**Steps:** 14 · **Source:** [engine/gpu/pick.rs](../../../../src/engine/gpu/pick.rs) · [app/selection.rs](../../../../src/app/selection.rs) · [engine/gpu/faces.rs](../../../../src/engine/gpu/faces.rs) · [app/walk/mesh_topology.rs](../../../../src/app/walk/mesh_topology.rs)
 
 ## <a id="checkpoint-44-topology"></a>1. Preserve source faces and edges
 
-### 1. `src/mesh_parts.rs`
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="214" viewBox="0 0 1120 214" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr-d49e1f74" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arr-r-d49e1f74" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arr-g-d49e1f74" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arr-b-d49e1f74" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+    <pattern id="grid-d49e1f74" width="20" height="20" patternUnits="userSpaceOnUse">
+      <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#f1f5f9" stroke-width="1"/>
+    </pattern>
+  </defs>
+  <rect x="2" y="2" width="1116" height="210" rx="8" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="2" y="2" width="1116" height="28" rx="6" fill="#f8fafc" stroke="#111111" stroke-width="1.5"/>
+  <line x1="2" y1="30" x2="1118" y2="30" stroke="#111111" stroke-width="1.5"/>
+  <rect x="12" y="7" width="176" height="18" rx="3" fill="#111111"/>
+  <text x="100" y="19.5" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#ffffff" paint-order="normal" stroke="none">44-TOPOLOGY · SUB_ID BITFIELD</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="518" y="20" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">32-Bit Sub-Object Tag Packing ((Tag &lt;&lt; 28) | Index) &amp; Vertex/Edge/Face Highlight</text>
+  <rect x="838" y="7" width="268" height="18" rx="3" fill="#ffffff" stroke="#111111" stroke-width="1.2"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="972" y="19.5" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#2563eb">sub_id = (tag_4b &lt;&lt; 28) | (prim_idx &amp; 0x0FFF_FFFF)</text>
+  <rect x="14" y="38" width="344" height="164" rx="6" fill="url(#grid-d49e1f74)" stroke="#111111" stroke-width="1.5"/>
+  <line x1="14" y1="60" x2="358" y2="60" stroke="#cbd5e1" stroke-width="1"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="186" y="53" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1 · 32-Bit sub_id Bitfield Layout (G Channel)</text>
+  <rect x="44" y="88" width="88" height="56" fill="#fee2e2" stroke="#dc2626" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="88" y="112" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#dc2626">Bits 31..28</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="88" y="130" text-anchor="middle" font-family="monospace" font-size="8.5" fill="#111111">Tag (V/E/F)</text>
+  <rect x="132" y="88" width="196" height="56" fill="#dbeafe" stroke="#2563eb" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="230" y="112" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#2563eb">Bits 27..0 (268M indices)</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="230" y="130" text-anchor="middle" font-family="monospace" font-size="8.5" fill="#111111">Topological Vertex / Edge / Face ID</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="186" y="172" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">1=Vertex · 2=Edge · 3=Face · 4=ControlPt</text>
+  <line x1="358" y1="120" x2="384" y2="120" stroke="#111111" stroke-width="2" marker-end="url(#arr-d49e1f74)"/>
+  <rect x="388" y="38" width="344" height="164" rx="6" fill="url(#grid-d49e1f74)" stroke="#111111" stroke-width="1.5"/>
+  <line x1="388" y1="60" x2="732" y2="60" stroke="#cbd5e1" stroke-width="1"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="53" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2 · Resolving Triangles Back to Logical Face</text>
+  <polygon points="444,166 524,80 604,166" fill="#dbeafe" stroke="#111111" stroke-width="1.75"/>
+  <polygon points="524,80 684,80 604,166" fill="#dbeafe" stroke="#111111" stroke-width="1.75"/>
+  <line x1="524" y1="80" x2="604" y2="166" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="4 3"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="132" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#2563eb">Tri 0 &amp; Tri 1 -&gt; Face #0</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="186" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#16a34a">face_id_by_tri[prim_idx] resolves CAD face</text>
+  <line x1="732" y1="120" x2="758" y2="120" stroke="#111111" stroke-width="2" marker-end="url(#arr-d49e1f74)"/>
+  <rect x="762" y="38" width="344" height="164" rx="6" fill="url(#grid-d49e1f74)" stroke="#111111" stroke-width="1.75"/>
+  <line x1="762" y1="60" x2="1106" y2="60" stroke="#cbd5e1" stroke-width="1"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="934" y="53" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3 · Sub-Object Edge / Face Highlight</text>
+  <rect x="806" y="68" width="256" height="122" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <polygon points="884,96 944,74 1004,96 944,118" fill="#fef08a" stroke="#dc2626" stroke-width="2.2"/>
+  <polygon points="884,96 944,118 944,174 884,152" fill="#60a5fa" stroke="#111111" stroke-width="1.5"/>
+  <polygon points="944,118 1004,96 1004,152 944,174" fill="#2563eb" stroke="#111111" stroke-width="1.5"/>
+</svg>
+</div>
 
-Retain source keys, triangle ownership and original edge endpoints.
+### 1. `src/mesh_parts.rs`
 
 Create the file and type:
 
@@ -133,8 +140,6 @@ impl Parts {
 
 ### 2. `src/lib.rs`
 
-Register the component and copied checks.
-
 **Locate this existing block:**
 
 ```rust
@@ -152,8 +157,6 @@ pub mod mesh_parts;
 ```
 
 ### 3. `src/mesh.rs`
-
-Attach original topology to prepared display meshes and count its capacity.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -245,8 +248,6 @@ impl Mesh {
 
 ### 4. `src/mesh_parts_tests.rs`
 
-Copy original face and diagonal checks.
-
 Create the file and type:
 
 ```rust
@@ -291,8 +292,6 @@ fn source_polygon_keys_survive_cached_triangulation_and_face_colors() {
 
 ### 5. `src/lib.rs`
 
-Register the component and copied checks.
-
 **Locate this existing block:**
 
 ```rust
@@ -315,8 +314,6 @@ mod mesh_parts_tests;
 ## <a id="checkpoint-44a-tags"></a>2. Tag the kind of a picked part
 
 ### 1. `src/sub_id.rs`
-
-Encode source part kinds without zero or tag collisions.
 
 Create the file and type:
 
@@ -364,8 +361,6 @@ pub fn surface(pixel: u32) -> bool {
 ```
 
 ### 2. `src/pick_sources.rs`
-
-Define typed targets, modes and bounded source tables.
 
 Create the file and type:
 
@@ -427,8 +422,6 @@ fn append(
 
 ### 3. `src/lib.rs`
 
-Register the component and copied checks.
-
 **Locate this existing block:**
 
 ```rust
@@ -447,8 +440,6 @@ pub mod sub_id;
 ```
 
 ### 4. `src/mesh_parts_tests.rs`
-
-Copy tag boundaries and collision checks.
 
 **Locate this existing block:**
 
@@ -493,11 +484,7 @@ fn tagged_zero_addresses_and_largest_addresses_roundtrip_without_kind_collisions
 
 ## <a id="checkpoint-44b-sources"></a>3. Map visible ink back to sources
 
-Map visible ink back to original sources.
-
 ### 1. `src/pick_sources.rs`
-
-Build ordered face, edge, control and GPU owner streams.
 
 **Locate this existing block:**
 
@@ -651,8 +638,6 @@ impl Sources {
 
 ### 1. `src/selection.rs`
 
-Check original part ownership and visibility.
-
 Create the file and type:
 
 ```rust
@@ -682,8 +667,6 @@ impl Target {
 
 ### 2. `src/lib.rs`
 
-Register the component and copied checks.
-
 **Locate this existing block:**
 
 ```rust
@@ -701,8 +684,6 @@ pub mod selection;
 ```
 
 ### 3. `src/pick_sources.rs`
-
-Resolve typed addresses and count source table capacities.
 
 **Locate this existing block:**
 
@@ -754,8 +735,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 4. `src/pick_sources_tests.rs`
-
-Copy current-owner, wrong-kind and original segment checks.
 
 Create the file and type:
 
@@ -860,8 +839,6 @@ fn degenerate_polyline_segments_preserve_the_original_nonzero_segment_index() {
 
 ### 5. `src/lib.rs`
 
-Register the component and copied checks.
-
 **Locate this existing block:**
 
 ```rust
@@ -928,8 +905,6 @@ mod pick_sources_tests;
 
 ### 1. `src/pick_crop.wgsl`
 
-Define the shared mode crop and original-face shader.
-
 Create the file and type:
 
 ```wgsl
@@ -943,8 +918,6 @@ fn wanted(pixel: u32, mode: u32) -> bool {
 ```
 
 ### 2. `src/face_pick.wgsl`
-
-Define the shared mode crop and original-face shader.
 
 Create the file and type:
 
@@ -973,8 +946,6 @@ fn face_fragment(input: FaceOutput) -> @location(0) vec2<u32> {
 ```
 
 ### 3. `src/gpu_geometry.rs`
-
-Expose existing geometry to source-face drawing without another position buffer.
 
 **Locate this existing block:**
 
@@ -1070,8 +1041,6 @@ impl GpuGeometry {
 
 ### 4. `src/gpu_mesh.rs`
 
-Expose existing geometry to source-face drawing without another position buffer.
-
 **Locate this existing block:**
 
 ```rust
@@ -1093,8 +1062,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 5. `src/triangle.wgsl`
-
-Expose existing geometry to source-face drawing without another position buffer.
 
 **Locate this existing block:**
 
@@ -1169,8 +1136,6 @@ fn vertex(@location(0) position: vec3<f32>, @location(1) colour: vec3<f32>, @loc
 ## <a id="checkpoint-44e-pipeline"></a>6. Create the integer source-face pipeline
 
 ### 1. `src/face_pick.rs`
-
-Create the compatible source-face layout and pipeline.
 
 Create the file and type:
 
@@ -1270,8 +1235,6 @@ impl Faces {
 
 ### 2. `src/lib.rs`
 
-Register the component and copied checks.
-
 **Locate this existing block:**
 
 ```rust
@@ -1339,8 +1302,6 @@ pub mod face_pick;
 </div>
 
 ### 1. `src/face_pick.rs`
-
-Upload bounded face metadata and draw from existing geometry.
 
 **Locate this existing block:**
 
@@ -1456,11 +1417,55 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-44g-edge-ink"></a>8. Draw boundary edges consistently
 
-Draw original boundary edges consistently.
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="184" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">5×5 Pixel Readback Window Around Cursor (cx, cy)</text>
+  <rect x="88" y="48" width="164" height="106" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <line x1="121" y1="48" x2="121" y2="154" stroke="#cbd5e1" stroke-width="1"/>
+  <line x1="154" y1="48" x2="154" y2="154" stroke="#cbd5e1" stroke-width="1"/>
+  <line x1="187" y1="48" x2="187" y2="154" stroke="#cbd5e1" stroke-width="1"/>
+  <line x1="220" y1="48" x2="220" y2="154" stroke="#cbd5e1" stroke-width="1"/>
+  <line x1="88" y1="74" x2="252" y2="74" stroke="#cbd5e1" stroke-width="1"/>
+  <line x1="88" y1="101" x2="252" y2="101" stroke="#cbd5e1" stroke-width="1"/>
+  <line x1="88" y1="128" x2="252" y2="128" stroke="#cbd5e1" stroke-width="1"/>
+  <rect x="154" y="74" width="33" height="27" fill="#fef08a" stroke="#dc2626" stroke-width="2"/>
+  <rect x="121" y="101" width="33" height="27" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
+  <line x1="358" y1="94" x2="384" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="388" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Score = Priority(Point &gt; Edge &gt; Face) * 100 - d_px²</text>
+  <circle cx="464" cy="96" r="14" fill="#fef08a" stroke="#dc2626" stroke-width="2.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="464" y="132" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#dc2626">1. Point</text>
+  <line x1="532" y1="112" x2="588" y2="80" stroke="#2563eb" stroke-width="5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="132" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#2563eb">2. Edge</text>
+  <polygon points="628,116 658,74 688,116" fill="#bbf7d0" stroke="#16a34a" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="658" y="132" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#16a34a">3. Face</text>
+  <line x1="732" y1="94" x2="758" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="762" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Sub-Object Highlight (Vertex / Edge / Face)</text>
+  <rect x="806" y="44" width="256" height="118" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <polygon points="856,138 934,60 1012,138" fill="#f1f5f9" stroke="#111111" stroke-width="1.75"/>
+  <line x1="856" y1="138" x2="934" y2="60" stroke="#2563eb" stroke-width="4"/>
+  <circle cx="934" cy="60" r="7.5" fill="#fef08a" stroke="#dc2626" stroke-width="2.5"/>
+</svg>
+</div>
 
 ### 1. `src/renderer.rs`
-
-Own source tables, visible original-edge ink and mode state.
 
 **Locate this existing block:**
 
@@ -2552,8 +2557,6 @@ impl Renderer {
 
 ### 2. `src/pick_window.rs`
 
-Rank source-face pixels as surfaces and original edge pixels as ink.
-
 **Locate this existing block:**
 
 ```rust
@@ -2623,8 +2626,6 @@ Edit the existing block to match this code; keep unchanged lines:
 </div>
 
 ### 1. `src/pick_gpu.rs`
-
-Use mode-aware coverage and compatible eighty-byte crop settings.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -2798,8 +2799,6 @@ pub(crate) struct Queued {
 
 ### 2. `src/pick_encode.rs`
 
-Use mode-aware coverage and compatible eighty-byte crop settings.
-
 **Locate this existing block:**
 
 ```rust
@@ -2879,8 +2878,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 3. `src/pick_pipeline.rs`
 
-Use mode-aware coverage and compatible eighty-byte crop settings.
-
 **Locate this existing block:**
 
 ```rust
@@ -2898,8 +2895,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 4. `src/stroke_gpu.rs`
-
-Use mode-aware coverage and compatible eighty-byte crop settings.
 
 **Locate this existing block:**
 
@@ -2965,8 +2960,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 5. `src/triangle_pick.wgsl`
 
-Use mode-aware coverage and compatible eighty-byte crop settings.
-
 Replace the entire file with:
 
 ```wgsl
@@ -2980,8 +2973,6 @@ fn pick_fragment() -> @location(0) vec2<u32> { return vec2<u32>(select(0u, objec
 ```
 
 ### 6. `src/stroke_pick.wgsl`
-
-Use mode-aware coverage and compatible eighty-byte crop settings.
 
 **Locate this existing block:**
 
@@ -3044,8 +3035,6 @@ fn pick_fragment(input: PickOutput) -> @location(0) vec2<u32> {
 
 ### 7. `src/marker_pick.wgsl`
 
-Use mode-aware coverage and compatible eighty-byte crop settings.
-
 **Locate this existing block:**
 
 ```wgsl
@@ -3104,8 +3093,6 @@ fn pick_fragment(input: PickOutput) -> @location(0) vec2<u32> {
 ```
 
 ### 8. `src/chain_pick.wgsl`
-
-Use mode-aware coverage and compatible eighty-byte crop settings.
 
 **Locate this existing block:**
 
@@ -3185,8 +3172,6 @@ fn pick_fragment(input: PickOutput) -> @location(0) vec2<u32> {
 ```
 
 ### 9. `src/renderer.rs`
-
-Submit source faces and original edge ink in the current mode.
 
 **Locate this existing block:**
 
@@ -3269,8 +3254,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 10. `src/pick_gpu_tests.rs`
-
-Copy actual sparse-key, diagonal and original-control GPU checks.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -3449,11 +3432,7 @@ Replace it with:
 
 ## <a id="checkpoint-44i-ink-highlight"></a>10. Highlight edges and controls
 
-Highlight original edges and controls.
-
 ### 1. `src/highlight.rs`
-
-Own derived overlay lanes, drawing and GPU byte accounting.
 
 Create the file and type:
 
@@ -3517,8 +3496,6 @@ impl Highlight {
 
 ### 2. `src/lib.rs`
 
-Register the component and copied checks.
-
 **Locate this existing block:**
 
 ```rust
@@ -3539,11 +3516,7 @@ pub mod highlight;
 
 ## <a id="checkpoint-44ia-original-ink"></a>11. Build highlights from ink targets
 
-Build highlights from original ink targets.
-
 ### 1. `src/highlight.rs`
-
-Build original edge, curve and control overlays.
 
 **Locate this existing block:**
 
@@ -3669,11 +3642,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-44j-face-highlight"></a>12. Highlight one face without recolouring its parent
 
-Highlight one original face without recolouring its parent.
-
 ### 1. `src/highlight.rs`
-
-Build a local original-face overlay.
 
 **Locate this existing block:**
 
@@ -3729,8 +3698,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 2. `src/renderer.rs`
-
-Draw read-only highlights before original black ink.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -3959,8 +3926,6 @@ Replace it with:
 ```
 
 ### 3. `src/pick_gpu_tests.rs`
-
-Copy actual face, edge and control highlight pixels and release checks.
 
 **Locate this existing block:**
 
@@ -4206,8 +4171,6 @@ fn actual_control_highlight_surrounds_only_the_original_marker_and_keeps_source_
 
 ### 4. `src/highlight.rs`
 
-Remove the preparation-only face refusal now that original-face overlays are implemented.
-
 **Locate this existing block:**
 
 ```rust
@@ -4228,8 +4191,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ## <a id="checkpoint-44k-selection"></a>13. Keep part selection outside document history
 
 ### 1. `src/selection.rs`
-
-Describe the original selected source part.
 
 **Locate this existing block:**
 
@@ -4272,8 +4233,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 2. `src/editor.rs`
-
-Validate part selection and guard commands that require a whole object.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -4492,8 +4451,6 @@ Replace it with:
 
 ### 3. `src/selection_tests.rs`
 
-Copy selection, command refusal, history and invalid-target checks.
-
 Create the file and type:
 
 ```rust
@@ -4598,8 +4555,6 @@ fn hidden_controls_closed_owners_and_invalid_source_addresses_are_rejected() {
 
 ### 4. `src/lib.rs`
 
-Register the component and copied checks.
-
 **Locate this existing block:**
 
 ```rust
@@ -4622,8 +4577,6 @@ mod selection_tests;
 ## <a id="checkpoint-44l-input"></a>14. Select and inspect faces, edges and controls
 
 ### 1. `src/browser.rs`
-
-Connect typed mode commands, current hits, local overlays and source inspection. Capture source reload intents only for a whole-object selection.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 

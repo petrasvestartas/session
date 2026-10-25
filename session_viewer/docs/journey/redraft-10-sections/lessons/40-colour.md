@@ -1,60 +1,66 @@
 # 5.6 · Original mesh colours and large index buffers
 
-**Goal:** Preserve kernel u32 indices through display and GPU drawing, with truthful payload and allocation accounting. · **Steps:** 3 · **Source:** [app/walk/curves.rs](../../../../src/app/walk/curves.rs) · [engine/gpu/segments.rs](../../../../src/engine/gpu/segments.rs) · [shaders/ribbon.wgsl](../../../../src/shaders/ribbon.wgsl) · [shaders/vector.wgsl](../../../../src/shaders/vector.wgsl)
-
-<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
-<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
-  <defs>
-    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
-    </marker>
-    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
-    </marker>
-    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
-    </marker>
-  </defs>
-  <rect x="2" y="2" width="1116" height="184" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
-  <rect x="14" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">6 Duplicate Vertices (2 Triangles)</text>
-  <polygon points="74,60 174,60 74,142" fill="#dbeafe" stroke="#2563eb" stroke-width="1.75"/>
-  <polygon points="196,68 196,150 96,150" fill="#fef9c3" stroke="#d97706" stroke-width="1.75"/>
-  <circle cx="74" cy="60" r="4" fill="#111111"/>
-  <circle cx="174" cy="60" r="4" fill="#111111"/>
-  <circle cx="74" cy="142" r="4" fill="#111111"/>
-  <circle cx="196" cy="68" r="4" fill="#111111"/>
-  <circle cx="196" cy="150" r="4" fill="#111111"/>
-  <circle cx="96" cy="150" r="4" fill="#111111"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="268" y="96" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">6 verts</text>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="268" y="114" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#dc2626">2 shared</text>
-  <line x1="358" y1="94" x2="384" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
-  <rect x="388" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">4 Unique Vertices + Index [0,1,2, 0,2,3]</text>
-  <polygon points="560,48 648,104 560,160 472,104" fill="#dcfce7" stroke="#16a34a" stroke-width="2"/>
-  <line x1="560" y1="48" x2="560" y2="160" stroke="#111111" stroke-width="1.75" stroke-dasharray="4 3"/>
-  <circle cx="560" cy="48" r="4.5" fill="#dc2626"/><text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="580" y="52" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">v0</text>
-  <circle cx="648" cy="104" r="4.5" fill="#16a34a"/><text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="664" y="108" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">v1</text>
-  <circle cx="560" cy="160" r="4.5" fill="#2563eb"/><text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="580" y="164" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">v2</text>
-  <circle cx="472" cy="104" r="4.5" fill="#d97706"/><text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="452" y="108" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">v3</text>
-  <line x1="732" y1="94" x2="758" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
-  <rect x="762" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Viewer Output (draw_indexed 0..6)</text>
-  <rect x="814" y="44" width="240" height="118" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
-  <polygon points="934,54 1004,103 934,152 864,103" fill="#ed5c87" stroke="#111111" stroke-width="2"/>
-</svg>
-</div>
+**Steps:** 3 · **Source:** [app/walk/curves.rs](../../../../src/app/walk/curves.rs) · [engine/gpu/segments.rs](../../../../src/engine/gpu/segments.rs) · [shaders/ribbon.wgsl](../../../../src/shaders/ribbon.wgsl) · [shaders/vector.wgsl](../../../../src/shaders/vector.wgsl)
 
 ## <a id="checkpoint-40-colour"></a>1. Carry the mesh colour mode into display data
 
-Preserve original object, point and face colour modes through the kernel render adapter, including shared face boundaries.
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="214" viewBox="0 0 1120 214" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr-ef649f90" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arr-r-ef649f90" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arr-g-ef649f90" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arr-b-ef649f90" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+    <pattern id="grid-ef649f90" width="20" height="20" patternUnits="userSpaceOnUse">
+      <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#f1f5f9" stroke-width="1"/>
+    </pattern>
+  </defs>
+  <rect x="2" y="2" width="1116" height="210" rx="8" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="2" y="2" width="1116" height="28" rx="6" fill="#f8fafc" stroke="#111111" stroke-width="1.5"/>
+  <line x1="2" y1="30" x2="1118" y2="30" stroke="#111111" stroke-width="1.5"/>
+  <rect x="12" y="7" width="176" height="18" rx="3" fill="#111111"/>
+  <text x="100" y="19.5" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#ffffff" paint-order="normal" stroke="none">40-COLOUR · RGBA PRIORITY</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="518" y="20" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Color Precedence Hierarchy: Selection Highlight &gt; Explicit Object Override &gt; Source Vertex RGB</text>
+  <rect x="838" y="7" width="268" height="18" rx="3" fill="#ffffff" stroke="#111111" stroke-width="1.2"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="972" y="19.5" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#2563eb">color_out = select(vertex_rgb, override_rgb, has_override)</text>
+  <rect x="14" y="38" width="344" height="164" rx="6" fill="url(#grid-ef649f90)" stroke="#111111" stroke-width="1.5"/>
+  <line x1="14" y1="60" x2="358" y2="60" stroke="#cbd5e1" stroke-width="1"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="186" y="53" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1 · Three-Tier Color Precedence Chain</text>
+  <rect x="44" y="74" width="284" height="32" rx="4" fill="#fef08a" stroke="#dc2626" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="186" y="94" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#dc2626">1. Selected Highlight (Highest)</text>
+  <rect x="44" y="112" width="284" height="32" rx="4" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="186" y="132" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#2563eb">2. Object Presentation Color</text>
+  <rect x="44" y="150" width="284" height="32" rx="4" fill="#dcfce7" stroke="#16a34a" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="186" y="170" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#16a34a">3. Source Vertex / Segment RGB</text>
+  <line x1="358" y1="120" x2="384" y2="120" stroke="#111111" stroke-width="2" marker-end="url(#arr-ef649f90)"/>
+  <rect x="388" y="38" width="344" height="164" rx="6" fill="url(#grid-ef649f90)" stroke="#111111" stroke-width="1.5"/>
+  <line x1="388" y1="60" x2="732" y2="60" stroke="#cbd5e1" stroke-width="1"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="53" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2 · Preserving Source RGB Across Overrides</text>
+  <rect x="414" y="76" width="292" height="104" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="100" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Source vertex colors never overwritten!</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="124" text-anchor="middle" font-family="monospace" font-size="9" fill="#2563eb">• Color command sets presentation slot</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="146" text-anchor="middle" font-family="monospace" font-size="9" fill="#16a34a">• ClearColor restores original vertex RGB</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="168" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#dc2626">• Indexed face colors mapped to split verts</text>
+  <line x1="732" y1="120" x2="758" y2="120" stroke="#111111" stroke-width="2" marker-end="url(#arr-ef649f90)"/>
+  <rect x="762" y="38" width="344" height="164" rx="6" fill="url(#grid-ef649f90)" stroke="#111111" stroke-width="1.75"/>
+  <line x1="762" y1="60" x2="1106" y2="60" stroke="#cbd5e1" stroke-width="1"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="934" y="53" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3 · Multi-Colored Lines, Points &amp; Meshes</text>
+  <rect x="806" y="68" width="256" height="122" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <polygon points="846,164 906,84 966,164" fill="#60a5fa" stroke="#111111" stroke-width="1.75"/>
+  <line x1="946" y1="164" x2="1032" y2="86" stroke="#dc2626" stroke-width="5" stroke-linecap="round"/>
+  <circle cx="1032" cy="86" r="7" fill="#4ade80" stroke="#111111" stroke-width="2"/>
+</svg>
+</div>
 
 ### 1. `src/colour.rs`
-
-Build original colour-mode specimens while retaining shared kernel topology.
 
 Create the file and type:
 
@@ -104,8 +110,6 @@ pub fn specimen(mode: Mode) -> Mesh {
 
 ### 2. `src/lib.rs`
 
-Register original colour specimens and extraction checks.
-
 **Locate this existing block:**
 
 ```rust
@@ -124,8 +128,6 @@ mod colour_tests;
 ```
 
 ### 3. `src/colour_tests.rs`
-
-Copy active mode, exact topology/arrays, shared interpolation, face duplication and fallback checks.
 
 Create the file and type:
 
@@ -203,11 +205,53 @@ fn incomplete_active_arrays_use_object_colour_without_source_mutation() {
 
 ## <a id="checkpoint-40a-input"></a>2. Compare colour modes through actual input
 
-Insert original object/point/face colour specimens through real input and preserve their modes through Save/reopen.
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="184" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">6 Duplicate Vertices (2 Triangles)</text>
+  <polygon points="74,60 174,60 74,142" fill="#dbeafe" stroke="#2563eb" stroke-width="1.75"/>
+  <polygon points="196,68 196,150 96,150" fill="#fef9c3" stroke="#d97706" stroke-width="1.75"/>
+  <circle cx="74" cy="60" r="4" fill="#111111"/>
+  <circle cx="174" cy="60" r="4" fill="#111111"/>
+  <circle cx="74" cy="142" r="4" fill="#111111"/>
+  <circle cx="196" cy="68" r="4" fill="#111111"/>
+  <circle cx="196" cy="150" r="4" fill="#111111"/>
+  <circle cx="96" cy="150" r="4" fill="#111111"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="268" y="96" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">6 verts</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="268" y="114" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#dc2626">2 shared</text>
+  <line x1="358" y1="94" x2="384" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="388" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">4 Unique Vertices + Index [0,1,2, 0,2,3]</text>
+  <polygon points="560,48 648,104 560,160 472,104" fill="#dcfce7" stroke="#16a34a" stroke-width="2"/>
+  <line x1="560" y1="48" x2="560" y2="160" stroke="#111111" stroke-width="1.75" stroke-dasharray="4 3"/>
+  <circle cx="560" cy="48" r="4.5" fill="#dc2626"/><text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="580" y="52" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">v0</text>
+  <circle cx="648" cy="104" r="4.5" fill="#16a34a"/><text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="664" y="108" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">v1</text>
+  <circle cx="560" cy="160" r="4.5" fill="#2563eb"/><text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="580" y="164" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">v2</text>
+  <circle cx="472" cy="104" r="4.5" fill="#d97706"/><text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="452" y="108" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">v3</text>
+  <line x1="732" y1="94" x2="758" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="762" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Viewer Output (draw_indexed 0..6)</text>
+  <rect x="814" y="44" width="240" height="118" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <polygon points="934,54 1004,103 934,152 864,103" fill="#ed5c87" stroke="#111111" stroke-width="2"/>
+</svg>
+</div>
 
 ### 1. `src/editor.rs`
-
-Expose original mesh colour specimens as editor actions. Insert one original colour-mode mesh in a single history transaction.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -257,8 +301,6 @@ Replace it with:
 ```
 
 ### 2. `src/browser.rs`
-
-Expose original colour comparisons in dock completion and Help. Dispatch actual colour input through the existing editor.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -312,8 +354,6 @@ Replace it with:
 
 ### 3. `src/lib.rs`
 
-Register original colour history and editable roundtrip checks.
-
 **Locate this existing block:**
 
 ```rust
@@ -331,8 +371,6 @@ mod colour_tests;
 ```
 
 ### 4. `src/colour_input_tests.rs`
-
-Copy original mode/array roundtrip, stable row identity, one-step Undo/Redo and Close checks.
 
 Create the file and type:
 
@@ -405,8 +443,6 @@ fn packed_colour_validation_refuses_partial_nonfinite_and_unknown_records() {
 
 ### 5. `src/document.rs`
 
-Accept known source colour modes and preserve only complete finite packed colour records.
-
 **Locate this existing block:**
 
 ```rust
@@ -446,8 +482,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 6. `src/document_tests.rs`
 
-Copy unknown-mode refusal while accepting the newly implemented colour modes.
-
 **Locate this existing block:**
 
 ```rust
@@ -465,8 +499,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 7. `src/document_phase_tests.rs`
-
-Copy the invalid-mode phase fixture with an actually unsupported mode.
 
 **Locate this existing block:**
 
@@ -487,8 +519,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ## <a id="checkpoint-40b-indices"></a>3. Draw meshes beyond the sixteen-bit index limit
 
 ### 1. `src/mesh.rs`
-
-Keep kernel index precision in retained display topology. Accept complete thirty-two-bit triangle references. Retain the authoritative kernel indices without narrowing them. Count actual retained index capacity. Expose the actual display index type to drawing and picking.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -578,8 +608,6 @@ impl Mesh {
 
 ### 2. `src/gpu_geometry.rs`
 
-Interpret uploaded index bytes with their exact GPU format.
-
 **Locate this existing block:**
 
 ```rust
@@ -597,8 +625,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 3. `src/geometry_cache.rs`
-
-Count initialized index payload bytes independently of driver allocation.
 
 **Locate this existing block:**
 
@@ -618,8 +644,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 4. `src/memory.rs`
 
-Copy the updated spare-capacity oracle for the real index layout.
-
 **Locate this existing block:**
 
 ```rust
@@ -638,8 +662,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 5. `src/lib.rs`
 
-Register actual original high-index checks.
-
 **Locate this existing block:**
 
 ```rust
@@ -657,8 +679,6 @@ mod line_scene_tests;
 ```
 
 ### 6. `src/index_width_tests.rs`
-
-Copy original high-index topology, correct displayed corners and missing-vertex refusal checks.
 
 Create the file and type:
 

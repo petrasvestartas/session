@@ -1,6 +1,6 @@
 # 8.4 · Navigation, delayed picks and direct dragging
 
-**Goal:** Exercise current navigation selection and delayed answers. · **Steps:** 18 · **Source:** [app/hierarchy.rs](../../../../src/app/hierarchy.rs) · [app/layers.rs](../../../../src/app/layers.rs) · [app/ui/layers.rs](../../../../src/app/ui/layers.rs) · [app/gesture/mod.rs](../../../../src/app/gesture/mod.rs)
+**Steps:** 18 · **Source:** [app/hierarchy.rs](../../../../src/app/hierarchy.rs) · [app/layers.rs](../../../../src/app/layers.rs) · [app/ui/layers.rs](../../../../src/app/ui/layers.rs) · [app/gesture/mod.rs](../../../../src/app/gesture/mod.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -44,8 +44,6 @@
 ## <a id="checkpoint-54-camera"></a>1. Navigate and fit inside the free canvas
 
 ### 1. `src/camera.rs`
-
-Keep cursor zoom, CSS pan, unbounded captured rays and panel-free fit in the camera.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -251,8 +249,6 @@ impl Default for Camera {
 
 ### 2. `src/navigation.rs`
 
-Normalise wheel units and use the current bounded 0.9 zoom steps.
-
 **Locate this existing block:**
 
 ```rust
@@ -275,8 +271,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 3. `src/navigation_tests.rs`
 
-Copy the preserved wheel, invalid-input and history checks with the current ten-step limit.
-
 **Locate this existing block:**
 
 ```rust
@@ -298,8 +292,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ## <a id="checkpoint-54aa-view-actions"></a>2. Route camera changes without consuming document history
 
 ### 1. `src/editor.rs`
-
-Route camera actions without consuming document history or cancelling a point tool.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -444,8 +436,6 @@ pub enum Action {
 
 ### 1. `src/shortcuts.rs`
 
-Add field-aware Select All alongside the already taught history and H/S/F keys.
-
 **Locate this existing block:**
 
 ```rust
@@ -529,8 +519,6 @@ pub fn key(
 
 ### 2. `src/object_selection.rs`
 
-Remove unique identities while retaining current eligibility and pick order.
-
 **Locate this existing block:**
 
 ```rust
@@ -556,8 +544,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 3. `src/editor.rs`
-
-Apply modifier selection as presentation and keep Select All out of document Undo.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -669,8 +655,6 @@ pub enum Action {
 ## <a id="checkpoint-54b-finger"></a>4. Keep touch handles reachable without enlarging them
 
 ### 1. `src/editor.rs`
-
-Choose a finger hit aperture before starting the existing source-preserving handle preview.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -882,8 +866,6 @@ Replace it with:
 
 ### 1. `src/rect_select.rs`
 
-Define finite rectangles, direction, point containment, segment clipping and CSS projection.
-
 Create the file and type:
 
 ```rust
@@ -988,8 +970,6 @@ pub fn screen(matrix: &[f64; 16], point: [f64; 3], size: [f64; 2]) -> Option<[f6
 
 ### 2. `src/lib.rs`
 
-Register the source component.
-
 **Locate this existing block:**
 
 ```rust
@@ -1008,11 +988,7 @@ pub mod rect_select;
 
 ## <a id="checkpoint-54d-samples"></a>6. Select projected geometry in one source pass
 
-Select original projected geometry in one source pass.
-
 ### 1. `src/rect_select.rs`
-
-Collect original mesh vertices and boundary strokes plus precise line, path and point samples.
 
 **Locate this existing block:**
 
@@ -1165,8 +1141,6 @@ pub fn found(
 
 ### 2. `src/rect_select_tests.rs`
 
-Copy direction, segment, projection, mixed-geometry and current-eligibility checks.
-
 Create the file and type:
 
 ```rust
@@ -1256,8 +1230,6 @@ fn mixed_precise_sources_are_selected_by_projected_geometry_and_current_eligibil
 
 ### 3. `src/lib.rs`
 
-Register the source component.
-
 **Locate this existing block:**
 
 ```rust
@@ -1280,8 +1252,6 @@ mod rect_select_tests;
 ## <a id="checkpoint-54e-drag"></a>7. Freeze a released drag until its pick answers
 
 ### 1. `src/canvas_drag.rs`
-
-Store the captured drag and a fixed world plane without changing original geometry.
 
 Create the file and type:
 
@@ -1429,8 +1399,6 @@ impl Drag {
 
 ### 2. `src/lib.rs`
 
-Register the source component.
-
 **Locate this existing block:**
 
 ```rust
@@ -1450,8 +1418,6 @@ pub mod canvas_drag;
 ## <a id="checkpoint-54f-drag-state"></a>8. Own drag previews outside document history
 
 ### 1. `src/editor.rs`
-
-Prepare captured drag state, presentation ownership and the checked commit or rectangle finish.
 
 **Locate this existing block:**
 
@@ -2863,8 +2829,6 @@ impl Editor {
 
 ### 1. `src/editor.rs`
 
-Route captured drag actions, commit whole movement and invalidate snap caches after a document change.
-
 **Locate this existing block:**
 
 ```rust
@@ -3000,8 +2964,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ## <a id="checkpoint-54h-mouse"></a>10. Capture mouse gestures in CSS pixels
 
 ### 1. `src/gesture.rs`
-
-Keep captured pointer ownership, full first delta, mouse navigation and released probes.
 
 **Locate this existing block:**
 
@@ -3274,8 +3236,6 @@ impl Gesture {
 
 ### 2. `src/gesture_tests.rs`
 
-Copy all preserved captured-pointer, CSS, cancellation and view-history checks for the new probe and middle pan.
-
 **Locate this existing block:**
 
 ```rust
@@ -3413,8 +3373,6 @@ fn cancellation_never_selects_and_allows_a_fresh_press() {
 
 ### 1. `src/touch.rs`
 
-Track active fingers, CSS orbit and ordered two-finger camera changes.
-
 Create the file and type:
 
 ```rust
@@ -3526,8 +3484,6 @@ impl Touch {
 
 ### 2. `src/lib.rs`
 
-Register the source component.
-
 **Locate this existing block:**
 
 ```rust
@@ -3549,8 +3505,6 @@ pub mod touch;
 ## <a id="checkpoint-54j-taps"></a>12. Finish taps double taps and touch cancellation
 
 ### 1. `src/touch.rs`
-
-Finish taps, nearby double-tap Fit and all-finger cancellation without changing document history.
 
 **Locate this existing block:**
 
@@ -3605,8 +3559,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ## <a id="checkpoint-54k-overlay"></a>13. Draw a thin selection rectangle above the canvas
 
 ### 1. `src/panel.rs`
-
-Draw the non-pickable overlay, measure free canvas and obtain a repeated command from dock history.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -3826,8 +3778,6 @@ pub struct Panel {
 ## <a id="checkpoint-54l-navigation"></a>14. Route mouse touch and wheel after panel input
 
 ### 1. `src/browser.rs`
-
-Route real mouse and touch events, cursor-centred wheel and right-click repeat through the existing command path.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -4122,8 +4072,6 @@ Replace it with:
 
 ### 1. `src/browser.rs`
 
-Dispatch late GPU hits to drags, preserve pending picks and route tap points through an active drawing tool.
-
 **Locate this existing block:**
 
 ```rust
@@ -4367,8 +4315,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 1. `src/browser.rs`
 
-Preserve frozen release ownership and choose the larger finger aperture before canvas navigation.
-
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -4526,8 +4472,6 @@ Replace it with:
 
 ### 1. `src/browser.rs`
 
-Expose actual pending drag state, refresh the overlay and cancel a stale camera projection.
-
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -4607,8 +4551,6 @@ Replace it with:
 ## <a id="checkpoint-54p-navigation"></a>18. Exercise current navigation selection and delayed answers
 
 ### 1. `src/navigation_complete_tests.rs`
-
-Copy the camera, current eligibility, release, cold-source, touch and repeat regressions.
 
 Create the file and type:
 
@@ -4986,8 +4928,6 @@ fn only_an_unmoved_right_click_repeats_and_cancel_clears_the_request() {
 
 ### 2. `src/lib.rs`
 
-Register the source component.
-
 **Locate this existing block:**
 
 ```rust
@@ -5008,8 +4948,6 @@ mod navigation_complete_tests;
 ```
 
 ### 3. `src/shortcut_focus_tests.rs`
-
-Copy actual egui command, name and popup ownership checks.
 
 Create the file and type:
 
@@ -5094,8 +5032,6 @@ fn actual_command_name_and_popup_focus_own_shortcuts_like_current_panels() {
 
 ### 4. `src/lib.rs`
 
-Register the source component.
-
 **Locate this existing block:**
 
 ```rust
@@ -5114,8 +5050,6 @@ mod shortcut_focus_tests;
 ```
 
 ### 5. `src/pick_gpu_tests.rs`
-
-Copy the actual delayed integer-pick, full released movement, one-Undo and geometry-reuse regression.
 
 **Locate this existing block:**
 

@@ -1,55 +1,68 @@
 # 4.5 · Measured phases and conservative GPU recovery
 
-**Goal:** Save device-loss diagnostics, reload once and draw conservatively until the next ordinary reload. · **Steps:** 15 · **Source:** `src/lib.rs` · `src/selftest/lifecycle.rs` · `src/engine/gpu/device.rs`
-
-<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
-<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
-  <defs>
-    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
-    </marker>
-    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
-    </marker>
-    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
-    </marker>
-  </defs>
-  <rect x="2" y="2" width="1116" height="184" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
-  <rect x="14" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">DOM Resize / Visibility Events</text>
-  <rect x="64" y="54" width="108" height="72" rx="4" fill="#f8fafc" stroke="#111111" stroke-width="1.5" stroke-dasharray="3 3"/>
-  <rect x="64" y="54" width="224" height="98" rx="4" fill="none" stroke="#2563eb" stroke-width="2"/>
-  <line x1="172" y1="90" x2="276" y2="90" stroke="#2563eb" stroke-width="2" marker-end="url(#arrB)"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="224" y="140" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Resize (W, H, DPR)</text>
-  <line x1="358" y1="94" x2="384" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
-  <rect x="388" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Matched Color + Depth32Float Attachments</text>
-  <rect x="444" y="56" width="104" height="84" rx="4" fill="#dbeafe" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="496" y="102" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Surface</text>
-  <rect x="572" y="56" width="104" height="84" rx="4" fill="#fef9c3" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="624" y="102" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Depth32</text>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="156" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">aspect = W / H</text>
-  <line x1="732" y1="94" x2="758" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
-  <rect x="762" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Unstretched Aspect-Correct View</text>
-  <rect x="802" y="44" width="264" height="118" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
-  <polygon points="934,58 994,84 934,110 874,84" fill="#93c5fd" stroke="#111111" stroke-width="1.75"/>
-  <polygon points="874,84 934,110 934,150 874,124" fill="#60a5fa" stroke="#111111" stroke-width="1.75"/>
-  <polygon points="934,110 994,84 994,124 934,150" fill="#2563eb" stroke="#111111" stroke-width="1.75"/>
-</svg>
-</div>
+**Steps:** 15 · **Source:** `src/lib.rs` · `src/selftest/lifecycle.rs` · `src/engine/gpu/device.rs`
 
 ## <a id="checkpoint-34gc-messages"></a>1. Bound browser failure messages
 
-Keep browser failure text readable and small enough for the existing report.
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="214" viewBox="0 0 1120 214" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr-e7630753" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arr-r-e7630753" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arr-g-e7630753" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arr-b-e7630753" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+    <pattern id="grid-e7630753" width="20" height="20" patternUnits="userSpaceOnUse">
+      <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#f1f5f9" stroke-width="1"/>
+    </pattern>
+  </defs>
+  <rect x="2" y="2" width="1116" height="210" rx="8" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="2" y="2" width="1116" height="28" rx="6" fill="#f8fafc" stroke="#111111" stroke-width="1.5"/>
+  <line x1="2" y1="30" x2="1118" y2="30" stroke="#111111" stroke-width="1.5"/>
+  <rect x="12" y="7" width="176" height="18" rx="3" fill="#111111"/>
+  <text x="100" y="19.5" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#ffffff" paint-order="normal" stroke="none">33..34 · GPU LIFECYCLE</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="518" y="20" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">RAII Listener Drop, Latching GPU Fault Trap, Heartbeat &amp; DPR=1.0 Recovery Reload</text>
+  <rect x="838" y="7" width="268" height="18" rx="3" fill="#ffffff" stroke="#111111" stroke-width="1.2"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="972" y="19.5" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#2563eb">OwnedListener::drop -&gt; removeEventListener</text>
+  <rect x="14" y="38" width="344" height="164" rx="6" fill="url(#grid-e7630753)" stroke="#111111" stroke-width="1.5"/>
+  <line x1="14" y1="60" x2="358" y2="60" stroke="#cbd5e1" stroke-width="1"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="186" y="53" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1 · RAII OwnedListener &amp; Startup Ticket</text>
+  <rect x="44" y="76" width="284" height="48" rx="4" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="186" y="96" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">OwnedListener { target, name, closure }</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="186" y="114" text-anchor="middle" font-family="monospace" font-size="8.5" fill="#2563eb">Drop detaches DOM listener automatically</text>
+  <rect x="44" y="134" width="284" height="48" rx="4" fill="#fee2e2" stroke="#dc2626" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="186" y="154" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#dc2626">First GPU Fault Latched (device.lost)</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="186" y="172" text-anchor="middle" font-family="monospace" font-size="8.5" fill="#111111">Stops render loop; preserves root cause</text>
+  <line x1="358" y1="120" x2="384" y2="120" stroke="#111111" stroke-width="2" marker-end="url(#arr-e7630753)"/>
+  <rect x="388" y="38" width="344" height="164" rx="6" fill="url(#grid-e7630753)" stroke="#111111" stroke-width="1.5"/>
+  <line x1="388" y1="60" x2="732" y2="60" stroke="#cbd5e1" stroke-width="1"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="53" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2 · 3-Run Storage Ring &amp; Heartbeat Pause Bits</text>
+  <rect x="414" y="76" width="292" height="50" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="96" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">localStorage: [Run n-2, Run n-1, Run n]</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="114" text-anchor="middle" font-family="monospace" font-size="8.5" fill="#16a34a">Hidden / Frozen tabs pause heartbeat timer</text>
+  <rect x="414" y="134" width="292" height="48" rx="4" fill="#fef9c3" stroke="#d97706" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="154" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Phased Timing: Startup / Decode / Upload</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="172" text-anchor="middle" font-family="monospace" font-size="8.5" fill="#2563eb">1-Shot Conservative DPR=1.0 Recovery</text>
+  <line x1="732" y1="120" x2="758" y2="120" stroke="#111111" stroke-width="2" marker-end="url(#arr-e7630753)"/>
+  <rect x="762" y="38" width="344" height="164" rx="6" fill="url(#grid-e7630753)" stroke="#111111" stroke-width="1.75"/>
+  <line x1="762" y1="60" x2="1106" y2="60" stroke="#cbd5e1" stroke-width="1"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="934" y="53" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3 · Retained Document Survives GPU Recovery</text>
+  <rect x="806" y="68" width="256" height="122" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="826" y="82" width="216" height="44" rx="4" fill="#dcfce7" stroke="#16a34a" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="934" y="108" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#16a34a">Document Outside GPU Runtime</text>
+  <rect x="826" y="136" width="216" height="40" rx="4" fill="#f8fafc" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="934" y="160" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Re-Uploaded at DPR = 1.0 ✓</text>
+</svg>
+</div>
 
 ### 1. `src/error_message.rs`
-
-Bound message and source lengths while preserving Unicode and excluding source query strings.
 
 Create the file and type:
 
@@ -86,8 +99,6 @@ pub fn rejection(reason: &str) -> String {
 ```
 
 ### 2. `src/error_message_tests.rs`
-
-Optional authoring fixture. Check Unicode bounds, source positions, omitted query strings and missing-detail fallbacks.
 
 Create the file and type:
 
@@ -154,8 +165,6 @@ fn missing_details_have_readable_labels() {
 
 ### 3. `src/lib.rs`
 
-Register diagnostic message formatting and its native checks.
-
 **Locate this existing block:**
 
 ```rust
@@ -221,11 +230,7 @@ pub mod gesture;
 </svg>
 </div>
 
-Retain the first uncaught browser failure while later events remain bounded and drawing stays independently owned.
-
 ### 1. `src/browser_errors.rs`
-
-Read native error events and safe promise-reason values; avoid serializing objects and catch unavailable Error messages.
 
 Create the file and type:
 
@@ -281,8 +286,6 @@ pub fn message(event: &web_sys::Event) -> Option<String> {
 
 ### 2. `Cargo.toml`
 
-Enable the two browser event interfaces without changing dependency versions.
-
 **Locate this existing block:**
 
 ```toml
@@ -301,8 +304,6 @@ console_error_panic_hook = "=0.1.7"
 
 ### 3. `src/lib.rs`
 
-Register browser failure observation.
-
 **Locate this existing block:**
 
 ```rust
@@ -320,8 +321,6 @@ mod browser_report;
 ```
 
 ### 4. `src/report_lifecycle.rs`
-
-Record failures through the existing first-failure path; keep event defaults and heartbeat scheduling unchanged. Own both Window failure bindings beside the five existing metadata bindings, including partial-registration cleanup.
 
 **Locate this existing block:**
 
@@ -376,11 +375,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-34gd-adapter"></a>3. Retain adapter identity in the report
 
-Preserve bounded adapter identity even when recent events rotate out of the report.
-
 ### 1. `src/adapter_info.rs`
-
-Keep four bounded adapter strings without retaining a GPU object.
 
 Create the file and type:
 
@@ -411,8 +406,6 @@ impl AdapterInfo {
 ```
 
 ### 2. `src/diagnostic.rs`
-
-Retain optional adapter identity separately from the recent-event queue. Start without adapter identity; the browser will supply it after its request. Reject oversized adapter fields when validating a saved report. Validate identity before changing the report.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -516,8 +509,6 @@ impl Report {
 
 ### 3. `src/report_store.rs`
 
-Admit the optional adapter field through the existing strict decoder.
-
 **Locate this existing block:**
 
 ```rust
@@ -534,8 +525,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 4. `src/adapter_info_tests.rs`
-
-Copy the checks for retained identity, legacy decoding, strict fields, Unicode bounds and atomic refusal.
 
 Create the file and type:
 
@@ -637,8 +626,6 @@ fn invalid_identity_is_atomic_and_empty_fields_are_valid() {
 
 ### 5. `src/lib.rs`
 
-Register adapter identity and its native checks.
-
 **Locate this existing block:**
 
 ```rust
@@ -658,11 +645,48 @@ pub mod bounds;
 
 ## <a id="checkpoint-34gda-browser"></a>4. Read the viewer’s adapter identity
 
-Retain vendor and architecture from the same adapter request used for drawing.
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="184" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">DOM Resize / Visibility Events</text>
+  <rect x="64" y="54" width="108" height="72" rx="4" fill="#f8fafc" stroke="#111111" stroke-width="1.5" stroke-dasharray="3 3"/>
+  <rect x="64" y="54" width="224" height="98" rx="4" fill="none" stroke="#2563eb" stroke-width="2"/>
+  <line x1="172" y1="90" x2="276" y2="90" stroke="#2563eb" stroke-width="2" marker-end="url(#arrB)"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="224" y="140" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Resize (W, H, DPR)</text>
+  <line x1="358" y1="94" x2="384" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="388" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Matched Color + Depth32Float Attachments</text>
+  <rect x="444" y="56" width="104" height="84" rx="4" fill="#dbeafe" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="496" y="102" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Surface</text>
+  <rect x="572" y="56" width="104" height="84" rx="4" fill="#fef9c3" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="624" y="102" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Depth32</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="156" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">aspect = W / H</text>
+  <line x1="732" y1="94" x2="758" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="762" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Unstretched Aspect-Correct View</text>
+  <rect x="802" y="44" width="264" height="118" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <polygon points="934,58 994,84 934,110 874,84" fill="#93c5fd" stroke="#111111" stroke-width="1.75"/>
+  <polygon points="874,84 934,110 934,150 874,124" fill="#60a5fa" stroke="#111111" stroke-width="1.75"/>
+  <polygon points="934,110 994,84 994,124 934,150" fill="#2563eb" stroke="#111111" stroke-width="1.75"/>
+</svg>
+</div>
 
 ### 1. `src/adapter_info.js`
-
-Observe the same native adapter request; retain only strings and restore the original property when released.
 
 Create the file and type:
 
@@ -701,8 +725,6 @@ export function begin() {
 
 ### 2. `src/browser_adapter.rs`
 
-Own the JavaScript observation across one await and release it through Drop.
-
 Create the file and type:
 
 ```rust
@@ -738,8 +760,6 @@ impl Drop for Probe {
 
 ### 3. `src/browser_report.rs`
 
-Persist validated adapter identity without changing the run outcome or event history.
-
 **Locate this existing block:**
 
 ```rust
@@ -769,8 +789,6 @@ pub fn fatal(message: &str) {
 ```
 
 ### 4. `src/browser.rs`
-
-Install observation immediately before the viewer requests its adapter. Read identity only while startup remains authorized; detach observation before requesting a device.
 
 **Locate this existing block:**
 
@@ -818,8 +836,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 5. `src/lib.rs`
 
-Register the browser adapter bridge.
-
 **Locate this existing block:**
 
 ```rust
@@ -838,11 +854,7 @@ mod browser_errors;
 
 ## <a id="checkpoint-34gdb-phases"></a>5. Retain measured loading phases
 
-Keep measured load operations after their recent event messages rotate away.
-
 ### 1. `src/load_phase.rs`
-
-Describe one completed load operation with duration, bytes, sanitized source and completion time.
 
 Create the file and type:
 
@@ -878,8 +890,6 @@ pub fn zero(value: &u64) -> bool {
 ```
 
 ### 2. `src/diagnostic.rs`
-
-Retain phases outside the recent events; old reports omit both optional fields. Start with no measured phases or discarded entries. Validate retained phases and the existing one MiB report limit. Record validated phases and count entries discarded by either retention limit. Keep phase retention within budget when later errors grow the event window. Account for adapter identity when retaining phase entries.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -1037,8 +1047,6 @@ impl Report {
 
 ### 3. `src/report_store.rs`
 
-Admit only the two declared phase fields through saved-report decoding.
-
 **Locate this existing block:**
 
 ```rust
@@ -1056,8 +1064,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 4. `src/load_phase_tests.rs`
-
-Copy checks for strict decoding, Unicode limits, event rotation and escaped JSON byte retention.
 
 Create the file and type:
 
@@ -1225,8 +1231,6 @@ fn encoded_budget_preserves_first_failure_and_recent_events() {
 
 ### 5. `src/lib.rs`
 
-Register load phase data and its native checks.
-
 **Locate this existing block:**
 
 ```rust
@@ -1245,8 +1249,6 @@ pub mod memory;
 ```
 
 ### 6. `src/diagnostic.rs`
-
-Recheck phase retention when current browser context changes. Retain the encoded budget after heartbeat timestamp changes.
 
 **Locate this existing block:**
 
@@ -1390,11 +1392,7 @@ Edit the existing block to match this code; keep unchanged lines:
 </svg>
 </div>
 
-Download actual adapter, device, renderer and first completed frame timings.
-
 ### 1. `src/browser_phase.rs`
-
-Measure completed operations with the browser clock and strip private URL suffixes.
 
 Create the file and type:
 
@@ -1425,8 +1423,6 @@ pub fn finish(name: &str, started: f64, bytes: u64, source: &str) {
 ```
 
 ### 2. `src/browser_report.rs`
-
-Persist measured phases without changing the run outcome.
 
 **Locate this existing block:**
 
@@ -1461,8 +1457,6 @@ pub fn adapter(info: crate::adapter_info::AdapterInfo) -> Result<(), JsValue> {
 
 ### 3. `src/browser_runtime.rs`
 
-Let deferred frame completion verify ownership of the current GPU runtime.
-
 **Locate this existing block:**
 
 ```rust
@@ -1488,8 +1482,6 @@ pub fn stop_if(fault: &crate::gpu_fault::Fault) -> bool {
 ```
 
 ### 4. `src/browser.rs`
-
-Start adapter timing before the actual request. Retain adapter timing only after the existing startup guard permits adoption. Time device creation separately from adapter selection. Retain active device timing, including a rejected request before its fatal report. Start timing construction of the initial renderer and its pipeline. Record CPU setup duration; GPU compilation latency remains part of first-frame completion. Start first-frame timing before encoding and submitting the real drawing. Mark readiness after submitted work completes, only while this GPU runtime still owns the page.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -1681,8 +1673,6 @@ Replace it with:
 
 ### 5. `src/lib.rs`
 
-Register browser phase timing.
-
 **Locate this existing block:**
 
 ```rust
@@ -1700,8 +1690,6 @@ mod browser_report;
 ```
 
 ### 6. `src/browser_report.rs`
-
-Keep observed context and phase retention within the saved report budget. Recheck the byte budget when a heartbeat updates browser dimensions. Keep final context and retained measurements within the same limit. Apply the report budget before downloading fresh context.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -1795,11 +1783,7 @@ Replace it with:
 
 ## <a id="checkpoint-34gdd-read"></a>7. Measure the selected file read
 
-Retain the duration and byte count of the selected file’s actual read.
-
 ### 1. `src/file_input.rs`
-
-Measure an actual completed read only after its ticket is accepted.
 
 **Locate this existing block:**
 
@@ -1842,11 +1826,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-34gde-measure"></a>8. Measure a completed CPU operation
 
-Measure CPU work without changing its success or failure.
-
 ### 1. `src/load_measure.rs`
-
-Keep timing metadata separate from the operation’s owned data and result.
 
 Create the file and type:
 
@@ -1906,8 +1886,6 @@ pub fn now() -> f64 {
 
 ### 2. `src/lib.rs`
 
-Register the portable clock boundary and its tests.
-
 **Locate this existing block:**
 
 ```rust
@@ -1926,8 +1904,6 @@ pub mod load_phase;
 ```
 
 ### 3. `src/load_measure_tests.rs`
-
-Copy deterministic checks for the clock boundary.
 
 Create the file and type:
 
@@ -2001,11 +1977,7 @@ fn native_clock_is_finite_and_monotonic() {
 
 ## <a id="checkpoint-34gdea-import"></a>9. Measure each document preparation phase
 
-Record decode, validation, kernel construction and display preparation at their actual boundaries.
-
 ### 1. `src/document.rs`
-
-Measure real preparation before committing any document state.
 
 **Locate this existing block:**
 
@@ -2118,8 +2090,6 @@ fn decode(bytes: &[u8]) -> Result<proto::Session, &'static str> {
 
 ### 2. `src/browser_phase.rs`
 
-Store completed CPU samples without taking another end timestamp.
-
 **Locate this existing block:**
 
 ```rust
@@ -2153,8 +2123,6 @@ pub fn finish(name: &str, started: f64, bytes: u64, source: &str) {
 
 ### 3. `src/lib.rs`
 
-Register document phase checks.
-
 **Locate this existing block:**
 
 ```rust
@@ -2172,8 +2140,6 @@ mod document_tests;
 ```
 
 ### 4. `src/document_phase_tests.rs`
-
-Copy checks for phase ordering, early failure and unchanged source precision.
 
 Create the file and type:
 
@@ -2282,11 +2248,7 @@ fn failed_stages_stop_before_later_work() {
 
 ## <a id="checkpoint-34gdf-upload"></a>10. Measure upload preparation and GPU completion
 
-Distinguish CPU buffer preparation from completion on the drawing queue.
-
 ### 1. `src/geometry_cache.rs`
-
-Count actual geometry payload, independently of resident buffer sizes. Advance only when a new geometry buffer is initialized.
 
 **Locate this existing block:**
 
@@ -2345,8 +2307,6 @@ impl GeometryCache {
 
 ### 2. `src/renderer.rs`
 
-Include initialized object settings and subsequent writes, excluding camera uniforms.
-
 **Locate this existing block:**
 
 ```rust
@@ -2370,8 +2330,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 3. `src/browser_upload.rs`
-
-Fence the drawing queue and reject completion from a retired or failed device.
 
 Create the file and type:
 
@@ -2409,8 +2367,6 @@ pub fn prepare(
 
 ### 4. `src/lib.rs`
 
-Register the browser-only queue boundary.
-
 **Locate this existing block:**
 
 ```rust
@@ -2428,8 +2384,6 @@ mod listeners;
 ```
 
 ### 5. `src/browser.rs`
-
-Measure successful scene synchronization after the editor transaction commits.
 
 **Locate this existing block:**
 
@@ -2454,11 +2408,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-34gdg-network"></a>11. Measure accepted source fetches
 
-Retain real fetch and Resource Timing measurements only for the accepted reload ticket.
-
 ### 1. `Cargo.toml`
-
-Enable the browser’s native network timing entry.
 
 **Locate this existing block:**
 
@@ -2477,8 +2427,6 @@ console_error_panic_hook = "=0.1.7"
 ```
 
 ### 2. `src/browser_network.rs`
-
-Collect actual body and browser-network measurements without retaining source owners.
 
 Create the file and type:
 
@@ -2541,8 +2489,6 @@ pub fn measured(
 
 ### 3. `src/lib.rs`
 
-Register network measurement and safe URL handling.
-
 **Locate this existing block:**
 
 ```rust
@@ -2560,8 +2506,6 @@ mod browser_reload;
 ```
 
 ### 4. `src/browser_reload.rs`
-
-Retain measured fetch phases only after the existing ticket accepts the task.
 
 **Locate this existing block:**
 
@@ -2621,11 +2565,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-34gdga-revision"></a>12. Record accepted file revisions
 
-Identify accepted source versions without recording rejected or stale documents.
-
 ### 1. `src/revision.rs`
-
-Collect only bounded hash strings from the accepted scene.
 
 Create the file and type:
 
@@ -2691,8 +2631,6 @@ mod tests {
 
 ### 2. `src/lib.rs`
 
-Register accepted content identity.
-
 **Locate this existing block:**
 
 ```rust
@@ -2709,8 +2647,6 @@ pub mod revision;
 ```
 
 ### 3. `src/browser_phase.rs`
-
-Record each accepted version as a bounded event.
 
 **Locate this existing block:**
 
@@ -2735,8 +2671,6 @@ pub fn completed(phase: crate::load_measure::Completed<'_>, source: &str) {
 ```
 
 ### 4. `src/browser.rs`
-
-Observe versions only after successful file adoption. Measure restored display synchronization and identify accepted source versions.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -2787,11 +2721,7 @@ Replace it with:
 
 ## <a id="checkpoint-34ge-owner"></a>13. Keep the document outside the GPU runtime
 
-Give GPU runtimes shared access to a separately owned CPU document.
-
 ### 1. `src/drawing_document.rs`
-
-Give CPU document state an owner independent of a device or renderer.
 
 Create the file and type:
 
@@ -2804,8 +2734,6 @@ pub fn new() -> Shared {
 ```
 
 ### 2. `src/lib.rs`
-
-Register the independent document owner.
 
 **Locate this existing block:**
 
@@ -2823,8 +2751,6 @@ pub mod drawing_document;
 ```
 
 ### 3. `src/browser.rs`
-
-Allow a drawing runtime to use an existing CPU document. Borrow the retained editor during startup. End the startup borrow before the event closure borrows the same editor. Retain document authority beside the runtime’s cancellation owners.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -2937,8 +2863,6 @@ pub async fn run_with(shared: crate::drawing_document::Shared) -> Result<(), JsV
 
 ### 4. `src/browser_runtime.rs`
 
-Keep a CPU owner available to an authorized recovery path. Only the current drawing device can obtain the retained CPU document.
-
 **Locate this existing block:**
 
 ```rust
@@ -3019,11 +2943,7 @@ pub fn document(
 
 ## <a id="checkpoint-34gea-policy"></a>14. Permit one conservative recovery reload
 
-Allow one device-loss recovery reload and retain reduced quality until an ordinary reload.
-
 ### 1. `src/recovery.rs`
-
-Permit one recovery only for a normal run that lost its device.
 
 Create the file and type:
 
@@ -3057,8 +2977,6 @@ impl Recovery {
 
 ### 2. `src/lib.rs`
 
-Register the one-reload policy and its tests.
-
 **Locate this existing block:**
 
 ```rust
@@ -3077,8 +2995,6 @@ pub mod rehydrate;
 ```
 
 ### 3. `src/recovery_tests.rs`
-
-Copy normal, duplicate, recovered and fresh-run checks.
 
 Create the file and type:
 
@@ -3110,8 +3026,6 @@ fn recovered_runs_refuse_repeated_reload_until_an_ordinary_reload() {
 
 ### 1. `Cargo.toml`
 
-Enable recovery URL cleanup through the browser history API.
-
 **Locate this existing block:**
 
 ```toml
@@ -3129,8 +3043,6 @@ console_error_panic_hook = "=0.1.7"
 ```
 
 ### 2. `src/browser_recovery.rs`
-
-Adopt one conservative reload and retain all other URL parameters.
 
 Create the file and type:
 
@@ -3192,8 +3104,6 @@ pub fn request(message: &str) -> bool {
 
 ### 3. `src/lib.rs`
 
-Register browser recovery policy and navigation.
-
 **Locate this existing block:**
 
 ```rust
@@ -3211,8 +3121,6 @@ mod browser_reload;
 ```
 
 ### 4. `src/browser.rs`
-
-Persist and download the failed run before requesting its recovery reload. Adopt reduced quality before beginning the new drawing run. Keep the recovery reason visible in the real command dock. Report conservative recovery without changing the normal startup instruction. Cap recovered device density while preserving normal high-DPI drawing.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 

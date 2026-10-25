@@ -1,6 +1,6 @@
 # 19.4 · Family-aware original controls and source previews
 
-**Goal:** Replace Element display geometry while retaining its original CAD identity. · **Steps:** 7 · **Source:** [app/session_io.rs](../../../src/app/session_io.rs) · [app/command/mod.rs](../../../src/app/command/mod.rs) · [app/hierarchy.rs](../../../src/app/hierarchy.rs) · [app/scene.rs](../../../src/app/scene.rs)
+**Steps:** 7 · **Source:** [app/session_io.rs](../../../src/app/session_io.rs) · [app/command/mod.rs](../../../src/app/command/mod.rs) · [app/hierarchy.rs](../../../src/app/hierarchy.rs) · [app/scene.rs](../../../src/app/scene.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -50,11 +50,7 @@
 
 ## <a id="checkpoint-96za-address-original-controls-with-family-keys"></a>1. Address controls with family keys
 
-Address original controls with family keys.
-
 ### 1. `src/pick_sources.rs`
-
-Reuse the original-family control key.
 
 **Locate this existing block:**
 
@@ -72,8 +68,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 2. `src/scene.rs`
-
-Keep the original parent and its addressed part. Retain the existing curve control address.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -117,8 +111,6 @@ Replace it with:
 
 ### 3. `src/pick_sources.rs`
 
-Use one GPU address table for every marker family.
-
 **Locate this existing block:**
 
 ```rust
@@ -136,8 +128,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 4. `src/selection.rs`
-
-Reject a family control absent from the current visible snapshot. Describe the original source key without invented objects.
 
 **Locate this existing block:**
 
@@ -202,8 +192,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 5. `src/highlight.rs`
 
-Reuse the existing selected-control highlight for every original family.
-
 **Locate this existing block:**
 
 ```rust
@@ -229,8 +217,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 6. `src/control_parent_tests.rs`
-
-Preserve the shared-source and distinct-parent fixture after markers carry addressed parts.
 
 **Locate this existing block:**
 
@@ -264,11 +250,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-96zb-draw-and-pick-original-cad-control-points"></a>2. Draw and pick CAD control points
 
-Draw and pick original CAD control points.
-
 ### 1. `src/scene.rs`
-
-Store control display ownership without modifying original geometry. Initialize an empty control owner set. Enable original-family control display alongside existing curves. Reuse the original collector and shared GPU marker/pick upload. Release display owners on Close. Drop removed control owners.
 
 **Locate this existing block:**
 
@@ -3707,8 +3689,6 @@ impl Scene {
 
 ### 2. `src/original_control_tests.rs`
 
-Supply original source-sharing, family addressing, hide/off, Element ownership and release checks.
-
 Create the file and type:
 
 ```rust
@@ -3796,8 +3776,6 @@ fn element_mesh_controls_keep_the_original_element_owner() {
 
 ### 3. `src/lib.rs`
 
-Register supplied original-control fixtures.
-
 **Locate this existing block:**
 
 ```rust
@@ -3817,8 +3795,6 @@ pub mod source_controls;
 ```
 
 ### 4. `src/pick_gpu_tests.rs`
-
-Supply actual placed integer-pick checks with sparse original vertex keys at both densities.
 
 **Locate this existing block:**
 
@@ -3895,11 +3871,7 @@ fn actual_mesh_control_pixel_keeps_sparse_vertex_key_at_both_densities() {
 
 ## <a id="checkpoint-96zc-share-the-current-control-point-style"></a>3. Share the current control-point style
 
-Use seven CSS pixel blue controls and same-size yellow selection.
-
 ### 1. `src/scene.rs`
-
-Give both control families one CSS-sized style owner. Use the shared style for the existing curve controls. Use the same style for original CAD controls.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -4011,8 +3983,6 @@ pub struct PointObject {
 
 ### 2. `src/highlight.rs`
 
-Change selected control color while retaining its CSS diameter. Keep selected line outlines below ordinary ink; draw selected point color separately.
-
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -4058,8 +4028,6 @@ Replace it with:
 
 ### 3. `src/renderer.rs`
 
-Draw same-size yellow selection after the blue control disc.
-
 **Locate this existing block:**
 
 ```rust
@@ -4076,8 +4044,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 4. `src/pick_gpu_tests.rs`
-
-Supply actual color, CSS coverage, selection and original integer-address checks at both densities.
 
 **Locate this existing block:**
 
@@ -4177,11 +4143,7 @@ fn actual_controls_are_blue_seven_css_pixels_and_selected_yellow_at_both_densiti
 
 ## <a id="checkpoint-96zd-reuse-world-controls-for-their-display-nets"></a>4. Reuse world controls for their display nets
 
-Draw placed control nets through the existing stroke lane.
-
 ### 1. `src/scene.rs`
-
-Project one control owner for both point discs and net links.
 
 **Locate this existing block:**
 
@@ -4340,8 +4302,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 2. `src/pick_sources.rs`
 
-Reuse stroke drawing and address each net only to its original parent.
-
 **Locate this existing block:**
 
 ```rust
@@ -4361,8 +4321,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 3. `src/pick_gpu_tests.rs`
-
-Supply real net integer-pick, endpoint, source identity and Off checks at both densities.
 
 **Locate this existing block:**
 
@@ -4455,8 +4413,6 @@ fn actual_control_net_pixel_addresses_parent_without_a_fake_edge_or_control() {
 
 ### 4. `src/pick_sources_tests.rs`
 
-Keep twelve original mesh edge addresses distinct from two parent-only control links.
-
 **Locate this existing block:**
 
 ```rust
@@ -4484,11 +4440,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-96ze-scope-controls-to-the-selected-original"></a>5. Scope controls to the selected original
 
-Enter original control selection without competing object handles.
-
 ### 1. `src/scene.rs`
-
-Validate the original, then atomically replace its derived control presentation. Include selected point, line and polyline originals through the same source projection.
 
 **Locate this existing block:**
 
@@ -4602,8 +4554,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 2. `src/editor.rs`
 
-Give the maintained selected-owner command its own transition.
-
 **Locate this existing block:**
 
 ```rust
@@ -4620,8 +4570,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 3. `src/commands.rs`
-
-Route bare Controls to selected-owner behavior.
 
 **Locate this existing block:**
 
@@ -4640,8 +4588,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 4. `src/editor.rs`
-
-Enter control picking for one original without disturbing a repeated selection. Keep whole-object handles from intercepting control clicks. Escape leaves control presentation and retains its original parent.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -4747,8 +4693,6 @@ Replace it with:
 
 ### 5. `src/original_control_tests.rs`
 
-Supply original ownership, repeated control selection, Escape and unchanged history checks.
-
 **Locate this existing block:**
 
 ```rust
@@ -4852,11 +4796,7 @@ fn controls_scope_and_escape_preserve_original_ownership_and_history() {
 
 ## <a id="checkpoint-96zf-edit-original-controls-through-the-source-preview"></a>6. Edit controls through the source preview
 
-Deform original control geometry without editing GPU records.
-
 ### 1. `src/source_part.rs`
-
-Resolve every supported original through the shared source owner. Remove the replaced private source resolver import. Translate the family key without inventing a mesh control index.
 
 **Locate this existing block:**
 
@@ -4902,8 +4842,6 @@ pub fn target(part: Part) -> Result<crate::source_deform::Target, &'static str> 
 
 ### 2. `src/part_preview.rs`
 
-Find the original point before applying the owner placement.
-
 **Locate this existing block:**
 
 ```rust
@@ -4924,8 +4862,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 3. `src/scene.rs`
-
-Allow original control keys through source deformation; keep unsupported legacy original part routes explicit. Reuse original replacement after conjugating the world transform to local source coordinates.
 
 **Locate this existing block:**
 
@@ -4987,8 +4923,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 4. `src/part_preview.rs`
-
-Check original identity with the existing family-aware source comparison. Remove the old private pointer comparison import.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -5060,8 +4994,6 @@ pub fn points(scene: &Scene, target: Target) -> Result<Vec<Point>, &'static str>
 ```
 
 ### 5. `src/original_control_tests.rs`
-
-Supply sparse original-key, placement, preview identity, other owner, Undo, Redo and stale commit checks.
 
 **Locate this existing block:**
 
@@ -5172,8 +5104,6 @@ fn original_sparse_control_preview_conjugates_placement_and_restores_source_hist
 
 ### 1. `src/scene.rs`
 
-Prepare the edited Element first, then retain the original owner identity and presentation.
-
 **Locate this existing block:**
 
 ```rust
@@ -5219,8 +5149,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 2. `src/original_control_tests.rs`
-
-Supply actual original Element, feature source, derived row, tree identity, placement, Undo, Redo and stale-preview checks.
 
 **Locate this existing block:**
 
@@ -5344,8 +5272,6 @@ fn element_control_replacement_keeps_original_features_tree_placement_and_histor
 ```
 
 ### 3. `src/pick_gpu_tests.rs`
-
-Supply actual moved original-control integer pixels, removed old pixels, commit and Undo at both densities.
 
 **Locate this existing block:**
 

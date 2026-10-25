@@ -1,6 +1,6 @@
 # 9.3 · Trimmed curved faces with real open holes
 
-**Goal:** Prove trimmed curved faces and open holes. · **Steps:** 2 · **Source:** [app/walk/brep.rs](../../../src/app/walk/brep.rs) · [app/walk/brep_edges.rs](../../../src/app/walk/brep_edges.rs) · [app/walk/brep_orient.rs](../../../src/app/walk/brep_orient.rs) · [app/walk/brep_shapes.rs](../../../src/app/walk/brep_shapes.rs)
+**Steps:** 2 · **Source:** [app/walk/brep.rs](../../../src/app/walk/brep.rs) · [app/walk/brep_edges.rs](../../../src/app/walk/brep_edges.rs) · [app/walk/brep_orient.rs](../../../src/app/walk/brep_orient.rs) · [app/walk/brep_shapes.rs](../../../src/app/walk/brep_shapes.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -49,8 +49,6 @@
 ## <a id="checkpoint-57-parameters"></a>1. Keep the trimmed face connected to its surface
 
 ### 1. `src/cad_samples.rs`
-
-Retain original surface addresses and exact UV samples on a trimmed face.
 
 Create the file and type:
 
@@ -118,8 +116,6 @@ pub fn face(
 
 ### 2. `src/lib.rs`
 
-Register the source component.
-
 **Locate this existing block:**
 
 ```rust
@@ -139,8 +135,6 @@ pub mod cad_samples;
 ## <a id="checkpoint-57a-trims"></a>2. Prove trimmed curved faces and open holes
 
 ### 1. `src/cad_trim_tests.rs`
-
-Copy curved-trim source/UV/normal checks and the hole-region triangle regression.
 
 Create the file and type:
 
@@ -276,8 +270,6 @@ fn hole_face_keeps_both_wires_and_never_fills_its_interior() {
 ```
 
 ### 2. `src/lib.rs`
-
-Register the source component.
 
 **Locate this existing block:**
 

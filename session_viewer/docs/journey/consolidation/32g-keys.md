@@ -1,61 +1,67 @@
 # 3.7 · Restore exact sources and replay the captured edit
 
-**Goal:** Verify automatic command failures preserve cold drawing, placement and history, including all-or-nothing multiple-source Save. · **Steps:** 26 · **Source:** `src/app/decode.rs` · `src/app/loader.rs` · `src/state.rs`
-
-<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
-<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
-  <defs>
-    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
-    </marker>
-    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
-    </marker>
-    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
-    </marker>
-  </defs>
-  <rect x="2" y="2" width="1116" height="184" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
-  <rect x="14" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Hierarchy: M_world = M_parent * M_child</text>
-  <g transform="translate(88,122)">
-    <line x1="0" y1="0" x2="48" y2="0" stroke="#dc2626" stroke-width="2.5" marker-end="url(#arrR)"/>
-    <line x1="0" y1="0" x2="0" y2="-44" stroke="#16a34a" stroke-width="2.5" marker-end="url(#arrG)"/>
-    <circle cx="0" cy="0" r="4" fill="#111111"/>
-    <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="-10" y="18" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Parent</text>
-  </g>
-  <path d="M 116 106 Q 168 68 214 86" fill="none" stroke="#111111" stroke-width="1.75" stroke-dasharray="4 3" marker-end="url(#arr)"/>
-  <g transform="translate(230,94) rotate(-22)">
-    <rect x="-18" y="-14" width="36" height="28" fill="#dbeafe" stroke="#111111" stroke-width="1.75"/>
-    <line x1="0" y1="0" x2="34" y2="0" stroke="#dc2626" stroke-width="2" marker-end="url(#arrR)"/>
-    <line x1="0" y1="0" x2="0" y2="-30" stroke="#16a34a" stroke-width="2" marker-end="url(#arrG)"/>
-  </g>
-  <line x1="358" y1="94" x2="384" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
-  <rect x="388" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Window (Inside) vs Crossing (Intersect) Rect</text>
-  <rect x="424" y="54" width="118" height="88" fill="#dbeafe" fill-opacity="0.35" stroke="#2563eb" stroke-width="2"/>
-  <polygon points="454,122 484,76 516,122" fill="#bbf7d0" stroke="#16a34a" stroke-width="2"/>
-  <rect x="572" y="54" width="118" height="88" fill="#dcfce7" fill-opacity="0.35" stroke="#16a34a" stroke-width="2" stroke-dasharray="5 3"/>
-  <polygon points="642,124 678,72 714,124" fill="#fef08a" stroke="#dc2626" stroke-width="2"/>
-  <line x1="732" y1="94" x2="758" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
-  <rect x="762" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Selected Subtree &amp; Isolated Visibility</text>
-  <rect x="806" y="44" width="256" height="118" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
-  <polygon points="846,138 882,84 918,138" fill="#e2e8f0" stroke="#94a3b8" stroke-width="1.2" stroke-dasharray="3 3"/>
-  <polygon points="942,138 986,68 1030,138" fill="#fef08a" stroke="#dc2626" stroke-width="2.5"/>
-</svg>
-</div>
+**Steps:** 26 · **Source:** `src/app/decode.rs` · `src/app/loader.rs` · `src/state.rs`
 
 ## <a id="checkpoint-32g-keys"></a>1. Identify the source release a reload belongs to
 
-Borrow the current imported release identity and epoch before asking for source data.
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="214" viewBox="0 0 1120 214" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr-d1b49447" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arr-r-d1b49447" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arr-g-d1b49447" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arr-b-d1b49447" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+    <pattern id="grid-d1b49447" width="20" height="20" patternUnits="userSpaceOnUse">
+      <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#f1f5f9" stroke-width="1"/>
+    </pattern>
+  </defs>
+  <rect x="2" y="2" width="1116" height="210" rx="8" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="2" y="2" width="1116" height="28" rx="6" fill="#f8fafc" stroke="#111111" stroke-width="1.5"/>
+  <line x1="2" y1="30" x2="1118" y2="30" stroke="#111111" stroke-width="1.5"/>
+  <rect x="12" y="7" width="176" height="18" rx="3" fill="#111111"/>
+  <text x="100" y="19.5" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#ffffff" paint-order="normal" stroke="none">31..32G · RESIDENCY &amp; RELOAD</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="518" y="20" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Shared Arc&lt;GpuGeometry&gt; Cache, Source Unloading &amp; On-Demand Async Restoration</text>
+  <rect x="838" y="7" width="268" height="18" rx="3" fill="#ffffff" stroke="#111111" stroke-width="1.2"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="972" y="19.5" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#2563eb">Loaded(Arc&lt;Source&gt;) &lt;-&gt; Released(Origin, Key)</text>
+  <rect x="14" y="38" width="344" height="164" rx="6" fill="url(#grid-d1b49447)" stroke="#111111" stroke-width="1.5"/>
+  <line x1="14" y1="60" x2="358" y2="60" stroke="#cbd5e1" stroke-width="1"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="186" y="53" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1 · Immutable Arc&lt;GpuGeometry&gt; + Settings Slot</text>
+  <rect x="44" y="76" width="284" height="48" rx="4" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="186" y="96" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Arc&lt;GpuGeometry&gt; (Shared Across Undo)</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="186" y="114" text-anchor="middle" font-family="monospace" font-size="8.5" fill="#2563eb">Zero vertex re-upload on selection change</text>
+  <rect x="44" y="134" width="284" height="48" rx="4" fill="#dcfce7" stroke="#16a34a" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="186" y="154" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Unload Sources: Drop f64 Kernel RAM</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="186" y="172" text-anchor="middle" font-family="monospace" font-size="8.5" fill="#16a34a">f32 GPU display mesh stays interactive</text>
+  <line x1="358" y1="120" x2="384" y2="120" stroke="#111111" stroke-width="2" marker-end="url(#arr-d1b49447)"/>
+  <rect x="388" y="38" width="344" height="164" rx="6" fill="url(#grid-d1b49447)" stroke="#111111" stroke-width="1.5"/>
+  <line x1="388" y1="60" x2="732" y2="60" stroke="#cbd5e1" stroke-width="1"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="53" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2 · Captured Edit Intent -&gt; Async HTTP Reload</text>
+  <rect x="414" y="76" width="292" height="106" rx="4" fill="#fef9c3" stroke="#d97706" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="98" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Move / Delete / Save on Unloaded Row:</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="120" text-anchor="middle" font-family="monospace" font-size="9" fill="#2563eb">1. Capture PendingIntent + ReleaseKey</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="142" text-anchor="middle" font-family="monospace" font-size="9" fill="#111111">2. Bounded Fetch + AbortController</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="164" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#16a34a">3. Atomic Adopt + Replay Exact f64 Edit</text>
+  <line x1="732" y1="120" x2="758" y2="120" stroke="#111111" stroke-width="2" marker-end="url(#arr-d1b49447)"/>
+  <rect x="762" y="38" width="344" height="164" rx="6" fill="url(#grid-d1b49447)" stroke="#111111" stroke-width="1.75"/>
+  <line x1="762" y1="60" x2="1106" y2="60" stroke="#cbd5e1" stroke-width="1"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="934" y="53" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3 · Lossless f64 Precision Restored</text>
+  <rect x="806" y="68" width="256" height="122" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="830" y="84" width="208" height="42" rx="4" fill="#dcfce7" stroke="#16a34a" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="934" y="109" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#16a34a">Sources Restored ✓</text>
+  <rect x="830" y="136" width="208" height="40" rx="4" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="934" y="160" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Move / Save Committed</text>
+</svg>
+</div>
 
 ### 1. `src/lib.rs`
-
-Give reload identity and preparation their own Rust boundary.
 
 **Locate this existing block:**
 
@@ -73,8 +79,6 @@ pub mod reload_url;
 ```
 
 ### 2. `src/rehydrate.rs`
-
-Match an imported allocation and checked release epoch instead of only a file GUID.
 
 Create the file and type:
 
@@ -148,8 +152,6 @@ mod tests {
 
 ### 3. `src/editor.rs`
 
-Request each active imported release once without duplicating its geometry.
-
 **Locate this existing block:**
 
 ```rust
@@ -178,11 +180,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-32ga-prepare"></a>2. Prepare kernel data without rebuilding its display
 
-Validate an immutable source version and restore its Session into a private reload candidate.
-
 ### 1. `src/document.rs`
-
-Share bounded decoding without sharing display preparation. Restore only original kernel data after validating the immutable source version.
 
 **Locate this existing block:**
 
@@ -274,8 +272,6 @@ pub(crate) fn restore(
 
 ### 2. `src/rehydrate.rs`
 
-Keep candidate kernel ownership private until every matched row has a valid original source.
-
 **Locate this existing block:**
 
 ```rust
@@ -324,11 +320,7 @@ impl PreparedReload {
 
 ## <a id="checkpoint-32gb-adopt"></a>3. Adopt restored source owners as one residency change
 
-Validate current releases and all matching history rows before adopting any kernel candidate.
-
 ### 1. `src/scene.rs`
-
-Restore editable owners without replacing display, metadata, identity or placement.
 
 **Locate this existing block:**
 
@@ -370,8 +362,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 2. `src/editor.rs`
-
-Check current release ownership and all source rows before any candidate is adopted.
 
 **Locate this existing block:**
 
@@ -432,11 +422,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-32gc-roundtrip"></a>4. Prove source restoration preserves display and history
 
-Restore exact source coordinates and editing without reallocating retained display owners.
-
 ### 1. `src/lib.rs`
-
-Keep source restoration proofs in typed native state checks.
 
 **Locate this existing block:**
 
@@ -455,8 +441,6 @@ pub mod reload_url;
 ```
 
 ### 2. `src/rehydrate_tests.rs`
-
-Optional authoring fixture. Check exact restored coordinates and retained display/metadata/placement history.
 
 Create the file and type:
 
@@ -537,11 +521,7 @@ fn hydration_restores_original_doubles_without_rebuilding_rows_or_history() {
 
 ## <a id="checkpoint-32gd-rejections"></a>5. Reject stale or inconsistent source batches atomically
 
-Keep rows cold on changed versions, missing source identity and obsolete release keys.
-
 ### 1. `src/rehydrate_tests.rs`
-
-Optional authoring fixture. Reject the entire candidate batch before adopting any source and preserve displayed owners.
 
 **Locate this existing block:**
 
@@ -658,11 +638,7 @@ use std::rc::Rc;
 
 ## <a id="checkpoint-32ge-stale"></a>6. Ignore old reload results before decoding them
 
-Reject results for closed imports, loaded rows, duplicate keys and previous release epochs.
-
 ### 1. `src/rehydrate_tests.rs`
-
-Optional authoring fixture. Show that obsolete identities are rejected before version checks, decoding or mutation.
 
 **Locate this existing block:**
 
@@ -757,8 +733,6 @@ fn a_bad_second_version_rejects_the_entire_source_batch() {
 
 ### 1. `src/lib.rs`
 
-Expose the native request owner without adding browser APIs to it.
-
 **Locate this existing block:**
 
 ```rust
@@ -775,8 +749,6 @@ pub mod reload_url;
 ```
 
 ### 2. `src/reload_job.rs`
-
-Issue checked tickets and retain source keys only in current pending work.
 
 Create the file and type:
 
@@ -851,8 +823,6 @@ impl ReloadJob {
 ## <a id="checkpoint-32gfa-ownership"></a>8. Prove cancelled work releases its source owners
 
 ### 1. `src/reload_job.rs`
-
-Check ordering, exhaustion and actual owner expiration while abandoned work remains alive.
 
 **Locate this existing block:**
 
@@ -956,8 +926,6 @@ mod tests {
 
 ### 1. `Cargo.toml`
 
-Enable only the browser types used by streaming and cancellation.
-
 **Locate this existing block:**
 
 ```toml
@@ -976,8 +944,6 @@ console_error_panic_hook = "=0.1.7"
 
 ### 2. `src/lib.rs`
 
-Keep browser promises and streams out of the native editor.
-
 **Locate this existing block:**
 
 ```rust
@@ -995,8 +961,6 @@ mod source_fetch;
 ```
 
 ### 3. `src/source_fetch.rs`
-
-Read original byte chunks without exceeding the per-source limit.
 
 Create the file and type:
 
@@ -1078,8 +1042,6 @@ async fn read(
 
 ### 1. `src/lib.rs`
 
-Keep the browser flight beside the fetch adapter.
-
 **Locate this existing block:**
 
 ```rust
@@ -1097,8 +1059,6 @@ pub mod document;
 ```
 
 ### 2. `src/browser_reload.rs`
-
-Cancel keys and I/O together without letting old results touch a new flight.
 
 Create the file and type:
 
@@ -1154,8 +1114,6 @@ impl Flight {
 ## <a id="checkpoint-32ggb-delivery"></a>11. Deliver only the current completed reload batch
 
 ### 1. `src/browser_reload.rs`
-
-Spawn bounded source reads and deliver only one current owned completion.
 
 **Locate this existing block:**
 
@@ -1219,8 +1177,6 @@ fn deliver(result: Reply, delivery: &Delivery) -> Result<(), wasm_bindgen::JsVal
 ## <a id="checkpoint-32gh-command"></a>12. Restore editable sources through the command line
 
 ### 1. `src/browser.rs`
-
-Make source residency requests typed commands without feature buttons. Own one current reload flight and one scoped accepted reply. Adopt only an accepted current result and give asynchronous replies their own history entry. Start or cancel an owned request from the actual command field. Wake the viewer for a scoped accepted result.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -1379,8 +1335,6 @@ Replace it with:
 
 ### 1. `src/browser.rs`
 
-Invalidate the old reload as soon as replacement intent begins. Remove reload keys and abort I/O before changing the current document context.
-
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -1434,8 +1388,6 @@ Replace it with:
 ```
 
 ### 2. `examples/reload_check.rs`
-
-Supply this optional course-author fixture generator; browser exercises use the linked data files or recorded comparison.
 
 Create the file and type:
 
@@ -1492,11 +1444,63 @@ fn main() {
 
 ## <a id="checkpoint-32gi-capture"></a>14. Capture the requested edit before waiting
 
-Retain the original object and arguments before any source request starts.
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="214" viewBox="0 0 1120 214" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr-eb361fc9" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arr-r-eb361fc9" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arr-g-eb361fc9" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arr-b-eb361fc9" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+    <pattern id="grid-eb361fc9" width="20" height="20" patternUnits="userSpaceOnUse">
+      <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#f1f5f9" stroke-width="1"/>
+    </pattern>
+  </defs>
+  <rect x="2" y="2" width="1116" height="210" rx="8" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="2" y="2" width="1116" height="28" rx="6" fill="#f8fafc" stroke="#111111" stroke-width="1.5"/>
+  <line x1="2" y1="30" x2="1118" y2="30" stroke="#111111" stroke-width="1.5"/>
+  <rect x="12" y="7" width="176" height="18" rx="3" fill="#111111"/>
+  <text x="100" y="19.5" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#ffffff" paint-order="normal" stroke="none">32A..32F · SOURCE UNLOAD</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="518" y="20" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Releasing Heavy f64 Kernel Sources While Keeping f32 GPU Display Geometry Interactive</text>
+  <rect x="838" y="7" width="268" height="18" rx="3" fill="#ffffff" stroke="#111111" stroke-width="1.2"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="972" y="19.5" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#2563eb">Loaded(Arc&lt;Source&gt;) -&gt; Released { origin, key, version }</text>
+  <rect x="14" y="38" width="344" height="164" rx="6" fill="url(#grid-eb361fc9)" stroke="#111111" stroke-width="1.5"/>
+  <line x1="14" y1="60" x2="358" y2="60" stroke="#cbd5e1" stroke-width="1"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="186" y="53" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1 · Before Unload: CPU f64 + GPU f32</text>
+  <rect x="44" y="76" width="284" height="48" rx="4" fill="#fee2e2" stroke="#dc2626" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="186" y="96" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#dc2626">Heavy f64 Kernel Source in WASM RAM</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="186" y="114" text-anchor="middle" font-family="monospace" font-size="8.5" fill="#111111">Released by "Unload Sources" command</text>
+  <rect x="44" y="132" width="284" height="48" rx="4" fill="#dcfce7" stroke="#16a34a" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="186" y="152" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#16a34a">Compact Provenance Header Retained</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="186" y="170" text-anchor="middle" font-family="monospace" font-size="8.5" fill="#111111">{ OriginUrl, ReleaseKey, SourceVersion }</text>
+  <line x1="358" y1="120" x2="384" y2="120" stroke="#111111" stroke-width="2" marker-end="url(#arr-eb361fc9)"/>
+  <rect x="388" y="38" width="344" height="164" rx="6" fill="url(#grid-eb361fc9)" stroke="#111111" stroke-width="1.5"/>
+  <line x1="388" y1="60" x2="732" y2="60" stroke="#cbd5e1" stroke-width="1"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="53" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2 · Allowed vs Guarded Operations While Unloaded</text>
+  <rect x="414" y="76" width="292" height="104" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="98" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#16a34a">✓ Orbit / Pan / Zoom / Pick / Color / Hide</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="118" text-anchor="middle" font-family="monospace" font-size="8.5" fill="#111111">(Operates purely on retained GPU buffers &amp; settings)</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="144" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#dc2626">⚠ Move / Save / Exact Export</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="164" text-anchor="middle" font-family="monospace" font-size="8.5" fill="#2563eb">(Requires reloading exact f64 source first)</text>
+  <line x1="732" y1="120" x2="758" y2="120" stroke="#111111" stroke-width="2" marker-end="url(#arr-eb361fc9)"/>
+  <rect x="762" y="38" width="344" height="164" rx="6" fill="url(#grid-eb361fc9)" stroke="#111111" stroke-width="1.75"/>
+  <line x1="762" y1="60" x2="1106" y2="60" stroke="#cbd5e1" stroke-width="1"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="934" y="53" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3 · Low-RAM Interactive Viewport</text>
+  <rect x="806" y="68" width="256" height="122" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <polygon points="884,96 944,74 1004,96 944,118" fill="#dbeafe" stroke="#111111" stroke-width="1.5"/>
+  <polygon points="884,96 944,118 944,174 884,152" fill="#60a5fa" stroke="#111111" stroke-width="1.5"/>
+  <polygon points="944,118 1004,96 1004,152 944,174" fill="#2563eb" stroke="#111111" stroke-width="1.5"/>
+</svg>
+</div>
 
 ### 1. `src/lib.rs`
-
-Register the value-only requested-edit module.
 
 **Locate this existing block:**
 
@@ -1514,8 +1518,6 @@ mod edit_source;
 ```
 
 ### 2. `src/edit_intent.rs`
-
-Capture the requested target and arguments without retaining any source owners.
 
 Create the file and type:
 
@@ -1651,11 +1653,7 @@ mod tests {
 
 ## <a id="checkpoint-32gia-scope"></a>15. Load only the sources the requested edit needs
 
-Select source requests from the original edit target, with Save covering the active document.
-
 ### 1. `src/edit_intent.rs`
-
-Bring the editor and existing release-key type into this module. Resolve dependencies from the captured target or active Save scene.
 
 **Locate this existing block:**
 
@@ -1720,8 +1718,6 @@ impl Intent {
 
 ### 2. `src/lib.rs`
 
-Register the independent source-scope tests.
-
 **Locate this existing block:**
 
 ```rust
@@ -1739,8 +1735,6 @@ mod edit_source;
 ```
 
 ### 3. `src/edit_scope_tests.rs`
-
-Optional authoring fixture. Distinguish target imports from later selection, active Save sources from history, and missing targets from loaded ones.
 
 Create the file and type:
 
@@ -1859,11 +1853,7 @@ fn loaded_or_missing_target() {
 
 ## <a id="checkpoint-32gib-move"></a>16. Move the target from its current placement
 
-Apply a captured Move to its original target, composing with the placement that exists at replay time.
-
 ### 1. `src/editor.rs`
-
-Resolve an explicit target from current state and commit its world-space delta once. Keep ordinary Move on the same implementation used by captured edits.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -1950,8 +1940,6 @@ Replace it with:
 
 ### 2. `src/lib.rs`
 
-Register the original-target Move checks.
-
 **Locate this existing block:**
 
 ```rust
@@ -1969,8 +1957,6 @@ mod edit_scope_tests;
 ```
 
 ### 3. `src/edit_move_tests.rs`
-
-Optional authoring fixture. Prove current placement, later selection, camera and one history transaction survive replay.
 
 Create the file and type:
 
@@ -2049,11 +2035,7 @@ fn no_op_and_refused_moves_keep_redo() {
 
 ## <a id="checkpoint-32giba-delete"></a>17. Delete the target while keeping later selection
 
-Delete a captured target by identity without redirecting the command to a later selection.
-
 ### 1. `src/editor.rs`
-
-Remove the original target once and clear only its own selection. Use the same helper for ordinary Delete and preserve history when nothing is selected.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -2136,8 +2118,6 @@ Replace it with:
 
 ### 2. `src/lib.rs`
 
-Register the captured-target Delete checks.
-
 **Locate this existing block:**
 
 ```rust
@@ -2155,8 +2135,6 @@ pub mod edit_intent;
 ```
 
 ### 3. `src/edit_delete_tests.rs`
-
-Optional authoring fixture. Check delayed selection, one Undo and refusal without losing Redo.
 
 Create the file and type:
 
@@ -2235,11 +2213,7 @@ fn refused_delete_keeps_redo_and_selection() {
 
 ## <a id="checkpoint-32gibb-reply"></a>18. Route captured Move, Delete and Save results
 
-Return a scene change or original-precision save bytes from a captured intent.
-
 ### 1. `src/edit_replay.rs`
-
-Return changed-state feedback or save bytes without confusing a download with a history edit.
 
 Create the file and type:
 
@@ -2340,8 +2314,6 @@ mod tests {
 
 ### 2. `src/lib.rs`
 
-Register the captured-intent result module.
-
 **Locate this existing block:**
 
 ```rust
@@ -2359,11 +2331,7 @@ pub mod edit_replay;
 
 ## <a id="checkpoint-32gic-owner"></a>19. Own the intent with its pending source ticket
 
-Store source keys and captured intent in one pending owner that current completion can consume once.
-
 ### 1. `src/reload_job.rs`
-
-Keep the intent and source keys inside the same ticket-owned value. Allow any payload without requiring that payload to have a default value. Capture the requested operation when beginning its scoped source request. Install keys and payload together after request validation succeeds. Take the current payload once; stale replies leave newer work untouched. Keep explicit Reload Sources using a unit payload and its existing interface.
 
 **Locate this existing block:**
 
@@ -2522,8 +2490,6 @@ impl ReloadJob<()> {
 
 ### 2. `src/lib.rs`
 
-Register native ownership checks without exposing test code to the browser.
-
 **Locate this existing block:**
 
 ```rust
@@ -2541,8 +2507,6 @@ pub mod edit_replay;
 ```
 
 ### 3. `src/edit_owner_tests.rs`
-
-Optional authoring fixture. Prove stale/duplicate/cancelled replies cannot consume an intent or retain its source metadata.
 
 Create the file and type:
 
@@ -2615,11 +2579,7 @@ fn cancelled_payload_keeps_no_document_owner_alive() {
 
 ## <a id="checkpoint-32gica-reply"></a>20. Pair captured intent with complete source bodies
 
-Build a completion value that retains captured intent and rejects incomplete source-body pairings.
-
 ### 1. `src/reload_reply.rs`
-
-Keep the captured operation beside either its complete source bodies or its failure.
 
 Create the file and type:
 
@@ -2650,8 +2610,6 @@ impl Reply {
 
 ### 2. `src/lib.rs`
 
-Register the completion value for native checks and browser delivery.
-
 **Locate this existing block:**
 
 ```rust
@@ -2670,8 +2628,6 @@ pub mod reload_url;
 ```
 
 ### 3. `src/reload_reply_tests.rs`
-
-Optional authoring fixture. Check all captured operations, exact bodies, failures, partial counts and the explicit no-operation path.
 
 Create the file and type:
 
@@ -2769,11 +2725,7 @@ fn failures_preserve_operation_and_refuse_partial_body_pairs() {
 
 ## <a id="checkpoint-32gicb-bridge"></a>21. Carry captured intent through browser completion
 
-Carry optional captured intent through the abortable flight and deliver it beside complete source bodies or a current failure.
-
 ### 1. `src/browser_reload.rs`
-
-Use the same completion value in the browser mailbox. Preserve explicit Reload Sources while allowing a captured operation to accompany its keys. Only a current ticket may collect its captured operation and deliver the complete reply. Let the existing abortable flight own an optional operation. Capture the operation when starting the abortable source flight. Install the optional operation and keys into one ticket owner. Return both keys and operation only after checking completion ownership.
 
 **Locate this existing block:**
 
@@ -2956,8 +2908,6 @@ impl Flight {
 
 ### 2. `src/browser.rs`
 
-Keep the existing explicit source-restoration receiver reading the reply body.
-
 **Locate this existing block:**
 
 ```rust
@@ -2978,11 +2928,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-32gid-complete"></a>22. Validate restoration before replaying the command
 
-Complete source restoration and replay the captured operation only after current document validation.
-
 ### 1. `src/reload_reply.rs`
-
-Validate every current source key and body before replay; a stale context produces no reply.
 
 **Locate this existing block:**
 
@@ -3019,8 +2965,6 @@ impl Reply {
 
 ### 2. `src/lib.rs`
 
-Register native completion checks separately from the body-pairing checks.
-
 **Locate this existing block:**
 
 ```rust
@@ -3038,8 +2982,6 @@ pub mod reload_job;
 ```
 
 ### 3. `src/reload_complete_tests.rs`
-
-Optional authoring fixture. Prove automatic native Move/Delete/Save completion, original target, later selection/camera, Undo, and stale or failed completion.
 
 Create the file and type:
 
@@ -3135,11 +3077,7 @@ fn stale_context_and_failure_cannot_replay() {
 
 ## <a id="checkpoint-32gie-response"></a>23. Deliver restored edit and Save results to the dock
 
-Route validated scene edits and original-precision downloads back to the captured command history.
-
 ### 1. `src/edit_intent.rs`
-
-Name the captured operation independently of the current input field or selection.
 
 **Locate this existing block:**
 
@@ -3164,8 +3102,6 @@ impl Intent {
 ```
 
 ### 2. `src/browser.rs`
-
-Consume validated edit or Save results and associate success or failure with the original command. Keep download handling shared by immediate and restored Save results.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -3259,11 +3195,7 @@ pub async fn run() -> Result<(), JsValue> {
 
 ## <a id="checkpoint-32gif-auto"></a>24. Automatically restore sources for Move, Delete and Save
 
-Connect cold-source edits and Save to captured reload and validated replay without requiring Reload Sources first.
-
 ### 1. `src/browser_reload.rs`
-
-A new edit supersedes older pending work. Warm edits need no fetch; cold edits capture their required keys and operation.
 
 **Locate this existing block:**
 
@@ -3297,8 +3229,6 @@ pub fn start(
 ```
 
 ### 2. `src/browser.rs`
-
-Save reloads every active cold source before producing its original-precision download; warm Save remains immediate. Capture Move/Delete before fetching; camera and selection commands remain immediate while pending work keeps its original target. A deferred command has no scene change yet; failures retain normal dock reporting. Expose read-only placement, selection and camera values so Chrome checks the original target and later view exactly. These values add no controls.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -3476,11 +3406,7 @@ Replace it with:
 
 ## <a id="checkpoint-32gj-precision"></a>25. Prove restored Save keeps the source doubles
 
-Verify the automatic browser Save download retains exact source coordinates after display-only unloading.
-
 ### 1. `src/specimen.rs`
-
-Add a source coordinate that cannot survive an f64-to-f32 round trip; keep the original specimen available.
 
 **Locate this existing block:**
 
@@ -3506,8 +3432,6 @@ pub fn precise_bytes() -> Vec<u8> {
 
 ### 2. `examples/sample.rs`
 
-Supply this optional course-author fixture generator; browser exercises use the linked data files or recorded comparison.
-
 **Locate this existing block:**
 
 ```rust
@@ -3526,8 +3450,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 3. `src/lib.rs`
 
-Register the exact-coordinate restoration acceptance check.
-
 **Locate this existing block:**
 
 ```rust
@@ -3545,8 +3467,6 @@ pub mod reload_reply;
 ```
 
 ### 4. `src/reload_precision_tests.rs`
-
-Optional authoring fixture. Verify exact source-coordinate restoration with a real precision sentinel and unchanged edit history.
 
 Create the file and type:
 
@@ -3612,8 +3532,6 @@ fn cold_save_preserves_source_double_and_move_history() {
 
 ### 1. `src/lib.rs`
 
-Register multiple-source completion acceptance checks.
-
 **Locate this existing block:**
 
 ```rust
@@ -3631,8 +3549,6 @@ pub mod reload_job;
 ```
 
 ### 2. `src/reload_failure_tests.rs`
-
-Optional authoring fixture. A failure, missing body, changed file, duplicate key or stale epoch must not partially restore a multi-source Save.
 
 Create the file and type:
 

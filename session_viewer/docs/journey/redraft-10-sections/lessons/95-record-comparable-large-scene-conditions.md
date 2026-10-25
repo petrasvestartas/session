@@ -1,6 +1,6 @@
 # 18.7 · Measured frame costs and dependency-aware cache reports
 
-**Goal:** Prove cache invalidation and honest performance reports. · **Steps:** 7 · **Source:** [engine/gpu/ssao.rs](../../../../src/engine/gpu/ssao.rs) · [engine/gpu/ssao/pipelines.rs](../../../../src/engine/gpu/ssao/pipelines.rs) · [shaders/ssao.wgsl](../../../../src/shaders/ssao.wgsl) · [shaders/triangle.wgsl](../../../../src/shaders/triangle.wgsl)
+**Steps:** 7 · **Source:** [engine/gpu/ssao.rs](../../../../src/engine/gpu/ssao.rs) · [engine/gpu/ssao/pipelines.rs](../../../../src/engine/gpu/ssao/pipelines.rs) · [shaders/ssao.wgsl](../../../../src/shaders/ssao.wgsl) · [shaders/triangle.wgsl](../../../../src/shaders/triangle.wgsl)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -49,8 +49,6 @@
 ## <a id="checkpoint-95-record-comparable-large-scene-conditions"></a>1. Record comparable large scene conditions
 
 ### 1. `src/bench_config.rs`
-
-Own explicit conditions instead of unqualified performance claims.
 
 Create the file and type:
 
@@ -101,8 +99,6 @@ impl Conditions {
 
 ### 2. `src/lib.rs`
 
-Register the completed performance owner.
-
 **Locate this existing block:**
 
 ```rust
@@ -128,8 +124,6 @@ pub mod finite_project_source;
 ## <a id="checkpoint-95a-measure-warmed-frame-times-and-the-slow-tail"></a>2. Measure warmed frame times and the slow tail
 
 ### 1. `src/bench_samples.rs`
-
-Summarize real samples with an explicit warmup and slow-frame tail.
 
 Create the file and type:
 
@@ -174,8 +168,6 @@ pub fn summarize(samples: &[f64], warmup: usize) -> Result<Summary, &'static str
 
 ### 2. `src/lib.rs`
 
-Register the completed performance owner.
-
 **Locate this existing block:**
 
 ```rust
@@ -203,8 +195,6 @@ pub mod finite_project_source;
 ## <a id="checkpoint-95b-reject-incomparable-before-and-after-runs"></a>3. Reject incomparable before and after runs
 
 ### 1. `src/bench_compare.rs`
-
-Compare matched measurements and retain original-source memory accounting.
 
 Create the file and type:
 
@@ -259,8 +249,6 @@ pub fn compare(before: &Run, after: &Run) -> Result<Comparison, &'static str> {
 
 ### 2. `src/lib.rs`
 
-Register the completed performance owner.
-
 **Locate this existing block:**
 
 ```rust
@@ -288,8 +276,6 @@ pub mod finite_project_source;
 ## <a id="checkpoint-95c-witness-immutable-tree-inputs-across-camera-frames"></a>4. Witness immutable tree inputs across camera frames
 
 ### 1. `src/tree_witness.rs`
-
-Witness shared layer inputs without retaining geometry payloads.
 
 Create the file and type:
 
@@ -342,8 +328,6 @@ impl Witness {
 
 ### 2. `src/lib.rs`
 
-Register the completed performance owner.
-
 **Locate this existing block:**
 
 ```rust
@@ -385,8 +369,6 @@ pub mod tree_witness;
 ## <a id="checkpoint-95d-reuse-layer-rows-while-rotating-and-zooming"></a>5. Reuse layer rows while rotating and zooming
 
 ### 1. `src/tree_panel.rs`
-
-Cache unchanged scene/selection/epoch inputs before rebuilding layer state.
 
 **Locate this existing block:**
 
@@ -467,8 +449,6 @@ impl TreePanel {
 
 ### 2. `src/browser.rs`
 
-Use the cache from the actual teaching frame loop.
-
 **Locate this existing block:**
 
 ```rust
@@ -535,8 +515,6 @@ Edit the existing block to match this code; keep unchanged lines:
 </div>
 
 ### 1. `src/graph_edit.rs`
-
-Avoid full graph protobuf conversion and repeated node scans for display rows.
 
 **Locate this existing block:**
 
@@ -642,8 +620,6 @@ pub fn rows(scene: &Scene) -> Vec<(String, String, String, String)> {
 ## <a id="checkpoint-95f-prove-cache-invalidation-and-honest-performance-reports"></a>7. Prove cache invalidation and honest performance reports
 
 ### 1. `src/bench_tests.rs`
-
-Copy supplied invalid-data, comparability, original-source, cache and history fixtures.
 
 Create the file and type:
 
@@ -843,8 +819,6 @@ fn graph_rows_keep_one_original_edge_and_document_labels() {
 ```
 
 ### 2. `src/lib.rs`
-
-Register supplied performance correctness fixtures.
 
 **Locate this existing block:**
 

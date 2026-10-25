@@ -1,6 +1,6 @@
 # 14.2 · Precise coordinates and original drawing drafts
 
-**Goal:** Exercise current drawing tools and original persistence. · **Steps:** 20 · **Source:** [app/walk/sheet.rs](../../../../src/app/walk/sheet.rs) · [app/sheet_query.rs](../../../../src/app/sheet_query.rs) · [app/stream.rs](../../../../src/app/stream.rs) · [app/cplane.rs](../../../../src/app/cplane.rs)
+**Steps:** 20 · **Source:** [app/walk/sheet.rs](../../../../src/app/walk/sheet.rs) · [app/sheet_query.rs](../../../../src/app/sheet_query.rs) · [app/stream.rs](../../../../src/app/stream.rs) · [app/cplane.rs](../../../../src/app/cplane.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -48,11 +48,7 @@
 
 ## <a id="checkpoint-72-copy-current-construction-planes-and-coordinate-forms"></a>1. Place coordinates in the selected plane
 
-Complete absolute coordinates, offsets and point placement with the original construction-plane rules.
-
 ### 1. `src/drawing_coords.rs`
-
-Extend this original owner with the day’s complete input helpers. Supply only the unchanged original frame and coordinate validation fixtures.
 
 **Locate this existing block:**
 
@@ -608,8 +604,6 @@ mod tests {
 
 ### 1. `src/drawing_input.rs`
 
-Resolve current coordinate forms atomically before changing the draft.
-
 Create the file and type:
 
 ```rust
@@ -673,8 +667,6 @@ pub fn points(
 
 ### 2. `src/lib.rs`
 
-Register the drawing component.
-
 **Locate this existing block:**
 
 ```rust
@@ -696,8 +688,6 @@ pub mod drawing_input;
 ## <a id="checkpoint-72b-place-clicks-on-stable-construction-planes"></a>3. Place clicks on stable construction planes
 
 ### 1. `src/drawing_input.rs`
-
-Resolve finite construction-plane clicks and retain their original doubles.
 
 **Locate this existing block:**
 
@@ -773,8 +763,6 @@ pub fn on_at(
 
 ### 1. `src/drawing_input.rs`
 
-Describe current construction-plane options without silently changing a plane.
-
 **Locate this existing block:**
 
 ```rust
@@ -798,11 +786,7 @@ pub fn buttons() -> Vec<(String, String)> {
 
 ## <a id="checkpoint-72d-add-original-polylines-to-the-point-tool"></a>5. Add polylines to the point tool
 
-Add original polylines to the point tool.
-
 ### 1. `src/tool.rs`
-
-Prepare original bounded polylines beside existing point, line and Move tools.
 
 **Locate this existing block:**
 
@@ -952,8 +936,6 @@ pub const MAX_POINTS: usize = 4096;
 
 ### 2. `src/drawing_input.rs`
 
-Share the same original point cap with coordinate parsing.
-
 **Locate this existing block:**
 
 ```rust
@@ -971,8 +953,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 3. `src/editor.rs`
-
-Adopt a completed original polyline through the existing history transaction.
 
 **Locate this existing block:**
 
@@ -994,8 +974,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ## <a id="checkpoint-72e-keep-construction-frames-and-plane-points-in-drafts"></a>6. Keep construction frames and plane points in drafts
 
 ### 1. `src/tool.rs`
-
-Own separate construction-plane points and current drawing prompts.
 
 **Locate this existing block:**
 
@@ -1067,8 +1045,6 @@ impl Draft {
 ## <a id="checkpoint-72f-replay-finished-drafts-with-explicit-world-prefixes"></a>7. Replay finished drafts with explicit world prefixes
 
 ### 1. `src/tool.rs`
-
-Validate bounded batches and preserve original world positions through finished-command replay.
 
 **Locate this existing block:**
 
@@ -1154,8 +1130,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 1. `src/editor.rs`
 
-Retain the current fixed plane and chooser with the owning Editor.
-
 **Locate this existing block:**
 
 ```rust
@@ -1226,11 +1200,7 @@ impl Default for Editor {
 
 ## <a id="checkpoint-72h-commit-completed-original-geometry-exactly-once"></a>9. Commit completed geometry exactly once
 
-Commit completed original geometry exactly once.
-
 ### 1. `src/editor.rs`
-
-Commit completed originals once and preserve the existing Move preview contract.
 
 **Locate this existing block:**
 
@@ -1297,8 +1267,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ## <a id="checkpoint-72i-change-fixed-planes-without-rewriting-accepted-points"></a>10. Change fixed planes without rewriting accepted points
 
 ### 1. `src/editor.rs`
-
-Set fixed or View input frames while retaining original accepted points.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -1418,8 +1386,6 @@ Replace it with:
 ## <a id="checkpoint-72j-open-the-plane-chooser-and-collect-its-frame"></a>11. Open the plane chooser and collect its frame
 
 ### 1. `src/editor.rs`
-
-Open current plane options and collect a checked frame without committing scene geometry.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -1548,8 +1514,6 @@ Replace it with:
 
 ### 2. `src/drawing_input.rs`
 
-Connect the shared point cap and current construction-plane actions.
-
 **Locate this existing block:**
 
 ```rust
@@ -1589,8 +1553,6 @@ pub fn buttons() -> Vec<(String, String)> {
 ## <a id="checkpoint-72k-resolve-typed-input-against-the-current-draft"></a>12. Resolve typed input against the current draft
 
 ### 1. `src/editor.rs`
-
-Resolve typed batches before mutating the current original-point collector.
 
 **Locate this existing block:**
 
@@ -1642,8 +1604,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ## <a id="checkpoint-72l-finish-open-tools-with-enter-and-route-typed-forms"></a>13. Finish open tools with Enter and route typed forms
 
 ### 1. `src/editor.rs`
-
-Route current coordinate forms and finish only validated open drafts.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -1793,8 +1753,6 @@ Replace it with:
 
 ### 1. `src/editor.rs`
 
-Validate direct current-plane coordinate commands before changing the current draft.
-
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -1893,11 +1851,7 @@ Replace it with:
 
 ## <a id="checkpoint-72n-close-original-polylines-as-one-transaction"></a>15. Close polylines as one transaction
 
-Close original polylines as one transaction.
-
 ### 1. `src/editor.rs`
-
-Close original polylines without adding intermediate history transactions.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -2038,8 +1992,6 @@ Replace it with:
 
 ### 2. `src/tool.rs`
 
-Offer Close only for the open Polyline tool.
-
 **Locate this existing block:**
 
 ```rust
@@ -2064,8 +2016,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ## <a id="checkpoint-72o-snap-draft-starts-and-use-the-construction-frame-grid"></a>16. Snap draft starts and use the construction frame grid
 
 ### 1. `src/editor.rs`
-
-Snap current original targets and place finite free points on the current construction frame.
 
 **Locate this existing block:**
 
@@ -2148,8 +2098,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 1. `src/commands.rs`
 
-Register current original drawing tools, direct coordinates and explicit construction-plane choices.
-
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -2212,8 +2160,6 @@ Replace it with:
 
 ### 1. `src/tool_preview.rs`
 
-Preview accepted draft segments and cursor motion without scene or history changes.
-
 **Locate this existing block:**
 
 ```rust
@@ -2239,8 +2185,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 2. `src/browser.rs`
-
-Connect the current construction-plane chooser and drawing controls.
 
 **Locate this existing block:**
 
@@ -2269,11 +2213,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-72r-expose-original-drawing-coordinates-and-cancellation-state"></a>19. Expose drawing coordinates and cancellation state
 
-Expose original drawing coordinates and cancellation state.
-
 ### 1. `src/browser.rs`
-
-Expose precise original drawing coordinates and current fixed-plane chooser state.
 
 **Locate this existing block:**
 
@@ -2296,8 +2236,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 2. `src/editor.rs`
-
-Retire current plane collection and chooser state with draft cancellation and scene replacement.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -2508,8 +2446,6 @@ Replace it with:
 ## <a id="checkpoint-72s-exercise-current-drawing-tools-and-original-persistence"></a>20. Exercise current drawing tools and persistence
 
 ### 1. `src/drawing_tests.rs`
-
-Copy precise current drawing, fixed-plane replay, bounded input and history fixtures.
 
 Create the file and type:
 
@@ -2847,8 +2783,6 @@ fn edge_on_planes_and_view_depth_keep_a_finite_click_point() {
 ```
 
 ### 2. `src/lib.rs`
-
-Register the drawing component.
 
 **Locate this existing block:**
 

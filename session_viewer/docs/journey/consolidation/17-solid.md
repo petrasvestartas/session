@@ -1,60 +1,67 @@
 # 3.1 · Kernel geometry and a single editor owner
 
-**Goal:** Move document actions into a browser-independent editor while keeping picking, undo and drawing working. · **Steps:** 5 · **Source:** `src/app/decode.rs` · `src/app/loader.rs` · `src/state.rs`
-
-<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
-<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
-  <defs>
-    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
-    </marker>
-    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
-    </marker>
-    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
-    </marker>
-  </defs>
-  <rect x="2" y="2" width="1116" height="184" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
-  <rect x="14" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Kernel Box + Face Normals N</text>
-  <polygon points="186,52 256,82 186,112 116,82" fill="#f8fafc" stroke="#111111" stroke-width="1.75"/>
-  <polygon points="116,82 186,112 186,160 116,130" fill="#e2e8f0" stroke="#111111" stroke-width="1.75"/>
-  <polygon points="186,112 256,82 256,130 186,160" fill="#cbd5e1" stroke="#111111" stroke-width="1.75"/>
-  <line x1="186" y1="82" x2="186" y2="38" stroke="#2563eb" stroke-width="2" marker-end="url(#arrB)"/>
-  <line x1="222" y1="120" x2="268" y2="140" stroke="#dc2626" stroke-width="2" marker-end="url(#arrR)"/>
-  <line x1="150" y1="120" x2="104" y2="140" stroke="#16a34a" stroke-width="2" marker-end="url(#arrG)"/>
-  <line x1="358" y1="94" x2="384" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
-  <rect x="388" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">@fragment: max(dot(N, L), 0.0)</text>
-  <line x1="470" y1="134" x2="650" y2="134" stroke="#111111" stroke-width="2"/>
-  <line x1="560" y1="134" x2="560" y2="54" stroke="#2563eb" stroke-width="2.25" marker-end="url(#arrB)"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="546" y="60" font-family="monospace" font-size="10" font-weight="700" fill="#2563eb">N</text>
-  <line x1="560" y1="134" x2="628" y2="66" stroke="#f59e0b" stroke-width="2.25" marker-end="url(#arr)"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="640" y="68" font-family="monospace" font-size="10" font-weight="700" fill="#d97706">L</text>
-  <path d="M 560 98 A 36 36 0 0 1 585 109" fill="none" stroke="#111111" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="582" y="94" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">θ</text>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="156" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">lit = base * (amb + diff * cos θ)</text>
-  <line x1="732" y1="94" x2="758" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
-  <rect x="762" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Shaded 3D Solid in Viewer</text>
-  <rect x="814" y="44" width="240" height="118" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
-  <polygon points="934,54 1004,82 934,110 864,82" fill="#93c5fd" stroke="#111111" stroke-width="1.75"/>
-  <polygon points="864,82 934,110 934,154 864,126" fill="#60a5fa" stroke="#111111" stroke-width="1.75"/>
-  <polygon points="934,110 1004,82 1004,126 934,154" fill="#2563eb" stroke="#111111" stroke-width="1.75"/>
-</svg>
-</div>
+**Steps:** 5 · **Source:** `src/app/decode.rs` · `src/app/loader.rs` · `src/state.rs`
 
 ## <a id="checkpoint-17-solid"></a>1. Bring a solid into the scene
 
-Create a kernel box, convert it to display data, and add it as one undoable scene object.
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="214" viewBox="0 0 1120 214" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr-bf4ea7de" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arr-r-bf4ea7de" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arr-g-bf4ea7de" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arr-b-bf4ea7de" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+    <pattern id="grid-bf4ea7de" width="20" height="20" patternUnits="userSpaceOnUse">
+      <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#f1f5f9" stroke-width="1"/>
+    </pattern>
+  </defs>
+  <rect x="2" y="2" width="1116" height="210" rx="8" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="2" y="2" width="1116" height="28" rx="6" fill="#f8fafc" stroke="#111111" stroke-width="1.5"/>
+  <line x1="2" y1="30" x2="1118" y2="30" stroke="#111111" stroke-width="1.5"/>
+  <rect x="12" y="7" width="176" height="18" rx="3" fill="#111111"/>
+  <text x="100" y="19.5" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#ffffff" paint-order="normal" stroke="none">17..19 · SOLID &amp; EDITOR</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="518" y="20" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">24-Vertex Split-Normal Solid Box, Headlamp Lambertian Shading &amp; Unidirectional Editor State</text>
+  <rect x="838" y="7" width="268" height="18" rx="3" fill="#ffffff" stroke="#111111" stroke-width="1.2"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="972" y="19.5" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#2563eb">I = k_a + k_d * max(dot(N, L), 0.0)</text>
+  <rect x="14" y="38" width="344" height="164" rx="6" fill="url(#grid-bf4ea7de)" stroke="#111111" stroke-width="1.5"/>
+  <line x1="14" y1="60" x2="358" y2="60" stroke="#cbd5e1" stroke-width="1"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="186" y="53" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1 · Split-Corner Normals + Headlamp dot(N, L)</text>
+  <line x1="68" y1="154" x2="256" y2="154" stroke="#111111" stroke-width="2"/>
+  <line x1="162" y1="154" x2="162" y2="76" stroke="#2563eb" stroke-width="2.5" marker-end="url(#arr-b-bf4ea7de)"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="148" y="84" font-family="monospace" font-size="10" font-weight="700" fill="#2563eb">N</text>
+  <line x1="162" y1="154" x2="232" y2="86" stroke="#dc2626" stroke-width="2.2" marker-end="url(#arr-r-bf4ea7de)"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="242" y="88" font-family="monospace" font-size="10" font-weight="700" fill="#dc2626">L</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="186" y="180" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">24 verts (3 distinct normals / corner)</text>
+  <line x1="358" y1="120" x2="384" y2="120" stroke="#111111" stroke-width="2" marker-end="url(#arr-bf4ea7de)"/>
+  <rect x="388" y="38" width="344" height="164" rx="6" fill="url(#grid-bf4ea7de)" stroke="#111111" stroke-width="1.5"/>
+  <line x1="388" y1="60" x2="732" y2="60" stroke="#cbd5e1" stroke-width="1"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="53" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2 · Editor::apply(Action) -&gt; Change Flags</text>
+  <rect x="414" y="76" width="292" height="46" rx="4" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="96" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Orbit / Pan / Zoom Action</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="113" text-anchor="middle" font-family="monospace" font-size="8.5" fill="#2563eb">sync_scene: false · redraw: true (64B uniform)</text>
+  <rect x="414" y="132" width="292" height="48" rx="4" fill="#dcfce7" stroke="#16a34a" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="152" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Document Edit / Undo / Import</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="170" text-anchor="middle" font-family="monospace" font-size="8.5" fill="#16a34a">sync_scene: true · redraw: true (GPU buffers)</text>
+  <line x1="732" y1="120" x2="758" y2="120" stroke="#111111" stroke-width="2" marker-end="url(#arr-bf4ea7de)"/>
+  <rect x="762" y="38" width="344" height="164" rx="6" fill="url(#grid-bf4ea7de)" stroke="#111111" stroke-width="1.75"/>
+  <line x1="762" y1="60" x2="1106" y2="60" stroke="#cbd5e1" stroke-width="1"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="934" y="53" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3 · Shaded 3D Solid in Viewport</text>
+  <rect x="806" y="68" width="256" height="122" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <polygon points="884,96 944,74 1004,96 944,118" fill="#dbeafe" stroke="#111111" stroke-width="1.5"/>
+  <polygon points="884,96 944,118 944,176 884,154" fill="#60a5fa" stroke="#111111" stroke-width="1.5"/>
+  <polygon points="944,118 1004,96 1004,154 944,176" fill="#1d4ed8" stroke="#111111" stroke-width="1.5"/>
+</svg>
+</div>
 
 ### 1. `src/mesh.rs`
-
-Adapt kernel triangle data to the current vertex and index layout with a checked narrowing conversion. Check the adapter using a solid with known topology.
 
 **Locate this existing block:**
 
@@ -130,8 +137,6 @@ mod tests {
 
 ### 2. `src/scene.rs`
 
-Construct and place a box, then insert it only after its display mesh is valid.
-
 **Locate this existing block:**
 
 ```rust
@@ -160,8 +165,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 3. `src/history.rs`
-
-Make transaction recording depend on success. The existing edit wrapper remains convenient for actions that cannot return an error. Prove that a partial failed change cannot destroy either document contents or the redo branch.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -250,8 +253,6 @@ Replace it with:
 
 ### 4. `src/browser.rs`
 
-Add Example Box to the vocabulary. Insert the box as one fallible history edit and report construction errors. Report the undoable kernel object.
-
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -326,11 +327,53 @@ Replace it with:
 
 ## <a id="checkpoint-18-light"></a>2. Read the shape through light
 
-Shade the box faces according to their direction, using the same mesh and renderer.
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="184" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Kernel Box + Face Normals N</text>
+  <polygon points="186,52 256,82 186,112 116,82" fill="#f8fafc" stroke="#111111" stroke-width="1.75"/>
+  <polygon points="116,82 186,112 186,160 116,130" fill="#e2e8f0" stroke="#111111" stroke-width="1.75"/>
+  <polygon points="186,112 256,82 256,130 186,160" fill="#cbd5e1" stroke="#111111" stroke-width="1.75"/>
+  <line x1="186" y1="82" x2="186" y2="38" stroke="#2563eb" stroke-width="2" marker-end="url(#arrB)"/>
+  <line x1="222" y1="120" x2="268" y2="140" stroke="#dc2626" stroke-width="2" marker-end="url(#arrR)"/>
+  <line x1="150" y1="120" x2="104" y2="140" stroke="#16a34a" stroke-width="2" marker-end="url(#arrG)"/>
+  <line x1="358" y1="94" x2="384" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="388" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">@fragment: max(dot(N, L), 0.0)</text>
+  <line x1="470" y1="134" x2="650" y2="134" stroke="#111111" stroke-width="2"/>
+  <line x1="560" y1="134" x2="560" y2="54" stroke="#2563eb" stroke-width="2.25" marker-end="url(#arrB)"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="546" y="60" font-family="monospace" font-size="10" font-weight="700" fill="#2563eb">N</text>
+  <line x1="560" y1="134" x2="628" y2="66" stroke="#f59e0b" stroke-width="2.25" marker-end="url(#arr)"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="640" y="68" font-family="monospace" font-size="10" font-weight="700" fill="#d97706">L</text>
+  <path d="M 560 98 A 36 36 0 0 1 585 109" fill="none" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="582" y="94" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">θ</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="156" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">lit = base * (amb + diff * cos θ)</text>
+  <line x1="732" y1="94" x2="758" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="762" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Shaded 3D Solid in Viewer</text>
+  <rect x="814" y="44" width="240" height="118" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <polygon points="934,54 1004,82 934,110 864,82" fill="#93c5fd" stroke="#111111" stroke-width="1.75"/>
+  <polygon points="864,82 934,110 934,154 864,126" fill="#60a5fa" stroke="#111111" stroke-width="1.75"/>
+  <polygon points="934,110 1004,82 1004,126 934,154" fill="#2563eb" stroke="#111111" stroke-width="1.75"/>
+</svg>
+</div>
 
 ### 1. `src/triangle.wgsl`
-
-Pass world positions through the pipeline and turn face direction into brightness.
 
 **Locate this existing block:**
 
@@ -381,8 +424,6 @@ fn fragment(input: VertexOutput) -> @location(0) vec4<f32> {
 
 ### 2. `src/browser.rs`
 
-Report that lighting changes brightness without changing geometry.
-
 **Locate this existing block:**
 
 ```rust
@@ -401,11 +442,62 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-18a-editor"></a>3. Give application state one owner
 
-Own scene, selection, camera, background and history in one browser-independent value.
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="214" viewBox="0 0 1120 214" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr-16ee0472" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arr-r-16ee0472" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arr-g-16ee0472" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arr-b-16ee0472" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+    <pattern id="grid-16ee0472" width="20" height="20" patternUnits="userSpaceOnUse">
+      <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#f1f5f9" stroke-width="1"/>
+    </pattern>
+  </defs>
+  <rect x="2" y="2" width="1116" height="210" rx="8" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="2" y="2" width="1116" height="28" rx="6" fill="#f8fafc" stroke="#111111" stroke-width="1.5"/>
+  <line x1="2" y1="30" x2="1118" y2="30" stroke="#111111" stroke-width="1.5"/>
+  <rect x="12" y="7" width="176" height="18" rx="3" fill="#111111"/>
+  <text x="100" y="19.5" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#ffffff" paint-order="normal" stroke="none">18A..19 · ACTION -&gt; CHANGE</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="518" y="20" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Unidirectional Editor State Machine &amp; Split GPU Sync Flags (sync_scene vs redraw)</text>
+  <rect x="838" y="7" width="268" height="18" rx="3" fill="#ffffff" stroke="#111111" stroke-width="1.2"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="972" y="19.5" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#2563eb">apply(Action) -&gt; Change { sync_scene, redraw }</text>
+  <rect x="14" y="38" width="344" height="164" rx="6" fill="url(#grid-16ee0472)" stroke="#111111" stroke-width="1.5"/>
+  <line x1="14" y1="60" x2="358" y2="60" stroke="#cbd5e1" stroke-width="1"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="186" y="53" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1 · Typed Action Enum (UI + Shortcuts)</text>
+  <rect x="44" y="76" width="284" height="104" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="186" y="98" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">enum Action {</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="186" y="118" text-anchor="middle" font-family="monospace" font-size="9" fill="#2563eb">  Orbit(dx, dy), Pan(dx, dy), Zoom(d),</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="186" y="138" text-anchor="middle" font-family="monospace" font-size="9" fill="#16a34a">  Pick(px, py), DeleteSelected,</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="186" y="158" text-anchor="middle" font-family="monospace" font-size="9" fill="#dc2626">  Undo, Redo, ToggleBackground }</text>
+  <line x1="358" y1="120" x2="384" y2="120" stroke="#111111" stroke-width="2" marker-end="url(#arr-16ee0472)"/>
+  <rect x="388" y="38" width="344" height="164" rx="6" fill="url(#grid-16ee0472)" stroke="#111111" stroke-width="1.5"/>
+  <line x1="388" y1="60" x2="732" y2="60" stroke="#cbd5e1" stroke-width="1"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="53" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2 · Two-Tier GPU Update Contract</text>
+  <rect x="414" y="76" width="292" height="48" rx="4" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="96" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Camera / Selection / Backdrop</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="114" text-anchor="middle" font-family="monospace" font-size="8.5" fill="#2563eb">sync_scene: false · redraw: true (64B write)</text>
+  <rect x="414" y="132" width="292" height="48" rx="4" fill="#dcfce7" stroke="#16a34a" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="152" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Delete / Undo / Redo / Import</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="170" text-anchor="middle" font-family="monospace" font-size="8.5" fill="#16a34a">sync_scene: true · redraw: true (Mesh upload)</text>
+  <line x1="732" y1="120" x2="758" y2="120" stroke="#111111" stroke-width="2" marker-end="url(#arr-16ee0472)"/>
+  <rect x="762" y="38" width="344" height="164" rx="6" fill="url(#grid-16ee0472)" stroke="#111111" stroke-width="1.75"/>
+  <line x1="762" y1="60" x2="1106" y2="60" stroke="#cbd5e1" stroke-width="1"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="934" y="53" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3 · Zero Redundant GPU Uploads</text>
+  <rect x="806" y="68" width="256" height="122" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="934" y="108" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#16a34a">60 FPS Orbit = 64 B / frame</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="934" y="138" text-anchor="middle" font-family="monospace" font-size="9" fill="#111111">Vertex buffers untouched ✓</text>
+</svg>
+</div>
 
 ### 1. `src/editor.rs`
-
-Declare the action names, change kinds and application owner. Check a camera change keeps document identity.
 
 Create the file and type:
 
@@ -490,8 +582,6 @@ mod tests {
 
 ### 2. `src/lib.rs`
 
-Make the editor available to both the browser and native checks.
-
 **Locate this existing block:**
 
 ```rust
@@ -509,11 +599,7 @@ pub mod gpu_mesh;
 
 ## <a id="checkpoint-18b-actions"></a>4. Apply document and view actions in Rust
 
-Apply actions through one editor while preserving view settings during history and reset.
-
 ### 1. `src/editor.rs`
-
-Implement the action route and check history preserves the view. Keep the current aspect when resetting the camera.
 
 **Locate this existing block:**
 
@@ -641,55 +727,7 @@ mod tests {
 
 ## <a id="checkpoint-19-actions"></a>5. Route browser input through the editor
 
-<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
-<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
-  <defs>
-    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
-    </marker>
-    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
-    </marker>
-    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
-    </marker>
-  </defs>
-  <rect x="2" y="2" width="1116" height="184" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
-  <rect x="14" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">CPU (Rust / WASM): Adapter -&gt; (Device, Queue)</text>
-  <rect x="48" y="50" width="118" height="44" rx="4" fill="#dbeafe" stroke="#2563eb" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="107" y="76" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">wgpu::Instance</text>
-  <line x1="166" y1="72" x2="196" y2="72" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
-  <rect x="200" y="46" width="124" height="52" rx="4" fill="#dcfce7" stroke="#16a34a" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="262" y="68" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">wgpu::Device</text>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="262" y="86" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#16a34a">+ wgpu::Queue</text>
-  <rect x="74" y="112" width="224" height="38" rx="4" fill="#f8fafc" stroke="#111111" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="135" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Rc&lt;RefCell&lt;BrowserState&gt;&gt;</text>
-  <line x1="358" y1="94" x2="384" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
-  <rect x="388" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">CPU -&gt; GPU Bus: surface.configure(&amp;device, &amp;config)</text>
-  <rect x="424" y="50" width="272" height="98" rx="6" fill="#fef9c3" stroke="#d97706" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="74" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">SurfaceConfiguration</text>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="96" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#111111">format: Bgra8UnormSrgb</text>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="116" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#2563eb">width × height: clamp(1..max_2d)</text>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="136" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#16a34a">present_mode: Fifo (VSync)</text>
-  <line x1="732" y1="94" x2="758" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
-  <rect x="762" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">GPU Swapchain Texture -&gt; Browser &lt;canvas&gt;</text>
-  <rect x="806" y="44" width="256" height="118" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
-  <rect x="826" y="58" width="216" height="58" rx="4" fill="#dbeafe" stroke="#2563eb" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="84" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">get_current_texture()</text>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="102" text-anchor="middle" font-family="monospace" font-size="9" fill="#2563eb">-&gt; wgpu::TextureView</text>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="142" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#16a34a">frame.present() ✓</text>
-</svg>
-</div>
-
 ### 1. `src/editor.rs`
-
-Check selection repair, redo preservation and picking through the editor’s current camera.
 
 **Locate this existing block:**
 
@@ -752,151 +790,57 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 2. `src/browser.rs`
 
-Import the editor action types. Create one editor and initialize drawing from its scene. Present the editor background and camera. Start converting submitted lines into actions. Map commands to Action, apply through Editor, and synchronize according to Change. Redraw from the editor state. Report the shared action route.
+Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-**Locate this existing block:**
+**Locate this block:**
 
 ```rust
-use crate::background::Background;
-use crate::camera::Camera;
-use crate::history::History;
-use crate::renderer::Renderer;
-use crate::scene::Scene;
-use wasm_bindgen::{JsCast, JsValue, closure::Closure};
-
-pub fn report(message: &str) {
-    if let Some(document) = web_sys::window().and_then(|window| window.document()) {
-        if let Some(status) = document.get_element_by_id("status") {
-            status.set_text_content(Some(message));
-            if message.starts_with("Cannot") {
-                let _ = status.remove_attribute("hidden");
-            }
-        }
-    }
-}
-
-pub async fn run() -> Result<(), JsValue> {
-    let window = web_sys::window().ok_or("No browser window")?;
-    let document = window.document().ok_or("No document")?;
-    let canvas: web_sys::HtmlCanvasElement = document
-        .get_element_by_id("canvas")
-        .ok_or("Missing canvas")?
-        .dyn_into()?;
-    let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
-        backends: wgpu::Backends::BROWSER_WEBGPU,
-        flags: Default::default(),
-        memory_budget_thresholds: Default::default(),
-        backend_options: Default::default(),
-        display: None,
-    });
-    let surface = instance
-        .create_surface(wgpu::SurfaceTarget::Canvas(canvas.clone()))
-        .map_err(|error| JsValue::from_str(&error.to_string()))?;
-    let adapter = instance
-        .request_adapter(&wgpu::RequestAdapterOptions {
-            compatible_surface: Some(&surface),
-            ..Default::default()
-        })
-        .await
-        .map_err(|error| JsValue::from_str(&error.to_string()))?;
-    let (device, queue) = adapter
-        .request_device(&wgpu::DeviceDescriptor::default())
-        .await
-        .map_err(|error| JsValue::from_str(&error.to_string()))?;
-    device.on_uncaptured_error(std::sync::Arc::new(|error| {
-        report(&error.to_string())
-    }));
-    let limit = device.limits().max_texture_dimension_2d;
-    let width = (window
-        .inner_width()?
-        .as_f64()
-        .ok_or("No window width")? as u32)
-        .clamp(1, limit);
-    let height = (window
-        .inner_height()?
-        .as_f64()
-        .ok_or("No window height")? as u32)
-        .clamp(1, limit);
-    canvas.set_width(width);
-    canvas.set_height(height);
-    let mut config = surface
-        .get_default_config(&adapter, width, height)
-        .ok_or("No compatible surface format")?;
-    config.view_formats = vec![config.format.add_srgb_suffix()];
-    surface.configure(&device, &config);
-    let mut scene = Scene::demo();
-    let mut renderer = Renderer::new(
-        device,
-        queue,
-        config.format.add_srgb_suffix(),
-        &scene,
-    );
-    renderer.resize(width, height);
-    let mut panel = crate::panel::Panel::new(
-        &renderer,
-        config.format.add_srgb_suffix(),
-        &[
-            "Help",
-            "Example Box",
-            "Example Triangle",
-            "Select Next",
-            "Delete",
-            "Undo",
-            "Redo",
-            "Background",
-            "Zoom In",
-            "Zoom Out",
-            "Pan Left",
-            "Pan Right",
-            "Orbit Right",
-            "Orbit Up",
-            "View Isometric",
-            "View Reset",
-        ],
-    );
-    panel.update(None, &canvas)?;
-    let mut history = History::default();
-    let mut selected = None;
-    let mut background = Background::default();
-    let mut camera = Camera {
-        aspect: width as f64 / height as f64,
-        ..Camera::default()
-    };
-    present(
-        &surface,
-        &renderer,
-        &background,
-        &camera.uniform(),
-        &mut panel,
     )?;
-    let input_canvas = canvas.clone();
-    let click =
-        Closure::<dyn FnMut(web_sys::Event)>::new(move |event: web_sys::Event| {
-            let line = match panel.update(Some(&event), &input_canvas) {
-                Ok(line) => line,
-                Err(error) => {
-                    report(&format!("Cannot read command: {error:?}"));
-                    return;
-                }
-            };
+    // The page has one listener for its lifetime; JavaScript must retain the Rust callback.
+    click.forget();
+    report("Surface direction changes brightness, not geometry.");
+    Ok(())
+```
 
-            let line = line.or_else(|| {
-                let mouse = event.dyn_ref::<web_sys::MouseEvent>()?;
-                (event.type_() == "click"
-                    && !panel.consumed
-                    && mouse
-                        .target()
-                        .and_then(|target| target.dyn_into::<web_sys::Element>().ok())
-                        .is_some_and(|target| target.id() == "canvas"))
-                .then(|| "canvas".into())
-            });
-            if let Some(line) = line {
-                match line.as_str() {
-                    "canvas" => {
-                        let Some(event) = event.dyn_ref::<web_sys::MouseEvent>() else {
-                            return;
-                        };
-                        let rect = input_canvas.get_bounding_client_rect();
+Replace it with:
+
+```rust
+    )?;
+    // The page has one listener for its lifetime; JavaScript must retain the Rust callback.
+    click.forget();
+    report("Every document action follows the same editor path.");
+    Ok(())
+```
+
+**Locate this block:**
+
+```rust
+            if let Err(error) = present(
+                &surface,
+                &renderer,
+                &background,
+                &camera.uniform(),
+                &mut panel,
+            ) {
+                report(&format!("Cannot redraw: {error:?}"));
+```
+
+Replace it with:
+
+```rust
+            if let Err(error) = present(
+                &surface,
+                &renderer,
+                &editor.background,
+                &editor.camera.uniform(),
+                &mut panel,
+            ) {
+                report(&format!("Cannot redraw: {error:?}"));
+```
+
+**Locate this block:**
+
+```rust
                         if rect.width() <= 0.0 || rect.height() <= 0.0 {
                             return;
                         }
@@ -965,184 +909,11 @@ pub async fn run() -> Result<(), JsValue> {
                 }
             }
             if let Err(error) = panel.update(None, &input_canvas) {
-                report(&format!(
-                    "Cannot lay out commands: {error:?}"
-                ));
-                return;
-            }
-            if let Err(error) = present(
-                &surface,
-                &renderer,
-                &background,
-                &camera.uniform(),
-                &mut panel,
-            ) {
-                report(&format!("Cannot redraw: {error:?}"));
-            }
-        });
-    for name in [
-        "pointerdown",
-        "pointermove",
-        "pointerup",
-        "pointercancel",
-        "lostpointercapture",
-        "contextmenu",
-        "keydown",
-        "keyup",
-        "blur",
-        "click",
-    ] {
-        canvas
-            .add_event_listener_with_callback(name, click.as_ref().unchecked_ref())?;
-    }
-    let options = web_sys::AddEventListenerOptions::new();
-    options.set_passive(false);
-    canvas.add_event_listener_with_callback_and_add_event_listener_options(
-        "wheel",
-        click.as_ref().unchecked_ref(),
-        &options,
-    )?;
-    // The page has one listener for its lifetime; JavaScript must retain the Rust callback.
-    click.forget();
-    report("Surface direction changes brightness, not geometry.");
-    Ok(())
 ```
 
-Edit the existing block to match this code; keep unchanged lines:
+Replace it with:
 
 ```rust
-use crate::background::Background;
-use crate::editor::{Action, Change, Editor};
-use crate::renderer::Renderer;
-use wasm_bindgen::{JsCast, JsValue, closure::Closure};
-
-pub fn report(message: &str) {
-    if let Some(document) = web_sys::window().and_then(|window| window.document()) {
-        if let Some(status) = document.get_element_by_id("status") {
-            status.set_text_content(Some(message));
-            if message.starts_with("Cannot") {
-                let _ = status.remove_attribute("hidden");
-            }
-        }
-    }
-}
-
-pub async fn run() -> Result<(), JsValue> {
-    let window = web_sys::window().ok_or("No browser window")?;
-    let document = window.document().ok_or("No document")?;
-    let canvas: web_sys::HtmlCanvasElement = document
-        .get_element_by_id("canvas")
-        .ok_or("Missing canvas")?
-        .dyn_into()?;
-    let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
-        backends: wgpu::Backends::BROWSER_WEBGPU,
-        flags: Default::default(),
-        memory_budget_thresholds: Default::default(),
-        backend_options: Default::default(),
-        display: None,
-    });
-    let surface = instance
-        .create_surface(wgpu::SurfaceTarget::Canvas(canvas.clone()))
-        .map_err(|error| JsValue::from_str(&error.to_string()))?;
-    let adapter = instance
-        .request_adapter(&wgpu::RequestAdapterOptions {
-            compatible_surface: Some(&surface),
-            ..Default::default()
-        })
-        .await
-        .map_err(|error| JsValue::from_str(&error.to_string()))?;
-    let (device, queue) = adapter
-        .request_device(&wgpu::DeviceDescriptor::default())
-        .await
-        .map_err(|error| JsValue::from_str(&error.to_string()))?;
-    device.on_uncaptured_error(std::sync::Arc::new(|error| {
-        report(&error.to_string())
-    }));
-    let limit = device.limits().max_texture_dimension_2d;
-    let width = (window
-        .inner_width()?
-        .as_f64()
-        .ok_or("No window width")? as u32)
-        .clamp(1, limit);
-    let height = (window
-        .inner_height()?
-        .as_f64()
-        .ok_or("No window height")? as u32)
-        .clamp(1, limit);
-    canvas.set_width(width);
-    canvas.set_height(height);
-    let mut config = surface
-        .get_default_config(&adapter, width, height)
-        .ok_or("No compatible surface format")?;
-    config.view_formats = vec![config.format.add_srgb_suffix()];
-    surface.configure(&device, &config);
-    let mut editor = Editor::default();
-    editor.camera.aspect = width as f64 / height as f64;
-    let mut renderer = Renderer::new(
-        device,
-        queue,
-        config.format.add_srgb_suffix(),
-        &editor.scene,
-    );
-    renderer.resize(width, height);
-    let mut panel = crate::panel::Panel::new(
-        &renderer,
-        config.format.add_srgb_suffix(),
-        &[
-            "Help",
-            "Example Box",
-            "Example Triangle",
-            "Select Next",
-            "Delete",
-            "Undo",
-            "Redo",
-            "Background",
-            "Zoom In",
-            "Zoom Out",
-            "Pan Left",
-            "Pan Right",
-            "Orbit Right",
-            "Orbit Up",
-            "View Isometric",
-            "View Reset",
-        ],
-    );
-    panel.update(None, &canvas)?;
-    present(
-        &surface,
-        &renderer,
-        &editor.background,
-        &editor.camera.uniform(),
-        &mut panel,
-    )?;
-    let input_canvas = canvas.clone();
-    let click =
-        Closure::<dyn FnMut(web_sys::Event)>::new(move |event: web_sys::Event| {
-            let line = match panel.update(Some(&event), &input_canvas) {
-                Ok(line) => line,
-                Err(error) => {
-                    report(&format!("Cannot read command: {error:?}"));
-                    return;
-                }
-            };
-
-            let line = line.or_else(|| {
-                let mouse = event.dyn_ref::<web_sys::MouseEvent>()?;
-                (event.type_() == "click"
-                    && !panel.consumed
-                    && mouse
-                        .target()
-                        .and_then(|target| target.dyn_into::<web_sys::Element>().ok())
-                        .is_some_and(|target| target.id() == "canvas"))
-                .then(|| "canvas".into())
-            });
-            if let Some(line) = line {
-                let action = match line.as_str() {
-                    "canvas" => {
-                        let Some(event) = event.dyn_ref::<web_sys::MouseEvent>() else {
-                            return;
-                        };
-                        let rect = input_canvas.get_bounding_client_rect();
                         if rect.width() <= 0.0 || rect.height() <= 0.0 {
                             return;
                         }
@@ -1183,47 +954,128 @@ pub async fn run() -> Result<(), JsValue> {
                 }
             }
             if let Err(error) = panel.update(None, &input_canvas) {
-                report(&format!(
-                    "Cannot lay out commands: {error:?}"
-                ));
-                return;
-            }
-            if let Err(error) = present(
-                &surface,
-                &renderer,
-                &editor.background,
-                &editor.camera.uniform(),
-                &mut panel,
-            ) {
-                report(&format!("Cannot redraw: {error:?}"));
-            }
-        });
-    for name in [
-        "pointerdown",
-        "pointermove",
-        "pointerup",
-        "pointercancel",
-        "lostpointercapture",
-        "contextmenu",
-        "keydown",
-        "keyup",
-        "blur",
-        "click",
-    ] {
-        canvas
-            .add_event_listener_with_callback(name, click.as_ref().unchecked_ref())?;
-    }
-    let options = web_sys::AddEventListenerOptions::new();
-    options.set_passive(false);
-    canvas.add_event_listener_with_callback_and_add_event_listener_options(
-        "wheel",
-        click.as_ref().unchecked_ref(),
-        &options,
+```
+
+**Locate this block:**
+
+```rust
+                .then(|| "canvas".into())
+            });
+            if let Some(line) = line {
+                match line.as_str() {
+                    "canvas" => {
+                        let Some(event) = event.dyn_ref::<web_sys::MouseEvent>() else {
+                            return;
+```
+
+Replace it with:
+
+```rust
+                .then(|| "canvas".into())
+            });
+            if let Some(line) = line {
+                let action = match line.as_str() {
+                    "canvas" => {
+                        let Some(event) = event.dyn_ref::<web_sys::MouseEvent>() else {
+                            return;
+```
+
+**Locate this block:**
+
+```rust
+        ],
+    );
+    panel.update(None, &canvas)?;
+    let mut history = History::default();
+    let mut selected = None;
+    let mut background = Background::default();
+    let mut camera = Camera {
+        aspect: width as f64 / height as f64,
+        ..Camera::default()
+    };
+    present(
+        &surface,
+        &renderer,
+        &background,
+        &camera.uniform(),
+        &mut panel,
     )?;
-    // The page has one listener for its lifetime; JavaScript must retain the Rust callback.
-    click.forget();
-    report("Every document action follows the same editor path.");
-    Ok(())
+    let input_canvas = canvas.clone();
+```
+
+Replace it with:
+
+```rust
+        ],
+    );
+    panel.update(None, &canvas)?;
+    present(
+        &surface,
+        &renderer,
+        &editor.background,
+        &editor.camera.uniform(),
+        &mut panel,
+    )?;
+    let input_canvas = canvas.clone();
+```
+
+**Locate this block:**
+
+```rust
+        .ok_or("No compatible surface format")?;
+    config.view_formats = vec![config.format.add_srgb_suffix()];
+    surface.configure(&device, &config);
+    let mut scene = Scene::demo();
+    let mut renderer = Renderer::new(
+        device,
+        queue,
+        config.format.add_srgb_suffix(),
+        &scene,
+    );
+    renderer.resize(width, height);
+    let mut panel = crate::panel::Panel::new(
+```
+
+Replace it with:
+
+```rust
+        .ok_or("No compatible surface format")?;
+    config.view_formats = vec![config.format.add_srgb_suffix()];
+    surface.configure(&device, &config);
+    let mut editor = Editor::default();
+    editor.camera.aspect = width as f64 / height as f64;
+    let mut renderer = Renderer::new(
+        device,
+        queue,
+        config.format.add_srgb_suffix(),
+        &editor.scene,
+    );
+    renderer.resize(width, height);
+    let mut panel = crate::panel::Panel::new(
+```
+
+**Locate this block:**
+
+```rust
+use crate::background::Background;
+use crate::camera::Camera;
+use crate::history::History;
+use crate::renderer::Renderer;
+use crate::scene::Scene;
+use wasm_bindgen::{JsCast, JsValue, closure::Closure};
+
+pub fn report(message: &str) {
+```
+
+Replace it with:
+
+```rust
+use crate::background::Background;
+use crate::editor::{Action, Change, Editor};
+use crate::renderer::Renderer;
+use wasm_bindgen::{JsCast, JsValue, closure::Closure};
+
+pub fn report(message: &str) {
 ```
 
 ## Build & Run

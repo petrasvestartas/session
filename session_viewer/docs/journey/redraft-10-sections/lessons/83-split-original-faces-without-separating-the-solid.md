@@ -1,6 +1,6 @@
 # 16.3 · Joined-face topology and exact surface measures
 
-**Goal:** Reuse mesh area for meshes, meshed BReps and Elements. · **Steps:** 4 · **Source:** [app/command/verbs/project_to_plane.rs](../../../../src/app/command/verbs/project_to_plane.rs) · [app/command/verbs/extend.rs](../../../../src/app/command/verbs/extend.rs) · [app/splitting.rs](../../../../src/app/splitting.rs) · [app/command/verbs/measure.rs](../../../../src/app/command/verbs/measure.rs)
+**Steps:** 4 · **Source:** [app/command/verbs/project_to_plane.rs](../../../../src/app/command/verbs/project_to_plane.rs) · [app/command/verbs/extend.rs](../../../../src/app/command/verbs/extend.rs) · [app/splitting.rs](../../../../src/app/splitting.rs) · [app/command/verbs/measure.rs](../../../../src/app/command/verbs/measure.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -44,11 +44,7 @@
 
 ## <a id="checkpoint-83-split-original-faces-without-separating-the-solid"></a>1. Split faces without separating the solid
 
-Divide a selected original surface face while preserving joined topology and one-step history.
-
 ### 1. `src/split_draft.rs`
-
-Allow original surfaces and validated BRep faces through the shared pending split owner.
 
 **Locate this existing block:**
 
@@ -68,8 +64,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 2. `src/split_face_tests.rs`
-
-Copy integrated maintained joined-face, original placement, topology, area, archive and history fixtures.
 
 Create the file and type:
 
@@ -293,8 +287,6 @@ fn off_surface_cutters_make_no_division_and_preserve_originals_and_redo() {
 
 ### 3. `src/lib.rs`
 
-Register the copied original-face split fixtures.
-
 **Locate this existing block:**
 
 ```rust
@@ -368,11 +360,7 @@ mod split_face_tests;
 </svg>
 </div>
 
-Write one visitor for the original mesh triangles in world coordinates.
-
 ### 1. `src/measure_math.rs`
-
-Type the whole original mesh measurement helpers using the shared visitor.
 
 Create the file and type:
 
@@ -452,8 +440,6 @@ pub fn skipped_text(count: usize) -> String {
 
 ### 2. `src/lib.rs`
 
-Compile this shared original measurement module.
-
 **Locate this existing block:**
 
 ```rust
@@ -482,11 +468,7 @@ pub mod source_mesh_topology;
 
 ## <a id="checkpoint-83zb-compute-original-mesh-measures-and-curve-length"></a>3. Compute mesh measures and curve length
 
-Reuse the triangle visitor for face area, mesh area and signed swept volume.
-
 ### 1. `src/measure_math.rs`
-
-Reuse the original triangle visitor for mesh area and signed swept volume. Supply only the unchanged original mesh measurement fixtures.
 
 **Locate this existing block:**
 
@@ -709,8 +691,6 @@ mod tests {
 
 ### 2. `src/measure_length.rs`
 
-Type the complete original helpers introduced today.
-
 Create the file and type:
 
 ```rust
@@ -727,8 +707,6 @@ pub fn compute_length(geometry: &Geometry, place: &Xform) -> Option<f64> {
 ```
 
 ### 3. `src/lib.rs`
-
-Register this original measurement owner.
 
 **Locate this existing block:**
 
@@ -747,8 +725,6 @@ pub mod source_mesh_topology;
 ```
 
 ### 4. `src/measure_length.rs`
-
-Supply only the unchanged original validation fixtures.
 
 **Locate this existing block:**
 
@@ -802,8 +778,6 @@ mod tests {
 ```
 
 ### 5. `src/cad_orient.rs`
-
-Supply only original orientation validation fixtures against the already taught shared owner.
 
 **Locate this existing block:**
 
@@ -932,8 +906,6 @@ mod tests {
 
 ### 1. `src/measure_area.rs`
 
-Type the complete original helpers introduced today.
-
 Create the file and type:
 
 ```rust
@@ -1013,8 +985,6 @@ fn compute_surface_area(surface: &NurbsSurface) -> f64 {
 
 ### 2. `src/lib.rs`
 
-Register surface area after curve length; reuse the earlier orientation owner.
-
 **Locate this existing block:**
 
 ```rust
@@ -1032,8 +1002,6 @@ pub mod source_mesh_topology;
 ```
 
 ### 3. `src/measure_area.rs`
-
-Supply only the unchanged original validation fixtures.
 
 **Locate this existing block:**
 

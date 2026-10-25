@@ -1,6 +1,6 @@
 # 16.5 · Text, Plane, Trim and integrated editing commands
 
-**Goal:** Exercise current original commands together. · **Steps:** 52 · **Source:** [app/command/verbs/project_to_plane.rs](../../../../src/app/command/verbs/project_to_plane.rs) · [app/command/verbs/extend.rs](../../../../src/app/command/verbs/extend.rs) · [app/splitting.rs](../../../../src/app/splitting.rs) · [app/command/verbs/measure.rs](../../../../src/app/command/verbs/measure.rs)
+**Steps:** 52 · **Source:** [app/command/verbs/project_to_plane.rs](../../../../src/app/command/verbs/project_to_plane.rs) · [app/command/verbs/extend.rs](../../../../src/app/command/verbs/extend.rs) · [app/splitting.rs](../../../../src/app/splitting.rs) · [app/command/verbs/measure.rs](../../../../src/app/command/verbs/measure.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -47,11 +47,7 @@
 
 ## <a id="checkpoint-85-copy-current-original-command-recipes"></a>1. Write text placement and curve heads
 
-Build world-plane labels with readable axes and the original rounded scale steps.
-
 ### 1. `src/lib.rs`
-
-Move the already compiled selection/classifier registrations beside the finished command owners.
 
 **Locate this existing block:**
 
@@ -70,8 +66,6 @@ mod shader_check;
 ```
 
 ### 2. `src/text_geometry.rs`
-
-Type the whole original helpers introduced today.
 
 Create the file and type:
 
@@ -150,8 +144,6 @@ pub fn nice(value: f64) -> f64 {
 
 ### 3. `src/lib.rs`
 
-Register this original command owner.
-
 **Locate this existing block:**
 
 ```rust
@@ -173,8 +165,6 @@ pub mod text_geometry;
 ```
 
 ### 4. `src/curve_heads.rs`
-
-Type the whole original helpers introduced today.
 
 Create the file and type:
 
@@ -215,8 +205,6 @@ pub fn headed(geometry: &Geometry, head: Arrowhead) -> Option<(Geometry, bool)> 
 
 ### 5. `src/lib.rs`
 
-Register this original command owner.
-
 **Locate this existing block:**
 
 ```rust
@@ -242,8 +230,6 @@ pub mod source_mesh_topology;
 ```
 
 ### 6. `src/curve_heads.rs`
-
-Supply only the unchanged original validation fixtures.
 
 **Locate this existing block:**
 
@@ -312,8 +298,6 @@ mod tests {
 
 ### 7. `src/lib.rs`
 
-Keep original command module registration order.
-
 **Locate this existing block:**
 
 ```rust
@@ -339,8 +323,6 @@ pub mod source_shape;
 ## <a id="checkpoint-85a-validate-original-plane-display-and-precise-bounds"></a>2. Validate Plane display and precise bounds
 
 ### 1. `src/plane_original.rs`
-
-Validate original Plane display and precise bounds.
 
 Create the file and type:
 
@@ -459,8 +441,6 @@ pub fn insert(
 
 ### 2. `src/lib.rs`
 
-Register this command owner.
-
 **Locate this existing block:**
 
 ```rust
@@ -487,11 +467,7 @@ pub mod source_mesh_topology;
 
 ## <a id="checkpoint-85b-retain-original-plane-and-text-edit-eligibility"></a>3. Retain Plane and Text edit eligibility
 
-Retain original Plane and Text edit eligibility.
-
 ### 1. `src/source_edit.rs`
-
-Resolve original planes and eligible text owners.
 
 **Locate this existing block:**
 
@@ -620,8 +596,6 @@ pub fn editable(scene: &Scene, id: ObjectId) -> Result<(), &'static str> {
 
 ### 2. `src/source_part.rs`
 
-Expose original Plane geometry to source algorithms.
-
 **Locate this existing block:**
 
 ```rust
@@ -710,8 +684,6 @@ impl Query {
 
 ### 2. `src/lib.rs`
 
-Register this command owner.
-
 **Locate this existing block:**
 
 ```rust
@@ -731,8 +703,6 @@ pub mod source_mesh_topology;
 ## <a id="checkpoint-85d-plan-sibling-pieces-from-original-owners"></a>5. Plan sibling pieces from owners
 
 ### 1. `src/explode_edit.rs`
-
-Plan sibling pieces from original owners.
 
 Create the file and type:
 
@@ -798,8 +768,6 @@ impl Plan {
 ```
 
 ### 2. `src/lib.rs`
-
-Register this command owner.
 
 **Locate this existing block:**
 
@@ -911,8 +879,6 @@ impl Draft {
 
 ### 2. `src/lib.rs`
 
-Register this command owner.
-
 **Locate this existing block:**
 
 ```rust
@@ -986,8 +952,6 @@ impl Overlay {
 ```
 
 ### 2. `src/lib.rs`
-
-Register this command owner.
 
 **Locate this existing block:**
 
@@ -1072,8 +1036,6 @@ fn fragment(input: Output) -> @location(0) vec4<f32> { if(input.dashed!=0u&&frac
 
 ### 2. `src/guide_pick.wgsl`
 
-Keep temporary guide ownership zero; never submit this lane to integer picking.
-
 Create the file and type:
 
 ```wgsl
@@ -1086,8 +1048,6 @@ struct PickOutput{@builtin(position)position:vec4<f32>}
 ## <a id="checkpoint-85h-cache-guide-buffers-and-actual-allocation"></a>9. Cache guide buffers and actual allocation
 
 ### 1. `src/stroke_gpu.rs`
-
-Prepare the explicit guide vertex layout and color-only lane.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -1392,8 +1352,6 @@ impl Draft {
 ```
 
 ### 2. `src/lib.rs`
-
-Register this command owner.
 
 **Locate this existing block:**
 
@@ -1878,8 +1836,6 @@ impl Lasso {
 
 ### 2. `src/lib.rs`
 
-Register this command owner.
-
 **Locate this existing block:**
 
 ```rust
@@ -1905,8 +1861,6 @@ pub mod source_mesh_topology;
 ```
 
 ### 3. `src/lasso.rs`
-
-Copy the maintained bounded-loop spacing fixture.
 
 **Locate this existing block:**
 
@@ -1960,8 +1914,6 @@ mod tests {
 ## <a id="checkpoint-85p-own-document-scoped-groups-and-links"></a>17. Own document-scoped groups and links
 
 ### 1. `src/scene.rs`
-
-Own groups and graphs beside original document state.
 
 **Locate this existing block:**
 
@@ -2120,8 +2072,6 @@ fn current(scene: &Scene, doc: &crate::hierarchy::Document) -> session_rust::Gra
 
 ### 2. `src/lib.rs`
 
-Register this command owner.
-
 **Locate this existing block:**
 
 ```rust
@@ -2141,8 +2091,6 @@ pub mod source_mesh_topology;
 ## <a id="checkpoint-85r-connect-two-original-owners-and-save-their-links"></a>19. Connect two owners and save their links
 
 ### 1. `src/graph_edit.rs`
-
-Connect two original owners and save their links.
 
 **Locate this existing block:**
 
@@ -2356,8 +2304,6 @@ pub fn rows(scene: &Scene) -> Vec<(String, String, String, String)> {
 
 ### 1. `src/group_plan.rs`
 
-Plan world-preserving original groups.
-
 Create the file and type:
 
 ```rust
@@ -2487,8 +2433,6 @@ impl Plan {
 
 ### 2. `src/lib.rs`
 
-Register this command owner.
-
 **Locate this existing block:**
 
 ```rust
@@ -2508,8 +2452,6 @@ pub mod source_mesh_topology;
 ## <a id="checkpoint-85u-adopt-group-branches-with-one-reversible-edit"></a>22. Adopt group branches with one reversible edit
 
 ### 1. `src/layer_edit.rs`
-
-Adopt a checked group and preserve copied group membership.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -2637,11 +2579,7 @@ Replace it with:
 
 ## <a id="checkpoint-85v-append-namespaced-graphs-and-preserve-original-row-identities"></a>23. Append namespaced graphs and preserve row identities
 
-Append namespaced graphs and preserve original row identities.
-
 ### 1. `src/scene.rs`
-
-Preserve original families during source replacement.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -2801,11 +2739,7 @@ Replace it with:
 
 ## <a id="checkpoint-85w-replace-original-families-without-changing-world-placement"></a>24. Replace families without changing world placement
 
-Replace original families without changing world placement.
-
 ### 1. `src/scene.rs`
-
-Preserve original families during source replacement.
 
 **Locate this existing block:**
 
@@ -2980,11 +2914,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-85x-save-group-namespaces-and-original-planes"></a>25. Save group namespaces and planes
 
-Save group namespaces and original planes.
-
 ### 1. `src/archive_document.rs`
-
-Preserve original family and document-scoped metadata.
 
 **Locate this existing block:**
 
@@ -3005,8 +2935,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 2. `src/archive_identity.rs`
 
-Preserve original family and document-scoped metadata.
-
 **Locate this existing block:**
 
 ```rust
@@ -3023,8 +2951,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 3. `src/archive_presentation.rs`
-
-Preserve original family and document-scoped metadata.
 
 **Locate this existing block:**
 
@@ -3056,8 +2982,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 4. `src/archive_restore_flags.rs`
 
-Preserve original family and document-scoped metadata.
-
 **Locate this existing block:**
 
 ```rust
@@ -3088,8 +3012,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 5. `src/document_geometry.rs`
 
-Preserve original family and document-scoped metadata.
-
 **Locate this existing block:**
 
 ```rust
@@ -3111,8 +3033,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 6. `src/document_source.rs`
-
-Preserve original family and document-scoped metadata.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -3162,8 +3082,6 @@ Replace it with:
 
 ### 7. `src/geometry_snapshot.rs`
 
-Preserve original family and document-scoped metadata.
-
 **Locate this existing block:**
 
 ```rust
@@ -3183,8 +3101,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 8. `src/source_validate.rs`
-
-Preserve original family and document-scoped metadata.
 
 **Locate this existing block:**
 
@@ -3241,8 +3157,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ## <a id="checkpoint-85y-keep-named-views-and-grid-on-the-drawing-plane"></a>26. Keep named views and grid on the drawing plane
 
 ### 1. `src/camera.rs`
-
-Follow the current named view and precise drawing frame.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -3405,8 +3319,6 @@ pub struct Camera {
 
 ### 2. `src/grid.rs`
 
-Follow the current named view and precise drawing frame.
-
 **Locate this existing block:**
 
 ```rust
@@ -3483,8 +3395,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 3. `src/text_geometry.rs`
-
-Copy the maintained current named-view reading-axis fixtures.
 
 **Locate this existing block:**
 
@@ -3849,8 +3759,6 @@ pub struct Renderer {
 
 ### 1. `src/tree_panel.rs`
 
-Present existing graph and pointer state without editing originals.
-
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -3939,8 +3847,6 @@ pub struct TreePanel {
 
 ### 2. `src/panel.rs`
 
-Present existing graph and pointer state without editing originals.
-
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -4027,8 +3933,6 @@ pub struct Panel {
 
 ### 3. `src/measure_mark.rs`
 
-Use the current finite measurement formatting condition.
-
 **Locate this existing block:**
 
 ```rust
@@ -4046,8 +3950,6 @@ pub enum Kind {
 ```
 
 ### 4. `src/scene_document.rs`
-
-Retain the identical current document source.
 
 **Locate this existing block:**
 
@@ -4069,8 +3971,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ## <a id="checkpoint-85ab-own-current-pending-command-state"></a>29. Own current pending command state
 
 ### 1. `src/editor.rs`
-
-Declare typed actions and their independent editor state.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -4179,8 +4079,6 @@ pub enum Action {
 ## <a id="checkpoint-85ac-retain-text-answers-inside-the-existing-point-draft"></a>30. Retain Text answers inside the existing point draft
 
 ### 1. `src/tool.rs`
-
-Retain pending Text answers without creating source rows.
 
 **Locate this existing block:**
 
@@ -4341,11 +4239,7 @@ impl Draft {
 </svg>
 </div>
 
-Complete original Text and headed Arrow tools.
-
 ### 1. `src/tool.rs`
-
-Build original Text and headed Arrow results.
 
 **Locate this existing block:**
 
@@ -4734,8 +4628,6 @@ impl Tool for Shape {
 
 ### 2. `src/editor.rs`
 
-Adopt the original label with remembered height and one history entry.
-
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -4937,8 +4829,6 @@ Replace it with:
 ```
 
 ### 2. `src/tool_preview.rs`
-
-Use the explicit red guide instead of drawing an extension preview twice.
 
 **Locate this existing block:**
 
@@ -5150,8 +5040,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 1. `src/editor.rs`
 
-Adopt original pieces and arrowhead changes atomically.
-
 **Locate this existing block:**
 
 ```rust
@@ -5218,11 +5106,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-85ai-dispatch-current-original-commands-through-checked-owners"></a>36. Dispatch current commands through checked owners
 
-Dispatch current original commands through checked owners.
-
 ### 1. `src/editor.rs`
-
-Dispatch complete current original command actions.
 
 **Locate this existing block:**
 
@@ -5321,8 +5205,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ## <a id="checkpoint-85aj-preserve-previews-selection-and-accepted-tool-answers"></a>37. Preserve previews selection and accepted tool answers
 
 ### 1. `src/editor.rs`
-
-Keep view controls and pending command lifecycles.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -5564,8 +5446,6 @@ Replace it with:
 
 ### 1. `src/editor.rs`
 
-Keep view controls and pending command lifecycles.
-
 **Locate this existing block:**
 
 ```rust
@@ -5773,8 +5653,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 1. `src/editor.rs`
 
-Keep view controls and pending command lifecycles.
-
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -5871,8 +5749,6 @@ Replace it with:
 ## <a id="checkpoint-85am-route-named-views-and-whole-trim-picks"></a>40. Route named views and whole trim picks
 
 ### 1. `src/editor.rs`
-
-Keep view controls and pending command lifecycles.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -6164,8 +6040,6 @@ impl Request {
 
 ### 2. `src/lib.rs`
 
-Register this command owner.
-
 **Locate this existing block:**
 
 ```rust
@@ -6315,8 +6189,6 @@ impl Pending {
 
 ### 1. `src/command_request.rs`
 
-Deduplicate original fetches and replay safely.
-
 **Locate this existing block:**
 
 ```rust
@@ -6373,8 +6245,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ## <a id="checkpoint-85ar-route-source-backed-edits-through-guarded-replay"></a>45. Route source-backed edits through guarded replay
 
 ### 1. `src/edit_intent.rs`
-
-Capture and replay current commands with guarded original loading.
 
 **Locate this existing block:**
 
@@ -6472,8 +6342,6 @@ impl Intent {
 
 ### 2. `src/edit_replay.rs`
 
-Capture and replay current commands with guarded original loading.
-
 **Locate this existing block:**
 
 ```rust
@@ -6490,8 +6358,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 3. `src/browser.rs`
-
-Borrow the captured request while completing the reload reply.
 
 **Locate this existing block:**
 
@@ -6511,8 +6377,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ## <a id="checkpoint-85as-register-current-names-views-and-command-aliases"></a>46. Register current names views and command aliases
 
 ### 1. `src/commands.rs`
-
-Register current actions and aliases before their argument parser. Normalize aliases and accept the renamed construction-plane owner in the same checkpoint.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -6793,8 +6657,6 @@ pub const ACTIONS: &[(&str, Factory)] = &[
 
 ### 2. `src/panel.rs`
 
-Forward the command dock's accepted Escape to the editor without adding a second reply.
-
 **Locate this existing block:**
 
 ```rust
@@ -6812,8 +6674,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 3. `src/browser.rs`
-
-Route unconsumed canvas Escape through the same editor cancellation and selection policy.
 
 **Locate this existing block:**
 
@@ -7097,8 +6957,6 @@ fn lasso_action(
 
 ### 1. `src/browser.rs`
 
-Route actual command input and truthful diagnostics.
-
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -7305,8 +7163,6 @@ Replace it with:
 ## <a id="checkpoint-85aw-refresh-command-panels-source-loading-and-cached-previews"></a>50. Refresh command panels source loading and cached previews
 
 ### 1. `src/browser.rs`
-
-Route actual command input and truthful diagnostics.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -7673,11 +7529,7 @@ Replace it with:
 
 ## <a id="checkpoint-85ax-observe-current-original-command-state"></a>51. Observe current command state
 
-Observe current original command state.
-
 ### 1. `src/browser.rs`
-
-Route actual command input and truthful diagnostics.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -7726,8 +7578,6 @@ Replace it with:
 ## <a id="checkpoint-85ay-exercise-current-original-commands-together"></a>52. Exercise current commands together
 
 ### 1. `src/command_inventory_tests.rs`
-
-Copy the integrated original, archive, history, guide and source-fetch fixtures.
 
 Create the file and type:
 
@@ -8330,8 +8180,6 @@ fn actual_guides_cache_css_dashes_labels_and_grid_without_pick_ownership() {
 
 ### 2. `src/lib.rs`
 
-Register this command owner.
-
 **Locate this existing block:**
 
 ```rust
@@ -8350,8 +8198,6 @@ pub mod source_mesh_topology;
 ```
 
 ### 3. `src/command_owner_tests.rs`
-
-Copy the integrated original, archive, history, guide and source-fetch fixtures.
 
 Create the file and type:
 
@@ -8907,8 +8753,6 @@ fn cancelling_pointer_drag_and_touch_view_controls_keep_a_completed_measurement(
 
 ### 4. `src/lib.rs`
 
-Register this command owner.
-
 **Locate this existing block:**
 
 ```rust
@@ -8927,8 +8771,6 @@ pub mod source_mesh_topology;
 ```
 
 ### 5. `src/command_fetch_tests.rs`
-
-Copy the integrated original, archive, history, guide and source-fetch fixtures.
 
 Create the file and type:
 
@@ -9090,8 +8932,6 @@ fn a_later_command_changed_target_or_fetch_failure_cannot_replay_a_pending_edit(
 
 ### 6. `src/lib.rs`
 
-Register this command owner.
-
 **Locate this existing block:**
 
 ```rust
@@ -9110,8 +8950,6 @@ pub mod source_mesh_topology;
 ```
 
 ### 7. `src/lasso_geometry_tests.rs`
-
-Copy the integrated original, archive, history, guide and source-fetch fixtures.
 
 Create the file and type:
 
@@ -9376,8 +9214,6 @@ mod tests {
 ```
 
 ### 8. `src/lib.rs`
-
-Register this command owner.
 
 **Locate this existing block:**
 

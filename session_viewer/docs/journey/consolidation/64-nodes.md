@@ -1,6 +1,6 @@
 # 11.2 · Validated original cloud columns and placed owners
 
-**Goal:** Include clouds in whole selection history and rectangle checks. · **Steps:** 6 · **Source:** [engine/gpu/surface_outline.rs](../../../src/engine/gpu/surface_outline.rs) · [engine/gpu/cloud.rs](../../../src/engine/gpu/cloud.rs) · [engine/gpu/lod.rs](../../../src/engine/gpu/lod.rs) · [engine/gpu/splat.rs](../../../src/engine/gpu/splat.rs)
+**Steps:** 6 · **Source:** [engine/gpu/surface_outline.rs](../../../src/engine/gpu/surface_outline.rs) · [engine/gpu/cloud.rs](../../../src/engine/gpu/cloud.rs) · [engine/gpu/lod.rs](../../../src/engine/gpu/lod.rs) · [engine/gpu/splat.rs](../../../src/engine/gpu/splat.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -54,11 +54,7 @@
 
 ## <a id="checkpoint-64-nodes"></a>1. Check cloud cubes against their point rows
 
-Check cloud cubes against their original point rows.
-
 ### 1. `src/cloud.rs`
-
-Own original cloud sources and validate each derived node against its source ranges and parent cube.
 
 Create the file and type:
 
@@ -168,8 +164,6 @@ fn checked_node(
 
 ### 2. `src/lib.rs`
 
-Register the source component.
-
 **Locate this existing block:**
 
 ```rust
@@ -188,11 +182,7 @@ pub mod cloud;
 
 ## <a id="checkpoint-64a-tree"></a>2. Validate one rooted tree and disjoint ranges
 
-Validate one rooted tree and disjoint original ranges.
-
 ### 1. `src/cloud.rs`
-
-Validate complete octree columns, rooted ownership and source-row coverage before traversal.
 
 **Locate this existing block:**
 
@@ -269,8 +259,6 @@ fn checked_node(
 ## <a id="checkpoint-64b-source"></a>3. Prepare bounds and spacing without replacing source words
 
 ### 1. `src/cloud.rs`
-
-Keep original source columns and measured bounds separate from derived node descriptors.
 
 **Locate this existing block:**
 
@@ -376,8 +364,6 @@ fn validate_nodes(source: &PointCloud) -> Result<Vec<LodNode>, &'static str> {
 
 ### 1. `src/cloud.rs`
 
-Preserve original cloud ownership and derive world bounds from a separate f64 model.
-
 **Locate this existing block:**
 
 ```rust
@@ -438,8 +424,6 @@ fn checked_node(
 ## <a id="checkpoint-64d-scene"></a>5. Insert a checked cloud on the current layer
 
 ### 1. `src/scene.rs`
-
-Insert validated cloud rows, route current-layer ownership and release them with the scene.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -588,8 +572,6 @@ Replace it with:
 ## <a id="checkpoint-64e-identity"></a>6. Include clouds in whole selection history and rectangle checks
 
 ### 1. `src/scene.rs`
-
-Connect cloud owners to existing placement, bounds, copy, next selection and deletion paths.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -828,8 +810,6 @@ Replace it with:
 
 ### 2. `src/hierarchy.rs`
 
-Include original cloud rows in the existing hierarchy/rectangle routes and reject incomplete mixed saves.
-
 **Locate this existing block:**
 
 ```rust
@@ -851,8 +831,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 3. `src/rect_select.rs`
-
-Include original cloud rows in the existing hierarchy/rectangle routes and reject incomplete mixed saves.
 
 **Locate this existing block:**
 
@@ -896,8 +874,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 4. `src/document.rs`
 
-Include original cloud rows in the existing hierarchy/rectangle routes and reject incomplete mixed saves.
-
 **Locate this existing block:**
 
 ```rust
@@ -916,8 +892,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 5. `src/editor.rs`
-
-Make whole Select All include eligible original cloud owners.
 
 **Locate this existing block:**
 

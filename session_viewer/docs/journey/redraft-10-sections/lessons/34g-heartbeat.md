@@ -1,55 +1,65 @@
 # 4.4 · Heartbeat suspension and revocable startup
 
-**Goal:** Stop delayed adapter or device delivery from installing a renderer after final exit. · **Steps:** 8 · **Source:** `src/lib.rs` · `src/selftest/lifecycle.rs` · `src/engine/gpu/device.rs`
-
-<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
-<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
-  <defs>
-    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
-    </marker>
-    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
-    </marker>
-    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
-    </marker>
-  </defs>
-  <rect x="2" y="2" width="1116" height="184" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
-  <rect x="14" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">DOM Resize / Visibility Events</text>
-  <rect x="64" y="54" width="108" height="72" rx="4" fill="#f8fafc" stroke="#111111" stroke-width="1.5" stroke-dasharray="3 3"/>
-  <rect x="64" y="54" width="224" height="98" rx="4" fill="none" stroke="#2563eb" stroke-width="2"/>
-  <line x1="172" y1="90" x2="276" y2="90" stroke="#2563eb" stroke-width="2" marker-end="url(#arrB)"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="224" y="140" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Resize (W, H, DPR)</text>
-  <line x1="358" y1="94" x2="384" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
-  <rect x="388" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Matched Color + Depth32Float Attachments</text>
-  <rect x="444" y="56" width="104" height="84" rx="4" fill="#dbeafe" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="496" y="102" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Surface</text>
-  <rect x="572" y="56" width="104" height="84" rx="4" fill="#fef9c3" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="624" y="102" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Depth32</text>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="156" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">aspect = W / H</text>
-  <line x1="732" y1="94" x2="758" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
-  <rect x="762" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Unstretched Aspect-Correct View</text>
-  <rect x="802" y="44" width="264" height="118" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
-  <polygon points="934,58 994,84 934,110 874,84" fill="#93c5fd" stroke="#111111" stroke-width="1.75"/>
-  <polygon points="874,84 934,110 934,150 874,124" fill="#60a5fa" stroke="#111111" stroke-width="1.75"/>
-  <polygon points="934,110 994,84 994,124 934,150" fill="#2563eb" stroke="#111111" stroke-width="1.75"/>
-</svg>
-</div>
+**Steps:** 8 · **Source:** `src/lib.rs` · `src/selftest/lifecycle.rs` · `src/engine/gpu/device.rs`
 
 ## <a id="checkpoint-34g-heartbeat"></a>1. Refresh heartbeat without rewriting failure evidence
 
-Refresh actual last-seen metadata independently of first failure, event history and GPU ownership.
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="214" viewBox="0 0 1120 214" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr-659c7e83" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arr-r-659c7e83" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arr-g-659c7e83" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arr-b-659c7e83" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+    <pattern id="grid-659c7e83" width="20" height="20" patternUnits="userSpaceOnUse">
+      <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#f1f5f9" stroke-width="1"/>
+    </pattern>
+  </defs>
+  <rect x="2" y="2" width="1116" height="210" rx="8" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="2" y="2" width="1116" height="28" rx="6" fill="#f8fafc" stroke="#111111" stroke-width="1.5"/>
+  <line x1="2" y1="30" x2="1118" y2="30" stroke="#111111" stroke-width="1.5"/>
+  <rect x="12" y="7" width="176" height="18" rx="3" fill="#111111"/>
+  <text x="100" y="19.5" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#ffffff" paint-order="normal" stroke="none">34G · HEARTBEAT &amp; PAUSE</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="518" y="20" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Liveness Heartbeat Timestamp &amp; Suspension Bitmask (Hidden / Pagehide / Freeze / Dialog)</text>
+  <rect x="838" y="7" width="268" height="18" rx="3" fill="#ffffff" stroke="#111111" stroke-width="1.2"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="972" y="19.5" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#2563eb">active_watchdog &lt;=&gt; (pause_bits == 0)</text>
+  <rect x="14" y="38" width="344" height="164" rx="6" fill="url(#grid-659c7e83)" stroke="#111111" stroke-width="1.5"/>
+  <line x1="14" y1="60" x2="358" y2="60" stroke="#cbd5e1" stroke-width="1"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="186" y="53" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1 · Suspension Bitmask (Zero False Positives)</text>
+  <rect x="44" y="76" width="284" height="104" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="186" y="98" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">pause_reasons: u8</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="186" y="120" text-anchor="middle" font-family="monospace" font-size="9" fill="#2563eb">bit 0: document.hidden (background tab)</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="186" y="140" text-anchor="middle" font-family="monospace" font-size="9" fill="#16a34a">bit 1: pagehide / freeze (bfcache)</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="186" y="160" text-anchor="middle" font-family="monospace" font-size="9" fill="#dc2626">bit 2: modal file picker open</text>
+  <line x1="358" y1="120" x2="384" y2="120" stroke="#111111" stroke-width="2" marker-end="url(#arr-659c7e83)"/>
+  <rect x="388" y="38" width="344" height="164" rx="6" fill="url(#grid-659c7e83)" stroke="#111111" stroke-width="1.5"/>
+  <line x1="388" y1="60" x2="732" y2="60" stroke="#cbd5e1" stroke-width="1"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="53" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2 · Clean Close vs Unclean Silent Stall</text>
+  <rect x="414" y="76" width="292" height="48" rx="4" fill="#dcfce7" stroke="#16a34a" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="96" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#16a34a">pagehide / beforeunload -&gt; CleanClosed</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="114" text-anchor="middle" font-family="monospace" font-size="8.5" fill="#111111">Next startup sees normal exit</text>
+  <rect x="414" y="132" width="292" height="48" rx="4" fill="#fee2e2" stroke="#dc2626" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="152" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#dc2626">Running + stale beat -&gt; SilentStall</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="170" text-anchor="middle" font-family="monospace" font-size="8.5" fill="#111111">Next startup logs prior stall phase</text>
+  <line x1="732" y1="120" x2="758" y2="120" stroke="#111111" stroke-width="2" marker-end="url(#arr-659c7e83)"/>
+  <rect x="762" y="38" width="344" height="164" rx="6" fill="url(#grid-659c7e83)" stroke="#111111" stroke-width="1.75"/>
+  <line x1="762" y1="60" x2="1106" y2="60" stroke="#cbd5e1" stroke-width="1"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="934" y="53" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3 · Accurate Post-Crash Attribution</text>
+  <rect x="806" y="68" width="256" height="122" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="934" y="114" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">Background tabs never</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="934" y="136" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#16a34a">misreported as crashes ✓</text>
+</svg>
+</div>
 
 ### 1. `src/diagnostic.rs`
-
-Advance heartbeat independently of observations, outcome and the first fatal timestamp; invalid timestamp text leaves the report unchanged.
 
 **Locate this existing block:**
 
@@ -76,8 +86,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 2. `src/heartbeat_tests.rs`
-
-Optional authoring fixture. Verify all run outcomes, first-failure/event retention and atomic timestamp-text bounds without a browser clock dependency.
 
 Create the file and type:
 
@@ -127,8 +135,6 @@ fn heartbeat_rejects_invalid_text_without_mutation() {
 
 ### 3. `src/lib.rs`
 
-Include native heartbeat state proofs.
-
 **Locate this existing block:**
 
 ```rust
@@ -146,8 +152,6 @@ pub mod history;
 ```
 
 ### 4. `src/browser_report.rs`
-
-Refresh actual browser context and UTC heartbeat, release its borrow, then persist metadata without invoking renderer or recording synthetic observations.
 
 **Locate this existing block:**
 
@@ -230,11 +234,7 @@ pub fn download() -> Result<(), JsValue> {
 </svg>
 </div>
 
-Schedule a real 15-second metadata heartbeat independently of GPU lifetime and cancel its callback through an owner.
-
 ### 1. `src/timer.rs`
-
-Own the actual interval and callback together; clear its native timer before Rust releases the closure.
 
 Create the file and type:
 
@@ -276,8 +276,6 @@ impl Drop for Timer {
 
 ### 2. `src/lib.rs`
 
-Keep browser interval ownership out of the native editor model.
-
 **Locate this existing block:**
 
 ```rust
@@ -295,8 +293,6 @@ mod timer;
 ```
 
 ### 3. `src/browser_report.rs`
-
-Retain metadata scheduling independently of the GPU runtime lifetime. Install periodic metadata refresh at run startup; report scheduler unavailability without rejecting drawing or current downloads. Replace one owned interval at a time, cancel outside the slot borrow, and keep the callback metadata-only.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -381,11 +377,48 @@ fn context() -> Result<Context, JsValue> {
 
 ## <a id="checkpoint-34gb-close"></a>3. Mark a final healthy run closed
 
-Persist a healthy final exit as closed while preserving first-failure evidence and every observation.
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="184" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">DOM Resize / Visibility Events</text>
+  <rect x="64" y="54" width="108" height="72" rx="4" fill="#f8fafc" stroke="#111111" stroke-width="1.5" stroke-dasharray="3 3"/>
+  <rect x="64" y="54" width="224" height="98" rx="4" fill="none" stroke="#2563eb" stroke-width="2"/>
+  <line x1="172" y1="90" x2="276" y2="90" stroke="#2563eb" stroke-width="2" marker-end="url(#arrB)"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="224" y="140" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Resize (W, H, DPR)</text>
+  <line x1="358" y1="94" x2="384" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="388" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Matched Color + Depth32Float Attachments</text>
+  <rect x="444" y="56" width="104" height="84" rx="4" fill="#dbeafe" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="496" y="102" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Surface</text>
+  <rect x="572" y="56" width="104" height="84" rx="4" fill="#fef9c3" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="624" y="102" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Depth32</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="156" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">aspect = W / H</text>
+  <line x1="732" y1="94" x2="758" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="762" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Unstretched Aspect-Correct View</text>
+  <rect x="802" y="44" width="264" height="118" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <polygon points="934,58 994,84 934,110 874,84" fill="#93c5fd" stroke="#111111" stroke-width="1.75"/>
+  <polygon points="874,84 934,110 934,150 874,124" fill="#60a5fa" stroke="#111111" stroke-width="1.75"/>
+  <polygon points="934,110 994,84 994,124 934,150" fill="#2563eb" stroke="#111111" stroke-width="1.75"/>
+</svg>
+</div>
 
 ### 1. `src/diagnostic.rs`
-
-Mark a healthy final exit closed without erasing a failure or appending synthetic observations.
 
 **Locate this existing block:**
 
@@ -412,8 +445,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 2. `src/close_report_tests.rs`
-
-Optional authoring fixture. Prove healthy/failed final outcomes, repeatability and atomic refusal separately from browser suspension.
 
 Create the file and type:
 
@@ -482,8 +513,6 @@ fn late_ready_milestone_cannot_reopen_final_run() {
 
 ### 3. `src/lib.rs`
 
-Include native final-close policy proofs.
-
 **Locate this existing block:**
 
 ```rust
@@ -501,8 +530,6 @@ pub mod diagnostic;
 ```
 
 ### 4. `src/browser_report.rs`
-
-Refresh real context/time, release the report borrow and persist the final outcome without accessing GPU state.
 
 **Locate this existing block:**
 
@@ -539,8 +566,6 @@ pub fn download() -> Result<(), JsValue> {
 
 ### 5. `src/diagnostic.rs`
 
-A delayed ready milestone must not reopen a final closed run; cache suspension retains Ready without closing.
-
 **Locate this existing block:**
 
 ```rust
@@ -557,8 +582,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 6. `src/browser_report.rs`
-
-Let Chrome submit a real late milestone through the same metadata path; release builds gain no user control.
 
 **Locate this existing block:**
 
@@ -579,11 +602,7 @@ pub fn observe(kind: &str, message: &str) -> Result<(), JsValue> {
 
 ## <a id="checkpoint-34gba-lifecycle"></a>4. Own diagnostic page transitions
 
-Connect real pagehide/pageshow to independent diagnostics, cached suspension and safe final callback cleanup.
-
 ### 1. `src/report_lifecycle.rs`
-
-Own two metadata callbacks independently of GPU; retain cached outcomes, defer final callback destruction, and guard cleanup by allocation identity.
 
 Create the file and type:
 
@@ -673,8 +692,6 @@ pub fn report_lifecycle_running() -> bool {
 
 ### 2. `src/lib.rs`
 
-Keep page transition ownership in the browser layer.
-
 **Locate this existing block:**
 
 ```rust
@@ -692,8 +709,6 @@ pub mod report_storage;
 ```
 
 ### 3. `src/browser_report.rs`
-
-Install metadata lifecycle ownership before scheduling heartbeat; denied listener registration leaves drawing and current downloads available.
 
 **Locate this existing block:**
 
@@ -717,11 +732,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-34gbb-suspension"></a>5. Keep each heartbeat pause reason separate
 
-Check that clearing one pause reason cannot resume a still-suspended heartbeat.
-
 ### 1. `src/suspension.rs`
-
-Keep hidden, frozen and cached reasons independent; final closure permanently refuses scheduling.
 
 Create the file and type:
 
@@ -770,8 +781,6 @@ impl Suspension {
 ```
 
 ### 2. `src/suspension_tests.rs`
-
-Optional authoring fixture. Check overlapping reasons, initial hidden state, duplicate delivery and final closure that cannot resume.
 
 Create the file and type:
 
@@ -826,8 +835,6 @@ fn final_closure_cannot_be_resumed() {
 
 ### 3. `src/lib.rs`
 
-Register the pure policy and its native checks.
-
 **Locate this existing block:**
 
 ```rust
@@ -847,11 +854,7 @@ mod suspension_tests;
 
 ## <a id="checkpoint-34gbba-browser"></a>6. Connect visibility and freezing to heartbeat scheduling
 
-Pause the actual diagnostic timer while any browser suspension reason remains.
-
 ### 1. `src/report_lifecycle.rs`
-
-Use the scheduling policy in the existing metadata owner. Store pause reasons beside the owned listeners and allocation token. Keep replacement identity independent of scheduling state. Read or update scheduling state without retaining a borrow while the timer changes. Read the initial hidden state and retain Document for later visibility observations. Pause cached scheduling; close the policy permanently before final cleanup is deferred. On page return, clear only the cached reason and refresh actual visibility. Observe Document visibility and freezing, then synchronize one timer after updating all affected reasons. Bind all three Document events; partial registration still cleans up through the listener owner.
 
 **Locate this existing block:**
 
@@ -1072,8 +1075,6 @@ pub fn install() -> Result<(), JsValue> {
 
 ### 2. `src/browser_report.rs`
 
-Refuse suspended scheduling and retain an existing timer, so repeated resume events cannot restart or duplicate it.
-
 **Locate this existing block:**
 
 ```rust
@@ -1098,11 +1099,7 @@ pub fn start_periodic() -> Result<(), JsValue> {
 
 ## <a id="checkpoint-34gbc-authority"></a>7. Give pending startup a revocable ticket
 
-Prevent a waiting task from regaining startup permission after closure.
-
 ### 1. `src/startup.rs`
-
-Share startup permission between the waiting task and its close callback.
 
 Create the file and type:
 
@@ -1131,8 +1128,6 @@ impl Startup {
 ```
 
 ### 2. `src/startup_tests.rs`
-
-Optional authoring fixture. Check delayed tickets, repeated closure and an independent replacement owner.
 
 Create the file and type:
 
@@ -1176,8 +1171,6 @@ fn a_replacement_has_its_own_permission() {
 
 ### 3. `src/lib.rs`
 
-Register startup authority and its native checks.
-
 **Locate this existing block:**
 
 ```rust
@@ -1198,8 +1191,6 @@ pub mod suspension;
 ## <a id="checkpoint-34gbca-startup"></a>8. Refuse GPU results after final page exit
 
 ### 1. `src/browser_startup.rs`
-
-Own one temporary page-exit binding across GPU awaits, independent of optional diagnostic listeners.
 
 Create the file and type:
 
@@ -1243,8 +1234,6 @@ impl Guard {
 
 ### 2. `src/lib.rs`
 
-Register the browser startup guard.
-
 **Locate this existing block:**
 
 ```rust
@@ -1262,8 +1251,6 @@ mod listeners;
 ```
 
 ### 3. `src/browser.rs`
-
-Keep the guard alive from startup until the runtime owns the drawing callbacks. After the adapter await, refuse a revoked result before requesting a device or interpreting an error. After the device await, destroy a late device and return quietly before configuring the surface or creating resources.
 
 **Locate this existing block:**
 

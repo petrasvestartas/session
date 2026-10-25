@@ -1,57 +1,64 @@
 # 5.5 · One visibility policy and shared surface depth
 
-**Goal:** Use one explicit depth format and policy for opaque surfaces and screen-space ink, then prove actual occlusion. · **Steps:** 2 · **Source:** [app/walk/curves.rs](../../../../src/app/walk/curves.rs) · [engine/gpu/segments.rs](../../../../src/engine/gpu/segments.rs) · [shaders/ribbon.wgsl](../../../../src/shaders/ribbon.wgsl) · [shaders/vector.wgsl](../../../../src/shaders/vector.wgsl)
-
-<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
-<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
-  <defs>
-    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
-    </marker>
-    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
-    </marker>
-    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
-    </marker>
-  </defs>
-  <rect x="2" y="2" width="1116" height="184" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
-  <rect x="14" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Overlapping 3D Triangles along View Ray</text>
-  <circle cx="58" cy="104" r="5" fill="#111111"/>
-  <line x1="64" y1="104" x2="324" y2="104" stroke="#111111" stroke-width="1.75" stroke-dasharray="4 3" marker-end="url(#arr)"/>
-  <polygon points="148,56 176,150 126,142" fill="#fdba74" stroke="#ea580c" stroke-width="2"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="152" y="50" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#ea580c">z = 0.25 (Near)</text>
-  <polygon points="248,50 284,154 220,148" fill="#93c5fd" stroke="#2563eb" stroke-width="2"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="254" y="44" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#2563eb">z = 0.75 (Far)</text>
-  <line x1="358" y1="94" x2="384" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
-  <rect x="388" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Depth32Float Test: z_frag &lt; z_buf</text>
-  <rect x="438" y="50" width="244" height="106" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <rect x="462" y="66" width="88" height="56" fill="#fdba74" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="506" y="98" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">0.25 PASS</text>
-  <rect x="570" y="66" width="88" height="56" fill="#e2e8f0" stroke="#64748b" stroke-width="1.5" stroke-dasharray="3 3"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="614" y="98" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#dc2626">0.75 REJECT</text>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="144" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">CompareFunction::Less</text>
-  <line x1="732" y1="94" x2="758" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
-  <rect x="762" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Viewer Output (Near Occludes Far)</text>
-  <rect x="814" y="44" width="240" height="118" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
-  <polygon points="944,54 1018,144 892,144" fill="#93c5fd" stroke="#111111" stroke-width="1.75"/>
-  <polygon points="914,62 978,150 850,150" fill="#fdba74" stroke="#111111" stroke-width="2"/>
-</svg>
-</div>
+**Steps:** 2 · **Source:** [app/walk/curves.rs](../../../../src/app/walk/curves.rs) · [engine/gpu/segments.rs](../../../../src/engine/gpu/segments.rs) · [shaders/ribbon.wgsl](../../../../src/shaders/ribbon.wgsl) · [shaders/vector.wgsl](../../../../src/shaders/vector.wgsl)
 
 ## <a id="checkpoint-39-visible"></a>1. Resolve visibility for every drawing kind
 
-Respect original source visibility consistently in drawing, Fit, control markers and mesh picking while retaining hidden sources.
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="214" viewBox="0 0 1120 214" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr-3ac7cd12" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arr-r-3ac7cd12" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arr-g-3ac7cd12" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arr-b-3ac7cd12" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+    <pattern id="grid-3ac7cd12" width="20" height="20" patternUnits="userSpaceOnUse">
+      <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#f1f5f9" stroke-width="1"/>
+    </pattern>
+  </defs>
+  <rect x="2" y="2" width="1116" height="210" rx="8" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="2" y="2" width="1116" height="28" rx="6" fill="#f8fafc" stroke="#111111" stroke-width="1.5"/>
+  <line x1="2" y1="30" x2="1118" y2="30" stroke="#111111" stroke-width="1.5"/>
+  <rect x="12" y="7" width="176" height="18" rx="3" fill="#111111"/>
+  <text x="100" y="19.5" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#ffffff" paint-order="normal" stroke="none">39-VISIBLE · DEPTH BIAS</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="518" y="20" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Coplanar Wireframe Depth Bias (z_wire = z_surf - ε) &amp; Mutual Depth Write Occlusion</text>
+  <rect x="838" y="7" width="268" height="18" rx="3" fill="#ffffff" stroke="#111111" stroke-width="1.2"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="972" y="19.5" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#2563eb">z_ndc' = clamp(z_ndc - bias, 0.0, 1.0)</text>
+  <rect x="14" y="38" width="344" height="164" rx="6" fill="url(#grid-3ac7cd12)" stroke="#111111" stroke-width="1.5"/>
+  <line x1="14" y1="60" x2="358" y2="60" stroke="#cbd5e1" stroke-width="1"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="186" y="53" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1 · Without Bias: Coplanar Z-Fighting</text>
+  <line x1="56" y1="132" x2="316" y2="132" stroke="#60a5fa" stroke-width="5"/>
+  <line x1="56" y1="132" x2="316" y2="132" stroke="#dc2626" stroke-width="3" stroke-dasharray="8 6"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="186" y="102" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#dc2626">z_wire == z_surface (stitched ✗)</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="186" y="164" text-anchor="middle" font-family="monospace" font-size="8.5" fill="#111111">Floating-point rounding alternates winner</text>
+  <line x1="358" y1="120" x2="384" y2="120" stroke="#111111" stroke-width="2" marker-end="url(#arr-3ac7cd12)"/>
+  <rect x="388" y="38" width="344" height="164" rx="6" fill="url(#grid-3ac7cd12)" stroke="#111111" stroke-width="1.5"/>
+  <line x1="388" y1="60" x2="732" y2="60" stroke="#cbd5e1" stroke-width="1"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="53" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2 · With Depth Bias + DepthWrite = true</text>
+  <line x1="432" y1="142" x2="688" y2="142" stroke="#60a5fa" stroke-width="5"/>
+  <line x1="432" y1="116" x2="688" y2="116" stroke="#16a34a" stroke-width="3"/>
+  <line x1="560" y1="142" x2="560" y2="118" stroke="#111111" stroke-width="1.75" marker-end="url(#arr-3ac7cd12)"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="612" y="132" font-family="monospace" font-size="9" font-weight="700" fill="#16a34a">-ε toward Eye</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="176" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">Front faces still occlude back wires ✓</text>
+  <line x1="732" y1="120" x2="758" y2="120" stroke="#111111" stroke-width="2" marker-end="url(#arr-3ac7cd12)"/>
+  <rect x="762" y="38" width="344" height="164" rx="6" fill="url(#grid-3ac7cd12)" stroke="#111111" stroke-width="1.75"/>
+  <line x1="762" y1="60" x2="1106" y2="60" stroke="#cbd5e1" stroke-width="1"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="934" y="53" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3 · Stitch-Free Shaded + Wireframe Solid</text>
+  <rect x="806" y="68" width="256" height="122" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <polygon points="884,96 944,74 1004,96 944,118" fill="#dbeafe" stroke="#111111" stroke-width="2.2"/>
+  <polygon points="884,96 944,118 944,174 884,152" fill="#60a5fa" stroke="#111111" stroke-width="2.2"/>
+  <polygon points="944,118 1004,96 1004,152 944,174" fill="#2563eb" stroke="#111111" stroke-width="2.2"/>
+</svg>
+</div>
 
 ### 1. `src/chain.rs`
-
-Read visibility from the original shared path source.
 
 **Locate this existing block:**
 
@@ -76,8 +83,6 @@ impl Source {
 ```
 
 ### 2. `src/scene.rs`
-
-Resolve original visibility for every current document kind without removing ownership. Exclude invisible surfaces from visible Fit bounds. Exclude invisible original line endpoints from Fit. Exclude hidden polylines and original curve hulls from Fit. Keep hidden standalone points out of visible bounds. Hide original controls with their invisible curve parent. Prevent hidden selected surfaces from influencing Fit Selected.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -254,8 +259,6 @@ Replace it with:
 
 ### 3. `src/renderer.rs`
 
-Draw only visible original point rows. Keep invisible connected path data out of GPU instance allocation. Keep hidden original lines out of the stroke batch. Allocate surface GPU rows only for visible document objects.
-
 **Locate this existing block:**
 
 ```rust
@@ -339,8 +342,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 4. `src/picking.rs`
 
-Use the same visibility predicate for ray picking and drawing.
-
 **Locate this existing block:**
 
 ```rust
@@ -363,8 +364,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 5. `src/lib.rs`
 
-Register hidden ownership and visible picking checks.
-
 **Locate this existing block:**
 
 ```rust
@@ -382,8 +381,6 @@ pub mod startup;
 ```
 
 ### 6. `src/source_visibility_tests.rs`
-
-Copy retained hidden ownership, empty visible bounds and invisible picking refusal checks.
 
 Create the file and type:
 
@@ -472,8 +469,6 @@ fn selection_cycles_past_hidden_sources_without_changing_their_rows() {
 ```
 
 ### 7. `src/scene.rs`
-
-Read retained source visibility directly without scanning all document IDs. Cycle only visible mesh rows without allocating a second object list.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -615,9 +610,50 @@ impl Object {
 
 ## <a id="checkpoint-39a-depth"></a>2. Share surface depth across all ink lanes
 
-### 1. `src/depth.rs`
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="184" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Overlapping 3D Triangles along View Ray</text>
+  <circle cx="58" cy="104" r="5" fill="#111111"/>
+  <line x1="64" y1="104" x2="324" y2="104" stroke="#111111" stroke-width="1.75" stroke-dasharray="4 3" marker-end="url(#arr)"/>
+  <polygon points="148,56 176,150 126,142" fill="#fdba74" stroke="#ea580c" stroke-width="2"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="152" y="50" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#ea580c">z = 0.25 (Near)</text>
+  <polygon points="248,50 284,154 220,148" fill="#93c5fd" stroke="#2563eb" stroke-width="2"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="254" y="44" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#2563eb">z = 0.75 (Far)</text>
+  <line x1="358" y1="94" x2="384" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="388" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Depth32Float Test: z_frag &lt; z_buf</text>
+  <rect x="438" y="50" width="244" height="106" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <rect x="462" y="66" width="88" height="56" fill="#fdba74" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="506" y="98" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">0.25 PASS</text>
+  <rect x="570" y="66" width="88" height="56" fill="#e2e8f0" stroke="#64748b" stroke-width="1.5" stroke-dasharray="3 3"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="614" y="98" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#dc2626">0.75 REJECT</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="144" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">CompareFunction::Less</text>
+  <line x1="732" y1="94" x2="758" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="762" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Viewer Output (Near Occludes Far)</text>
+  <rect x="814" y="44" width="240" height="118" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <polygon points="944,54 1018,144 892,144" fill="#93c5fd" stroke="#111111" stroke-width="1.75"/>
+  <polygon points="914,62 978,150 850,150" fill="#fdba74" stroke="#111111" stroke-width="2"/>
+</svg>
+</div>
 
-Name one depth format and explicit surface/ink comparison policies.
+### 1. `src/depth.rs`
 
 Create the file and type:
 
@@ -628,7 +664,13 @@ pub fn surface() -> wgpu::DepthStencilState {
     state(true, wgpu::CompareFunction::Less)
 }
 pub fn ink() -> wgpu::DepthStencilState {
-    state(false, wgpu::CompareFunction::LessEqual)
+    let mut depth = state(false, wgpu::CompareFunction::LessEqual);
+    depth.bias = wgpu::DepthBiasState {
+        constant: -2,
+        slope_scale: -1.0,
+        clamp: 0.0,
+    };
+    depth
 }
 
 fn state(write: bool, compare: wgpu::CompareFunction) -> wgpu::DepthStencilState {
@@ -643,8 +685,6 @@ fn state(write: bool, compare: wgpu::CompareFunction) -> wgpu::DepthStencilState
 ```
 
 ### 2. `src/lib.rs`
-
-Register the shared depth contract.
 
 **Locate this existing block:**
 
@@ -662,8 +702,6 @@ pub mod document;
 ```
 
 ### 3. `src/renderer.rs`
-
-Use the shared writable nearer-surface policy. Allocate the exact depth format used by every drawing pipeline.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -714,8 +752,6 @@ Replace it with:
 ```
 
 ### 4. `src/stroke_gpu.rs`
-
-Keep all analytic ink lanes read-only against the same surface depth.
 
 **Locate this existing block:**
 

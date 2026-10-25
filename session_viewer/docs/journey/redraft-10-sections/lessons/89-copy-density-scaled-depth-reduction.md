@@ -1,6 +1,6 @@
 # 18.1 · A retained depth and radius pyramid
 
-**Goal:** Exercise actual depth levels and cache release. · **Steps:** 9 · **Source:** [engine/gpu/ssao.rs](../../../../src/engine/gpu/ssao.rs) · [engine/gpu/ssao/pipelines.rs](../../../../src/engine/gpu/ssao/pipelines.rs) · [shaders/ssao.wgsl](../../../../src/shaders/ssao.wgsl) · [shaders/triangle.wgsl](../../../../src/shaders/triangle.wgsl)
+**Steps:** 9 · **Source:** [engine/gpu/ssao.rs](../../../../src/engine/gpu/ssao.rs) · [engine/gpu/ssao/pipelines.rs](../../../../src/engine/gpu/ssao/pipelines.rs) · [shaders/ssao.wgsl](../../../../src/shaders/ssao.wgsl) · [shaders/triangle.wgsl](../../../../src/shaders/triangle.wgsl)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -45,11 +45,7 @@
 
 ## <a id="checkpoint-89-copy-density-scaled-depth-reduction"></a>1. Reduce depth and radius at a bounded display resolution
 
-Write the density policy and nearest-positive depth/radius reduction.
-
 ### 1. `src/pyramid_size.rs`
-
-Bound the reduced target dimensions and retain the existing numerical examples.
 
 Create the file and type:
 
@@ -88,8 +84,6 @@ mod tests {
 
 ### 2. `src/lib.rs`
 
-Register the completed section component.
-
 **Locate this existing block:**
 
 ```rust
@@ -117,8 +111,6 @@ pub mod source_mesh_topology;
 ```
 
 ### 3. `src/ambient_depth.wgsl`
-
-Reduce depth and its radius witness together; mark bounded geometry occupancy.
 
 Create the file and type:
 
@@ -162,11 +154,7 @@ struct DepthRadius {
 
 ## <a id="checkpoint-89a-prepare-linear-original-depth-and-radius-addresses"></a>2. Prepare linear depth and radius addresses
 
-Prepare linear original depth and radius addresses.
-
 ### 1. `src/pyramid_prepare.wgsl`
-
-Adapt the earlier forward-depth image to linear depth and packed radius addresses.
 
 Create the file and type:
 
@@ -188,8 +176,6 @@ fn world(at:vec2<f32>,z:f32)->vec3<f32>{let uv=at/frame.full;let p=frame.inverse
 ## <a id="checkpoint-89b-own-six-real-depth-and-radius-levels"></a>3. Own six real depth and radius levels
 
 ### 1. `src/pyramid_image.rs`
-
-Own exact mip views and actual texture allocation.
 
 Create the file and type:
 
@@ -249,8 +235,6 @@ impl Image {
 
 ### 2. `src/lib.rs`
 
-Register the completed section component.
-
 **Locate this existing block:**
 
 ```rust
@@ -284,8 +268,6 @@ pub mod source_mesh_topology;
 ## <a id="checkpoint-89c-build-prepare-and-nearest-depth-pipelines"></a>4. Build prepare and nearest-depth pipelines
 
 ### 1. `src/pyramid_pipeline.rs`
-
-Build current depth/radius preparation and reduction pipelines.
 
 Create the file and type:
 
@@ -401,8 +383,6 @@ impl Pipelines {
 
 ### 2. `src/lib.rs`
 
-Register the completed section component.
-
 **Locate this existing block:**
 
 ```rust
@@ -479,8 +459,6 @@ pub mod source_mesh_topology;
 </div>
 
 ### 1. `src/pyramid_gpu.rs`
-
-Own lazy pyramid images and their current depth input.
 
 Create the file and type:
 
@@ -596,8 +574,6 @@ impl Pyramid {
 
 ### 2. `src/lib.rs`
 
-Register the completed section component.
-
 **Locate this existing block:**
 
 ```rust
@@ -679,8 +655,6 @@ pub mod source_mesh_topology;
 </div>
 
 ### 1. `src/pyramid_gpu.rs`
-
-Validate the current camera and encode changed pyramid contents.
 
 **Locate this existing block:**
 
@@ -806,8 +780,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 1. `src/pyramid_gpu.rs`
 
-Expose actual resources and preparation/write/pass counts.
-
 **Locate this existing block:**
 
 ```rust
@@ -842,11 +814,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-89g-route-original-depth-into-the-pyramid-owner"></a>8. Route depth into the pyramid owner
 
-Route original depth into the pyramid owner.
-
 ### 1. `src/renderer.rs`
-
-Connect the explicit cached depth owner before its supplied fixtures.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -995,8 +963,6 @@ pub struct Renderer {
 
 ### 2. `src/browser.rs`
 
-Observe actual depth owner allocation and errors.
-
 **Locate this existing block:**
 
 ```rust
@@ -1059,8 +1025,6 @@ Edit the existing block to match this code; keep unchanged lines:
 </div>
 
 ### 1. `src/pyramid_gpu_tests.rs`
-
-Copy supplied actual mip/readback and cache fixtures.
 
 Create the file and type:
 
@@ -1234,8 +1198,6 @@ fn actual_pyramid_caches_resting_views_rebuilds_on_resize_and_releases_on_disabl
 ```
 
 ### 2. `src/renderer.rs`
-
-Register the supplied renderer-local GPU fixtures.
 
 **Locate this existing block:**
 

@@ -1,6 +1,6 @@
 # 12.3 · Bounded scheduling, exact replies and cancellation
 
-**Goal:** Cancel range work when its runtime closes. · **Steps:** 17 · **Source:** [app/manifest.rs](../../../../src/app/manifest.rs) · [app/session_io.rs](../../../../src/app/session_io.rs) · [app/stream.rs](../../../../src/app/stream.rs) · [app/range_gate.rs](../../../../src/app/range_gate.rs)
+**Steps:** 17 · **Source:** [app/manifest.rs](../../../../src/app/manifest.rs) · [app/session_io.rs](../../../../src/app/session_io.rs) · [app/stream.rs](../../../../src/app/stream.rs) · [app/range_gate.rs](../../../../src/app/range_gate.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -97,11 +97,7 @@
 </svg>
 </div>
 
-Write the per-scene gate, queued turn, waiting-read and permit types.
-
 ### 1. `src/range_gate.rs`
-
-Type the whole original helpers introduced today.
 
 Create the file and type:
 
@@ -215,8 +211,6 @@ impl Drop for Permit {
 
 ### 2. `src/lib.rs`
 
-Register the original browser range-read gate.
-
 **Locate this existing block:**
 
 ```rust
@@ -237,11 +231,7 @@ pub mod range_gate;
 
 ## <a id="checkpoint-67a-queue-range-reads-in-arrival-order"></a>2. Poll and cancel queued range reads
 
-Complete the waiting-read Future and its Drop behavior.
-
 ### 1. `src/range_gate.rs`
-
-Extend this original owner with today’s complete helper. Supply only the unchanged original validation fixtures.
 
 **Locate this existing block:**
 
@@ -446,8 +436,6 @@ mod tests {
 
 ### 1. `src/range_rules.rs`
 
-Validate the source interval before issuing or accepting a read.
-
 Create the file and type:
 
 ```rust
@@ -512,8 +500,6 @@ pub fn accept(
 
 ### 2. `src/lib.rs`
 
-Register the source component.
-
 **Locate this existing block:**
 
 ```rust
@@ -533,8 +519,6 @@ pub mod range_rules;
 ```
 
 ### 3. `src/range_rules.rs`
-
-Copy exact-response, EOF-probe and overflow regression fixtures.
 
 **Locate this existing block:**
 
@@ -621,11 +605,7 @@ mod tests {
 
 ## <a id="checkpoint-67c-retain-original-point-page-values"></a>4. Retain point page values
 
-Retain original point page values.
-
 ### 1. `src/range_page.rs`
-
-Retain original f64 pages and stable IDs separately from derived display values.
 
 Create the file and type:
 
@@ -710,8 +690,6 @@ impl Page {
 
 ### 2. `src/lib.rs`
 
-Register the source component.
-
 **Locate this existing block:**
 
 ```rust
@@ -731,8 +709,6 @@ pub mod range_page;
 ```
 
 ### 3. `src/range_page.rs`
-
-Copy source precision, high-ID, incomplete page and invalid-double fixtures.
 
 **Locate this existing block:**
 
@@ -805,8 +781,6 @@ mod tests {
 
 ### 1. `Cargo.toml`
 
-Enable browser CORS request configuration without changing package versions.
-
 **Locate this existing block:**
 
 ```toml
@@ -824,8 +798,6 @@ console_error_panic_hook = "=0.1.7"
 ```
 
 ### 2. `src/range_fetch.rs`
-
-Own active browser request handles and explicit cancellation.
 
 Create the file and type:
 
@@ -864,8 +836,6 @@ struct Read {
 
 ### 3. `src/lib.rs`
 
-Register the source component.
-
 **Locate this existing block:**
 
 ```rust
@@ -886,8 +856,6 @@ pub mod range_fetch;
 ## <a id="checkpoint-67e-time-out-stalled-source-reads"></a>6. Time out stalled source reads
 
 ### 1. `src/range_fetch.rs`
-
-Connect the owned stall timer, progress reset and request cleanup.
 
 **Locate this existing block:**
 
@@ -979,8 +947,6 @@ pub fn retryable(error: &str) -> bool {
 
 ### 1. `src/range_fetch.rs`
 
-Read bounded body chunks while retaining the checked source request owner.
-
 **Locate this existing block:**
 
 ```rust
@@ -1046,8 +1012,6 @@ async fn body(
 ## <a id="checkpoint-67g-request-and-accept-one-source-interval"></a>8. Request and accept one source interval
 
 ### 1. `src/range_fetch.rs`
-
-Connect HTTP range headers and exact response acceptance.
 
 **Locate this existing block:**
 
@@ -1161,8 +1125,6 @@ async fn body(
 
 ### 1. `src/range_fetch.rs`
 
-Validate source revisions and provide background range reads.
-
 **Locate this existing block:**
 
 ```rust
@@ -1225,11 +1187,7 @@ impl<T: 'static> Task<T> {
 
 ## <a id="checkpoint-67hza-queue-original-source-range-reads"></a>10. Queue source range reads
 
-Write the browser range-read owner and cached metadata-window read.
-
 ### 1. `src/stream.rs`
-
-Type today’s complete browser source readers; reuse the decoding and queue helpers already written.
 
 **Locate this existing block:**
 
@@ -1344,11 +1302,7 @@ mod web {
 
 ## <a id="checkpoint-67hzb-probe-original-source-array-layouts"></a>11. Probe source array layouts
 
-Start owned asynchronous range tasks and inspect the bounded file probe.
-
 ### 1. `src/stream.rs`
-
-Type today’s complete browser source readers; reuse the decoding and queue helpers already written.
 
 **Locate this existing block:**
 
@@ -1443,11 +1397,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-67hzc-read-original-cloud-node-tables"></a>12. Read cloud node tables
 
-Read original node-table fields through the cached metadata window.
-
 ### 1. `src/stream.rs`
-
-Type today’s complete browser source readers; reuse the decoding and queue helpers already written.
 
 **Locate this existing block:**
 
@@ -1571,11 +1521,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-67i-read-source-arrays-through-the-bounded-queue"></a>13. Fetch coordinates, normals, and colours
 
-Fetch bounded source-array slices through the queue already written.
-
 ### 1. `src/stream.rs`
-
-Type today’s complete browser source readers; reuse the decoding and queue helpers already written.
 
 **Locate this existing block:**
 
@@ -1684,11 +1630,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-67j-keep-original-ranged-source-identity"></a>14. Keep ranged source identity
 
-Keep original ranged source identity.
-
 ### 1. `src/stream.rs`
-
-Read original source identity independently of display pages.
 
 **Locate this existing block:**
 
@@ -1741,8 +1683,6 @@ pub fn cloud_identity(head: &[u8]) -> Option<(String, String)> {
 
 ### 1. `src/range_source.rs`
 
-Prepare a revision-bound original remote source descriptor.
-
 Create the file and type:
 
 ```rust
@@ -1785,8 +1725,6 @@ impl Source {
 
 ### 2. `src/lib.rs`
 
-Register the source component.
-
 **Locate this existing block:**
 
 ```rust
@@ -1807,11 +1745,7 @@ pub mod range_source;
 
 ## <a id="checkpoint-67l-fetch-precise-coordinates-and-original-ids"></a>16. Fetch precise coordinates and IDs
 
-Fetch precise coordinates and original IDs.
-
 ### 1. `src/range_source.rs`
-
-Fetch matching original coordinate and ID pages under the source revision. Copy actual kernel-protobuf identity, precision and page-layout regression fixtures.
 
 **Locate this existing block:**
 
@@ -1927,8 +1861,6 @@ mod tests {
 
 ### 1. `src/browser_runtime.rs`
 
-Cancel queued and active range work with its browser runtime.
-
 **Locate this existing block:**
 
 ```rust
@@ -1945,8 +1877,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 2. `src/browser.rs`
-
-Cancel queued and active range work with its browser runtime.
 
 **Locate this existing block:**
 

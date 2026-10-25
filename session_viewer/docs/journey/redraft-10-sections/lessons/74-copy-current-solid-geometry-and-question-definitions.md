@@ -1,6 +1,6 @@
 # 14.4 · Solid questions, previews and one original commit
 
-**Goal:** Reuse the cylinder’s existing center, radius and height questions for a cone. · **Steps:** 19 · **Source:** [app/walk/sheet.rs](../../../../src/app/walk/sheet.rs) · [app/sheet_query.rs](../../../../src/app/sheet_query.rs) · [app/stream.rs](../../../../src/app/stream.rs) · [app/cplane.rs](../../../../src/app/cplane.rs)
+**Steps:** 19 · **Source:** [app/walk/sheet.rs](../../../../src/app/walk/sheet.rs) · [app/sheet_query.rs](../../../../src/app/sheet_query.rs) · [app/stream.rs](../../../../src/app/stream.rs) · [app/cplane.rs](../../../../src/app/cplane.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -48,11 +48,7 @@
 
 ## <a id="checkpoint-74-copy-current-solid-geometry-and-question-definitions"></a>1. Add the remaining regular kernel solids
 
-Build icosahedron and dodecahedron through the shared kernel solid helpers.
-
 ### 1. `src/primitive_icosahedron.rs`
-
-Type the regular-solid wrapper using the existing common helpers.
 
 Create the file and type:
 
@@ -92,8 +88,6 @@ fn build(part: &Part, option: &str) -> Result<Geometry, String> {
 
 ### 2. `src/lib.rs`
 
-Register this completed kernel solid.
-
 **Locate this existing block:**
 
 ```rust
@@ -113,8 +107,6 @@ pub mod primitive_icosahedron;
 ```
 
 ### 3. `src/primitive_icosahedron.rs`
-
-Supply the original kernel-solid validation fixture.
 
 **Locate this existing block:**
 
@@ -163,8 +155,6 @@ mod tests {
 
 ### 4. `src/primitive_dodecahedron.rs`
 
-Type the regular-solid wrapper using the existing common helpers.
-
 Create the file and type:
 
 ```rust
@@ -203,8 +193,6 @@ fn build(part: &Part, option: &str) -> Result<Geometry, String> {
 
 ### 5. `src/lib.rs`
 
-Register this completed kernel solid.
-
 **Locate this existing block:**
 
 ```rust
@@ -224,8 +212,6 @@ pub mod primitive_dodecahedron;
 ```
 
 ### 6. `src/primitive_dodecahedron.rs`
-
-Supply the original kernel-solid validation fixture.
 
 **Locate this existing block:**
 
@@ -275,8 +261,6 @@ mod tests {
 ## <a id="checkpoint-74a-own-current-shape-questions-and-answer-state"></a>2. Own current shape questions and answer state
 
 ### 1. `src/primitive_draft.rs`
-
-Own checked current primitive questions, representation choice and original answer state.
 
 Create the file and type:
 
@@ -344,8 +328,6 @@ impl Draft {
 
 ### 2. `src/lib.rs`
 
-Register the primitive component.
-
 **Locate this existing block:**
 
 ```rust
@@ -366,11 +348,7 @@ pub mod primitive_draft;
 
 ## <a id="checkpoint-74b-validate-a-new-answer-before-changing-its-original-state"></a>3. Validate a new answer before changing its state
 
-Validate a new answer before changing its original state.
-
 ### 1. `src/primitive_draft.rs`
-
-Validate original answer candidates and changed frames without partially adopting them.
 
 **Locate this existing block:**
 
@@ -428,8 +406,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 1. `src/primitive_draft.rs`
 
-Build a complete original primitive before adopting the completed answer set.
-
 **Locate this existing block:**
 
 ```rust
@@ -459,8 +435,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ## <a id="checkpoint-74d-answer-shape-dimensions-with-atomic-typed-batches"></a>5. Answer shape dimensions with atomic typed batches
 
 ### 1. `src/primitive_draft.rs`
-
-Resolve current shape choices, numbers, coordinates and Enter defaults atomically.
 
 **Locate this existing block:**
 
@@ -601,8 +575,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 1. `src/primitive_draft.rs`
 
-Derive temporary current solid wires and finite height-axis click locations.
-
 **Locate this existing block:**
 
 ```rust
@@ -661,11 +633,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-74f-adopt-original-primitive-geometry-through-existing-rows"></a>7. Adopt primitive geometry through existing rows
 
-Adopt original primitive geometry through existing rows.
-
 ### 1. `src/primitive_geometry.rs`
-
-Adopt original kernel geometry through existing original-source scene rows.
 
 Create the file and type:
 
@@ -689,8 +657,6 @@ pub fn insert(scene: &mut Scene, geometry: Geometry) -> Result<ObjectId, &'stati
 
 ### 2. `src/lib.rs`
 
-Register the primitive component.
-
 **Locate this existing block:**
 
 ```rust
@@ -711,8 +677,6 @@ pub mod primitive_geometry;
 
 ### 3. `src/tool.rs`
 
-Carry an original completed primitive result beside existing point and placement results.
-
 **Locate this existing block:**
 
 ```rust
@@ -729,8 +693,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 4. `src/editor.rs`
-
-Commit completed original primitive geometry inside the existing history transaction.
 
 **Locate this existing block:**
 
@@ -752,8 +714,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ## <a id="checkpoint-74g-keep-primitive-answers-beside-the-existing-drawing-draft"></a>8. Keep primitive answers beside the existing drawing draft
 
 ### 1. `src/tool.rs`
-
-Own mixed original primitive answers and multiple temporary wire sets with the current draft.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -946,8 +906,6 @@ impl Tool for Shape {
 
 ### 1. `src/editor.rs`
 
-Connect current shape answers to the existing Editor transaction boundary. Connect the current solid input and original geometry contract.
-
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -1026,8 +984,6 @@ Replace it with:
 ## <a id="checkpoint-74i-route-typed-shape-input-and-preserve-detailed-errors"></a>10. Route typed shape input and preserve detailed errors
 
 ### 1. `src/editor.rs`
-
-Connect current shape answers to the existing Editor transaction boundary. Connect the current solid input and original geometry contract.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -1128,8 +1084,6 @@ Replace it with:
 
 ### 1. `src/editor.rs`
 
-Synchronize validated current primitive frames with fixed construction-plane changes.
-
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -1199,8 +1153,6 @@ Replace it with:
 ## <a id="checkpoint-74k-resolve-height-clicks-without-closing-an-open-shape-collector"></a>12. Resolve height clicks without closing an open shape collector
 
 ### 1. `src/editor.rs`
-
-Connect the current solid input and original geometry contract. Keep current primitive question clicks separate from open Polyline closure.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -1285,8 +1237,6 @@ Replace it with:
 ## <a id="checkpoint-74l-prepare-complete-solid-commands-before-replacing-a-draft"></a>13. Prepare complete solid commands before replacing a draft
 
 ### 1. `src/editor.rs`
-
-Validate direct solid tool candidates before replacing current original input.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -1405,8 +1355,6 @@ Replace it with:
 
 ### 1. `src/primitive_registry.rs`
 
-Register current solid names, representation options and the existing Box alias.
-
 Create the file and type:
 
 ```rust
@@ -1523,8 +1471,6 @@ pub fn command(name: &str, text: &str) -> Option<Action> {
 
 ### 2. `src/lib.rs`
 
-Register the primitive component.
-
 **Locate this existing block:**
 
 ```rust
@@ -1544,8 +1490,6 @@ pub mod primitive_registry;
 ```
 
 ### 3. `src/commands.rs`
-
-Route every current solid name and representation to its maintained original builder.
 
 **Locate this existing block:**
 
@@ -1659,8 +1603,6 @@ pub fn parse(line: &str) -> Result<Command, String> {
 
 ### 1. `src/tool_preview.rs`
 
-Preview independent temporary solid wire sets without connecting unrelated boundaries.
-
 **Locate this existing block:**
 
 ```rust
@@ -1695,8 +1637,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 2. `src/browser.rs`
 
-Show current detailed shape input failures without changing the existing browser command lifecycle.
-
 **Locate this existing block:**
 
 ```rust
@@ -1721,8 +1661,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ## <a id="checkpoint-74o-keep-quick-mouse-drift-as-a-click-using-current-event-time"></a>16. Keep quick mouse drift as a click using current event time
 
 ### 1. `src/gesture.rs`
-
-Use current430accda quick-click drift thresholds and explicit gesture timestamps. Copy current quick-wobble and owned event-clock fixtures.
 
 **Locate this existing block:**
 
@@ -2067,8 +2005,6 @@ mod drift_tests {
 
 ### 2. `src/browser.rs`
 
-Supply actual browser pointer event times to current click and drag ownership.
-
 **Locate this existing block:**
 
 ```rust
@@ -2128,11 +2064,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-74p-exercise-current-solid-input-and-original-persistence"></a>17. Exercise current solid input and persistence
 
-Exercise current solid input and original persistence.
-
 ### 1. `src/primitive_tests.rs`
-
-Copy current integrated solid input, original persistence, axis clicks, temporary preview and atomic error fixtures.
 
 Create the file and type:
 
@@ -2348,8 +2280,6 @@ fn pending_solid_wires_and_cancel_never_create_saved_geometry() {
 
 ### 2. `src/lib.rs`
 
-Register the primitive component.
-
 **Locate this existing block:**
 
 ```rust
@@ -2371,11 +2301,7 @@ mod primitive_tests;
 
 ## <a id="checkpoint-74za-build-original-cylinders-with-signed-height"></a>18. Build cylinders with signed height
 
-Build cylinders with positive or negative height using the solid frame and radius checks already taught.
-
 ### 1. `src/round_cylinder.rs`
-
-Type the whole original solid builder using the existing frame and question helpers. Supply only the unchanged original representation and topology fixture.
 
 Create the file and type:
 
@@ -2519,8 +2445,6 @@ mod tests {
 
 ### 2. `src/lib.rs`
 
-Register this shared original solid builder.
-
 **Locate this existing block:**
 
 ```rust
@@ -2542,8 +2466,6 @@ pub mod round_cylinder;
 ## <a id="checkpoint-74zb-build-original-cones-and-spheres"></a>19. Build cones and spheres
 
 ### 1. `src/round_cone.rs`
-
-Type the whole original solid builder using the existing frame and question helpers. Supply only the unchanged original representation and topology fixture.
 
 Create the file and type:
 
@@ -2637,8 +2559,6 @@ mod tests {
 
 ### 2. `src/lib.rs`
 
-Register this shared original solid builder.
-
 **Locate this existing block:**
 
 ```rust
@@ -2658,8 +2578,6 @@ pub mod round_cone;
 ```
 
 ### 3. `src/round_sphere.rs`
-
-Type the whole original solid builder using the existing frame and question helpers. Supply only the unchanged original representation and topology fixture.
 
 Create the file and type:
 
@@ -2739,8 +2657,6 @@ mod tests {
 ```
 
 ### 4. `src/lib.rs`
-
-Register this shared original solid builder.
 
 **Locate this existing block:**
 

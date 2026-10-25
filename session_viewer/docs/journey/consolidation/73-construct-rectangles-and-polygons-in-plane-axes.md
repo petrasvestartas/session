@@ -1,6 +1,6 @@
 # 14.3 · Planar boundaries and checked solid foundations
 
-**Goal:** Connect tetrahedron and octahedron constructors to the shared radius questions, unit-face cache and placed builder. · **Steps:** 21 · **Source:** [app/walk/sheet.rs](../../../src/app/walk/sheet.rs) · [app/sheet_query.rs](../../../src/app/sheet_query.rs) · [app/stream.rs](../../../src/app/stream.rs) · [app/cplane.rs](../../../src/app/cplane.rs)
+**Steps:** 21 · **Source:** [app/walk/sheet.rs](../../../src/app/walk/sheet.rs) · [app/sheet_query.rs](../../../src/app/sheet_query.rs) · [app/stream.rs](../../../src/app/stream.rs) · [app/cplane.rs](../../../src/app/cplane.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -49,8 +49,6 @@
 ## <a id="checkpoint-73-construct-rectangles-and-polygons-in-plane-axes"></a>1. Construct rectangles and polygons in plane axes
 
 ### 1. `src/planar.rs`
-
-Construct current planar polylines from signed dimensions and a checked orientation frame.
 
 Create the file and type:
 
@@ -106,8 +104,6 @@ pub fn construction_points(
 
 ### 2. `src/lib.rs`
 
-Register the planar component.
-
 **Locate this existing block:**
 
 ```rust
@@ -128,11 +124,7 @@ pub mod planar;
 
 ## <a id="checkpoint-73a-bound-generated-original-construction-points"></a>2. Bound generated construction points
 
-Bound generated original construction points.
-
 ### 1. `src/planar.rs`
-
-Bound original side counts and generated coordinates before preparing the resulting chain.
 
 **Locate this existing block:**
 
@@ -178,8 +170,6 @@ pub fn points(
 
 ### 1. `src/tool.rs`
 
-Extend the point-tool interface with original construction frames and temporary boundary hooks.
-
 **Locate this existing block:**
 
 ```rust
@@ -216,11 +206,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-73c-build-original-rectangle-and-polygon-tool-results"></a>4. Build rectangle and polygon tool results
 
-Build original rectangle and polygon tool results.
-
 ### 1. `src/tool.rs`
-
-Build precise original rectangle and polygon results through the current construction frame.
 
 **Locate this existing block:**
 
@@ -391,8 +377,6 @@ impl Tool for Shape {
 
 ### 1. `src/tool.rs`
 
-Replay original world points independently of multiword names and derive temporary construction boundaries.
-
 **Locate this existing block:**
 
 ```rust
@@ -437,8 +421,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ## <a id="checkpoint-73e-keep-polygon-sides-in-the-current-draft"></a>6. Keep polygon sides in the current draft
 
 ### 1. `src/tool.rs`
-
-Keep validated polygon side counts beside unfinished original input.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -499,8 +481,6 @@ Replace it with:
 ```
 
 ### 2. `src/editor.rs`
-
-Route bounded Sides input to the current unfinished Polygon and preserve original draft points.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -616,8 +596,6 @@ Replace it with:
 
 ### 1. `src/tool.rs`
 
-Offer current planar construction choices on the Polyline tools.
-
 **Locate this existing block:**
 
 ```rust
@@ -641,8 +619,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 2. `src/commands.rs`
-
-Register current Polyline Points, Rectangle and Polygon options and direct coordinates.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -712,8 +688,6 @@ Replace it with:
 
 ### 3. `src/tool_preview.rs`
 
-Draw complete temporary construction boundaries while retaining the current cursor marker.
-
 **Locate this existing block:**
 
 ```rust
@@ -770,11 +744,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-73g-exercise-oriented-original-planar-constructions"></a>8. Exercise oriented planar constructions
 
-Exercise oriented original planar constructions.
-
 ### 1. `src/planar_tests.rs`
-
-Copy current oriented construction, original archive, side-cap, failed-input and temporary-preview fixtures.
 
 Create the file and type:
 
@@ -954,8 +924,6 @@ fn polygon_maximum_leaves_space_for_the_closing_original_point() {
 
 ### 2. `src/lib.rs`
 
-Register the planar component.
-
 **Locate this existing block:**
 
 ```rust
@@ -977,11 +945,7 @@ mod planar_tests;
 
 ## <a id="checkpoint-73h-match-solid-command-options"></a>9. Match solid command options
 
-Compare normalized option words while keeping Enter and Escape outside shape choices..
-
 ### 1. `src/primitive_options.rs`
-
-Normalize option labels once and consume matching input words.
 
 Create the file and type:
 
@@ -1034,8 +998,6 @@ pub(crate) fn compact(text: &str) -> String {
 
 ### 2. `src/lib.rs`
 
-Register the shared option matcher.
-
 **Locate this existing block:**
 
 ```rust
@@ -1056,11 +1018,7 @@ pub mod primitive_options;
 
 ## <a id="checkpoint-73i-describe-solid-command-questions"></a>10. Describe solid command questions
 
-Represent typed coordinates and numbers explicitly.
-
 ### 1. `src/primitive_shape.rs`
-
-Describe the solid answers and questions using kernel points.
 
 Create the file and type:
 
@@ -1143,8 +1101,6 @@ impl Ask {
 
 ### 2. `src/lib.rs`
 
-Register the foundation as it is written.
-
 **Locate this existing block:**
 
 ```rust
@@ -1165,11 +1121,7 @@ pub mod primitive_shape;
 
 ## <a id="checkpoint-73j-build-a-right-handed-solid-frame"></a>11. Build a right-handed solid frame
 
-Place kernel coordinates in a construction-plane frame.
-
 ### 1. `src/primitive_shape.rs`
-
-Continue the shared solid foundation with this lesson’s functions.
 
 **Locate this existing block:**
 
@@ -1272,11 +1224,7 @@ impl Frame {
 
 ## <a id="checkpoint-73k-sample-solid-preview-wires"></a>12. Sample solid preview wires
 
-Sample circles and boxes in the existing frame.
-
 ### 1. `src/primitive_shape.rs`
-
-Continue the shared solid foundation with this lesson’s functions.
 
 **Locate this existing block:**
 
@@ -1339,11 +1287,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-73l-describe-solid-builders-and-dimensions"></a>13. Describe solid builders and dimensions
 
-Read sizes and signed heights from answers, then describe one creation command through question, preview and kernel-build functions..
-
 ### 1. `src/primitive_shape.rs`
-
-Continue the shared solid foundation with this lesson’s functions.
 
 **Locate this existing block:**
 
@@ -1436,11 +1380,7 @@ impl Shape {
 
 ## <a id="checkpoint-73m-validate-solid-sizes-and-radius"></a>14. Validate solid sizes and radius
 
-Reject nonfinite and degenerate dimensions.
-
 ### 1. `src/primitive_shape.rs`
-
-Continue the shared solid foundation with this lesson’s functions.
 
 **Locate this existing block:**
 
@@ -1567,11 +1507,7 @@ pub fn sphere_outline(part: &Part) -> Vec<Vec<Point>> {
 </svg>
 </div>
 
-Join kernel face meshes by reusing nearby corners, then retain either a placed BRep or its mesh representation.
-
 ### 1. `src/primitive_shape.rs`
-
-Continue the shared solid foundation with this lesson’s functions.
 
 **Locate this existing block:**
 
@@ -1670,11 +1606,7 @@ pub fn polyhedron(mut mesh: Mesh, option: &str, place: &Xform, name: &str) -> Ge
 
 ## <a id="checkpoint-73o-scale-and-cache-polyhedron-faces"></a>16. Scale and cache polyhedron faces
 
-Cache unit polyhedron face outlines, then apply the requested circumradius and the existing placement frame.
-
 ### 1. `src/primitive_shape.rs`
-
-Continue the shared solid foundation with this lesson’s functions. Supply the existing original frame fixture and reusable builder validation helpers.
 
 **Locate this existing block:**
 
@@ -1891,11 +1823,7 @@ pub mod tests {
 
 ## <a id="checkpoint-73p-build-a-placed-kernel-box"></a>17. Build a placed kernel box
 
-Build a box through the Session kernel and place its center half a signed height above the construction plane.
-
 ### 1. `src/primitive_box.rs`
-
-Build and place the kernel box, with its width and preview helpers.
 
 Create the file and type:
 
@@ -1955,8 +1883,6 @@ fn build(part: &Part, option: &str) -> Result<Geometry, String> {
 
 ### 2. `src/lib.rs`
 
-Register the box helpers before connecting their question sequence.
-
 **Locate this existing block:**
 
 ```rust
@@ -1977,11 +1903,7 @@ pub mod primitive_box;
 
 ## <a id="checkpoint-73q-read-box-questions-and-corner-clicks"></a>18. Read box questions and corner clicks
 
-Connect the box builder to its question sequence.
-
 ### 1. `src/primitive_box.rs`
-
-Insert the shape descriptor and question reader before the helpers already written. Supply the original corner, signed-height, orientation and invalid-size fixtures.
 
 **Locate this existing block:**
 
@@ -2255,11 +2177,7 @@ mod tests {
 
 ## <a id="checkpoint-73r-build-an-oriented-kernel-pyramid"></a>19. Build an oriented kernel pyramid
 
-Read a base diagonal and signed height.
-
 ### 1. `src/primitive_pyramid.rs`
-
-Type the kernel builder and reuse the shared original-coordinate helpers.
 
 Create the file and type:
 
@@ -2362,8 +2280,6 @@ fn build(part: &Part, option: &str) -> Result<Geometry, String> {
 
 ### 2. `src/lib.rs`
 
-Register the completed original solid module.
-
 **Locate this existing block:**
 
 ```rust
@@ -2383,8 +2299,6 @@ pub mod primitive_pyramid;
 ```
 
 ### 3. `src/primitive_pyramid.rs`
-
-Supply the existing accepted-solid validation fixture separately.
 
 **Locate this existing block:**
 
@@ -2451,11 +2365,7 @@ mod tests {
 
 ## <a id="checkpoint-73s-build-a-block-with-a-kernel-hole"></a>20. Build a block with a kernel hole
 
-Reuse the existing box questions and dimension reader.
-
 ### 1. `src/primitive_block_with_hole.rs`
-
-Type the kernel builder and reuse the shared original-coordinate helpers.
 
 Create the file and type:
 
@@ -2538,8 +2448,6 @@ fn build(part: &Part, option: &str) -> Result<Geometry, String> {
 
 ### 2. `src/lib.rs`
 
-Register the completed original solid module.
-
 **Locate this existing block:**
 
 ```rust
@@ -2559,8 +2467,6 @@ pub mod primitive_block_with_hole;
 ```
 
 ### 3. `src/primitive_block_with_hole.rs`
-
-Supply the existing accepted-solid validation fixture separately.
 
 **Locate this existing block:**
 
@@ -2619,8 +2525,6 @@ mod tests {
 
 ### 1. `src/primitive_tetrahedron.rs`
 
-Type the kernel builder and reuse the shared original-coordinate helpers.
-
 Create the file and type:
 
 ```rust
@@ -2659,8 +2563,6 @@ fn build(part: &Part, option: &str) -> Result<Geometry, String> {
 
 ### 2. `src/lib.rs`
 
-Register the completed original solid module.
-
 **Locate this existing block:**
 
 ```rust
@@ -2680,8 +2582,6 @@ pub mod primitive_tetrahedron;
 ```
 
 ### 3. `src/primitive_tetrahedron.rs`
-
-Supply the existing accepted-solid validation fixture separately.
 
 **Locate this existing block:**
 
@@ -2730,8 +2630,6 @@ mod tests {
 
 ### 4. `src/primitive_octahedron.rs`
 
-Type the kernel builder and reuse the shared original-coordinate helpers.
-
 Create the file and type:
 
 ```rust
@@ -2770,8 +2668,6 @@ fn build(part: &Part, option: &str) -> Result<Geometry, String> {
 
 ### 5. `src/lib.rs`
 
-Register the completed original solid module.
-
 **Locate this existing block:**
 
 ```rust
@@ -2791,8 +2687,6 @@ pub mod primitive_octahedron;
 ```
 
 ### 6. `src/primitive_octahedron.rs`
-
-Supply the existing accepted-solid validation fixture separately.
 
 **Locate this existing block:**
 

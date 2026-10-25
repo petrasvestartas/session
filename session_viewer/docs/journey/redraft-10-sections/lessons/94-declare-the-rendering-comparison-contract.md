@@ -1,6 +1,6 @@
 # 18.6 · Matched rendering comparisons from original sources
 
-**Goal:** Prove the original comparison and inspect differences. · **Steps:** 4 · **Source:** [engine/gpu/ssao.rs](../../../../src/engine/gpu/ssao.rs) · [engine/gpu/ssao/pipelines.rs](../../../../src/engine/gpu/ssao/pipelines.rs) · [shaders/ssao.wgsl](../../../../src/shaders/ssao.wgsl) · [shaders/triangle.wgsl](../../../../src/shaders/triangle.wgsl)
+**Steps:** 4 · **Source:** [engine/gpu/ssao.rs](../../../../src/engine/gpu/ssao.rs) · [engine/gpu/ssao/pipelines.rs](../../../../src/engine/gpu/ssao/pipelines.rs) · [shaders/ssao.wgsl](../../../../src/shaders/ssao.wgsl) · [shaders/triangle.wgsl](../../../../src/shaders/triangle.wgsl)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -46,8 +46,6 @@
 ## <a id="checkpoint-94-declare-the-rendering-comparison-contract"></a>1. Declare the rendering comparison contract
 
 ### 1. `src/comparison.rs`
-
-Own one original comparison specimen and explicit maintained-renderer differences.
 
 Create the file and type:
 
@@ -126,8 +124,6 @@ pub fn original_scene(bytes: &[u8]) -> Result<crate::scene::Scene, String> {
 
 ### 2. `src/lib.rs`
 
-Register the comparison owner.
-
 **Locate this existing block:**
 
 ```rust
@@ -164,8 +160,6 @@ pub mod source_mesh_topology;
 
 ### 1. `Cargo.toml`
 
-Link the exact maintained viewer from the reconstructed checkpoint.
-
 **Locate this existing block:**
 
 ```toml
@@ -186,8 +180,6 @@ current_viewer = { package = "session_viewer", path = "../.." }
 ## <a id="checkpoint-94b-read-actual-maintained-frames-without-source-mutation"></a>3. Read actual maintained frames without source mutation
 
 ### 1. `src/reference_example.rs`
-
-Copy the supplied maintained-frame command line example.
 
 Create the file and type:
 
@@ -236,8 +228,6 @@ fn main() {}
 
 ### 2. `Cargo.toml`
 
-Expose the maintained reference as a native example.
-
 **Locate this existing block:**
 
 ```toml
@@ -257,8 +247,6 @@ path = "src/reference_example.rs"
 ```
 
 ### 3. `src/reference_frame.rs`
-
-Supply the optional native comparison wrapper; the browser application does not call it.
 
 Create the file and type:
 
@@ -294,8 +282,6 @@ pub fn rgb(bytes: &[u8], size: [u32; 2]) -> Result<&[u8], &'static str> {
 ```
 
 ### 4. `src/lib.rs`
-
-Keep the maintained reference native-only.
 
 **Locate this existing block:**
 
@@ -335,8 +321,6 @@ pub mod source_mesh_topology;
 ## <a id="checkpoint-94c-prove-the-original-comparison-and-inspect-differences"></a>4. Prove the comparison and inspect differences
 
 ### 1. `src/comparison_tests.rs`
-
-Copy supplied actual source and maintained-frame fixtures.
 
 Create the file and type:
 
@@ -407,8 +391,6 @@ fn maintained_renderer_draws_the_original_curved_specimen() {
 
 ### 2. `src/lib.rs`
 
-Register supplied comparison fixtures.
-
 **Locate this existing block:**
 
 ```rust
@@ -447,8 +429,6 @@ pub mod source_mesh_topology;
 ```
 
 ### 3. `index.html`
-
-Package the actual original comparison and later metadata protobuf fixtures for browser acceptance.
 
 **Locate this existing block:**
 

@@ -1,6 +1,6 @@
 # 7.4 · Precise snapping with derived search caches
 
-**Goal:** Snap actual drawing input through the command dock. · **Steps:** 8 · **Source:** [app/command/mod.rs](../../../src/app/command/mod.rs) · [app/command/tool.rs](../../../src/app/command/tool.rs) · [app/cplane.rs](../../../src/app/cplane.rs) · [app/snap.rs](../../../src/app/snap.rs)
+**Steps:** 8 · **Source:** [app/command/mod.rs](../../../src/app/command/mod.rs) · [app/command/tool.rs](../../../src/app/command/tool.rs) · [app/cplane.rs](../../../src/app/cplane.rs) · [app/snap.rs](../../../src/app/snap.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -49,8 +49,6 @@
 ## <a id="checkpoint-49-settings"></a>1. Separate object and grid snapping
 
 ### 1. `src/snap.rs`
-
-Define snap kinds, independent switches and validated current1000mm grid settings.
 
 Create the file and type:
 
@@ -183,8 +181,6 @@ impl Settings {
 
 ### 2. `src/lib.rs`
 
-Register the snap component and supplied checks.
-
 **Locate this existing block:**
 
 ```rust
@@ -204,8 +200,6 @@ pub mod snap;
 ## <a id="checkpoint-49a-math"></a>2. Keep snap math in world and plane coordinates
 
 ### 1. `src/snap_math.rs`
-
-Resolve screen projection, local-plane rounding and nearest/perpendicular segment points.
 
 Create the file and type:
 
@@ -329,8 +323,6 @@ pub fn perpendicular(a: [f64; 3], b: [f64; 3], from: [f64; 3]) -> Option<[f64; 3
 
 ### 2. `src/lib.rs`
 
-Register the snap component and supplied checks.
-
 **Locate this existing block:**
 
 ```rust
@@ -351,11 +343,7 @@ pub mod snap_math;
 
 ## <a id="checkpoint-49b-sources"></a>3. Collect targets from placed geometry
 
-Collect targets from original placed geometry.
-
 ### 1. `src/snap_sources.rs`
-
-Collect precise placed source candidates and original boundaries without retaining source owners.
 
 Create the file and type:
 
@@ -511,8 +499,6 @@ fn polyline(out: &mut Vec<Target>, owner: ObjectId, points: &[[f64; 3]]) {
 
 ### 2. `src/lib.rs`
 
-Register the snap component and supplied checks.
-
 **Locate this existing block:**
 
 ```rust
@@ -534,8 +520,6 @@ pub mod snap_sources;
 ## <a id="checkpoint-49c-bins"></a>4. Search nearby screen cells
 
 ### 1. `src/snap_bins.rs`
-
-Bound screen-cell insertion and deduplicate nearby candidate IDs.
 
 Create the file and type:
 
@@ -597,8 +581,6 @@ impl Bins {
 
 ### 2. `src/lib.rs`
 
-Register the snap component and supplied checks.
-
 **Locate this existing block:**
 
 ```rust
@@ -620,8 +602,6 @@ pub mod snap_bins;
 ## <a id="checkpoint-49d-index"></a>5. Choose snap kinds before grid fallback
 
 ### 1. `src/snap_index.rs`
-
-Rank nearby valid candidates and apply independent construction-plane grid fallback.
 
 Create the file and type:
 
@@ -781,8 +761,6 @@ pub fn fallback(
 
 ### 2. `src/lib.rs`
 
-Register the snap component and supplied checks.
-
 **Locate this existing block:**
 
 ```rust
@@ -804,8 +782,6 @@ pub mod snap_index;
 ## <a id="checkpoint-49e-cache"></a>6. Invalidate snap caches after source edits
 
 ### 1. `src/editor.rs`
-
-Own derived target caches and invalidate them after source and placement transactions.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -1010,8 +986,6 @@ pub struct Editor {
 
 ### 1. `src/tool.rs`
 
-Connect snap actions and feedback while preserving accepted draft points and history.
-
 **Locate this existing block:**
 
 ```rust
@@ -1094,8 +1068,6 @@ impl Draft {
 ```
 
 ### 2. `src/editor.rs`
-
-Connect snap actions and feedback while preserving accepted draft points and history.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -1199,8 +1171,6 @@ pub enum Action {
 
 ### 1. `src/commands.rs`
 
-Route shared snap commands and current-camera CSS queries through tool-owned input.
-
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -1289,8 +1259,6 @@ pub const ACTIONS: &[(&str, Factory)] = &[
 ```
 
 ### 2. `src/browser.rs`
-
-Route shared snap commands and current-camera CSS queries through tool-owned input.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -1411,8 +1379,6 @@ Replace it with:
 ```
 
 ### 3. `src/snap_tests.rs`
-
-Copy source precision, ranking, tilted-grid math, cache, draft and history regression checks.
 
 Create the file and type:
 
@@ -1970,8 +1936,6 @@ fn a_tilted_grid_counts_from_its_origin_and_preserves_local_height() {
 ```
 
 ### 4. `src/lib.rs`
-
-Register the snap component and supplied checks.
 
 **Locate this existing block:**
 

@@ -1,6 +1,6 @@
 # 8.2 · Tree presentation with explicit input ownership
 
-**Goal:** Exercise nested source ownership and exact undo. · **Steps:** 5 · **Source:** [app/hierarchy.rs](../../../src/app/hierarchy.rs) · [app/layers.rs](../../../src/app/layers.rs) · [app/ui/layers.rs](../../../src/app/ui/layers.rs) · [app/gesture/mod.rs](../../../src/app/gesture/mod.rs)
+**Steps:** 5 · **Source:** [app/hierarchy.rs](../../../src/app/hierarchy.rs) · [app/layers.rs](../../../src/app/layers.rs) · [app/ui/layers.rs](../../../src/app/ui/layers.rs) · [app/gesture/mod.rs](../../../src/app/gesture/mod.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -52,8 +52,6 @@
 ## <a id="checkpoint-52g-rows"></a>1. Expose stable tree rows across geometry lanes
 
 ### 1. `src/hierarchy.rs`
-
-Resolve current nested rows without reviving deleted object subtrees.
 
 **Locate this existing block:**
 
@@ -167,8 +165,6 @@ pub fn rows(scene: &Scene) -> Vec<Row> {
 
 ### 2. `src/chain.rs`
 
-Expose original line, polyline and curve names for their tree rows.
-
 **Locate this existing block:**
 
 ```rust
@@ -193,8 +189,6 @@ impl Source {
 ## <a id="checkpoint-52h-expansion"></a>2. Keep expansion and paging as presentation state
 
 ### 1. `src/tree_panel.rs`
-
-Keep stable expansion keys, bounded pages and pending row selection outside saved geometry.
 
 Create the file and type:
 
@@ -249,8 +243,6 @@ impl TreePanel {
 
 ### 2. `src/lib.rs`
 
-Register the new source component.
-
 **Locate this existing block:**
 
 ```rust
@@ -272,8 +264,6 @@ pub mod tree_panel;
 ## <a id="checkpoint-52i-panel"></a>3. Draw indented original-source tree controls
 
 ### 1. `src/tree_panel.rs`
-
-Draw bounded source rows with actual measured control rectangles and read-only explanations.
 
 **Locate this existing block:**
 
@@ -328,8 +318,6 @@ pub fn draw(
 ## <a id="checkpoint-52j-input"></a>4. Connect tree controls before canvas picking
 
 ### 1. `src/panel.rs`
-
-Lay out tree controls and consume pointer or wheel input in the actual panel rectangle.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -484,8 +472,6 @@ pub struct Panel {
 
 ### 2. `src/commands.rs`
 
-Register the maintained Layers On, Off and All host commands.
-
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -531,8 +517,6 @@ pub enum Command {
 ```
 
 ### 3. `src/browser.rs`
-
-Refresh source-backed rows, route their actions first and report their current identities.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -642,8 +626,6 @@ Replace it with:
 
 ### 1. `src/tree_specimen.rs`
 
-Copy the source-built nested example used by both exercises and ownership checks.
-
 Create the file and type:
 
 ```rust
@@ -710,8 +692,6 @@ pub fn nested(attribute: bool) -> Vec<u8> {
 
 ### 2. `src/lib.rs`
 
-Register the new source component.
-
 **Locate this existing block:**
 
 ```rust
@@ -731,8 +711,6 @@ pub mod tree_specimen;
 ```
 
 ### 3. `src/editor.rs`
-
-Import the supplied nested example as one ordinary document transaction.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -779,8 +757,6 @@ Replace it with:
 
 ### 4. `src/commands.rs`
 
-Register the supplied Example Nested exercise.
-
 **Locate this existing block:**
 
 ```rust
@@ -797,8 +773,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 5. `src/hierarchy_tests.rs`
-
-Copy the exact nested-source, undo, save and actual egui regressions.
 
 Create the file and type:
 
@@ -1186,8 +1160,6 @@ fn actual_tree_panel_expands_indents_and_refuses_readonly_source_rows() {
 ```
 
 ### 6. `src/lib.rs`
-
-Register the new source component.
 
 **Locate this existing block:**
 

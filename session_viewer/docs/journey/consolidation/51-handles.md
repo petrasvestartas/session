@@ -1,6 +1,6 @@
 # 7.6 · Handles, numeric edits and source-part deformation
 
-**Goal:** Verify complete handle editing and input. · **Steps:** 34 · **Source:** [app/command/mod.rs](../../../src/app/command/mod.rs) · [app/command/tool.rs](../../../src/app/command/tool.rs) · [app/cplane.rs](../../../src/app/cplane.rs) · [app/snap.rs](../../../src/app/snap.rs)
+**Steps:** 34 · **Source:** [app/command/mod.rs](../../../src/app/command/mod.rs) · [app/command/tool.rs](../../../src/app/command/tool.rs) · [app/cplane.rs](../../../src/app/cplane.rs) · [app/snap.rs](../../../src/app/snap.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -49,8 +49,6 @@
 ## <a id="checkpoint-51-handles"></a>1. Name move, rotation and scale handles
 
 ### 1. `src/gizmo.rs`
-
-Define world-axis handles, labels and finite operation-specific numeric answers.
 
 Create the file and type:
 
@@ -157,8 +155,6 @@ pub fn typed_value(handle: Handle, text: &str) -> Result<Option<f64>, String> {
 
 ### 2. `src/lib.rs`
 
-Register the handle component and supplied checks.
-
 **Locate this existing block:**
 
 ```rust
@@ -221,11 +217,7 @@ pub mod gizmo;
 </svg>
 </div>
 
-Measure handle rays in original world coordinates.
-
 ### 1. `src/gizmo.rs`
-
-Resolve checked world-ray intersections, pivot transforms and positive drag scaling.
 
 **Locate this existing block:**
 
@@ -354,8 +346,6 @@ fn about(pivot: &Point, m: Xform) -> Xform {
 
 ### 1. `src/gizmo.rs`
 
-Own transient handle state and compute each handle’s projected anchor.
-
 **Locate this existing block:**
 
 ```rust
@@ -423,8 +413,6 @@ fn typed_factor(value: f64) -> f64 {
 ## <a id="checkpoint-51c-hit"></a>4. Pick handles in a stable priority order
 
 ### 1. `src/gizmo.rs`
-
-Resolve stable handle priority and the same CSS aperture used by drawing.
 
 **Locate this existing block:**
 
@@ -509,11 +497,7 @@ fn typed_factor(value: f64) -> f64 {
 
 ## <a id="checkpoint-51d-grab"></a>5. Capture the handle’s grab
 
-Capture the handle’s original grab.
-
 ### 1. `src/gizmo.rs`
-
-Capture original world grab measurements before producing a transform.
 
 **Locate this existing block:**
 
@@ -591,8 +575,6 @@ fn typed_factor(value: f64) -> f64 {
 ## <a id="checkpoint-51e-transform"></a>6. Derive handle transforms and quarter-turn snapping
 
 ### 1. `src/gizmo.rs`
-
-Derive world transforms from original grabs and implement current90-degree Shift rotation snapping.
 
 **Locate this existing block:**
 
@@ -690,8 +672,6 @@ fn typed_factor(value: f64) -> f64 {
 ```
 
 ### 2. `src/gizmo_tests.rs`
-
-Copy fourteen maintained handle-math regression checks.
 
 Create the file and type:
 
@@ -1000,8 +980,6 @@ fn a_moved_gizmo_closes_its_number_box() {
 
 ### 3. `src/lib.rs`
 
-Register the handle component and supplied checks.
-
 **Locate this existing block:**
 
 ```rust
@@ -1023,11 +1001,7 @@ mod gizmo_tests;
 
 ## <a id="checkpoint-51ez-pack-and-sample-local-handle-vertices"></a>7. Pack and sample local handle vertices
 
-Write the twenty-byte widget vertex format, explicit byte packing and one shared rectangular surface sampler.
-
 ### 1. `src/widget_mesh.rs`
-
-Type the whole original helpers introduced today.
 
 Create the file and type:
 
@@ -1106,8 +1080,6 @@ impl Vertex {
 
 ### 2. `src/lib.rs`
 
-Register the local widget mesh helpers.
-
 **Locate this existing block:**
 
 ```rust
@@ -1166,11 +1138,7 @@ pub mod widget_mesh;
 </svg>
 </div>
 
-Reuse the surface sampler for the original lathed shafts, cones, balls, rotation arcs and central hub.
-
 ### 1. `src/widget_mesh.rs`
-
-Extend this original owner with today’s complete helper.
 
 **Locate this existing block:**
 
@@ -1287,8 +1255,6 @@ fn sphere(
 
 ### 1. `src/widget_layout.rs`
 
-Convert CSS handle size through the pivot’s current depth and bound its projected tile.
-
 Create the file and type:
 
 ```rust
@@ -1397,8 +1363,6 @@ fn bounds(m: &[f64; 16], size: [u32; 2]) -> Option<[f64; 4]> {
 
 ### 2. `src/lib.rs`
 
-Register the handle component and supplied checks.
-
 **Locate this existing block:**
 
 ```rust
@@ -1420,8 +1384,6 @@ pub mod widget_layout;
 ## <a id="checkpoint-51h-shader"></a>10. Draw a local handle tile and its canvas rectangle
 
 ### 1. `src/widget.wgsl`
-
-Draw packed handle colors, active orange and the resolved tile composite.
 
 Create the file and type:
 
@@ -1493,8 +1455,6 @@ fn fs_composite(in: Composite) -> @location(0) vec4<f32> {
 
 ### 1. `src/widget_pipelines.rs`
 
-Declare the explicit sampled tile and filtering sampler bindings.
-
 Create the file and type:
 
 ```rust
@@ -1525,8 +1485,6 @@ pub fn texture_layout(device: &wgpu::Device) -> wgpu::BindGroupLayout {
 
 ### 2. `src/lib.rs`
 
-Register the handle component and supplied checks.
-
 **Locate this existing block:**
 
 ```rust
@@ -1548,8 +1506,6 @@ pub mod widget_pipelines;
 ## <a id="checkpoint-51j-pipelines"></a>12. Separate handle depth from scene depth
 
 ### 1. `src/widget_pipelines.rs`
-
-Build separate4x depth-tested mesh and depth-free alpha-composite pipelines.
 
 **Locate this existing block:**
 
@@ -1704,8 +1660,6 @@ pub fn composite(
 
 ### 1. `src/widget.rs`
 
-Own the widget’s three matching texture attachments and sampled image group.
-
 Create the file and type:
 
 ```rust
@@ -1789,8 +1743,6 @@ impl Tile {
 
 ### 2. `src/lib.rs`
 
-Register the handle component and supplied checks.
-
 **Locate this existing block:**
 
 ```rust
@@ -1860,8 +1812,6 @@ pub mod widget;
 </div>
 
 ### 1. `src/widget.rs`
-
-Upload one static handle mesh, construct pipelines and expose explicit allocation accounting.
 
 **Locate this existing block:**
 
@@ -1967,8 +1917,6 @@ struct Tile {
 
 ### 1. `src/widget.rs`
 
-Reuse a matching tile, release absent widgets and update the small current-frame uniform.
-
 **Locate this existing block:**
 
 ```rust
@@ -2071,8 +2019,6 @@ impl Drop for Widget {
 </div>
 
 ### 1. `src/widget.rs`
-
-Render the local4x tile, resolve it and blend its rectangle over the existing canvas.
 
 **Locate this existing block:**
 
@@ -2197,8 +2143,6 @@ impl Drop for Widget {
 </div>
 
 ### 1. `src/renderer.rs`
-
-Own and draw the bounded widget independently of primary source geometry and integer picking.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -2336,8 +2280,6 @@ Replace it with:
 ```
 
 ### 2. `src/widget_tests.rs`
-
-Copy real GPU pixels, bounded layout, constant CSS size, hover reuse and texture-release checks.
 
 Create the file and type:
 
@@ -2594,8 +2536,6 @@ fn actual_widget_gpu_draws_over_geometry_reuses_tile_and_never_creates_pick_owne
 
 ### 3. `src/lib.rs`
 
-Register the handle component and supplied checks.
-
 **Locate this existing block:**
 
 ```rust
@@ -2617,11 +2557,7 @@ mod widget_tests;
 
 ## <a id="checkpoint-51p-part-points"></a>18. Locate mesh parts and curve controls
 
-Locate original mesh parts and curve controls.
-
 ### 1. `src/part_preview.rs`
-
-Resolve original part keys and precise placed source points.
 
 Create the file and type:
 
@@ -2721,8 +2657,6 @@ pub fn keys(mesh: &session_rust::Mesh, part: Part) -> Result<Vec<usize>, &'stati
 
 ### 2. `src/lib.rs`
 
-Register the edit component and supplied checks.
-
 **Locate this existing block:**
 
 ```rust
@@ -2741,11 +2675,7 @@ pub mod part_preview;
 
 ## <a id="checkpoint-51q-deform"></a>19. Deform selected points through their placement
 
-Deform selected original points through their placement.
-
 ### 1. `src/scene.rs`
-
-Transform original selected part points through local placement and preserve homogeneous curve weights.
 
 **Locate this existing block:**
 
@@ -2874,8 +2804,6 @@ impl Scene {
 
 ### 1. `src/part_preview.rs`
 
-Own temporary source deformation and refuse stale part commits.
-
 **Locate this existing block:**
 
 ```rust
@@ -2976,8 +2904,6 @@ fn same_source(a: &Scene, b: &Scene, id: ObjectId) -> bool {
 
 ### 2. `src/edit_preview.rs`
 
-Expose both retained placement-preview scenes for later memory accounting.
-
 **Locate this existing block:**
 
 ```rust
@@ -2998,8 +2924,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ## <a id="checkpoint-51s-edit-owner"></a>21. Share one handle interface across whole and part edits
 
 ### 1. `src/gizmo_edit.rs`
-
-Unify whole-placement and original-part previews without merging their source ownership.
 
 Create the file and type:
 
@@ -3067,8 +2991,6 @@ impl Preview {
 
 ### 2. `src/lib.rs`
 
-Register the edit component and supplied checks.
-
 **Locate this existing block:**
 
 ```rust
@@ -3090,8 +3012,6 @@ pub mod gizmo_edit;
 ## <a id="checkpoint-51t-capture"></a>22. Keep pointer ownership through click or drag
 
 ### 1. `src/gizmo_edit.rs`
-
-Capture one pointer, distinguish clicks from drags and track the displayed active handle.
 
 **Locate this existing block:**
 
@@ -3210,8 +3130,6 @@ pub fn code(handle: Option<Handle>) -> f32 {
 ## <a id="checkpoint-51u-selection"></a>23. Place handles on the current editable selection
 
 ### 1. `src/editor.rs`
-
-Own a handle preview, derive selection pivots and resolve hits through current camera rays.
 
 **Locate this existing block:**
 
@@ -3386,8 +3304,6 @@ impl Editor {
 ## <a id="checkpoint-51v-press"></a>24. Capture a valid handle without editing the document
 
 ### 1. `src/editor.rs`
-
-Capture checked handle presses and cancel older captures only after successful document commands.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -3574,8 +3490,6 @@ pub enum Action {
 ## <a id="checkpoint-51w-release"></a>25. Preview captured motion and commit one release
 
 ### 1. `src/editor.rs`
-
-Update and release one captured handle, preserve click input and commit the current snapped transform once.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -3785,8 +3699,6 @@ Replace it with:
 
 ### 1. `src/number_box.rs`
 
-Own one projected handle-number prompt and its one-time submitted answer.
-
 Create the file and type:
 
 ```rust
@@ -3829,8 +3741,6 @@ impl NumberBox {
 
 ### 2. `src/lib.rs`
 
-Register the edit component and supplied checks.
-
 **Locate this existing block:**
 
 ```rust
@@ -3852,8 +3762,6 @@ pub mod number_box;
 ## <a id="checkpoint-51y-number-field"></a>27. Draw the number field beside its handle
 
 ### 1. `src/number_box.rs`
-
-Draw the foreground handle-number field with measured bounds and exclusive Enter/Escape ownership.
 
 **Locate this existing block:**
 
@@ -3959,8 +3867,6 @@ pub fn draw(
 ## <a id="checkpoint-51z-number-submit"></a>28. Apply precise typed handle values once
 
 ### 1. `src/editor.rs`
-
-Project the current number request and validate precise, neutral or invalid typed answers before committing. Route Escape to cancellation for an active handle drag as well as numeric entry.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -4190,8 +4096,6 @@ Replace it with:
 ## <a id="checkpoint-51za-panel"></a>29. Route field input through the shared canvas panel
 
 ### 1. `src/panel.rs`
-
-Present and inspect the handle-number model with exclusive pointer, text and keyboard ownership.
 
 **Locate this existing block:**
 
@@ -4976,8 +4880,6 @@ impl Panel {
 
 ### 1. `src/browser.rs`
 
-Prepare the selected widget from the latest resized camera and expose its own presentation ledger. Remove diagnostics before viewport and widget preparation. Highlight the current idle handle and report the prepared widget after resizing.
-
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -5079,8 +4981,6 @@ Replace it with:
 ## <a id="checkpoint-51zc-pointer"></a>31. Capture actual browser handle drags
 
 ### 1. `src/browser.rs`
-
-Capture one actual handle pointer and route its matching motion and release before source picking.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -5221,8 +5121,6 @@ Replace it with:
 ## <a id="checkpoint-51zd-interruption"></a>32. Restore previews when input ownership ends
 
 ### 1. `src/browser.rs`
-
-Synchronize number fields and restore temporary source presentation on real input interruption.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -5496,8 +5394,6 @@ Replace it with:
 
 ### 2. `src/editor.rs`
 
-Expose saved and captured preview scenes before the browser reports their source allocations.
-
 **Locate this existing block:**
 
 ```rust
@@ -5531,8 +5427,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ## <a id="checkpoint-51ze-ledger"></a>33. Count temporary source owners without saving them
 
 ### 1. `src/editor.rs`
-
-Count both retained preview scenes and revoke captures after successful direct source mutations. Clear idle highlighting after successful commands change its source or camera.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -5623,8 +5517,6 @@ Replace it with:
 ## <a id="checkpoint-51zf-handles"></a>34. Verify complete handle editing and input
 
 ### 1. `src/gizmo_edit_tests.rs`
-
-Copy original-source, pointer-ID, stale-edit, rational-weight, one-Undo and preview-ledger regression checks.
 
 Create the file and type:
 
@@ -6236,8 +6128,6 @@ fn idle_handle_hover_changes_only_highlight_and_releases_on_commands_and_drafts(
 
 ### 2. `src/number_box_tests.rs`
 
-Copy actual egui field-focus, text, Enter/Escape, rectangle and handle-switch regression checks.
-
 Create the file and type:
 
 ```rust
@@ -6419,8 +6309,6 @@ fn switching_handle_clears_old_text_and_error_and_closed_box_releases_its_rectan
 
 ### 3. `src/lib.rs`
 
-Register the edit component and supplied checks.
-
 **Locate this existing block:**
 
 ```rust
@@ -6443,8 +6331,6 @@ mod number_box_tests;
 ```
 
 ### 4. `src/gizmo_edit_tests.rs`
-
-Supply a regression for Escape during a held pointer drag, its later release and the preserved redo branch.
 
 **Locate this existing block:**
 

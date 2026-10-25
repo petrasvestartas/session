@@ -1,6 +1,6 @@
 # 10.2 · Validated shaping and revision-based reuse
 
-**Goal:** Prove the current fonts shaping and reuse rules. · **Steps:** 7 · **Source:** [engine/text.rs](../../../src/engine/text.rs) · [engine/gpu/text.rs](../../../src/engine/gpu/text.rs) · [engine/gpu/text_plane.rs](../../../src/engine/gpu/text_plane.rs) · [engine/gpu/text_plate.rs](../../../src/engine/gpu/text_plate.rs)
+**Steps:** 7 · **Source:** [engine/text.rs](../../../src/engine/text.rs) · [engine/gpu/text.rs](../../../src/engine/gpu/text.rs) · [engine/gpu/text_plane.rs](../../../src/engine/gpu/text_plane.rs) · [engine/gpu/text_plate.rs](../../../src/engine/gpu/text_plate.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -61,8 +61,6 @@
 ## <a id="checkpoint-60ba-validation"></a>1. Validate a complete label replacement before changing it
 
 ### 1. `src/text.rs`
-
-Validate metrics, positions, plane axes, padding and clip bounds.
 
 **Locate this existing block:**
 
@@ -161,8 +159,6 @@ fn valid_padding(value: &f32) -> bool {
 
 ### 1. `src/text.rs`
 
-Create advanced shaped buffers and distinguish layout-changing source fields.
-
 **Locate this existing block:**
 
 ```rust
@@ -204,8 +200,6 @@ fn shape(fonts: &mut FontSystem, label: &TextLabel) -> Buffer {
 ## <a id="checkpoint-60c-document"></a>3. Own the shaped runs with their font revisions
 
 ### 1. `src/text.rs`
-
-Own explicit fonts, shaped runs and independent source/font revisions.
 
 **Locate this existing block:**
 
@@ -259,8 +253,6 @@ pub fn covers(text: &str) -> bool {
 ## <a id="checkpoint-60d-reuse"></a>4. Reshape only when the source layout changes
 
 ### 1. `src/text.rs`
-
-Reuse stable shaped buffers and measure only genuine shaping work.
 
 **Locate this existing block:**
 
@@ -342,8 +334,6 @@ impl Default for TextDocument {
 
 ### 1. `src/text.rs`
 
-Adopt fonts only after every supplied source contains a usable face.
-
 **Locate this existing block:**
 
 ```rust
@@ -406,8 +396,6 @@ impl Default for TextDocument {
 ## <a id="checkpoint-60f-diagnostics"></a>6. Inspect glyph origins clusters and multiline metrics
 
 ### 1. `src/text.rs`
-
-Expose actual shaped glyph metrics and release current run capacity on Clear.
 
 **Locate this existing block:**
 
@@ -486,8 +474,6 @@ pub struct GlyphDiagnostic {
 ## <a id="checkpoint-60g-text-shaping"></a>7. Prove the current fonts shaping and reuse rules
 
 ### 1. `src/text.rs`
-
-Copy current production ligature, accent, kerning, fallback, failed replacement, reuse and full-font coverage regressions.
 
 **Locate this existing block:**
 

@@ -1,6 +1,6 @@
 # 21.5 · Physical camera, world grid and framed navigation
 
-**Goal:** Use current wheel units and preserve the visible region when changing from orthographic to perspective. · **Steps:** 6 · **Source:** [camera.rs](../../../src/camera.rs) · [state.rs](../../../src/state.rs) · [engine/gpu/objects.rs](../../../src/engine/gpu/objects.rs) · [engine/gpu/frame.rs](../../../src/engine/gpu/frame.rs)
+**Steps:** 6 · **Source:** [camera.rs](../../../src/camera.rs) · [state.rs](../../../src/state.rs) · [engine/gpu/objects.rs](../../../src/engine/gpu/objects.rs) · [engine/gpu/frame.rs](../../../src/engine/gpu/frame.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -46,11 +46,7 @@
 
 ## <a id="checkpoint-96zzzzzza-match-physical-camera-defaults-and-limits"></a>1. Match physical camera defaults and limits
 
-Keep camera defaults and numeric limits in physical units.
-
 ### 1. `src/camera.rs`
-
-Reuse the existing isometric recipe and convert the three-metre default once. Bound physical camera travel independently of fitted document size. Retain the current physical minimum distance when fitting tiny originals. Keep the orthographic minimum in metres.
 
 **Locate this existing block:**
 
@@ -448,8 +444,6 @@ impl Camera {
 ```
 
 ### 2. `src/camera_reference_tests.rs`
-
-Supply the exact maintained-camera source and its zoom helper as a native-only independent reference; it is not part of learner browser implementation.
 
 Create the file and type:
 
@@ -1044,8 +1038,6 @@ fn zoom_distance(distance: f64, amount: f32) -> f64 {
 
 ### 3. `src/camera_reference_fixture.json`
 
-Supply the dated source and reference hashes for independent camera validation.
-
 Create the file and type:
 
 ```json
@@ -1061,8 +1053,6 @@ Create the file and type:
 ```
 
 ### 4. `src/camera_defaults_tests.rs`
-
-Supply independent default/rotation, reference-integrity, zoom-bound and tiny-fit checks in both units.
 
 Create the file and type:
 
@@ -1176,8 +1166,6 @@ pub(crate) fn editor_fixture() -> crate::editor::Editor {
 
 ### 5. `src/lib.rs`
 
-Register optional native camera comparisons; browser builds omit both modules.
-
 **Locate this existing block:**
 
 ```rust
@@ -1199,8 +1187,6 @@ mod camera_reference_tests;
 
 ### 6. `src/camera_space_tests.rs`
 
-Declare the existing Top pose for exact rectangle crossing/window sets; retain distant source, pixel and ownership assertions.
-
 **Locate this existing block:**
 
 ```rust
@@ -1219,8 +1205,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 7. `src/drawing_tests.rs`
 
-Keep the plane-click fixture at its original unit-sized Top pose so existing distant source points cannot become accidental near-cursor snaps.
-
 **Locate this existing block:**
 
 ```rust
@@ -1238,8 +1222,6 @@ fn editor() -> Editor {
 ```
 
 ### 8. `src/editor.rs`
-
-Retain exact Reset/aspect and navigation-independent Undo assertions, with default distances now expressed in metres.
 
 **Locate this existing block:**
 
@@ -1287,8 +1269,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 9. `src/navigation_complete_tests.rs`
 
-Retain the same cursor-zoom pose and exact target-plane invariance in both projections and panel frames.
-
 **Locate this existing block:**
 
 ```rust
@@ -1310,8 +1290,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 10. `src/navigation_tests.rs`
-
-Declare the original three-unit wheel fixture so its absolute accumulation tolerance and history assertions remain unchanged.
 
 **Locate this existing block:**
 
@@ -1415,8 +1393,6 @@ fn navigation_preserves_document_history() {
 
 ### 11. `src/picking.rs`
 
-Declare the original Top ray before asserting turquoise-before-pink original surface ordering and bounded-ray rejection.
-
 **Locate this existing block:**
 
 ```rust
@@ -1434,8 +1410,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 12. `src/primitive_tests.rs`
-
-Declare the axis-aligned Top view before testing the height-axis refusal and orbit recovery.
 
 **Locate this existing block:**
 
@@ -1455,8 +1429,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 13. `src/projection_tests.rs`
 
-Keep the close orthographic fixture at its declared three-unit Top pose and preserve behind-eye picking, history and Reset projection assertions.
-
 **Locate this existing block:**
 
 ```rust
@@ -1474,8 +1446,6 @@ fn close_orthographic_picking_sees_geometry_behind_the_eye() {
 ```
 
 ### 14. `src/global_outline_tests.rs`
-
-Declare the existing unit-sized camera/editor poses for GPU fixture scenes; retain exact pixels, primitive/source IDs, released-drag completion, caches, uploads and release.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -1688,8 +1658,6 @@ Replace it with:
 ```
 
 ### 15. `src/pick_gpu_tests.rs`
-
-Declare the existing unit-sized camera/editor poses for GPU fixture scenes; retain exact pixels, primitive/source IDs, released-drag completion, caches, uploads and release.
 
 **Locate this existing block:**
 
@@ -6145,8 +6113,6 @@ fn actual_control_net_pixel_addresses_parent_without_a_fake_edge_or_control() {
 
 ### 16. `src/snap_tests.rs`
 
-Keep the original Top pose for exact grid-rounding and unrounded typed-coordinate assertions.
-
 **Locate this existing block:**
 
 ```rust
@@ -6168,8 +6134,6 @@ fn snapping_settings_preserve_a_draft_and_typed_coordinates_bypass_grid_rounding
 ```
 
 ### 17. `src/widget_tests.rs`
-
-Keep the original three-unit isometric widget fixture, exact hover pixels, physical tile reuse and no-pick-owner checks.
 
 **Locate this existing block:**
 
@@ -6232,11 +6196,7 @@ Edit the existing block to match this code; keep unchanged lines:
 </svg>
 </div>
 
-Create an integer pipeline only for lanes that can own a pick.
-
 ### 1. `src/stroke_gpu.rs`
-
-Give background lanes no base integer shader or pipeline while keeping the original lane builder and pick path.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -6494,8 +6454,6 @@ Replace it with:
 
 ### 2. `src/grid_pick_pipeline_tests.rs`
 
-Supply actual resource, grid pixels, no-owner, original-pick/source/upload and release checks.
-
 Create the file and type:
 
 ```rust
@@ -6574,8 +6532,6 @@ fn grid_omits_its_base_integer_pipeline_without_stealing_original_picks() {
 
 ### 3. `src/stroke_gpu.rs`
 
-Register optional native inspection within the lane module; browser compilation excludes it.
-
 **Locate this existing block:**
 
 ```rust
@@ -6641,11 +6597,7 @@ mod pick_pipeline_tests;
 </svg>
 </div>
 
-Reuse the grid owner with a physical background pipeline.
-
 ### 1. `src/grid.rs`
-
-Use the maintained 1000-unit cell recipe. The hardware axes share one physical width.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -6691,8 +6643,6 @@ Replace it with:
 
 ### 2. `src/grid.wgsl`
 
-Transform the existing endpoints and write physical color with primitive zero.
-
 Create the file and type:
 
 ```wgsl
@@ -6716,8 +6666,6 @@ fn fragment(input: Output) -> Physical { return Physical(input.colour, vec2<u32>
 ```
 
 ### 3. `src/stroke_gpu.rs`
-
-Declare the common target builder, then move the existing body into it immediately. Move the already-typed builder body unchanged; the following edits add the target choice. Keep the existing color-only entry point as a thin call to the shared owner. Extend the single builder body with physical targets and LineList topology; the grid remains explicitly unpickable.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -6903,8 +6851,6 @@ Replace it with:
 
 ### 4. `src/renderer.rs`
 
-Draw the grid in the physical background before surfaces and remove its finite setup/draw.
-
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -6993,8 +6939,6 @@ Replace it with:
 
 ### 5. `src/widget_tests.rs`
 
-Reuse the native pixel reader with a declared sRGB target; old callers remain unchanged.
-
 **Locate this existing block:**
 
 ```rust
@@ -7049,8 +6993,6 @@ pub(crate) fn pixels_format(
 ```
 
 ### 6. `src/grid_source_tests.rs`
-
-Retain count, colors, bounds and invalid-input checks with current default spacing.
 
 **Locate this existing block:**
 
@@ -7151,8 +7093,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 7. `src/grid_reference_fixture.json`
 
-Supply dated independent native-grid pixels and declared physical poses.
-
 Create the file and type:
 
 ```json
@@ -7216,8 +7156,6 @@ Create the file and type:
 ```
 
 ### 8. `src/grid_hardware_tests.rs`
-
-Supply exact native-grid raster, opaque/glass background order, no-owner, source reuse and release checks.
 
 Create the file and type:
 
@@ -7394,8 +7332,6 @@ fn grid_stays_behind_original_solid_color_and_never_owns_a_pick() {
 
 ### 9. `src/lib.rs`
 
-Register optional native grid validation outside the browser graph.
-
 **Locate this existing block:**
 
 ```rust
@@ -7415,11 +7351,7 @@ mod grid_hardware_tests;
 
 ## <a id="checkpoint-96zzzzzzd-build-viewing-rays-without-matrix-inversion"></a>4. Build viewing rays without matrix inversion
 
-Keep drawing rays and rendered depth consistent in both projections, including when the construction grid is hidden.
-
 ### 1. `src/camera.rs`
-
-Construct analytic viewing rays and share the current ground/fixed-plane range independently of grid visibility. Use one depth-limit owner for the projection and ray. The orthographic limit already comes from that shared owner.
 
 **Locate this existing block:**
 
@@ -7777,8 +7709,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 2. `src/camera_analytic_ray_tests.rs`
 
-Supply independent current ray-line comparisons, exact projected endpoints, both units and precise distant-origin guards.
-
 Create the file and type:
 
 ```rust
@@ -7889,8 +7819,6 @@ fn analytic_rays_keep_precise_direction_frame_and_finite_endpoint_guards() {
 
 ### 3. `src/lib.rs`
 
-Register the optional native ray and depth comparisons outside the browser graph.
-
 **Locate this existing block:**
 
 ```rust
@@ -7912,8 +7840,6 @@ mod camera_depth_reach_tests;
 ```
 
 ### 4. `src/camera_depth_reach_tests.rs`
-
-Supply independent maintained-camera matrices and controlled fixed-plane translations in both units.
 
 Create the file and type:
 
@@ -8056,8 +7982,6 @@ fn translating_the_fixed_plane_with_the_scene_preserves_camera_and_ray_ranges() 
 
 ### 5. `src/camera_reverse_tests.rs`
 
-Declare a translated fixed plane and a scene extent dominating its grid while retaining all reversed endpoints and ray bounds.
-
 **Locate this existing block:**
 
 ```rust
@@ -8080,8 +8004,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 6. `src/camera_space_tests.rs`
-
-Declare the same local/far fixed plane and a dominant physical unit-equivalence extent; retain all screen, depth, ray, original, selection and source assertions.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -8358,8 +8280,6 @@ Replace it with:
 ```
 
 ### 7. `src/global_outline_tests.rs`
-
-Use translated fixed planes and a declared dominant 20000-unit scene extent for controlled origin/pan comparisons; retain every existing pixel, original owner, source, upload and release assertion.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -8788,8 +8708,6 @@ Replace it with:
 
 ### 8. `src/grid_source_tests.rs`
 
-Keep the deliberately narrow scene-only clipping positive control, and separately assert identical current hidden/shown grid matrices and every visible grid reference inside the far plane.
-
 **Locate this existing block:**
 
 ```rust
@@ -8906,11 +8824,7 @@ fn scene_only_depth_control(camera: &Camera) -> session_rust::Xform {
 
 ## <a id="checkpoint-96zzzzzze-grow-camera-depth-from-cached-world-bounds"></a>5. Grow camera depth from cached world bounds
 
-Keep later or moved originals inside the depth range without refitting the view or walking their vertices on every camera frame.
-
 ### 1. `src/bounds.rs`
-
-Share one numeric eight-corner traversal.
 
 **Locate this existing block:**
 
@@ -8941,8 +8855,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 2. `src/camera.rs`
-
-Reuse the shared corners in the existing Fit owner. Grow only the depth extent, keeping the user’s pose.
 
 **Locate this existing block:**
 
@@ -9011,8 +8923,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 3. `src/renderer.rs`
-
-Keep only six numeric bounds coordinates, with no Scene or source owner. Initialize the numeric cache before ordinary scene adoption. Refresh at displayed-scene adoption; camera-only growth needs no Scene. Refresh numeric bounds only when actual font metrics changed.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -9174,8 +9084,6 @@ pub struct Renderer {
 
 ### 4. `src/gizmo_edit.rs`
 
-Access the active displayed preview for derived metrics without editing original source records.
-
 **Locate this existing block:**
 
 ```rust
@@ -9197,8 +9105,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 5. `src/editor.rs`
-
-Match the existing display-scene precedence when refreshing derived text metrics.
 
 **Locate this existing block:**
 
@@ -9245,8 +9151,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 6. `src/browser_rebase.rs`
 
-Grow from cached world bounds before origin preparation.
-
 **Locate this existing block:**
 
 ```rust
@@ -9267,8 +9171,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 7. `src/browser.rs`
-
-Pass the existing mutable editor to cached camera preparation. Move metric refresh before the final camera preparation. Refresh the actual displayed preview’s metrics before growing its depth.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -9365,8 +9267,6 @@ Replace it with:
 ```
 
 ### 8. `src/camera_extent_tests.rs`
-
-Supply independent current-camera, original GPU pixel/pick, cache ownership and preview metric controls.
 
 Create the file and type:
 
@@ -9678,8 +9578,6 @@ fn active_preview_font_metrics_refresh_numeric_bounds_only_when_changed() {
 
 ### 9. `src/renderer.rs`
 
-Register optional native validation outside the required browser graph.
-
 **Locate this existing block:**
 
 ```rust
@@ -9743,8 +9641,6 @@ mod camera_extent_tests;
 
 ### 1. `src/navigation.rs`
 
-Map raw wheel domains through the current finite amount and double-precision factor.
-
 **Locate this existing block:**
 
 ```rust
@@ -9786,8 +9682,6 @@ pub fn wheel(delta: f64, mode: u32, dpr: f64) -> Option<Action> {
 ```
 
 ### 2. `src/editor.rs`
-
-Retain the existing zoom-at action with a precise factor. Share the same precise factor with ordinary zoom.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -9832,8 +9726,6 @@ Replace it with:
 ```
 
 ### 3. `src/camera.rs`
-
-Keep double precision to the distance update. The factor is already precise. Reuse the same factor for cursor anchoring.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -9887,8 +9779,6 @@ Replace it with:
 
 ### 4. `src/touch.rs`
 
-Let the existing pinch ratio use the precise action boundary.
-
 **Locate this existing block:**
 
 ```rust
@@ -9906,8 +9796,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 5. `src/browser.rs`
-
-Use actual window density rather than canvas size or render-density caps.
 
 **Locate this existing block:**
 
@@ -9931,8 +9819,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 6. `src/bounds.rs`
-
-Share the finite ordered-box guard.
 
 **Locate this existing block:**
 
@@ -9959,8 +9845,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 7. `src/camera.rs`
-
-Reuse the same guard in extent growth. Frame perspective from the clipped visible corners while preserving their forward depth.
 
 **Locate this existing block:**
 
@@ -10035,8 +9919,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 8. `src/editor.rs`
 
-Only an actual transition into perspective needs a world-bounds walk and framing.
-
 **Locate this existing block:**
 
 ```rust
@@ -10063,8 +9945,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 9. `src/navigation_tests.rs`
-
-Declare current pixel/line/page units and finite conversion while retaining accumulation, roundtrip, jump and history controls.
 
 **Locate this existing block:**
 
@@ -10170,8 +10050,6 @@ fn navigation_preserves_document_history() {
 
 ### 10. `src/projection_tests.rs`
 
-Expect current perspective framing, then restore the declared close-pick pose while retaining all original owner and history assertions.
-
 **Locate this existing block:**
 
 ```rust
@@ -10211,8 +10089,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 11. `src/camera_navigation_tests.rs`
-
-Supply independent current wheel/cursor and clipped-corner framing comparisons, units, original source and mode guards.
 
 Create the file and type:
 
@@ -10448,8 +10324,6 @@ fn framed_projection_matches_current_clipped_corners_and_mode_guards() {
 
 ### 12. `src/lib.rs`
 
-Register optional current-camera navigation validation outside the browser graph.
-
 **Locate this existing block:**
 
 ```rust
@@ -10468,8 +10342,6 @@ mod camera_navigation_tests;
 ```
 
 ### 13. `src/fit_tests.rs`
-
-Expect the precise factor now carried by the existing camera API; retain every original view, corner, cursor and tight tolerance assertion.
 
 **Locate this existing block:**
 
@@ -10491,8 +10363,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 14. `src/navigation_complete_tests.rs`
-
-Expect the precise factor now carried by the existing camera API; retain every original view, corner, cursor and tight tolerance assertion.
 
 **Locate this existing block:**
 

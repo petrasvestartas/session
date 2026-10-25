@@ -1,6 +1,6 @@
 # 11.4 · Original point identity and manifest source records
 
-**Goal:** Validate world text, heights and plane axes. · **Steps:** 6 · **Source:** [engine/gpu/surface_outline.rs](../../../src/engine/gpu/surface_outline.rs) · [engine/gpu/cloud.rs](../../../src/engine/gpu/cloud.rs) · [engine/gpu/lod.rs](../../../src/engine/gpu/lod.rs) · [engine/gpu/splat.rs](../../../src/engine/gpu/splat.rs)
+**Steps:** 6 · **Source:** [engine/gpu/surface_outline.rs](../../../src/engine/gpu/surface_outline.rs) · [engine/gpu/cloud.rs](../../../src/engine/gpu/cloud.rs) · [engine/gpu/lod.rs](../../../src/engine/gpu/lod.rs) · [engine/gpu/splat.rs](../../../src/engine/gpu/splat.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -56,8 +56,6 @@
 
 ### 1. `src/cloud.rs`
 
-Retain source point identity, one control owner and precise placement without rewriting the original cloud.
-
 **Locate this existing block:**
 
 ```rust
@@ -74,8 +72,6 @@ pub struct Row {
 ```
 
 ### 2. `src/cloud_pick.rs`
-
-Retain source point identity, one control owner and precise placement without rewriting the original cloud.
 
 Create the file and type:
 
@@ -122,8 +118,6 @@ pub fn position(
 ```
 
 ### 3. `src/scene.rs`
-
-Retain source point identity, one control owner and precise placement without rewriting the original cloud.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -220,8 +214,6 @@ Replace it with:
 
 ### 4. `src/pick_sources.rs`
 
-Retain source point identity, one control owner and precise placement without rewriting the original cloud.
-
 **Locate this existing block:**
 
 ```rust
@@ -238,8 +230,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 5. `src/selection.rs`
-
-Retain source point identity, one control owner and precise placement without rewriting the original cloud.
 
 **Locate this existing block:**
 
@@ -292,8 +282,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 6. `src/highlight.rs`
 
-Retain source point identity, one control owner and precise placement without rewriting the original cloud.
-
 **Locate this existing block:**
 
 ```rust
@@ -318,8 +306,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 7. `src/part_preview.rs`
-
-Retain source point identity, one control owner and precise placement without rewriting the original cloud.
 
 **Locate this existing block:**
 
@@ -438,8 +424,6 @@ pub fn origin(scene: &Scene, target: Target) -> Option<[f64; 3]> {
 
 ### 8. `src/lib.rs`
 
-Register the source component.
-
 **Locate this existing block:**
 
 ```rust
@@ -458,11 +442,7 @@ pub mod cloud_pick;
 
 ## <a id="checkpoint-65a-addresses"></a>2. Recover IDs from integer cloud pixels
 
-Recover original IDs from integer cloud pixels.
-
 ### 1. `src/pick_sources.rs`
-
-Return original integer storage addresses and query the active parent’s complete resident points.
 
 **Locate this existing block:**
 
@@ -486,8 +466,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 2. `src/cloud_gpu.rs`
 
-Return original integer storage addresses and query the active parent’s complete resident points.
-
 **Locate this existing block:**
 
 ```rust
@@ -509,8 +487,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 3. `src/cloud_resolve.wgsl`
-
-Return original integer storage addresses and query the active parent’s complete resident points.
 
 **Locate this existing block:**
 
@@ -534,8 +510,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ## <a id="checkpoint-65b-controls"></a>3. Enter source controls with the current command or F10
 
 ### 1. `src/editor.rs`
-
-Route the current Controls command and canvas-owned F10 to one original cloud parent.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -646,8 +620,6 @@ Replace it with:
 
 ### 2. `src/commands.rs`
 
-Route the current Controls command and canvas-owned F10 to one original cloud parent.
-
 **Locate this existing block:**
 
 ```rust
@@ -664,8 +636,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 3. `src/shortcuts.rs`
-
-Route the current Controls command and canvas-owned F10 to one original cloud parent.
 
 **Locate this existing block:**
 
@@ -776,8 +746,6 @@ pub fn key(
 
 ### 4. `src/shortcuts_tests.rs`
 
-Copy the earlier shortcut checks plus focused F10 ownership coverage.
-
 **Locate this existing block:**
 
 ```rust
@@ -819,11 +787,7 @@ fn f10_controls_only_when_the_canvas_owns_the_key() {
 
 ## <a id="checkpoint-65c-cloud-point"></a>4. Pick points and prove source query reuse
 
-Pick original points and prove source query reuse.
-
 ### 1. `src/cloud_pick_tests.rs`
-
-Copy original point-ID, f64 placement, eligibility, parent and source/history invariants.
 
 Create the file and type:
 
@@ -963,8 +927,6 @@ fn cloud_controls_bind_one_selected_parent_without_a_per_point_cpu_target_table(
 
 ### 2. `src/lib.rs`
 
-Register the source component.
-
 **Locate this existing block:**
 
 ```rust
@@ -983,8 +945,6 @@ mod cloud_pick_tests;
 ```
 
 ### 3. `src/pick_gpu_tests.rs`
-
-Copy actual full-u32 integer picks, local highlights, locked coverage, resident source queries, cancellation and shared-upload checks.
 
 **Locate this existing block:**
 
@@ -1142,11 +1102,7 @@ fn actual_resident_cloud_controls_query_original_points_outside_the_coarse_displ
 
 ## <a id="checkpoint-65za-read-original-manifest-records-and-placements"></a>5. Read manifest records and placements
 
-Pin the parser dependencies and write geometry/text records with their defaults.
-
 ### 1. `Cargo.toml`
-
-Edit the named browser features and pinned manifest dependencies; keep existing entries.
 
 **Locate this existing block:**
 
@@ -1212,8 +1168,6 @@ toml-manifests = ["dep:toml"]
 ```
 
 ### 2. `src/manifest.rs`
-
-Type the whole original helpers introduced today.
 
 Create the file and type:
 
@@ -1311,8 +1265,6 @@ pub fn auto_grid(index: usize, count: usize, cell: [f64; 2]) -> Xform {
 
 ### 3. `src/lib.rs`
 
-Register the original manifest records and helpers.
-
 **Locate this existing block:**
 
 ```rust
@@ -1336,8 +1288,6 @@ mod shader_check;
 ## <a id="checkpoint-65zb-validate-original-manifest-text-and-source-keys"></a>6. Validate manifest text and source keys
 
 ### 1. `src/manifest.rs`
-
-Extend this original owner with today’s complete helper.
 
 **Locate this existing block:**
 

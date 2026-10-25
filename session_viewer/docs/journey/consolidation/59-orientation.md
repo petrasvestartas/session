@@ -1,6 +1,6 @@
 # 9.5 · Oriented CAD solids, original picks and empty bores
 
-**Goal:** Draw the original bore and prove its empty hole. · **Steps:** 7 · **Source:** [app/walk/brep.rs](../../../src/app/walk/brep.rs) · [app/walk/brep_edges.rs](../../../src/app/walk/brep_edges.rs) · [app/walk/brep_orient.rs](../../../src/app/walk/brep_orient.rs) · [app/walk/brep_shapes.rs](../../../src/app/walk/brep_shapes.rs)
+**Steps:** 7 · **Source:** [app/walk/brep.rs](../../../src/app/walk/brep.rs) · [app/walk/brep_edges.rs](../../../src/app/walk/brep_edges.rs) · [app/walk/brep_orient.rs](../../../src/app/walk/brep_orient.rs) · [app/walk/brep_shapes.rs](../../../src/app/walk/brep_shapes.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -48,11 +48,7 @@
 
 ## <a id="checkpoint-59-orientation"></a>1. Orient connected face groups
 
-Propagate coherent signs and turn each closed face group outward.
-
 ### 1. `src/cad_orient.rs`
-
-Complete the single shared face-orientation algorithm.
 
 **Locate this existing block:**
 
@@ -153,11 +149,7 @@ pub fn face_signs(b: &BRep, fms: &[Mesh], chains: &[Option<EdgeChain>]) -> Vec<f
 
 ## <a id="checkpoint-59a-face-data"></a>2. Map each display triangle to its CAD face
 
-Map each display triangle to its original CAD face.
-
 ### 1. `src/cad_face.rs`
-
-Prepare coherent face display arrays, original f64 positions, UV addresses and face indices.
 
 Create the file and type:
 
@@ -260,8 +252,6 @@ pub fn prepare(boundary: &crate::cad_boundary::Prepared) -> Result<Data, &'stati
 
 ### 2. `src/lib.rs`
 
-Register the source component.
-
 **Locate this existing block:**
 
 ```rust
@@ -282,11 +272,7 @@ pub mod cad_face;
 
 ## <a id="checkpoint-59b-display"></a>3. Retain source UVs and draw only CAD boundaries
 
-Retain source UVs and draw only original CAD boundaries.
-
 ### 1. `src/cad_display.rs`
-
-Keep original CAD source and compact UV/border caches while discarding transient mesher faces.
 
 Create the file and type:
 
@@ -324,20 +310,19 @@ pub fn prepare(
     display.parts.triangles = data.face_ids;
     let (mut edges, mut edge_ids) = (Vec::new(), Vec::new());
     for chain in boundary.chains.iter().flatten() {
-        let points = boundary
-            .points(chain.edge)
+        let (points, spans) = boundary
+            .display(chain.edge)
             .ok_or("Missing CAD boundary sample")?;
-        for pair in chain.keys.windows(2) {
-            let mesh = &boundary.faces[chain.face];
-            let ends = [pair[0], pair[1]].map(|key| {
-                let v = &mesh.vertex[&key];
-                [v.x, v.y, v.z]
-            });
+        for (ends, span) in points.windows(2).zip(spans) {
+            let pair = &chain.keys[span..=span + 1];
             display.parts.edges.push((
                 data.keys[chain.face][&pair[0]] as usize,
                 data.keys[chain.face][&pair[1]] as usize,
             ));
-            display.parts.endpoints.push(ends);
+            display
+                .parts
+                .endpoints
+                .push([ends[0], ends[1]]);
             edge_ids.push(chain.edge);
         }
         edges.push(Boundary {
@@ -371,8 +356,6 @@ pub fn example() -> session_rust::BRep {
 
 ### 2. `src/lib.rs`
 
-Register the source component.
-
 **Locate this existing block:**
 
 ```rust
@@ -393,11 +376,7 @@ pub mod cad_display;
 
 ## <a id="checkpoint-59c-source-row"></a>4. Attach BRep ownership to existing rows
 
-Attach original BRep ownership to existing rows.
-
 ### 1. `src/scene.rs`
-
-Attach original CAD ownership and preserve explicit saving and part-edit guards.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -502,8 +481,6 @@ pub struct Object {
 
 ### 2. `src/document.rs`
 
-Attach original CAD ownership and preserve explicit saving and part-edit guards.
-
 **Locate this existing block:**
 
 ```rust
@@ -521,8 +498,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 3. `src/part_preview.rs`
-
-Attach original CAD ownership and preserve explicit saving and part-edit guards.
 
 **Locate this existing block:**
 
@@ -542,11 +517,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-59d-identities"></a>5. Pick and highlight an CAD border
 
-Pick and highlight an original CAD border.
-
 ### 1. `src/pick_sources.rs`
-
-Resolve original BRep edge identities and highlight complete original borders.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -629,8 +600,6 @@ Replace it with:
 
 ### 2. `src/selection.rs`
 
-Resolve original BRep edge identities and highlight complete original borders.
-
 **Locate this existing block:**
 
 ```rust
@@ -682,8 +651,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 3. `src/highlight.rs`
 
-Resolve original BRep edge identities and highlight complete original borders.
-
 **Locate this existing block:**
 
 ```rust
@@ -733,8 +700,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 1. `src/memory.rs`
 
-Expose unique CAD owners and original identity/UV-cache counts for acceptance.
-
 **Locate this existing block:**
 
 ```rust
@@ -774,8 +739,6 @@ pub fn cads<'a>(scenes: impl IntoIterator<Item = &'a Scene>) -> [usize; 6] {
 
 ### 2. `src/browser.rs`
 
-Expose unique CAD owners and original identity/UV-cache counts for acceptance.
-
 **Locate this existing block:**
 
 ```rust
@@ -805,8 +768,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ## <a id="checkpoint-59f-cad"></a>7. Draw the bore and prove its empty hole
 
 ### 1. `src/editor.rs`
-
-Create the original CAD bore through one checked document transaction.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -854,8 +815,6 @@ Replace it with:
 
 ### 2. `src/commands.rs`
 
-Create the original CAD bore through one checked document transaction.
-
 **Locate this existing block:**
 
 ```rust
@@ -872,8 +831,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 3. `src/cad_display_tests.rs`
-
-Copy original face/edge identity, precise shared placement, source Close and outward-normal regressions.
 
 Create the file and type:
 
@@ -996,8 +953,6 @@ fn solid_face_winding_and_normals_keep_the_original_outward_orientation() {
 
 ### 4. `src/lib.rs`
 
-Register the source component.
-
 **Locate this existing block:**
 
 ```rust
@@ -1018,8 +973,6 @@ mod cad_display_tests;
 ```
 
 ### 5. `src/pick_gpu_tests.rs`
-
-Copy actual empty-hole, original cap face and five visible border edge GPU readbacks with source/GPU reuse assertions.
 
 **Locate this existing block:**
 

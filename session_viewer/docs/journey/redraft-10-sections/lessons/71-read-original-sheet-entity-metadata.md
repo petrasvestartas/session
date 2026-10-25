@@ -1,6 +1,6 @@
 # 14.1 · Original drawings, entity queries and construction frames
 
-**Goal:** Recognize the existing world prefix and resolve parsed coordinates from the plane origin, previous point and current direction. · **Steps:** 42 · **Source:** [app/walk/sheet.rs](../../../../src/app/walk/sheet.rs) · [app/sheet_query.rs](../../../../src/app/sheet_query.rs) · [app/stream.rs](../../../../src/app/stream.rs) · [app/cplane.rs](../../../../src/app/cplane.rs)
+**Steps:** 42 · **Source:** [app/walk/sheet.rs](../../../../src/app/walk/sheet.rs) · [app/sheet_query.rs](../../../../src/app/sheet_query.rs) · [app/stream.rs](../../../../src/app/stream.rs) · [app/cplane.rs](../../../../src/app/cplane.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -48,11 +48,7 @@
 
 ## <a id="checkpoint-71-read-original-sheet-entity-metadata"></a>1. Own cancellable sheet-entity lookups
 
-Complete the original lookup owner with its query id, sheet row and entity index.
-
 ### 1. `src/sheet_entity.rs`
-
-Extend this original owner with the day’s complete input helpers. Supply only the unchanged original metadata and cancellation fixtures.
 
 **Locate this existing block:**
 
@@ -166,8 +162,6 @@ mod tests {
 
 ### 2. `src/sheet_example.rs`
 
-Supply the existing sheet scene and side-table data specimen.
-
 Create the file and type:
 
 ```rust
@@ -227,8 +221,6 @@ pub fn metadata() -> Vec<u8> {
 
 ### 3. `src/lib.rs`
 
-Register the supplied sheet data specimen.
-
 **Locate this existing block:**
 
 ```rust
@@ -249,11 +241,7 @@ pub mod sheet_example;
 
 ## <a id="checkpoint-71a-bound-original-entity-records-before-reading"></a>2. Bound entity records before reading
 
-Bound original entity records before reading.
-
 ### 1. `src/sheet_entity.rs`
-
-Bound metadata records and retain the original side-table byte length. Copy bounded metadata-record fixtures.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -345,8 +333,6 @@ pub struct SheetTable {
 ## <a id="checkpoint-71b-give-metadata-reads-their-own-cancellation-signal"></a>3. Give metadata reads their own cancellation signal
 
 ### 1. `src/range_fetch.rs`
-
-Forward an owned cancellation signal to one bounded range read.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -513,8 +499,6 @@ struct Read {
 
 ### 2. `src/sheet_entity_fetch.rs`
 
-Register the current original metadata range types.
-
 Create the file and type:
 
 ```rust
@@ -526,8 +510,6 @@ use std::cell::Cell;
 ```
 
 ### 3. `src/lib.rs`
-
-Register the drawing component.
 
 **Locate this existing block:**
 
@@ -549,8 +531,6 @@ pub mod sheet_entity_fetch;
 ## <a id="checkpoint-71c-fetch-one-revision-matched-metadata-answer"></a>4. Fetch one revision-matched metadata answer
 
 ### 1. `src/sheet_entity_fetch.rs`
-
-Read bounded original entity metadata under one owned signal.
 
 **Locate this existing block:**
 
@@ -663,11 +643,7 @@ async fn reply(
 
 ## <a id="checkpoint-71d-decode-precise-original-sheet-columns"></a>5. Decode precise sheet columns
 
-Decode precise original sheet columns.
-
 ### 1. `src/sheet_page.rs`
-
-Decode original drawing columns without truncating entity IDs.
 
 Create the file and type:
 
@@ -757,8 +733,6 @@ impl Page {
 
 ### 2. `src/lib.rs`
 
-Register the drawing component.
-
 **Locate this existing block:**
 
 ```rust
@@ -823,11 +797,7 @@ pub mod sheet_page;
 </svg>
 </div>
 
-Measure original sheet pages and world pens.
-
 ### 1. `src/sheet_page.rs`
-
-Derive precise bounds, physical pen radii and capacity accounting. Copy original-column and malformed-page fixtures.
 
 **Locate this existing block:**
 
@@ -989,8 +959,6 @@ mod tests {
 
 ### 1. `src/sheet_stream.rs`
 
-Retain resident and charged streamed pages through one display interface.
-
 Create the file and type:
 
 ```rust
@@ -1029,8 +997,6 @@ pub fn next(from: u32, total: u32, left: u32) -> Option<std::ops::Range<u32>> {
 
 ### 2. `src/lib.rs`
 
-Register the drawing component.
-
 **Locate this existing block:**
 
 ```rust
@@ -1051,11 +1017,7 @@ pub mod sheet_stream;
 
 ## <a id="checkpoint-71g-own-the-complete-original-drawing-source"></a>8. Own the complete drawing source
 
-Own the complete original drawing source.
-
 ### 1. `src/sheet_source.rs`
-
-Own immutable original sheet columns and derive their display defaults.
 
 Create the file and type:
 
@@ -1125,8 +1087,6 @@ impl Prepared {
 
 ### 2. `src/lib.rs`
 
-Register the drawing component.
-
 **Locate this existing block:**
 
 ```rust
@@ -1148,8 +1108,6 @@ pub mod sheet_source;
 ## <a id="checkpoint-71h-place-drawing-rows-without-changing-endpoints"></a>9. Place drawing rows without changing endpoints
 
 ### 1. `src/sheet_source.rs`
-
-Own independent row models and precise placed bounds.
 
 **Locate this existing block:**
 
@@ -1326,11 +1284,7 @@ impl Row {
 
 ## <a id="checkpoint-71i-register-original-drawing-rows-on-the-current-layer"></a>10. Register drawing rows on the current layer
 
-Register original drawing rows on the current layer.
-
 ### 1. `src/scene.rs`
-
-Insert checked drawing rows and attach their layer identities.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -1469,8 +1423,6 @@ Replace it with:
 ## <a id="checkpoint-71j-carry-drawing-identity-through-scene-operations"></a>11. Carry drawing identity through scene operations
 
 ### 1. `src/scene.rs`
-
-Connect drawing rows to existing generic scene operations.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -1775,8 +1727,6 @@ Replace it with:
 
 ### 2. `src/rect_select.rs`
 
-Select original drawing segments through window and crossing rectangles.
-
 **Locate this existing block:**
 
 ```rust
@@ -1818,11 +1768,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-71k-save-and-reopen-complete-original-sheets"></a>12. Save and reopen complete sheets
 
-Save and reopen complete original sheets.
-
 ### 1. `src/document_source.rs`
-
-Connect original sheets to mixed document persistence and namespace identities.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -1948,8 +1894,6 @@ pub(crate) fn prepare(
 
 ### 2. `src/document_geometry.rs`
 
-Connect original sheets to mixed document persistence and namespace identities.
-
 **Locate this existing block:**
 
 ```rust
@@ -1982,8 +1926,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 3. `src/archive_identity.rs`
 
-Connect original sheets to mixed document persistence and namespace identities.
-
 **Locate this existing block:**
 
 ```rust
@@ -2001,8 +1943,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 4. `src/scene_archive.rs`
 
-Connect original sheets to mixed document persistence and namespace identities.
-
 **Locate this existing block:**
 
 ```rust
@@ -2019,8 +1959,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 5. `src/document.rs`
-
-Connect original sheets to mixed document persistence and namespace identities.
 
 **Locate this existing block:**
 
@@ -2040,8 +1978,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 6. `src/geometry_snapshot.rs`
-
-Save complete original Sheet protobuf columns rather than display segments.
 
 **Locate this existing block:**
 
@@ -2074,11 +2010,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-71l-locate-original-drawing-identity-and-fixed-ranges"></a>13. Locate drawing identity and fixed ranges
 
-Locate original drawing identity and fixed ranges.
-
 ### 1. `src/sheet_range.rs`
-
-Locate original sheet identity and checked column intervals.
 
 Create the file and type:
 
@@ -2160,8 +2092,6 @@ pub fn slice(
 
 ### 2. `src/lib.rs`
 
-Register the drawing component.
-
 **Locate this existing block:**
 
 ```rust
@@ -2181,8 +2111,6 @@ pub mod sheet_range;
 ```
 
 ### 3. `src/sheet_range.rs`
-
-Copy exact original drawing-envelope and interval fixtures.
 
 **Locate this existing block:**
 
@@ -2247,8 +2175,6 @@ mod tests {
 
 ### 1. `src/sheet_range.rs`
 
-Validate bounded original drawing envelope metadata under its revision.
-
 **Locate this existing block:**
 
 ```rust
@@ -2291,8 +2217,6 @@ async fn envelope(
 ```
 
 ### 2. `src/stream.rs`
-
-Expose the existing bounded metadata window to drawing range adapters.
 
 **Locate this existing block:**
 
@@ -3306,8 +3230,6 @@ mod web {
 
 ### 1. `src/sheet_range.rs`
 
-Scan original array positions and validate source revision before page reads.
-
 **Locate this existing block:**
 
 ```rust
@@ -3421,8 +3343,6 @@ impl Source {
 
 ### 1. `src/sheet_range.rs`
 
-Read original page columns through the bounded source range queue.
-
 **Locate this existing block:**
 
 ```rust
@@ -3509,8 +3429,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ## <a id="checkpoint-71p-adopt-nonoverlapping-charged-drawing-pages"></a>17. Adopt nonoverlapping charged drawing pages
 
 ### 1. `src/sheet_stream.rs`
-
-Own checked original page intervals, cache charges and source generations. Copy segment-budget and retained-page ownership fixtures.
 
 Replace the entire file with:
 
@@ -3651,8 +3569,6 @@ mod tests {
 ## <a id="checkpoint-71q-keep-partial-drawing-sources-explicit"></a>18. Keep partial drawing sources explicit
 
 ### 1. `src/sheet_source.rs`
-
-Keep complete and partial source ownership explicit. Copy immutable original source and display-default fixtures.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -3819,8 +3735,6 @@ impl Prepared {
 
 ### 2. `src/scene.rs`
 
-Keep original stream URLs beside independent drawing rows.
-
 **Locate this existing block:**
 
 ```rust
@@ -3841,8 +3755,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 3. `src/geometry_snapshot.rs`
-
-Refuse partial drawing sources before editable archive creation.
 
 **Locate this existing block:**
 
@@ -3867,8 +3779,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ## <a id="checkpoint-71r-reserve-memory-before-the-drawing-prefix"></a>19. Reserve memory before the drawing prefix
 
 ### 1. `src/sheet_stream.rs`
-
-Reserve temporary memory and stage one checked original drawing prefix.
 
 **Locate this existing block:**
 
@@ -3951,8 +3861,6 @@ pub async fn start(
 
 ### 1. `src/sheet_stream.rs`
 
-Continue checked drawing pages with explicit ownership and visible eviction refresh.
-
 **Locate this existing block:**
 
 ```rust
@@ -4028,11 +3936,7 @@ pub fn continue_read(
 
 ## <a id="checkpoint-71t-resolve-sheet-picks-to-original-entity-ids"></a>21. Resolve sheet picks to entity IDs
 
-Resolve sheet picks to original entity IDs.
-
 ### 1. `src/pick_sources.rs`
-
-Resolve original sheet entities and guard display-only source edits.
 
 **Locate this existing block:**
 
@@ -4475,8 +4379,6 @@ impl Sources {
 
 ### 2. `src/selection.rs`
 
-Resolve original sheet entities and guard display-only source edits.
-
 **Locate this existing block:**
 
 ```rust
@@ -4530,8 +4432,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 3. `src/highlight.rs`
 
-Resolve original sheet entities and guard display-only source edits.
-
 **Locate this existing block:**
 
 ```rust
@@ -4549,8 +4449,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 4. `src/part_preview.rs`
-
-Resolve original sheet entities and guard display-only source edits.
 
 **Locate this existing block:**
 
@@ -4570,8 +4468,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 5. `src/sheet_lookup.rs`
-
-Require current original ownership and selection for one metadata answer.
 
 Create the file and type:
 
@@ -4647,8 +4543,6 @@ impl Gate {
 
 ### 6. `src/lib.rs`
 
-Register the drawing component.
-
 **Locate this existing block:**
 
 ```rust
@@ -4668,8 +4562,6 @@ pub mod sheet_lookup;
 ```
 
 ### 7. `src/sheet_lookup.rs`
-
-Copy late-answer, current-selection and weak-source cancellation fixtures.
 
 **Locate this existing block:**
 
@@ -4736,8 +4628,6 @@ mod tests {
 
 ### 1. `src/sheet.wgsl`
 
-Project original physical sheet pens into covered quads.
-
 Create the file and type:
 
 ```wgsl
@@ -4787,8 +4677,6 @@ fn geometry(start: vec3<f32>, end: vec3<f32>, radius: f32, packed: u32, vertex: 
 
 ### 1. `src/sheet.wgsl`
 
-Connect original pen coverage to the color entry points.
-
 **Locate this existing block:**
 
 ```wgsl
@@ -4810,8 +4698,6 @@ fn fragment(input:Output)->@location(0) vec4<f32> {return vec4<f32>(input.colour
 
 ### 2. `src/sheet_pick.wgsl`
 
-Use matching sheet coverage and compact original entity addresses in integer picks.
-
 Create the file and type:
 
 ```wgsl
@@ -4825,8 +4711,6 @@ fn pick_fragment(input:Output)->@location(0) vec2<u32> {if (!wanted(input.id.y,c
 ## <a id="checkpoint-71w-build-sheet-color-and-integer-pipelines"></a>24. Build sheet color and integer pipelines
 
 ### 1. `src/sheet_pipeline.rs`
-
-Build current wgpu color and exact integer sheet pipeline adapters.
 
 Create the file and type:
 
@@ -4904,8 +4788,6 @@ pub fn pipelines(
 
 ### 2. `src/lib.rs`
 
-Register the drawing component.
-
 **Locate this existing block:**
 
 ```rust
@@ -4970,8 +4852,6 @@ pub mod sheet_pipeline;
 </div>
 
 ### 1. `src/sheet_gpu.rs`
-
-Own shared sheet GPU resources and independent row settings.
 
 Create the file and type:
 
@@ -5040,8 +4920,6 @@ impl Lane {
 
 ### 2. `src/lib.rs`
 
-Register the drawing component.
-
 **Locate this existing block:**
 
 ```rust
@@ -5063,8 +4941,6 @@ pub mod sheet_gpu;
 ## <a id="checkpoint-71y-bound-drawing-buffers-and-pack-independent-settings"></a>26. Bound drawing buffers and pack independent settings
 
 ### 1. `src/sheet_gpu.rs`
-
-Bound source-buffer intervals and pack independent original owner settings. Copy exact original GPU interval fixtures.
 
 **Locate this existing block:**
 
@@ -5194,11 +5070,7 @@ fn settings(
 </svg>
 </div>
 
-Upload each original drawing page once.
-
 ### 1. `src/sheet_gpu.rs`
-
-Reuse original page uploads while retaining their payload ownership.
 
 **Locate this existing block:**
 
@@ -5273,8 +5145,6 @@ pub fn chunks(
 ## <a id="checkpoint-71aa-reuse-independent-drawing-placement-records"></a>28. Reuse independent drawing placement records
 
 ### 1. `src/sheet_gpu.rs`
-
-Reuse shared source geometry and update only changed independent row records.
 
 **Locate this existing block:**
 
@@ -5413,8 +5283,6 @@ pub fn chunks(
 
 ### 1. `src/sheet_gpu.rs`
 
-Draw original page batches with physical pens and truthful allocated-byte counters.
-
 **Locate this existing block:**
 
 ```rust
@@ -5509,8 +5377,6 @@ pub fn chunks(
 ## <a id="checkpoint-71ac-connect-sheet-batches-to-rendering-and-bounded-picks"></a>30. Connect sheet batches to rendering and bounded picks
 
 ### 1. `src/renderer.rs`
-
-Connect shared original drawing batches to color and bounded integer picking.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -5742,8 +5608,6 @@ pub struct Renderer {
 
 ### 2. `src/pick_gpu.rs`
 
-Connect shared original drawing batches to color and bounded integer picking.
-
 **Locate this existing block:**
 
 ```rust
@@ -5872,8 +5736,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 3. `src/pick_encode.rs`
 
-Connect shared original drawing batches to color and bounded integer picking.
-
 **Locate this existing block:**
 
 ```rust
@@ -5974,8 +5836,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 1. `src/browser_sheet.rs`
 
-Own cancellation, revision cache and current weak metadata delivery.
-
 Create the file and type:
 
 ```rust
@@ -6070,8 +5930,6 @@ fn complete(
 
 ### 2. `src/lib.rs`
 
-Register the drawing component.
-
 **Locate this existing block:**
 
 ```rust
@@ -6092,8 +5950,6 @@ pub mod browser_sheet;
 ## <a id="checkpoint-71ae-query-metadata-only-for-the-current-selected-entity"></a>32. Query metadata only for the current selected entity
 
 ### 1. `src/browser_sheet.rs`
-
-Start one selected-entity query with independent cancellation and original URL identity.
 
 **Locate this existing block:**
 
@@ -6199,8 +6055,6 @@ impl Control {
 
 ### 1. `src/publication.rs`
 
-Keep original drawing revisions and per-import metadata URL bases independent.
-
 **Locate this existing block:**
 
 ```rust
@@ -6247,8 +6101,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 2. `src/publication_index.rs`
-
-Keep original drawing revisions and per-import metadata URL bases independent.
 
 **Locate this existing block:**
 
@@ -6316,8 +6168,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ## <a id="checkpoint-71ag-retire-staged-drawing-reads-with-their-publication-owner"></a>34. Retire staged drawing reads with their publication owner
 
 ### 1. `src/browser_publication.rs`
-
-Own staged drawing delivery and retire obsolete original source generations.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -6566,8 +6416,6 @@ Replace it with:
 
 ### 1. `src/browser_publication.rs`
 
-Connect checked single-sheet ranges and staged segment ceilings to publication delivery.
-
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -6681,8 +6529,6 @@ Replace it with:
 
 ### 1. `src/memory.rs`
 
-Expose original drawing resources and only accepted current entity answers.
-
 **Locate this existing block:**
 
 ```rust
@@ -6730,8 +6576,6 @@ pub fn sheets<'a>(scenes: impl IntoIterator<Item = &'a Scene>) -> [usize; 5] {
 ```
 
 ### 2. `src/browser.rs`
-
-Expose original drawing resources and only accepted current entity answers.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -6844,11 +6688,7 @@ Replace it with:
 
 ## <a id="checkpoint-71aj-exercise-complete-and-ranged-original-drawings"></a>37. Exercise complete and ranged drawings
 
-Exercise complete and ranged original drawings.
-
 ### 1. `src/editor.rs`
-
-Connect the original drawing example through the existing history transactions.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -6909,8 +6749,6 @@ Replace it with:
 
 ### 2. `src/commands.rs`
 
-Connect the original drawing example through the existing history transactions.
-
 **Locate this existing block:**
 
 ```rust
@@ -6927,8 +6765,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 3. `src/sheet_scene_tests.rs`
-
-Copy exact original persistence, partial-source, revision and independent-URL fixtures.
 
 Create the file and type:
 
@@ -7265,8 +7101,6 @@ fn appending_a_published_drawing_preserves_the_metadata_base_of_existing_origina
 
 ### 4. `src/lib.rs`
 
-Register the drawing component.
-
 **Locate this existing block:**
 
 ```rust
@@ -7287,8 +7121,6 @@ mod sheet_scene_tests;
 ```
 
 ### 5. `src/pick_gpu_tests.rs`
-
-Copy actual original entity IDs, physical pens, source sharing, camera shifts, locked occlusion and eviction fixtures.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -7561,8 +7393,6 @@ fn colour_pixels_at(renderer: &mut Renderer, transform: [f32; 16]) -> Vec<u8> {
 
 ### 6. `src/editor.rs`
 
-Include original sheet owners in the existing Select All path before applying one Move transaction.
-
 **Locate this existing block:**
 
 ```rust
@@ -7579,8 +7409,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 7. `src/sheet_scene_tests.rs`
-
-Validate mixed original selection, placement, shared source identity and one-step Undo/Redo.
 
 **Locate this existing block:**
 
@@ -7640,11 +7468,7 @@ fn select_all_moves_an_original_sheet_and_point_in_one_transaction_and_undo_rest
 
 ## <a id="checkpoint-71za-build-original-construction-plane-frames"></a>38. Build construction-plane frames
 
-Describe the original world planes and a movable frame.
-
 ### 1. `src/cplane.rs`
-
-Type the whole original frame or coordinate helpers using their shared owners.
 
 Create the file and type:
 
@@ -7742,8 +7566,6 @@ fn unit(v: [f64; 3]) -> Option<[f64; 3]> {
 
 ### 2. `src/lib.rs`
 
-Compile this shared original frame or coordinate module.
-
 **Locate this existing block:**
 
 ```rust
@@ -7764,11 +7586,7 @@ pub mod cplane;
 
 ## <a id="checkpoint-71zb-map-original-plane-and-world-coordinates"></a>39. Map plane and world coordinates
 
-Reuse the existing origin and axes to map between plane and world coordinates.
-
 ### 1. `src/cplane.rs`
-
-Extend this original owner with the day’s complete input helpers.
 
 **Locate this existing block:**
 
@@ -7833,11 +7651,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-71zc-guard-original-plane-and-ray-projections"></a>40. Guard plane and ray projections
 
-Complete the original plane queries for view choice, nearest projection, facing and ray intersection.
-
 ### 1. `src/cplane.rs`
-
-Extend this original owner with the day’s complete input helpers. Supply only the unchanged original frame and coordinate validation fixtures.
 
 **Locate this existing block:**
 
@@ -8179,11 +7993,7 @@ mod tests {
 
 ## <a id="checkpoint-71zd-parse-original-drawing-coordinate-forms"></a>41. Parse drawing coordinate forms
 
-Describe the original absolute, relative, polar and distance forms.
-
 ### 1. `src/drawing_coords.rs`
-
-Type the whole original frame or coordinate helpers using their shared owners.
 
 Create the file and type:
 
@@ -8288,8 +8098,6 @@ fn number(text: &str) -> Option<f64> {
 
 ### 2. `src/lib.rs`
 
-Compile this shared original frame or coordinate module.
-
 **Locate this existing block:**
 
 ```rust
@@ -8311,8 +8119,6 @@ pub mod drawing_coords;
 ## <a id="checkpoint-71ze-resolve-original-relative-and-polar-coordinates"></a>42. Resolve relative and polar coordinates
 
 ### 1. `src/drawing_coords.rs`
-
-Extend this original owner with the day’s complete input helpers.
 
 **Locate this existing block:**
 

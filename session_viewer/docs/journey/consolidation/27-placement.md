@@ -1,61 +1,70 @@
 # 3.4 · Local sources, world placement and display caches
 
-**Goal:** Connect local source geometry, display caches, provenance and document history. · **Steps:** 9 · **Source:** `src/app/decode.rs` · `src/app/loader.rs` · `src/state.rs`
-
-<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
-<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
-  <defs>
-    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
-    </marker>
-    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
-    </marker>
-    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
-    </marker>
-  </defs>
-  <rect x="2" y="2" width="1116" height="184" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
-  <rect x="14" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Hierarchy: M_world = M_parent * M_child</text>
-  <g transform="translate(88,122)">
-    <line x1="0" y1="0" x2="48" y2="0" stroke="#dc2626" stroke-width="2.5" marker-end="url(#arrR)"/>
-    <line x1="0" y1="0" x2="0" y2="-44" stroke="#16a34a" stroke-width="2.5" marker-end="url(#arrG)"/>
-    <circle cx="0" cy="0" r="4" fill="#111111"/>
-    <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="-10" y="18" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Parent</text>
-  </g>
-  <path d="M 116 106 Q 168 68 214 86" fill="none" stroke="#111111" stroke-width="1.75" stroke-dasharray="4 3" marker-end="url(#arr)"/>
-  <g transform="translate(230,94) rotate(-22)">
-    <rect x="-18" y="-14" width="36" height="28" fill="#dbeafe" stroke="#111111" stroke-width="1.75"/>
-    <line x1="0" y1="0" x2="34" y2="0" stroke="#dc2626" stroke-width="2" marker-end="url(#arrR)"/>
-    <line x1="0" y1="0" x2="0" y2="-30" stroke="#16a34a" stroke-width="2" marker-end="url(#arrG)"/>
-  </g>
-  <line x1="358" y1="94" x2="384" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
-  <rect x="388" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Window (Inside) vs Crossing (Intersect) Rect</text>
-  <rect x="424" y="54" width="118" height="88" fill="#dbeafe" fill-opacity="0.35" stroke="#2563eb" stroke-width="2"/>
-  <polygon points="454,122 484,76 516,122" fill="#bbf7d0" stroke="#16a34a" stroke-width="2"/>
-  <rect x="572" y="54" width="118" height="88" fill="#dcfce7" fill-opacity="0.35" stroke="#16a34a" stroke-width="2" stroke-dasharray="5 3"/>
-  <polygon points="642,124 678,72 714,124" fill="#fef08a" stroke="#dc2626" stroke-width="2"/>
-  <line x1="732" y1="94" x2="758" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
-  <rect x="762" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Selected Subtree &amp; Isolated Visibility</text>
-  <rect x="806" y="44" width="256" height="118" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
-  <polygon points="846,138 882,84 918,138" fill="#e2e8f0" stroke="#94a3b8" stroke-width="1.2" stroke-dasharray="3 3"/>
-  <polygon points="942,138 986,68 1030,138" fill="#fef08a" stroke="#dc2626" stroke-width="2.5"/>
-</svg>
-</div>
+**Steps:** 9 · **Source:** `src/app/decode.rs` · `src/app/loader.rs` · `src/state.rs`
 
 ## <a id="checkpoint-27-placement"></a>1. Give each object a placement
 
-Keep local mesh coordinates and an independent object placement.
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="214" viewBox="0 0 1120 214" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr-45e5fdc7" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arr-r-45e5fdc7" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arr-g-45e5fdc7" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arr-b-45e5fdc7" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+    <pattern id="grid-45e5fdc7" width="20" height="20" patternUnits="userSpaceOnUse">
+      <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#f1f5f9" stroke-width="1"/>
+    </pattern>
+  </defs>
+  <rect x="2" y="2" width="1116" height="210" rx="8" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="2" y="2" width="1116" height="28" rx="6" fill="#f8fafc" stroke="#111111" stroke-width="1.5"/>
+  <line x1="2" y1="30" x2="1118" y2="30" stroke="#111111" stroke-width="1.5"/>
+  <rect x="12" y="7" width="176" height="18" rx="3" fill="#111111"/>
+  <text x="100" y="19.5" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#ffffff" paint-order="normal" stroke="none">27..30 · XFORM &amp; ARCHIVE</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="518" y="20" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">4×4 Affine Placement (p_world = M · p_local), Dual f64/f32 Residency &amp; .pb Round-Trip</text>
+  <rect x="838" y="7" width="268" height="18" rx="3" fill="#ffffff" stroke="#111111" stroke-width="1.2"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="972" y="19.5" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#2563eb">p_w = M * p_l · ||save(scene) - open|| = 0</text>
+  <rect x="14" y="38" width="344" height="164" rx="6" fill="url(#grid-45e5fdc7)" stroke="#111111" stroke-width="1.5"/>
+  <line x1="14" y1="60" x2="358" y2="60" stroke="#cbd5e1" stroke-width="1"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="186" y="53" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1 · Local f64 Kernel Source + 4×4 Xform M</text>
+  <rect x="44" y="76" width="124" height="96" rx="4" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="106" y="102" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Kernel Mesh</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="106" y="120" text-anchor="middle" font-family="monospace" font-size="8.5" fill="#2563eb">Exact f64 coords</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="106" y="140" text-anchor="middle" font-family="monospace" font-size="8.5" fill="#111111">GUID preserved</text>
+  <line x1="168" y1="124" x2="198" y2="124" stroke="#111111" stroke-width="1.75" marker-end="url(#arr-45e5fdc7)"/>
+  <rect x="202" y="76" width="130" height="96" rx="4" fill="#dcfce7" stroke="#16a34a" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="267" y="102" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Placement M</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="267" y="120" text-anchor="middle" font-family="monospace" font-size="8.5" fill="#16a34a">[ R_3x3 | T_3x1 ]</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="267" y="140" text-anchor="middle" font-family="monospace" font-size="8.5" fill="#111111">Move dx dy dz</text>
+  <line x1="358" y1="120" x2="384" y2="120" stroke="#111111" stroke-width="2" marker-end="url(#arr-45e5fdc7)"/>
+  <rect x="388" y="38" width="344" height="164" rx="6" fill="url(#grid-45e5fdc7)" stroke="#111111" stroke-width="1.5"/>
+  <line x1="388" y1="60" x2="732" y2="60" stroke="#cbd5e1" stroke-width="1"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="53" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2 · GPU Model Uniform &amp; Protobuf Snapshot</text>
+  <rect x="414" y="76" width="292" height="48" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="96" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#2563eb">GPU: clip = u_view_proj * u_model * vec4(p,1)</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="114" text-anchor="middle" font-family="monospace" font-size="8.5" fill="#111111">Vertex buffer stays immutable in local space</text>
+  <rect x="414" y="134" width="292" height="48" rx="4" fill="#fef9c3" stroke="#d97706" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="154" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Save / Open .pb + Ticket(u64) Guard</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="172" text-anchor="middle" font-family="monospace" font-size="8.5" fill="#16a34a">Stale async file reads rejected on cancel</text>
+  <line x1="732" y1="120" x2="758" y2="120" stroke="#111111" stroke-width="2" marker-end="url(#arr-45e5fdc7)"/>
+  <rect x="762" y="38" width="344" height="164" rx="6" fill="url(#grid-45e5fdc7)" stroke="#111111" stroke-width="1.75"/>
+  <line x1="762" y1="60" x2="1106" y2="60" stroke="#cbd5e1" stroke-width="1"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="934" y="53" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3 · Placed &amp; Round-Tripped Scene</text>
+  <rect x="806" y="68" width="256" height="122" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="836" y="112" width="54" height="54" fill="none" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="4 3"/>
+  <line x1="890" y1="138" x2="942" y2="112" stroke="#dc2626" stroke-width="2" marker-end="url(#arr-r-45e5fdc7)"/>
+  <rect x="948" y="82" width="64" height="64" fill="#93c5fd" stroke="#111111" stroke-width="1.75"/>
+</svg>
+</div>
 
 ### 1. `src/scene.rs`
-
-Store one placement beside the shared local mesh. Transform position only; return world coordinates without changing the mesh. Identity preserves the behavior of all existing objects. Check the placement before mutating the object found by its stable ID.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -161,8 +170,6 @@ pub struct Scene {
 
 ### 2. `src/lib.rs`
 
-Register the placement checks.
-
 **Locate this existing block:**
 
 ```rust
@@ -180,8 +187,6 @@ mod projection_tests;
 ```
 
 ### 3. `src/placement_tests.rs`
-
-Optional authoring fixture. Prove mesh identity and local coordinates survive placement, and failed updates leave it unchanged.
 
 Create the file and type:
 
@@ -233,11 +238,54 @@ fn failed_placement_changes_nothing() {
 
 ## <a id="checkpoint-27a-world"></a>2. Ask geometry questions in world coordinates
 
-Use placement for scene bounds, selected bounds and ray picking.
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="184" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Hierarchy: M_world = M_parent * M_child</text>
+  <g transform="translate(88,122)">
+    <line x1="0" y1="0" x2="48" y2="0" stroke="#dc2626" stroke-width="2.5" marker-end="url(#arrR)"/>
+    <line x1="0" y1="0" x2="0" y2="-44" stroke="#16a34a" stroke-width="2.5" marker-end="url(#arrG)"/>
+    <circle cx="0" cy="0" r="4" fill="#111111"/>
+    <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="-10" y="18" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Parent</text>
+  </g>
+  <path d="M 116 106 Q 168 68 214 86" fill="none" stroke="#111111" stroke-width="1.75" stroke-dasharray="4 3" marker-end="url(#arr)"/>
+  <g transform="translate(230,94) rotate(-22)">
+    <rect x="-18" y="-14" width="36" height="28" fill="#dbeafe" stroke="#111111" stroke-width="1.75"/>
+    <line x1="0" y1="0" x2="34" y2="0" stroke="#dc2626" stroke-width="2" marker-end="url(#arrR)"/>
+    <line x1="0" y1="0" x2="0" y2="-30" stroke="#16a34a" stroke-width="2" marker-end="url(#arrG)"/>
+  </g>
+  <line x1="358" y1="94" x2="384" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="388" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Window (Inside) vs Crossing (Intersect) Rect</text>
+  <rect x="424" y="54" width="118" height="88" fill="#dbeafe" fill-opacity="0.35" stroke="#2563eb" stroke-width="2"/>
+  <polygon points="454,122 484,76 516,122" fill="#bbf7d0" stroke="#16a34a" stroke-width="2"/>
+  <rect x="572" y="54" width="118" height="88" fill="#dcfce7" fill-opacity="0.35" stroke="#16a34a" stroke-width="2" stroke-dasharray="5 3"/>
+  <polygon points="642,124 678,72 714,124" fill="#fef08a" stroke="#dc2626" stroke-width="2"/>
+  <line x1="732" y1="94" x2="758" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="762" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Selected Subtree &amp; Isolated Visibility</text>
+  <rect x="806" y="44" width="256" height="118" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <polygon points="846,138 882,84 918,138" fill="#e2e8f0" stroke="#94a3b8" stroke-width="1.2" stroke-dasharray="3 3"/>
+  <polygon points="942,138 986,68 1030,138" fill="#fef08a" stroke="#dc2626" stroke-width="2.5"/>
+</svg>
+</div>
 
 ### 1. `src/scene.rs`
-
-Whole-scene bounds include placed points. Use the same placed coordinates for fitting the selected object.
 
 **Locate this existing block:**
 
@@ -306,8 +354,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 2. `src/picking.rs`
-
-Ask whether the world ray hits the placed triangle. Compute differences in the double-precision coordinates supplied by placement. Build the triangle origin from the same world point.
 
 **Locate this existing block:**
 
@@ -378,8 +424,6 @@ fn triangle_distance(ray: &Ray, a: [f64; 3], b: [f64; 3], c: [f64; 3]) -> Option
 ```
 
 ### 3. `src/placement_tests.rs`
-
-Optional authoring fixture. Connect placement, both bounds and camera-ray picking in one state check.
 
 **Locate this existing block:**
 
@@ -475,11 +519,7 @@ fn placement_keeps_the_shared_local_mesh() {
 </svg>
 </div>
 
-Send a separate model matrix for each draw while retaining local vertex buffers.
-
 ### 1. `src/triangle.wgsl`
-
-Keep camera and object placement in separate uniform groups. Place the vertex before projecting it; use world position for lighting.
 
 **Locate this existing block:**
 
@@ -524,8 +564,6 @@ fn vertex(@location(0) position: vec3<f32>, @location(1) colour: vec3<f32>) -> V
 ```
 
 ### 2. `src/gpu_mesh.rs`
-
-Upload an object’s mesh and placement together. Retain the object bind group alongside its vertex/index buffers. Borrow local mesh coordinates and the model from the same Object. Encode the model’s column-major values and bind the uniform buffer. Choose this object’s placement before its indexed draw.
 
 **Locate this existing block:**
 
@@ -657,8 +695,6 @@ impl GpuMesh {
 
 ### 3. `src/renderer.rs`
 
-Remove the upload that ran before the pipeline layout was available. Upload objects using the model layout inferred from the shader. Include each placement when a scene update rebuilds the current uploads.
-
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -748,8 +784,6 @@ Replace it with:
 
 ### 4. `src/scene.rs`
 
-Keep the generated box centred in its local coordinates. Assign its world placement after inserting the local mesh.
-
 **Locate this existing block:**
 
 ```rust
@@ -782,11 +816,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-27c-move"></a>4. Move a placed object with a typed offset
 
-Translate selected geometry through the existing command and history route.
-
 ### 1. `src/lib.rs`
-
-Register the small numeric parser.
 
 **Locate this existing block:**
 
@@ -804,8 +834,6 @@ pub mod picking;
 ```
 
 ### 2. `src/offset.rs`
-
-Validate a complete numeric offset before it reaches the document.
 
 Create the file and type:
 
@@ -838,8 +866,6 @@ pub fn parse(line: &str) -> Result<[f64; 3], &'static str> {
 ```
 
 ### 3. `src/editor.rs`
-
-Carry the offset as data in the existing Action enum. Move along world axes and commit one placement change through document history.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -901,8 +927,6 @@ Replace it with:
 
 ### 4. `src/browser.rs`
 
-Offer the named command in the dock vocabulary.
-
 **Locate this existing block:**
 
 ```rust
@@ -919,8 +943,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 5. `src/panel.rs`
-
-Recognize Move followed by arguments; the parser validates those arguments. Replace the latest command’s answer without recording the line twice.
 
 **Locate this existing block:**
 
@@ -1040,8 +1062,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 6. `src/browser.rs`
-
-A valid offset becomes an Action; a parse error becomes a dock answer and still redraws. Display editing failures in the command dock and continue to its normal redraw.
 
 **Locate this existing block:**
 
@@ -1165,11 +1185,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-27d-history"></a>5. Prove placement and history agree
 
-Check that Move changes world placement, preserves local geometry, and remains one reversible transaction.
-
 ### 1. `src/lib.rs`
-
-Register the direct Move and history checks.
 
 **Locate this existing block:**
 
@@ -1188,8 +1204,6 @@ mod navigation_tests;
 ```
 
 ### 2. `src/move_tests.rs`
-
-Optional authoring fixture. Verify grammar, world-axis composition, shared geometry, failure/no-op history and selection.
 
 Create the file and type:
 
@@ -1291,11 +1305,62 @@ fn no_selection_cannot_move_an_arbitrary_object() {
 
 ## <a id="checkpoint-28-record"></a>6. Prepare a display from an owned source mesh
 
-Give source geometry a shared owner and prepare its display before committing an object.
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="214" viewBox="0 0 1120 214" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr-d588f7c0" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arr-r-d588f7c0" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arr-g-d588f7c0" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arr-b-d588f7c0" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+    <pattern id="grid-d588f7c0" width="20" height="20" patternUnits="userSpaceOnUse">
+      <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#f1f5f9" stroke-width="1"/>
+    </pattern>
+  </defs>
+  <rect x="2" y="2" width="1116" height="210" rx="8" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="2" y="2" width="1116" height="28" rx="6" fill="#f8fafc" stroke="#111111" stroke-width="1.5"/>
+  <line x1="2" y1="30" x2="1118" y2="30" stroke="#111111" stroke-width="1.5"/>
+  <rect x="12" y="7" width="176" height="18" rx="3" fill="#111111"/>
+  <text x="100" y="19.5" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#ffffff" paint-order="normal" stroke="none">28-RECORD · DUAL f64 / f32</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="518" y="20" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Dual Representation: Lossless f64 Kernel Source Record Paired with f32 GPU Display Mesh</text>
+  <rect x="838" y="7" width="268" height="18" rx="3" fill="#ffffff" stroke="#111111" stroke-width="1.2"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="972" y="19.5" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#2563eb">ObjectRecord { id, source_f64, mesh_f32, xform_f64 }</text>
+  <rect x="14" y="38" width="344" height="164" rx="6" fill="url(#grid-d588f7c0)" stroke="#111111" stroke-width="1.5"/>
+  <line x1="14" y1="60" x2="358" y2="60" stroke="#cbd5e1" stroke-width="1"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="186" y="53" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1 · Exact f64 CAD Kernel Authority (CPU)</text>
+  <rect x="44" y="76" width="284" height="104" rx="4" fill="#dbeafe" stroke="#2563eb" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="186" y="100" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#2563eb">Kernel Source (64-bit f64)</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="186" y="122" text-anchor="middle" font-family="monospace" font-size="9" fill="#111111">• Original GUID &amp; attributes</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="186" y="142" text-anchor="middle" font-family="monospace" font-size="9" fill="#111111">• Exact f64 coordinates &amp; topology</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="186" y="162" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#16a34a">• Used for Save / Booleans / Measure</text>
+  <line x1="358" y1="120" x2="384" y2="120" stroke="#111111" stroke-width="2" marker-end="url(#arr-d588f7c0)"/>
+  <rect x="388" y="38" width="344" height="164" rx="6" fill="url(#grid-d588f7c0)" stroke="#111111" stroke-width="1.5"/>
+  <line x1="388" y1="60" x2="732" y2="60" stroke="#cbd5e1" stroke-width="1"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="53" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2 · Derived f32 Tessellation (WebGPU VRAM)</text>
+  <rect x="414" y="76" width="292" height="104" rx="4" fill="#dcfce7" stroke="#16a34a" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="100" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#16a34a">Display Mesh (32-bit f32)</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="122" text-anchor="middle" font-family="monospace" font-size="9" fill="#111111">• Packed Vertex { pos: [f32;3], norm: [f32;3] }</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="142" text-anchor="middle" font-family="monospace" font-size="9" fill="#111111">• 64B Model matrix uniform (f64 -&gt; f32)</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="162" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#2563eb">• Used for 60 FPS rasterization</text>
+  <line x1="732" y1="120" x2="758" y2="120" stroke="#111111" stroke-width="2" marker-end="url(#arr-d588f7c0)"/>
+  <rect x="762" y="38" width="344" height="164" rx="6" fill="url(#grid-d588f7c0)" stroke="#111111" stroke-width="1.75"/>
+  <line x1="762" y1="60" x2="1106" y2="60" stroke="#cbd5e1" stroke-width="1"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="934" y="53" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3 · Single ObjectId Owns Both</text>
+  <rect x="806" y="68" width="256" height="122" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="934" y="106" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">ObjectId(k)</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="934" y="132" text-anchor="middle" font-family="monospace" font-size="9" fill="#2563eb">Imported vs Generated Provenance</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="934" y="156" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#16a34a">Zero f32 drift on repeated moves ✓</text>
+</svg>
+</div>
 
 ### 1. `src/prepared.rs`
-
-Create the transit owner. Keep original kernel data beside the display prepared from it.
 
 Create the file and type:
 
@@ -1329,8 +1394,6 @@ impl PreparedMesh {
 
 ### 2. `src/lib.rs`
 
-Expose the preparation boundary without changing the running browser adapter.
-
 **Locate this existing block:**
 
 ```rust
@@ -1347,8 +1410,6 @@ pub mod scene;
 ```
 
 ### 3. `src/prepared_tests.rs`
-
-Optional authoring fixture. Compare original doubles with the display, and retain name, flags and GUID through preparation.
 
 Create the file and type:
 
@@ -1410,8 +1471,6 @@ fn float_overflow_refuses_preparation() {
 
 ### 4. `src/lib.rs`
 
-Compile the source checks in the native test build.
-
 **Locate this existing block:**
 
 ```rust
@@ -1430,11 +1489,7 @@ mod projection_tests;
 
 ## <a id="checkpoint-28a-imported"></a>7. Retain the imported mesh behind each row
 
-Insert imported source geometry and its prepared display together.
-
 ### 1. `src/document.rs`
-
-Load source/display pairs rather than display arrays alone. Retain the prepared geometry alongside its display. Share the session’s existing kernel mesh owner, then attach retained file provenance.
 
 **Locate this existing block:**
 
@@ -1518,8 +1573,6 @@ pub fn load(bytes: &[u8]) -> Result<Loaded, &'static str> {
 
 ### 2. `src/scene.rs`
 
-During migration, distinguish rows with source geometry from older demo rows. Keep the existing insertion path while imported rows begin retaining source geometry. Keep each prepared display and source on the same stable object record.
-
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -1595,8 +1648,6 @@ Replace it with:
 
 ### 3. `src/imported_source_tests.rs`
 
-Optional authoring fixture. Prove import shares the session’s existing source allocation even when earlier display rows disappear.
-
 Create the file and type:
 
 ```rust
@@ -1638,8 +1689,6 @@ fn import_shares_the_retained_sessions_source_allocation() {
 
 ### 4. `src/lib.rs`
 
-Run the source allocation check at this intermediate checkpoint.
-
 **Locate this existing block:**
 
 ```rust
@@ -1658,11 +1707,7 @@ mod move_tests;
 
 ## <a id="checkpoint-28b-generated"></a>8. Give generated objects the same source owner
 
-Build demo triangles and Example Box from kernel geometry; derive all displays on insertion.
-
 ### 1. `src/prepared.rs`
-
-Create demo source geometry before deriving the drawing representation.
 
 **Locate this existing block:**
 
@@ -1695,8 +1740,6 @@ impl PreparedMesh {
 ```
 
 ### 2. `src/scene.rs`
-
-All insertion callers now supply prepared source geometry. Every current object has source geometry; only imported-file provenance stays optional. Describe the same two triangles as source points and an object colour. Consume one prepared value into one source-owning document record. Import uses the same complete record insertion as generated geometry. Retain the kernel box instead of keeping only its display. Keep source geometry for the optional triangle too.
 
 **Locate this existing block:**
 
@@ -2137,8 +2180,6 @@ impl Scene {
 
 ### 3. `src/imported_source_tests.rs`
 
-Optional authoring fixture. The source is now required, so remove the temporary Option unwrap in the check. Optional authoring fixture. Compare the required shared owner after its display row changes.
-
 **Locate this existing block:**
 
 ```rust
@@ -2193,8 +2234,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ## <a id="checkpoint-28c-ownership"></a>9. Prove source ownership survives editing
 
 ### 1. `src/source_tests.rs`
-
-Optional authoring fixture. Check source and display allocations, original vertices, placement history and retained file provenance.
 
 Create the file and type:
 
@@ -2272,8 +2311,6 @@ fn imported_source_survives_a_change_of_display_row() {
 ```
 
 ### 2. `src/lib.rs`
-
-Compile the connected ownership checks with the current scene.
 
 **Locate this existing block:**
 

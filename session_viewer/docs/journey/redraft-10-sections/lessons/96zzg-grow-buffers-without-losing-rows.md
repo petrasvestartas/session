@@ -1,6 +1,6 @@
 # 20.3 · Shared arenas, object records and source preparation
 
-**Goal:** Use the current selection yellow for surfaces and temporary highlights without changing original colors. · **Steps:** 14 · **Source:** [engine/gpu/arena.rs](../../../../src/engine/gpu/arena.rs) · [engine/gpu/buffers.rs](../../../../src/engine/gpu/buffers.rs) · [engine/gpu/objects.rs](../../../../src/engine/gpu/objects.rs) · [engine/gpu/slots.rs](../../../../src/engine/gpu/slots.rs)
+**Steps:** 14 · **Source:** [engine/gpu/arena.rs](../../../../src/engine/gpu/arena.rs) · [engine/gpu/buffers.rs](../../../../src/engine/gpu/buffers.rs) · [engine/gpu/objects.rs](../../../../src/engine/gpu/objects.rs) · [engine/gpu/slots.rs](../../../../src/engine/gpu/slots.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -90,11 +90,7 @@
 </svg>
 </div>
 
-Preserve uploaded GPU records when a shared buffer grows.
-
 ### 1. `src/text_gpu_support.rs`
-
-Grow the existing owner in rows, preserve live bytes on the GPU and share one append algorithm.
 
 **Locate this existing block:**
 
@@ -245,8 +241,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 2. `src/growing_buffer_tests.rs`
 
-Supply real mapped GPU bytes for nonempty growth, empty appends, reuse, release and the existing float adapter.
-
 Create the file and type:
 
 ```rust
@@ -337,8 +331,6 @@ fn actual_gpu_growth_preserves_packed_records_and_reset_reuses_capacity() {
 
 ### 3. `src/lib.rs`
 
-Register the supplied GPU-growth readback fixture.
-
 **Locate this existing block:**
 
 ```rust
@@ -359,11 +351,7 @@ pub mod text_gpu_support;
 
 ## <a id="checkpoint-96zzh-prepare-shared-compact-mesh-ranges"></a>2. Prepare shared compact mesh ranges
 
-Prepare shared packed records and stable ranges without pinning display sources.
-
 ### 1. `src/arena_rows.rs`
-
-Use the existing twenty-byte encoder, rebase validated local indices and cache weak display identities.
 
 Create the file and type:
 
@@ -444,8 +432,6 @@ impl Rows {
 ```
 
 ### 2. `src/arena_rows_tests.rs`
-
-Supply exact packed bytes, shared owner ranges, global indices, weak retention and reset/release fixtures.
 
 Create the file and type:
 
@@ -537,8 +523,6 @@ fn arena_records_do_not_pin_sources_and_reset_reuses_storage() {
 
 ### 3. `src/lib.rs`
 
-Register the preparatory arena records and supplied fixtures.
-
 **Locate this existing block:**
 
 ```rust
@@ -603,11 +587,7 @@ mod arena_rows_tests;
 </svg>
 </div>
 
-Upload shared compact ranges and refresh immutable bindings after buffer growth.
-
 ### 1. `src/arena_rows.rs`
-
-Share one index serializer for full and appended ranges.
 
 **Locate this existing block:**
 
@@ -629,8 +609,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 2. `src/mesh_arena.rs`
-
-Upload appended records through the existing owners and rebuild bindings only when growth replaces resources.
 
 Create the file and type:
 
@@ -734,8 +712,6 @@ impl Arena {
 
 ### 3. `src/lib.rs`
 
-Register the preparatory shared GPU storage owner.
-
 **Locate this existing block:**
 
 ```rust
@@ -752,8 +728,6 @@ pub mod mesh_arena;
 ```
 
 ### 4. `src/growing_buffer_tests.rs`
-
-Reuse the existing supplied mapped-buffer reader in the arena fixtures.
 
 **Locate this existing block:**
 
@@ -772,8 +746,6 @@ pub(crate) fn read(ctx: &GpuCtx, buffer: &wgpu::Buffer, size: u64) -> Vec<u8> {
 ```
 
 ### 5. `src/mesh_arena_tests.rs`
-
-Supply real packed-byte reads and two rendered arena triangles through fresh and stale bindings.
 
 Create the file and type:
 
@@ -987,8 +959,6 @@ fn actual_arena_draw_rebuilds_immutable_bindings_after_growth() {
 
 ### 6. `src/lib.rs`
 
-Register the supplied arena GPU fixtures.
-
 **Locate this existing block:**
 
 ```rust
@@ -1007,11 +977,7 @@ mod move_tests;
 
 ## <a id="checkpoint-96zzj-share-the-object-record-layout"></a>4. Share the object record layout
 
-Share the host object-record size across uniform and instance consumers.
-
 ### 1. `src/object_record.rs`
-
-Name the shared record as two matrices and two four-component blocks.
 
 Create the file and type:
 
@@ -1021,8 +987,6 @@ pub type Record = [u8; BYTES];
 ```
 
 ### 2. `src/lib.rs`
-
-Register the shared host layout.
 
 **Locate this existing block:**
 
@@ -1040,8 +1004,6 @@ pub mod packed_vertex;
 ```
 
 ### 3. `src/gpu_mesh.rs`
-
-Use the same record type for packing and retained previous bytes. Use the shared host record size without changing field offsets.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -1158,8 +1120,6 @@ use wgpu::util::DeviceExt;
 
 ### 4. `src/instance_gpu.rs`
 
-Share the packed type and stride with the instance lane. Use the same size for minimum binding, capacity and cached instance records.
-
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -1234,8 +1194,6 @@ use std::{
 
 ### 5. `src/renderer.rs`
 
-Declare the object binding from the shared host size.
-
 **Locate this existing block:**
 
 ```rust
@@ -1254,8 +1212,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 6. `src/face_pick.rs`
-
-Declare the object binding from the shared host size.
 
 **Locate this existing block:**
 
@@ -1276,8 +1232,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 7. `src/cap_pipeline.rs`
 
-Declare the object binding from the shared host size.
-
 **Locate this existing block:**
 
 ```rust
@@ -1296,8 +1250,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 8. `src/cap_pick_pipeline.rs`
-
-Declare the object binding from the shared host size.
 
 **Locate this existing block:**
 
@@ -1318,8 +1270,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 9. `src/ambient_source_pipeline.rs`
 
-Declare the object binding from the shared host size.
-
 **Locate this existing block:**
 
 ```rust
@@ -1339,8 +1289,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 10. `src/outline_gpu.rs`
 
-Declare the object binding from the shared host size.
-
 **Locate this existing block:**
 
 ```rust
@@ -1359,8 +1307,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 11. `src/renderer.rs`
 
-Count allocated object records using their actual shared size.
-
 **Locate this existing block:**
 
 ```rust
@@ -1378,8 +1324,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 12. `src/object_record_tests.rs`
-
-Supply a check against the actual assembled WGSL layouts, not a repeated Rust size assertion.
 
 Create the file and type:
 
@@ -1433,8 +1377,6 @@ fn assembled_object_uniform_and_instance_array_match_host_layout() {
 ```
 
 ### 13. `src/lib.rs`
-
-Register the supplied shader-layout fixture.
 
 **Locate this existing block:**
 
@@ -1502,11 +1444,7 @@ pub mod packed_vertex;
 </svg>
 </div>
 
-Use one geometry interface for standalone and current shared storage.
-
 ### 1. `src/gpu_geometry.rs`
-
-Borrow one shared arena owner instead of retaining an old buffer generation. Retain a source range separately from its storage owner. Keep standalone preview storage and shared source storage in one geometry interface. Keep the existing standalone upload path at range zero. Upload through the existing arena and read its latest handles. Count shared storage at its owner, not once per geometry. Read the current shared binding on every pulled draw. Use one indexed-range draw for ordinary passes and per-plane cap instances.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -1698,8 +1636,6 @@ impl GpuGeometry {
 
 ### 2. `src/face_pick.rs`
 
-Build source-face bindings from the current shared handles.
-
 **Locate this existing block:**
 
 ```rust
@@ -1724,8 +1660,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 3. `src/tile_gpu.rs`
-
-Invalidate projected rows when the shared buffer handles change. Use current shared buffers when preparing projection rows.
 
 **Locate this existing block:**
 
@@ -1804,8 +1738,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 4. `src/caps_gpu.rs`
 
-Reuse the indexed range draw while preserving the plane instance.
-
 **Locate this existing block:**
 
 ```rust
@@ -1833,8 +1765,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 5. `src/cap_pick_gpu.rs`
-
-Reuse the indexed range draw while preserving the plane instance.
 
 **Locate this existing block:**
 
@@ -1864,8 +1794,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 6. `src/global_outline_tests.rs`
 
-Keep the supplied actual compact-buffer allocation assertion through the common accessor.
-
 **Locate this existing block:**
 
 ```rust
@@ -1883,8 +1811,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 7. `src/geometry_storage_tests.rs`
-
-Supply a real GPU growth, current-handle and weak-source ownership exercise.
 
 Create the file and type:
 
@@ -1935,8 +1861,6 @@ fn earlier_geometry_reads_current_shared_buffers_and_does_not_pin_originals() {
 
 ### 8. `src/lib.rs`
 
-Register the supplied shared-storage ownership fixture.
-
 **Locate this existing block:**
 
 ```rust
@@ -1955,11 +1879,7 @@ mod gesture_tests;
 
 ## <a id="checkpoint-96zzl-read-shared-ranges-through-object-records"></a>6. Read shared ranges through object records
 
-Read an arena range without changing original owners or local triangle identity.
-
 ### 1. `src/object_record.rs`
-
-Append an aligned four-word range block after the existing object fields.
 
 Replace the entire file with:
 
@@ -1970,8 +1890,6 @@ pub type Record = [u8; BYTES];
 ```
 
 ### 2. `src/gpu_mesh.rs`
-
-Pack the range after the existing model, flags, normal matrix and override. Keep the range address independent from the cap token and selected primitive base. Write the first shared index into its own integer field. Pack the geometry range when creating an object row. Preserve its range while updating placement and display settings. Compare and upload the color and range independently.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -2094,8 +2012,6 @@ use wgpu::util::DeviceExt;
 
 ### 3. `src/triangle.wgsl`
 
-Match the appended aligned host range block.
-
 **Locate this existing block:**
 
 ```wgsl
@@ -2113,8 +2029,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 4. `src/cap_count.wgsl`
 
-Match the appended aligned host range block.
-
 **Locate this existing block:**
 
 ```wgsl
@@ -2131,8 +2045,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 5. `src/outline_mask.wgsl`
-
-Keep the object layout consistent in indexed surface consumers.
 
 **Locate this existing block:**
 
@@ -2152,8 +2064,6 @@ struct Object {model:mat4x4<f32>,selection:vec4<u32>,normal_matrix:mat4x4<f32>,f
 
 ### 6. `src/ambient_sources.wgsl`
 
-Keep the object layout consistent in indexed surface consumers.
-
 **Locate this existing block:**
 
 ```wgsl
@@ -2172,8 +2082,6 @@ struct Object{model:mat4x4<f32>,selection:vec4<u32>,normal_matrix:mat4x4<f32>,fa
 
 ### 7. `src/finite_project.wgsl`
 
-Read the same object range in physical triangle projection.
-
 **Locate this existing block:**
 
 ```wgsl
@@ -2191,8 +2099,6 @@ struct ObjectSettings {model:mat4x4<f32>,selected:u32,id:u32,pad:vec2<u32>,norma
 ```
 
 ### 8. `src/triangle.wgsl`
-
-Keep a local occurrence separate from the shared storage offset. Offset only the storage read; local triangle numbering stays unchanged. Use each instance’s own object row when pulling shared vertices.
 
 **Locate this existing block:**
 
@@ -2228,8 +2134,6 @@ fn vertex(@builtin(vertex_index) occurrence: u32, @builtin(instance_index) insta
 
 ### 9. `src/triangle_pick.wgsl`
 
-Read the same shared range for first surface picks.
-
 **Locate this existing block:**
 
 ```wgsl
@@ -2247,8 +2151,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 10. `src/face_pick.wgsl`
-
-Keep original face metadata local while pulling shared positions.
 
 **Locate this existing block:**
 
@@ -2268,8 +2170,6 @@ fn face_vertex(@builtin(vertex_index) index: u32) -> FaceOutput {
 
 ### 11. `src/finite_project.wgsl`
 
-Project the same shared source indices into the local physical interval.
-
 **Locate this existing block:**
 
 ```wgsl
@@ -2287,8 +2187,6 @@ fn physical_clip_corner(index:u32)->vec4<f32>{
 ```
 
 ### 12. `src/object_record_tests.rs`
-
-Match the new range field in both supplied surface shader layout assertions. Match the same range field in the supplied compute shader layout assertion.
 
 **Locate this existing block:**
 
@@ -2315,8 +2213,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 13. `src/global_outline_tests.rs`
-
-Supply an actual nonzero-range renderer comparison for surface color, original face picks, projection, outlines and clipped caps.
 
 **Locate this existing block:**
 
@@ -2455,8 +2351,6 @@ fn actual_nonzero_shared_ranges_keep_surface_face_picks_projection_outlines_and_
 
 ### 14. `src/pick_gpu_tests.rs`
 
-Keep the exact supplied GPU allocation check: two 176-byte object records occupy 352 bytes.
-
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -2501,11 +2395,7 @@ Replace it with:
 
 ## <a id="checkpoint-96zzm-connect-the-renderer-to-one-mesh-arena"></a>7. Connect the renderer to one mesh arena
 
-Render prepared source meshes through one shared arena and release its owner when unused.
-
 ### 1. `src/geometry_cache.rs`
-
-Keep one shared arena alongside the existing weak geometry cache. Allocate shared storage lazily when a prepared source is first requested. Use the existing GPU context to upload through the arena. Reuse the shared source-range encoder and count only newly prepared ranges and uploaded bytes. Remove the per-geometry upload accounting now that the arena records actual appended bytes. Release the owner after the last active geometry lease is removed. Report shared GPU capacity and retained CPU upload-row capacity once.
 
 **Locate this existing block:**
 
@@ -2640,8 +2530,6 @@ impl GeometryCache {
 
 ### 2. `src/renderer.rs`
 
-Connect visible source objects to the shared arena cache. Add the arena owner once instead of charging its buffers to every source geometry.
-
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -2694,8 +2582,6 @@ Replace it with:
 
 ### 3. `src/browser.rs`
 
-Include retained packed upload rows in the browser’s CPU payload diagnostic.
-
 **Locate this existing block:**
 
 ```rust
@@ -2724,8 +2610,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 4. `src/global_outline_tests.rs`
-
-Supply exact shared-owner accounting, cached-source reuse, preserved standalone placeholder and document-release checks.
 
 **Locate this existing block:**
 
@@ -2854,11 +2738,7 @@ Edit the existing block to match this code; keep unchanged lines:
 </svg>
 </div>
 
-Store an object row and primitive ID base in one instance-step vertex record.
-
 ### 1. `src/draw_slots.rs`
-
-Type the compact integer layout and reuse the existing growing buffer for slot ownership.
 
 Create the file and type:
 
@@ -2934,8 +2814,6 @@ impl Slots {
 
 ### 2. `src/lib.rs`
 
-Register the shared slot owner before connecting the instance pipeline.
-
 **Locate this existing block:**
 
 ```rust
@@ -2953,8 +2831,6 @@ mod draw_slots;
 ```
 
 ### 3. `src/draw_slots_tests.rs`
-
-Supply a real GPU readback fixture for exact large integer IDs, growth, reuse, sentinel and release.
 
 Create the file and type:
 
@@ -3010,8 +2886,6 @@ fn actual_slots_keep_integer_ids_sentinel_capacity_and_release() {
 ```
 
 ### 4. `src/lib.rs`
-
-Register the optional GPU fixture.
 
 **Locate this existing block:**
 
@@ -3078,11 +2952,7 @@ mod draw_slots_tests;
 </svg>
 </div>
 
-Connect compact draw slots to the existing instance color pipeline.
-
 ### 1. `src/draw_slots.rs`
-
-Keep one comparison shadow in the slot owner. Start with no uploaded slots. Skip unchanged slot uploads. Update the shadow after uploading the complete logical slot rows.
 
 **Locate this existing block:**
 
@@ -3151,8 +3021,6 @@ impl Slots {
 ```
 
 ### 2. `src/instance_gpu.rs`
-
-Keep slots beside the existing batch property records. Use one assembled instance shader for the pipeline and its validation fixture. Select a property row and placed primitive ID base from instance-step integer attributes. Avoid assembling the clipping and packed helpers twice. Declare the eight-byte instance-step slot in the actual pipeline. Keep each batch-local object row and its existing globally assigned primitive base. Upload slots only when their row or primitive address changes. Create the sentinel and instance slots when a batch is first allocated. Skip sentinel slot zero when drawing actual instances. Count both property storage and actual slot-buffer capacity.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -3430,8 +3298,6 @@ pub struct Lane {
 
 ### 3. `src/object_record_tests.rs`
 
-Validate the actual shader assembled by the instance pipeline.
-
 **Locate this existing block:**
 
 ```rust
@@ -3457,8 +3323,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 4. `src/pick_gpu_tests.rs`
-
-Retain exact two-record allocation checks and include the three eight-byte slots.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -3504,11 +3368,7 @@ Replace it with:
 
 ## <a id="checkpoint-96zzp-classify-contact-fill-shading"></a>10. Classify contact fill shading
 
-Read the contact marker from packed RGBA and keep that display fill opaque and unlit.
-
 ### 1. `src/triangle.wgsl`
-
-Keep packed alpha available when placing a surface vertex. Recognize the reserved byte and retain contact color before the existing selection override. Carry classification in the existing flat flags while exempting contact fills from closed-solid and x-ray behavior. Read the placed classification in the fragment. Paint the contact fill opaque and unlit after clipping; ordinary faces retain the existing normal and lighting path. Pass all RGBA components through the one surface decoder. Decode the already packed marker without a second upload or vertex format.
 
 **Locate this existing block:**
 
@@ -3627,8 +3487,6 @@ fn mesh_vertex(occurrence:u32,first:u32)->MeshInput{
 
 ### 2. `src/face_pick.wgsl`
 
-Reuse the same RGBA placement input in source-face picking.
-
 **Locate this existing block:**
 
 ```wgsl
@@ -3646,8 +3504,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 3. `src/global_outline_tests.rs`
-
-Supply an actual rendered closed-source fixture for contact color, opacity/x-ray exemptions, selection, original picks, source preservation and release.
 
 **Locate this existing block:**
 
@@ -3724,11 +3580,7 @@ fn actual_contact_marker_is_opaque_unlit_selected_and_keeps_original_ownership()
 
 ## <a id="checkpoint-96zzq-open-files-through-one-measured-session-reader"></a>11. Open files through one measured Session reader
 
-Prepare browser file imports once through the measured full original-document reader.
-
 ### 1. `src/load_measure.rs`
-
-Let the existing timer observe String errors without duplicating its clock and completion algorithm.
 
 **Locate this existing block:**
 
@@ -3755,8 +3607,6 @@ pub fn run_result<T, E>(
 ```
 
 ### 2. `src/document_source.rs`
-
-Expose observations on the existing full reader and share its browser callback. Record the actual decode and a stable malformed-payload error. Start validation around the existing complete schema, identities, tree, placements and prepared-sheet checks. Finish validation and retain the original reload location in the one source origin. Measure the actual kernel reconstruction once.
 
 **Locate this existing block:**
 
@@ -3980,8 +3830,6 @@ pub(crate) fn prepare_observed(
 
 ### 3. `src/source_phase_tests.rs`
 
-Supply fixtures against actual original Element/interaction bytes, exact phase order and failure boundaries, and retained source locations.
-
 Create the file and type:
 
 ```rust
@@ -4059,8 +3907,6 @@ fn malformed_full_source_records_only_failed_decode() {
 
 ### 4. `src/lib.rs`
 
-Register the optional full-source observation fixtures.
-
 **Locate this existing block:**
 
 ```rust
@@ -4079,8 +3925,6 @@ mod source_phase_tests;
 ```
 
 ### 5. `src/scene_document.rs`
-
-Reuse original-document import while allowing the browser file origin to retain its reload location. Use the measured full reader once. Time the existing original geometry, hierarchy and feature preparation as the actual display walk. Adopt the complete candidate only after a successful measured walk.
 
 **Locate this existing block:**
 
@@ -4270,8 +4114,6 @@ pub fn import_at(
 
 ### 6. `src/publication.rs`
 
-Remove the older mesh reader and unmeasured fallback; preserve the existing archive path. Supply full original Element/interaction preparation and atomic malformed-file checks with retained reload origin. Reuse the existing sheet URL initializer for newly imported originals; preserve earlier sheets’ metadata bases.
-
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -4387,11 +4229,7 @@ Replace it with:
 
 ## <a id="checkpoint-96zzr-route-current-close-and-opacity-commands"></a>12. Route current Close and Opacity commands
 
-Finish an active curve with Close and read the current Opacity argument convention.
-
 ### 1. `src/commands.rs`
-
-Route the public command through the existing curve-closing action.
 
 **Locate this existing block:**
 
@@ -4410,8 +4248,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 2. `src/editor.rs`
-
-Protect other tools and construction-plane picks before building a closed curve.
 
 **Locate this existing block:**
 
@@ -4434,8 +4270,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 3. `src/commands.rs`
-
-Validate the first argument in the same precision as the current command parser.
 
 **Locate this existing block:**
 
@@ -4473,8 +4307,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 4. `src/opacity_command_tests.rs`
 
-Update the original invalid-input fixture for the required current parser behavior.
-
 **Locate this existing block:**
 
 ```rust
@@ -4492,8 +4324,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 5. `src/current_command_tests.rs`
-
-Supply original-document, one-undo, retained-draft and precision-boundary fixtures.
 
 Create the file and type:
 
@@ -4614,8 +4444,6 @@ fn opacity_reads_only_the_first_finite_bounded_double() {
 
 ### 6. `src/lib.rs`
 
-Register the optional command fixtures.
-
 **Locate this existing block:**
 
 ```rust
@@ -4634,8 +4462,6 @@ mod current_command_tests;
 ```
 
 ### 7. `src/inventory_tests.rs`
-
-Update the comparison fixture to require the now-matched first-argument convention and its exact value.
 
 **Locate this existing block:**
 
@@ -4657,11 +4483,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-96zzs-reuse-full-source-preparation-for-editor-and-reload"></a>13. Reuse full source preparation for editor and reload
 
-Reuse the full Session reader for byte actions and released mesh sources.
-
 ### 1. `src/editor.rs`
-
-Prepare every byte action once through the existing full candidate reader. Route the nested example through the same original-document boundary.
 
 **Locate this existing block:**
 
@@ -4751,8 +4573,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 2. `src/document.rs`
 
-Validate the same full original file before recovering a released mesh source. Remove the restricted decode helper that reload no longer calls.
-
 **Locate this existing block:**
 
 ```rust
@@ -4804,8 +4624,6 @@ pub(crate) fn restore(
 ```
 
 ### 3. `src/full_source_action_tests.rs`
-
-Supply all four editor actions, original Element payloads, shared locations, one-undo and mixed-file reload fixtures.
 
 Create the file and type:
 
@@ -4951,8 +4769,6 @@ fn released_mesh_reload_accepts_its_full_mixed_original_file_and_rejects_changed
 
 ### 4. `src/lib.rs`
 
-Register the optional full-source action fixtures.
-
 **Locate this existing block:**
 
 ```rust
@@ -4973,8 +4789,6 @@ mod full_source_action_tests;
 ## <a id="checkpoint-96zzt-share-the-current-selection-yellow"></a>14. Share the current selection yellow
 
 ### 1. `src/colour.rs`
-
-Define selection presentation once from the existing Session palette.
 
 **Locate this existing block:**
 
@@ -4999,8 +4813,6 @@ pub fn selection_shader() -> String {
 ```
 
 ### 2. `src/highlight.rs`
-
-Use the shared palette in the existing temporary overlay owner.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -5046,8 +4858,6 @@ Replace it with:
 
 ### 3. `src/tool_preview.rs`
 
-Use the shared palette in the existing temporary overlay owner.
-
 **Locate this existing block:**
 
 ```rust
@@ -5065,8 +4875,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 4. `src/clipping_gpu.rs`
-
-Include the same generated selection constant in the shared shader assembly.
 
 **Locate this existing block:**
 
@@ -5087,8 +4895,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 5. `src/triangle.wgsl`
 
-Read selection presentation from the shared shader constant.
-
 **Locate this existing block:**
 
 ```wgsl
@@ -5106,8 +4912,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 6. `src/global_outline_tests.rs`
-
-Update the existing exact contact-selection pixel assertion to the current palette. Supply actual selected pixels, original picks, exact restoration, stable uploads and release assertions.
 
 **Locate this existing block:**
 
@@ -5205,8 +5009,6 @@ fn current_palette_is_shared_by_surface_shader_and_preserves_original_picks_and_
 ```
 
 ### 7. `src/pick_gpu_tests.rs`
-
-Require current yellow in the original surface and temporary-preview GPU fixtures; preserve ownership and upload checks.
 
 **Locate this existing block:**
 

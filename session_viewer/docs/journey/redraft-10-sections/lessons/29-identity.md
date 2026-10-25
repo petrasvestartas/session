@@ -1,61 +1,70 @@
 # 3.5 · Save, replace and asynchronous transaction results
 
-**Goal:** Test partial replacement failure, preserved selection/Redo and placement upload limits. · **Steps:** 11 · **Source:** `src/app/decode.rs` · `src/app/loader.rs` · `src/state.rs`
-
-<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
-<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
-  <defs>
-    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
-    </marker>
-    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
-    </marker>
-    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
-    </marker>
-  </defs>
-  <rect x="2" y="2" width="1116" height="184" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
-  <rect x="14" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Hierarchy: M_world = M_parent * M_child</text>
-  <g transform="translate(88,122)">
-    <line x1="0" y1="0" x2="48" y2="0" stroke="#dc2626" stroke-width="2.5" marker-end="url(#arrR)"/>
-    <line x1="0" y1="0" x2="0" y2="-44" stroke="#16a34a" stroke-width="2.5" marker-end="url(#arrG)"/>
-    <circle cx="0" cy="0" r="4" fill="#111111"/>
-    <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="-10" y="18" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Parent</text>
-  </g>
-  <path d="M 116 106 Q 168 68 214 86" fill="none" stroke="#111111" stroke-width="1.75" stroke-dasharray="4 3" marker-end="url(#arr)"/>
-  <g transform="translate(230,94) rotate(-22)">
-    <rect x="-18" y="-14" width="36" height="28" fill="#dbeafe" stroke="#111111" stroke-width="1.75"/>
-    <line x1="0" y1="0" x2="34" y2="0" stroke="#dc2626" stroke-width="2" marker-end="url(#arrR)"/>
-    <line x1="0" y1="0" x2="0" y2="-30" stroke="#16a34a" stroke-width="2" marker-end="url(#arrG)"/>
-  </g>
-  <line x1="358" y1="94" x2="384" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
-  <rect x="388" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Window (Inside) vs Crossing (Intersect) Rect</text>
-  <rect x="424" y="54" width="118" height="88" fill="#dbeafe" fill-opacity="0.35" stroke="#2563eb" stroke-width="2"/>
-  <polygon points="454,122 484,76 516,122" fill="#bbf7d0" stroke="#16a34a" stroke-width="2"/>
-  <rect x="572" y="54" width="118" height="88" fill="#dcfce7" fill-opacity="0.35" stroke="#16a34a" stroke-width="2" stroke-dasharray="5 3"/>
-  <polygon points="642,124 678,72 714,124" fill="#fef08a" stroke="#dc2626" stroke-width="2"/>
-  <line x1="732" y1="94" x2="758" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
-  <rect x="762" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Selected Subtree &amp; Isolated Visibility</text>
-  <rect x="806" y="44" width="256" height="118" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
-  <polygon points="846,138 882,84 918,138" fill="#e2e8f0" stroke="#94a3b8" stroke-width="1.2" stroke-dasharray="3 3"/>
-  <polygon points="942,138 986,68 1030,138" fill="#fef08a" stroke="#dc2626" stroke-width="2.5"/>
-</svg>
-</div>
+**Steps:** 11 · **Source:** `src/app/decode.rs` · `src/app/loader.rs` · `src/state.rs`
 
 ## <a id="checkpoint-29-identity"></a>1. Give each saved object a stable identity
 
-Distinguish a scene object from the original geometry it shares.
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="214" viewBox="0 0 1120 214" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr-fa4d154f" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arr-r-fa4d154f" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arr-g-fa4d154f" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arr-b-fa4d154f" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+    <pattern id="grid-fa4d154f" width="20" height="20" patternUnits="userSpaceOnUse">
+      <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#f1f5f9" stroke-width="1"/>
+    </pattern>
+  </defs>
+  <rect x="2" y="2" width="1116" height="210" rx="8" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="2" y="2" width="1116" height="28" rx="6" fill="#f8fafc" stroke="#111111" stroke-width="1.5"/>
+  <line x1="2" y1="30" x2="1118" y2="30" stroke="#111111" stroke-width="1.5"/>
+  <rect x="12" y="7" width="176" height="18" rx="3" fill="#111111"/>
+  <text x="100" y="19.5" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#ffffff" paint-order="normal" stroke="none">27..30 · XFORM &amp; ARCHIVE</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="518" y="20" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">4×4 Affine Placement (p_world = M · p_local), Dual f64/f32 Residency &amp; .pb Round-Trip</text>
+  <rect x="838" y="7" width="268" height="18" rx="3" fill="#ffffff" stroke="#111111" stroke-width="1.2"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="972" y="19.5" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#2563eb">p_w = M * p_l · ||save(scene) - open|| = 0</text>
+  <rect x="14" y="38" width="344" height="164" rx="6" fill="url(#grid-fa4d154f)" stroke="#111111" stroke-width="1.5"/>
+  <line x1="14" y1="60" x2="358" y2="60" stroke="#cbd5e1" stroke-width="1"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="186" y="53" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1 · Local f64 Kernel Source + 4×4 Xform M</text>
+  <rect x="44" y="76" width="124" height="96" rx="4" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="106" y="102" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Kernel Mesh</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="106" y="120" text-anchor="middle" font-family="monospace" font-size="8.5" fill="#2563eb">Exact f64 coords</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="106" y="140" text-anchor="middle" font-family="monospace" font-size="8.5" fill="#111111">GUID preserved</text>
+  <line x1="168" y1="124" x2="198" y2="124" stroke="#111111" stroke-width="1.75" marker-end="url(#arr-fa4d154f)"/>
+  <rect x="202" y="76" width="130" height="96" rx="4" fill="#dcfce7" stroke="#16a34a" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="267" y="102" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Placement M</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="267" y="120" text-anchor="middle" font-family="monospace" font-size="8.5" fill="#16a34a">[ R_3x3 | T_3x1 ]</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="267" y="140" text-anchor="middle" font-family="monospace" font-size="8.5" fill="#111111">Move dx dy dz</text>
+  <line x1="358" y1="120" x2="384" y2="120" stroke="#111111" stroke-width="2" marker-end="url(#arr-fa4d154f)"/>
+  <rect x="388" y="38" width="344" height="164" rx="6" fill="url(#grid-fa4d154f)" stroke="#111111" stroke-width="1.5"/>
+  <line x1="388" y1="60" x2="732" y2="60" stroke="#cbd5e1" stroke-width="1"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="53" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2 · GPU Model Uniform &amp; Protobuf Snapshot</text>
+  <rect x="414" y="76" width="292" height="48" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="96" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#2563eb">GPU: clip = u_view_proj * u_model * vec4(p,1)</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="114" text-anchor="middle" font-family="monospace" font-size="8.5" fill="#111111">Vertex buffer stays immutable in local space</text>
+  <rect x="414" y="134" width="292" height="48" rx="4" fill="#fef9c3" stroke="#d97706" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="154" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Save / Open .pb + Ticket(u64) Guard</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="172" text-anchor="middle" font-family="monospace" font-size="8.5" fill="#16a34a">Stale async file reads rejected on cancel</text>
+  <line x1="732" y1="120" x2="758" y2="120" stroke="#111111" stroke-width="2" marker-end="url(#arr-fa4d154f)"/>
+  <rect x="762" y="38" width="344" height="164" rx="6" fill="url(#grid-fa4d154f)" stroke="#111111" stroke-width="1.75"/>
+  <line x1="762" y1="60" x2="1106" y2="60" stroke="#cbd5e1" stroke-width="1"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="934" y="53" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3 · Placed &amp; Round-Tripped Scene</text>
+  <rect x="806" y="68" width="256" height="122" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="836" y="112" width="54" height="54" fill="none" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="4 3"/>
+  <line x1="890" y1="138" x2="942" y2="112" stroke="#dc2626" stroke-width="2" marker-end="url(#arr-r-fa4d154f)"/>
+  <rect x="948" y="82" width="64" height="64" fill="#93c5fd" stroke="#111111" stroke-width="1.75"/>
+</svg>
+</div>
 
 ### 1. `Cargo.toml`
-
-Declare the UUID generator explicitly; browser randomness uses its js feature.
 
 **Locate this existing block:**
 
@@ -73,8 +82,6 @@ js-sys = "=0.3.105"
 ```
 
 ### 2. `src/scene.rs`
-
-Store the inserted object identity separately from kernel source identity and the local counter. Keep the source GUID when available; assign and check a fresh stored GUID for a duplicate import.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -129,8 +136,6 @@ Replace it with:
 ```
 
 ### 3. `src/file_identity_tests.rs`
-
-Optional authoring fixture. Exercise duplicate imports, row removal and history without mutating original source GUIDs.
 
 Create the file and type:
 
@@ -192,8 +197,6 @@ fn duplicate_imports_keep_distinct_stored_identity_through_history() {
 
 ### 4. `src/lib.rs`
 
-Compile the file-identity regression check.
-
 **Locate this existing block:**
 
 ```rust
@@ -212,11 +215,7 @@ mod file_identity_tests;
 
 ## <a id="checkpoint-29a-snapshot"></a>2. Write a snapshot from the editable sources
 
-Serialize live source meshes and their placements without changing the editor.
-
 ### 1. `src/document.rs`
-
-Copy live sources into one bounded flat document, write placements separately and return bytes without editor mutation.
 
 **Locate this existing block:**
 
@@ -279,8 +278,6 @@ fn validate(message: &proto::Session) -> Result<(), &'static str> {
 ```
 
 ### 2. `src/snapshot_tests.rs`
-
-Optional authoring fixture. Check live row membership, source topology/attributes, separate placement and untouched history.
 
 Create the file and type:
 
@@ -370,8 +367,6 @@ fn an_empty_scene_has_no_saveable_mesh_document_yet() {
 
 ### 3. `src/lib.rs`
 
-Compile the read-only snapshot checks.
-
 **Locate this existing block:**
 
 ```rust
@@ -390,11 +385,7 @@ mod source_tests;
 
 ## <a id="checkpoint-29b-placements"></a>3. Reopen source geometry with its placement
 
-Validate stored placements before reconstructing source-backed objects.
-
 ### 1. `src/placement.rs`
-
-Use one affine validation rule for decoded matrices and direct edits.
 
 Create the file and type:
 
@@ -407,8 +398,6 @@ pub fn valid(matrix: &[f64]) -> bool {
 ```
 
 ### 2. `src/lib.rs`
-
-Expose the shared matrix validator.
 
 **Locate this existing block:**
 
@@ -426,8 +415,6 @@ pub mod prepared;
 ```
 
 ### 3. `src/scene.rs`
-
-Make direct placement edits use the same rule as imported files.
 
 **Locate this existing block:**
 
@@ -453,8 +440,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 4. `src/prepared.rs`
-
-Carry the validated object placement beside local source geometry. Generated geometry begins with identity placement.
 
 **Locate this existing block:**
 
@@ -536,8 +521,6 @@ impl PreparedMesh {
 
 ### 5. `src/document.rs`
 
-Retain the validated stored placement without baking it into source vertices.
-
 **Locate this existing block:**
 
 ```rust
@@ -559,8 +542,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 6. `src/scene.rs`
 
-Insert each prepared model exactly once.
-
 **Locate this existing block:**
 
 ```rust
@@ -578,8 +559,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 7. `src/document.rs`
-
-Remove the temporary source-only validation comment. Validate the complete saved message now that the loader accepts placements. Accept placements while keeping the other unsupported source families explicit. Reject unknown, duplicate, incomplete, non-finite or projective placement records before kernel construction.
 
 **Locate this existing block:**
 
@@ -695,8 +674,6 @@ fn validate(message: &proto::Session) -> Result<(), &'static str> {
 
 ### 8. `src/placement_load_tests.rs`
 
-Optional authoring fixture. Reject all malformed placement families using actual encoded messages.
-
 Create the file and type:
 
 ```rust
@@ -748,8 +725,6 @@ fn malformed_placements_are_rejected_before_construction() {
 
 ### 9. `src/lib.rs`
 
-Compile the malformed-input checks.
-
 **Locate this existing block:**
 
 ```rust
@@ -768,11 +743,7 @@ mod placement_tests;
 
 ## <a id="checkpoint-29c-roundtrip"></a>4. Prove the saved document reopens faithfully
 
-Check exact local source data, attributes, identities and placement through saving and loading.
-
 ### 1. `src/save_roundtrip_tests.rs`
-
-Optional authoring fixture. Compare exact source values, stored identities and object matrices after encoding and decoding.
 
 Create the file and type:
 
@@ -868,8 +839,6 @@ fn both_imported_copies_reopen_with_their_stored_identity() {
 
 ### 2. `src/lib.rs`
 
-Compile exact document round-trip checks.
-
 **Locate this existing block:**
 
 ```rust
@@ -888,11 +857,7 @@ mod selected_fit_tests;
 
 ## <a id="checkpoint-29d-save"></a>5. Download the editable document from the command line
 
-Connect Save to a browser download and reopen the actual downloaded document.
-
 ### 1. `Cargo.toml`
-
-Enable the browser object URL and download anchor APIs. These features do not change dependency versions.
 
 **Locate this existing block:**
 
@@ -911,8 +876,6 @@ console_error_panic_hook = "=0.1.7"
 ```
 
 ### 2. `src/file_output.rs`
-
-Create a temporary file owner, request a download and schedule one-shot URL cleanup.
 
 Create the file and type:
 
@@ -963,8 +926,6 @@ pub fn download(bytes: &[u8]) -> Result<(), JsValue> {
 
 ### 3. `src/lib.rs`
 
-Expose the browser file-output adapter.
-
 **Locate this existing block:**
 
 ```rust
@@ -982,8 +943,6 @@ mod file_output;
 ```
 
 ### 4. `src/browser.rs`
-
-Offer Save through command completion in the actual dock. Read the scene for Save without creating a document action or consuming history.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -1038,8 +997,6 @@ Replace it with:
 
 ### 5. `index.html`
 
-Let the native file picker offer both original specimens and downloaded session files.
-
 **Locate this existing block:**
 
 ```html
@@ -1058,11 +1015,62 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-30-feedback"></a>6. Report the result that actually committed
 
-Keep failed reads and imports visible in command history without claiming success.
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="214" viewBox="0 0 1120 214" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr-ee2881c2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arr-r-ee2881c2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arr-g-ee2881c2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arr-b-ee2881c2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+    <pattern id="grid-ee2881c2" width="20" height="20" patternUnits="userSpaceOnUse">
+      <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#f1f5f9" stroke-width="1"/>
+    </pattern>
+  </defs>
+  <rect x="2" y="2" width="1116" height="210" rx="8" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="2" y="2" width="1116" height="28" rx="6" fill="#f8fafc" stroke="#111111" stroke-width="1.5"/>
+  <line x1="2" y1="30" x2="1118" y2="30" stroke="#111111" stroke-width="1.5"/>
+  <rect x="12" y="7" width="176" height="18" rx="3" fill="#111111"/>
+  <text x="100" y="19.5" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#ffffff" paint-order="normal" stroke="none">30-TICKETS · ASYNC GUARD</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="518" y="20" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Monotonic LoadTicket(u64) Generation Guard, Cancellation &amp; Error Recovery</text>
+  <rect x="838" y="7" width="268" height="18" rx="3" fill="#ffffff" stroke="#111111" stroke-width="1.2"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="972" y="19.5" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#2563eb">complete(ticket) accepted iff ticket == active_ticket</text>
+  <rect x="14" y="38" width="344" height="164" rx="6" fill="url(#grid-ee2881c2)" stroke="#111111" stroke-width="1.5"/>
+  <line x1="14" y1="60" x2="358" y2="60" stroke="#cbd5e1" stroke-width="1"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="186" y="53" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1 · Overlapping Async File Reads</text>
+  <rect x="44" y="78" width="284" height="44" rx="4" fill="#fee2e2" stroke="#dc2626" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="186" y="98" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#dc2626">Ticket #1 (huge_a.pb) — Stale ✗</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="186" y="114" text-anchor="middle" font-family="monospace" font-size="8.5" fill="#111111">Superseded when user picks file B</text>
+  <rect x="44" y="132" width="284" height="48" rx="4" fill="#dcfce7" stroke="#16a34a" stroke-width="2"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="186" y="152" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#16a34a">Ticket #2 (part_b.pb) — Active ✓</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="186" y="170" text-anchor="middle" font-family="monospace" font-size="8.5" fill="#111111">active_ticket == Some(Ticket(2))</text>
+  <line x1="358" y1="120" x2="384" y2="120" stroke="#111111" stroke-width="2" marker-end="url(#arr-ee2881c2)"/>
+  <rect x="388" y="38" width="344" height="164" rx="6" fill="url(#grid-ee2881c2)" stroke="#111111" stroke-width="1.5"/>
+  <line x1="388" y1="60" x2="732" y2="60" stroke="#cbd5e1" stroke-width="1"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="53" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2 · Ticket Gate &amp; Atomic Scene Replace</text>
+  <rect x="414" y="76" width="292" height="104" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="100" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">if active_ticket != Some(ticket) { return; }</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="124" text-anchor="middle" font-family="monospace" font-size="9" fill="#2563eb">• Cancel clears active_ticket -&gt; drops late bytes</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="146" text-anchor="middle" font-family="monospace" font-size="9" fill="#dc2626">• Decode error keeps existing scene intact</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="168" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#16a34a">• Valid decode swaps scene &amp; fits camera</text>
+  <line x1="732" y1="120" x2="758" y2="120" stroke="#111111" stroke-width="2" marker-end="url(#arr-ee2881c2)"/>
+  <rect x="762" y="38" width="344" height="164" rx="6" fill="url(#grid-ee2881c2)" stroke="#111111" stroke-width="1.75"/>
+  <line x1="762" y1="60" x2="1106" y2="60" stroke="#cbd5e1" stroke-width="1"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="934" y="53" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3 · Race-Free Browser File Workflow</text>
+  <rect x="806" y="68" width="256" height="122" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="934" y="114" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#16a34a">Only Ticket #2 Applied ✓</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="934" y="142" text-anchor="middle" font-family="monospace" font-size="9" fill="#111111">Ticket #1 silently ignored</text>
+</svg>
+</div>
 
 ### 1. `src/browser.rs`
-
-Keep a startup failure visible when the GPU dock could not be created; file errors stay in command history.
 
 **Locate this existing block:**
 
@@ -1081,8 +1089,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 2. `src/file_input.rs`
-
-Route the size refusal through the panel’s main event closure. Deliver a read error only after the existing latest-read check. Pass asynchronous errors through a small custom event rather than borrowing the panel.
 
 **Locate this existing block:**
 
@@ -1142,8 +1148,6 @@ fn failure(message: &str) {
 ```
 
 ### 3. `src/browser.rs`
-
-Receive read failures in the same closure that owns command history. A successful transaction is the only branch that may announce an imported file. Remove the unconditional success that overwrote decoding errors. Keep the error event connected for the viewer lifetime.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -1248,8 +1252,6 @@ Replace it with:
 
 ### 4. `src/file_input.rs`
 
-Move the size refusal out of the currently borrowed input callback. Check size in the queued task before reading; error delivery can now enter the main callback safely.
-
 **Locate this existing block:**
 
 ```rust
@@ -1281,11 +1283,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-30a-tickets"></a>7. Give a pending read an explicit ticket
 
-Describe latest-read ownership, cancellation and one-shot completion in ordinary Rust.
-
 ### 1. `src/read_gate.rs`
-
-Own one pending ticket and test stale, duplicate, cancelled and exhausted requests independently of browser APIs.
 
 Create the file and type:
 
@@ -1365,8 +1363,6 @@ mod tests {
 
 ### 2. `src/lib.rs`
 
-Expose the native request model without changing the browser adapter yet.
-
 **Locate this existing block:**
 
 ```rust
@@ -1384,11 +1380,7 @@ pub mod renderer;
 
 ## <a id="checkpoint-30b-cancel"></a>8. Cancel reads without accepting their late result
 
-Adopt one-shot tickets in the browser and give asynchronous results their own history entry.
-
 ### 1. `src/file_input.rs`
-
-Share the native gate through short interior mutable borrows. Receive the same pending-read owner as the command callback. Issue a bounded ticket; even an exhaustion error must be delivered after the input callback returns. Avoid work for a ticket already superseded or cancelled before its queued task starts. Consume the current ticket before reporting a size refusal, releasing the RefCell borrow before dispatch. Only a current one-shot completion may deliver bytes or a read error.
 
 **Locate this existing block:**
 
@@ -1479,8 +1471,6 @@ pub fn choose(
 ```
 
 ### 2. `src/browser.rs`
-
-Expose the initial row count through hidden diagnostics. Offer read cancellation as a command rather than a keyboard feature shortcut. Let the input callback and queued tasks share one native gate. An asynchronous read error gets its own history entry instead of rewriting a later command. Revoke pending delivery without touching the scene or edit history. Record asynchronous success separately from subsequent typed commands. Distinguish a file result from a synchronous error on the current command. Update hidden diagnostics after every handled event. Keep scene count and projection in one diagnostic boundary. Report rows independently of overlapping drawing pixels.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -1695,11 +1685,7 @@ Replace it with:
 
 ## <a id="checkpoint-30c-replace"></a>9. Replace a document as one reversible change
 
-Prepare a whole replacement before changing live rows, then commit it through existing history.
-
 ### 1. `src/scene.rs`
-
-Replace rows while preserving the issued local-ID counter; the caller supplies the transaction.
 
 **Locate this existing block:**
 
@@ -1727,8 +1713,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 2. `src/editor.rs`
-
-Name replacement explicitly instead of giving Import a hidden destructive mode. Validate every source first, then replace as one undoable transaction.
 
 **Locate this existing block:**
 
@@ -1858,8 +1842,6 @@ impl Editor {
 
 ### 3. `src/replace_tests.rs`
 
-Optional authoring fixture. Prove replacement/Undo/Redo preserve owners, camera state and non-reused local IDs.
-
 Create the file and type:
 
 ```rust
@@ -1918,8 +1900,6 @@ fn replacement_history_retains_camera_and_distinct_local_identity() {
 
 ### 4. `src/lib.rs`
 
-Compile the replacement contract.
-
 **Locate this existing block:**
 
 ```rust
@@ -1938,11 +1918,7 @@ mod save_roundtrip_tests;
 
 ## <a id="checkpoint-30d-bridge"></a>10. Choose append or replace before opening the picker
 
-Carry the selected Open operation through asynchronous file reading and cancel older work immediately.
-
 ### 1. `src/file_input.rs`
-
-Capture a typed operation value with the selected file instead of consulting mutable state after reading. A choice with no file revokes pending ownership without editing the scene. Use the ticket already issued by the Open command. Keep the captured mode beside the accepted bytes. Include the selected operation in the private byte event. Use an explicit replace flag and byte array at the browser bridge. Translate checked browser payloads into ordinary editor actions.
 
 **Locate this existing block:**
 
@@ -2150,8 +2126,6 @@ pub fn action(event: &web_sys::Event) -> Option<crate::editor::Action> {
 ```
 
 ### 2. `src/browser.rs`
-
-Offer replacement as a typed command. Hold the picker operation in the event closure; each task copies it at selection. Revoke native picker cancellation and capture the operation when a file is selected. Keep browser values outside the editor transaction. A newer request revokes older work at picker opening, not only after file selection. Remember which successful file action was committed before consuming it. Report the committed operation without overwriting another command. Receive the native file-input cancellation event for the viewer lifetime.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -2391,8 +2365,6 @@ Replace it with:
 
 ### 1. `src/placement.rs`
 
-Reject a finite double coefficient that cannot enter the current float uniform.
-
 **Locate this existing block:**
 
 ```rust
@@ -2412,8 +2384,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 2. `src/scene.rs`
-
-State the full placement boundary in its error. Fail during the second insertion, then prove rollback restores the old allocations without recycling issued IDs.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -2476,8 +2446,6 @@ Replace it with:
 ```
 
 ### 3. `src/replace_tests.rs`
-
-Optional authoring fixture. Test refusal before mutation, selection/Redo retention and the double-to-float upload boundary.
 
 **Locate this existing block:**
 

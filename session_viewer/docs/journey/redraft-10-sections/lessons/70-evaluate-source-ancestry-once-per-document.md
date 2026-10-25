@@ -1,6 +1,6 @@
 # 13.3 · Feature ancestry and canonical local-to-world placement
 
-**Goal:** Describe the original sheet side-table layout and entity identity fields. · **Steps:** 6 · **Source:** [app/scene_instances.rs](../../../../src/app/scene_instances.rs) · [engine/gpu/instanced.rs](../../../../src/engine/gpu/instanced.rs) · [engine/gpu/slots.rs](../../../../src/engine/gpu/slots.rs) · [app/walk/brep_shapes.rs](../../../../src/app/walk/brep_shapes.rs)
+**Steps:** 6 · **Source:** [app/scene_instances.rs](../../../../src/app/scene_instances.rs) · [engine/gpu/instanced.rs](../../../../src/engine/gpu/instanced.rs) · [engine/gpu/slots.rs](../../../../src/engine/gpu/slots.rs) · [app/walk/brep_shapes.rs](../../../../src/app/walk/brep_shapes.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -52,8 +52,6 @@
 
 ### 1. `src/nested_placement.rs`
 
-Evaluate canonical source ancestry once before deriving placed display rows.
-
 Create the file and type:
 
 ```rust
@@ -90,8 +88,6 @@ pub fn model(world: &HashMap<String, Xform>, place: &Xform, guid: &str) -> Xform
 
 ### 2. `src/lib.rs`
 
-Register the placement component.
-
 **Locate this existing block:**
 
 ```rust
@@ -112,11 +108,7 @@ pub mod nested_placement;
 
 ## <a id="checkpoint-70a-keep-original-local-parent-and-world-matrices"></a>2. Keep local, parent, and world matrices
 
-Keep original local parent and world matrices.
-
 ### 1. `src/nested_placement.rs`
-
-Preserve exact original local transforms and derive changed locals from the current parent.
 
 **Locate this existing block:**
 
@@ -163,8 +155,6 @@ pub fn saved_local(
 ```
 
 ### 2. `src/hierarchy.rs`
-
-Own original local, parent and world matrices alongside tree identities.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -270,8 +260,6 @@ pub struct Node {
 
 ### 3. `src/layer_edit.rs`
 
-Give generated layer and geometry nodes explicit identity placement defaults.
-
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -315,8 +303,6 @@ Replace it with:
 ## <a id="checkpoint-70b-connect-canonical-cached-models-to-every-source-owner"></a>3. Connect canonical cached models to every source owner
 
 ### 1. `src/document_source.rs`
-
-Connect cached canonical models and exact original tree placement records.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -409,8 +395,6 @@ pub(crate) fn prepare(
 
 ### 2. `src/document_geometry.rs`
 
-Connect cached canonical models and exact original tree placement records.
-
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -466,8 +450,6 @@ Replace it with:
 
 ### 3. `src/scene_document.rs`
 
-Connect cached canonical models and exact original tree placement records.
-
 **Locate this existing block:**
 
 ```rust
@@ -488,8 +470,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ## <a id="checkpoint-70c-save-nested-local-frames-without-flattening"></a>4. Save nested local frames without flattening
 
 ### 1. `src/hierarchy.rs`
-
-Save exact unchanged local frames while preserving current world placement after edits.
 
 **Locate this existing block:**
 
@@ -555,8 +535,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 2. `src/nested_example.rs`
-
-Copy precise and visible nested original-reference specimens.
 
 Create the file and type:
 
@@ -672,8 +650,6 @@ pub fn bytes() -> Vec<u8> {
 
 ### 3. `src/lib.rs`
 
-Register the placement component.
-
 **Locate this existing block:**
 
 ```rust
@@ -693,8 +669,6 @@ pub mod nested_example;
 ```
 
 ### 4. `src/nested_placement_tests.rs`
-
-Copy exact canonical ancestry, local persistence, overflow, fallback, history and release fixtures.
 
 Create the file and type:
 
@@ -867,8 +841,6 @@ fn shared_definition_nested_parent_move_groups_one_undo_and_close_releases_origi
 
 ### 5. `src/lib.rs`
 
-Register the placement component.
-
 **Locate this existing block:**
 
 ```rust
@@ -890,11 +862,7 @@ mod nested_placement_tests;
 
 ## <a id="checkpoint-70d-exercise-rotated-and-mirrored-original-references"></a>5. Exercise rotated and mirrored references
 
-Exercise rotated and mirrored original references.
-
 ### 1. `src/editor.rs`
-
-Connect nested original examples and exact tree/local diagnostics.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -955,8 +923,6 @@ Replace it with:
 
 ### 2. `src/commands.rs`
 
-Connect nested original examples and exact tree/local diagnostics.
-
 **Locate this existing block:**
 
 ```rust
@@ -975,8 +941,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 3. `src/browser.rs`
-
-Connect nested original examples and exact tree/local diagnostics.
 
 **Locate this existing block:**
 
@@ -998,8 +962,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 4. `src/pick_gpu_tests.rs`
-
-Copy actual high integer owner, rotated/mirrored rendering and nested Save/Open GPU fixtures.
 
 **Locate this existing block:**
 
@@ -1078,8 +1040,6 @@ fn actual_nested_rotated_and_mirrored_definition_placements_keep_independent_int
 
 ### 5. `src/outline_mask.wgsl`
 
-Use the same model-then-view projection as visible geometry so selected coverage tests the same surface depth.
-
 **Locate this existing block:**
 
 ```wgsl
@@ -1099,8 +1059,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ## <a id="checkpoint-70za-read-original-sheet-metadata-records"></a>6. Read sheet metadata records
 
 ### 1. `src/sheet_entity.rs`
-
-Type the whole original metadata or lookup helpers using their shared owner.
 
 Create the file and type:
 
@@ -1186,8 +1144,6 @@ pub fn entity_from(raw: &[u8]) -> Result<EntityMeta, String> {
 ```
 
 ### 2. `src/lib.rs`
-
-Compile this shared original metadata module.
 
 **Locate this existing block:**
 

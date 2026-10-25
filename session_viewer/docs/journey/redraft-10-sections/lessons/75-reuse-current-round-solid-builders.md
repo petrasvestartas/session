@@ -1,6 +1,6 @@
 # 14.5 · Round solids and exact planar conics
 
-**Goal:** Read the prepared start, apex and end from the checked local frame. · **Steps:** 11 · **Source:** [app/walk/sheet.rs](../../../../src/app/walk/sheet.rs) · [app/sheet_query.rs](../../../../src/app/sheet_query.rs) · [app/stream.rs](../../../../src/app/stream.rs) · [app/cplane.rs](../../../../src/app/cplane.rs)
+**Steps:** 11 · **Source:** [app/walk/sheet.rs](../../../../src/app/walk/sheet.rs) · [app/sheet_query.rs](../../../../src/app/sheet_query.rs) · [app/stream.rs](../../../../src/app/stream.rs) · [app/cplane.rs](../../../../src/app/cplane.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -48,11 +48,7 @@
 
 ## <a id="checkpoint-75-reuse-current-round-solid-builders"></a>1. Build tori with checked radii
 
-Collect a center and two radii with the existing question owner.
-
 ### 1. `src/round_torus.rs`
-
-Type the whole original solid builder using the existing frame and question helpers. Supply only the unchanged original representation and topology fixture.
 
 Create the file and type:
 
@@ -181,8 +177,6 @@ mod tests {
 
 ### 2. `src/lib.rs`
 
-Register this shared original solid builder.
-
 **Locate this existing block:**
 
 ```rust
@@ -203,11 +197,7 @@ pub mod round_torus;
 
 ## <a id="checkpoint-75aa-build-original-capsules-with-shared-dimensions"></a>2. Build capsules with shared dimensions
 
-Reuse the cylinder’s existing center, radius and signed-height questions.
-
 ### 1. `src/round_capsule.rs`
-
-Type the whole original solid builder using the existing frame and question helpers. Supply only the unchanged original representation and topology fixture.
 
 Create the file and type:
 
@@ -327,8 +317,6 @@ mod tests {
 
 ### 2. `src/lib.rs`
 
-Register this shared original solid builder.
-
 **Locate this existing block:**
 
 ```rust
@@ -349,11 +337,7 @@ pub mod round_capsule;
 
 ## <a id="checkpoint-75a-retain-mesh-only-round-families"></a>3. Mesh quad-sphere patches
 
-Ask the kernel for six original quad-sphere patches.
-
 ### 1. `src/round_quad_sphere.rs`
-
-Type the whole original solid builder using the existing frame and question helpers. Supply only the unchanged original representation and topology fixture.
 
 Create the file and type:
 
@@ -425,8 +409,6 @@ mod tests {
 
 ### 2. `src/lib.rs`
 
-Register this shared original solid builder.
-
 **Locate this existing block:**
 
 ```rust
@@ -448,8 +430,6 @@ pub mod round_quad_sphere;
 ## <a id="checkpoint-75b-register-current-round-names-and-choices"></a>4. Register current round names and choices
 
 ### 1. `src/primitive_registry.rs`
-
-Expose every current round verb and only its supported representation choices.
 
 **Locate this existing block:**
 
@@ -504,8 +484,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ## <a id="checkpoint-75c-exercise-round-originals-and-one-transaction"></a>5. Exercise round originals and one transaction
 
 ### 1. `src/round_tests.rs`
-
-Copy integrated current round representation, frame, preview, invalid-input, history and archive identity fixtures.
 
 Create the file and type:
 
@@ -663,8 +641,6 @@ fn tilted_round_frames_and_negative_heights_keep_original_geometry_and_temporary
 
 ### 2. `src/lib.rs`
 
-Register the maintained round component.
-
 **Locate this existing block:**
 
 ```rust
@@ -686,11 +662,7 @@ mod round_tests;
 
 ## <a id="checkpoint-75za-build-original-planar-circles"></a>6. Build planar circles
 
-Reuse the checked frame and positive-radius helpers from 73h–74.
-
 ### 1. `src/freeform_circle.rs`
-
-Type the whole original curve helpers using the existing frame and geometry owners.
 
 Create the file and type:
 
@@ -752,8 +724,6 @@ fn build(part: &Part, _option: &str) -> Result<Geometry, String> {
 
 ### 2. `src/lib.rs`
 
-Compile this shared original curve module.
-
 **Locate this existing block:**
 
 ```rust
@@ -773,8 +743,6 @@ pub mod freeform_circle;
 ```
 
 ### 3. `src/freeform_circle.rs`
-
-Supply only the unchanged original curve validation fixtures.
 
 **Locate this existing block:**
 
@@ -819,11 +787,7 @@ mod tests {
 
 ## <a id="checkpoint-75zb-build-original-planar-ellipses"></a>7. Build planar ellipses
 
-Reuse the same checked frame and radius owner.
-
 ### 1. `src/freeform_ellipse.rs`
-
-Type the whole original curve helpers using the existing frame and geometry owners.
 
 Create the file and type:
 
@@ -908,8 +872,6 @@ fn build(part: &Part, _option: &str) -> Result<Geometry, String> {
 
 ### 2. `src/lib.rs`
 
-Compile this shared original curve module.
-
 **Locate this existing block:**
 
 ```rust
@@ -929,8 +891,6 @@ pub mod freeform_ellipse;
 ```
 
 ### 3. `src/freeform_ellipse.rs`
-
-Supply only the unchanged original curve validation fixtures.
 
 **Locate this existing block:**
 
@@ -980,11 +940,7 @@ mod tests {
 
 ## <a id="checkpoint-75zc-build-exact-rational-arc-spans"></a>8. Build exact rational arc spans
 
-Build the original circular arc from rational quadratic spans.
-
 ### 1. `src/freeform_arc.rs`
-
-Type the whole original curve helpers using the existing frame and geometry owners.
 
 Create the file and type:
 
@@ -1065,8 +1021,6 @@ pub fn arc(radius: f64, degrees: f64) -> NurbsCurve {
 
 ### 2. `src/lib.rs`
 
-Compile this shared original curve module.
-
 **Locate this existing block:**
 
 ```rust
@@ -1087,11 +1041,7 @@ pub mod freeform_arc;
 
 ## <a id="checkpoint-75zd-read-original-arcs-from-center-and-angle"></a>9. Read arcs from center and angle
 
-Read the existing center-based arc inputs using the checked frame.
-
 ### 1. `src/freeform_arc.rs`
-
-Extend this original owner with the day’s complete input helpers.
 
 **Locate this existing block:**
 
@@ -1155,11 +1105,7 @@ fn read_center(frame: &Frame, answers: &[Answer]) -> Result<Part, String> {
 
 ## <a id="checkpoint-75ze-read-three-point-arcs-and-connect-the-recipe"></a>10. Read three-point arcs and connect the recipe
 
-Complete the existing arc recipe with its two input modes.
-
 ### 1. `src/freeform_arc.rs`
-
-Extend this original owner with the day’s complete input helpers. Supply only the unchanged original curve validation fixtures.
 
 **Locate this existing block:**
 
@@ -1630,8 +1576,6 @@ mod tests {
 
 ### 1. `src/freeform_parabola.rs`
 
-Type the whole original curve helpers using the existing frame and geometry owners.
-
 Create the file and type:
 
 ```rust
@@ -1698,8 +1642,6 @@ fn build(part: &Part, _option: &str) -> Result<Geometry, String> {
 ```
 
 ### 2. `src/lib.rs`
-
-Compile this shared original curve module.
 
 **Locate this existing block:**
 

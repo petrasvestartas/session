@@ -1,6 +1,6 @@
 # 17.4 · Verified closed sections and exact cap picks
 
-**Goal:** Exercise original sections bores and ink. · **Steps:** 32 · **Source:** [engine/gpu/triangle_tiles.rs](../../../../src/engine/gpu/triangle_tiles.rs) · [shaders/project_triangles.wgsl](../../../../src/shaders/project_triangles.wgsl) · [shaders/ink_visibility.wgsl](../../../../src/shaders/ink_visibility.wgsl) · [shaders/ribbon.wgsl](../../../../src/shaders/ribbon.wgsl)
+**Steps:** 32 · **Source:** [engine/gpu/triangle_tiles.rs](../../../../src/engine/gpu/triangle_tiles.rs) · [shaders/project_triangles.wgsl](../../../../src/shaders/project_triangles.wgsl) · [shaders/ink_visibility.wgsl](../../../../src/shaders/ink_visibility.wgsl) · [shaders/ribbon.wgsl](../../../../src/shaders/ribbon.wgsl)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -46,11 +46,7 @@
 
 ## <a id="checkpoint-88-copy-original-closedness-and-winding"></a>1. Classify closedness and winding
 
-Pair each original mesh edge with the opposite face direction to detect a closed shell.
-
 ### 1. `src/solid_orientation.rs`
-
-Type the complete original geometry query and reuse its current consumer. Supply only the unchanged original geometry validation fixtures.
 
 Create the file and type:
 
@@ -173,8 +169,6 @@ mod tests {
 
 ### 2. `src/lib.rs`
 
-Register the completed section component.
-
 **Locate this existing block:**
 
 ```rust
@@ -203,11 +197,7 @@ pub mod source_mesh_topology;
 
 ## <a id="checkpoint-88a-cache-verified-original-solids-weakly"></a>2. Cache verified solids weakly
 
-Cache verified original solids weakly.
-
 ### 1. `src/solid_cache.rs`
-
-Cache original closedness without retaining the document.
 
 Create the file and type:
 
@@ -310,8 +300,6 @@ impl Solids {
 
 ### 2. `src/lib.rs`
 
-Register the completed section component.
-
 **Locate this existing block:**
 
 ```rust
@@ -383,11 +371,7 @@ pub mod source_mesh_topology;
 </svg>
 </div>
 
-Project the original box half-extents onto the clipping-plane normal to bound its reach.
-
 ### 1. `src/cap_bounds.rs`
-
-Type the complete original geometry query and reuse its current consumer. Supply only the unchanged original geometry validation fixtures.
 
 Create the file and type:
 
@@ -469,8 +453,6 @@ mod tests {
 
 ### 2. `src/lib.rs`
 
-Register the completed section component.
-
 **Locate this existing block:**
 
 ```rust
@@ -504,8 +486,6 @@ pub mod source_mesh_topology;
 ## <a id="checkpoint-88c-cache-local-bounds-and-apply-placement-once"></a>4. Cache local bounds and apply placement once
 
 ### 1. `src/cap_source_bounds.rs`
-
-Own weak immutable bounds and derive placed crossing candidates.
 
 Create the file and type:
 
@@ -568,8 +548,6 @@ impl Bounds {
 
 ### 2. `src/lib.rs`
 
-Register the completed section component.
-
 **Locate this existing block:**
 
 ```rust
@@ -629,8 +607,6 @@ pub mod finite_project_source;
 </div>
 
 ### 1. `src/gpu_mesh.rs`
-
-Carry derived cap flags and addresses without changing original geometry.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -816,11 +792,7 @@ Replace it with:
 
 ## <a id="checkpoint-88e-count-original-closed-solid-crossings"></a>6. Count closed-solid crossings
 
-Count original closed-solid crossings.
-
 ### 1. `src/cap_count.wgsl`
-
-Adapt the original crossing recipe to the earlier view/model layouts.
 
 Create the file and type:
 
@@ -910,11 +882,7 @@ fn leaving(in: CountOut, front: bool) -> bool {
 </svg>
 </div>
 
-Count exact original cap pick candidates.
-
 ### 1. `src/cap_count.wgsl`
-
-Adapt integer crossing and nearest-owner recipes to the earlier cropped picker.
 
 **Locate this existing block:**
 
@@ -982,8 +950,6 @@ fn wanted(pixel: u32, mode: u32) -> bool {
 
 ### 1. `src/cap_color.wgsl`
 
-Write a fullscreen section vertex and integrate a line band over the pixel square.
-
 Create the file and type:
 
 ```wgsl
@@ -1036,8 +1002,6 @@ fn band_area(d: f32, hw: f32, g: vec2<f32>) -> f32 {
 ## <a id="checkpoint-88ga-fade-hatch-detail-and-detect-section-boundaries"></a>9. Fade hatch detail and detect section boundaries
 
 ### 1. `src/cap_color.wgsl`
-
-Use power-of-two hatch spacing and the existing solid crossing samples.
 
 **Locate this existing block:**
 
@@ -1098,8 +1062,6 @@ fn section_outline(at: vec2<f32>) -> f32 {
 ## <a id="checkpoint-88gb-shade-sections-with-shared-original-depth-and-sample-ownership"></a>10. Shade sections with shared depth and sample ownership
 
 ### 1. `src/cap_color.wgsl`
-
-Intersect cap samples with other planes and return color, primitive, depth and coverage together.
 
 **Locate this existing block:**
 
@@ -1170,8 +1132,6 @@ fn fs_cap(in: CapVertex) -> CapOut {
 ## <a id="checkpoint-88h-adapt-color-sections-to-forward-depth"></a>11. Adapt color sections to forward depth
 
 ### 1. `src/cap_color.wgsl`
-
-Adapt borrowed frame/count bindings and the explicit section-data output.
 
 Replace the entire file with:
 
@@ -1323,11 +1283,7 @@ fn fs_cap(in: CapVertex) -> CapOut {
 
 ## <a id="checkpoint-88i-return-original-integer-section-owners"></a>12. Return integer section owners
 
-Return original integer section owners.
-
 ### 1. `src/cap_pick.wgsl`
-
-Adapt the maintained section integer recipe to exact original owner rows.
 
 Create the file and type:
 
@@ -1378,8 +1334,6 @@ fn fs_cap_id(in: CapVertex) -> CapId {
 
 ### 1. `src/cap_image.rs`
 
-Own actual section image allocation and sampled/render views.
-
 Create the file and type:
 
 ```rust
@@ -1424,8 +1378,6 @@ impl Image {
 
 ### 2. `src/lib.rs`
 
-Register the completed section component.
-
 **Locate this existing block:**
 
 ```rust
@@ -1445,8 +1397,6 @@ pub mod finite_project_source;
 ## <a id="checkpoint-88k-build-compatible-section-render-pipelines"></a>14. Build compatible section render pipelines
 
 ### 1. `src/cap_pipeline.rs`
-
-Build a compatible section render pipeline.
 
 Create the file and type:
 
@@ -1516,8 +1466,6 @@ pub(crate) fn pipeline(
 
 ### 2. `src/lib.rs`
 
-Register the completed section component.
-
 **Locate this existing block:**
 
 ```rust
@@ -1537,8 +1485,6 @@ pub mod finite_project_source;
 ## <a id="checkpoint-88l-add-signed-counts-and-grey-hatch-color"></a>15. Add signed counts and grey hatch color
 
 ### 1. `src/cap_pipeline.rs`
-
-Build the explicit count and section-color pipelines.
 
 **Locate this existing block:**
 
@@ -1674,8 +1620,6 @@ impl Pipelines {
 
 ### 1. `src/cap_pick_pipeline.rs`
 
-Build count, nearest-owner and original integer pipelines.
-
 Create the file and type:
 
 ```rust
@@ -1781,8 +1725,6 @@ impl Pipelines {
 
 ### 2. `src/lib.rs`
 
-Register the completed section component.
-
 **Locate this existing block:**
 
 ```rust
@@ -1845,8 +1787,6 @@ pub mod finite_project_source;
 </div>
 
 ### 1. `src/cap_pick_gpu.rs`
-
-Connect the bounded original section picker.
 
 Create the file and type:
 
@@ -1932,8 +1872,6 @@ impl Pick {
 
 ### 2. `src/lib.rs`
 
-Register the completed section component.
-
 **Locate this existing block:**
 
 ```rust
@@ -1996,8 +1934,6 @@ pub mod finite_project_source;
 </div>
 
 ### 1. `src/cap_pick_gpu.rs`
-
-Connect the bounded original section picker.
 
 **Locate this existing block:**
 
@@ -2120,8 +2056,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 2. `src/pick_image.rs`
-
-Own actual cropped RG32Float section data.
 
 **Locate this existing block:**
 
@@ -2248,8 +2182,6 @@ impl Image {
 
 ### 3. `src/pick_gpu.rs`
 
-Charge the real twenty-byte cropped integer/depth/section images.
-
 **Locate this existing block:**
 
 ```rust
@@ -2267,8 +2199,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 4. `src/pick_gpu_tests.rs`
-
-Copy the actual bounded crop-allocation fixture with its section attachment.
 
 **Locate this existing block:**
 
@@ -2334,8 +2264,6 @@ Edit the existing block to match this code; keep unchanged lines:
 </div>
 
 ### 1. `src/cap_pick_gpu.rs`
-
-Connect the bounded original section picker.
 
 **Locate this existing block:**
 
@@ -2452,8 +2380,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 1. `src/caps_gpu.rs`
 
-Connect the current original section owner.
-
 Create the file and type:
 
 ```rust
@@ -2518,8 +2444,6 @@ impl Caps {
 
 ### 2. `src/lib.rs`
 
-Register the completed section component.
-
 **Locate this existing block:**
 
 ```rust
@@ -2538,11 +2462,7 @@ pub mod finite_project_source;
 
 ## <a id="checkpoint-88r-gather-crossing-original-owners"></a>21. Gather crossing owners
 
-Gather crossing original owners.
-
 ### 1. `src/caps_gpu.rs`
-
-Connect the current original section owner.
 
 **Locate this existing block:**
 
@@ -2618,8 +2538,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ## <a id="checkpoint-88s-prepare-active-section-images"></a>22. Prepare active section images
 
 ### 1. `src/caps_gpu.rs`
-
-Connect the current original section owner.
 
 **Locate this existing block:**
 
@@ -2700,8 +2618,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ## <a id="checkpoint-88t-draw-the-closed-union-and-section-depth"></a>23. Draw the closed union and section depth
 
 ### 1. `src/caps_gpu.rs`
-
-Connect the current original section owner.
 
 **Locate this existing block:**
 
@@ -2820,11 +2736,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-88u-route-exact-original-cap-picks-and-allocation"></a>24. Route exact cap picks and allocation
 
-Route exact original cap picks and allocation.
-
 ### 1. `src/caps_gpu.rs`
-
-Connect the current original section owner.
 
 **Locate this existing block:**
 
@@ -2909,8 +2821,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ## <a id="checkpoint-88v-connect-sections-after-opaque-originals"></a>25. Connect sections after opaque originals
 
 ### 1. `src/renderer.rs`
-
-Own and draw sections beside the current clipping owner.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -3082,8 +2992,6 @@ pub struct Renderer {
 
 ### 1. `src/finite_ink.rs`
 
-Borrow the current section view in finite coverage tables.
-
 **Locate this existing block:**
 
 ```rust
@@ -3100,8 +3008,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 2. `src/renderer.rs`
-
-Pass the current section image to color and provisional pick tables.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -3146,8 +3052,6 @@ Replace it with:
 ## <a id="checkpoint-88y-cache-finite-section-bindings"></a>27. Cache finite section bindings
 
 ### 1. `src/finite_ink.rs`
-
-Bind section coverage beside existing finite and opaque-depth data.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -3302,8 +3206,6 @@ Replace it with:
 
 ### 1. `src/clip.wgsl`
 
-Add a separate centerline rounding predicate without changing surface cuts.
-
 **Locate this existing block:**
 
 ```wgsl
@@ -3331,11 +3233,7 @@ fn clip_cut_ink_ndc(flags:u32,ndc:vec3<f32>)->bool {
 
 ## <a id="checkpoint-88aa-hide-original-ink-behind-visible-caps"></a>29. Hide ink behind visible caps
 
-Hide original ink behind visible caps.
-
 ### 1. `src/finite_visibility.wgsl`
-
-Apply section visibility at the original finite centerline.
 
 **Locate this existing block:**
 
@@ -3371,8 +3269,6 @@ fn finite_visible(pixel:vec2<f32>,axis:vec4<f32>,depths:vec2<f32>,flags:u32)->bo
 ## <a id="checkpoint-88ab-pick-sections-before-any-color-frame"></a>30. Pick sections before any color frame
 
 ### 1. `src/pick_gpu.rs`
-
-Connect bounded original section picking before finite ink.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -3440,8 +3336,6 @@ Replace it with:
 ```
 
 ### 2. `src/pick_encode.rs`
-
-Connect bounded original section picking before finite ink.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -3549,8 +3443,6 @@ Replace it with:
 
 ### 3. `src/renderer.rs`
 
-Connect bounded original section picking before finite ink.
-
 **Locate this existing block:**
 
 ```rust
@@ -3569,8 +3461,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ## <a id="checkpoint-88ac-observe-actual-section-owners-and-errors"></a>31. Observe actual section owners and errors
 
 ### 1. `src/browser.rs`
-
-Expose actual current section diagnostics.
 
 **Locate this existing block:**
 
@@ -3637,8 +3527,6 @@ Edit the existing block to match this code; keep unchanged lines:
 </div>
 
 ### 1. `src/cap_gpu_tests.rs`
-
-Copy supplied actual native section fixtures.
 
 Create the file and type:
 
@@ -3861,8 +3749,6 @@ fn actual_open_originals_get_no_section_fill() {
 
 ### 2. `src/lib.rs`
 
-Register the completed section component.
-
 **Locate this existing block:**
 
 ```rust
@@ -3881,8 +3767,6 @@ pub mod finite_project_source;
 ```
 
 ### 3. `src/cap_pick_tests.rs`
-
-Copy actual original-owner section fixtures inside the Scene test module.
 
 Create the file and type:
 
@@ -4194,8 +4078,6 @@ fn actual_two_original_planes_cap_their_shared_corner_and_remove_cut_owners() {
 ```
 
 ### 4. `src/scene.rs`
-
-Register the supplied Scene-private ID fixtures.
 
 **Locate this existing block:**
 

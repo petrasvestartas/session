@@ -1,55 +1,67 @@
 # 4.3 · Admit useful evidence and bound stored runs
 
-**Goal:** Separate trusted-report admission from raw storage retention so an older viewer cannot strip or prematurely delete newer telemetry. · **Steps:** 8 · **Source:** `src/lib.rs` · `src/selftest/lifecycle.rs` · `src/engine/gpu/device.rs`
-
-<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
-<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
-  <defs>
-    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
-    </marker>
-    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
-    </marker>
-    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
-    </marker>
-  </defs>
-  <rect x="2" y="2" width="1116" height="184" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
-  <rect x="14" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">DOM Resize / Visibility Events</text>
-  <rect x="64" y="54" width="108" height="72" rx="4" fill="#f8fafc" stroke="#111111" stroke-width="1.5" stroke-dasharray="3 3"/>
-  <rect x="64" y="54" width="224" height="98" rx="4" fill="none" stroke="#2563eb" stroke-width="2"/>
-  <line x1="172" y1="90" x2="276" y2="90" stroke="#2563eb" stroke-width="2" marker-end="url(#arrB)"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="224" y="140" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Resize (W, H, DPR)</text>
-  <line x1="358" y1="94" x2="384" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
-  <rect x="388" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Matched Color + Depth32Float Attachments</text>
-  <rect x="444" y="56" width="104" height="84" rx="4" fill="#dbeafe" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="496" y="102" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Surface</text>
-  <rect x="572" y="56" width="104" height="84" rx="4" fill="#fef9c3" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="624" y="102" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Depth32</text>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="156" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">aspect = W / H</text>
-  <line x1="732" y1="94" x2="758" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
-  <rect x="762" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Unstretched Aspect-Correct View</text>
-  <rect x="802" y="44" width="264" height="118" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
-  <polygon points="934,58 994,84 934,110 874,84" fill="#93c5fd" stroke="#111111" stroke-width="1.75"/>
-  <polygon points="874,84 934,110 934,150 874,124" fill="#60a5fa" stroke="#111111" stroke-width="1.75"/>
-  <polygon points="934,110 994,84 994,124 934,150" fill="#2563eb" stroke="#111111" stroke-width="1.75"/>
-</svg>
-</div>
+**Steps:** 8 · **Source:** `src/lib.rs` · `src/selftest/lifecycle.rs` · `src/engine/gpu/device.rs`
 
 ## <a id="checkpoint-34e-schema"></a>1. Check the bounded shape of a report
 
-Validate a typed report’s limits and failure/outcome invariants before the later storage decoder adopts it.
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="214" viewBox="0 0 1120 214" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr-14bc6aa1" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arr-r-14bc6aa1" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arr-g-14bc6aa1" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arr-b-14bc6aa1" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+    <pattern id="grid-14bc6aa1" width="20" height="20" patternUnits="userSpaceOnUse">
+      <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#f1f5f9" stroke-width="1"/>
+    </pattern>
+  </defs>
+  <rect x="2" y="2" width="1116" height="210" rx="8" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="2" y="2" width="1116" height="28" rx="6" fill="#f8fafc" stroke="#111111" stroke-width="1.5"/>
+  <line x1="2" y1="30" x2="1118" y2="30" stroke="#111111" stroke-width="1.5"/>
+  <rect x="12" y="7" width="176" height="18" rx="3" fill="#111111"/>
+  <text x="100" y="19.5" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#ffffff" paint-order="normal" stroke="none">34..34F · FAULT &amp; RING</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="518" y="20" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">First-Fault Latch (Device Lost / Validation), Render Stop &amp; 3-Run localStorage Ring</text>
+  <rect x="838" y="7" width="268" height="18" rx="3" fill="#ffffff" stroke="#111111" stroke-width="1.2"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="972" y="19.5" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#2563eb">latched_fault.get_or_init(err) · ring[0..3]</text>
+  <rect x="14" y="38" width="344" height="164" rx="6" fill="url(#grid-14bc6aa1)" stroke="#111111" stroke-width="1.5"/>
+  <line x1="14" y1="60" x2="358" y2="60" stroke="#cbd5e1" stroke-width="1"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="186" y="53" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1 · First GPU Fault Latched (Zero Cascade)</text>
+  <rect x="44" y="76" width="284" height="104" rx="4" fill="#fee2e2" stroke="#dc2626" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="186" y="100" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#dc2626">onuncapturederror / device.lost</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="186" y="122" text-anchor="middle" font-family="monospace" font-size="9" fill="#111111">1. Latch root-cause FaultRecord once</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="186" y="142" text-anchor="middle" font-family="monospace" font-size="9" fill="#111111">2. Halt requestAnimationFrame loop</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="186" y="162" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#2563eb">3. Surface copyable JSON report in UI</text>
+  <line x1="358" y1="120" x2="384" y2="120" stroke="#111111" stroke-width="2" marker-end="url(#arr-14bc6aa1)"/>
+  <rect x="388" y="38" width="344" height="164" rx="6" fill="url(#grid-14bc6aa1)" stroke="#111111" stroke-width="1.5"/>
+  <line x1="388" y1="60" x2="732" y2="60" stroke="#cbd5e1" stroke-width="1"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="53" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2 · Bounded 3-Run localStorage Ring</text>
+  <rect x="414" y="84" width="90" height="76" rx="4" fill="#f1f5f9" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="459" y="116" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">Run n-2</text>
+  <rect x="515" y="84" width="90" height="76" rx="4" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="116" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#2563eb">Run n-1</text>
+  <rect x="616" y="84" width="90" height="76" rx="4" fill="#dcfce7" stroke="#16a34a" stroke-width="2"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="661" y="116" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#16a34a">Run n</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="180" text-anchor="middle" font-family="monospace" font-size="8.5" fill="#111111">Evicts oldest run &amp; corrupt schema entries</text>
+  <line x1="732" y1="120" x2="758" y2="120" stroke="#111111" stroke-width="2" marker-end="url(#arr-14bc6aa1)"/>
+  <rect x="762" y="38" width="344" height="164" rx="6" fill="url(#grid-14bc6aa1)" stroke="#111111" stroke-width="1.75"/>
+  <line x1="762" y1="60" x2="1106" y2="60" stroke="#cbd5e1" stroke-width="1"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="934" y="53" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3 · Diagnostic Report Download</text>
+  <rect x="806" y="68" width="256" height="122" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="826" y="86" width="216" height="40" rx="4" fill="#fef9c3" stroke="#d97706" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="934" y="110" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Download fault-report.json</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="934" y="156" text-anchor="middle" font-family="monospace" font-size="9" fill="#16a34a">Survives browser tab crash ✓</text>
+</svg>
+</div>
 
 ### 1. `src/diagnostic.rs`
-
-Validate shape, limits and failure/outcome consistency before trusting a decoded stored value. Keep recording bounded even if a caller bypasses admission and directly deserializes an oversized queue.
 
 **Locate this existing block:**
 
@@ -175,8 +187,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 2. `src/diagnostic_shape_tests.rs`
 
-Optional authoring fixture. Verify typed metadata, bounded queues and consistent first-failure state.
-
 Create the file and type:
 
 ```rust
@@ -254,8 +264,6 @@ fn shape_bounds_events_and_failure() {
 
 ### 3. `src/lib.rs`
 
-Include the native shape-invariant checks.
-
 **Locate this existing block:**
 
 ```rust
@@ -274,11 +282,7 @@ mod diagnostic_tests;
 
 ## <a id="checkpoint-34ea-decode"></a>2. Admit only supported bounded saved JSON
 
-Reject oversized, malformed or unsupported saved JSON before it can become a diagnostic candidate.
-
 ### 1. `src/report_store.rs`
-
-Bound raw input and reject unsupported JSON fields before adopting a valid typed report.
 
 Create the file and type:
 
@@ -321,8 +325,6 @@ pub fn decode(text: &str) -> Option<Report> {
 ```
 
 ### 2. `src/report_store_tests.rs`
-
-Optional authoring fixture. Prove actual stored JSON admission and byte/text/schema boundaries.
 
 Create the file and type:
 
@@ -394,8 +396,6 @@ fn stored_json_bounds_bytes_events_and_text() {
 
 ### 3. `src/lib.rs`
 
-Expose the decoder and its native acceptance checks.
-
 **Locate this existing block:**
 
 ```rust
@@ -461,11 +461,7 @@ pub mod row_metadata;
 </svg>
 </div>
 
-Select recent failed or interrupted runs using actual failure time, valid chronology and tab identity.
-
 ### 1. `src/report_recency.rs`
-
-Interpret a validated report’s chronology and return an eligible timestamp for ranking, using an injected clock parser.
 
 Create the file and type:
 
@@ -507,8 +503,6 @@ pub fn eligible(
 ```
 
 ### 2. `src/report_recency_tests.rs`
-
-Optional authoring fixture. Cover the original stale-heartbeat regression, active tabs, temporal cutoffs and failure-time ranking.
 
 Create the file and type:
 
@@ -642,8 +636,6 @@ fn previous_run_selection_respects_actual_failure_time() {
 
 ### 3. `src/lib.rs`
 
-Expose native selection policy before binding it to browser storage.
-
 **Locate this existing block:**
 
 ```rust
@@ -663,11 +655,7 @@ pub mod report_store;
 
 ## <a id="checkpoint-34ec-proof"></a>4. Prove saved-run exclusions before adopting storage
 
-Complete timestamp-policy acceptance before a stored candidate can create a notice or previous-report download.
-
 ### 1. `src/report_recency_tests.rs`
-
-Optional authoring fixture. Prove invalid clocks, healthy/closed runs, invalid failure ordering and unchanged metadata cannot become interruption evidence.
 
 **Locate this existing block:**
 
@@ -746,11 +734,48 @@ fn failure_before_start_is_rejected_without_mutating_report() {
 
 ## <a id="checkpoint-34f-storage"></a>5. Read previous reports from real browser storage
 
-Read admitted saved reports using stable tab identity, the real browser timestamp parser and bounded scanning.
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="184" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">DOM Resize / Visibility Events</text>
+  <rect x="64" y="54" width="108" height="72" rx="4" fill="#f8fafc" stroke="#111111" stroke-width="1.5" stroke-dasharray="3 3"/>
+  <rect x="64" y="54" width="224" height="98" rx="4" fill="none" stroke="#2563eb" stroke-width="2"/>
+  <line x1="172" y1="90" x2="276" y2="90" stroke="#2563eb" stroke-width="2" marker-end="url(#arrB)"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="224" y="140" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Resize (W, H, DPR)</text>
+  <line x1="358" y1="94" x2="384" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="388" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Matched Color + Depth32Float Attachments</text>
+  <rect x="444" y="56" width="104" height="84" rx="4" fill="#dbeafe" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="496" y="102" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Surface</text>
+  <rect x="572" y="56" width="104" height="84" rx="4" fill="#fef9c3" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="624" y="102" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Depth32</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="156" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">aspect = W / H</text>
+  <line x1="732" y1="94" x2="758" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="762" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Unstretched Aspect-Correct View</text>
+  <rect x="802" y="44" width="264" height="118" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <polygon points="934,58 994,84 934,110 874,84" fill="#93c5fd" stroke="#111111" stroke-width="1.75"/>
+  <polygon points="874,84 934,110 934,150 874,124" fill="#60a5fa" stroke="#111111" stroke-width="1.75"/>
+  <polygon points="934,110 994,84 994,124 934,150" fill="#2563eb" stroke="#111111" stroke-width="1.75"/>
+</svg>
+</div>
 
 ### 1. `src/report_storage.rs`
-
-Read bounded validated candidates from actual browser storage and rank with the real Date parser; retain only metadata and storage handles.
 
 Create the file and type:
 
@@ -829,8 +854,6 @@ pub fn previous_storage_probe() -> String {
 
 ### 2. `src/lib.rs`
 
-Build the storage owner only for the browser target and expose its debug acceptance probe.
-
 **Locate this existing block:**
 
 ```rust
@@ -848,8 +871,6 @@ pub mod report_storage;
 ```
 
 ### 3. `Cargo.toml`
-
-Enable the pinned browser Storage bindings without changing package versions.
 
 **Locate this existing block:**
 
@@ -869,11 +890,7 @@ console_error_panic_hook = "=0.1.7"
 
 ## <a id="checkpoint-34fa-retain"></a>6. Retain only three diagnostic runs
 
-Write admitted report metadata to an independent run key and retain a bounded set without disturbing viewer state.
-
 ### 1. `src/report_storage.rs`
-
-Admit metadata, save to this run’s key and retain at most two older valid reports; refuse unbounded namespace examination and tolerate unavailable storage. Verify repeated writes use the same key and reach actual Web Storage; this debug export is not a runtime feature control.
 
 **Locate this existing block:**
 
@@ -1003,11 +1020,7 @@ pub fn stored_report_probe(text: &str) -> Result<String, wasm_bindgen::JsValue> 
 
 ## <a id="checkpoint-34fb-store"></a>7. Retrieve saved failure evidence through the command line
 
-Persist current diagnostics independently of GPU lifetime and retrieve eligible previous evidence with a typed command.
-
 ### 1. `src/browser_report.rs`
-
-Keep current and previous diagnostic metadata independent of the GPU runtime and source documents. Select earlier evidence before writing this new run, retain stable tab identity and let denied storage leave startup usable. Save successful observations after releasing the current-report borrow; storage failure cannot replace a diagnostic error or interrupt drawing. Persist refreshed current context while retaining manual downloads when storage is unavailable. Serialize independent previous metadata before the download callback; report interruption separately from proof of a crash.
 
 **Locate this existing block:**
 
@@ -1219,8 +1232,6 @@ pub fn previous_diagnostic_snapshot() -> Result<String, JsValue> {
 
 ### 2. `src/browser.rs`
 
-Expose previous-report retrieval as a named command in the actual dock. Show an eligible previous-run notice in the existing command dock, keeping HTML free of feature buttons. Dispatch current and previous JSON downloads without changing document history or the stopped-runtime failure guard.
-
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -1296,8 +1307,6 @@ Replace it with:
 
 ### 3. `src/panel.rs`
 
-Expose the existing drawn status in the same diagnostic inspector so Chrome can verify the initial notice and command errors.
-
 **Locate this existing block:**
 
 ```rust
@@ -1317,8 +1326,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ## <a id="checkpoint-34fc-retention"></a>8. Preserve unsupported telemetry while pruning
 
 ### 1. `src/report_store.rs`
-
-Read a bounded date/version header for retention without adopting, converting or rewriting unsupported telemetry.
 
 **Locate this existing block:**
 
@@ -1357,8 +1364,6 @@ pub fn decode(text: &str) -> Option<Report> {
 ```
 
 ### 2. `src/report_storage.rs`
-
-Retain raw supported or unsupported bounded JSON by header time; a failed read aborts before writing or pruning.
 
 **Locate this existing block:**
 
@@ -1403,8 +1408,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 3. `src/report_store_tests.rs`
-
-Optional authoring fixture. Prove unsupported fields/versions remain dateable without admission, with unchanged input and bounded header parsing.
 
 **Locate this existing block:**
 

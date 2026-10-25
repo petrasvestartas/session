@@ -1,6 +1,6 @@
 # 18.2 · Original contact metadata and ambient light
 
-**Goal:** Exercise actual contacts cache and source ownership. · **Steps:** 33 · **Source:** [engine/gpu/ssao.rs](../../../src/engine/gpu/ssao.rs) · [engine/gpu/ssao/pipelines.rs](../../../src/engine/gpu/ssao/pipelines.rs) · [shaders/ssao.wgsl](../../../src/shaders/ssao.wgsl) · [shaders/triangle.wgsl](../../../src/shaders/triangle.wgsl)
+**Steps:** 33 · **Source:** [engine/gpu/ssao.rs](../../../src/engine/gpu/ssao.rs) · [engine/gpu/ssao/pipelines.rs](../../../src/engine/gpu/ssao/pipelines.rs) · [shaders/ssao.wgsl](../../../src/shaders/ssao.wgsl) · [shaders/triangle.wgsl](../../../src/shaders/triangle.wgsl)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -45,11 +45,7 @@
 
 ## <a id="checkpoint-90-copy-maintained-original-contact-radius"></a>1. Derive contact radius
 
-Derive the existing contact radius from the original scene bounds.
-
 ### 1. `src/ambient_radius.rs`
-
-Type the complete original geometry query and reuse its current consumer.
 
 Create the file and type:
 
@@ -64,8 +60,6 @@ pub fn ambient_radius(bounds: &AABB) -> f32 {
 ```
 
 ### 2. `src/lib.rs`
-
-Register the completed section component.
 
 **Locate this existing block:**
 
@@ -99,11 +93,7 @@ pub mod source_mesh_topology;
 
 ## <a id="checkpoint-90a-copy-current-viewing-rays"></a>2. Write current viewing rays
 
-Unproject pixel neighbors into aligned world-space ray rows.
-
 ### 1. `src/ambient_camera.rs`
-
-Type the complete existing WebGPU helper and reuse its current consumer.
 
 Create the file and type:
 
@@ -150,8 +140,6 @@ pub fn pixel_rays(inverse: &[f32; 16], size: (u32, u32)) -> [f32; 24] {
 
 ### 2. `src/lib.rs`
 
-Register the completed section component.
-
 **Locate this existing block:**
 
 ```rust
@@ -171,8 +159,6 @@ pub mod finite_project_source;
 ## <a id="checkpoint-90b-adapt-the-earlier-forward-camera"></a>3. Adapt the earlier forward camera
 
 ### 1. `src/ambient_camera.rs`
-
-Adapt the earlier camera to the maintained ambient convention.
 
 **Locate this existing block:**
 
@@ -222,11 +208,7 @@ pub fn uniform(
 
 ## <a id="checkpoint-90c-gather-weak-original-ambient-properties"></a>4. Gather weak ambient properties
 
-Gather weak original ambient properties.
-
 ### 1. `src/ambient_rows.rs`
-
-Gather current original contact properties without retaining source documents.
 
 Create the file and type:
 
@@ -274,8 +256,6 @@ impl Rows {
 ```
 
 ### 2. `src/lib.rs`
-
-Register the completed section component.
 
 **Locate this existing block:**
 
@@ -345,8 +325,6 @@ pub mod finite_project_source;
 
 ### 1. `src/ambient.wgsl`
 
-Keep ray, depth, normal, radius and history inputs in explicit bind groups.
-
 Create the file and type:
 
 ```wgsl
@@ -398,8 +376,6 @@ struct Hit {
 ## <a id="checkpoint-90da-reconstruct-original-surfaces-from-depth"></a>6. Reconstruct surfaces from depth
 
 ### 1. `src/ambient.wgsl`
-
-Unproject framebuffer depth and recover ray positions without changing original CAD geometry.
 
 **Locate this existing block:**
 
@@ -497,8 +473,6 @@ fn position_at(pixel: vec2<f32>, along: f32) -> vec3<f32> {
 
 ### 1. `src/ambient.wgsl`
 
-Read original radii, section normals and geometric fallback normals through the existing property textures.
-
 **Locate this existing block:**
 
 ```wgsl
@@ -545,8 +519,6 @@ fn normal_of(pixel:vec2<f32>,p:vec3<f32>,sample:i32)->vec3<f32>{
 ## <a id="checkpoint-90dc-prepare-a-compact-depth-radius-and-normal-target"></a>8. Prepare a compact depth radius and normal target
 
 ### 1. `src/ambient.wgsl`
-
-Write ray distance, contact radius and octahedral normal into separate attachments.
 
 **Locate this existing block:**
 
@@ -649,8 +621,6 @@ fn phase(pixel: vec2<f32>, stride: u32) -> u32 {
 
 ### 1. `src/ambient.wgsl`
 
-Sample bounded directions and steps using the retained mip levels and physical contact radius.
-
 **Locate this existing block:**
 
 ```wgsl
@@ -715,8 +685,6 @@ fn filtered_ground(at: vec2<f32>) -> f32 {
 ## <a id="checkpoint-90de-integrate-cosine-weighted-surface-visibility"></a>10. Integrate cosine weighted surface visibility
 
 ### 1. `src/ambient.wgsl`
-
-Accumulate the occluded part of each projected normal slice, with bounded horizon sampling.
 
 **Locate this existing block:**
 
@@ -834,8 +802,6 @@ fn arc(h: f32, n: f32) -> f32 {
 
 ### 1. `src/ambient.wgsl`
 
-Weight neighboring occlusion by surface separation, normal and contact radius.
-
 **Locate this existing block:**
 
 ```wgsl
@@ -894,8 +860,6 @@ fn denoise(pixel: vec2<f32>, axis: vec2<i32>) -> vec3<f32> {
 
 ### 1. `src/ambient.wgsl`
 
-Reproject into the prior frame, validate signed depth and clamp reused visibility to the current neighborhood.
-
 **Locate this existing block:**
 
 ```wgsl
@@ -949,8 +913,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 1. `src/ambient.wgsl`
 
-Use surface-aware weights to combine the four nearby low-resolution values.
-
 **Locate this existing block:**
 
 ```wgsl
@@ -998,8 +960,6 @@ fn reconstruct(at: vec2<f32>, sample: i32, z: f32, values: vec4<f32>) -> f32 {
 ## <a id="checkpoint-90di-collect-bounded-sample-corrections-with-gpu-atomics"></a>14. Collect bounded sample corrections with GPU atomics
 
 ### 1. `src/ambient.wgsl`
-
-Pack per-sample corrections and claim each affected tile once for indirect edge draws.
 
 **Locate this existing block:**
 
@@ -1056,8 +1016,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 1. `src/ambient_composite.wgsl`
 
-Load the current contact amount and use per-sample masks for corrected edge draws.
-
 Create the file and type:
 
 ```wgsl
@@ -1112,11 +1070,7 @@ struct Shade {
 
 ## <a id="checkpoint-90e-bind-real-original-normals-and-radii"></a>16. Validate the assembled ambient shader contracts
 
-Read optional shader-interface validation before runtime pipeline creation.
-
 ### 1. `src/ambient_shader_contract.rs`
-
-Validate the actual shader types and public entry points.
 
 Create the file and type:
 
@@ -1154,8 +1108,6 @@ fn ambient_shader_contracts_validate_before_pipeline_connection() {
 
 ### 2. `src/lib.rs`
 
-Compile the shader contract at the completed owner boundary.
-
 **Locate this existing block:**
 
 ```rust
@@ -1174,11 +1126,7 @@ pub mod finite_project_source;
 
 ## <a id="checkpoint-90f-write-original-surface-contact-properties"></a>17. Write surface contact properties
 
-Write original surface contact properties.
-
 ### 1. `src/ambient_sources.wgsl`
-
-Derive original ambient properties without changing color or source geometry.
 
 Create the file and type:
 
@@ -1201,11 +1149,7 @@ struct Source{@location(0) radius:f32,@location(1) normal:vec2<f32>}
 
 ## <a id="checkpoint-90g-build-the-depth-equal-original-property-pass"></a>18. Build the depth-equal property pass
 
-Build the depth-equal original property pass.
-
 ### 1. `src/depth.rs`
-
-Add an explicit depth-equal read-only property state.
 
 **Locate this existing block:**
 
@@ -1226,8 +1170,6 @@ pub fn state_for_ambient() -> wgpu::DepthStencilState {
 ```
 
 ### 2. `src/ambient_source_pipeline.rs`
-
-Build the compatible original property pass.
 
 Create the file and type:
 
@@ -1266,8 +1208,6 @@ impl Pipeline {
 ```
 
 ### 3. `src/lib.rs`
-
-Register the completed section component.
 
 **Locate this existing block:**
 
@@ -1334,11 +1274,7 @@ pub mod finite_project_source;
 </svg>
 </div>
 
-Cache original radius buffers and draw properties.
-
 ### 1. `src/ambient_source_gpu.rs`
-
-Own original property uniforms and compatible metadata draws.
 
 Create the file and type:
 
@@ -1446,8 +1382,6 @@ impl Sources {
 
 ### 2. `src/lib.rs`
 
-Register the completed section component.
-
 **Locate this existing block:**
 
 ```rust
@@ -1475,8 +1409,6 @@ pub mod finite_project_source;
 ## <a id="checkpoint-90i-own-actual-ambient-image-allocation"></a>20. Own actual ambient image allocation
 
 ### 1. `src/ambient_image.rs`
-
-Own actual single-level ambient images.
 
 Create the file and type:
 
@@ -1524,8 +1456,6 @@ impl Image {
 ```
 
 ### 2. `src/lib.rs`
-
-Register the completed section component.
 
 **Locate this existing block:**
 
@@ -1597,8 +1527,6 @@ pub mod finite_project_source;
 </div>
 
 ### 1. `src/ambient_images.rs`
-
-Own compatible current ambient targets and exact allocation.
 
 Create the file and type:
 
@@ -1675,8 +1603,6 @@ impl Images {
 
 ### 2. `src/lib.rs`
 
-Register the completed section component.
-
 **Locate this existing block:**
 
 ```rust
@@ -1696,8 +1622,6 @@ pub mod ambient_images;
 ## <a id="checkpoint-90k-build-explicit-ambient-fullscreen-pipelines"></a>22. Build explicit ambient fullscreen pipelines
 
 ### 1. `src/ambient_pipeline.rs`
-
-Build compatible fullscreen ambient pipelines.
 
 Create the file and type:
 
@@ -1775,8 +1699,6 @@ impl Pipelines {}
 
 ### 2. `src/lib.rs`
 
-Register the completed section component.
-
 **Locate this existing block:**
 
 ```rust
@@ -1796,8 +1718,6 @@ pub mod ambient_pipeline;
 ## <a id="checkpoint-90l-match-current-ambient-sampling-layouts"></a>23. Match current ambient sampling layouts
 
 ### 1. `src/ambient_pipeline.rs`
-
-Build each compatible current ambient stage.
 
 **Locate this existing block:**
 
@@ -1980,8 +1900,6 @@ impl Pipelines {
 
 ### 1. `src/ambient_groups.rs`
 
-Cache actual reduced-level and sample bindings.
-
 Create the file and type:
 
 ```rust
@@ -2114,8 +2032,6 @@ impl Groups {
 
 ### 2. `src/lib.rs`
 
-Register the completed section component.
-
 **Locate this existing block:**
 
 ```rust
@@ -2135,8 +2051,6 @@ pub mod ambient_groups;
 ## <a id="checkpoint-90n-bind-exact-current-ambient-source-images"></a>25. Bind exact current ambient source images
 
 ### 1. `src/ambient_groups.rs`
-
-Bind exact current original inputs and camera resources.
 
 **Locate this existing block:**
 
@@ -2246,8 +2160,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 1. `src/ambient_pass.rs`
 
-Record one compatible ambient stage.
-
 Create the file and type:
 
 ```rust
@@ -2291,8 +2203,6 @@ pub fn draw(
 
 ### 2. `src/lib.rs`
 
-Register the completed section component.
-
 **Locate this existing block:**
 
 ```rust
@@ -2312,8 +2222,6 @@ pub mod ambient_pass;
 ## <a id="checkpoint-90p-own-cached-ambient-pipelines-and-release-images"></a>27. Own cached ambient pipelines and release images
 
 ### 1. `src/ambient_gpu.rs`
-
-Own lazy ambient state and cached pipelines.
 
 Create the file and type:
 
@@ -2369,8 +2277,6 @@ impl Ambient {
 
 ### 2. `src/lib.rs`
 
-Register the completed section component.
-
 **Locate this existing block:**
 
 ```rust
@@ -2390,8 +2296,6 @@ pub mod ambient_gpu;
 ## <a id="checkpoint-90q-prepare-changed-ambient-framebuffer-inputs"></a>28. Prepare changed ambient framebuffer inputs
 
 ### 1. `src/ambient_gpu.rs`
-
-Prepare exact current ambient images and source bindings.
 
 **Locate this existing block:**
 
@@ -2464,8 +2368,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ## <a id="checkpoint-90r-render-a-complete-ambient-result-in-one-frame"></a>29. Render a complete ambient result in one frame
 
 ### 1. `src/ambient_gpu.rs`
-
-Render complete current single-sample ambient recipes with cached inputs.
 
 **Locate this existing block:**
 
@@ -2650,8 +2552,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 1. `src/ambient_gpu.rs`
 
-Expose exact allocation and explicit ambient work counters.
-
 **Locate this existing block:**
 
 ```rust
@@ -2686,11 +2586,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-90t-route-original-scene-properties-into-ambient-shading"></a>31. Route scene properties into ambient shading
 
-Route original scene properties into ambient shading.
-
 ### 1. `src/renderer.rs`
-
-Connect current original properties and cached ambient rendering.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -2866,8 +2762,6 @@ pub struct Renderer {
 
 ### 1. `src/editor.rs`
 
-Connect current Arctic activation and truthful browser diagnostics.
-
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -2992,8 +2886,6 @@ pub enum Action {
 
 ### 2. `src/commands.rs`
 
-Connect current Arctic activation and truthful browser diagnostics.
-
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -3041,8 +2933,6 @@ pub const ACTIONS: &[(&str, Factory)] = &[
 ```
 
 ### 3. `src/browser.rs`
-
-Connect current Arctic activation and truthful browser diagnostics.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -3131,8 +3021,6 @@ Replace it with:
 </div>
 
 ### 1. `src/ambient_gpu_tests.rs`
-
-Copy supplied actual contact/frame/cache/release fixtures.
 
 Create the file and type:
 
@@ -3280,8 +3168,6 @@ fn actual_ambient_darkens_original_contacts_in_one_frame_caches_and_releases_lar
 
 ### 2. `src/renderer.rs`
 
-Register actual renderer-local ambient fixtures.
-
 **Locate this existing block:**
 
 ```rust
@@ -3301,8 +3187,6 @@ mod ambient_gpu_tests;
 ```
 
 ### 3. `src/arctic_tests.rs`
-
-Copy supplied current presentation and original-history fixtures.
 
 Create the file and type:
 
@@ -3387,8 +3271,6 @@ fn arctic_toggle_and_strict_options_preserve_originals_pending_points_annotation
 ```
 
 ### 4. `src/lib.rs`
-
-Register the completed section component.
 
 **Locate this existing block:**
 

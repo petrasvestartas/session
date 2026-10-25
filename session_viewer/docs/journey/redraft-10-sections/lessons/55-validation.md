@@ -1,6 +1,6 @@
 # 9.1 · Original surfaces, analytic normals and trim boundaries
 
-**Goal:** Read ordered edge-use and interval labels from mesh vertices. · **Steps:** 11 · **Source:** [app/walk/brep.rs](../../../../src/app/walk/brep.rs) · [app/walk/brep_edges.rs](../../../../src/app/walk/brep_edges.rs) · [app/walk/brep_orient.rs](../../../../src/app/walk/brep_orient.rs) · [app/walk/brep_shapes.rs](../../../../src/app/walk/brep_shapes.rs)
+**Steps:** 11 · **Source:** [app/walk/brep.rs](../../../../src/app/walk/brep.rs) · [app/walk/brep_edges.rs](../../../../src/app/walk/brep_edges.rs) · [app/walk/brep_orient.rs](../../../../src/app/walk/brep_orient.rs) · [app/walk/brep_shapes.rs](../../../../src/app/walk/brep_shapes.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -48,11 +48,7 @@
 
 ## <a id="checkpoint-55-validation"></a>1. Validate surface control storage
 
-Validate original surface control storage.
-
 ### 1. `src/surface.rs`
-
-Validate the original NURBS layout, parameter domains and bounded display input.
 
 Create the file and type:
 
@@ -140,8 +136,6 @@ pub fn validate(source: &NurbsSurface) -> Result<[[f64; 2]; 2], &'static str> {
 
 ### 2. `src/lib.rs`
 
-Register the source component.
-
 **Locate this existing block:**
 
 ```rust
@@ -160,11 +154,7 @@ pub mod surface;
 
 ## <a id="checkpoint-55a-grid"></a>2. Keep UV coordinates beside world samples
 
-Keep UV coordinates beside original world samples.
-
 ### 1. `src/surface.rs`
-
-Build the current 16–96-step UV grid and open domain border segment ranges.
 
 **Locate this existing block:**
 
@@ -193,6 +183,76 @@ pub struct Grid {
     pub samples: Vec<Sample>,
     pub indices: Vec<u32>,
     pub boundaries: Vec<Boundary>,
+}
+
+pub fn border_parameters(
+    source: &session_rust::NurbsSurface,
+    edge: usize,
+    steps: usize,
+) -> Option<Vec<f64>> {
+    if edge >= 4 || steps == 0 {
+        return None;
+    }
+    let fixed = edge / 2;
+    let varying = 1 - fixed;
+    let domain = source.domain(fixed)?;
+    let curve = source.iso_curve(
+        varying,
+        if edge % 2 == 0 {
+            domain.0
+        } else {
+            domain.1
+        },
+    )?;
+    let mut turning = 0.;
+    let mut previous: Option<[f64; 3]> = None;
+    let control = |i: usize| {
+        let at = i * curve.m_cv_stride;
+        let weight = if curve.m_is_rat {
+            curve.m_cv[at + curve.m_dim]
+        } else {
+            1.
+        };
+        std::array::from_fn::<_, 3, _>(|axis| {
+            if axis < curve.m_dim {
+                curve.m_cv[at + axis] / weight
+            } else {
+                0.
+            }
+        })
+    };
+    for i in 1..curve.m_cv_count {
+        let (a, b) = (control(i - 1), control(i));
+        let delta = std::array::from_fn::<_, 3, _>(|axis| b[axis] - a[axis]);
+        let length = delta
+            .iter()
+            .map(|v| v * v)
+            .sum::<f64>()
+            .sqrt();
+        if length < 1e-12 {
+            continue;
+        }
+        let unit = delta.map(|v| v / length);
+        if let Some(before) = previous {
+            turning += (0..3)
+                .map(|axis| before[axis] * unit[axis])
+                .sum::<f64>()
+                .clamp(-1., 1.)
+                .acos()
+                .to_degrees();
+        }
+        previous = Some(unit);
+    }
+    let count = ((turning / 4. - 1e-6).ceil() as usize)
+        .max(curve.span_count())
+        .clamp(1, 256);
+    let mut parameters: Vec<f64> = (0..=steps)
+        .map(|i| i as f64 / steps as f64)
+        .chain((0..=count).map(|i| i as f64 / count as f64))
+        .collect();
+    parameters.sort_by(f64::total_cmp);
+    parameters.dedup_by(|a, b| (*a - *b).abs() < 1e-12);
+    Some(parameters)
 }
 
 impl Grid {
@@ -247,11 +307,47 @@ impl Grid {
                 2 => (0..=nu).map(|i| i * (nv + 1)).collect(),
                 _ => (0..=nu).map(|i| i * (nv + 1) + nv).collect(),
             };
+            let varying = 1 - edge / 2;
+            let extent = domain[varying];
+            let fixed = edge / 2;
+            let parameters = border_parameters(source, edge, points.len() - 1)
+                .ok_or("Surface border curve cannot be evaluated")?;
+            let mut refined = Vec::with_capacity(parameters.len());
+            for t in parameters {
+                let at = t * (points.len() - 1) as f64;
+                let nearest = at.round();
+                if (at - nearest).abs() < 1e-9 {
+                    refined.push(points[nearest as usize] as u32);
+                    continue;
+                }
+                let mut uv = [0.; 2];
+                uv[fixed] = domain[fixed][edge % 2];
+                uv[varying] = extent[0] + (extent[1] - extent[0]) * t;
+                let point = source
+                    .point_at(uv[0], uv[1])
+                    .ok_or("Surface border cannot be evaluated")?;
+                let normal = source.normal_at(uv[0], uv[1]);
+                let point = [point[0], point[1], point[2]];
+                let normal = [normal[0], normal[1], normal[2]];
+                if point
+                    .iter()
+                    .chain(normal.iter())
+                    .any(|v| !v.is_finite())
+                {
+                    return Err("Surface border must be finite");
+                }
+                refined.push(samples.len() as u32);
+                samples.push(Sample {
+                    uv,
+                    point,
+                    normal,
+                });
+            }
             boundaries.push(Boundary {
                 edge,
-                segments: points
+                segments: refined
                     .windows(2)
-                    .map(|pair| [pair[0] as u32, pair[1] as u32])
+                    .map(|pair| [pair[0], pair[1]])
                     .collect(),
             });
         }
@@ -268,8 +364,6 @@ impl Grid {
 ## <a id="checkpoint-55b-normals"></a>3. Use analytic normals and finite singular-point fallbacks
 
 ### 1. `src/surface.rs`
-
-Normalise analytic normals and safely handle singular sample positions.
 
 **Locate this existing block:**
 
@@ -298,6 +392,23 @@ Edit the existing block to match this code; keep unchanged lines:
             return crate::normals::unit(sample.normal.map(|v| v as f32));
         }
         let [nu, nv] = self.steps;
+        let grid_count = (nu + 1) * (nv + 1);
+        let index = if index < grid_count {
+            index
+        } else {
+            (0..grid_count)
+                .min_by(|&a, &b| {
+                    let distance = |i: usize| {
+                        (0..2)
+                            .map(|axis| {
+                                (self.samples[i].uv[axis] - sample.uv[axis]).powi(2)
+                            })
+                            .sum::<f64>()
+                    };
+                    distance(a).total_cmp(&distance(b))
+                })
+                .unwrap()
+        };
         let i = index / (nv + 1);
         let j = index % (nv + 1);
         for a in [i.saturating_sub(1), i.min(nu - 1)] {
@@ -327,8 +438,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ## <a id="checkpoint-55c-display"></a>4. Prepare derived surface display without losing its source
 
 ### 1. `src/surface.rs`
-
-Keep the original surface and its UV cache beside the derived display; provide the parametric-roof example.
 
 **Locate this existing block:**
 
@@ -457,11 +566,7 @@ pub fn example() -> NurbsSurface {
 
 ## <a id="checkpoint-55d-source-row"></a>5. Attach surface ownership to existing scene rows
 
-Attach original surface ownership to existing scene rows.
-
 ### 1. `src/scene.rs`
-
-Attach and share original NURBS ownership while preventing proxy saving or premature CAD deformation.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -569,8 +674,6 @@ pub struct Object {
 
 ### 2. `src/document.rs`
 
-Attach and share original NURBS ownership while preventing proxy saving or premature CAD deformation.
-
 **Locate this existing block:**
 
 ```rust
@@ -594,8 +697,6 @@ pub fn snapshot(scene: &crate::scene::Scene) -> Result<Vec<u8>, &'static str> {
 
 ### 3. `src/part_preview.rs`
 
-Attach and share original NURBS ownership while preventing proxy saving or premature CAD deformation.
-
 **Locate this existing block:**
 
 ```rust
@@ -617,11 +718,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-55e-identities"></a>6. Resolve surface face and domain edges
 
-Resolve original surface face and domain edges.
-
 ### 1. `src/pick_sources.rs`
-
-Resolve and highlight one original CAD face and four domain edges without exposing interior grid lines.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -706,8 +803,6 @@ Replace it with:
 
 ### 2. `src/selection.rs`
 
-Resolve and highlight one original CAD face and four domain edges without exposing interior grid lines.
-
 **Locate this existing block:**
 
 ```rust
@@ -757,8 +852,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 3. `src/highlight.rs`
 
-Resolve and highlight one original CAD face and four domain edges without exposing interior grid lines.
-
 **Locate this existing block:**
 
 ```rust
@@ -806,8 +899,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ## <a id="checkpoint-55f-ownership"></a>7. Account for shared source and UV cache owners
 
 ### 1. `src/memory.rs`
-
-Count source control/metadata bytes and cached UV/triangle/boundary allocations by unique owner.
 
 **Locate this existing block:**
 
@@ -868,8 +959,6 @@ pub fn surfaces<'a>(scenes: impl IntoIterator<Item = &'a Scene>) -> [usize; 5] {
 
 ### 2. `src/browser.rs`
 
-Expose actual surface source, grid, face and edge identities and unique-owner accounting.
-
 **Locate this existing block:**
 
 ```rust
@@ -898,11 +987,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-55g-surface"></a>8. Draw and pick the parametric roof
 
-Draw and pick the original parametric roof.
-
 ### 1. `src/editor.rs`
-
-Create the parametric roof through the existing checked document transaction.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -950,8 +1035,6 @@ Replace it with:
 
 ### 2. `src/commands.rs`
 
-Create the parametric roof through the existing checked document transaction.
-
 **Locate this existing block:**
 
 ```rust
@@ -968,8 +1051,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 3. `src/surface_tests.rs`
-
-Copy malformed-input, exact UV/normal/boundary, rational, storage layout, source lifetime and placement-history checks.
 
 Create the file and type:
 
@@ -1214,8 +1295,6 @@ fn transposed_padded_control_layout_samples_without_rewriting_original_storage()
 
 ### 4. `src/lib.rs`
 
-Register the source component.
-
 **Locate this existing block:**
 
 ```rust
@@ -1236,8 +1315,6 @@ mod surface_tests;
 ```
 
 ### 5. `src/pick_gpu_tests.rs`
-
-Copy actual one-face and four-original-domain-edge GPU readbacks with unchanged source and geometry allocations.
 
 **Locate this existing block:**
 
@@ -1314,11 +1391,7 @@ fn actual_surface_pick_keeps_one_cad_face_and_four_domain_edge_ids() {
 
 ## <a id="checkpoint-55za-read-original-edge-use-samples"></a>9. Read edge-use samples
 
-Write edge-use and chain records, parameter ordering and exact linear pcurve endpoints.
-
 ### 1. `src/cad_edges.rs`
-
-Type the whole original helpers introduced today.
 
 Create the file and type:
 
@@ -1416,8 +1489,6 @@ pub struct EdgeChain {
 
 ### 2. `src/lib.rs`
 
-Register the original CAD edge records and lookup helpers.
-
 **Locate this existing block:**
 
 ```rust
@@ -1436,11 +1507,7 @@ pub mod cad_edges;
 
 ## <a id="checkpoint-55zb-follow-original-isoparametric-boundaries"></a>10. Follow isoparametric boundaries
 
-Follow an exact constant-u or constant-v boundary through the existing face mesh.
-
 ### 1. `src/cad_edges.rs`
-
-Extend this original owner with today’s complete helper.
 
 **Locate this existing block:**
 
@@ -1546,8 +1613,6 @@ pub struct EdgeChain {
 ## <a id="checkpoint-55zc-follow-original-constrained-trim-labels"></a>11. Follow constrained trim labels
 
 ### 1. `src/cad_edges.rs`
-
-Extend this original owner with today’s complete helper.
 
 **Locate this existing block:**
 

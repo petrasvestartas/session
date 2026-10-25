@@ -1,6 +1,6 @@
 # 21.2 · Precise CPU queries and origin-stamped picks
 
-**Goal:** Refresh local draw inputs without replacing the document or cancelling its gesture. · **Steps:** 7 · **Source:** [camera.rs](../../../src/camera.rs) · [state.rs](../../../src/state.rs) · [engine/gpu/objects.rs](../../../src/engine/gpu/objects.rs) · [engine/gpu/frame.rs](../../../src/engine/gpu/frame.rs)
+**Steps:** 7 · **Source:** [camera.rs](../../../src/camera.rs) · [state.rs](../../../src/state.rs) · [engine/gpu/objects.rs](../../../src/engine/gpu/objects.rs) · [engine/gpu/frame.rs](../../../src/engine/gpu/frame.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -46,11 +46,7 @@
 
 ## <a id="checkpoint-96zzzzzj-project-cpu-queries-around-the-precise-target"></a>1. Project CPU queries around the precise target
 
-Keep CPU screen queries precise before converting world points to pixels.
-
 ### 1. `src/snap_math.rs`
-
-Retain the coordinate frame in query and cache identity. Build one matching precise origin and local camera matrix for CPU queries. Subtract the precise origin before matrix products; retain existing clipping and finite guards.
 
 **Locate this existing block:**
 
@@ -100,8 +96,6 @@ impl Screen {
 ```
 
 ### 2. `src/editor.rs`
-
-Reuse the precise camera query frame at the existing editor call site.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -209,8 +203,6 @@ Replace it with:
 
 ### 3. `src/trim_draft.rs`
 
-Project trim boundaries through the same CPU frame owner.
-
 **Locate this existing block:**
 
 ```rust
@@ -232,8 +224,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 4. `src/snap_tests.rs`
 
-Keep every original arbitrary-matrix snapping assertion in its explicit zero-origin frame.
-
 **Locate this existing block:**
 
 ```rust
@@ -250,8 +240,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 5. `src/camera_space_tests.rs`
-
-Supply exact distant/local CPU pixels, equal-matrix origin witnesses and retained clip/finite/size guards without changing source coordinates.
 
 **Locate this existing block:**
 
@@ -325,11 +313,7 @@ fn cpu_screen_queries_keep_distant_pixels_and_original_clip_guards() {
 
 ## <a id="checkpoint-96zzzzzk-prepare-precise-text-selection-polygons"></a>2. Prepare precise text selection polygons
 
-Project original text bounds in a precise local query frame.
-
 ### 1. `src/snap_math.rs`
-
-Share coordinate conversion while preserving depth, positive-w and logical-size rules.
 
 **Locate this existing block:**
 
@@ -403,8 +387,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 2. `src/rect_select.rs`
 
-Reuse the shared projection without adding depth clipping to region selection.
-
 **Locate this existing block:**
 
 ```rust
@@ -451,8 +433,6 @@ pub fn screen(matrix: &[f64; 16], point: [f64; 3], size: [f64; 2]) -> Option<[f6
 ```
 
 ### 3. `src/scene_label_screen.rs`
-
-Use the explicit query frame instead of a second projection recipe. Derive text coordinates after precise placement subtraction; keep the original source owner. Construct small text-plane corners in the local frame. Compute billboard scale from the same local clip transform. Project the local text anchor through the shared query. Keep the existing window/crossing polygon predicate with an explicit frame.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -619,8 +599,6 @@ pub fn polygon_in(row: &Row, view: &Screen) -> Option<Vec<[f64; 2]>> {
 
 ### 4. `src/camera_space_tests.rs`
 
-Supply exact local/distant plane/billboard/anchor/nameplate polygons and unchanged source owners, retaining distinct unused-depth, tiny-w, finite and size predicates.
-
 **Locate this existing block:**
 
 ```rust
@@ -752,11 +730,7 @@ fn text_query_polygons_keep_precise_placements_sources_and_unclipped_rules() {
 
 ## <a id="checkpoint-96zzzzzl-connect-precise-rectangle-selection-queries"></a>3. Connect precise rectangle selection queries
 
-Select original geometry and text through one precise CPU frame.
-
 ### 1. `src/rect_select.rs`
-
-Reuse one rectangle predicate while placing each original family in the explicit query frame.
 
 **Locate this existing block:**
 
@@ -1160,8 +1134,6 @@ pub fn found_in(
 
 ### 2. `src/editor.rs`
 
-Connect the existing window/crossing gesture to the precise camera query owner.
-
 **Locate this existing block:**
 
 ```rust
@@ -1184,8 +1156,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 3. `src/camera_space_tests.rs`
-
-Supply exact local/distant original window/crossing sets, text/point source identity, hidden eligibility and empty queries with unchanged earlier predicates.
 
 **Locate this existing block:**
 
@@ -1342,11 +1312,7 @@ fn rectangle_queries_keep_distant_originals_and_exact_window_crossing_sets() {
 
 ## <a id="checkpoint-96zzzzzm-finish-precise-lasso-and-handle-queries"></a>4. Finish precise lasso and handle queries
 
-Keep lasso selection and handle sizing in precise local frames.
-
 ### 1. `src/lasso.rs`
-
-Retain the precise lasso query origin and physical pixel dimensions. Reuse the existing unclipped query predicate. Place original samples locally before projecting them into the lasso. Convert existing world bounds to the same query frame for fallback families.
 
 **Locate this existing block:**
 
@@ -1446,8 +1412,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 2. `src/widget_layout.rs`
 
-Share precise camera-relative handle sizing without repeating its projection recipe.
-
 **Locate this existing block:**
 
 ```rust
@@ -1478,8 +1442,6 @@ pub fn camera_scale(
 ```
 
 ### 3. `src/editor.rs`
-
-Use the shared precise scale for handle hit testing. Use the same scale for numeric-prompt handle positions.
 
 **Locate this existing block:**
 
@@ -1534,8 +1496,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 4. `src/renderer.rs`
 
-Prepare the widget pivot and GPU layout in the actual renderer frame.
-
 **Locate this existing block:**
 
 ```rust
@@ -1576,8 +1536,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 5. `src/camera_space_tests.rs`
-
-Supply local/distant original lasso sets at two densities, source identity and locked/empty eligibility.
 
 **Locate this existing block:**
 
@@ -1671,8 +1629,6 @@ fn lasso_queries_keep_distant_original_sets_and_density() {
 
 ### 6. `src/widget_tests.rs`
 
-Reuse the existing supplied widget readback helper from the renderer fixture module.
-
 **Locate this existing block:**
 
 ```rust
@@ -1696,8 +1652,6 @@ pub(crate) fn pixels(
 ```
 
 ### 7. `src/global_outline_tests.rs`
-
-Supply actual local/distant widget pixels and camera scale at two densities/projections, retained tiles, no invented original picks and tile release.
 
 **Locate this existing block:**
 
@@ -1793,11 +1747,7 @@ fn actual_distant_widgets_keep_local_pixels_scale_picks_and_tile_release() {
 
 ## <a id="checkpoint-96zzzzzn-stamp-asynchronous-picks-with-the-origin"></a>5. Stamp asynchronous picks with the scene origin
 
-Reject pick readbacks from a different local coordinate frame.
-
 ### 1. `src/pick_view.rs`
-
-Retain the precise local frame in readback identity. State the complete existing snapshot invariant. Preserve zero-origin callers while exposing one complete snapshot constructor. Reject invalid origins before issuing a pick ticket. Compare all origin bits without narrowing to GPU floats.
 
 **Locate this existing block:**
 
@@ -1866,8 +1816,6 @@ impl View {
 
 ### 2. `src/pick_gpu.rs`
 
-Stamp the same explicit frame at queue time without changing existing request data.
-
 **Locate this existing block:**
 
 ```rust
@@ -1899,8 +1847,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 3. `src/renderer.rs`
-
-Queue the current renderer frame with the original screen request. Dispatch only requests whose complete frame is still current. Match the same origin when consuming a completed readback.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -1984,8 +1930,6 @@ Replace it with:
 
 ### 4. `src/pick_view.rs`
 
-Supply exact-origin-bit identity and retained invalid matrix/size/density guards.
-
 **Locate this existing block:**
 
 ```rust
@@ -2030,8 +1974,6 @@ mod tests {
 ```
 
 ### 5. `src/global_outline_tests.rs`
-
-Supply actual same-matrix old-origin rejection, fresh empty/current results, restored original owner and unchanged source uploads.
 
 **Locate this existing block:**
 
@@ -2196,11 +2138,7 @@ fn actual_origin_only_pick_views_discard_old_hits_and_restore_owners() {
 </svg>
 </div>
 
-Finish a released gesture when its asynchronous pick frame is rebased.
-
 ### 1. `src/renderer.rs`
-
-Retain only the latest successfully queued cursor and its exact frame origin. Begin without retained input intent. Save intent after the existing queue validation and ticket issuance succeed. Share cursor and flight cancellation at the existing semantic boundary. Make explicit cancellation final for both retained intent and GPU work. Consume retained intent only with an accepted current reply. Retry only a rebased latest cursor; preserve matrix-only stale cancellation and newest-pending behavior. Discard retained input and pending work after a failed readback.
 
 **Locate this existing block:**
 
@@ -4579,8 +4517,6 @@ impl Renderer {
 
 ### 2. `src/global_outline_tests.rs`
 
-Retain old-origin rejection, fresh empty picks and restored-owner assertions while verifying the newly connected automatic retry. Supply real released-gesture completion/Undo/source reuse, newest pending cursor replay, one-flight bounds and final explicit/source cancellation across rebases.
-
 **Locate this existing block:**
 
 ```rust
@@ -4915,8 +4851,6 @@ fn actual_rebased_pending_cursor_stays_newest_and_cancellation_never_revives_it(
 ## <a id="checkpoint-96zzzzzp-share-derived-inputs-for-origin-refresh"></a>7. Share derived inputs for origin refresh
 
 ### 1. `src/renderer.rs`
-
-Keep the existing source-preparation block for the helper below, then replace this call site with the shared owner. Introduce one owner for the existing source preparation. Move the complete source preparation already typed; its algorithms and original identity rules are reused. Use one current origin throughout the reused preparation. Reuse the precise local source accessor without changing styles or original pick addresses. Initialize newly adopted records directly in the renderer frame.
 
 **Locate this existing block:**
 
@@ -5367,8 +5301,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 2. `src/highlight.rs`
-
-Retain only the identity of the temporary selected part. Begin with no cached selected face. Record the same validated target used for highlight preparation. Reuse the validated target instead of checking its identity twice. Keep plane flags attached to that same validated target. Whole-object ink replaces the temporary part cache. Reuse an unchanged selected face by updating its existing precise record. Supply a read-only geometry-identity witness for the optional GPU fixture.
 
 **Locate this existing block:**
 
@@ -5995,8 +5927,6 @@ impl Highlight {
 ```
 
 ### 3. `src/global_outline_tests.rs`
-
-Reuse the shared source owner in the existing exact original-highlight fixture; retain its pixel, address and source assertions. Supply exact original face/ink pixels, primitive addresses, retained derived GPU geometry and original ownership through a representation-only rebase.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 

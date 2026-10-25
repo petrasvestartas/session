@@ -1,6 +1,6 @@
 # 7.5 · Temporary transforms with a fixed baseline
 
-**Goal:** Cancel previews without consuming document history. · **Steps:** 5 · **Source:** [app/command/mod.rs](../../../../src/app/command/mod.rs) · [app/command/tool.rs](../../../../src/app/command/tool.rs) · [app/cplane.rs](../../../../src/app/cplane.rs) · [app/snap.rs](../../../../src/app/snap.rs)
+**Steps:** 5 · **Source:** [app/command/mod.rs](../../../../src/app/command/mod.rs) · [app/command/tool.rs](../../../../src/app/command/tool.rs) · [app/cplane.rs](../../../../src/app/cplane.rs) · [app/snap.rs](../../../../src/app/snap.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -48,11 +48,7 @@
 
 ## <a id="checkpoint-50-placements"></a>1. Address placements across geometry lanes
 
-Address placements across original geometry lanes.
-
 ### 1. `src/scene.rs`
-
-Read and replace checked placements across all supported original geometry lanes.
 
 **Locate this existing block:**
 
@@ -114,8 +110,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ## <a id="checkpoint-50a-preview"></a>2. Keep temporary placements outside the document
 
 ### 1. `src/edit_preview.rs`
-
-Capture eligible original owners, derive temporary placements and commit their group atomically.
 
 Create the file and type:
 
@@ -217,8 +211,6 @@ impl Preview {
 
 ### 2. `src/lib.rs`
 
-Register the placement preview and supplied checks.
-
 **Locate this existing block:**
 
 ```rust
@@ -238,8 +230,6 @@ pub mod edit_preview;
 ## <a id="checkpoint-50b-display"></a>3. Present temporary edits through a separate scene view
 
 ### 1. `src/snap_index.rs`
-
-Exclude the moving owners when querying destination snap targets.
 
 **Locate this existing block:**
 
@@ -263,8 +253,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 2. `src/editor.rs`
-
-Own temporary edit presentation and derive displayed rows without modifying the saved scene.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -392,8 +380,6 @@ pub struct Editor {
 
 ### 3. `src/browser.rs`
 
-Present temporary row settings and keep saved source inspection separate.
-
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -477,8 +463,6 @@ Replace it with:
 ## <a id="checkpoint-50c-move"></a>4. Preview Move from a base point to a target
 
 ### 1. `src/tool.rs`
-
-Preview a selected-owner Move, exclude its own snap targets and commit the chosen target once.
 
 **Locate this existing block:**
 
@@ -593,8 +577,6 @@ impl Tool for Shape {
 ```
 
 ### 2. `src/editor.rs`
-
-Preview a selected-owner Move, exclude its own snap targets and commit the chosen target once.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -794,8 +776,6 @@ Replace it with:
 
 ### 3. `src/commands.rs`
 
-Preview a selected-owner Move, exclude its own snap targets and commit the chosen target once.
-
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -862,8 +842,6 @@ Replace it with:
 
 ### 4. `src/commands_tests.rs`
 
-Copy updated parser checks: bare Move starts a tool while invalid positional forms still fail.
-
 **Locate this existing block:**
 
 ```rust
@@ -882,8 +860,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ## <a id="checkpoint-50d-ownership"></a>5. Cancel previews without consuming document history
 
 ### 1. `src/editor.rs`
-
-Clear previews after successful document changes, preserve them on errors and fit the displayed scene.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -1047,8 +1023,6 @@ Replace it with:
 ```
 
 ### 2. `src/edit_preview_tests.rs`
-
-Copy mixed-owner Undo, original-source sharing, saved protobuf, invalid input, zero-move and cancellation checks.
 
 Create the file and type:
 
@@ -1318,8 +1292,6 @@ fn saving_during_a_mesh_preview_uses_original_document_placements() {
 ```
 
 ### 3. `src/lib.rs`
-
-Register the placement preview and supplied checks.
 
 **Locate this existing block:**
 

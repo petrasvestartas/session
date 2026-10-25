@@ -1,6 +1,6 @@
 # 7.1 · Active tools own their command input
 
-**Goal:** Route the command field through the typed registry. · **Steps:** 5 · **Source:** [app/command/mod.rs](../../../../src/app/command/mod.rs) · [app/command/tool.rs](../../../../src/app/command/tool.rs) · [app/cplane.rs](../../../../src/app/cplane.rs) · [app/snap.rs](../../../../src/app/snap.rs)
+**Steps:** 5 · **Source:** [app/command/mod.rs](../../../../src/app/command/mod.rs) · [app/command/tool.rs](../../../../src/app/command/tool.rs) · [app/cplane.rs](../../../../src/app/cplane.rs) · [app/snap.rs](../../../../src/app/snap.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -48,11 +48,7 @@
 
 ## <a id="checkpoint-46-tool-panel"></a>1. Give active tools ownership of the command panel
 
-Keep active values and tool controls inside the existing GPU command panel.
-
 ### 1. `src/panel.rs`
-
-Supply active prompts, own option input and forward values to their tool.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -203,8 +199,6 @@ Replace it with:
 
 ### 1. `src/commands.rs`
 
-Declare host requests and the shared names they expose.
-
 Create the file and type:
 
 ```rust
@@ -257,8 +251,6 @@ pub fn names() -> Vec<&'static str> {
 
 ### 2. `src/lib.rs`
 
-Register the typed command component and copied checks.
-
 **Locate this existing block:**
 
 ```rust
@@ -280,8 +272,6 @@ pub mod commands;
 ## <a id="checkpoint-47a-actions"></a>3. Register the existing editor command factories
 
 ### 1. `src/commands.rs`
-
-Register existing actions without duplicating command names in parsing branches.
 
 **Locate this existing block:**
 
@@ -384,8 +374,6 @@ pub const HOSTS: &[(&str, Host)] = &[
 
 ### 1. `src/commands.rs`
 
-Match current names and return checked typed requests.
-
 **Locate this existing block:**
 
 ```rust
@@ -459,8 +447,6 @@ pub fn parse(line: &str) -> Result<Command, String> {
 
 ### 2. `src/offset.rs`
 
-Accept finite three-coordinate offsets in comma or space form.
-
 **Locate this existing block:**
 
 ```rust
@@ -482,8 +468,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 3. `src/commands_tests.rs`
-
-Copy longest-name, invalid-input, redo-preservation and one-Undo execution checks.
 
 Create the file and type:
 
@@ -592,8 +576,6 @@ fn typed_offsets_execute_once_and_one_undo_restores_them() {
 
 ### 4. `src/lib.rs`
 
-Register the typed command component and copied checks.
-
 **Locate this existing block:**
 
 ```rust
@@ -614,8 +596,6 @@ mod selection_cycle_tests;
 ## <a id="checkpoint-47c-route"></a>5. Route the command field through the typed registry
 
 ### 1. `src/panel.rs`
-
-Supply the registry vocabulary and route typed requests with one visible error answer.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -713,8 +693,6 @@ impl command_dock::Commands for Commands {
 ```
 
 ### 2. `src/browser.rs`
-
-Supply the registry vocabulary and route typed requests with one visible error answer.
 
 **Locate this existing block:**
 

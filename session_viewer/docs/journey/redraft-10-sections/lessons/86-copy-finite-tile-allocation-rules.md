@@ -1,6 +1,6 @@
 # 17.1 · Bounded projected triangles and tile lists
 
-**Goal:** Cache projection and finish current reports. · **Steps:** 27 · **Source:** [engine/gpu/triangle_tiles.rs](../../../../src/engine/gpu/triangle_tiles.rs) · [shaders/project_triangles.wgsl](../../../../src/shaders/project_triangles.wgsl) · [shaders/ink_visibility.wgsl](../../../../src/shaders/ink_visibility.wgsl) · [shaders/ribbon.wgsl](../../../../src/shaders/ribbon.wgsl)
+**Steps:** 27 · **Source:** [engine/gpu/triangle_tiles.rs](../../../../src/engine/gpu/triangle_tiles.rs) · [shaders/project_triangles.wgsl](../../../../src/shaders/project_triangles.wgsl) · [shaders/ink_visibility.wgsl](../../../../src/shaders/ink_visibility.wgsl) · [shaders/ribbon.wgsl](../../../../src/shaders/ribbon.wgsl)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -134,8 +134,6 @@ impl TileLayout {
 ```
 
 ### 2. `src/lib.rs`
-
-Register the completed source owner.
 
 **Locate this existing block:**
 
@@ -401,11 +399,7 @@ mod tests {
 
 ## <a id="checkpoint-86a-copy-maintained-projection-and-scan-recipes"></a>3. Define one shared projected-triangle coverage contract
 
-Store stable screen-space triangle records and reuse one coverage and tile-span owner.
-
 ### 1. `src/projected_triangle.wgsl`
-
-Copy the maintained shader recipe.
 
 Create the file and type:
 
@@ -516,8 +510,6 @@ fn visibility_tile_span() -> u32 {
 
 ### 1. `src/finite_project.wgsl`
 
-Bind existing original mesh buffers and transform each indexed corner into the projection convention.
-
 Create the file and type:
 
 ```wgsl
@@ -593,8 +585,6 @@ fn physical_clip_corner(index:u32)->vec4<f32>{
 </div>
 
 ### 1. `src/finite_project.wgsl`
-
-Clip against the homogeneous near plane, retain up to four corners and measure signed screen area.
 
 **Locate this existing block:**
 
@@ -682,8 +672,6 @@ fn physical_polygon_area(polygon: ProjectedPolygon) -> f32 {
 ## <a id="checkpoint-86bb-write-bounded-projected-triangle-records-on-the-gpu"></a>6. Write bounded projected triangle records on the GPU
 
 ### 1. `src/finite_project.wgsl`
-
-Dispatch one invocation per original triangle and write screen bounds, inward edge equations and a conditioned depth plane.
 
 **Locate this existing block:**
 
@@ -773,11 +761,7 @@ fn cs_main(@builtin(global_invocation_id) id: vec3<u32>) {
 
 ## <a id="checkpoint-86c-project-existing-original-mesh-buffers"></a>7. Assemble and validate the shared finite projection shader
 
-Reuse shared WGSL declarations and validate the completed compute entry point.
-
 ### 1. `src/finite_project_source.rs`
-
-Assemble one shared shader interface and validate its compute entry point.
 
 Create the file and type:
 
@@ -820,8 +804,6 @@ mod tests {
 
 ### 2. `src/lib.rs`
 
-Expose the existing-source assembly boundary for the later pipeline.
-
 **Locate this existing block:**
 
 ```rust
@@ -840,8 +822,6 @@ pub mod source_mesh_topology;
 ```
 
 ### 3. `src/renderer.rs`
-
-Compile the completed recipe on the actual browser device and report asynchronous compilation info.
 
 **Locate this existing block:**
 
@@ -865,8 +845,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ## <a id="checkpoint-86d-copy-the-triangle-tiles-recipe"></a>8. Declare atomic tile records and flat triangle inputs
 
 ### 1. `src/finite_triangle_tiles.wgsl`
-
-Bind projected triangle records and a shared bounded reference pool with atomic count and cursor words.
 
 Create the file and type:
 
@@ -907,8 +885,6 @@ struct TileVertex {
 ```
 
 ### 2. `src/finite_project_source.rs`
-
-Expand shared source sections once for projection, tile passes and finite ink.
 
 **Locate this existing block:**
 
@@ -951,8 +927,6 @@ pub fn source() -> String {
 ## <a id="checkpoint-86da-count-conservative-triangle-coverage-per-tile"></a>9. Count conservative triangle coverage per tile
 
 ### 1. `src/finite_triangle_tiles.wgsl`
-
-Rasterize one tile-grid quad per triangle and reject tiles outside any inward edge before counting.
 
 **Locate this existing block:**
 
@@ -1022,8 +996,6 @@ fn fs_count(v: TileVertex) -> @location(0) f32 {
 
 ### 1. `src/finite_triangle_tiles.wgsl`
 
-Atomically reserve a tile slot, store the original projected triangle address and depth, and flag overflow instead of writing past the pool.
-
 **Locate this existing block:**
 
 ```wgsl
@@ -1069,11 +1041,7 @@ fn fs_fill(v: TileVertex) -> @location(0) f32 {
 
 ## <a id="checkpoint-86e-count-and-fill-original-triangle-references"></a>11. Assemble and validate the bounded tiles shader
 
-Reuse shared WGSL source and validate the complete tiles pass interfaces.
-
 ### 1. `src/renderer.rs`
-
-Check the complete recipe on the actual browser GPU before the later pass connection.
 
 **Locate this existing block:**
 
@@ -1096,8 +1064,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 2. `src/finite_project_source.rs`
 
-Reuse one source expansion owner for the completed recipe.
-
 **Locate this existing block:**
 
 ```rust
@@ -1119,8 +1085,6 @@ pub fn source() -> String {
 ```
 
 ### 3. `src/finite_tiles_contract.rs`
-
-Supply independent assembled WGSL entry-point witnesses.
 
 Create the file and type:
 
@@ -1153,8 +1117,6 @@ mod tiles_contract {
 
 ### 4. `src/lib.rs`
 
-Register the supplied shader interface fixture.
-
 **Locate this existing block:**
 
 ```rust
@@ -1174,8 +1136,6 @@ pub mod source_mesh_topology;
 ## <a id="checkpoint-86f-copy-the-scan-triangle-tiles-recipe"></a>12. Scan bounded tile counts in workgroup memory
 
 ### 1. `src/finite_scan_triangle_tiles.wgsl`
-
-Build a saturating exclusive prefix sum with uniform barriers and shared scratch storage.
 
 Create the file and type:
 
@@ -1232,8 +1192,6 @@ fn prefix(lane: u32, value: u32) -> u32 {
 ## <a id="checkpoint-86fa-scan-tile-blocks-and-their-block-totals"></a>13. Scan tile blocks and their block totals
 
 ### 1. `src/finite_scan_triangle_tiles.wgsl`
-
-Run the same prefix owner first over tile counts and then over their block totals.
 
 **Locate this existing block:**
 
@@ -1295,8 +1253,6 @@ fn scan_blocks(@builtin(global_invocation_id) id: vec3<u32>, @builtin(local_invo
 
 ### 1. `src/finite_scan_triangle_tiles.wgsl`
 
-Combine block and local offsets, reset fill cursors, and record actual pool demand in the shared header.
-
 **Locate this existing block:**
 
 ```wgsl
@@ -1349,11 +1305,7 @@ fn finish_offsets(@builtin(global_invocation_id) id: vec3<u32>) {
 
 ## <a id="checkpoint-86fc-assemble-and-validate-the-bounded-scan-shader"></a>15. Assemble and validate the bounded scan shader
 
-Reuse shared WGSL source and validate the complete scan pass interfaces.
-
 ### 1. `src/renderer.rs`
-
-Check the complete recipe on the actual browser GPU before the later pass connection.
 
 **Locate this existing block:**
 
@@ -1375,8 +1327,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 2. `src/finite_project_source.rs`
-
-Reuse one source expansion owner for the completed recipe.
 
 **Locate this existing block:**
 
@@ -1401,8 +1351,6 @@ pub fn source() -> String {
 ```
 
 ### 3. `src/finite_scan_contract.rs`
-
-Supply independent assembled WGSL entry-point witnesses.
 
 Create the file and type:
 
@@ -1434,8 +1382,6 @@ mod scan_contract {
 ```
 
 ### 4. `src/lib.rs`
-
-Register the supplied shader interface fixture.
 
 **Locate this existing block:**
 
@@ -1471,8 +1417,6 @@ pub fn wake() {
 ```
 
 ### 2. `src/lib.rs`
-
-Register the completed source owner.
 
 **Locate this existing block:**
 
@@ -1553,11 +1497,7 @@ pub mod source_mesh_topology;
 </svg>
 </div>
 
-Read GPU tile-pool demand asynchronously, with one map in flight and one reusable readback buffer.
-
 ### 1. `src/tile_report.rs`
-
-Type the complete existing WebGPU helper and reuse its current consumer. Return actual copy admission so a newer bin generation can retry after an old report.
 
 Create the file and type:
 
@@ -1661,8 +1601,6 @@ impl PoolReport {
 
 ### 2. `src/lib.rs`
 
-Register the completed source owner.
-
 **Locate this existing block:**
 
 ```rust
@@ -1695,8 +1633,6 @@ pub mod tile_report;
 
 ## <a id="checkpoint-86i-describe-explicit-finite-gpu-layouts"></a>18. Describe explicit finite GPU layouts
 
-Compile the finite pipeline resource types before their helper functions.
-
 ### 1. `src/tile_pipelines.rs`
 
 Create the file and type:
@@ -1718,8 +1654,6 @@ impl Pipelines {}
 ```
 
 ### 2. `src/lib.rs`
-
-Register the resource types immediately so every following method is checked by the browser compiler.
 
 **Locate this existing block:**
 
@@ -2031,8 +1965,6 @@ impl Pipelines {
 
 ## <a id="checkpoint-86l-own-bounded-finite-tile-resources"></a>21. Own bounded finite tile resources
 
-Compile bounded tile resource types before allocation and population.
-
 ### 1. `src/tile_gpu.rs`
 
 Create the file and type:
@@ -2098,8 +2030,6 @@ impl Tiles {}
 
 ### 2. `src/gpu_mesh.rs`
 
-Expose existing buffers without changing original data.
-
 **Locate this existing block:**
 
 ```rust
@@ -2120,8 +2050,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 3. `src/lib.rs`
-
-Register the resource types immediately so every following method is checked by the browser compiler.
 
 **Locate this existing block:**
 
@@ -2266,8 +2194,6 @@ impl Tiles {
 ## <a id="checkpoint-86n-witness-original-buffers-and-world-placement"></a>23. Witness buffers and world placement
 
 ### 1. `src/tile_gpu.rs`
-
-Witness original buffers and world placement.
 
 **Locate this existing block:**
 

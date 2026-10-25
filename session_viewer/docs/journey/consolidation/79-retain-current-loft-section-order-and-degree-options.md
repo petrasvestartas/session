@@ -1,6 +1,6 @@
 # 15.3 · Lofts, rail sweeps and network foundations
 
-**Goal:** Combine the two lofts minus their shared tensor. · **Steps:** 12 · **Source:** [app/deform.rs](../../../src/app/deform.rs) · [state/edit.rs](../../../src/state/edit.rs) · [app/command/tool/gather.rs](../../../src/app/command/tool/gather.rs) · [app/command/tool/surfacing.rs](../../../src/app/command/tool/surfacing.rs)
+**Steps:** 12 · **Source:** [app/deform.rs](../../../src/app/deform.rs) · [state/edit.rs](../../../src/state/edit.rs) · [app/command/tool/gather.rs](../../../src/app/command/tool/gather.rs) · [app/command/tool/surfacing.rs](../../../src/app/command/tool/surfacing.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -47,8 +47,6 @@
 ## <a id="checkpoint-79-retain-current-loft-section-order-and-degree-options"></a>1. Retain current loft section order and degree options
 
 ### 1. `src/loft_geometry.rs`
-
-Type the original recipe and whole geometry helpers using the earlier shared owners. Supply only the unchanged original geometry validation fixtures.
 
 Create the file and type:
 
@@ -177,8 +175,6 @@ mod tests {
 
 ### 2. `src/lib.rs`
 
-Register the current surfacing component.
-
 **Locate this existing block:**
 
 ```rust
@@ -196,8 +192,6 @@ pub mod source_mesh_topology;
 ```
 
 ### 3. `src/nurbs_loft_geometry.rs`
-
-Type the original recipe and whole geometry helpers using the earlier shared owners.
 
 Create the file and type:
 
@@ -243,8 +237,6 @@ fn build(input: &Input) -> Result<Made, String> {
 
 ### 4. `src/lib.rs`
 
-Register the current surfacing component.
-
 **Locate this existing block:**
 
 ```rust
@@ -263,11 +255,7 @@ pub mod source_mesh_topology;
 
 ## <a id="checkpoint-79aa-frame-original-profiles-on-their-rail"></a>2. Frame profiles on their rail
 
-Find each profile’s station from its sampled center and the nearest rail parameter.
-
 ### 1. `src/sweep1_geometry.rs`
-
-Type the whole original sweep helpers using the existing kernel and gather owners.
 
 Create the file and type:
 
@@ -329,8 +317,6 @@ fn blend(a: &NurbsCurve, b: &NurbsCurve, s: f64) -> NurbsCurve {
 
 ### 2. `src/lib.rs`
 
-Compile this shared original sweep module.
-
 **Locate this existing block:**
 
 ```rust
@@ -353,11 +339,7 @@ pub mod sweep1_geometry;
 
 ## <a id="checkpoint-79ab-carry-and-blend-original-profiles-along-the-rail"></a>3. Carry and blend profiles along the rail
 
-Sort original profile stations, match their control rows with a straight kernel loft, and include their stations in the sampled rail frames.
-
 ### 1. `src/sweep1_geometry.rs`
-
-Extend this original owner with the day’s complete input helpers.
 
 **Locate this existing block:**
 
@@ -451,11 +433,7 @@ pub fn sweep1(
 
 ## <a id="checkpoint-79a-carry-original-profiles-along-one-rail"></a>4. Connect one-rail sweep inputs
 
-Complete the existing gather recipe with one rail and one or more profiles.
-
 ### 1. `src/sweep1_geometry.rs`
-
-Extend this original owner with the day’s complete input helpers. Supply only the unchanged original sweep validation fixtures.
 
 **Locate this existing block:**
 
@@ -824,11 +802,7 @@ mod tests {
 
 ## <a id="checkpoint-79b-align-shape-curves-between-two-original-rails"></a>5. Align shape curves between two rails
 
-Align shape curves between two original rails.
-
 ### 1. `src/sweep2_geometry.rs`
-
-Type the original recipe and whole geometry helpers using the earlier shared owners. Supply only the unchanged original geometry validation fixtures.
 
 Create the file and type:
 
@@ -975,8 +949,6 @@ mod tests {
 
 ### 2. `src/lib.rs`
 
-Register the current surfacing component.
-
 **Locate this existing block:**
 
 ```rust
@@ -1004,8 +976,6 @@ pub mod sweep2_geometry;
 ## <a id="checkpoint-79c-register-loft-sweep-names-options-and-aliases"></a>6. Register loft sweep names options and aliases
 
 ### 1. `src/gather_registry.rs`
-
-Register maintained loft/sweep recipes and current aliases through shared gather input.
 
 **Locate this existing block:**
 
@@ -1081,8 +1051,6 @@ pub fn alias(line: &str) -> String {
 
 ### 2. `src/commands.rs`
 
-Register maintained loft/sweep recipes and current aliases through shared gather input.
-
 **Locate this existing block:**
 
 ```rust
@@ -1147,11 +1115,7 @@ pub fn parse(line: &str) -> Result<Command, String> {
 
 ## <a id="checkpoint-79d-exercise-original-sections-rail-groups-and-exact-persistence"></a>7. Exercise sections rail groups and exact persistence
 
-Exercise original sections rail groups and exact persistence.
-
 ### 1. `src/loft_tests.rs`
-
-Copy integrated maintained loft/sweep group/order/options/source/archive fixtures.
 
 Create the file and type:
 
@@ -1410,8 +1374,6 @@ fn two_rail_preselection_keeps_group_order_original_shapes_and_aliases() {
 
 ### 2. `src/lib.rs`
 
-Register the current surfacing component.
-
 **Locate this existing block:**
 
 ```rust
@@ -1478,11 +1440,7 @@ pub mod source_mesh_topology;
 </svg>
 </div>
 
-Write control bounds, tolerant crossing checks and interpolation helpers.
-
 ### 1. `src/network_geometry.rs`
-
-Type the whole original helpers introduced today.
 
 Create the file and type:
 
@@ -1562,8 +1520,6 @@ fn sample_count(crossings: usize) -> usize {
 
 ### 2. `src/lib.rs`
 
-Register the original network-surface owner.
-
 **Locate this existing block:**
 
 ```rust
@@ -1582,11 +1538,7 @@ pub mod source_mesh_topology;
 
 ## <a id="checkpoint-79zzb-classify-two-original-network-directions"></a>9. Classify two network directions
 
-Find original curve crossings and assign opposite directions through their graph.
-
 ### 1. `src/network_geometry.rs`
-
-Extend this original owner with today’s complete helper.
 
 **Locate this existing block:**
 
@@ -1687,11 +1639,7 @@ fn directions(cross: &Crossings) -> Result<(Vec<usize>, Vec<usize>), String> {
 
 ## <a id="checkpoint-79zzc-order-and-orient-original-network-curves"></a>10. Order and orient network curves
 
-Sort each family along the other and orient its crossing parameters consistently.
-
 ### 1. `src/network_geometry.rs`
-
-Extend this original owner with today’s complete helper.
 
 **Locate this existing block:**
 
@@ -1766,11 +1714,7 @@ fn oriented(
 
 ## <a id="checkpoint-79zzd-sample-original-network-lofts-and-tensor"></a>11. Sample network lofts and tensor
 
-Sample both curve-family lofts and the tensor through their shared crossings.
-
 ### 1. `src/network_geometry.rs`
-
-Extend this original owner with today’s complete helper.
 
 **Locate this existing block:**
 
@@ -1889,8 +1833,6 @@ fn sampled(
 ## <a id="checkpoint-79zze-fit-the-original-gordon-surface"></a>12. Fit the Gordon surface
 
 ### 1. `src/network_geometry.rs`
-
-Extend this original owner with today’s complete helper.
 
 **Locate this existing block:**
 

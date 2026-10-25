@@ -1,6 +1,6 @@
 # 13.4 · Original sheet entity metadata
 
-**Goal:** Describe the original sheet side-table layout and entity identity fields. · **Steps:** 1 · **Source:** [app/scene_instances.rs](../../../../src/app/scene_instances.rs) · [engine/gpu/instanced.rs](../../../../src/engine/gpu/instanced.rs) · [engine/gpu/slots.rs](../../../../src/engine/gpu/slots.rs) · [app/walk/brep_shapes.rs](../../../../src/app/walk/brep_shapes.rs)
+**Steps:** 1 · **Source:** [app/scene_instances.rs](../../../../src/app/scene_instances.rs) · [engine/gpu/instanced.rs](../../../../src/engine/gpu/instanced.rs) · [engine/gpu/slots.rs](../../../../src/engine/gpu/slots.rs) · [app/walk/brep_shapes.rs](../../../../src/app/walk/brep_shapes.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -51,8 +51,6 @@
 <a id="checkpoint-70za-read-original-sheet-metadata-records"></a>
 
 ## 1. `src/sheet_entity.rs`
-
-Type the whole original metadata or lookup helpers using their shared owner.
 
 Create the file and type:
 
@@ -138,8 +136,6 @@ pub fn entity_from(raw: &[u8]) -> Result<EntityMeta, String> {
 ```
 
 ## 2. `src/lib.rs`
-
-Compile this shared original metadata module.
 
 **Locate this existing block:**
 

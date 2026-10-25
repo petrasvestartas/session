@@ -1,6 +1,6 @@
 # 14.6 · Exact parabola recipes and editable freeform controls
 
-**Goal:** Exercise exact curves and rational control edits. · **Steps:** 5 · **Source:** [app/walk/sheet.rs](../../../../src/app/walk/sheet.rs) · [app/sheet_query.rs](../../../../src/app/sheet_query.rs) · [app/stream.rs](../../../../src/app/stream.rs) · [app/cplane.rs](../../../../src/app/cplane.rs)
+**Steps:** 5 · **Source:** [app/walk/sheet.rs](../../../../src/app/walk/sheet.rs) · [app/sheet_query.rs](../../../../src/app/sheet_query.rs) · [app/stream.rs](../../../../src/app/stream.rs) · [app/cplane.rs](../../../../src/app/cplane.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -48,11 +48,7 @@
 
 ## <a id="checkpoint-76-copy-exact-planar-curve-definitions"></a>1. Read parabola inputs in a checked frame
 
-Complete the original parabola questions and input reader.
-
 ### 1. `src/freeform_parabola.rs`
-
-Extend this original owner with the day’s complete input helpers. Supply only the unchanged original curve validation fixtures.
 
 **Locate this existing block:**
 
@@ -282,8 +278,6 @@ mod tests {
 
 ### 1. `src/primitive_registry.rs`
 
-Register all current exact planar curve names and supported Arc options.
-
 **Locate this existing block:**
 
 ```rust
@@ -330,11 +324,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-76b-retain-editable-freeform-controls-in-the-point-collector"></a>3. Create editable freeform curves
 
-Write the original degree and closure rules for collected control points.
-
 ### 1. `src/freeform_curve.rs`
-
-Type the whole original helpers introduced today.
 
 Create the file and type:
 
@@ -359,8 +349,6 @@ pub fn curve(points: &[Point]) -> NurbsCurve {
 
 ### 2. `src/lib.rs`
 
-Register the original freeform-curve constructor.
-
 **Locate this existing block:**
 
 ```rust
@@ -380,8 +368,6 @@ pub mod freeform_curve;
 ```
 
 ### 3. `src/freeform_curve.rs`
-
-Supply only the unchanged original validation fixtures.
 
 **Locate this existing block:**
 
@@ -432,8 +418,6 @@ mod tests {
 ```
 
 ### 4. `src/tool.rs`
-
-Build original freeform curves from accepted controls and offer existing Finish/Close input.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -558,8 +542,6 @@ Replace it with:
 
 ### 5. `src/commands.rs`
 
-Route current Curve invocation and direct controls through the existing world-point collector.
-
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -627,11 +609,7 @@ Replace it with:
 
 ## <a id="checkpoint-76c-inspect-original-curve-data-through-the-browser-contract"></a>4. Inspect curve data through the browser contract
 
-Inspect original curve data through the browser contract.
-
 ### 1. `src/browser.rs`
-
-Expose original curve identity, weighted controls and knots for current browser acceptance.
 
 **Locate this existing block:**
 
@@ -651,8 +629,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ## <a id="checkpoint-76d-exercise-exact-curves-and-rational-control-edits"></a>5. Exercise exact curves and rational control edits
 
 ### 1. `src/freeform_tests.rs`
-
-Copy integrated exact-original, closure/world-replay, failed-input, rational-edit and archive fixtures.
 
 Create the file and type:
 
@@ -846,8 +822,6 @@ fn editing_a_created_rational_arc_preserves_weights_knots_other_controls_and_und
 ```
 
 ### 2. `src/lib.rs`
-
-Register the current curve component.
 
 **Locate this existing block:**
 

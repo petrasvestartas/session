@@ -1,58 +1,68 @@
 # 5.4 · NURBS source ownership and derived samples
 
-**Goal:** Insert an original NURBS curve through real input and distinguish its actual curve pixels from its indexed control markers. · **Steps:** 5 · **Source:** [app/walk/curves.rs](../../../src/app/walk/curves.rs) · [engine/gpu/segments.rs](../../../src/engine/gpu/segments.rs) · [shaders/ribbon.wgsl](../../../src/shaders/ribbon.wgsl) · [shaders/vector.wgsl](../../../src/shaders/vector.wgsl)
-
-<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
-<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
-  <defs>
-    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
-    </marker>
-    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
-    </marker>
-    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
-    </marker>
-  </defs>
-  <rect x="2" y="2" width="1116" height="184" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
-  <rect x="14" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Control Polygon P0..P3 &amp; Knot Span</text>
-  <polyline points="62,144 128,54 236,58 308,142" fill="none" stroke="#94a3b8" stroke-width="1.75" stroke-dasharray="4 3"/>
-  <path d="M 62 144 C 128 54, 236 58, 308 142" fill="none" stroke="#2563eb" stroke-width="2.5"/>
-  <circle cx="62" cy="144" r="4.5" fill="#dc2626"/><text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="62" y="160" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">P0</text>
-  <circle cx="128" cy="54" r="4.5" fill="#dc2626"/><text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="128" y="46" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">P1</text>
-  <circle cx="236" cy="58" r="4.5" fill="#dc2626"/><text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="236" y="50" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">P2</text>
-  <circle cx="308" cy="142" r="4.5" fill="#dc2626"/><text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="308" y="158" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">P3</text>
-  <line x1="358" y1="94" x2="384" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
-  <rect x="388" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Marker Quad: d = length(uv) - radius</text>
-  <rect x="496" y="48" width="128" height="112" fill="#f8fafc" stroke="#111111" stroke-width="1.5" stroke-dasharray="3 3"/>
-  <circle cx="560" cy="104" r="44" fill="#fee2e2" stroke="#dc2626" stroke-width="2.25"/>
-  <circle cx="560" cy="104" r="3" fill="#111111"/>
-  <line x1="560" y1="104" x2="596" y2="78" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="578" y="86" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">r</text>
-  <line x1="732" y1="94" x2="758" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
-  <rect x="762" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Smooth Curve &amp; Disc Points in Viewer</text>
-  <rect x="806" y="44" width="256" height="118" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
-  <path d="M 836 138 C 888 58, 978 58, 1032 138" fill="none" stroke="#2563eb" stroke-width="3"/>
-  <circle cx="836" cy="138" r="6" fill="#dc2626" stroke="#111111" stroke-width="1.5"/>
-  <circle cx="934" cy="78" r="6" fill="#dc2626" stroke="#111111" stroke-width="1.5"/>
-  <circle cx="1032" cy="138" r="6" fill="#dc2626" stroke="#111111" stroke-width="1.5"/>
-</svg>
-</div>
+**Steps:** 5 · **Source:** [app/walk/curves.rs](../../../src/app/walk/curves.rs) · [engine/gpu/segments.rs](../../../src/engine/gpu/segments.rs) · [shaders/ribbon.wgsl](../../../src/shaders/ribbon.wgsl) · [shaders/vector.wgsl](../../../src/shaders/vector.wgsl)
 
 ## <a id="checkpoint-38-layout"></a>1. Validate an NURBS curve before sampling
 
-Validate public kernel curve layout and domain before evaluating an original source.
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="214" viewBox="0 0 1120 214" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr-e7c65172" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arr-r-e7c65172" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arr-g-e7c65172" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arr-b-e7c65172" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+    <pattern id="grid-e7c65172" width="20" height="20" patternUnits="userSpaceOnUse">
+      <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#f1f5f9" stroke-width="1"/>
+    </pattern>
+  </defs>
+  <rect x="2" y="2" width="1116" height="210" rx="8" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="2" y="2" width="1116" height="28" rx="6" fill="#f8fafc" stroke="#111111" stroke-width="1.5"/>
+  <line x1="2" y1="30" x2="1118" y2="30" stroke="#111111" stroke-width="1.5"/>
+  <rect x="12" y="7" width="176" height="18" rx="3" fill="#111111"/>
+  <text x="100" y="19.5" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#ffffff" paint-order="normal" stroke="none">38-NURBS · RATIONAL C(u)</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="518" y="20" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Non-Uniform Rational B-Spline Evaluation (Cox–de Boor Basis N_{i,p}(u) &amp; Homogeneous Weights w_i)</text>
+  <rect x="838" y="7" width="268" height="18" rx="3" fill="#ffffff" stroke="#111111" stroke-width="1.2"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="972" y="19.5" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#2563eb">C(u) = (∑ N_{i,p}(u) w_i P_i) / (∑ N_{i,p}(u) w_i)</text>
+  <rect x="14" y="38" width="344" height="164" rx="6" fill="url(#grid-e7c65172)" stroke="#111111" stroke-width="1.5"/>
+  <line x1="14" y1="60" x2="358" y2="60" stroke="#cbd5e1" stroke-width="1"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="186" y="53" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1 · Control Points P_i, Weights w_i &amp; Knots U</text>
+  <polyline points="56,168 132,76 238,76 314,168" fill="none" stroke="#94a3b8" stroke-width="1.75" stroke-dasharray="4 3"/>
+  <path d="M 56 168 C 132 84, 238 84, 314 168" fill="none" stroke="#dc2626" stroke-width="3"/>
+  <circle cx="56" cy="168" r="5" fill="#fef08a" stroke="#111111" stroke-width="1.5"/>
+  <circle cx="132" cy="76" r="5" fill="#fef08a" stroke="#111111" stroke-width="1.5"/>
+  <circle cx="238" cy="76" r="5" fill="#fef08a" stroke="#111111" stroke-width="1.5"/>
+  <circle cx="314" cy="168" r="5" fill="#fef08a" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="186" y="186" text-anchor="middle" font-family="monospace" font-size="8.5" font-weight="700" fill="#111111">U = [0, 0, 0, 0, 1, 1, 1, 1]</text>
+  <line x1="358" y1="120" x2="384" y2="120" stroke="#111111" stroke-width="2" marker-end="url(#arr-e7c65172)"/>
+  <rect x="388" y="38" width="344" height="164" rx="6" fill="url(#grid-e7c65172)" stroke="#111111" stroke-width="1.5"/>
+  <line x1="388" y1="60" x2="732" y2="60" stroke="#cbd5e1" stroke-width="1"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="53" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2 · 4D Homogeneous Divide [w*x, w*y, w*z, w]</text>
+  <rect x="414" y="76" width="292" height="104" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="98" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">De Boor Triangular Table in R⁴:</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="120" text-anchor="middle" font-family="monospace" font-size="9" fill="#2563eb">H_i = (w_i * P_i.x, w_i * P_i.y, w_i * P_i.z, w_i)</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="142" text-anchor="middle" font-family="monospace" font-size="9" fill="#16a34a">C(u) = H(u).xyz / H(u).w   (exact conics!)</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="164" text-anchor="middle" font-family="monospace" font-size="8.5" fill="#dc2626">Sampled into polyline ribbon for GPU display</text>
+  <line x1="732" y1="120" x2="758" y2="120" stroke="#111111" stroke-width="2" marker-end="url(#arr-e7c65172)"/>
+  <rect x="762" y="38" width="344" height="164" rx="6" fill="url(#grid-e7c65172)" stroke="#111111" stroke-width="1.75"/>
+  <line x1="762" y1="60" x2="1106" y2="60" stroke="#cbd5e1" stroke-width="1"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="934" y="53" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3 · Smooth NURBS Curve + Control Cage</text>
+  <rect x="806" y="68" width="256" height="122" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <polyline points="834,166 894,82 982,82 1034,166" fill="none" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="3 3"/>
+  <path d="M 834 166 C 894 88, 982 88, 1034 166" fill="none" stroke="#dc2626" stroke-width="3"/>
+  <circle cx="894" cy="82" r="5.5" fill="#fef08a" stroke="#dc2626" stroke-width="2"/>
+  <circle cx="982" cy="82" r="5.5" fill="#dbeafe" stroke="#111111" stroke-width="1.5"/>
+</svg>
+</div>
 
 ### 1. `src/curve.rs`
-
-Guard layout arithmetic and public arrays before original kernel evaluation.
 
 Create the file and type:
 
@@ -111,8 +121,6 @@ pub fn validate(source: &NurbsCurve) -> Result<(f64, f64), &'static str> {
 
 ### 2. `src/lib.rs`
 
-Register source validation and malformed-input checks.
-
 **Locate this existing block:**
 
 ```rust
@@ -131,8 +139,6 @@ pub mod diagnostic;
 ```
 
 ### 3. `src/curve_layout_tests.rs`
-
-Copy valid original domains, unchanged sources and malformed-layout refusal checks.
 
 Create the file and type:
 
@@ -195,11 +201,51 @@ fn malicious_curve_layouts_return_errors_before_kernel_evaluation() {
 
 ## <a id="checkpoint-38a-samples"></a>2. Sample a validated curve without replacing its source
 
-Build a bounded display approximation from an original curve and retain exact source controls separately.
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="184" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Control Polygon P0..P3 &amp; Knot Span</text>
+  <polyline points="62,144 128,54 236,58 308,142" fill="none" stroke="#94a3b8" stroke-width="1.75" stroke-dasharray="4 3"/>
+  <path d="M 62 144 C 128 54, 236 58, 308 142" fill="none" stroke="#2563eb" stroke-width="2.5"/>
+  <circle cx="62" cy="144" r="4.5" fill="#dc2626"/><text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="62" y="160" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">P0</text>
+  <circle cx="128" cy="54" r="4.5" fill="#dc2626"/><text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="128" y="46" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">P1</text>
+  <circle cx="236" cy="58" r="4.5" fill="#dc2626"/><text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="236" y="50" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">P2</text>
+  <circle cx="308" cy="142" r="4.5" fill="#dc2626"/><text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="308" y="158" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">P3</text>
+  <line x1="358" y1="94" x2="384" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="388" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Marker Quad: d = length(uv) - radius</text>
+  <rect x="496" y="48" width="128" height="112" fill="#f8fafc" stroke="#111111" stroke-width="1.5" stroke-dasharray="3 3"/>
+  <circle cx="560" cy="104" r="44" fill="#fee2e2" stroke="#dc2626" stroke-width="2.25"/>
+  <circle cx="560" cy="104" r="3" fill="#111111"/>
+  <line x1="560" y1="104" x2="596" y2="78" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="578" y="86" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">r</text>
+  <line x1="732" y1="94" x2="758" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="762" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Smooth Curve &amp; Disc Points in Viewer</text>
+  <rect x="806" y="44" width="256" height="118" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <path d="M 836 138 C 888 58, 978 58, 1032 138" fill="none" stroke="#2563eb" stroke-width="3"/>
+  <circle cx="836" cy="138" r="6" fill="#dc2626" stroke="#111111" stroke-width="1.5"/>
+  <circle cx="934" cy="78" r="6" fill="#dc2626" stroke="#111111" stroke-width="1.5"/>
+  <circle cx="1032" cy="138" r="6" fill="#dc2626" stroke="#111111" stroke-width="1.5"/>
+</svg>
+</div>
 
 ### 1. `src/curve.rs`
-
-Sample the original evaluator with bounded uniform chords and exact interior knot breaks.
 
 **Locate this existing block:**
 
@@ -289,8 +335,6 @@ pub fn sample(source: &NurbsCurve) -> Result<Vec<[f64; 3]>, &'static str> {
 
 ### 2. `src/lib.rs`
 
-Register actual sampled geometry checks.
-
 **Locate this existing block:**
 
 ```rust
@@ -308,8 +352,6 @@ pub mod diagnostic;
 ```
 
 ### 3. `src/curve_sample_tests.rs`
-
-Copy original preservation, dense measured error, periodic closure and knot-break checks.
 
 Create the file and type:
 
@@ -403,11 +445,7 @@ fn straight_and_periodic_curves_keep_required_endpoints_and_knots() {
 
 ## <a id="checkpoint-38b-source"></a>3. Retain curves beside their display samples
 
-Retain original NURBS ownership, cached double samples and placed curve bounds in the existing path document.
-
 ### 1. `src/chain.rs`
-
-Retain the original curve separately from shared approximation samples. Keep original curve identity under path ownership. Count curve source owners independently of sampled data. Use cached original evaluator positions when placing display chords. Keep stable original control indices and a conservative positive-weight hull. Validate and cache the original curve before accepting connected display preparation. Use the original curve arrowhead policy.
 
 **Locate this existing block:**
 
@@ -619,8 +657,6 @@ impl PreparedChain {
 
 ### 2. `src/scene.rs`
 
-Place conservative curve bounds from original double controls. Include the complete placed control hull in document Fit bounds.
-
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -677,8 +713,6 @@ Replace it with:
 
 ### 3. `src/memory.rs`
 
-Count sampled doubles separately from source owners and packed GPU data.
-
 **Locate this existing block:**
 
 ```rust
@@ -717,8 +751,6 @@ pub fn paths<'a>(scenes: impl IntoIterator<Item = &'a Scene>) -> [usize; 5] {
 
 ### 4. `src/lib.rs`
 
-Register retained source and placed bounds checks.
-
 **Locate this existing block:**
 
 ```rust
@@ -736,8 +768,6 @@ pub mod diagnostic;
 ```
 
 ### 5. `src/curve_source_tests.rs`
-
-Copy retained source identity, distinct IDs, precise placement, conservative bounds and release checks.
 
 Create the file and type:
 
@@ -801,11 +831,7 @@ fn curve_rows_share_original_sources_and_samples_with_distinct_ids() {
 
 ## <a id="checkpoint-38c-controls"></a>4. Draw controls with their curve parent and index
 
-Draw enabled curve controls through the real marker lane while retaining original parent IDs and control indices.
-
 ### 1. `src/scene.rs`
-
-Retain explicit control display state on each document path row. Keep original curve controls disabled until requested. Reject invalid placed controls before accepting a curve row transform. Carry document parent and original control index beside each placed marker. Resolve placed original controls with stable parent IDs and control indices.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -969,8 +995,6 @@ pub struct PathObject {
 
 ### 2. `src/renderer.rs`
 
-Send only placed display bytes to the marker lane, retaining source ownership in the document.
-
 **Locate this existing block:**
 
 ```rust
@@ -994,8 +1018,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 3. `src/browser.rs`
-
-Inspect sampled curve resources and actual enabled control count separately.
 
 **Locate this existing block:**
 
@@ -1025,8 +1047,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 4. `src/lib.rs`
 
-Register document parent and placement checks.
-
 **Locate this existing block:**
 
 ```rust
@@ -1044,8 +1064,6 @@ mod control_tests;
 ```
 
 ### 5. `src/control_parent_tests.rs`
-
-Copy shared curve identity, distinct parent IDs, original indices, correct placement and release checks.
 
 Create the file and type:
 
@@ -1099,8 +1117,6 @@ fn placed_controls_share_the_original_curve_but_keep_distinct_document_parents()
 ## <a id="checkpoint-38d-input"></a>5. Insert an curve and inspect its controls
 
 ### 1. `src/editor.rs`
-
-Expose original curve insertion and explicit control display actions. Insert an original curve transaction and keep control visibility out of geometry history.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -1162,8 +1178,6 @@ Replace it with:
 
 ### 2. `src/browser.rs`
 
-Expose curve and control inputs in dock completion and Help. Dispatch accepted curve and explicit control input through the editor.
-
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -1210,8 +1224,6 @@ Replace it with:
 
 ### 3. `src/lib.rs`
 
-Register actual curve insertion history and ownership checks.
-
 **Locate this existing block:**
 
 ```rust
@@ -1229,8 +1241,6 @@ mod curve_layout_tests;
 ```
 
 ### 4. `src/curve_input_tests.rs`
-
-Copy original curve identity, control display history independence and complete release checks.
 
 Create the file and type:
 

@@ -1,6 +1,6 @@
 # 11.3 · View-dependent LOD and cached point splats
 
-**Goal:** Exercise original clouds and real view-dependent detail. · **Steps:** 19 · **Source:** [engine/gpu/surface_outline.rs](../../../src/engine/gpu/surface_outline.rs) · [engine/gpu/cloud.rs](../../../src/engine/gpu/cloud.rs) · [engine/gpu/lod.rs](../../../src/engine/gpu/lod.rs) · [engine/gpu/splat.rs](../../../src/engine/gpu/splat.rs)
+**Steps:** 19 · **Source:** [engine/gpu/surface_outline.rs](../../../src/engine/gpu/surface_outline.rs) · [engine/gpu/cloud.rs](../../../src/engine/gpu/cloud.rs) · [engine/gpu/lod.rs](../../../src/engine/gpu/lod.rs) · [engine/gpu/splat.rs](../../../src/engine/gpu/splat.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -100,8 +100,6 @@
 
 ### 1. `src/cloud_lod.rs`
 
-Measure current production projected spacing and radius factors from explicit camera facts.
-
 Create the file and type:
 
 ```rust
@@ -184,8 +182,6 @@ pub fn radius_factor(r: &Range, px: f32, scale: f64, ortho_h: f32) -> f32 {
 
 ### 2. `src/lib.rs`
 
-Register the source component.
-
 **Locate this existing block:**
 
 ```rust
@@ -207,8 +203,6 @@ pub mod cloud_lod;
 ## <a id="checkpoint-64g-detail"></a>2. Walk only detail whose screen spacing needs refinement
 
 ### 1. `src/cloud_lod.rs`
-
-Use the current production reusable LOD walk without inventing source points.
 
 **Locate this existing block:**
 
@@ -295,8 +289,6 @@ fn projected_spacing(
 ```
 
 ### 2. `src/cloud_tests.rs`
-
-Copy original-ID, malformed-tree, view-run, radius and source/history/close regressions.
 
 Create the file and type:
 
@@ -523,8 +515,6 @@ fn cloud_row_copy_layers_placement_delete_undo_and_close_share_one_precise_sourc
 
 ### 3. `src/lib.rs`
 
-Register the source component.
-
 **Locate this existing block:**
 
 ```rust
@@ -595,8 +585,6 @@ mod cloud_tests;
 </div>
 
 ### 1. `src/cloud_points.wgsl`
-
-Match the existing forty-word row layout and decode packed normals with a guarded inverse-transpose transform.
 
 Create the file and type:
 
@@ -684,8 +672,6 @@ fn oct32_decode(p: u32) -> vec3<f32> {
 ## <a id="checkpoint-64ha-project-original-cloud-rows-to-bounded-point-splats"></a>4. Project cloud rows to bounded point splats
 
 ### 1. `src/cloud_points.wgsl`
-
-Find the owning row by its original point interval and project one source position to a bounded screen disc.
 
 **Locate this existing block:**
 
@@ -817,8 +803,6 @@ fn project(gid: u32) -> Splat {
 
 ### 1. `src/cloud_points.wgsl`
 
-Expand each projected point into a bounded quad, reject fragments outside its disc and preserve original owner addresses.
-
 **Locate this existing block:**
 
 ```wgsl
@@ -880,11 +864,7 @@ struct PointPixel {@location(0) color:vec4<f32>,@location(1) owner:vec2<u32>}
 
 ## <a id="checkpoint-64hc-encode-original-cloud-normals-and-resolve-point-targets"></a>6. Encode cloud normals and resolve point targets
 
-Pack source normals once and resolve color, depth and original owner IDs with one pixel convention.
-
 ### 1. `src/cloud_normals.rs`
-
-Copy current production oct-normal packing.
 
 Create the file and type:
 
@@ -924,8 +904,6 @@ pub fn oct16(n: &[f64; 3]) -> Option<u32> {
 
 ### 2. `src/lib.rs`
 
-Register the source component.
-
 **Locate this existing block:**
 
 ```rust
@@ -943,8 +921,6 @@ pub mod cloud_normals;
 ```
 
 ### 3. `src/cloud_resolve.wgsl`
-
-Resolve cached forward depth and original whole-owner IDs through a bounded pick-window origin.
 
 Create the file and type:
 
@@ -972,11 +948,7 @@ struct Pick {@location(0) owner:vec2<u32>,@builtin(frag_depth) depth:f32}
 
 ## <a id="checkpoint-64hd-check-cloud-shaders-on-the-actual-browser-device"></a>7. Check cloud shaders on the actual browser device
 
-Await real shader compilation info before connecting the point passes.
-
 ### 1. `src/shader_check.rs`
-
-Await one real browser GPU compilation report without blocking input.
 
 Create the file and type:
 
@@ -1014,8 +986,6 @@ pub fn check(device: &wgpu::Device, source: String, label: &'static str) {
 
 ### 2. `src/lib.rs`
 
-Share the completed-source GPU check with later shader owners.
-
 **Locate this existing block:**
 
 ```rust
@@ -1035,8 +1005,6 @@ mod shader_check;
 
 ### 3. `Cargo.toml`
 
-Enable browser developer-console compilation reports in the existing web-sys dependency.
-
 **Locate this existing block:**
 
 ```toml
@@ -1054,8 +1022,6 @@ console_error_panic_hook = "=0.1.7"
 ```
 
 ### 4. `src/renderer.rs`
-
-Check both completed cloud modules on the actual device before their pipeline connection.
 
 **Locate this existing block:**
 
@@ -1082,8 +1048,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 5. `src/cloud_shader_contract.rs`
-
-Supply an independent completed-source shader interface witness.
 
 Create the file and type:
 
@@ -1121,8 +1085,6 @@ fn completed_cloud_modules_have_valid_vertex_and_fragment_interfaces() {
 
 ### 6. `src/lib.rs`
 
-Register the supplied optional shader interface witness.
-
 **Locate this existing block:**
 
 ```rust
@@ -1141,11 +1103,7 @@ mod shader_check;
 
 ## <a id="checkpoint-64i-columns"></a>8. Upload point columns once per shared source
 
-Upload original point columns once per shared source.
-
 ### 1. `src/cloud_gpu.rs`
-
-Create checked original column uploads and explicit view facts.
 
 Create the file and type:
 
@@ -1272,8 +1230,6 @@ fn buffer(device: &wgpu::Device, label: &str, bytes: &[u8]) -> wgpu::Buffer {
 
 ### 2. `src/lib.rs`
 
-Register the source component.
-
 **Locate this existing block:**
 
 ```rust
@@ -1293,8 +1249,6 @@ pub mod cloud_gpu;
 ## <a id="checkpoint-64j-targets"></a>9. Own the cached cloud images and frame identity
 
 ### 1. `src/cloud_gpu.rs`
-
-Own cached colour/depth/IDs, per-instance draw records and complete frame identity.
 
 **Locate this existing block:**
 
@@ -1408,8 +1362,6 @@ struct Layouts {
 ## <a id="checkpoint-64k-layouts"></a>10. Bind source storage and cached pixels explicitly
 
 ### 1. `src/cloud_gpu.rs`
-
-Define compatible explicit storage, texture and forward-depth pipeline layouts.
 
 **Locate this existing block:**
 
@@ -1585,8 +1537,6 @@ fn layouts(ctx: &GpuCtx) -> Layouts {
 
 ### 1. `src/cloud_gpu.rs`
 
-Construct reusable current cloud pipelines and adapt perspective units explicitly.
-
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -1734,8 +1684,6 @@ fn pipeline(
 ## <a id="checkpoint-64m-cache"></a>12. Share column uploads across placed cloud rows
 
 ### 1. `src/cloud_gpu.rs`
-
-Reuse original GPU columns across row placements and count actual shared allocations.
 
 **Locate this existing block:**
 
@@ -1905,8 +1853,6 @@ fn pipeline(
 
 ### 1. `src/cloud_gpu.rs`
 
-Encode exact current source-run records without rewriting original IDs or coordinates.
-
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -2062,8 +2008,6 @@ Replace it with:
 
 ### 1. `src/cloud_gpu.rs`
 
-Select bounded view runs and grow record storage only to used capacity.
-
 **Locate this existing block:**
 
 ```rust
@@ -2152,8 +2096,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ## <a id="checkpoint-64p-frame"></a>15. Cache the nearest point frame until its inputs change
 
 ### 1. `src/cloud_gpu.rs`
-
-Prepare and reuse actual nearest-point targets, resolve depth/whole IDs and drop stale targets after failure. Keep the completed backend in its final source layout.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -2394,8 +2336,6 @@ Replace it with:
 
 ### 1. `src/renderer.rs`
 
-Connect lazy cloud scene owners, explicit source sharing, counters and immediate cleanup.
-
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -2543,8 +2483,6 @@ pub struct Renderer {
 
 ### 1. `src/renderer.rs`
 
-Prepare current cloud pixels and resolve their actual depth in both colour and bounded whole-owner picking. Draw opaque cloud depth before the ink and selected-point overlays.
-
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -2671,8 +2609,6 @@ Replace it with:
 
 ### 2. `src/pick_gpu.rs`
 
-Resolve cached cloud IDs and depth through the existing bounded readback window.
-
 **Locate this existing block:**
 
 ```rust
@@ -2795,8 +2731,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 3. `src/pick_encode.rs`
 
-Resolve cached cloud IDs and depth through the existing bounded readback window.
-
 **Locate this existing block:**
 
 ```rust
@@ -2890,8 +2824,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 1. `src/memory.rs`
 
-Expose current cloud source/payload, derived capacity, exact GPU allocation and preparation errors.
-
 **Locate this existing block:**
 
 ```rust
@@ -2941,8 +2873,6 @@ pub fn clouds<'a>(scenes: impl IntoIterator<Item = &'a Scene>) -> [usize; 5] {
 ```
 
 ### 2. `src/browser.rs`
-
-Expose current cloud source/payload, derived capacity, exact GPU allocation and preparation errors.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -3027,8 +2957,6 @@ Replace it with:
 ## <a id="checkpoint-64t-clouds"></a>19. Exercise clouds and real view-dependent detail
 
 ### 1. `src/cloud.rs`
-
-Copy the small curved and real two-million-point original-cloud fixtures.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -3146,8 +3074,6 @@ fn checked_node(
 
 ### 2. `src/editor.rs`
 
-Connect supplied original cloud fixtures through the actual command dock and one history transaction.
-
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -3204,8 +3130,6 @@ Replace it with:
 
 ### 3. `src/commands.rs`
 
-Connect supplied original cloud fixtures through the actual command dock and one history transaction.
-
 **Locate this existing block:**
 
 ```rust
@@ -3223,8 +3147,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 4. `src/cloud_tests.rs`
-
-Copy the equivalent-projection radius-unit regression.
 
 **Locate this existing block:**
 
@@ -3258,8 +3180,6 @@ fn cloud_radius_adapter_matches_world_units_in_perspective_and_orthographic_view
 ```
 
 ### 5. `src/pick_gpu_tests.rs`
-
-Copy actual original colour/normal/depth/ID, two-density/cache/sharing/cleanup and real two-million-point coarse/fine/coarse GPU checks.
 
 **Locate this existing block:**
 

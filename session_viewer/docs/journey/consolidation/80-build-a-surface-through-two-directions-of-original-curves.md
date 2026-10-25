@@ -1,6 +1,6 @@
 # 15.4 · Two-direction networks and corner patches
 
-**Goal:** Reuse absolute coordinate parsing for named construction planes and three-point input. · **Steps:** 6 · **Source:** [app/deform.rs](../../../src/app/deform.rs) · [state/edit.rs](../../../src/state/edit.rs) · [app/command/tool/gather.rs](../../../src/app/command/tool/gather.rs) · [app/command/tool/surfacing.rs](../../../src/app/command/tool/surfacing.rs)
+**Steps:** 6 · **Source:** [app/deform.rs](../../../src/app/deform.rs) · [state/edit.rs](../../../src/state/edit.rs) · [app/command/tool/gather.rs](../../../src/app/command/tool/gather.rs) · [app/command/tool/surfacing.rs](../../../src/app/command/tool/surfacing.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -46,11 +46,7 @@
 
 ## <a id="checkpoint-80-build-a-surface-through-two-directions-of-original-curves"></a>1. Build a surface through curve networks
 
-Connect the complete network helpers and retain the four-boundary Coons path.
-
 ### 1. `src/network_geometry.rs`
-
-Extend this original owner with today’s complete helper. Supply only the unchanged original validation fixtures.
 
 **Locate this existing block:**
 
@@ -209,8 +205,6 @@ mod tests {
 
 ### 1. `src/patch_geometry.rs`
 
-Type the original recipe and whole geometry helpers using the earlier shared owners. Supply only the unchanged original geometry validation fixtures.
-
 Create the file and type:
 
 ```rust
@@ -304,8 +298,6 @@ mod tests {
 
 ### 2. `src/lib.rs`
 
-Register the current surface component.
-
 **Locate this existing block:**
 
 ```rust
@@ -325,8 +317,6 @@ pub mod source_mesh_topology;
 ## <a id="checkpoint-80b-guide-corner-questions-without-retaining-unrelated-profiles"></a>3. Guide corner questions without retaining unrelated profiles
 
 ### 1. `src/gather_draft.rs`
-
-Guide current point questions and retain original profile copies only for curve-gathering recipes.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -428,8 +418,6 @@ Replace it with:
 ## <a id="checkpoint-80c-register-network-patch-aliases-and-initial-corner-arity"></a>4. Register network patch aliases and initial corner arity
 
 ### 1. `src/gather_registry.rs`
-
-Register current network/patch names, aliases and initial four-corner argument validation.
 
 **Locate this existing block:**
 
@@ -545,8 +533,6 @@ pub fn alias(line: &str) -> String {
 
 ### 2. `src/commands.rs`
 
-Register current network/patch names, aliases and initial four-corner argument validation.
-
 **Locate this existing block:**
 
 ```rust
@@ -569,11 +555,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-80d-exercise-networks-corner-retries-and-exact-original-archives"></a>5. Exercise networks corner retries and exact archives
 
-Exercise networks corner retries and exact original archives.
-
 ### 1. `src/network_tests.rs`
-
-Copy integrated current network/patch/original-source/history/archive fixtures.
 
 Create the file and type:
 
@@ -852,8 +834,6 @@ fn short_or_broken_network_keeps_ordered_picks_and_can_accept_more_curves() {
 
 ### 2. `src/lib.rs`
 
-Register the current surface component.
-
 **Locate this existing block:**
 
 ```rust
@@ -874,8 +854,6 @@ pub mod source_mesh_topology;
 ## <a id="checkpoint-80za-read-original-projection-planes"></a>6. Read projection planes
 
 ### 1. `src/project_geometry.rs`
-
-Type the whole original helpers introduced today.
 
 Create the file and type:
 
@@ -946,8 +924,6 @@ pub fn plane_of(a: &Point, b: &Point, c: &Point) -> Result<Plane, String> {
 ```
 
 ### 2. `src/lib.rs`
-
-Register the original projection helpers.
 
 **Locate this existing block:**
 

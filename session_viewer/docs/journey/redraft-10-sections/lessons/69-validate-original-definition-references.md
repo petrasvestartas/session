@@ -1,6 +1,6 @@
 # 13.1 · Shared original definitions and independently placed instances
 
-**Goal:** Check sharing precision history and release. · **Steps:** 9 · **Source:** [app/scene_instances.rs](../../../../src/app/scene_instances.rs) · [engine/gpu/instanced.rs](../../../../src/engine/gpu/instanced.rs) · [engine/gpu/slots.rs](../../../../src/engine/gpu/slots.rs) · [app/walk/brep_shapes.rs](../../../../src/app/walk/brep_shapes.rs)
+**Steps:** 9 · **Source:** [app/scene_instances.rs](../../../../src/app/scene_instances.rs) · [engine/gpu/instanced.rs](../../../../src/engine/gpu/instanced.rs) · [engine/gpu/slots.rs](../../../../src/engine/gpu/slots.rs) · [app/walk/brep_shapes.rs](../../../../src/app/walk/brep_shapes.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -50,11 +50,7 @@
 
 ## <a id="checkpoint-69-validate-original-definition-references"></a>1. Validate definition references
 
-Validate original definition references.
-
 ### 1. `src/instance_plan.rs`
-
-Validate original definition references and retain shared owners.
 
 Create the file and type:
 
@@ -158,8 +154,6 @@ impl Owner {
 
 ### 2. `src/lib.rs`
 
-Register the source component.
-
 **Locate this existing block:**
 
 ```rust
@@ -179,8 +173,6 @@ pub mod instance_plan;
 ```
 
 ### 3. `src/instance_plan.rs`
-
-Copy source identity, invalid-reference and release fixtures.
 
 **Locate this existing block:**
 
@@ -295,8 +287,6 @@ mod tests {
 
 ### 1. `src/instance_definition.rs`
 
-Prepare each referenced original definition once.
-
 Create the file and type:
 
 ```rust
@@ -365,8 +355,6 @@ pub fn templates(
 
 ### 2. `src/lib.rs`
 
-Register the source component.
-
 **Locate this existing block:**
 
 ```rust
@@ -388,8 +376,6 @@ pub mod instance_definition;
 ## <a id="checkpoint-69c-keep-instance-bindings-through-scene-history"></a>3. Keep instance bindings through scene history
 
 ### 1. `src/scene.rs`
-
-Preserve instance bindings through row identity and scene lifetime operations.
 
 **Locate this existing block:**
 
@@ -3103,8 +3089,6 @@ impl Scene {
 
 ### 1. `src/scene.rs`
 
-Append checked independent instance rows without cloning the growing scene.
-
 **Locate this existing block:**
 
 ```rust
@@ -3214,11 +3198,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-69e-import-canonical-original-instance-placements"></a>5. Import canonical instance placements
 
-Import canonical original instance placements.
-
 ### 1. `src/document_source.rs`
-
-Import original definitions and apply canonical instance placement once.
 
 **Locate this existing block:**
 
@@ -3317,8 +3297,6 @@ fn supported(source: &proto::Session) -> Result<(), String> {
 
 ### 2. `src/document_geometry.rs`
 
-Import original definitions and apply canonical instance placement once.
-
 **Locate this existing block:**
 
 ```rust
@@ -3363,8 +3341,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 3. `src/scene_document.rs`
 
-Copy the revised unsupported nested-definition fixture.
-
 **Locate this existing block:**
 
 ```rust
@@ -3408,8 +3384,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 1. `src/part_preview.rs`
 
-Protect original definitions from unsupported source-part edits.
-
 **Locate this existing block:**
 
 ```rust
@@ -3430,8 +3404,6 @@ pub fn points(scene: &Scene, target: Target) -> Result<Vec<Point>, &'static str>
 ## <a id="checkpoint-69g-collect-shared-definitions-without-flattening"></a>7. Collect shared definitions without flattening
 
 ### 1. `src/instance_snapshot.rs`
-
-Collect original definitions once and reject semantic identity conflicts.
 
 Create the file and type:
 
@@ -3515,8 +3487,6 @@ pub fn definitions(
 
 ### 2. `src/lib.rs`
 
-Register the source component.
-
 **Locate this existing block:**
 
 ```rust
@@ -3537,11 +3507,7 @@ pub mod instance_snapshot;
 
 ## <a id="checkpoint-69h-save-original-instance-references-and-namespaces"></a>8. Save instance references and namespaces
 
-Save original instance references and namespaces.
-
 ### 1. `src/geometry_snapshot.rs`
-
-Save original references and definitions without flattening source geometry.
 
 **Locate this existing block:**
 
@@ -3718,8 +3684,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 2. `src/archive_identity.rs`
 
-Save original references and definitions without flattening source geometry.
-
 **Locate this existing block:**
 
 ```rust
@@ -3736,8 +3700,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 3. `src/archive_document.rs`
-
-Save original references and definitions without flattening source geometry.
 
 **Locate this existing block:**
 
@@ -3757,8 +3719,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ## <a id="checkpoint-69i-check-sharing-precision-history-and-release"></a>9. Check sharing precision, history, and release
 
 ### 1. `src/memory.rs`
-
-Count original instance documents and definitions across shared scene snapshots.
 
 **Locate this existing block:**
 
@@ -3802,8 +3762,6 @@ pub fn instances<'a>(scenes: impl IntoIterator<Item = &'a Scene>) -> [usize; 3] 
 ```
 
 ### 2. `src/instance_specimen.rs`
-
-Copy precise original and visible shared-definition examples.
 
 Create the file and type:
 
@@ -3915,8 +3873,6 @@ pub fn display_bytes() -> Vec<u8> {
 
 ### 3. `src/lib.rs`
 
-Register the source component.
-
 **Locate this existing block:**
 
 ```rust
@@ -3936,8 +3892,6 @@ pub mod instance_specimen;
 ```
 
 ### 4. `src/instance_scene_tests.rs`
-
-Copy original reference, family, identity, placement, history and release regressions.
 
 Create the file and type:
 
@@ -4356,8 +4310,6 @@ fn every_basic_definition_family_roundtrips_as_original_references() {
 ```
 
 ### 5. `src/lib.rs`
-
-Register the source component.
 
 **Locate this existing block:**
 

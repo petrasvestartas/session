@@ -1,109 +1,67 @@
 # 3.6 · Shared GPU geometry and releasable source ownership
 
-**Goal:** Verify whole-origin protection, independent duplicate imports and checked release epochs. · **Steps:** 23 · **Source:** `src/app/decode.rs` · `src/app/loader.rs` · `src/state.rs`
-
-<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
-<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
-  <defs>
-    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
-    </marker>
-    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
-    </marker>
-    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
-    </marker>
-  </defs>
-  <rect x="2" y="2" width="1116" height="184" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
-  <rect x="14" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Hierarchy: M_world = M_parent * M_child</text>
-  <g transform="translate(88,122)">
-    <line x1="0" y1="0" x2="48" y2="0" stroke="#dc2626" stroke-width="2.5" marker-end="url(#arrR)"/>
-    <line x1="0" y1="0" x2="0" y2="-44" stroke="#16a34a" stroke-width="2.5" marker-end="url(#arrG)"/>
-    <circle cx="0" cy="0" r="4" fill="#111111"/>
-    <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="-10" y="18" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Parent</text>
-  </g>
-  <path d="M 116 106 Q 168 68 214 86" fill="none" stroke="#111111" stroke-width="1.75" stroke-dasharray="4 3" marker-end="url(#arr)"/>
-  <g transform="translate(230,94) rotate(-22)">
-    <rect x="-18" y="-14" width="36" height="28" fill="#dbeafe" stroke="#111111" stroke-width="1.75"/>
-    <line x1="0" y1="0" x2="34" y2="0" stroke="#dc2626" stroke-width="2" marker-end="url(#arrR)"/>
-    <line x1="0" y1="0" x2="0" y2="-30" stroke="#16a34a" stroke-width="2" marker-end="url(#arrG)"/>
-  </g>
-  <line x1="358" y1="94" x2="384" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
-  <rect x="388" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Window (Inside) vs Crossing (Intersect) Rect</text>
-  <rect x="424" y="54" width="118" height="88" fill="#dbeafe" fill-opacity="0.35" stroke="#2563eb" stroke-width="2"/>
-  <polygon points="454,122 484,76 516,122" fill="#bbf7d0" stroke="#16a34a" stroke-width="2"/>
-  <rect x="572" y="54" width="118" height="88" fill="#dcfce7" fill-opacity="0.35" stroke="#16a34a" stroke-width="2" stroke-dasharray="5 3"/>
-  <polygon points="642,124 678,72 714,124" fill="#fef08a" stroke="#dc2626" stroke-width="2"/>
-  <line x1="732" y1="94" x2="758" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
-  <rect x="762" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Selected Subtree &amp; Isolated Visibility</text>
-  <rect x="806" y="44" width="256" height="118" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
-  <polygon points="846,138 882,84 918,138" fill="#e2e8f0" stroke="#94a3b8" stroke-width="1.2" stroke-dasharray="3 3"/>
-  <polygon points="942,138 986,68 1030,138" fill="#fef08a" stroke="#dc2626" stroke-width="2.5"/>
-</svg>
-</div>
+**Steps:** 23 · **Source:** `src/app/decode.rs` · `src/app/loader.rs` · `src/state.rs`
 
 ## <a id="checkpoint-31-settings"></a>1. Keep selection out of the vertex data
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
-<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="214" viewBox="0 0 1120 214" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
   <defs>
-    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+    <marker id="arr-221614ed" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
     </marker>
-    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+    <marker id="arr-r-221614ed" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
     </marker>
-    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+    <marker id="arr-g-221614ed" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
     </marker>
-    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+    <marker id="arr-b-221614ed" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
     </marker>
+    <pattern id="grid-221614ed" width="20" height="20" patternUnits="userSpaceOnUse">
+      <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#f1f5f9" stroke-width="1"/>
+    </pattern>
   </defs>
-  <rect x="2" y="2" width="1116" height="184" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
-  <rect x="14" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">CPU RAM: #[repr(C)] Structs -&gt; bytemuck::cast_slice</text>
-  <rect x="46" y="54" width="280" height="44" fill="#f8fafc" stroke="#111111" stroke-width="1.75"/>
-  <rect x="52" y="60" width="64" height="32" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="84" y="80" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">v0: 24B</text>
-  <rect x="122" y="60" width="64" height="32" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="154" y="80" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">v1: 24B</text>
-  <rect x="192" y="60" width="64" height="32" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="224" y="80" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">v2: 24B</text>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="290" y="80" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">...</text>
-  <rect x="66" y="112" width="240" height="34" rx="4" fill="#fef08a" stroke="#111111" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="133" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">&amp;[u8] Contiguous Byte Slice</text>
-  <line x1="358" y1="94" x2="384" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
-  <rect x="388" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">CPU -&gt; GPU DMA: queue.write_buffer(buf, 0, bytes)</text>
-  <rect x="424" y="54" width="272" height="92" rx="6" fill="#dcfce7" stroke="#16a34a" stroke-width="1.75"/>
-  <line x1="448" y1="84" x2="672" y2="84" stroke="#16a34a" stroke-width="3" marker-end="url(#arrG)"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="74" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">create_buffer_init / write_buffer</text>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="112" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#16a34a">VERTEX | INDEX | COPY_DST</text>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="132" text-anchor="middle" font-family="monospace" font-size="9" fill="#111111">array_stride = size_of::&lt;Vertex&gt;()</text>
-  <line x1="732" y1="94" x2="758" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
-  <rect x="762" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">GPU VRAM Buffer -&gt; @vertex Input Locations</text>
-  <rect x="806" y="44" width="256" height="118" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
-  <rect x="822" y="56" width="224" height="40" rx="4" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="80" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">@location(0) pos: vec3&lt;f32&gt;</text>
-  <rect x="822" y="106" width="224" height="40" rx="4" fill="#fce7f3" stroke="#db2777" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="130" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">@location(1) color: vec3&lt;f32&gt;</text>
+  <rect x="2" y="2" width="1116" height="210" rx="8" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="2" y="2" width="1116" height="28" rx="6" fill="#f8fafc" stroke="#111111" stroke-width="1.5"/>
+  <line x1="2" y1="30" x2="1118" y2="30" stroke="#111111" stroke-width="1.5"/>
+  <rect x="12" y="7" width="176" height="18" rx="3" fill="#111111"/>
+  <text x="100" y="19.5" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#ffffff" paint-order="normal" stroke="none">31..32G · RESIDENCY &amp; RELOAD</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="518" y="20" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Shared Arc&lt;GpuGeometry&gt; Cache, Source Unloading &amp; On-Demand Async Restoration</text>
+  <rect x="838" y="7" width="268" height="18" rx="3" fill="#ffffff" stroke="#111111" stroke-width="1.2"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="972" y="19.5" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#2563eb">Loaded(Arc&lt;Source&gt;) &lt;-&gt; Released(Origin, Key)</text>
+  <rect x="14" y="38" width="344" height="164" rx="6" fill="url(#grid-221614ed)" stroke="#111111" stroke-width="1.5"/>
+  <line x1="14" y1="60" x2="358" y2="60" stroke="#cbd5e1" stroke-width="1"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="186" y="53" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1 · Immutable Arc&lt;GpuGeometry&gt; + Settings Slot</text>
+  <rect x="44" y="76" width="284" height="48" rx="4" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="186" y="96" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Arc&lt;GpuGeometry&gt; (Shared Across Undo)</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="186" y="114" text-anchor="middle" font-family="monospace" font-size="8.5" fill="#2563eb">Zero vertex re-upload on selection change</text>
+  <rect x="44" y="134" width="284" height="48" rx="4" fill="#dcfce7" stroke="#16a34a" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="186" y="154" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Unload Sources: Drop f64 Kernel RAM</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="186" y="172" text-anchor="middle" font-family="monospace" font-size="8.5" fill="#16a34a">f32 GPU display mesh stays interactive</text>
+  <line x1="358" y1="120" x2="384" y2="120" stroke="#111111" stroke-width="2" marker-end="url(#arr-221614ed)"/>
+  <rect x="388" y="38" width="344" height="164" rx="6" fill="url(#grid-221614ed)" stroke="#111111" stroke-width="1.5"/>
+  <line x1="388" y1="60" x2="732" y2="60" stroke="#cbd5e1" stroke-width="1"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="53" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2 · Captured Edit Intent -&gt; Async HTTP Reload</text>
+  <rect x="414" y="76" width="292" height="106" rx="4" fill="#fef9c3" stroke="#d97706" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="98" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Move / Delete / Save on Unloaded Row:</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="120" text-anchor="middle" font-family="monospace" font-size="9" fill="#2563eb">1. Capture PendingIntent + ReleaseKey</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="142" text-anchor="middle" font-family="monospace" font-size="9" fill="#111111">2. Bounded Fetch + AbortController</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="164" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#16a34a">3. Atomic Adopt + Replay Exact f64 Edit</text>
+  <line x1="732" y1="120" x2="758" y2="120" stroke="#111111" stroke-width="2" marker-end="url(#arr-221614ed)"/>
+  <rect x="762" y="38" width="344" height="164" rx="6" fill="url(#grid-221614ed)" stroke="#111111" stroke-width="1.75"/>
+  <line x1="762" y1="60" x2="1106" y2="60" stroke="#cbd5e1" stroke-width="1"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="934" y="53" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3 · Lossless f64 Precision Restored</text>
+  <rect x="806" y="68" width="256" height="122" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="830" y="84" width="208" height="42" rx="4" fill="#dcfce7" stroke="#16a34a" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="934" y="109" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#16a34a">Sources Restored ✓</text>
+  <rect x="830" y="136" width="208" height="40" rx="4" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="934" y="160" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Move / Save Committed</text>
 </svg>
 </div>
 
-Put placement and selection in an explicitly packed object uniform.
-
 ### 1. `src/gpu_mesh.rs`
-
-Upload original vertex colours regardless of which object is selected. Use one encoder for the complete object uniform. Encode the matrix, selection and padding at their shader offsets.
 
 **Locate this existing block:**
 
@@ -206,8 +164,6 @@ impl GpuMesh {
 
 ### 2. `src/triangle.wgsl`
 
-Describe the same eighty-byte object layout in WGSL. Read placement from the object settings structure. Choose the displayed colour per object without rewriting vertices.
-
 **Locate this existing block:**
 
 ```wgsl
@@ -299,11 +255,7 @@ fn vertex(@location(0) position: vec3<f32>, @location(1) colour: vec3<f32>) -> V
 </svg>
 </div>
 
-Separate vertex/index storage from each object’s uniform and retain its CPU source.
-
 ### 1. `src/gpu_geometry.rs`
-
-Create an owner for immutable buffers and the CPU display allocation that produced them.
 
 Create the file and type:
 
@@ -364,8 +316,6 @@ impl GpuGeometry {
 
 ### 2. `src/lib.rs`
 
-Make geometry storage available to the draw row.
-
 **Locate this existing block:**
 
 ```rust
@@ -382,8 +332,6 @@ pub mod gpu_mesh;
 ```
 
 ### 3. `src/gpu_mesh.rs`
-
-Use a shared geometry owner. Keep only the geometry owner beside the object bind group. Accept an existing geometry owner while keeping object settings independent. Return one draw row without copying its shared geometry. Delegate immutable bindings and indexed drawing to the geometry owner.
 
 **Locate this existing block:**
 
@@ -549,11 +497,54 @@ impl GpuMesh {
 
 ## <a id="checkpoint-31b-cache"></a>3. Reuse uploads while their geometry is alive
 
-Cache GPU geometry by its retained CPU allocation and release dead cache entries.
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="184" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Hierarchy: M_world = M_parent * M_child</text>
+  <g transform="translate(88,122)">
+    <line x1="0" y1="0" x2="48" y2="0" stroke="#dc2626" stroke-width="2.5" marker-end="url(#arrR)"/>
+    <line x1="0" y1="0" x2="0" y2="-44" stroke="#16a34a" stroke-width="2.5" marker-end="url(#arrG)"/>
+    <circle cx="0" cy="0" r="4" fill="#111111"/>
+    <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="-10" y="18" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Parent</text>
+  </g>
+  <path d="M 116 106 Q 168 68 214 86" fill="none" stroke="#111111" stroke-width="1.75" stroke-dasharray="4 3" marker-end="url(#arr)"/>
+  <g transform="translate(230,94) rotate(-22)">
+    <rect x="-18" y="-14" width="36" height="28" fill="#dbeafe" stroke="#111111" stroke-width="1.75"/>
+    <line x1="0" y1="0" x2="34" y2="0" stroke="#dc2626" stroke-width="2" marker-end="url(#arrR)"/>
+    <line x1="0" y1="0" x2="0" y2="-30" stroke="#16a34a" stroke-width="2" marker-end="url(#arrG)"/>
+  </g>
+  <line x1="358" y1="94" x2="384" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="388" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Window (Inside) vs Crossing (Intersect) Rect</text>
+  <rect x="424" y="54" width="118" height="88" fill="#dbeafe" fill-opacity="0.35" stroke="#2563eb" stroke-width="2"/>
+  <polygon points="454,122 484,76 516,122" fill="#bbf7d0" stroke="#16a34a" stroke-width="2"/>
+  <rect x="572" y="54" width="118" height="88" fill="#dcfce7" fill-opacity="0.35" stroke="#16a34a" stroke-width="2" stroke-dasharray="5 3"/>
+  <polygon points="642,124 678,72 714,124" fill="#fef08a" stroke="#dc2626" stroke-width="2"/>
+  <line x1="732" y1="94" x2="758" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="762" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Selected Subtree &amp; Isolated Visibility</text>
+  <rect x="806" y="44" width="256" height="118" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <polygon points="846,138 882,84 918,138" fill="#e2e8f0" stroke="#94a3b8" stroke-width="1.2" stroke-dasharray="3 3"/>
+  <polygon points="942,138 986,68 1030,138" fill="#fef08a" stroke="#dc2626" stroke-width="2.5"/>
+</svg>
+</div>
 
 ### 1. `src/geometry_cache.rs`
-
-Keep weak cache entries and cumulative upload evidence without pinning unused GPU buffers.
 
 Create the file and type:
 
@@ -603,8 +594,6 @@ impl GeometryCache {
 
 ### 2. `src/lib.rs`
 
-Expose the geometry cache to the renderer.
-
 **Locate this existing block:**
 
 ```rust
@@ -621,8 +610,6 @@ pub mod geometry_cache;
 ```
 
 ### 3. `src/renderer.rs`
-
-Keep geometry reuse and object allocation counts with the renderer. Let the same scene synchronization populate startup rows. Initialize startup through the same ownership path as later edits. Reuse live geometry before replacing the old GPU rows, then prune dead weak entries. Report cumulative geometry uploads, settings allocations and the reserved write counters.
 
 **Locate this existing block:**
 
@@ -881,8 +868,6 @@ impl Renderer {
 
 ### 4. `src/browser.rs`
 
-Wait until the renderer exists before reporting GPU diagnostics. Inspect CPU and GPU state after startup synchronization. Update diagnostics after the actual committed action. Pass renderer accounting into the private diagnostics function. Expose counters through a hidden canvas attribute rather than feature controls.
-
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -997,11 +982,55 @@ Replace it with:
 
 ## <a id="checkpoint-31c-incremental"></a>4. Update only changed object settings
 
-Retain GPU rows by object and geometry identity, then write only changed uniform ranges.
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="184" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">CPU RAM: #[repr(C)] Structs -&gt; bytemuck::cast_slice</text>
+  <rect x="46" y="54" width="280" height="44" fill="#f8fafc" stroke="#111111" stroke-width="1.75"/>
+  <rect x="52" y="60" width="64" height="32" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="84" y="80" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">v0: 24B</text>
+  <rect x="122" y="60" width="64" height="32" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="154" y="80" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">v1: 24B</text>
+  <rect x="192" y="60" width="64" height="32" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="224" y="80" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">v2: 24B</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="290" y="80" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">...</text>
+  <rect x="66" y="112" width="240" height="34" rx="4" fill="#fef08a" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="133" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">&amp;[u8] Contiguous Byte Slice</text>
+  <line x1="358" y1="94" x2="384" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="388" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">CPU -&gt; GPU DMA: queue.write_buffer(buf, 0, bytes)</text>
+  <rect x="424" y="54" width="272" height="92" rx="6" fill="#dcfce7" stroke="#16a34a" stroke-width="1.75"/>
+  <line x1="448" y1="84" x2="672" y2="84" stroke="#16a34a" stroke-width="3" marker-end="url(#arrG)"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="74" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">create_buffer_init / write_buffer</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="112" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#16a34a">VERTEX | INDEX | COPY_DST</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="132" text-anchor="middle" font-family="monospace" font-size="9" fill="#111111">array_stride = size_of::&lt;Vertex&gt;()</text>
+  <line x1="732" y1="94" x2="758" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="762" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">GPU VRAM Buffer -&gt; @vertex Input Locations</text>
+  <rect x="806" y="44" width="256" height="118" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="822" y="56" width="224" height="40" rx="4" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="80" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">@location(0) pos: vec3&lt;f32&gt;</text>
+  <rect x="822" y="106" width="224" height="40" rx="4" fill="#fce7f3" stroke="#db2777" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="130" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">@location(1) color: vec3&lt;f32&gt;</text>
+</svg>
+</div>
 
 ### 1. `src/gpu_mesh.rs`
-
-Retain row identity, its writable settings buffer and the bytes last sent. Allow queued updates to the settings buffer. Keep settings ownership beside the bind group. Queue only changed matrix or selection ranges and count their actual calls and bytes.
 
 **Locate this existing block:**
 
@@ -1153,8 +1182,6 @@ impl GpuMesh {
 ```
 
 ### 2. `src/renderer.rs`
-
-Accumulate settings write evidence. Initialize the cumulative write counters. Retain matching GPU rows, preserve scene draw order and drop unused rows before cache pruning. Report actual update calls and bytes rather than reserved zeros.
 
 **Locate this existing block:**
 
@@ -1439,11 +1466,7 @@ impl Renderer {
 
 ## <a id="checkpoint-32-history"></a>5. Find the owners retained by history
 
-Inspect undo/redo roots and release both branches explicitly.
-
 ### 1. `src/history.rs`
-
-Expose borrowed snapshot roots and an explicit reset of both branches. Prove deletion differs from dropping the owners retained by Undo and Redo.
 
 **Locate this existing block:**
 
@@ -1599,11 +1622,63 @@ mod tests {
 
 ## <a id="checkpoint-32a-cpu"></a>6. Count shared CPU displays once
 
-Account for active/history rows, retained sources/documents and unique display payloads.
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="214" viewBox="0 0 1120 214" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr-53debbd7" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arr-r-53debbd7" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arr-g-53debbd7" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arr-b-53debbd7" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+    <pattern id="grid-53debbd7" width="20" height="20" patternUnits="userSpaceOnUse">
+      <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#f1f5f9" stroke-width="1"/>
+    </pattern>
+  </defs>
+  <rect x="2" y="2" width="1116" height="210" rx="8" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="2" y="2" width="1116" height="28" rx="6" fill="#f8fafc" stroke="#111111" stroke-width="1.5"/>
+  <line x1="2" y1="30" x2="1118" y2="30" stroke="#111111" stroke-width="1.5"/>
+  <rect x="12" y="7" width="176" height="18" rx="3" fill="#111111"/>
+  <text x="100" y="19.5" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#ffffff" paint-order="normal" stroke="none">32A..32F · SOURCE UNLOAD</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="518" y="20" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Releasing Heavy f64 Kernel Sources While Keeping f32 GPU Display Geometry Interactive</text>
+  <rect x="838" y="7" width="268" height="18" rx="3" fill="#ffffff" stroke="#111111" stroke-width="1.2"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="972" y="19.5" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#2563eb">Loaded(Arc&lt;Source&gt;) -&gt; Released { origin, key, version }</text>
+  <rect x="14" y="38" width="344" height="164" rx="6" fill="url(#grid-53debbd7)" stroke="#111111" stroke-width="1.5"/>
+  <line x1="14" y1="60" x2="358" y2="60" stroke="#cbd5e1" stroke-width="1"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="186" y="53" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1 · Before Unload: CPU f64 + GPU f32</text>
+  <rect x="44" y="76" width="284" height="48" rx="4" fill="#fee2e2" stroke="#dc2626" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="186" y="96" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#dc2626">Heavy f64 Kernel Source in WASM RAM</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="186" y="114" text-anchor="middle" font-family="monospace" font-size="8.5" fill="#111111">Released by "Unload Sources" command</text>
+  <rect x="44" y="132" width="284" height="48" rx="4" fill="#dcfce7" stroke="#16a34a" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="186" y="152" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#16a34a">Compact Provenance Header Retained</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="186" y="170" text-anchor="middle" font-family="monospace" font-size="8.5" fill="#111111">{ OriginUrl, ReleaseKey, SourceVersion }</text>
+  <line x1="358" y1="120" x2="384" y2="120" stroke="#111111" stroke-width="2" marker-end="url(#arr-53debbd7)"/>
+  <rect x="388" y="38" width="344" height="164" rx="6" fill="url(#grid-53debbd7)" stroke="#111111" stroke-width="1.5"/>
+  <line x1="388" y1="60" x2="732" y2="60" stroke="#cbd5e1" stroke-width="1"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="53" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2 · Allowed vs Guarded Operations While Unloaded</text>
+  <rect x="414" y="76" width="292" height="104" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="98" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#16a34a">✓ Orbit / Pan / Zoom / Pick / Color / Hide</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="118" text-anchor="middle" font-family="monospace" font-size="8.5" fill="#111111">(Operates purely on retained GPU buffers &amp; settings)</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="144" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#dc2626">⚠ Move / Save / Exact Export</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="164" text-anchor="middle" font-family="monospace" font-size="8.5" fill="#2563eb">(Requires reloading exact f64 source first)</text>
+  <line x1="732" y1="120" x2="758" y2="120" stroke="#111111" stroke-width="2" marker-end="url(#arr-53debbd7)"/>
+  <rect x="762" y="38" width="344" height="164" rx="6" fill="url(#grid-53debbd7)" stroke="#111111" stroke-width="1.75"/>
+  <line x1="762" y1="60" x2="1106" y2="60" stroke="#cbd5e1" stroke-width="1"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="934" y="53" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3 · Low-RAM Interactive Viewport</text>
+  <rect x="806" y="68" width="256" height="122" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <polygon points="884,96 944,74 1004,96 944,118" fill="#dbeafe" stroke="#111111" stroke-width="1.5"/>
+  <polygon points="884,96 944,118 944,174 884,152" fill="#60a5fa" stroke="#111111" stroke-width="1.5"/>
+  <polygon points="944,118 1004,96 1004,152 944,174" fill="#2563eb" stroke="#111111" stroke-width="1.5"/>
+</svg>
+</div>
 
 ### 1. `src/mesh.rs`
-
-Count allocated display-vector capacity rather than just occupied elements.
 
 **Locate this existing block:**
 
@@ -1628,8 +1703,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 2. `src/editor.rs`
 
-Inspect active and retained snapshot roots without creating new owners.
-
 **Locate this existing block:**
 
 ```rust
@@ -1649,8 +1722,6 @@ impl Editor {
 ```
 
 ### 3. `src/renderer.rs`
-
-Expose borrowed live geometry owners for accounting and weak lifetime checks.
 
 **Locate this existing block:**
 
@@ -1675,8 +1746,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 4. `src/memory.rs`
-
-Count unique live owners and known display capacities across editor and GPU roots.
 
 Create the file and type:
 
@@ -1761,8 +1830,6 @@ mod tests {
 
 ### 5. `src/lib.rs`
 
-Expose the scoped ownership ledger.
-
 **Locate this existing block:**
 
 ```rust
@@ -1779,8 +1846,6 @@ pub mod mesh;
 ```
 
 ### 6. `src/browser.rs`
-
-Publish accounting only through private canvas diagnostics.
 
 **Locate this existing block:**
 
@@ -1853,11 +1918,7 @@ Edit the existing block to match this code; keep unchanged lines:
 </svg>
 </div>
 
-Measure live document buffer sizes separately from cumulative allocation counters.
-
 ### 1. `src/gpu_geometry.rs`
-
-Read actual buffer sizes, including initialization alignment.
 
 **Locate this existing block:**
 
@@ -1881,8 +1942,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 2. `src/gpu_mesh.rs`
 
-Report the independent settings buffer owned by one GPU row.
-
 **Locate this existing block:**
 
 ```rust
@@ -1904,8 +1963,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 3. `src/memory.rs`
-
-Count shared geometry once while retaining each row’s separate settings cost.
 
 **Locate this existing block:**
 
@@ -1941,8 +1998,6 @@ pub fn gpu<'a>(
 
 ### 4. `src/renderer.rs`
 
-Distinguish live document resources from cumulative upload/write counters.
-
 **Locate this existing block:**
 
 ```rust
@@ -1965,8 +2020,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 5. `src/browser.rs`
 
-Expose live document buffer sizes without adding runtime controls.
-
 **Locate this existing block:**
 
 ```rust
@@ -1987,11 +2040,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-32c-close"></a>8. Close the document without resetting the view
 
-Drop active rows and both history branches while preserving the local ID counter and camera.
-
 ### 1. `src/scene.rs`
-
-Release row storage while preserving issued identities; reuse this inside atomic replacement.
 
 **Locate this existing block:**
 
@@ -2026,8 +2075,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 2. `src/editor.rs`
-
-Give closing a typed editor action. Close outside undoable document edits and preserve application view settings. Check source release, both history branches, identity reuse and view preservation.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -2138,11 +2185,7 @@ Replace it with:
 
 ## <a id="checkpoint-32d-command"></a>9. Close through the command line and revoke reads
 
-Wire Close into the dock and cancel pending delivery before closing the editor.
-
 ### 1. `src/browser.rs`
-
-Offer closing only through the actual dock vocabulary. Revoke pending file ownership before the editor closes. Retain the submitted operation kind across action consumption. Report close only after its scene operation and renderer synchronization succeed.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -2224,11 +2267,7 @@ Replace it with:
 
 ## <a id="checkpoint-32e-release"></a>10. Prove release does not retain the old document
 
-Check imported history owners, the CPU/GPU release boundary, late read failures and reopening.
-
 ### 1. `src/editor.rs`
-
-Verify imported source/document release across history and fresh identities after reopening.
 
 **Locate this existing block:**
 
@@ -2316,11 +2355,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-32f-metadata"></a>11. Keep row metadata separate from editable geometry
 
-Retain names, original source GUIDs and visibility/locking flags without keeping kernel owners alive.
-
 ### 1. `src/lib.rs`
-
-Give independently retained row metadata its own small module.
 
 **Locate this existing block:**
 
@@ -2338,8 +2373,6 @@ pub mod scene;
 ```
 
 ### 2. `src/row_metadata.rs`
-
-Copy source identity and flags without copying or retaining kernel payload; test independent lifetime and history.
 
 Create the file and type:
 
@@ -2426,8 +2459,6 @@ mod tests {
 
 ### 3. `src/scene.rs`
 
-Retain descriptive values independently of the editable source. Capture metadata before transferring prepared source owners into the row.
-
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -2479,8 +2510,6 @@ Replace it with:
 
 ### 4. `src/browser.rs`
 
-Expose row values through hidden inspection for actual Chrome import/history checks.
-
 **Locate this existing block:**
 
 ```rust
@@ -2521,11 +2550,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-32fa-access"></a>12. Ask whether an editable source is available
 
-Route saving, source accounting and owner checks through borrowed source accessors.
-
 ### 1. `src/scene.rs`
-
-Borrow source owners through an API that can express later source absence.
 
 **Locate this existing block:**
 
@@ -2551,8 +2576,6 @@ impl Object {
 
 ### 2. `src/document.rs`
 
-Require original editable geometry instead of silently exporting display floats.
-
 **Locate this existing block:**
 
 ```rust
@@ -2573,8 +2596,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 3. `src/memory.rs`
-
-Count kernel owners only when they are available. Keep provenance absence independent of row/display accounting.
 
 **Locate this existing block:**
 
@@ -2603,8 +2624,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 4. `src/source_tests.rs`
-
-Optional authoring fixture. Update generated_source_and_display_survive_move_and_history through borrowed source access while preserving every existing assertion. Optional authoring fixture. Update imported_source_survives_a_change_of_display_row through borrowed source access while preserving every existing assertion.
 
 **Locate this existing block:**
 
@@ -2740,8 +2759,6 @@ fn imported_source_survives_a_change_of_display_row() {
 
 ### 5. `src/imported_source_tests.rs`
 
-Optional authoring fixture. Update import_shares_the_retained_sessions_source_allocation through borrowed source access while preserving every existing assertion.
-
 **Locate this existing block:**
 
 ```rust
@@ -2794,8 +2811,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 6. `src/snapshot_tests.rs`
-
-Optional authoring fixture. Update snapshot_uses_live_local_sources_and_separate_placements through borrowed source access while preserving every existing assertion.
 
 **Locate this existing block:**
 
@@ -2896,11 +2911,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-32fb-boundary"></a>13. Make editable ownership a private row boundary
 
-Finish migrating owner checks and prevent other modules from bypassing source availability.
-
 ### 1. `src/editor.rs`
-
-Update repeated_close_is_empty_and_drops_sources_without_gpu_owners through borrowed source access while preserving every existing assertion. Update close_releases_imported_history_documents_and_reopening_uses_fresh_ids through borrowed source access while preserving every existing assertion.
 
 **Locate this existing block:**
 
@@ -3008,8 +3019,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 2. `src/history.rs`
 
-Update cleared_history_releases_a_deleted_source_and_display through borrowed source access while preserving every existing assertion.
-
 **Locate this existing block:**
 
 ```rust
@@ -3027,8 +3036,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 3. `src/file_identity_tests.rs`
-
-Optional authoring fixture. Update duplicate_imports_keep_distinct_stored_identity_through_history through borrowed source access while preserving every existing assertion.
 
 **Locate this existing block:**
 
@@ -3114,8 +3121,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 4. `src/document_tests.rs`
 
-Optional authoring fixture. Update import_retains_source_and_undo_removes_the_whole_file through borrowed source access while preserving every existing assertion. Optional authoring fixture. Update repeated_imports_keep_distinct_viewer_ids_and_original_source_guids through borrowed source access while preserving every existing assertion.
-
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -3196,8 +3201,6 @@ Replace it with:
 ```
 
 ### 5. `src/replace_tests.rs`
-
-Optional authoring fixture. Update replacement_history_retains_camera_and_distinct_local_identity through borrowed source access while preserving every existing assertion. Optional authoring fixture. Update refused_replacement_preserves_selection_source_owners_and_redo through borrowed source access while preserving every existing assertion.
 
 **Locate this existing block:**
 
@@ -3297,8 +3300,6 @@ fn refused_replacement_preserves_selection_source_owners_and_redo() {
 
 ### 6. `src/save_roundtrip_tests.rs`
 
-Optional authoring fixture. Update both_imported_copies_reopen_with_their_stored_identity through borrowed source access while preserving every existing assertion.
-
 **Locate this existing block:**
 
 ```rust
@@ -3334,8 +3335,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 7. `src/row_metadata.rs`
 
-Update metadata_does_not_keep_a_closed_kernel_source_alive through borrowed source access while preserving every existing assertion.
-
 **Locate this existing block:**
 
 ```rust
@@ -3353,8 +3352,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 8. `src/scene.rs`
-
-Confine editable kernel storage to the scene row implementation. Prevent other modules from bypassing imported-source availability.
 
 **Locate this existing block:**
 
@@ -3378,11 +3375,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-32fc-version"></a>14. Record a reload version without retaining geometry
 
-Own a small document header, a distinct import ID and an exact file fingerprint.
-
 ### 1. `Cargo.toml`
-
-Pin SHA-256 for immutable file-version checks.
 
 **Locate this existing block:**
 
@@ -3401,8 +3394,6 @@ uuid = { version = "=1.26.1", features = ["v4", "js"] }
 
 ### 2. `src/lib.rs`
 
-Introduce geometry-free reload metadata.
-
 **Locate this existing block:**
 
 ```rust
@@ -3419,8 +3410,6 @@ pub mod picking;
 ```
 
 ### 3. `src/origin.rs`
-
-Keep descriptive protobuf data and a byte version without retaining kernel objects.
 
 Create the file and type:
 
@@ -3509,11 +3498,7 @@ mod tests {
 
 ## <a id="checkpoint-32fd-origin"></a>15. Attach one origin to an imported document
 
-Share one geometry-free origin across imported rows and history.
-
 ### 1. `src/document.rs`
-
-Retain reload metadata separately from the kernel Session. Record accepted original bytes and a geometry-free header before kernel construction. Share one import origin among all its source rows.
 
 **Locate this existing block:**
 
@@ -3588,8 +3573,6 @@ pub fn load(bytes: &[u8]) -> Result<Loaded, &'static str> {
 
 ### 2. `src/lib.rs`
 
-Check source ownership independently of drawing.
-
 **Locate this existing block:**
 
 ```rust
@@ -3607,8 +3590,6 @@ pub mod picking;
 ```
 
 ### 3. `src/origin_tests.rs`
-
-Optional authoring fixture. Observe true kernel expiration while retaining only header/version metadata.
 
 Create the file and type:
 
@@ -3686,8 +3667,6 @@ fn duplicate_imports_and_history_keep_their_own_origins() {
 
 ### 4. `src/browser.rs`
 
-Inspect shared import identity and exact versions without adding controls.
-
 **Locate this existing block:**
 
 ```rust
@@ -3723,11 +3702,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-32fe-location"></a>16. Give a reload URL an explicit owner
 
-Retain an owned Blob URL through imports and history, then release it with its last owner.
-
 ### 1. `src/lib.rs`
-
-Keep browser URL lifetime explicit and independent of kernel ownership.
 
 **Locate this existing block:**
 
@@ -3745,8 +3720,6 @@ pub mod row_metadata;
 ```
 
 ### 2. `src/reload_url.rs`
-
-Revoke a viewer-created Blob URL when its actual resource owner drops.
 
 Create the file and type:
 
@@ -3777,8 +3750,6 @@ impl Drop for ReloadUrl {
 ```
 
 ### 3. `src/origin.rs`
-
-Retain an optional reload location without retaining geometry. Ordinary native loads start without an owned browser location.
 
 **Locate this existing block:**
 
@@ -3832,8 +3803,6 @@ impl Origin {
 
 ### 4. `src/document.rs`
 
-Accept location ownership before a read/validation error can occur. Adopt the already owned URL only into validated source metadata.
-
 **Locate this existing block:**
 
 ```rust
@@ -3872,8 +3841,6 @@ pub fn load_at(
 ```
 
 ### 5. `src/editor.rs`
-
-Keep a URL owner alive until an import commits or fails. Preserve the same atomic insertion and replacement policy for located files.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -3932,8 +3899,6 @@ Replace it with:
 ```
 
 ### 6. `src/origin_tests.rs`
-
-Optional authoring fixture. Prove successful/history and failed-import URL lifetimes with Weak observers.
 
 **Locate this existing block:**
 
@@ -4026,11 +3991,7 @@ fn located_sources_keep_the_url_through_history_and_release_it_on_close() {
 </svg>
 </div>
 
-Transfer the accepted File through synchronous delivery and create its URL at adoption.
-
 ### 1. `src/file_input.rs`
-
-Hold an accepted File only across one synchronous editor delivery. Give the accepted read access to its scoped handoff slot. Transfer the File only after request ownership has been accepted. Pair bytes with their retained immutable File during dispatch. Always drop an unclaimed File after synchronous delivery, including dispatch failure. Adopt URL ownership only for a validated event with an accepted File.
 
 **Locate this existing block:**
 
@@ -4268,8 +4229,6 @@ pub fn action(
 
 ### 2. `src/browser.rs`
 
-Share one scoped delivery slot between reader and editor callback. Keep request tickets and File adoption in the same delivery path. Report adoption failure without claiming an import committed. Keep Replace success reporting accurate for the located action. Expose only hidden origin URL inspection for actual lifetime checks.
-
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -4399,11 +4358,7 @@ Replace it with:
 
 ## <a id="checkpoint-32fg-state"></a>18. Separate loaded and released editable ownership
 
-Represent source residency without changing retained display, identity or placement.
-
 ### 1. `src/lib.rs`
-
-Confine source residency representation to the viewer implementation.
 
 **Locate this existing block:**
 
@@ -4421,8 +4376,6 @@ pub mod editor;
 ```
 
 ### 2. `src/edit_source.rs`
-
-Keep Released ownership free of kernel mesh and Session values.
 
 Create the file and type:
 
@@ -4443,8 +4396,6 @@ pub enum EditSource {
 ```
 
 ### 3. `src/scene.rs`
-
-Retain public display fields while replacing only editable ownership. Borrow loaded owners safely while retaining origin and epoch in the released state. Preserve the validated insertion contract and display owner. Keep partial-replacement ownership assertions through the existing accessor boundary.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -4577,8 +4528,6 @@ impl Object {
 
 ### 4. `src/browser.rs`
 
-Retain origin inspection even when editable kernel ownership is absent.
-
 **Locate this existing block:**
 
 ```rust
@@ -4608,11 +4557,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-32fh-policy"></a>19. Protect sources that cannot be unloaded faithfully
 
-Require a reload location, original kernel allocation and unchanged row metadata.
-
 ### 1. `src/scene.rs`
-
-Only original, located imported sources can be restored by their original file. Apply a validated origin set without touching retained display/model/metadata owners. Prove the conditions that protect data not faithfully reloadable from the original file.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -4745,11 +4690,7 @@ Replace it with:
 
 ## <a id="checkpoint-32fi-history"></a>20. Unload sources across active and history roots
 
-Release a validated whole-origin set without clearing Undo/Redo or changing placements.
-
 ### 1. `src/history.rs`
-
-Visit both history branches without cloning or dropping their rows.
 
 **Locate this existing block:**
 
@@ -4772,8 +4713,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 2. `src/editor.rs`
-
-Add a residency operation distinct from document close. Issue epochs independently of document history and Close. Start the first viewer-owned release sequence without wraparound. Validate every retained origin row before issuing an epoch or changing any owner. Keep source unloading out of document Undo transactions.
 
 **Locate this existing block:**
 
@@ -4944,8 +4883,6 @@ impl Editor {
 
 ### 3. `src/scene.rs`
 
-Refuse an edit until its original editable source has been restored.
-
 **Locate this existing block:**
 
 ```rust
@@ -4964,8 +4901,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 4. `src/editor.rs`
-
-Keep selection/history unchanged when a cold edit requires hydration.
 
 **Locate this existing block:**
 
@@ -4994,11 +4929,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-32fj-proof"></a>21. Prove unloading preserves placed history
 
-Observe imported kernel expiration while retained displays and placements survive Undo/Redo.
-
 ### 1. `src/lib.rs`
-
-Verify actual source release independently of GPU drawing.
 
 **Locate this existing block:**
 
@@ -5017,8 +4948,6 @@ pub mod viewport;
 ```
 
 ### 2. `src/unload_tests.rs`
-
-Optional authoring fixture. Prove old source values expire while placed drawing data and history remain available.
 
 Create the file and type:
 
@@ -5084,11 +5013,7 @@ fn unloading_drops_imported_kernel_owners_but_keeps_display_and_history() {
 
 ## <a id="checkpoint-32fk-command"></a>22. Unload editable sources through the command line
 
-Keep the drawing and GPU allocations while the dock unloads eligible imported sources.
-
 ### 1. `src/browser.rs`
-
-Offer residency changes through the real command dock. Keep unload separate from Close and from keyboard shortcuts. Retain the submitted action kind across consumption. Report success only after validated residency and renderer synchronization complete. Inspect loaded/released state without adding runtime teaching controls.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -5210,8 +5135,6 @@ Replace it with:
 ## <a id="checkpoint-32fl-guards"></a>23. Protect history and future reload tickets
 
 ### 1. `src/editor.rs`
-
-Check modified history, independent imports and exhausted/reopened release issuance.
 
 **Locate this existing block:**
 

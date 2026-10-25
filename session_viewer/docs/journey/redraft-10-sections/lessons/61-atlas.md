@@ -1,6 +1,6 @@
 # 10.3 · A shared glyph atlas and lazy text drawing
 
-**Goal:** Draw the specimen and prove real coverage reuse. · **Steps:** 5 · **Source:** [engine/text.rs](../../../../src/engine/text.rs) · [engine/gpu/text.rs](../../../../src/engine/gpu/text.rs) · [engine/gpu/text_plane.rs](../../../../src/engine/gpu/text_plane.rs) · [engine/gpu/text_plate.rs](../../../../src/engine/gpu/text_plate.rs)
+**Steps:** 5 · **Source:** [engine/text.rs](../../../../src/engine/text.rs) · [engine/gpu/text.rs](../../../../src/engine/gpu/text.rs) · [engine/gpu/text_plane.rs](../../../../src/engine/gpu/text_plane.rs) · [engine/gpu/text_plate.rs](../../../../src/engine/gpu/text_plate.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -62,8 +62,6 @@
 
 ### 1. `src/text_atlas.rs`
 
-Own the current accurate-colour atlas and cache with separate frame/source revisions.
-
 Create the file and type:
 
 ```rust
@@ -123,8 +121,6 @@ impl Lane {
 
 ### 2. `src/lib.rs`
 
-Register the source component.
-
 **Locate this existing block:**
 
 ```rust
@@ -146,8 +142,6 @@ pub mod text_atlas;
 ## <a id="checkpoint-61a-coverage"></a>2. Prepare DPI-scaled glyph bounds and cache unchanged frames
 
 ### 1. `src/text_atlas.rs`
-
-Prepare real glyph coverage, pixel clips, revision resets and truthful CPU raster-cache counts.
 
 **Locate this existing block:**
 
@@ -275,8 +269,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 1. `src/text_example.rs`
 
-Provide a current-font specimen that exercises real glyph coverage.
-
 Create the file and type:
 
 ```rust
@@ -298,8 +290,6 @@ pub fn label() -> crate::text::TextLabel {
 ```
 
 ### 2. `src/lib.rs`
-
-Register the source component.
 
 **Locate this existing block:**
 
@@ -367,8 +357,6 @@ pub mod text_example;
 </div>
 
 ### 1. `src/renderer.rs`
-
-Draw a lazy glyph lane independently from primary geometry and expose preparation errors.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -573,8 +561,6 @@ pub struct Renderer {
 
 ### 1. `src/commands.rs`
 
-Connect the presentation specimen, current text diagnostics and explicit Close cleanup.
-
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -616,8 +602,6 @@ pub enum Host {
 ```
 
 ### 2. `src/browser.rs`
-
-Connect the presentation specimen, current text diagnostics and explicit Close cleanup.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -693,8 +677,6 @@ Replace it with:
 ```
 
 ### 3. `src/text_atlas_tests.rs`
-
-Copy actual anti-aliased coverage, CSS density, clipping, placement reuse and accepted/failed font replacement GPU checks.
 
 Create the file and type:
 
@@ -935,8 +917,6 @@ fn actual_glyph_clip_and_font_reload_preserve_source_words_and_reset_only_accept
 
 ### 4. `src/lib.rs`
 
-Register the source component.
-
 **Locate this existing block:**
 
 ```rust
@@ -957,8 +937,6 @@ mod text_atlas_tests;
 ```
 
 ### 5. `src/pick_gpu_tests.rs`
-
-Copy the actual scene-text overlay readback, source/GPU reuse and absence from scene picking.
 
 **Locate this existing block:**
 

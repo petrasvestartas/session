@@ -1,6 +1,6 @@
 # 15.2 · Profile collection and one surfacing transaction
 
-**Goal:** Exercise profiles exact surfaces and one undo transaction. · **Steps:** 14 · **Source:** [app/deform.rs](../../../../src/app/deform.rs) · [state/edit.rs](../../../../src/state/edit.rs) · [app/command/tool/gather.rs](../../../../src/app/command/tool/gather.rs) · [app/command/tool/surfacing.rs](../../../../src/app/command/tool/surfacing.rs)
+**Steps:** 14 · **Source:** [app/deform.rs](../../../../src/app/deform.rs) · [state/edit.rs](../../../../src/state/edit.rs) · [app/command/tool/gather.rs](../../../../src/app/command/tool/gather.rs) · [app/command/tool/surfacing.rs](../../../../src/app/command/tool/surfacing.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -47,8 +47,6 @@
 ## <a id="checkpoint-78-copy-current-curve-collection-and-surfacing-recipes"></a>1. Copy current curve collection and surfacing recipes
 
 ### 1. `src/lib.rs`
-
-Place this shared module beside its connected recipes using the existing registration. Place the shared module beside its connected recipes using the existing registration. Register the gather component.
 
 **Locate this existing block:**
 
@@ -99,8 +97,6 @@ mod shader_check;
 ## <a id="checkpoint-78a-own-picked-originals-and-world-profile-copies"></a>2. Own picked originals and world profile copies
 
 ### 1. `src/gather_draft.rs`
-
-Own pending recipe answers, original allocations, placements and derived world profiles.
 
 Create the file and type:
 
@@ -210,8 +206,6 @@ impl Draft {
 
 ### 2. `src/lib.rs`
 
-Register the gather component.
-
 **Locate this existing block:**
 
 ```rust
@@ -231,8 +225,6 @@ pub mod source_mesh_topology;
 ## <a id="checkpoint-78b-resolve-a-recipe-input-and-guard-picked-source-freshness"></a>3. Resolve a recipe input and guard picked source freshness
 
 ### 1. `src/gather_draft.rs`
-
-Extend the pending gather owner with checked current recipe behavior.
 
 **Locate this existing block:**
 
@@ -328,8 +320,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 1. `src/gather_draft.rs`
 
-Extend the pending gather owner with checked current recipe behavior.
-
 **Locate this existing block:**
 
 ```rust
@@ -400,8 +390,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ## <a id="checkpoint-78d-read-options-and-typed-batches-without-partial-results"></a>5. Read options and typed batches without partial results
 
 ### 1. `src/gather_draft.rs`
-
-Extend the pending gather owner with checked current recipe behavior.
 
 **Locate this existing block:**
 
@@ -488,8 +476,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ## <a id="checkpoint-78e-constrain-distance-input-and-draw-lifted-profile-wires"></a>6. Constrain distance input and draw lifted profile wires
 
 ### 1. `src/gather_draft.rs`
-
-Constrain current distance questions and derive temporary lifted profile wires.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -621,8 +607,6 @@ Replace it with:
 ## <a id="checkpoint-78f-carry-gather-state-through-the-current-tool-owner"></a>7. Carry gather state through the current tool owner
 
 ### 1. `src/tool.rs`
-
-Carry current gather state and current prompts/options beside the existing drawing owner.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -805,8 +789,6 @@ pub enum Shape {
 
 ### 2. `src/primitive_geometry.rs`
 
-Adopt original NURBS surfaces without replacing them by display meshes.
-
 **Locate this existing block:**
 
 ```rust
@@ -823,8 +805,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 3. `src/editor.rs`
-
-Carry recipe starts and original curve pick answers to Editor.
 
 **Locate this existing block:**
 
@@ -847,11 +827,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-78g-adopt-every-generated-original-in-one-history-transaction"></a>8. Adopt every generated in one history transaction
 
-Adopt every generated original in one history transaction.
-
 ### 1. `src/editor.rs`
-
-Connect original curve collection and one checked geometry transaction.
 
 **Locate this existing block:**
 
@@ -941,8 +917,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ## <a id="checkpoint-78h-start-and-advance-the-recipe-through-the-existing-editor"></a>9. Start and advance the recipe through the existing Editor
 
 ### 1. `src/editor.rs`
-
-Connect original curve collection and one checked geometry transaction.
 
 **Locate this existing block:**
 
@@ -1034,8 +1008,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ## <a id="checkpoint-78i-route-typed-answers-and-axis-cursor-input"></a>10. Route typed answers and axis cursor input
 
 ### 1. `src/editor.rs`
-
-Connect the current gather owner to existing input and history.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -1202,8 +1174,6 @@ Replace it with:
 ## <a id="checkpoint-78j-restore-selection-and-preserve-the-gather-lifecycle"></a>11. Restore selection and preserve the gather lifecycle
 
 ### 1. `src/editor.rs`
-
-Connect the current gather owner to existing input and history.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -1419,8 +1389,6 @@ Replace it with:
 
 ### 1. `src/gather_registry.rs`
 
-Register maintained extrusion/revolution names and recipes.
-
 Create the file and type:
 
 ```rust
@@ -1445,8 +1413,6 @@ pub fn command(name: &str, text: &str) -> Option<Action> {
 
 ### 2. `src/lib.rs`
 
-Register the gather component.
-
 **Locate this existing block:**
 
 ```rust
@@ -1464,8 +1430,6 @@ pub mod source_mesh_topology;
 ```
 
 ### 3. `src/commands.rs`
-
-Register maintained gather names and typed revolution alias.
 
 **Locate this existing block:**
 
@@ -1605,11 +1569,7 @@ pub fn parse(line: &str) -> Result<Command, String> {
 
 ## <a id="checkpoint-78l-pick-original-profiles-through-the-browser-integer-pass"></a>13. Pick profiles through the browser integer pass
 
-Pick original profiles through the browser integer pass.
-
 ### 1. `src/browser.rs`
-
-Route bounded whole-owner curve picks, temporary highlights, current prompts and gather diagnostics.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -1811,8 +1771,6 @@ Replace it with:
 ## <a id="checkpoint-78m-exercise-profiles-exact-surfaces-and-one-undo-transaction"></a>14. Exercise profiles exact surfaces and one undo transaction
 
 ### 1. `src/gather_tests.rs`
-
-Copy integrated current gather/profile/history/options/freshness/SaveOpen fixtures.
 
 Create the file and type:
 
@@ -2158,8 +2116,6 @@ fn stale_original_sources_are_refused_and_invalid_begin_keeps_existing_drawing()
 ```
 
 ### 2. `src/lib.rs`
-
-Register the gather component.
 
 **Locate this existing block:**
 

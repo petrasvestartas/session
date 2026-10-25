@@ -1,6 +1,6 @@
 # 16.4 · Measurements, temporary marks and retained CAD pieces
 
-**Goal:** Count derived pieces before allocating them. · **Steps:** 37 · **Source:** [app/command/verbs/project_to_plane.rs](../../../../src/app/command/verbs/project_to_plane.rs) · [app/command/verbs/extend.rs](../../../../src/app/command/verbs/extend.rs) · [app/splitting.rs](../../../../src/app/splitting.rs) · [app/command/verbs/measure.rs](../../../../src/app/command/verbs/measure.rs)
+**Steps:** 37 · **Source:** [app/command/verbs/project_to_plane.rs](../../../../src/app/command/verbs/project_to_plane.rs) · [app/command/verbs/extend.rs](../../../../src/app/command/verbs/extend.rs) · [app/splitting.rs](../../../../src/app/splitting.rs) · [app/command/verbs/measure.rs](../../../../src/app/command/verbs/measure.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -48,11 +48,7 @@
 
 ## <a id="checkpoint-84-measure-original-curves-surfaces-and-closed-solids"></a>1. Measure closed-solid volume
 
-Reject open geometry, choose a world point near the mesh and reuse the shared swept-volume helper.
-
 ### 1. `src/measure_volume.rs`
-
-Type the complete original helpers introduced today.
 
 Create the file and type:
 
@@ -128,8 +124,6 @@ fn origin_of(mesh: &Mesh, place: &Xform) -> Point {
 
 ### 2. `src/lib.rs`
 
-Register this original measurement owner.
-
 **Locate this existing block:**
 
 ```rust
@@ -147,8 +141,6 @@ pub mod source_mesh_topology;
 ```
 
 ### 3. `src/measure_volume.rs`
-
-Supply only the unchanged original validation fixtures.
 
 **Locate this existing block:**
 
@@ -269,11 +261,7 @@ mod tests {
 
 ## <a id="checkpoint-84a-validate-an-original-box-and-derive-wire-only-display"></a>2. Validate an box and derive wire-only display
 
-Validate an original box and derive wire-only display.
-
 ### 1. `src/scene.rs`
-
-Retain an independent original geometry owner beside the existing mesh display.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -316,8 +304,6 @@ pub struct Object {
 ```
 
 ### 2. `src/bounds_original.rs`
-
-Validate original box frames and prepare a wire-only display.
 
 Create the file and type:
 
@@ -413,8 +399,6 @@ pub fn prepared(source: &OBB) -> Result<crate::prepared::PreparedMesh, &'static 
 
 ### 3. `src/lib.rs`
 
-Register the measurement component.
-
 **Locate this existing block:**
 
 ```rust
@@ -433,11 +417,7 @@ pub mod source_mesh_topology;
 
 ## <a id="checkpoint-84b-adopt-original-boxes-and-retain-precise-placed-bounds"></a>3. Adopt boxes and retain precise placed bounds
 
-Adopt original boxes and retain precise placed bounds.
-
 ### 1. `src/bounds_original.rs`
-
-Adopt and place original boxes without substituting their display proxy.
 
 **Locate this existing block:**
 
@@ -492,8 +472,6 @@ pub fn box_geometry(bounds: &crate::bounds::Bounds) -> OBB {
 ```
 
 ### 2. `src/scene.rs`
-
-Use original box bounds and preserve the original family during source replacement.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -593,8 +571,6 @@ Replace it with:
 
 ### 3. `src/source_edit.rs`
 
-Return the original box allocation before considering display geometry.
-
 **Locate this existing block:**
 
 ```rust
@@ -649,8 +625,6 @@ pub fn same(a: &Geometry, b: &Geometry) -> bool {
 
 ### 4. `src/gpu_geometry.rs`
 
-Skip empty triangle draws before binding a wire-only box index buffer.
-
 **Locate this existing block:**
 
 ```rust
@@ -669,8 +643,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 5. `src/highlight.rs`
-
-Show whole selection on wire-only original edges without creating selected proxy faces.
 
 **Locate this existing block:**
 
@@ -721,11 +693,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-84c-save-and-reopen-the-original-box-frame"></a>4. Save and reopen the box frame
 
-Save and reopen the original box frame.
-
 ### 1. `src/geometry_snapshot.rs`
-
-Retain validated original OBB records through mixed document persistence.
 
 **Locate this existing block:**
 
@@ -746,8 +714,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 2. `src/document_source.rs`
-
-Retain validated original OBB records through mixed document persistence.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -791,8 +757,6 @@ Replace it with:
 
 ### 3. `src/document_geometry.rs`
 
-Retain validated original OBB records through mixed document persistence.
-
 **Locate this existing block:**
 
 ```rust
@@ -815,8 +779,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 4. `src/archive_identity.rs`
 
-Retain validated original OBB records through mixed document persistence.
-
 **Locate this existing block:**
 
 ```rust
@@ -833,8 +795,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 5. `src/source_validate.rs`
-
-Retain validated original OBB records through mixed document persistence.
 
 **Locate this existing block:**
 
@@ -890,8 +850,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ## <a id="checkpoint-84d-own-temporary-measurement-labels-without-scene-identities"></a>5. Own temporary measurement labels without scene identities
 
 ### 1. `src/measure_mark.rs`
-
-Own temporary points, unit suffixes and collision-free labels.
 
 Create the file and type:
 
@@ -983,8 +941,6 @@ impl Mark {
 
 ### 2. `src/lib.rs`
 
-Register the measurement component.
-
 **Locate this existing block:**
 
 ```rust
@@ -1004,8 +960,6 @@ pub mod source_mesh_topology;
 ## <a id="checkpoint-84e-report-distance-and-world-bounding-lengths"></a>6. Report distance and world bounding lengths
 
 ### 1. `src/measure_mark.rs`
-
-Resolve world selected bounds and distance without changing source geometry.
 
 **Locate this existing block:**
 
@@ -1076,11 +1030,7 @@ pub enum Kind {
 
 ## <a id="checkpoint-84f-collect-only-supported-finite-original-measurements"></a>7. Collect only supported finite measurements
 
-Collect only supported finite original measurements.
-
 ### 1. `src/measure_mark.rs`
-
-Collect original length, area and volume while keeping refusals explicit.
 
 **Locate this existing block:**
 
@@ -1166,8 +1116,6 @@ impl Total {
 ## <a id="checkpoint-84g-format-totals-refusals-and-three-axis-box-extents"></a>8. Format totals refusals and three-axis box extents
 
 ### 1. `src/measure_mark.rs`
-
-Report current formatted totals and world bounding lengths with bounded errors.
 
 **Locate this existing block:**
 
@@ -1280,8 +1228,6 @@ pub fn selection(
 ## <a id="checkpoint-84h-keep-measurements-outside-geometry-history"></a>9. Keep measurements outside geometry history
 
 ### 1. `src/editor.rs`
-
-Own temporary marks and connect selected-original numerical results and box creation.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -1419,8 +1365,6 @@ pub struct Editor {
 ## <a id="checkpoint-84i-accept-two-distance-points-through-the-drawing-tool"></a>10. Accept two distance points through the drawing tool
 
 ### 1. `src/tool.rs`
-
-Add a two-point measurement result to the existing drawing tool.
 
 **Locate this existing block:**
 
@@ -1790,8 +1734,6 @@ impl Tool for Shape {
 
 ### 2. `src/editor.rs`
 
-Complete accepted distance points without opening scene history and expose measurement actions.
-
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -1953,8 +1895,6 @@ Replace it with:
 
 ### 1. `src/editor.rs`
 
-Connect transient mark cleanup and completed-mark Escape.
-
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -2015,8 +1955,6 @@ Replace it with:
 ```
 
 ### 2. `src/commands.rs`
-
-Register original BoundingBox and current numerical measurement commands.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -2084,8 +2022,6 @@ Replace it with:
 
 ### 1. `src/stroke_gpu.rs`
 
-Add a colour-only overlay lane with explicit depth behaviour.
-
 **Locate this existing block:**
 
 ```rust
@@ -2116,8 +2052,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 2. `src/measure_gpu.rs`
-
-Cache unchanged marks and account for their actual stroke allocation.
 
 Create the file and type:
 
@@ -2179,8 +2113,6 @@ impl Measurement {
 ```
 
 ### 3. `src/lib.rs`
-
-Register the measurement component.
 
 **Locate this existing block:**
 
@@ -2246,8 +2178,6 @@ pub mod source_mesh_topology;
 </div>
 
 ### 1. `src/renderer.rs`
-
-Draw cached measurement strokes and merge temporary chips with the existing text owner.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -2474,8 +2404,6 @@ pub struct Renderer {
 
 ### 1. `src/browser.rs`
 
-Route current measurement input, physical Escape and truthful annotation diagnostics.
-
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -2606,8 +2534,6 @@ Replace it with:
 ```
 
 ### 2. `src/measure_tests.rs`
-
-Copy original box, exact archive, numerical, selected-face, history, distance and label-collision fixtures.
 
 Create the file and type:
 
@@ -2877,8 +2803,6 @@ fn temporary_annotation_ids_do_not_collide_with_scene_labels_or_gain_pick_owners
 
 ### 3. `src/lib.rs`
 
-Register the measurement component.
-
 **Locate this existing block:**
 
 ```rust
@@ -2898,11 +2822,7 @@ pub mod source_mesh_topology;
 
 ## <a id="checkpoint-84zza-describe-removable-cad-parts"></a>15. Describe removable CAD parts
 
-Represent curve intervals, BRep face groups and mesh sides without replacing the original CAD geometry.
-
 ### 1. `src/trim_parts.rs`
-
-Type the original CAD part representation and seam-aware curve helpers.
 
 Create the file and type:
 
@@ -2996,8 +2916,6 @@ fn piece(curve: &NurbsCurve, a: f64, b: f64) -> Option<NurbsCurve> {
 
 ### 2. `src/lib.rs`
 
-Register the shared part owner.
-
 **Locate this existing block:**
 
 ```rust
@@ -3020,11 +2938,7 @@ pub mod trim_parts;
 
 ## <a id="checkpoint-84zzb-read-trim-part-previews"></a>16. Read trim part previews
 
-Expose part counts, sampled curve outlines, section edges and meshes through one Parts owner.
-
 ### 1. `src/trim_parts.rs`
-
-Add this part-building behavior to the existing owner.
 
 **Locate this existing block:**
 
@@ -3146,11 +3060,7 @@ impl Parts {
 </svg>
 </div>
 
-Collect kernel curve intersections, filter open endpoints and merge a closed seam.
-
 ### 1. `src/trim_parts.rs`
-
-Add this part-building behavior to the existing owner.
 
 **Locate this existing block:**
 
@@ -3348,11 +3258,7 @@ fn kept_of<T: Clone>(list: &[T], used: &[bool]) -> Vec<T> {
 
 ## <a id="checkpoint-84zzd-preserve-trimmed-source-types"></a>18. Preserve trimmed source types
 
-Rebuild kept curves in their original source family with their presentation.
-
 ### 1. `src/trim_parts.rs`
-
-Add this part-building behavior to the existing owner.
 
 **Locate this existing block:**
 
@@ -3454,11 +3360,7 @@ fn planar_size(surface: &NurbsSurface) -> f64 {
 
 ## <a id="checkpoint-84zze-group-faces-by-cutting-planes"></a>19. Group faces by cutting planes
 
-Extend a plane-plane intersection past surface control points.
-
 ### 1. `src/trim_parts.rs`
-
-Add this part-building behavior to the existing owner.
 
 **Locate this existing block:**
 
@@ -3544,11 +3446,7 @@ fn across(line: &Line, surface: &NurbsSurface) -> NurbsCurve {
 
 ## <a id="checkpoint-84zzf-cut-planar-brep-faces"></a>20. Cut planar BRep faces
 
-Find crossed planar faces, split them through the kernel and collect section edges.
-
 ### 1. `src/trim_parts.rs`
-
-Add this part-building behavior to the existing owner.
 
 **Locate this existing block:**
 
@@ -3651,11 +3549,7 @@ fn cut_by_plane(brep: &mut BRep, plane: &Plane) -> Result<Vec<Vec<Point>>, Strin
 
 ## <a id="checkpoint-84zzg-assemble-removable-face-groups"></a>21. Assemble removable face groups
 
-Combine curve regions, fallback fence planes and crossed plane sections into one Parts value.
-
 ### 1. `src/trim_parts.rs`
-
-Add this part-building behavior to the existing owner.
 
 **Locate this existing block:**
 
@@ -3770,11 +3664,7 @@ fn faces(brep: &BRep, blades: &[Blade]) -> Result<Parts, String> {
 
 ## <a id="checkpoint-84zzh-mark-retained-brep-topology"></a>22. Mark retained BRep topology
 
-Walk retained faces through wires and edges to mark their surfaces, vertices and curve tables.
-
 ### 1. `src/trim_parts.rs`
-
-Add this part-building behavior to the existing owner.
 
 **Locate this existing block:**
 
@@ -3870,11 +3760,7 @@ pub fn without_faces(brep: &BRep, removed: &[usize]) -> Result<BRep, String> {
 
 ## <a id="checkpoint-84zzi-rebuild-retained-brep-tables"></a>23. Rebuild retained BRep tables
 
-Compact marked BRep tables and rewrite every reference.
-
 ### 1. `src/trim_parts.rs`
-
-Add this part-building behavior to the existing owner.
 
 **Locate this existing block:**
 
@@ -3999,11 +3885,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-84zzj-split-mesh-faces-at-a-plane"></a>24. Split mesh faces at a plane
 
-Classify mesh vertices, reuse one cut vertex per original edge and build both clipped face rings.
-
 ### 1. `src/trim_parts.rs`
-
-Add this part-building behavior to the existing owner.
 
 **Locate this existing block:**
 
@@ -4122,11 +4004,7 @@ pub fn mesh_sides(
 
 ## <a id="checkpoint-84zzk-compact-both-trimmed-mesh-sides"></a>25. Compact both trimmed mesh sides
 
-Compact each clipped mesh side to only its used vertices, rewrite its faces and preserve source name and color.
-
 ### 1. `src/trim_parts.rs`
-
-Add this part-building behavior to the existing owner.
 
 **Locate this existing block:**
 
@@ -4174,11 +4052,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-84zzl-rebuild-kept-cad-parts"></a>26. Rebuild kept CAD parts
 
-Merge adjacent kept curve intervals, remove BRep face groups and return the retained mesh half.
-
 ### 1. `src/trim_parts.rs`
-
-Add this part-building behavior to the existing owner.
 
 **Locate this existing block:**
 
@@ -4269,11 +4143,7 @@ pub fn kept(
 
 ## <a id="checkpoint-84zzm-connect-original-trim-recipes"></a>27. Connect trim recipes
 
-Route original curves, surfaces, BReps and meshes through the shared part builders.
-
 ### 1. `src/trim_parts.rs`
-
-Add this part-building behavior to the existing owner. Supply the original trim validation fixtures.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -4770,11 +4640,7 @@ fn curve_cuts(curve: &NurbsCurve, blades: &[Blade]) -> Result<Vec<f64>, String> 
 
 ## <a id="checkpoint-84zna-index-selection-loops-by-pixel-row"></a>28. Index selection loops by pixel row
 
-Build a row index for the even-odd point test.
-
 ### 1. `src/selection_region.rs`
-
-Type the shared selection region and row index.
 
 Create the file and type:
 
@@ -4860,8 +4726,6 @@ impl Region {
 
 ### 2. `src/lib.rs`
 
-Register the selection owner.
-
 **Locate this existing block:**
 
 ```rust
@@ -4880,11 +4744,7 @@ pub mod selection_region;
 
 ## <a id="checkpoint-84znb-test-window-membership-and-segment-crossings"></a>29. Test window membership and segment crossings
 
-Complete Region with point membership and segment clipping against the rectangle.
-
 ### 1. `src/selection_region.rs`
-
-Extend the existing original selection owner.
 
 **Locate this existing block:**
 
@@ -4947,11 +4807,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-84znc-sample-original-cad-families-for-selection"></a>30. Sample CAD families for selection
 
-Reuse original curve corners, curved domains, mesh vertices and BRep references as bounded selection samples.
-
 ### 1. `src/selection_region.rs`
-
-Extend the existing original selection owner.
 
 **Locate this existing block:**
 
@@ -5058,11 +4914,7 @@ fn brep_samples(brep: &BRep) -> impl Iterator<Item = [f64; 3]> + '_ {
 
 ## <a id="checkpoint-84znd-collect-original-boundary-strokes"></a>31. Collect boundary strokes
 
-Build surface grids and closed mesh outlines, then combine BRep vertices, edges and curved faces.
-
 ### 1. `src/selection_region.rs`
-
-Extend the existing original selection owner.
 
 **Locate this existing block:**
 
@@ -5138,11 +4990,7 @@ fn brep_strokes(brep: &BRep) -> Vec<Vec<[f64; 3]>> {
 
 ## <a id="checkpoint-84zne-test-crossing-selection-on-original-strokes"></a>32. Test crossing selection on strokes
 
-Dispatch original geometry families to their shared stroke builders.
-
 ### 1. `src/selection_region.rs`
-
-Extend the existing original selection owner.
 
 **Locate this existing block:**
 
@@ -5237,11 +5085,7 @@ fn strokes(geometry: &Geometry) -> Option<Vec<Vec<[f64; 3]>>> {
 
 ## <a id="checkpoint-84znf-connect-window-and-bounds-selection-tests"></a>33. Connect window and bounds selection tests
 
-Add projection, conservative screen bounds and complete-enclosure dispatch.
-
 ### 1. `src/selection_region.rs`
-
-Extend the existing original selection owner. Supply the original region-selection validation fixtures.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -5475,11 +5319,7 @@ pub(crate) fn touched(
 
 ## <a id="checkpoint-84zoa-classify-originals-and-isolate-one-mesh-face"></a>34. Classify originals and isolate one mesh face
 
-Name each original geometry kind once.
-
 ### 1. `src/source_shape.rs`
-
-Type the whole original helpers introduced today.
 
 Create the file and type:
 
@@ -5539,8 +5379,6 @@ impl Shape {
 
 ### 2. `src/lib.rs`
 
-Compile the shared original geometry classifier.
-
 **Locate this existing block:**
 
 ```rust
@@ -5560,8 +5398,6 @@ pub mod source_shape;
 ```
 
 ### 3. `src/explode_geometry.rs`
-
-Type the whole original helpers introduced today.
 
 Create the file and type:
 
@@ -5606,8 +5442,6 @@ fn face_mesh(mesh: &Mesh, face: usize) -> Option<Mesh> {
 
 ### 4. `src/lib.rs`
 
-Register this original command owner.
-
 **Locate this existing block:**
 
 ```rust
@@ -5634,11 +5468,7 @@ pub mod source_mesh_topology;
 
 ## <a id="checkpoint-84zob-copy-original-brep-edges-and-pcurves"></a>35. Copy BRep edges and pcurves
 
-Copy an edge, its endpoint vertices and its surface pcurves into a new BRep.
-
 ### 1. `src/explode_geometry.rs`
-
-Extend this original owner with today’s complete helper.
 
 **Locate this existing block:**
 
@@ -5716,11 +5546,7 @@ fn copy_edge(
 
 ## <a id="checkpoint-84zoc-build-one-original-brep-face"></a>36. Build one BRep face
 
-Reuse the copied-edge helper to rebuild one face surface, ordered wire references and one oriented shell.
-
 ### 1. `src/explode_geometry.rs`
-
-Extend this original owner with today’s complete helper.
 
 **Locate this existing block:**
 
@@ -5794,8 +5620,6 @@ fn face_brep(brep: &BRep, index: usize) -> Option<BRep> {
 ## <a id="checkpoint-84zod-explode-supported-original-families"></a>37. Explode supported families
 
 ### 1. `src/explode_geometry.rs`
-
-Extend this original owner with today’s complete helper. Supply only the unchanged original validation fixtures.
 
 **Locate this existing block:**
 

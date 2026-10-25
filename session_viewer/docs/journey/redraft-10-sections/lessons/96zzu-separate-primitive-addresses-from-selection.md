@@ -1,6 +1,6 @@
 # 20.4 · Slots, independent instance owners and stable record updates
 
-**Goal:** Draw transparent placements from the same shared records in scene order. · **Steps:** 24 · **Source:** [engine/gpu/arena.rs](../../../../src/engine/gpu/arena.rs) · [engine/gpu/buffers.rs](../../../../src/engine/gpu/buffers.rs) · [engine/gpu/objects.rs](../../../../src/engine/gpu/objects.rs) · [engine/gpu/slots.rs](../../../../src/engine/gpu/slots.rs)
+**Steps:** 24 · **Source:** [engine/gpu/arena.rs](../../../../src/engine/gpu/arena.rs) · [engine/gpu/buffers.rs](../../../../src/engine/gpu/buffers.rs) · [engine/gpu/objects.rs](../../../../src/engine/gpu/objects.rs) · [engine/gpu/slots.rs](../../../../src/engine/gpu/slots.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -95,11 +95,7 @@
 </svg>
 </div>
 
-Keep full primitive addresses in the range record while selection remains an independent flag.
-
 ### 1. `src/primitive_image.rs`
-
-Name the beginning of the existing reserved cap interval.
 
 **Locate this existing block:**
 
@@ -117,8 +113,6 @@ pub(crate) struct Image {
 ```
 
 ### 2. `src/gpu_mesh.rs`
-
-Keep selection independent of the address. Use the already aligned range record for the full primitive base. Validate the entire emitted interval and upload only its address word.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -205,8 +199,6 @@ Replace it with:
 
 ### 3. `src/triangle.wgsl`
 
-Read the same range word in color and first picking.
-
 **Locate this existing block:**
 
 ```wgsl
@@ -225,8 +217,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 4. `src/triangle_pick.wgsl`
 
-Read the same range word in color and first picking.
-
 **Locate this existing block:**
 
 ```wgsl
@@ -244,8 +234,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 5. `src/instance_gpu.rs`
-
-Keep the instance shader adaptation attached to the new ordinary expression. Build instance slots from the same full address.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -296,8 +284,6 @@ Replace it with:
 
 ### 6. `src/renderer.rs`
 
-Bound cumulative visible ranges below reserved cap markers.
-
 **Locate this existing block:**
 
 ```rust
@@ -315,8 +301,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 7. `src/global_outline_tests.rs`
-
-Read the independent base in the existing ownership fixture. Reject reserved addresses while keeping the original unchanged-state assertion. Supply full high-bit GPU readback, selection independence, cap collision and overflow assertions.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -514,11 +498,7 @@ Replace it with:
 </svg>
 </div>
 
-Use one integer vertex input for ordinary surfaces and placed-instance surfaces.
-
 ### 1. `src/draw_slots.rs`
-
-Generate the shader sentinel from the existing integer owner.
 
 **Locate this existing block:**
 
@@ -538,8 +518,6 @@ pub type Slot = [u32; 2];
 ```
 
 ### 2. `src/clipping_gpu.rs`
-
-Include the same own-row sentinel in shared shader assembly.
 
 **Locate this existing block:**
 
@@ -561,8 +539,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 3. `src/triangle.wgsl`
-
-Read the shared eight-byte vertex slot in ordinary and instance pipelines. Choose the own-record base for ordinary surfaces and the slot base for instances. Emit the selected independent primitive base.
 
 **Locate this existing block:**
 
@@ -591,8 +567,6 @@ fn vertex(@builtin(vertex_index) occurrence: u32, @location(0) row:u32,@location
 
 ### 4. `src/instance_gpu.rs`
 
-Retain only record-owner adaptation; the vertex entry and slots are now shared.
-
 **Locate this existing block:**
 
 ```rust
@@ -620,8 +594,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 5. `src/renderer.rs`
-
-Own one permanent default slot with the renderer pipeline resources. Declare the same integer vertex layout for ordinary surface pipelines. Create the eight-byte own-row sentinel once. Carry the existing slot owner into the renderer. Bind the own-row input before ordinary surface draws. Restore the own-row input after any instance batch changes it.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -760,8 +732,6 @@ Replace it with:
 
 ### 6. `src/global_outline_tests.rs`
 
-Supply actual ordinary/instance pixels, placed-face highlights, primitive preservation, original sources and permanent sentinel checks.
-
 **Locate this existing block:**
 
 ```rust
@@ -855,11 +825,7 @@ fn actual_ordinary_surfaces_keep_one_own_row_slot_through_instances_highlights_a
 
 ## <a id="checkpoint-96zzw-reload-scenes-through-the-existing-publication-owner"></a>3. Reload scenes through the existing publication owner
 
-Expose scene replacement through the existing reader, including empty-manifest document release.
-
 ### 1. `src/publication_route.rs`
-
-Share named-scene resolution between startup and explicit reload. Reuse the existing data-base rules. Use the same path rule at startup without a second algorithm.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -981,8 +947,6 @@ fn data_base(data: Option<&str>) -> String {
 ```
 
 ### 2. `src/browser_publication.rs`
-
-Keep one stable publication slot for browser callbacks. Let callback clones observe the current owner through the same slot. Retain a stable control slot even when startup has no scene route. Reuse one publication state constructor for startup and explicit replacement. Keep route-less reload calls as no-ops, matching the current entry point. Keep the existing callback identity when a scene is replaced. Read the latest state through the stable weak control slot. Cancel the old reader and move its replacement into the same slot.
 
 **Locate this existing block:**
 
@@ -1157,8 +1121,6 @@ impl Control {
 
 ### 3. `src/browser_runtime.rs`
 
-Export the current replacement entry point and start reading after the runtime borrow ends.
-
 **Locate this existing block:**
 
 ```rust
@@ -1207,8 +1169,6 @@ pub fn reload_scene(url: Option<String>) -> Result<(), wasm_bindgen::JsValue> {
 ```
 
 ### 4. `src/reload_complete_tests.rs`
-
-Supply actual history, original-owner and manifest-cache release assertions.
 
 **Locate this existing block:**
 
@@ -1298,8 +1258,6 @@ fn live_empty_manifest_releases_originals_history_and_cached_source_owners() {
 
 ### 5. `src/publication_route.rs`
 
-Supply current absolute, nested and bare named-scene routing checks.
-
 **Locate this existing block:**
 
 ```rust
@@ -1385,11 +1343,7 @@ fn explicit_named_reload_uses_current_base_and_path_rules() {
 </svg>
 </div>
 
-Patch changed instance slots without rewriting their unchanged neighbours.
-
 ### 1. `src/text_gpu_support.rs`
-
-Write aligned existing rows without changing capacity or the active count.
 
 **Locate this existing block:**
 
@@ -1418,8 +1372,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 2. `src/draw_slots.rs`
-
-Report the bytes actually uploaded by this slot update. Initialize upload accounting. Patch changed contiguous runs; append new rows and retain capacity on shrink.
 
 **Locate this existing block:**
 
@@ -1528,8 +1480,6 @@ impl Slots {
 
 ### 3. `src/instance_gpu.rs`
 
-Count partial slot uploads rather than every slot in the batch.
-
 **Locate this existing block:**
 
 ```rust
@@ -1547,8 +1497,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 4. `src/draw_slots_tests.rs`
-
-Supply real GPU readback checks for partial writes, unchanged rows, growth, shrink and bounds.
 
 **Locate this existing block:**
 
@@ -1680,11 +1628,7 @@ fn actual_partial_slot_writes_preserve_neighbours_growth_and_sentinel() {
 </svg>
 </div>
 
-Bind ordinary surfaces and every instance batch from one slot buffer.
-
 ### 1. `src/instance_gpu.rs`
-
-Store a range start instead of another slot owner. Own the single surface slot buffer in the lane. Initialize the single sentinel owner. Use the current device queue for the initial sentinel. Keep the concatenated slot order identical to the ordered draw batches. Remove the unused group owner. Gather each batch into the same slot table. Use one queue context after gathering the batches. Remember the first shared slot; row zero remains reserved. Retain the batch’s range alongside its current records. Remove per-batch slot allocation and duplicate sentinels. Upload the shared rows once and release scene capacity when no batches remain. Bind each batch’s shared slot range. Let ordinary draws read the same sentinel owner. Count the shared scene allocation once; the empty sentinel remains a static pipeline resource.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -2013,8 +1957,6 @@ struct Batch {
 
 ### 2. `src/renderer.rs`
 
-Remove the duplicate ordinary slot owner. Pass the current queue to the lane. Keep only the lane’s sentinel. Construct one surface slot owner. Rebind the shared sentinel before ordinary surfaces or temporary highlights.
-
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -2132,8 +2074,6 @@ Replace it with:
 ```
 
 ### 3. `src/global_outline_tests.rs`
-
-Retain the mapped sentinel and released-scene checks against the shared owner. Supply actual two-definition GPU drawing, mapped range, selection and release checks.
 
 **Locate this existing block:**
 
@@ -2377,11 +2317,7 @@ fn actual_surface_batches_share_one_slot_owner_and_restore_ordinary_drawing() {
 </svg>
 </div>
 
-Store slot lookup records in an integer texture with bounded partial uploads.
-
 ### 1. `src/primitive_slot_table.rs`
-
-Prepare one RGBA32Uint lookup owner, full replacement and bounded row writes.
 
 Create the file and type:
 
@@ -2480,8 +2416,6 @@ impl Table {
 
 ### 2. `src/lib.rs`
 
-Register the lookup resource without changing the existing draw path.
-
 **Locate this existing block:**
 
 ```rust
@@ -2500,8 +2434,6 @@ mod primitive_slot_table;
 ```
 
 ### 3. `src/primitive_slot_table_tests.rs`
-
-Supply actual integer texture readback, row-crossing, bounds and release checks.
 
 Create the file and type:
 
@@ -2610,8 +2542,6 @@ fn actual_integer_slot_texture_preserves_ids_across_partial_row_writes_and_relea
 
 ### 4. `src/lib.rs`
 
-Register the optional GPU validation fixture.
-
 **Locate this existing block:**
 
 ```rust
@@ -2674,11 +2604,7 @@ mod primitive_slot_table_tests;
 </svg>
 </div>
 
-Represent reserved slot capacity separately from occupied members and triangle IDs.
-
 ### 1. `src/slot_space.rs`
-
-Describe slot and ID capacity, definitions and change reports.
 
 Create the file and type:
 
@@ -2770,8 +2696,6 @@ pub struct SlotSpace {
 
 ### 2. `src/lib.rs`
 
-Register the preparatory allocator types.
-
 **Locate this existing block:**
 
 ```rust
@@ -2791,11 +2715,7 @@ mod slot_space;
 
 ## <a id="checkpoint-96zzzb-read-slot-runs-and-lookup-texels"></a>8. Read slot runs and lookup texels
 
-Derive GPU slot values and lookup texels from the same CPU run.
-
 ### 1. `src/slot_space.rs`
-
-Build this day’s whole allocator methods on the preceding types.
 
 **Locate this existing block:**
 
@@ -2908,11 +2828,7 @@ fn coalesce(ranges: Vec<Range<u32>>, end: u32) -> Vec<Range<u32>> {
 
 ## <a id="checkpoint-96zzzc-reuse-and-merge-free-slot-ranges"></a>9. Reuse and merge free slot ranges
 
-Allocate fitting holes, retain unused room and merge released neighbours.
-
 ### 1. `src/slot_space.rs`
-
-Build this day’s whole allocator methods on the preceding types.
 
 **Locate this existing block:**
 
@@ -2995,11 +2911,7 @@ impl SlotSpace {
 
 ## <a id="checkpoint-96zzzd-follow-arena-growth-with-slot-headroom"></a>10. Follow arena growth with slot headroom
 
-Preserve instance IDs while arena growth remains inside reserved headroom.
-
 ### 1. `src/slot_space.rs`
-
-Build this day’s whole allocator methods on the preceding types.
 
 **Locate this existing block:**
 
@@ -3098,11 +3010,7 @@ impl SlotSpace {
 
 ## <a id="checkpoint-96zzze-report-only-changed-instance-slots"></a>11. Report only changed instance slots
 
-Update touched members and growing definitions while reporting bounded dirty ranges.
-
 ### 1. `src/slot_space.rs`
-
-Build this day’s whole allocator methods on the preceding types. Supply the five original allocator fixtures, retaining their allocation and changed-range assertions.
 
 **Locate this existing block:**
 
@@ -3488,11 +3396,7 @@ mod tests {
 
 ## <a id="checkpoint-96zzzf-project-triangles-at-their-physical-addresses"></a>12. Project triangles at their physical addresses
 
-Keep finite triangle records at the same addresses written into the primitive image.
-
 ### 1. `src/gpu_mesh.rs`
-
-Expose the existing address owner rather than deriving another base.
 
 **Locate this existing block:**
 
@@ -3514,8 +3418,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 2. `src/tile_gpu.rs`
-
-Invalidate projection when physical addresses change. Budget the largest physical interval, including gaps. Retain the base in the same geometry/model witness. Remove the second address accumulator. Write the object’s physical start into its projection metadata. Retain one address owner. Zero inactive records before projecting the active intervals.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -3673,8 +3575,6 @@ struct Row {
 
 ### 3. `src/global_outline_tests.rs`
 
-Supply actual mapped gap, relocated record, cache, pixel restoration and device-budget checks.
-
 **Locate this existing block:**
 
 ```rust
@@ -3790,11 +3690,7 @@ fn actual_projected_records_follow_physical_gaps_clear_old_ranges_and_bound_fall
 
 ## <a id="checkpoint-96zzzg-clear-the-current-arctic-background"></a>13. Clear the current Arctic background
 
-Use the current Arctic background without another draw or geometry upload.
-
 ### 1. `src/renderer.rs`
-
-Use the existing colour clear; no extra fullscreen pipeline is needed.
 
 **Locate this existing block:**
 
@@ -3817,8 +3713,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 2. `src/ambient_gpu_tests.rs`
-
-Keep the native UNORM contact-shadow assertion below the linear grey background, so the background itself cannot satisfy it. Measure surface darkening only on geometry pixels; the changed background is not ambient shading.
 
 **Locate this existing block:**
 
@@ -3865,11 +3759,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-96zzzh-share-changed-record-runs"></a>14. Share changed record runs
 
-Reuse the existing contiguous-change scan for slot and object records.
-
 ### 1. `src/draw_slots.rs`
-
-Extract the existing comparison, retaining its order. Use one changed-run owner; keep slot zero outside the scan.
 
 **Locate this existing block:**
 
@@ -3998,11 +3888,7 @@ impl Slots {
 
 ## <a id="checkpoint-96zzzi-prepare-one-shared-object-record-table"></a>15. Prepare one shared object record table
 
-Prepare one growable storage table without duplicating slot upload logic.
-
 ### 1. `src/object_rows.rs`
-
-Reuse the aligned record, growing buffer and shared changed-run helper.
 
 Create the file and type:
 
@@ -4109,8 +3995,6 @@ impl Rows {
 
 ### 2. `src/lib.rs`
 
-Expose the preparatory owner.
-
 **Locate this existing block:**
 
 ```rust
@@ -4127,8 +4011,6 @@ mod primitive_slot_table;
 ```
 
 ### 3. `src/object_rows.rs`
-
-Supply mapped GPU checks for unchanged neighbors, high-bit fields, growth, binding replacement and release.
 
 **Locate this existing block:**
 
@@ -4224,11 +4106,7 @@ mod tests {
 
 ## <a id="checkpoint-96zzzj-share-instance-object-records-across-definitions"></a>16. Share instance object records across definitions
 
-Draw distinct definitions from one shared placement-record buffer.
-
 ### 1. `src/instance_gpu.rs`
-
-Remove batch-specific buffer creation. A batch retains shared geometry and its draw interval only. The lane owns one object-record table. Bind the existing instance layout to the shared table. Number records across definitions before publishing any GPU change. Reuse changed-record writes, current bindings and empty release. Every definition reads the same current object table. Count the shared allocation once. One shared table removes the old per-definition chunk key. Retain each original geometry definition once. Expose the current shared buffer for the authoring GPU readback.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -4507,8 +4385,6 @@ pub struct Lane {
 
 ### 2. `src/global_outline_tests.rs`
 
-The second definition now addresses global row one, while the ordinary sentinel stays unchanged. Supply exact mapped shared records and actual original-colored pixels in both placed halves; retain selection, opacity restoration and release assertions.
-
 **Locate this existing block:**
 
 ```rust
@@ -4566,11 +4442,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-96zzzk-reuse-checked-curve-control-coordinates"></a>17. Reuse checked curve control coordinates
 
-Use one checked rational-control decoder for sampling and control markers.
-
 ### 1. `src/controls.rs`
-
-Move the checked method already written into this module position; the next edit changes its signature. The body is reused, not a supplied new algorithm. Give the moved body a borrowed curve and index; remove the former self binding. Keep the source owner and existing public coordinate API.
 
 **Locate this existing block:**
 
@@ -4696,8 +4568,6 @@ impl Control {
 
 ### 2. `src/curve.rs`
 
-Remove the second rational-coordinate decoder. Reuse checked coordinates without an Rc clone, retaining the sampler’s existing extent error.
-
 **Locate this existing block:**
 
 ```rust
@@ -4737,11 +4607,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-96zzzl-publish-allocator-texels-through-the-integer-table"></a>18. Publish allocator texels through the integer table
 
-Connect allocator changes to the existing exact integer texture writer.
-
 ### 1. `src/primitive_slot_table.rs`
-
-Share the existing texture-shape rule instead of repeating it. Keep full writes and allocator publication on the same dimensions. Publish existing dirty ranges and report whether immutable consumer bindings must be rebuilt.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -4844,8 +4710,6 @@ fn texture(ctx: &GpuCtx, width: u32, height: u32) -> wgpu::Texture {
 
 ### 2. `src/primitive_slot_table_tests.rs`
 
-Supply actual mapped allocator words, high-bit rows, retired slots, unchanged neighbors and zero release.
-
 **Locate this existing block:**
 
 ```rust
@@ -4929,11 +4793,7 @@ fn actual_allocator_publication_keeps_high_rows_free_slots_neighbours_and_releas
 
 ## <a id="checkpoint-96zzzm-resolve-physical-triangles-with-integer-slots"></a>19. Resolve physical triangles with integer slots
 
-Resolve a physical triangle ID back to its definition triangle and object row.
-
 ### 1. `src/primitive_slot_lookup.wgsl`
-
-Resolve one-based physical IDs with unsigned integer texels and reject unused ranges.
 
 Create the file and type:
 
@@ -4964,8 +4824,6 @@ fn placed_triangle(id: u32, arena: u32) -> vec2<u32> {
 ```
 
 ### 2. `src/primitive_slot_table_tests.rs`
-
-Supply an actual GPU dispatch through the taught shader; check original IDs, high-bit rows, retired holes and an empty table.
 
 **Locate this existing block:**
 
@@ -5161,11 +5019,7 @@ fn actual_slot_shader_resolves_arena_instances_holes_high_rows_and_empty_table()
 
 ## <a id="checkpoint-96zzzn-batch-shared-geometry-with-original-ownership"></a>20. Batch shared geometry with ownership
 
-Reuse instance drawing for copied originals sharing GPU geometry.
-
 ### 1. `src/renderer.rs`
-
-Batch reused GPU geometry without turning copied originals into kernel InstanceRef owners.
 
 **Locate this existing block:**
 
@@ -5193,8 +5047,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 2. `src/pick_gpu_tests.rs`
-
-Supply actual copied-original pixels, high-bit original picks, selection restoration, hide/reopen and CPU/GPU release.
 
 **Locate this existing block:**
 
@@ -5314,8 +5166,6 @@ fn actual_copied_originals_share_instance_records_keep_original_picks_and_return
 
 ### 3. `src/instance_gpu.rs`
 
-Share the existing record capacity and retain ordinary drawing when optional copied-original batches exceed it. Keep optional batching and the record writer on one device-limit calculation.
-
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -5386,8 +5236,6 @@ pub(crate) fn source() -> String {
 ```
 
 ### 4. `src/object_rows.rs`
-
-Own the shared record-capacity calculation beside the record table. Use the same limit for optional batching, instance writes and object-record writes.
 
 **Locate this existing block:**
 
@@ -5478,11 +5326,7 @@ impl Rows {
 
 ## <a id="checkpoint-96zzzo-shrink-record-ranges-without-rewriting-live-prefixes"></a>21. Shrink record ranges without rewriting live prefixes
 
-Reuse one logical buffer truncate operation for object records and draw slots.
-
 ### 1. `src/text_gpu_support.rs`
-
-Shorten a logical record range without replacing its allocation or rewriting the live prefix.
 
 **Locate this existing block:**
 
@@ -5506,8 +5350,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 2. `src/object_rows.rs`
-
-Reuse the existing changed-run scan on shrinking tables; write only changed live records.
 
 **Locate this existing block:**
 
@@ -5553,8 +5395,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 3. `src/draw_slots.rs`
 
-Keep slot zero and unchanged instance slots while shortening their logical range.
-
 **Locate this existing block:**
 
 ```rust
@@ -5577,8 +5417,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 4. `src/object_rows.rs`
-
-Supply mapped live prefixes, exact partial-write counts and current immutable bindings while shrinking.
 
 **Locate this existing block:**
 
@@ -5612,8 +5450,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 5. `src/draw_slots_tests.rs`
 
-Supply exact retained slot bytes and one changed high-bit slot through a second shrink.
-
 **Locate this existing block:**
 
 ```rust
@@ -5645,11 +5481,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-96zzzp-share-opaque-ordinary-surface-records"></a>22. Share opaque ordinary surface records
 
-Draw ordinary opaque surfaces from the same object-record table as instances.
-
 ### 1. `src/instance_gpu.rs`
-
-Keep each ordinary original’s draw slot alongside the shared record table. Start with no ordinary record leases. Receive ordinary visible meshes without changing the existing instance grouping. Append ordinary records when the table has room; keep their legacy path when it does not. Release all scene slots after both ordinary and instance leases end. Adopt current record leases together with the instance batches. Draw ordinary opaque meshes in their existing scene order through the same storage-record shader. Account for every live slot allocation once, including ordinary record consumers.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -5843,8 +5675,6 @@ Replace it with:
 
 ### 2. `src/renderer.rs`
 
-Refresh both ordinary and instance records after scene or selection changes. Use storage records for opaque ordinary surfaces; retain the earlier transparent and capacity-fallback paths.
-
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -5921,8 +5751,6 @@ Replace it with:
 
 ### 3. `src/pick_gpu_tests.rs`
 
-The surviving ordinary original now retains its shared record allocation; its original pick and full final release remain checked.
-
 **Locate this existing block:**
 
 ```rust
@@ -5940,8 +5768,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 4. `src/global_outline_tests.rs`
-
-Supply mapped ordinary records and exact storage-versus-legacy pixels and primitive addresses through growth, selection, opacity restoration and release.
 
 **Locate this existing block:**
 
@@ -6041,8 +5867,6 @@ fn actual_ordinary_storage_records_match_legacy_pixels_and_primitives_through_gr
 
 ### 5. `src/object_rows.rs`
 
-Reuse the record table’s existing CPU snapshot; use the current ordinary uniform path after a mesh range or record changes.
-
 **Locate this existing block:**
 
 ```rust
@@ -6062,11 +5886,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-96zzzq-blend-ordinary-surface-records"></a>23. Blend ordinary surface records
 
-Use the shared ordinary record table at the current translucent default.
-
 ### 1. `src/instance_gpu.rs`
-
-Keep a blended ordinary pipeline beside the existing instance pipeline. Share the full pipeline descriptor instead of repeating it for blending. Use the same ordinary alpha-blend policy already written in the uniform renderer. Create both states from one shader, layout and descriptor. Own the ordinary blend state with the existing shared record consumers. Blend ordinary records while keeping their exact primitive IDs, draw count and scene order.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -6202,8 +6022,6 @@ Replace it with:
 
 ### 2. `src/renderer.rs`
 
-Ordinary storage records now work at the current translucent default as well as Opacity 1.
-
 **Locate this existing block:**
 
 ```rust
@@ -6223,8 +6041,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 3. `src/global_outline_tests.rs`
-
-Supply exact storage-versus-uniform RGBA and primitive images at x-ray, half opacity, the current default and full opacity.
 
 **Locate this existing block:**
 
@@ -6260,8 +6076,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ## <a id="checkpoint-96zzzr-share-transparent-instance-records"></a>24. Share transparent instance records
 
 ### 1. `src/instance_gpu.rs`
-
-Retain each original owner beside its packed instance record. Keep source ownership while preparing shared geometry batches. Build one lookup for individual draws alongside the existing batches. Read the original identity without encoding it as a floating-point value. Index the existing instance slot and record for a single blended draw. Append optional ordinary rows to the same lookup. Distinguish the ordinary input iterator from the individual-draw lookup.
 
 **Locate this existing block:**
 
@@ -6403,8 +6217,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 2. `src/global_outline_tests.rs`
-
-Supply exact transparent-copy color and primitive comparisons, independent selection, unchanged originals, uploads and full release.
 
 **Locate this existing block:**
 

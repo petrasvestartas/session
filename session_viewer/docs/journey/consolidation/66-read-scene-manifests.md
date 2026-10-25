@@ -1,6 +1,6 @@
 # 12.1 · Complete viewer files and published scene sources
 
-**Goal:** Connect browser save open and URL adoption. · **Steps:** 44 · **Source:** [app/manifest.rs](../../../src/app/manifest.rs) · [app/session_io.rs](../../../src/app/session_io.rs) · [app/stream.rs](../../../src/app/stream.rs) · [app/range_gate.rs](../../../src/app/range_gate.rs)
+**Steps:** 44 · **Source:** [app/manifest.rs](../../../src/app/manifest.rs) · [app/session_io.rs](../../../src/app/session_io.rs) · [app/stream.rs](../../../src/app/stream.rs) · [app/range_gate.rs](../../../src/app/range_gate.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -56,11 +56,7 @@
 
 ## <a id="checkpoint-66-read-scene-manifests"></a>1. Parse and bound scene manifests
 
-Parse supported manifest forms, then bound bytes, record counts and text content.
-
 ### 1. `src/manifest.rs`
-
-Extend this original owner with today’s complete helper. Supply only the unchanged original validation fixtures.
 
 **Locate this existing block:**
 
@@ -585,11 +581,7 @@ mod tests {
 
 ## <a id="checkpoint-66a-compare-live-byte-revisions"></a>2. Compare live byte revisions
 
-Write per-URL ETag and byte-hash records.
-
 ### 1. `src/live_revision.rs`
-
-Type the whole original helpers introduced today.
 
 Create the file and type:
 
@@ -630,8 +622,6 @@ impl Revisions {
 
 ### 2. `src/lib.rs`
 
-Register byte-revision tracking.
-
 **Locate this existing block:**
 
 ```rust
@@ -657,8 +647,6 @@ mod shader_check;
 ```
 
 ### 3. `src/live_revision.rs`
-
-Supply only the unchanged original validation fixtures.
 
 **Locate this existing block:**
 
@@ -703,8 +691,6 @@ mod tests {
 ## <a id="checkpoint-66b-validate-source-records-before-allocation"></a>3. Bound finite coordinates and packed integer reads
 
 ### 1. `src/source_validate.rs`
-
-Guard scalar finiteness, coordinate triples and arithmetic before allocating or indexing. Decode a bounded varint without shifts past sixty-three bits.
 
 Create the file and type:
 
@@ -795,8 +781,6 @@ fn addressed_surface_controls(
 
 ### 2. `src/lib.rs`
 
-Register the source component.
-
 **Locate this existing block:**
 
 ```rust
@@ -824,8 +808,6 @@ pub mod source_validate;
 ## <a id="checkpoint-66ba-validate-one-nurbs-knot-axis"></a>4. Validate one NURBS knot axis
 
 ### 1. `src/source_validate.rs`
-
-Relate order, control count and knot count, then reject nonfinite or decreasing knots before a kernel constructor.
 
 **Locate this existing block:**
 
@@ -869,8 +851,6 @@ fn axis(order: i32, count: i32, knots: &[f64]) -> Result<usize, String> {
 ## <a id="checkpoint-66bb-read-bounded-json-count-and-knot-fields"></a>5. Read bounded JSON count and knot fields
 
 ### 1. `src/source_validate.rs`
-
-Read unsigned JSON counts with defaults and explicit caps; reuse the knot-axis contract instead of writing a second validator.
 
 **Locate this existing block:**
 
@@ -943,8 +923,6 @@ fn json_axis(
 ## <a id="checkpoint-66bc-match-json-control-layout-to-declared-counts"></a>6. Match JSON control layout to declared counts
 
 ### 1. `src/source_validate.rs`
-
-Check rational coordinate width, rows, columns and curve stride against the actual arrays before constructor allocation.
 
 **Locate this existing block:**
 
@@ -1020,8 +998,6 @@ fn json_controls(source: &serde_json::Value) -> Result<(), String> {
 
 ### 1. `src/source_validate.rs`
 
-Use an explicit bounded stack to find original control records; reject excess nesting and reuse the already-written record validators.
-
 **Locate this existing block:**
 
 ```rust
@@ -1079,8 +1055,6 @@ pub fn json(text: &str) -> Result<(), String> {
 
 ### 2. `src/lib.rs`
 
-Expose the pure original-record validator for a browser-console exercise.
-
 **Locate this existing block:**
 
 ```rust
@@ -1113,8 +1087,6 @@ mod shader_check;
 ## <a id="checkpoint-66be-validate-original-points-lines-and-placements"></a>8. Validate points, lines, and placements
 
 ### 1. `src/source_validate.rs`
-
-Check original coordinate-bearing records and affine placement without changing source values or identity.
 
 **Locate this existing block:**
 
@@ -1188,8 +1160,6 @@ pub fn any<T>(_: &T) -> Result<(), String> {
 ## <a id="checkpoint-66bf-validate-original-mesh-indices-and-vertex-attributes"></a>9. Validate mesh indices and vertex attributes
 
 ### 1. `src/source_validate.rs`
-
-Check source vertex keys, finite attributes, face rings and triangulation before constructing a mesh.
 
 **Locate this existing block:**
 
@@ -1267,8 +1237,6 @@ pub fn mesh(source: &proto::Mesh) -> Result<(), String> {
 ## <a id="checkpoint-66bg-validate-curve-and-surface-control-addresses"></a>10. Validate curve and surface control addresses
 
 ### 1. `src/source_validate.rs`
-
-Use checked stride arithmetic to locate the final addressed control and reuse the shared knot and scalar contracts.
 
 **Locate this existing block:**
 
@@ -1361,8 +1329,6 @@ pub fn surface(source: &proto::NurbsSurface) -> Result<(), String> {
 
 ### 1. `src/source_validate.rs`
 
-Match optional original cloud columns and octree ranges to actual point and node counts.
-
 **Locate this existing block:**
 
 ```rust
@@ -1435,8 +1401,6 @@ pub fn cloud(source: &proto::PointCloud) -> Result<(), String> {
 ## <a id="checkpoint-66bi-validate-brep-element-payloads-and-shared-definitions"></a>12. Validate BRep Element payloads and shared definitions
 
 ### 1. `src/source_validate.rs`
-
-Check BRep records and encoded Element geometry, then validate every shared definition without expanding instances into copied geometry.
 
 **Locate this existing block:**
 
@@ -1557,8 +1521,6 @@ pub fn definitions(d: &proto::Objects, instances: usize) -> Result<(), String> {
 
 ### 1. `src/source_validate.rs`
 
-Apply the existing per-record validators and enforce total original-object and hierarchy-depth budgets before allocation.
-
 **Locate this existing block:**
 
 ```rust
@@ -1659,8 +1621,6 @@ pub fn session(source: &proto::Session) -> Result<(), String> {
 ## <a id="checkpoint-66bk-connect-retained-session-validation-and-independent-witnesses"></a>14. Validate Retained Session Data
 
 ### 1. `src/source_validate.rs`
-
-Reuse the protobuf validators for already-decoded original kernel objects and register independent malformed-record witnesses. Supply independent hostile-count and original-record rejection fixtures.
 
 **Locate this existing block:**
 
@@ -1775,11 +1735,7 @@ mod tests {
 
 ## <a id="checkpoint-66c-describe-the-saved-scene-metadata"></a>15. Define Saved Scene Metadata
 
-Describe the saved scene metadata.
-
 ### 1. `src/archive.rs`
-
-Define original document framing and validate small presentation metadata.
 
 Create the file and type:
 
@@ -1876,8 +1832,6 @@ impl Metadata {
 
 ### 2. `src/lib.rs`
 
-Register the source component.
-
 **Locate this existing block:**
 
 ```rust
@@ -1898,11 +1852,7 @@ pub mod archive;
 
 ## <a id="checkpoint-66d-encode-decode-the-viewer-file"></a>16. Encode and Decode the Viewer File
 
-Encode decode the viewer file.
-
 ### 1. `src/archive.rs`
-
-Frame original source bytes and checked metadata without replacing geometry. Copy archive framing, original-source and compatibility regressions.
 
 **Locate this existing block:**
 
@@ -2166,11 +2116,7 @@ mod tests {
 
 ## <a id="checkpoint-66e-give-copied-lines-independent-identities"></a>17. Assign Independent IDs to Copied Lines
 
-Give copied lines independent identities.
-
 ### 1. `src/scene.rs`
-
-Separate line row identities from shared original sources.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -2270,11 +2216,7 @@ pub struct LineObject {
 
 ## <a id="checkpoint-66f-snapshot-geometry-types"></a>18. Snapshot Geometry Types
 
-Snapshot original geometry types.
-
 ### 1. `src/geometry_snapshot.rs`
-
-Snapshot original sources and current flags without mutating their shared records.
 
 Create the file and type:
 
@@ -2387,8 +2329,6 @@ pub fn objects(
 
 ### 2. `src/lib.rs`
 
-Register the source component.
-
 **Locate this existing block:**
 
 ```rust
@@ -2408,8 +2348,6 @@ pub mod geometry_snapshot;
 ```
 
 ### 3. `src/geometry_snapshot.rs`
-
-Copy source and integration regressions.
 
 **Locate this existing block:**
 
@@ -2515,8 +2453,6 @@ mod tests {
 ## <a id="checkpoint-66g-retain-geometry-free-document-headers"></a>19. Retain Geometry-Free Document Headers
 
 ### 1. `src/hierarchy.rs`
-
-Retain lightweight original document metadata through layer edits.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -2631,8 +2567,6 @@ pub struct Document {
 
 ### 2. `src/layer_edit.rs`
 
-Retain lightweight original document metadata through layer edits.
-
 **Locate this existing block:**
 
 ```rust
@@ -2649,8 +2583,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 3. `src/scene.rs`
-
-Attach geometry-free original headers to imported namespaces.
 
 **Locate this existing block:**
 
@@ -2676,8 +2608,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 4. `src/revision.rs`
-
-Include original nonmesh document revisions without owning source geometry.
 
 **Locate this existing block:**
 
@@ -2705,8 +2635,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 5. `src/archive.rs`
-
-Copy mixed tree and line-identity integration checks after their source ownership is connected.
 
 **Locate this existing block:**
 
@@ -2804,11 +2732,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-66h-inventory-saved-document-namespaces"></a>20. Index Saved Document Namespaces
 
-Inventory saved document namespaces.
-
 ### 1. `src/scene_archive.rs`
-
-Inventory original document namespaces and deterministic owner order.
 
 Create the file and type:
 
@@ -2880,8 +2804,6 @@ fn inventory(scene: &Scene) -> Vec<Namespace> {
 
 ### 2. `src/lib.rs`
 
-Register the source component.
-
 **Locate this existing block:**
 
 ```rust
@@ -2903,8 +2825,6 @@ pub mod scene_archive;
 ## <a id="checkpoint-66i-map-saved-source-identities"></a>21. Map Saved Source Identities
 
 ### 1. `src/archive_identity.rs`
-
-Map original sources, tree nodes and copies inside their document namespace.
 
 Create the file and type:
 
@@ -2984,8 +2904,6 @@ pub(crate) fn tree(node: &mut proto::TreeNode, names: &HashMap<String, String>) 
 
 ### 2. `src/lib.rs`
 
-Register the source component.
-
 **Locate this existing block:**
 
 ```rust
@@ -3006,11 +2924,7 @@ pub mod archive_identity;
 
 ## <a id="checkpoint-66j-store-cloud-size-as-presentation"></a>22. Store Point-Cloud Size in Presentation
 
-Store cloud size as presentation.
-
 ### 1. `src/cloud.rs`
-
-Keep cloud point size independent of shared original source records.
 
 **Locate this existing block:**
 
@@ -3028,8 +2942,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 2. `src/cloud_gpu.rs`
-
-Derive draw radius from an instance override or the original source size.
 
 **Locate this existing block:**
 
@@ -3052,8 +2964,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 3. `src/scene.rs`
-
-Allocate document keys and change cloud presentation without touching original source columns.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -3119,11 +3029,7 @@ Replace it with:
 
 ## <a id="checkpoint-66k-prepare-saved-documents"></a>23. Prepare Saved Scene Documents
 
-Prepare original saved documents.
-
 ### 1. `src/archive_document.rs`
-
-Prepare original document records and precise relative placements for saving.
 
 Create the file and type:
 
@@ -3224,8 +3130,6 @@ pub(crate) fn prepare(
 
 ### 2. `src/lib.rs`
 
-Register the source component.
-
 **Locate this existing block:**
 
 ```rust
@@ -3247,8 +3151,6 @@ pub mod archive_document;
 ## <a id="checkpoint-66l-save-document-display-settings"></a>24. Save Document Display Settings
 
 ### 1. `src/archive_presentation.rs`
-
-Address presentation settings by saved original document identities.
 
 Create the file and type:
 
@@ -3312,8 +3214,6 @@ pub(crate) fn append(
 
 ### 2. `src/lib.rs`
 
-Register the source component.
-
 **Locate this existing block:**
 
 ```rust
@@ -3334,11 +3234,7 @@ pub mod archive_presentation;
 
 ## <a id="checkpoint-66m-save-the-complete-supported-scene"></a>25. Serialize the Complete Scene
 
-Save the complete supported scene.
-
 ### 1. `src/scene_archive.rs`
-
-Encode original document payloads and current presentation as one bounded archive. Copy mixed scene, precision, source lifetime and repeated-namespace checks.
 
 **Locate this existing block:**
 
@@ -3531,11 +3427,7 @@ mod tests {
 
 ## <a id="checkpoint-66n-prepare-document-sources"></a>26. Prepare Document Sources
 
-Prepare original document sources.
-
 ### 1. `src/document_source.rs`
-
-Validate original source types and retain their shared kernel document.
 
 Create the file and type:
 
@@ -3640,8 +3532,6 @@ fn supported(source: &proto::Session) -> Result<(), String> {
 
 ### 2. `src/lib.rs`
 
-Register the source component.
-
 **Locate this existing block:**
 
 ```rust
@@ -3662,11 +3552,7 @@ pub mod document_source;
 
 ## <a id="checkpoint-66o-prepare-every-supported-geometry-row"></a>27. Prepare Geometry Rows for Export
 
-Prepare every supported geometry row.
-
 ### 1. `src/document_geometry.rs`
-
-Prepare each supported original source family and its independent world model.
 
 Create the file and type:
 
@@ -3772,8 +3658,6 @@ pub(crate) fn append(
 
 ### 2. `src/lib.rs`
 
-Register the source component.
-
 **Locate this existing block:**
 
 ```rust
@@ -3794,11 +3678,7 @@ pub mod document_geometry;
 
 ## <a id="checkpoint-66p-adopt-a-complete-source-document"></a>28. Load a Complete Source Document
 
-Adopt a complete source document.
-
 ### 1. `src/scene_document.rs`
-
-Adopt original document rows atomically and preserve the existing source namespaces.
 
 Create the file and type:
 
@@ -3862,8 +3742,6 @@ pub fn import(
 
 ### 2. `src/lib.rs`
 
-Register the source component.
-
 **Locate this existing block:**
 
 ```rust
@@ -3883,8 +3761,6 @@ pub mod scene_document;
 ```
 
 ### 3. `src/scene.rs`
-
-Prepare a source-free candidate before reopening complete documents.
 
 **Locate this existing block:**
 
@@ -3922,8 +3798,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ## <a id="checkpoint-66q-restore-world-labels-layer-links"></a>29. Restore World Labels and Layer Links
 
 ### 1. `src/archive_restore_texts.rs`
-
-Restore saved world labels without serializing derived GPU addresses.
 
 Create the file and type:
 
@@ -4006,8 +3880,6 @@ pub(crate) fn restore(scene: &mut Scene, metadata: &Metadata) -> Result<(), Stri
 
 ### 2. `src/lib.rs`
 
-Register the source component.
-
 **Locate this existing block:**
 
 ```rust
@@ -4029,8 +3901,6 @@ pub mod archive_restore_texts;
 ## <a id="checkpoint-66r-restore-scoped-presentation-settings"></a>30. Restore Scoped Presentation Settings
 
 ### 1. `src/archive_restore_flags.rs`
-
-Restore document-scoped metadata only after resolving every saved owner.
 
 Create the file and type:
 
@@ -4120,8 +3990,6 @@ pub(crate) fn restore(
 
 ### 2. `src/lib.rs`
 
-Register the source component.
-
 **Locate this existing block:**
 
 ```rust
@@ -4142,11 +4010,7 @@ pub mod archive_restore_flags;
 
 ## <a id="checkpoint-66s-reopen-a-complete-viewer-file"></a>31. Reopen a Saved Viewer File
 
-Reopen a complete viewer file.
-
 ### 1. `src/scene_document.rs`
-
-Reopen every original document and restore all supported scene presentation. Copy mixed-source, precision, tree-depth, namespace, release and atomic refusal tests.
 
 **Locate this existing block:**
 
@@ -4634,11 +4498,7 @@ mod tests {
 
 ## <a id="checkpoint-66t-prepare-file-adoption-live-history"></a>32. Track File Loads in Scene History
 
-Prepare file adoption and live history.
-
 ### 1. `src/publication.rs`
-
-Prepare raw documents or viewer archives before applying an editor action.
 
 Create the file and type:
 
@@ -4680,8 +4540,6 @@ pub fn prepare(
 
 ### 2. `src/lib.rs`
 
-Register the source component.
-
 **Locate this existing block:**
 
 ```rust
@@ -4701,8 +4559,6 @@ pub mod publication;
 ```
 
 ### 3. `src/publication.rs`
-
-Copy source and integration regressions.
 
 **Locate this existing block:**
 
@@ -4832,8 +4688,6 @@ mod tests {
 
 ### 4. `src/editor.rs`
 
-Add prepared file adoption and bounded live replacement without changing camera settings.
-
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -4911,8 +4765,6 @@ Replace it with:
 ```
 
 ### 5. `src/edit_replay.rs`
-
-Save a complete viewer archive after an original source reload.
 
 **Locate this existing block:**
 
@@ -5017,8 +4869,6 @@ mod tests {
 
 ### 6. `src/reload_complete_tests.rs`
 
-Copy the earlier source-reload assertions using the complete viewer file format.
-
 **Locate this existing block:**
 
 ```rust
@@ -5043,8 +4893,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 7. `src/reload_precision_tests.rs`
 
-Copy the earlier source-reload assertions using the complete viewer file format.
-
 **Locate this existing block:**
 
 ```rust
@@ -5066,8 +4914,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ## <a id="checkpoint-66u-share-repeated-source-placements"></a>33. Share Repeated Source Placements
 
 ### 1. `src/scene.rs`
-
-Share complete original document rows while assigning independent instance identities.
 
 **Locate this existing block:**
 
@@ -5206,11 +5052,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-66v-start-an-empty-scene-without-examples"></a>34. Initialize an Empty Scene
 
-Start an empty scene without examples.
-
 ### 1. `src/scene.rs`
-
-Create an empty original document owner without changing the demo or scene identity rules.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -5313,8 +5155,6 @@ Replace it with:
 
 ### 1. `src/scene_manifest.rs`
 
-Assemble a checked scene from shared original source documents and placed labels.
-
 Create the file and type:
 
 ```rust
@@ -5378,8 +5218,6 @@ pub fn prepare(
 
 ### 2. `src/lib.rs`
 
-Register the source component.
-
 **Locate this existing block:**
 
 ```rust
@@ -5399,8 +5237,6 @@ pub mod scene_manifest;
 ```
 
 ### 3. `src/scene_manifest.rs`
-
-Copy source and integration regressions.
 
 **Locate this existing block:**
 
@@ -5559,8 +5395,6 @@ texts: [{text: 'CAD Ø25', at: [0,0,0], height: 0.1}]
 
 ### 1. `src/publication_route.rs`
 
-Resolve current named-scene, bucket-root, local-live and notification routes.
-
 Create the file and type:
 
 ```rust
@@ -5686,8 +5520,6 @@ pub fn select(
 
 ### 2. `src/lib.rs`
 
-Register the source component.
-
 **Locate this existing block:**
 
 ```rust
@@ -5707,8 +5539,6 @@ pub mod publication_route;
 ```
 
 ### 3. `src/publication_route.rs`
-
-Copy source and integration regressions.
 
 **Locate this existing block:**
 
@@ -5804,11 +5634,7 @@ mod tests {
 
 ## <a id="checkpoint-66y-retain-validated-live-source-revisions"></a>37. Retain Validated Source Revisions
 
-Retain validated live source revisions.
-
 ### 1. `src/publication_index.rs`
-
-Keep original source revisions and build only complete changed scenes.
 
 Create the file and type:
 
@@ -5968,8 +5794,6 @@ impl Index {
 
 ### 2. `src/lib.rs`
 
-Register the source component.
-
 **Locate this existing block:**
 
 ```rust
@@ -5989,8 +5813,6 @@ pub mod publication_index;
 ```
 
 ### 3. `src/publication_index.rs`
-
-Copy source and integration regressions.
 
 **Locate this existing block:**
 
@@ -6116,11 +5938,7 @@ mod tests {
 
 ## <a id="checkpoint-66z-fetch-bounded-source-bodies"></a>38. Fetch Bounded Source Payloads
 
-Fetch bounded source bodies.
-
 ### 1. `src/publication_fetch.rs`
-
-Read cancellable HTTP responses with independent manifest and source byte limits.
 
 Create the file and type:
 
@@ -6245,8 +6063,6 @@ async fn read(
 
 ### 2. `src/lib.rs`
 
-Register the browser-only HTTP reader.
-
 **Locate this existing block:**
 
 ```rust
@@ -6267,8 +6083,6 @@ pub mod publication_fetch;
 ## <a id="checkpoint-66aa-read-a-complete-url-source-revision"></a>39. Read a Complete URL Source Revision
 
 ### 1. `src/browser_publication.rs`
-
-Read complete original URL sources before publishing a replacement.
 
 Create the file and type:
 
@@ -6362,8 +6176,6 @@ async fn read(
 
 ### 2. `src/lib.rs`
 
-Register the browser source loader.
-
 **Locate this existing block:**
 
 ```rust
@@ -6383,11 +6195,7 @@ pub mod browser_publication;
 
 ## <a id="checkpoint-66ab-own-cancel-the-url-loader"></a>40. Manage and Cancel the URL Loader
 
-Own and cancel the URL loader.
-
 ### 1. `src/browser_publication.rs`
-
-Own the URL source cache, pending adoption and complete cancellation lifecycle.
 
 **Locate this existing block:**
 
@@ -6523,11 +6331,7 @@ async fn read(
 
 ## <a id="checkpoint-66ac-accept-only-current-url-completions"></a>41. Accept Current URL Completions
 
-Accept only current URL completions.
-
 ### 1. `src/browser_publication.rs`
-
-Accept only a current complete revision and coalesce announced rereads.
 
 **Locate this existing block:**
 
@@ -6620,11 +6424,7 @@ async fn read(
 
 ## <a id="checkpoint-66ad-watch-published-source-changes"></a>42. Poll Published Source Updates
 
-Watch published source changes.
-
 ### 1. `src/browser_publication.rs`
-
-Start source polling and notification requests with explicit runtime cleanup.
 
 **Locate this existing block:**
 
@@ -6688,11 +6488,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-66ae-inspect-published-source-identities"></a>43. Inspect Published Source IDs
 
-Inspect published source identities.
-
 ### 1. `src/browser.rs`
-
-Report compact original source and presentation identities without serializing large coordinate columns.
 
 **Locate this existing block:**
 
@@ -6797,8 +6593,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 1. `src/browser_runtime.rs`
 
-Connect original source publication through the current browser runtime and command flow.
-
 **Locate this existing block:**
 
 ```rust
@@ -6865,8 +6659,6 @@ pub fn install(
 ```
 
 ### 2. `src/file_input.rs`
-
-Connect original source publication through the current browser runtime and command flow.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -6973,8 +6765,6 @@ Replace it with:
 ```
 
 ### 3. `src/browser.rs`
-
-Connect original source publication through the current browser runtime and command flow.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 

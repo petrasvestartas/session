@@ -1,6 +1,6 @@
 # 17.3 · Original clipping half-spaces across drawing families
 
-**Goal:** Exercise original clipping color and picking. · **Steps:** 38 · **Source:** [engine/gpu/triangle_tiles.rs](../../../src/engine/gpu/triangle_tiles.rs) · [shaders/project_triangles.wgsl](../../../src/shaders/project_triangles.wgsl) · [shaders/ink_visibility.wgsl](../../../src/shaders/ink_visibility.wgsl) · [shaders/ribbon.wgsl](../../../src/shaders/ribbon.wgsl)
+**Steps:** 38 · **Source:** [engine/gpu/triangle_tiles.rs](../../../src/engine/gpu/triangle_tiles.rs) · [shaders/project_triangles.wgsl](../../../src/shaders/project_triangles.wgsl) · [shaders/ink_visibility.wgsl](../../../src/shaders/ink_visibility.wgsl) · [shaders/ribbon.wgsl](../../../src/shaders/ribbon.wgsl)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -47,8 +47,6 @@
 ## <a id="checkpoint-87-copy-current-original-plane-modes"></a>1. Describe clipping half-spaces
 
 ### 1. `src/clipping_geometry.rs`
-
-Describe original clipping half-spaces.
 
 Create the file and type:
 
@@ -109,8 +107,6 @@ impl ClipPlane {
 ```
 
 ### 2. `src/lib.rs`
-
-Register the completed source owner.
 
 **Locate this existing block:**
 
@@ -234,8 +230,6 @@ impl Mode {
 
 ### 1. `src/clipping_geometry.rs`
 
-Construct and reverse original clipping planes.
-
 **Locate this existing block:**
 
 ```rust
@@ -335,8 +329,6 @@ pub fn flipped(plane: &Plane) -> Plane {
 ## <a id="checkpoint-87sc-derive-placed-world-half-spaces-from-original-planes"></a>4. Derive placed world half-spaces from planes
 
 ### 1. `src/clipping_geometry.rs`
-
-Derive placed world half-spaces from original planes. Supply independent construction, placement and degenerate-frame fixtures.
 
 **Locate this existing block:**
 
@@ -495,11 +487,7 @@ mod tests {
 
 ## <a id="checkpoint-87a-gather-six-visible-original-world-planes"></a>5. Gather six visible world planes
 
-Gather six visible original world planes.
-
 ### 1. `src/clipping_rows.rs`
-
-Retain the original source and explicit derived owner.
 
 Create the file and type:
 
@@ -584,8 +572,6 @@ mod tests {
 
 ### 2. `src/lib.rs`
 
-Register the completed source owner.
-
 **Locate this existing block:**
 
 ```rust
@@ -604,11 +590,7 @@ pub mod finite_project_source;
 
 ## <a id="checkpoint-87b-copy-the-maintained-clipping-uniform-layout"></a>6. Pack the clipping uniform with explicit byte offsets
 
-Match six-plane CPU storage to the later WGSL layout without losing original f64 data.
-
 ### 1. `src/clipping_uniform.rs`
-
-Write the fixed arrays, scalar fields and explicit padding for the shared GPU layout. Describe only the current camera inputs this adapter borrows.
 
 Create the file and type:
 
@@ -646,8 +628,6 @@ pub struct ClipView<'a> {
 
 ### 2. `src/lib.rs`
 
-Register the completed source owner.
-
 **Locate this existing block:**
 
 ```rust
@@ -667,8 +647,6 @@ pub mod finite_project_source;
 ## <a id="checkpoint-87c-copy-conditioned-screen-and-hatch-projections"></a>7. Condition the camera inverse for clipping
 
 ### 1. `src/clipping_uniform.rs`
-
-Scale matrix rows before inversion and undo that scaling on the inverse.
 
 **Locate this existing block:**
 
@@ -709,8 +687,6 @@ fn inverse(m: &Xform) -> Option<Xform> {
 ## <a id="checkpoint-87ca-project-a-stable-hatch-coordinate-onto-a-plane"></a>8. Project a stable hatch coordinate onto a plane
 
 ### 1. `src/clipping_uniform.rs`
-
-Build homogeneous hatch numerator and denominator from the projected plane.
 
 **Locate this existing block:**
 
@@ -767,8 +743,6 @@ fn hatch_projection(
 ## <a id="checkpoint-87cb-fill-one-bounded-clipping-uniform-from-original-planes"></a>9. Fill one bounded clipping uniform from planes
 
 ### 1. `src/clipping_uniform.rs`
-
-Populate world and screen half-spaces and reuse the hatch projection helper.
 
 **Locate this existing block:**
 
@@ -860,8 +834,6 @@ pub fn clip_uniform(planes: &[ClipPlane], fill: u32, v: &ClipView) -> ClipUnifor
 
 ### 1. `src/clip.wgsl`
 
-Match the Rust layout and define shared specialization and sample constants.
-
 Create the file and type:
 
 ```wgsl
@@ -913,8 +885,6 @@ fn clip_active() -> bool {
 ## <a id="checkpoint-87cd-apply-shared-original-half-space-tests"></a>11. Apply shared half-space tests
 
 ### 1. `src/clip.wgsl`
-
-Reject points or segments on the cut side while preserving plane display rows.
 
 **Locate this existing block:**
 
@@ -975,8 +945,6 @@ fn clip_cut_both(flags: u32, a: vec3<f32>, b: vec3<f32>) -> bool {
 ## <a id="checkpoint-87ce-compute-clipping-coverage-in-framebuffer-sample-space"></a>12. Compute clipping coverage in framebuffer sample space
 
 ### 1. `src/clip.wgsl`
-
-Convert framebuffer pixels to NDC and form per-sample half-space masks.
 
 **Locate this existing block:**
 
@@ -1096,8 +1064,6 @@ fn clip_mask(flags: u32, p: vec3<f32>) -> u32 {
 
 ### 1. `src/clip.wgsl`
 
-Solve section depth and preserve the reserved cap and pick address conventions.
-
 **Locate this existing block:**
 
 ```wgsl
@@ -1149,8 +1115,6 @@ fn clip_pick_word(plane: u32, px: vec2<f32>, size: vec2<u32>) -> u32 {
 ## <a id="checkpoint-87d-parse-strict-clipping-modes-and-presentation-switches"></a>14. Parse strict clipping modes and presentation switches
 
 ### 1. `src/clipping_input.rs`
-
-Retain the original source and explicit derived owner.
 
 Create the file and type:
 
@@ -1213,8 +1177,6 @@ pub fn parse(words: &[&str]) -> Result<Request, String> {
 
 ### 2. `src/lib.rs`
 
-Register the completed source owner.
-
 **Locate this existing block:**
 
 ```rust
@@ -1234,8 +1196,6 @@ pub mod finite_project_source;
 ## <a id="checkpoint-87e-preserve-mode-prefixes-in-generic-point-drafts"></a>15. Preserve mode prefixes in generic point drafts
 
 ### 1. `src/tool.rs`
-
-Connect matching source ownership and derived clipping.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -1336,11 +1296,7 @@ Replace it with:
 
 ## <a id="checkpoint-87f-build-original-clipping-planes-through-the-shared-tool"></a>16. Build clipping planes through the shared tool
 
-Build original clipping planes through the shared tool.
-
 ### 1. `src/clipping_tool.rs`
-
-Retain the original source and explicit derived owner.
 
 Create the file and type:
 
@@ -1419,8 +1375,6 @@ impl Tool for Clipping {
 
 ### 2. `src/lib.rs`
 
-Register the completed source owner.
-
 **Locate this existing block:**
 
 ```rust
@@ -1440,8 +1394,6 @@ pub mod finite_project_source;
 ## <a id="checkpoint-87g-own-clipping-presentation-and-one-history-transaction"></a>17. Own clipping presentation and one history transaction
 
 ### 1. `src/editor.rs`
-
-Own presentation state and checked original-plane edits before command routing.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -1607,8 +1559,6 @@ pub struct Editor {
 
 ### 1. `src/editor.rs`
 
-Connect matching source ownership and derived clipping.
-
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -1711,8 +1661,6 @@ pub enum Action {
 
 ### 2. `src/commands.rs`
 
-Connect matching source ownership and derived clipping.
-
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -1759,8 +1707,6 @@ Replace it with:
 ```
 
 ### 3. `src/primitive_geometry.rs`
-
-Connect matching source ownership and derived clipping.
 
 **Locate this existing block:**
 
@@ -1823,8 +1769,6 @@ Edit the existing block to match this code; keep unchanged lines:
 </div>
 
 ### 1. `src/clipping_gpu.rs`
-
-Retain the original source and explicit derived owner.
 
 Create the file and type:
 
@@ -1956,8 +1900,6 @@ impl Clipping {
 
 ### 2. `src/lib.rs`
 
-Register the completed source owner.
-
 **Locate this existing block:**
 
 ```rust
@@ -1977,8 +1919,6 @@ pub mod finite_project_source;
 ## <a id="checkpoint-87j-retain-clipping-state-beside-the-renderer"></a>20. Retain clipping state beside the renderer
 
 ### 1. `src/renderer.rs`
-
-Own current clipping independently of original uploads.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -2087,8 +2027,6 @@ pub struct Renderer {
 
 ### 1. `src/pick_pipeline.rs`
 
-Connect matching source ownership and derived clipping.
-
 **Locate this existing block:**
 
 ```rust
@@ -2120,8 +2058,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 2. `src/face_pick.rs`
-
-Declare the shared predicate before connecting face clipping.
 
 **Locate this existing block:**
 
@@ -2190,8 +2126,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 1. `src/gpu_mesh.rs`
 
-Connect matching source ownership and derived clipping.
-
 **Locate this existing block:**
 
 ```rust
@@ -2214,8 +2148,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 2. `src/triangle.wgsl`
-
-Connect matching source ownership and derived clipping.
 
 **Locate this existing block:**
 
@@ -2273,8 +2205,6 @@ fn fragment(input: VertexOutput, @builtin(front_facing) front: bool) -> @locatio
 
 ### 3. `src/instance_gpu.rs`
 
-Connect matching source ownership and derived clipping.
-
 **Locate this existing block:**
 
 ```rust
@@ -2308,8 +2238,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 4. `src/renderer.rs`
-
-Connect the completed owner through this method.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -2427,11 +2355,7 @@ Replace it with:
 
 ## <a id="checkpoint-87m-prepare-explicit-original-mesh-pick-clipping"></a>23. Prepare explicit mesh pick clipping
 
-Prepare explicit original mesh pick clipping.
-
 ### 1. `src/triangle_pick.wgsl`
-
-Connect matching source ownership and derived clipping.
 
 Replace the entire file with:
 
@@ -2445,8 +2369,6 @@ struct MeshPickOutput{@builtin(position) position:vec4<f32>,@location(0) world:v
 ## <a id="checkpoint-87n-bind-shared-clipping-before-the-first-integer-request"></a>24. Bind shared clipping before the first integer request
 
 ### 1. `src/pick_gpu.rs`
-
-Connect matching source ownership and derived clipping.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -2593,8 +2515,6 @@ pub struct Picker {
 
 ### 2. `src/pick_encode.rs`
 
-Bind shared clipping to compatible integer passes.
-
 **Locate this existing block:**
 
 ```rust
@@ -2720,8 +2640,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 3. `src/renderer.rs`
 
-Connect the completed owner through this method.
-
 **Locate this existing block:**
 
 ```rust
@@ -2840,8 +2758,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 4. `src/pick_pipeline.rs`
 
-Enable the clipping predicate and required pipeline layout only when every integer draw binds the shared uniform.
-
 **Locate this existing block:**
 
 ```rust
@@ -2858,8 +2774,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 5. `src/triangle_pick.wgsl`
-
-Enable the clipping predicate and required pipeline layout only when every integer draw binds the shared uniform.
 
 **Locate this existing block:**
 
@@ -2878,8 +2792,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ## <a id="checkpoint-87o-preserve-sparse-source-face-ids-across-the-cut"></a>25. Preserve sparse source face IDs across the cut
 
 ### 1. `src/face_pick.rs`
-
-Connect matching source ownership and derived clipping.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -2950,8 +2862,6 @@ Replace it with:
 
 ### 2. `src/face_pick.wgsl`
 
-Connect matching source ownership and derived clipping.
-
 **Locate this existing block:**
 
 ```wgsl
@@ -2988,8 +2898,6 @@ fn face_fragment(input: FaceOutput) -> @location(0) vec2<u32> {
 
 ### 3. `src/renderer.rs`
 
-Connect the completed owner through this method.
-
 **Locate this existing block:**
 
 ```rust
@@ -3009,8 +2917,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 1. `src/outline_mask.wgsl`
 
-Connect matching source ownership and derived clipping.
-
 **Locate this existing block:**
 
 ```wgsl
@@ -3029,8 +2935,6 @@ struct Output{@builtin(position) position:vec4<f32>,@location(0) world:vec3<f32>
 ```
 
 ### 2. `src/outline_gpu.rs`
-
-Connect matching source ownership and derived clipping.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -3163,8 +3067,6 @@ pub struct Outline {
 
 ### 3. `src/renderer.rs`
 
-Connect the completed owner through this method.
-
 **Locate this existing block:**
 
 ```rust
@@ -3187,11 +3089,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-87q-share-clipping-at-finite-original-center-lines"></a>27. Share clipping at finite center lines
 
-Share clipping at finite original center lines.
-
 ### 1. `src/finite_visibility.wgsl`
-
-Connect matching source ownership and derived clipping.
 
 **Locate this existing block:**
 
@@ -3231,8 +3129,6 @@ fn finite_visible(pixel:vec2<f32>,axis:vec4<f32>,depths:vec2<f32>,flags:u32)->bo
 ```
 
 ### 2. `src/finite_sources.rs`
-
-Connect matching source ownership and derived clipping.
 
 **Locate this existing block:**
 
@@ -3285,8 +3181,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 3. `src/finite_stroke.wgsl`
 
-Use the same shared clipping predicate before original-plane flags connect.
-
 **Locate this existing block:**
 
 ```wgsl
@@ -3309,8 +3203,6 @@ fn fragment(input: Output) -> @location(0) vec4<f32> {if(!finite_visible(input.f
 
 ### 4. `src/finite_stroke_pick.wgsl`
 
-Use the same shared clipping predicate before original-plane flags connect.
-
 **Locate this existing block:**
 
 ```wgsl
@@ -3328,8 +3220,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 5. `src/finite_chain.wgsl`
-
-Use the same shared clipping predicate before original-plane flags connect.
 
 **Locate this existing block:**
 
@@ -3353,8 +3243,6 @@ fn fragment(input: Output) -> @location(0) vec4<f32> {if(!finite_visible(input.f
 
 ### 6. `src/finite_chain_pick.wgsl`
 
-Use the same shared clipping predicate before original-plane flags connect.
-
 **Locate this existing block:**
 
 ```wgsl
@@ -3372,8 +3260,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 7. `src/finite_marker.wgsl`
-
-Use the same shared clipping predicate before original-plane flags connect.
 
 **Locate this existing block:**
 
@@ -3397,8 +3283,6 @@ fn fragment(input: Output) -> @location(0) vec4<f32> {if(!finite_visible(input.f
 
 ### 8. `src/finite_marker_pick.wgsl`
 
-Use the same shared clipping predicate before original-plane flags connect.
-
 **Locate this existing block:**
 
 ```wgsl
@@ -3416,8 +3300,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 9. `src/finite_ink.rs`
-
-Add the compatible shared clipping layout without changing original attributes yet.
 
 **Locate this existing block:**
 
@@ -3498,8 +3380,6 @@ Edit the existing block to match this code; keep unchanged lines:
 </div>
 
 ### 1. `src/stroke_gpu.rs`
-
-Own flag buffers before connecting them to vertex layouts.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -3659,11 +3539,7 @@ pub struct Lane {
 
 ## <a id="checkpoint-87s-bind-original-flags-without-changing-instance-strides"></a>29. Bind flags without changing instance strides
 
-Bind original flags without changing instance strides.
-
 ### 1. `src/finite_ink.rs`
-
-Connect matching source ownership and derived clipping.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -3761,7 +3637,7 @@ Replace it with:
     }
     let mut depth = crate::depth::ink();
     depth.depth_compare = Some(wgpu::CompareFunction::Always);
-    device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+    depth.bias = Default::default();
 ```
 
 Replace it with:
@@ -3776,12 +3652,10 @@ Replace it with:
     });
     let mut depth = crate::depth::ink();
     depth.depth_compare = Some(wgpu::CompareFunction::Always);
-    device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+    depth.bias = Default::default();
 ```
 
 ### 2. `src/stroke_gpu.rs`
-
-Connect matching source ownership and derived clipping.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -3830,8 +3704,6 @@ Replace it with:
 ## <a id="checkpoint-87t-keep-stroke-color-and-pick-exemptions-aligned"></a>30. Keep stroke color and pick exemptions aligned
 
 ### 1. `src/finite_stroke.wgsl`
-
-Connect matching source ownership and derived clipping.
 
 **Locate this existing block:**
 
@@ -3930,8 +3802,6 @@ fn fragment(input: Output) -> @location(0) vec4<f32> {if(!finite_visible(input.f
 
 ### 2. `src/finite_stroke_pick.wgsl`
 
-Connect matching source ownership and derived clipping.
-
 **Locate this existing block:**
 
 ```wgsl
@@ -3997,8 +3867,6 @@ fn pick_fragment(input: PickOutput) -> @location(0) vec2<u32> {
 ## <a id="checkpoint-87u-keep-chain-color-and-pick-exemptions-aligned"></a>31. Keep chain color and pick exemptions aligned
 
 ### 1. `src/finite_chain.wgsl`
-
-Connect matching source ownership and derived clipping.
 
 **Locate this existing block:**
 
@@ -4155,8 +4023,6 @@ fn fragment(input: Output) -> @location(0) vec4<f32> {if(!finite_visible(input.f
 
 ### 2. `src/finite_chain_pick.wgsl`
 
-Connect matching source ownership and derived clipping.
-
 **Locate this existing block:**
 
 ```wgsl
@@ -4233,8 +4099,6 @@ fn pick_fragment(input: PickOutput) -> @location(0) vec2<u32> {
 
 ### 1. `src/finite_marker.wgsl`
 
-Connect matching source ownership and derived clipping.
-
 **Locate this existing block:**
 
 ```wgsl
@@ -4304,8 +4168,6 @@ fn fragment(input: Output) -> @location(0) vec4<f32> {if(!finite_visible(input.f
 
 ### 2. `src/finite_marker_pick.wgsl`
 
-Connect matching source ownership and derived clipping.
-
 **Locate this existing block:**
 
 ```wgsl
@@ -4368,11 +4230,7 @@ fn pick_fragment(input: PickOutput) -> @location(0) vec2<u32> {
 
 ## <a id="checkpoint-87w-resolve-locked-and-selected-original-plane-boundaries"></a>33. Resolve locked and selected plane boundaries
 
-Resolve locked and selected original plane boundaries.
-
 ### 1. `src/highlight.rs`
-
-Connect matching source ownership and derived clipping.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -4482,8 +4340,6 @@ Replace it with:
 
 ### 2. `src/renderer.rs`
 
-Connect the completed owner through this method. Resolve flags from current original owners and charge derived flag storage.
-
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -4556,11 +4412,7 @@ Replace it with:
 
 ## <a id="checkpoint-87x-clip-cached-original-point-cloud-discs"></a>34. Clip cached point cloud discs
 
-Clip cached original point cloud discs.
-
 ### 1. `src/cloud_gpu.rs`
-
-Connect matching source ownership and derived clipping.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -4767,8 +4619,6 @@ pub struct Lane {
 
 ### 2. `src/cloud_points.wgsl`
 
-Connect matching source ownership and derived clipping.
-
 **Locate this existing block:**
 
 ```wgsl
@@ -4788,8 +4638,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 3. `src/renderer.rs`
-
-Connect the completed owner through this method. Check the same assembled clipping source used by the actual point pipeline.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -4850,8 +4698,6 @@ Replace it with:
 
 ### 4. `src/cloud_shader_contract.rs`
 
-Validate the completed clipped point source rather than its unexpanded file.
-
 **Locate this existing block:**
 
 ```rust
@@ -4878,11 +4724,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-87y-clip-original-sheet-pens-and-integer-entities"></a>35. Clip sheet pens and integer entities
 
-Clip original sheet pens and integer entities.
-
 ### 1. `src/sheet_pipeline.rs`
-
-Connect matching source ownership and derived clipping.
 
 **Locate this existing block:**
 
@@ -4964,8 +4806,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 2. `src/sheet.wgsl`
 
-Connect matching source ownership and derived clipping.
-
 **Locate this existing block:**
 
 ```wgsl
@@ -5046,8 +4886,6 @@ fn coverage(input:Output)->f32 {if(clip_cut_ndc(0u,input.original_clip.xyz/input
 
 ### 3. `src/sheet_gpu.rs`
 
-Connect matching source ownership and derived clipping.
-
 **Locate this existing block:**
 
 ```rust
@@ -5074,8 +4912,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 4. `src/pick_encode.rs`
 
-Connect matching source ownership and derived clipping.
-
 **Locate this existing block:**
 
 ```rust
@@ -5094,11 +4930,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-87z-clip-text-anchors-with-all-six-original-planes"></a>36. Clip text anchors with all six planes
 
-Clip text anchors with all six original planes.
-
 ### 1. `src/scene_text_gpu.rs`
-
-Connect matching source ownership and derived clipping.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -5168,8 +5000,6 @@ impl TextFrame {
 
 ### 2. `src/renderer.rs`
 
-Connect the completed owner through this method.
-
 **Locate this existing block:**
 
 ```rust
@@ -5203,8 +5033,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ## <a id="checkpoint-87aa-observe-actual-clipping-resources-and-errors"></a>37. Observe actual clipping resources and errors
 
 ### 1. `src/browser.rs`
-
-Connect matching source ownership and derived clipping.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -5295,8 +5123,6 @@ Replace it with:
 </div>
 
 ### 1. `src/clipping_source_tests.rs`
-
-Retain the original source and explicit derived owner.
 
 Create the file and type:
 
@@ -5395,8 +5221,6 @@ fn switches_fills_views_and_invalid_answers_preserve_pending_original_points() {
 
 ### 2. `src/lib.rs`
 
-Register the completed source owner.
-
 **Locate this existing block:**
 
 ```rust
@@ -5415,8 +5239,6 @@ pub mod finite_project_source;
 ```
 
 ### 3. `src/clipping_gpu_tests.rs`
-
-Retain the original source and explicit derived owner.
 
 Create the file and type:
 
@@ -5903,8 +5725,6 @@ fn clipping_text_uses_the_sixth_original_world_plane_for_color_and_nameplate_pic
 
 ### 4. `src/lib.rs`
 
-Register the completed source owner.
-
 **Locate this existing block:**
 
 ```rust
@@ -5923,8 +5743,6 @@ pub mod finite_project_source;
 ```
 
 ### 5. `src/clipping_uniform_tests.rs`
-
-Retain the original source and explicit derived owner.
 
 Create the file and type:
 
@@ -6205,8 +6023,6 @@ fn hatch_spacing_follows_the_device_scale() {
 ```
 
 ### 6. `src/lib.rs`
-
-Register the completed source owner.
 
 **Locate this existing block:**
 

@@ -1,55 +1,65 @@
 # 5.3 · Original point markers and curve control identities
 
-**Goal:** Refer to an original curve control by its shared curve owner and stable control index, preserving homogeneous source coordinates. · **Steps:** 7 · **Source:** [app/walk/curves.rs](../../../../src/app/walk/curves.rs) · [engine/gpu/segments.rs](../../../../src/engine/gpu/segments.rs) · [shaders/ribbon.wgsl](../../../../src/shaders/ribbon.wgsl) · [shaders/vector.wgsl](../../../../src/shaders/vector.wgsl)
-
-<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
-<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
-  <defs>
-    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
-    </marker>
-    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
-    </marker>
-    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
-    </marker>
-  </defs>
-  <rect x="2" y="2" width="1116" height="184" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
-  <rect x="14" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">3D Point Center P -&gt; Screen Quad Corner uv ∈ [-1, 1]²</text>
-  <rect x="114" y="48" width="112" height="108" fill="#dbeafe" stroke="#2563eb" stroke-width="2"/>
-  <circle cx="170" cy="102" r="5" fill="#dc2626"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="112" y="42" font-family="monospace" font-size="9" font-weight="700" fill="#111111">(-1,+1)</text>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="228" y="164" font-family="monospace" font-size="9" font-weight="700" fill="#111111">(+1,-1)</text>
-  <line x1="358" y1="94" x2="384" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
-  <rect x="388" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Fragment SDF: r = length(uv); smoothstep(1 - w, 1, r)</text>
-  <rect x="498" y="46" width="124" height="112" fill="none" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="4 3"/>
-  <circle cx="560" cy="102" r="46" fill="#fef08a" stroke="#111111" stroke-width="3"/>
-  <circle cx="560" cy="102" r="32" fill="#dc2626"/>
-  <line x1="560" y1="102" x2="606" y2="102" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="583" y="94" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">r=1</text>
-  <line x1="732" y1="94" x2="758" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
-  <rect x="762" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Anti-Aliased Control Points in Viewport</text>
-  <rect x="806" y="44" width="256" height="118" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
-  <circle cx="866" cy="122" r="9" fill="#dc2626" stroke="#111111" stroke-width="2"/>
-  <circle cx="934" cy="74" r="9" fill="#fef08a" stroke="#dc2626" stroke-width="2.5"/>
-  <circle cx="1002" cy="118" r="9" fill="#2563eb" stroke="#111111" stroke-width="2"/>
-</svg>
-</div>
+**Steps:** 7 · **Source:** [app/walk/curves.rs](../../../../src/app/walk/curves.rs) · [engine/gpu/segments.rs](../../../../src/engine/gpu/segments.rs) · [shaders/ribbon.wgsl](../../../../src/shaders/ribbon.wgsl) · [shaders/vector.wgsl](../../../../src/shaders/vector.wgsl)
 
 ## <a id="checkpoint-37-point"></a>1. Prepare an point for a screen marker
 
-Retain exact kernel Point coordinates while preparing a finite 32-byte screen-marker record.
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="214" viewBox="0 0 1120 214" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr-2e93db36" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arr-r-2e93db36" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arr-g-2e93db36" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arr-b-2e93db36" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+    <pattern id="grid-2e93db36" width="20" height="20" patternUnits="userSpaceOnUse">
+      <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#f1f5f9" stroke-width="1"/>
+    </pattern>
+  </defs>
+  <rect x="2" y="2" width="1116" height="210" rx="8" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="2" y="2" width="1116" height="28" rx="6" fill="#f8fafc" stroke="#111111" stroke-width="1.5"/>
+  <line x1="2" y1="30" x2="1118" y2="30" stroke="#111111" stroke-width="1.5"/>
+  <rect x="12" y="7" width="176" height="18" rx="3" fill="#111111"/>
+  <text x="100" y="19.5" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#ffffff" paint-order="normal" stroke="none">37-POINT · SDF MARKER DISC</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="518" y="20" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Screen-Aligned Point Quad Expansion (±r_px) &amp; Analytic @fragment SDF Circle + Border Ring</text>
+  <rect x="838" y="7" width="268" height="18" rx="3" fill="#ffffff" stroke="#111111" stroke-width="1.2"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="972" y="19.5" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#2563eb">d = length(uv) * r_px · ring: r_in &lt; d &lt;= r_out</text>
+  <rect x="14" y="38" width="344" height="164" rx="6" fill="url(#grid-2e93db36)" stroke="#111111" stroke-width="1.5"/>
+  <line x1="14" y1="60" x2="358" y2="60" stroke="#cbd5e1" stroke-width="1"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="186" y="53" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1 · 6-Vertex Screen Quad Around 3D Point P</text>
+  <rect x="122" y="72" width="128" height="112" fill="#f8fafc" stroke="#111111" stroke-width="1.5" stroke-dasharray="4 3"/>
+  <circle cx="186" cy="128" r="44" fill="#fef08a" stroke="#dc2626" stroke-width="3.5"/>
+  <circle cx="186" cy="128" r="3.5" fill="#111111"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="122" y="66" font-family="monospace" font-size="8.5" fill="#111111">uv=(-1,+1)</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="218" y="196" font-family="monospace" font-size="8.5" fill="#111111">uv=(+1,-1)</text>
+  <line x1="358" y1="120" x2="384" y2="120" stroke="#111111" stroke-width="2" marker-end="url(#arr-2e93db36)"/>
+  <rect x="388" y="38" width="344" height="164" rx="6" fill="url(#grid-2e93db36)" stroke="#111111" stroke-width="1.5"/>
+  <line x1="388" y1="60" x2="732" y2="60" stroke="#cbd5e1" stroke-width="1"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="53" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2 · Radial SDF Fill + Dark Contrast Outline</text>
+  <rect x="414" y="76" width="292" height="104" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="98" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">let r = length(in.uv); // r ∈ [0, √2]</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="122" text-anchor="middle" font-family="monospace" font-size="9" fill="#dc2626">if r &gt; 1.0 { discard; }</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="144" text-anchor="middle" font-family="monospace" font-size="9" fill="#2563eb">r &lt; r_inner =&gt; interior fill color</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="166" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#16a34a">r ∈ [r_inner, 1.0] =&gt; dark border ring</text>
+  <line x1="732" y1="120" x2="758" y2="120" stroke="#111111" stroke-width="2" marker-end="url(#arr-2e93db36)"/>
+  <rect x="762" y="38" width="344" height="164" rx="6" fill="url(#grid-2e93db36)" stroke="#111111" stroke-width="1.75"/>
+  <line x1="762" y1="60" x2="1106" y2="60" stroke="#cbd5e1" stroke-width="1"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="934" y="53" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3 · Depth-Tested CAD Point Markers</text>
+  <rect x="806" y="68" width="256" height="122" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <circle cx="876" cy="138" r="10" fill="#60a5fa" stroke="#111111" stroke-width="2.5"/>
+  <circle cx="934" cy="96" r="10" fill="#fef08a" stroke="#dc2626" stroke-width="2.5"/>
+  <circle cx="994" cy="144" r="10" fill="#4ade80" stroke="#111111" stroke-width="2.5"/>
+</svg>
+</div>
 
 ### 1. `src/marker.rs`
-
-Retain exact point ownership and pack finite display data with the viewer’s diameter policy.
 
 Create the file and type:
 
@@ -119,8 +129,6 @@ impl Marker {
 
 ### 2. `src/lib.rs`
 
-Register point preparation and its source checks.
-
 **Locate this existing block:**
 
 ```rust
@@ -139,8 +147,6 @@ pub mod memory;
 ```
 
 ### 3. `src/marker_tests.rs`
-
-Copy point precision, packing, style and lifetime checks.
 
 Create the file and type:
 
@@ -251,11 +257,7 @@ fn marker_default_width_and_display_refusal_match_their_source_policy() {
 </svg>
 </div>
 
-Extrude a point into a depth-tested screen disc with analytic circular coverage.
-
 ### 1. `src/marker.wgsl`
-
-Keep disc diameter in screen pixels and cover its edge analytically.
 
 Create the file and type:
 
@@ -291,8 +293,6 @@ fn fragment(input: Output) -> @location(0) vec4<f32> {
 
 ### 2. `src/marker.rs`
 
-Expose the actual marker shader source.
-
 **Locate this existing block:**
 
 ```rust
@@ -312,11 +312,48 @@ use std::rc::Rc;
 
 ## <a id="checkpoint-37b-lane"></a>3. Draw markers with the shared instance lane
 
-Bind actual 32-byte marker instances and verify their projected size, alpha and lifetime on the GPU.
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="184" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">3D Point Center P -&gt; Screen Quad Corner uv ∈ [-1, 1]²</text>
+  <rect x="114" y="48" width="112" height="108" fill="#dbeafe" stroke="#2563eb" stroke-width="2"/>
+  <circle cx="170" cy="102" r="5" fill="#dc2626"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="112" y="42" font-family="monospace" font-size="9" font-weight="700" fill="#111111">(-1,+1)</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="228" y="164" font-family="monospace" font-size="9" font-weight="700" fill="#111111">(+1,-1)</text>
+  <line x1="358" y1="94" x2="384" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="388" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Fragment SDF: r = length(uv); smoothstep(1 - w, 1, r)</text>
+  <rect x="498" y="46" width="124" height="112" fill="none" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="4 3"/>
+  <circle cx="560" cy="102" r="46" fill="#fef08a" stroke="#111111" stroke-width="3"/>
+  <circle cx="560" cy="102" r="32" fill="#dc2626"/>
+  <line x1="560" y1="102" x2="606" y2="102" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="583" y="94" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">r=1</text>
+  <line x1="732" y1="94" x2="758" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="762" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Anti-Aliased Control Points in Viewport</text>
+  <rect x="806" y="44" width="256" height="118" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <circle cx="866" cy="122" r="9" fill="#dc2626" stroke="#111111" stroke-width="2"/>
+  <circle cx="934" cy="74" r="9" fill="#fef08a" stroke="#dc2626" stroke-width="2.5"/>
+  <circle cx="1002" cy="118" r="9" fill="#2563eb" stroke="#111111" stroke-width="2"/>
+</svg>
+</div>
 
 ### 1. `src/stroke_gpu.rs`
-
-Validate marker payloads before using shared change-only synchronization. Use the exact centre, diameter and colour attributes for marker instances.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -392,11 +429,7 @@ Replace it with:
 
 ## <a id="checkpoint-37c-document"></a>4. Retain point rows and placement
 
-Give original point sources checked document identities, precise placement and undoable lifetimes.
-
 ### 1. `src/scene.rs`
-
-Retain exact point sources and derive placed display centres independently. Initialize the independent point-row table. Include exact placed point centres in world bounds. Allocate distinct row identities and reject invalid placed centres before mutation. Drop point rows and capacity with complete document Close.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -601,8 +634,6 @@ pub struct Scene {
 
 ### 2. `src/document.rs`
 
-Refuse unsupported point saving rather than silently omit original geometry.
-
 **Locate this existing block:**
 
 ```rust
@@ -622,8 +653,6 @@ pub fn snapshot(scene: &crate::scene::Scene) -> Result<Vec<u8>, &'static str> {
 
 ### 3. `src/lib.rs`
 
-Register precise point-placement and history checks.
-
 **Locate this existing block:**
 
 ```rust
@@ -641,8 +670,6 @@ pub mod prepared;
 ```
 
 ### 4. `src/point_document_tests.rs`
-
-Copy exact placement, source sharing, identity and complete release checks.
 
 Create the file and type:
 
@@ -701,11 +728,7 @@ fn original_point_rows_keep_precise_placement_shared_history_and_release() {
 
 ## <a id="checkpoint-37d-render"></a>5. Draw point rows and count their resources
 
-Draw placed original point rows with truthful CPU/GPU counters and complete Close release.
-
 ### 1. `src/renderer.rs`
-
-Keep one marker lane beside the other scene batches. Create the actual marker pipeline with the scene drawing device. Retain the marker batch under renderer ownership. Reuse accepted point display data and report actual marker allocation. Include initialized marker payloads in measured scene upload bytes. Keep view-only marker changes in the shared uniform. Depth-test point markers in the same scene pass.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -889,8 +912,6 @@ Replace it with:
 
 ### 2. `src/memory.rs`
 
-Count actual point rows, unique source owners and retained row capacity.
-
 **Locate this existing block:**
 
 ```rust
@@ -923,8 +944,6 @@ pub fn paths<'a>(scenes: impl IntoIterator<Item = &'a Scene>) -> [usize; 5] {
 
 ### 3. `src/browser.rs`
 
-Inspect point resource categories independently of earlier counters.
-
 **Locate this existing block:**
 
 ```rust
@@ -949,11 +968,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-37da-input"></a>6. Insert points through the real dock
 
-Insert one original Point through actual command input and prove its screen diameter, history and resource release.
-
 ### 1. `src/editor.rs`
-
-Expose an original point insertion as an editor action. Prepare the original point before one accepted undoable insertion.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -1005,8 +1020,6 @@ Replace it with:
 
 ### 2. `src/browser.rs`
 
-Include the point example in completion and Help. Dispatch actual input through the editor action.
-
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -1049,8 +1062,6 @@ Replace it with:
 
 ### 3. `src/lib.rs`
 
-Register the point input ownership checks.
-
 **Locate this existing block:**
 
 ```rust
@@ -1068,8 +1079,6 @@ pub mod prepared;
 ```
 
 ### 4. `src/point_input_tests.rs`
-
-Copy original identity, style, one-step history and release checks.
 
 Create the file and type:
 
@@ -1113,8 +1122,6 @@ fn point_command_preserves_source_identity_in_one_history_step() {
 ## <a id="checkpoint-37e-controls"></a>7. Identify controls on the curve owner
 
 ### 1. `src/controls.rs`
-
-Keep an indexed control on its original curve and guard every public layout access.
 
 Create the file and type:
 
@@ -1197,8 +1204,6 @@ impl Control {
 
 ### 2. `src/lib.rs`
 
-Register original control references and their refusal checks.
-
 **Locate this existing block:**
 
 ```rust
@@ -1217,8 +1222,6 @@ pub mod diagnostic;
 ```
 
 ### 3. `src/control_tests.rs`
-
-Copy original rational precision, owner release, dimension and malicious-layout checks.
 
 Create the file and type:
 

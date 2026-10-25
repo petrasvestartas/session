@@ -1,6 +1,6 @@
 # 15.1 · Original transforms, part edits and solid recipes
 
-**Goal:** Turn original curves into exact kernel surfaces around a chosen axis. · **Steps:** 49 · **Source:** [app/deform.rs](../../../src/app/deform.rs) · [state/edit.rs](../../../src/state/edit.rs) · [app/command/tool/gather.rs](../../../src/app/command/tool/gather.rs) · [app/command/tool/surfacing.rs](../../../src/app/command/tool/surfacing.rs)
+**Steps:** 49 · **Source:** [app/deform.rs](../../../src/app/deform.rs) · [state/edit.rs](../../../src/state/edit.rs) · [app/command/tool/gather.rs](../../../src/app/command/tool/gather.rs) · [app/command/tool/surfacing.rs](../../../src/app/command/tool/surfacing.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -125,8 +125,6 @@ fn stretch(origin: &Point, axes: &[Vector], k: f64) -> Xform {
 
 ### 2. `src/lib.rs`
 
-Register the source transformation component.
-
 **Locate this existing block:**
 
 ```rust
@@ -146,8 +144,6 @@ pub mod transform_scale;
 ```
 
 ### 3. `src/transform_scale.rs`
-
-Supply independent original-source and fixed-origin regressions.
 
 **Locate this existing block:**
 
@@ -310,8 +306,6 @@ pub fn rotation(center: &Point, radians: f64, plane: &Plane) -> Xform {
 
 ### 2. `src/lib.rs`
 
-Register the source transformation component.
-
 **Locate this existing block:**
 
 ```rust
@@ -331,8 +325,6 @@ pub mod transform_rotate;
 ```
 
 ### 3. `src/transform_rotate.rs`
-
-Supply independent original-source and fixed-origin regressions.
 
 **Locate this existing block:**
 
@@ -437,8 +429,6 @@ mod tests {
 
 ### 1. `src/source_controls.rs`
 
-Address original controls and exclusive part selections.
-
 Create the file and type:
 
 ```rust
@@ -533,8 +523,6 @@ pub enum SelectionTool {
 
 ### 2. `src/lib.rs`
 
-Register the source transformation component.
-
 **Locate this existing block:**
 
 ```rust
@@ -556,8 +544,6 @@ pub mod source_controls;
 ## <a id="checkpoint-77sc-collect-finite-original-controls-and-mesh-vertices"></a>4. Collect finite controls and mesh vertices
 
 ### 1. `src/source_controls.rs`
-
-Collect finite original controls and mesh vertices.
 
 **Locate this existing block:**
 
@@ -708,8 +694,6 @@ impl Controls {
 
 ### 1. `src/source_controls.rs`
 
-Reuse control collectors across original geometry families. Supply independent original-source and fixed-origin regressions.
-
 **Locate this existing block:**
 
 ```rust
@@ -840,8 +824,6 @@ mod tests {
 
 ### 1. `src/source_deform.rs`
 
-Represent original geometry edit targets.
-
 Create the file and type:
 
 ```rust
@@ -876,8 +858,6 @@ impl Target {
 
 ### 2. `src/lib.rs`
 
-Register the source transformation component.
-
 **Locate this existing block:**
 
 ```rust
@@ -899,8 +879,6 @@ pub mod source_deform;
 ## <a id="checkpoint-77sg-resolve-original-mesh-vertices-for-part-edits"></a>8. Resolve mesh vertices for part edits
 
 ### 1. `src/source_deform.rs`
-
-Resolve original mesh vertices for part edits.
 
 **Locate this existing block:**
 
@@ -1214,8 +1192,6 @@ fn validate_boundaries(
 
 ### 1. `src/source_deform.rs`
 
-Transform original mesh and surface controls.
-
 **Locate this existing block:**
 
 ```rust
@@ -1277,8 +1253,6 @@ fn transform_nurbssurface(
 ## <a id="checkpoint-77sl-transform-original-line-polyline-point-and-curve-controls"></a>13. Transform line polyline point and curve controls
 
 ### 1. `src/source_deform.rs`
-
-Transform original line polyline point and curve controls.
 
 **Locate this existing block:**
 
@@ -1445,8 +1419,6 @@ fn transform_brep(
 
 ### 1. `src/source_deform.rs`
 
-Dispatch original part edits and retain Element ownership.
-
 **Locate this existing block:**
 
 ```rust
@@ -1521,11 +1493,7 @@ pub fn transform(
 
 ## <a id="checkpoint-77so-map-sparse-original-vertex-keys-to-display-slots"></a>16. Map sparse vertex keys to display slots
 
-Map sparse original vertex keys to display slots.
-
 ### 1. `src/source_topology_colour.rs`
-
-Pack original edge pen colours into the existing RGBA word convention.
 
 Create the file and type:
 
@@ -1544,8 +1512,6 @@ pub const BLACK: u32 = 0xff00_0000;
 ```
 
 ### 2. `src/source_mesh_topology.rs`
-
-Map sparse original vertex keys to display slots.
 
 Create the file and type:
 
@@ -1603,8 +1569,6 @@ impl SlotMap {
 
 ### 3. `src/lib.rs`
 
-Register the shared source colour helper and original edge topology owner.
-
 **Locate this existing block:**
 
 ```rust
@@ -1627,8 +1591,6 @@ pub mod source_topology_colour;
 ## <a id="checkpoint-77sp-compute-polygon-normals-from-original-boundaries"></a>17. Compute polygon normals from boundaries
 
 ### 1. `src/source_mesh_topology.rs`
-
-Compute polygon normals from original boundaries.
 
 **Locate this existing block:**
 
@@ -1687,8 +1649,6 @@ fn face_key(face: &(usize, &Vec<usize>)) -> usize {
 ## <a id="checkpoint-77sq-build-one-original-edge-table-and-record-incident-faces"></a>18. Build one edge table and record incident faces
 
 ### 1. `src/source_mesh_topology.rs`
-
-Build one original edge table and record incident faces.
 
 **Locate this existing block:**
 
@@ -1773,8 +1733,6 @@ impl EdgeTable {
 ## <a id="checkpoint-77sr-preserve-hole-winding-and-complete-original-mesh-topology"></a>19. Preserve hole winding and complete mesh topology
 
 ### 1. `src/source_mesh_topology.rs`
-
-Preserve hole winding and complete original mesh topology. Supply independent original-source and fixed-origin regressions.
 
 **Locate this existing block:**
 
@@ -1958,8 +1916,6 @@ mod tests {
 ```
 
 ### 2. `src/source_deform.rs`
-
-Supply independent original-source and fixed-origin regressions.
 
 **Locate this existing block:**
 
@@ -2169,11 +2125,7 @@ mod tests {
 
 ## <a id="checkpoint-77a-own-transformation-questions-and-the-selected-original-targets"></a>20. Own transformation questions and the selected targets
 
-Own transformation questions and the selected original targets.
-
 ### 1. `src/transform_draft.rs`
-
-Own current transformation questions, modes, accepted points and original targets.
 
 Create the file and type:
 
@@ -2257,8 +2209,6 @@ impl Draft {
 
 ### 2. `src/lib.rs`
 
-Register the source transformation component.
-
 **Locate this existing block:**
 
 ```rust
@@ -2286,8 +2236,6 @@ pub mod transform_draft;
 ## <a id="checkpoint-77b-validate-point-and-number-transformation-answers"></a>21. Validate point and number transformation answers
 
 ### 1. `src/transform_draft.rs`
-
-Validate current transform points and numbers without adopting an invalid reference.
 
 **Locate this existing block:**
 
@@ -2425,8 +2373,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 1. `src/transform_draft.rs`
 
-Resolve current options and atomic batches, temporary preview matrices and tool buttons.
-
 **Locate this existing block:**
 
 ```rust
@@ -2535,11 +2481,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-77d-resolve-original-cad-parts-and-complete-selected-bounds"></a>23. Resolve CAD parts and complete selected bounds
 
-Resolve original CAD parts and complete selected bounds.
-
 ### 1. `src/source_part.rs`
-
-Resolve existing CAD face and boundary targets against original kernel geometry.
 
 Create the file and type:
 
@@ -2591,8 +2533,6 @@ pub fn points(
 
 ### 2. `src/lib.rs`
 
-Register the source transformation component.
-
 **Locate this existing block:**
 
 ```rust
@@ -2618,8 +2558,6 @@ pub mod source_part;
 ```
 
 ### 3. `src/scene.rs`
-
-Connect current transformation behavior to the existing input and history owner.
 
 **Locate this existing block:**
 
@@ -2678,11 +2616,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-77e-rebuild-an-edited-original-cad-source-before-adoption"></a>24. Rebuild an edited CAD source before adoption
 
-Rebuild an edited original CAD source before adoption.
-
 ### 1. `src/scene.rs`
-
-Connect current transformation behavior to the existing input and history owner.
 
 **Locate this existing block:**
 
@@ -2762,8 +2696,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 2. `src/part_preview.rs`
-
-Connect current transformation behavior to the existing input and history owner.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -2852,11 +2784,7 @@ Replace it with:
 
 ## <a id="checkpoint-77f-copy-original-rows-beside-their-existing-parents"></a>25. Copy rows beside their existing parents
 
-Copy original rows beside their existing parents.
-
 ### 1. `src/layer_edit.rs`
-
-Copy checked original rows under their existing parent with current attributes, new identities and placed source sharing.
 
 **Locate this existing block:**
 
@@ -2977,8 +2905,6 @@ pub(crate) fn copy_objects(
 ## <a id="checkpoint-77g-carry-transformation-state-through-the-existing-drawing-owner"></a>26. Carry transformation state through the existing drawing owner
 
 ### 1. `src/tool.rs`
-
-Carry current transform question owners and buttons through the existing Draft.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -3139,8 +3065,6 @@ impl Tool for Shape {
 
 ### 2. `src/editor.rs`
 
-Own temporary original-part and whole-placement transformation previews. Connect current transformation behavior to the existing input and history owner.
-
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -3283,8 +3207,6 @@ Replace it with:
 
 ### 1. `src/editor.rs`
 
-Connect checked original transformations to the current Editor transaction boundary.
-
 **Locate this existing block:**
 
 ```rust
@@ -3379,8 +3301,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ## <a id="checkpoint-77i-adopt-validated-outcomes-and-preserve-repeat-copy-transactions"></a>28. Adopt validated outcomes and preserve repeat copy transactions
 
 ### 1. `src/editor.rs`
-
-Connect checked original transformations to the current Editor transaction boundary.
 
 **Locate this existing block:**
 
@@ -3484,8 +3404,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ## <a id="checkpoint-77j-route-transform-input-cancellation-and-current-plane-changes"></a>29. Route transform input cancellation and current plane changes
 
 ### 1. `src/editor.rs`
-
-Connect current transformation behavior to the existing input and history owner.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -3608,8 +3526,6 @@ Replace it with:
 ## <a id="checkpoint-77k-connect-transformation-lifecycle-and-part-move-dispatch"></a>30. Connect transformation lifecycle and part Move dispatch
 
 ### 1. `src/editor.rs`
-
-Register transform lifecycle actions before connecting current input dispatch. Connect current transformation behavior to the existing input and history owner.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -3864,8 +3780,6 @@ Replace it with:
 
 ### 2. `src/selection_tests.rs`
 
-Keep invalid Move and parent-deletion guards when source-part Move becomes available.
-
 **Locate this existing block:**
 
 ```rust
@@ -3883,8 +3797,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 3. `src/edit_preview_tests.rs`
-
-Allow part Move previews and cancellation while retaining locked, cold and stale target guards.
 
 **Locate this existing block:**
 
@@ -3911,8 +3823,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ## <a id="checkpoint-77l-register-copy-scale-rotate-and-their-current-aliases"></a>31. Register Copy Scale Rotate and their current aliases
 
 ### 1. `src/transform_commands.rs`
-
-Parse current direct and interactive transform names, options and aliases.
 
 Create the file and type:
 
@@ -4000,8 +3910,6 @@ pub fn alias(line: &str) -> String {
 
 ### 2. `src/lib.rs`
 
-Register the source transformation component.
-
 **Locate this existing block:**
 
 ```rust
@@ -4027,8 +3935,6 @@ pub mod transform_commands;
 ```
 
 ### 3. `src/commands.rs`
-
-Register current transforms and preserve longest-name matching and typed aliases.
 
 **Locate this existing block:**
 
@@ -4142,8 +4048,6 @@ pub fn parse(line: &str) -> Result<Command, String> {
 
 ### 4. `src/editor.rs`
 
-Carry typed scale factors and world-axis rotation angles to the existing Editor.
-
 **Locate this existing block:**
 
 ```rust
@@ -4166,8 +4070,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ## <a id="checkpoint-77m-apply-direct-scale-and-rotate-about-the-current-selection-center"></a>32. Apply direct Scale and Rotate about the current selection center
 
 ### 1. `src/editor.rs`
-
-Apply direct current Scale and Rotate about the selection gizmo center.
 
 **Locate this existing block:**
 
@@ -4241,8 +4143,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 1. `src/edit_preview_tests.rs`
 
-Copy retained selection/preview fixtures with current source-part Move support.
-
 **Locate this existing block:**
 
 ```rust
@@ -4309,11 +4209,7 @@ fn preview_checks_locked_cold_and_stale_targets_and_routes_parts_to_source_editi
 
 ## <a id="checkpoint-77o-exercise-original-copy-transforms-history-and-exact-persistence"></a>34. Exercise copy transforms history and exact persistence
 
-Exercise original copy transforms history and exact persistence.
-
 ### 1. `src/transform_tests.rs`
-
-Copy integrated current copy/transform/original-edit/history/nested SaveOpen fixtures.
 
 Create the file and type:
 
@@ -4772,8 +4668,6 @@ fn copy_under_duplicate_named_nested_groups_preserves_local_save_placement_and_o
 
 ### 2. `src/lib.rs`
 
-Register the source transformation component.
-
 **Locate this existing block:**
 
 ```rust
@@ -4801,11 +4695,7 @@ mod transform_tests;
 
 ## <a id="checkpoint-77zza-describe-curve-gathering-answers"></a>35. Describe curve gathering answers
 
-Describe ordered curve questions and typed answers.
-
 ### 1. `src/gather_input.rs`
-
-Type the shared curve-gathering declarations.
 
 Create the file and type:
 
@@ -4864,8 +4754,6 @@ pub const SAMPLES: usize = 48; // points per curve for normals and previews
 
 ### 2. `src/lib.rs`
 
-Register these helpers for the later kernel surfacing recipes.
-
 **Locate this existing block:**
 
 ```rust
@@ -4894,11 +4782,7 @@ pub mod source_mesh_topology;
 
 ## <a id="checkpoint-77zzb-read-curve-gathering-values"></a>36. Read curve gathering values
 
-Read finite numbers, absolute points and distance vectors through the existing coordinate reader.
-
 ### 1. `src/gather_input.rs`
-
-Insert the next gathering behavior after its existing declarations.
 
 **Locate this existing block:**
 
@@ -4970,11 +4854,7 @@ impl Step {
 
 ## <a id="checkpoint-77zzc-connect-gathering-recipes"></a>37. Connect gathering recipes
 
-Connect typed input to a recipe, its questions and kernel builder.
-
 ### 1. `src/gather_input.rs`
-
-Insert the next gathering behavior after its existing declarations.
 
 **Locate this existing block:**
 
@@ -5061,11 +4941,7 @@ impl Recipe {
 
 ## <a id="checkpoint-77zzd-parse-gathering-command-words"></a>38. Parse gathering command words
 
-Read options anywhere in a command and consume other answers in order.
-
 ### 1. `src/gather_input.rs`
-
-Insert the next gathering behavior after its existing declarations.
 
 **Locate this existing block:**
 
@@ -5131,11 +5007,7 @@ pub fn read(recipe: &Recipe, words: &[&str]) -> Result<(usize, Vec<Answer>), Str
 
 ## <a id="checkpoint-77zze-track-ordered-curve-picks"></a>39. Track ordered curve picks
 
-Track preselected curve rows and skip answers already typed.
-
 ### 1. `src/gather_input.rs`
-
-Add the next gathering behavior to the existing helpers.
 
 **Locate this existing block:**
 
@@ -5241,11 +5113,7 @@ pub fn count(count: usize, noun: &str) -> String {
 
 ## <a id="checkpoint-77zzf-advance-and-cancel-curve-picks"></a>40. Advance and cancel curve picks
 
-Toggle a picked curve, reject duplicates across groups, and advance on a full group or Enter.
-
 ### 1. `src/gather_input.rs`
-
-Insert the next gathering behavior after its existing declarations.
 
 **Locate this existing block:**
 
@@ -5338,11 +5206,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-77zzg-prepare-placed-kernel-curves"></a>41. Prepare placed kernel curves
 
-Convert lines, polylines and NURBS curves to placed kernel curves.
-
 ### 1. `src/gather_input.rs`
-
-Add the next gathering behavior to the existing helpers. Supply the original gathering-input validation fixtures separately.
 
 **Locate this existing block:**
 
@@ -5624,11 +5488,7 @@ pub fn no_axis(_input: &Input) -> (Point, Vector) {
 
 ## <a id="checkpoint-77zzh-check-original-loops-and-surface-controls"></a>42. Check loops and surface controls
 
-Find a loop’s unit normal and scale-aware planarity tolerance.
-
 ### 1. `src/surfacing.rs`
-
-Type loop geometry, planarity and finite surface validation.
 
 Create the file and type:
 
@@ -5726,8 +5586,6 @@ pub fn curves(picked: &[Picked]) -> Vec<NurbsCurve> {
 
 ### 2. `src/lib.rs`
 
-Compile the shared surfacing owner while its recipes are prepared.
-
 **Locate this existing block:**
 
 ```rust
@@ -5788,11 +5646,7 @@ pub mod surfacing;
 </svg>
 </div>
 
-Align open curve directions and closed curve seams before asking the Session kernel for a loft.
-
 ### 1. `src/surfacing.rs`
-
-Add section alignment and lofting before the existing result validator. Supply the five original surfacing validation fixtures.
 
 **Locate this existing block:**
 
@@ -6158,11 +6012,7 @@ pub mod tests {
 </svg>
 </div>
 
-Reuse the original loop normal and planarity helpers to choose an extrusion axis.
-
 ### 1. `src/extrude_geometry.rs`
-
-Type the shared extrusion axis, orientations and cap eligibility.
 
 Create the file and type:
 
@@ -6245,8 +6095,6 @@ fn cap_normal(
 
 ### 2. `src/lib.rs`
 
-Compile the original extrusion helpers before their command registration.
-
 **Locate this existing block:**
 
 ```rust
@@ -6267,11 +6115,7 @@ pub mod extrude_geometry;
 
 ## <a id="checkpoint-77zzk-map-cap-curves-to-surface-parameters"></a>45. Map cap curves to surface parameters
 
-Build a planar cap patch around the original control points.
-
 ### 1. `src/extrude_geometry.rs`
-
-Extend this original owner with the day’s whole extrusion helpers.
 
 **Locate this existing block:**
 
@@ -6395,11 +6239,7 @@ fn cap_face(
 
 ## <a id="checkpoint-77zzl-build-closed-curved-extrusion-topology"></a>46. Build closed curved extrusion topology
 
-Build the side surface from an oriented original curve.
-
 ### 1. `src/extrude_geometry.rs`
-
-Extend this original owner with the day’s whole extrusion helpers.
 
 **Locate this existing block:**
 
@@ -6505,11 +6345,7 @@ fn capped(
 
 ## <a id="checkpoint-77zzm-extrude-original-corners-and-curves"></a>47. Extrude corners and curves
 
-Dispatch original corner chains and curved sections through the shared extrusion helpers.
-
 ### 1. `src/extrude_geometry.rs`
-
-Extend this original owner with the day’s whole extrusion helpers.
 
 **Locate this existing block:**
 
@@ -6594,11 +6430,7 @@ fn extrude(
 
 ## <a id="checkpoint-77zzn-connect-the-original-extrusion-recipe"></a>48. Connect the extrusion recipe
 
-Complete the original recipe with curve selection, signed distance and cap choices.
-
 ### 1. `src/extrude_geometry.rs`
-
-Extend this original owner with the day’s whole extrusion helpers. Supply the four original extrusion validation fixtures.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -6930,8 +6762,6 @@ const R: BRepOrientation = BRepOrientation::Reversed;
 
 ### 1. `src/revolve_geometry.rs`
 
-Type the original axis validation, exact revolution and complete recipe result.
-
 Create the file and type:
 
 ```rust
@@ -7016,8 +6846,6 @@ fn build(input: &Input) -> Result<Made, String> {
 
 ### 2. `src/lib.rs`
 
-Compile the prepared original revolution recipe.
-
 **Locate this existing block:**
 
 ```rust
@@ -7037,8 +6865,6 @@ pub mod revolve_geometry;
 ```
 
 ### 3. `src/revolve_geometry.rs`
-
-Supply the unchanged original radius, seam and axis validation fixture.
 
 **Locate this existing block:**
 

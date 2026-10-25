@@ -1,6 +1,6 @@
 # 17.2 · Finite ink visibility and original colour/pick ownership
 
-**Goal:** Exercise finite color and original picking. · **Steps:** 25 · **Source:** [engine/gpu/triangle_tiles.rs](../../../../src/engine/gpu/triangle_tiles.rs) · [shaders/project_triangles.wgsl](../../../../src/shaders/project_triangles.wgsl) · [shaders/ink_visibility.wgsl](../../../../src/shaders/ink_visibility.wgsl) · [shaders/ribbon.wgsl](../../../../src/shaders/ribbon.wgsl)
+**Steps:** 25 · **Source:** [engine/gpu/triangle_tiles.rs](../../../../src/engine/gpu/triangle_tiles.rs) · [shaders/project_triangles.wgsl](../../../../src/shaders/project_triangles.wgsl) · [shaders/ink_visibility.wgsl](../../../../src/shaders/ink_visibility.wgsl) · [shaders/ribbon.wgsl](../../../../src/shaders/ribbon.wgsl)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -100,8 +100,6 @@
 
 ### 1. `src/finite_visibility.wgsl`
 
-Test visibility at the original center line.
-
 Create the file and type:
 
 ```wgsl
@@ -131,11 +129,7 @@ fn finite_visible(pixel:vec2<f32>,axis:vec4<f32>,depths:vec2<f32>)->bool{
 
 ## <a id="checkpoint-86t-reuse-original-stroke-coverage"></a>2. Reuse stroke coverage
 
-Reuse original stroke coverage.
-
 ### 1. `src/stroke_coverage.wgsl`
-
-Move this already-written coverage function into one shared shader file; no new coverage algorithm is introduced.
 
 Create the file and type:
 
@@ -147,8 +141,6 @@ fn colour(input: Output) -> vec4<f32> {
 ```
 
 ### 2. `src/stroke.wgsl`
-
-Use the same coverage predicate in the ordinary and finite shader.
 
 **Locate this existing block:**
 
@@ -175,8 +167,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 3. `src/stroke.rs`
 
-Assemble the ordinary shader with the shared source expander already written.
-
 **Locate this existing block:**
 
 ```rust
@@ -194,8 +184,6 @@ use std::rc::Rc;
 ```
 
 ### 4. `src/finite_project_source.rs`
-
-Expand one shared coverage source for ordinary, finite and integer variants.
 
 **Locate this existing block:**
 
@@ -216,8 +204,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 5. `src/stroke_gpu.rs`
-
-Route the existing GPU lane through shared coverage assembly. Borrow assembled shader source only while creating its owned GPU module.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -337,8 +323,6 @@ Replace it with:
 
 ### 6. `src/finite_stroke.wgsl`
 
-Reuse the existing shader after extracting shared coverage; later edits add the finite projection.
-
 Reuse the shader you have already written:
 
 ```sh
@@ -441,11 +425,7 @@ fn finite_depth_pixel(pixel:vec2<f32>)->vec2<i32>{return vec2<i32>(pixel);}
 
 ## <a id="checkpoint-86v-reuse-original-stroke-integer-coverage"></a>4. Reuse stroke integer coverage
 
-Reuse original stroke integer coverage.
-
 ### 1. `src/finite_stroke_pick.wgsl`
-
-Reuse the existing shader after extracting shared coverage; later edits add the finite projection.
 
 Reuse the shader you have already written:
 
@@ -514,11 +494,7 @@ fn pick_fragment(input: PickOutput) -> @location(0) vec2<u32> {
 
 ## <a id="checkpoint-86x-reuse-original-chain-coverage"></a>6. Reuse chain coverage
 
-Reuse original chain coverage.
-
 ### 1. `src/chain_coverage.wgsl`
-
-Move this already-written coverage function into one shared shader file; no new coverage algorithm is introduced.
 
 Create the file and type:
 
@@ -539,8 +515,6 @@ fn colour(input: Output) -> vec4<f32> {
 ```
 
 ### 2. `src/chain.wgsl`
-
-Use the same coverage predicate in the ordinary and finite shader.
 
 **Locate this existing block:**
 
@@ -574,8 +548,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 3. `src/chain.rs`
 
-Assemble the ordinary shader with the shared source expander already written.
-
 **Locate this existing block:**
 
 ```rust
@@ -593,8 +565,6 @@ use crate::stroke::PreparedLine;
 ```
 
 ### 4. `src/finite_project_source.rs`
-
-Expand one shared coverage source for ordinary, finite and integer variants.
 
 **Locate this existing block:**
 
@@ -616,8 +586,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 5. `src/stroke_gpu.rs`
 
-Route the existing GPU lane through shared coverage assembly.
-
 **Locate this existing block:**
 
 ```rust
@@ -635,8 +603,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 6. `src/finite_chain.wgsl`
-
-Reuse the existing shader after extracting shared coverage; later edits add the finite projection.
 
 Reuse the shader you have already written:
 
@@ -742,11 +708,7 @@ fn perpendicular(d: vec2<f32>) -> vec2<f32> { return vec2<f32>(-d.y, d.x); }
 
 ## <a id="checkpoint-86z-reuse-original-chain-integer-coverage"></a>8. Reuse chain integer coverage
 
-Reuse original chain integer coverage.
-
 ### 1. `src/finite_chain_pick.wgsl`
-
-Reuse the existing shader after extracting shared coverage; later edits add the finite projection.
 
 Reuse the shader you have already written:
 
@@ -825,11 +787,7 @@ fn pick_fragment(input: PickOutput) -> @location(0) vec2<u32> {
 
 ## <a id="checkpoint-86ab-reuse-original-marker-coverage"></a>10. Reuse marker coverage
 
-Reuse original marker coverage.
-
 ### 1. `src/marker_coverage.wgsl`
-
-Move this already-written coverage function into one shared shader file; no new coverage algorithm is introduced.
 
 Create the file and type:
 
@@ -841,8 +799,6 @@ fn colour(input: Output) -> vec4<f32> {
 ```
 
 ### 2. `src/marker.wgsl`
-
-Use the same coverage predicate in the ordinary and finite shader.
 
 **Locate this existing block:**
 
@@ -867,8 +823,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 3. `src/marker.rs`
 
-Assemble the ordinary shader with the shared source expander already written.
-
 **Locate this existing block:**
 
 ```rust
@@ -886,8 +840,6 @@ use std::rc::Rc;
 ```
 
 ### 4. `src/finite_project_source.rs`
-
-Expand one shared coverage source for ordinary, finite and integer variants.
 
 **Locate this existing block:**
 
@@ -909,8 +861,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 5. `src/stroke_gpu.rs`
 
-Route the existing GPU lane through shared coverage assembly.
-
 **Locate this existing block:**
 
 ```rust
@@ -928,8 +878,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 6. `src/finite_marker.wgsl`
-
-Reuse the existing shader after extracting shared coverage; later edits add the finite projection.
 
 Reuse the shader you have already written:
 
@@ -1004,11 +952,7 @@ fn finite_depth_pixel(pixel:vec2<f32>)->vec2<i32>{return vec2<i32>(pixel);}
 
 ## <a id="checkpoint-86ad-reuse-original-marker-integer-coverage"></a>12. Reuse marker integer coverage
 
-Reuse original marker integer coverage.
-
 ### 1. `src/finite_marker_pick.wgsl`
-
-Reuse the existing shader after extracting shared coverage; later edits add the finite projection.
 
 Reuse the shader you have already written:
 
@@ -1129,8 +1073,6 @@ pub fn source_style(stride: u64, pick: bool, grid: bool) -> String {
 
 ### 2. `src/lib.rs`
 
-Register the completed source owner.
-
 **Locate this existing block:**
 
 ```rust
@@ -1167,8 +1109,6 @@ pub mod source_mesh_topology;
 
 ## <a id="checkpoint-86ag-own-finite-color-and-integer-pipelines"></a>15. Own finite color and integer pipelines
 
-Compile the finite pipeline and cached-binding types before construction.
-
 ### 1. `src/finite_ink.rs`
 
 Create the file and type:
@@ -1197,8 +1137,6 @@ impl Ink {}
 ```
 
 ### 2. `src/lib.rs`
-
-Register the resource types immediately so every following method is checked by the browser compiler.
 
 **Locate this existing block:**
 
@@ -1229,8 +1167,6 @@ mod finite_scan_contract;
 ## <a id="checkpoint-86ah-build-finite-shader-pipelines-with-original-layouts"></a>16. Build finite shader pipelines with layouts
 
 ### 1. `src/finite_ink.rs`
-
-Build finite shader pipelines with original layouts.
 
 **Locate this existing block:**
 
@@ -1284,6 +1220,7 @@ fn pipeline(
     }
     let mut depth = crate::depth::ink();
     depth.depth_compare = Some(wgpu::CompareFunction::Always);
+    depth.bias = Default::default();
     device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
         label: Some("finite original ink"),
         layout: Some(&pipeline_layout),
@@ -1376,8 +1313,6 @@ pub struct Ink {
 </div>
 
 ### 1. `src/finite_ink.rs`
-
-Bind finite coverage for original families.
 
 **Locate this existing block:**
 
@@ -1532,8 +1467,6 @@ impl Ink {
 
 ### 1. `src/finite_ink.rs`
 
-Reuse bindings and draw original owners.
-
 **Locate this existing block:**
 
 ```rust
@@ -1614,11 +1547,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-86ak-expose-original-gpu-models-to-projection"></a>19. Expose GPU models to projection
 
-Expose original GPU models to projection.
-
 ### 1. `src/gpu_layout.rs`
-
-Expose existing buffers without changing original data.
 
 **Locate this existing block:**
 
@@ -1639,11 +1568,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-86al-connect-finite-visibility-to-all-original-ink-lanes"></a>20. Connect finite visibility to all ink lanes
 
-Connect finite visibility to all original ink lanes.
-
 ### 1. `src/stroke_gpu.rs`
-
-Connect optional finite state and cached coverage.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -1827,8 +1752,6 @@ pub struct Lane {
 
 ### 2. `src/highlight.rs`
 
-Connect optional finite state and cached coverage.
-
 **Locate this existing block:**
 
 ```rust
@@ -1872,8 +1795,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 1. `src/pick_image.rs`
 
-Preserve original integer coverage while splitting incompatible depth access.
-
 **Locate this existing block:**
 
 ```rust
@@ -1892,8 +1813,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 2. `src/pick_gpu.rs`
-
-Preserve original integer coverage while splitting incompatible depth access.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -1976,8 +1895,6 @@ Replace it with:
 ```
 
 ### 3. `src/pick_encode.rs`
-
-Preserve original integer coverage while splitting incompatible depth access.
 
 **Locate this existing block:**
 
@@ -2118,8 +2035,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ## <a id="checkpoint-86an-own-tile-state-before-color-and-first-picks"></a>22. Own tile state before color and first picks
 
 ### 1. `src/renderer.rs`
-
-Prepare current derived tile state and first-pick routing.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -2376,8 +2291,6 @@ pub struct Renderer {
 
 ### 1. `src/renderer.rs`
 
-Draw current original geometry through compatible depth passes. Finish the cloud depth composite before finite ink samples depth and draws selected markers.
-
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -2527,8 +2440,6 @@ Replace it with:
 
 ### 1. `src/browser.rs`
 
-Expose actual tile usage and listen for completed reports.
-
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -2617,8 +2528,6 @@ Replace it with:
 
 ### 1. `src/tile_shader_tests.rs`
 
-Copy the shader validation and actual GPU fixtures.
-
 Create the file and type:
 
 ```rust
@@ -2663,8 +2572,6 @@ fn current_finite_triangle_shader_recipes_validate_with_explicit_course_bindings
 
 ### 2. `src/lib.rs`
 
-Register the completed source owner.
-
 **Locate this existing block:**
 
 ```rust
@@ -2697,8 +2604,6 @@ mod tile_shader_tests;
 ```
 
 ### 3. `src/tile_gpu_tests.rs`
-
-Copy the shader validation and actual GPU fixtures.
 
 Create the file and type:
 
@@ -2874,8 +2779,6 @@ fn actual_finite_gpu_lists_cache_projection_and_drop_deleted_geometry() {
 
 ### 4. `src/lib.rs`
 
-Register the completed source owner.
-
 **Locate this existing block:**
 
 ```rust
@@ -2914,8 +2817,6 @@ mod tile_gpu_tests;
 ```
 
 ### 5. `src/finite_visibility_tests.rs`
-
-Copy the shader validation and actual GPU fixtures.
 
 Create the file and type:
 
@@ -3317,8 +3218,6 @@ fn coplanar_construction_grid_is_hidden_without_hiding_original_ink() {
 
 ### 6. `src/lib.rs`
 
-Register the completed source owner.
-
 **Locate this existing block:**
 
 ```rust
@@ -3357,8 +3256,6 @@ pub mod source_mesh_topology;
 ```
 
 ### 7. `src/pick_gpu_tests.rs`
-
-Copy the original CAD boundary fixture with a precise failure diagnostic.
 
 **Locate this existing block:**
 

@@ -1,6 +1,6 @@
 # 18.3 · Section-aware outlines and one presentation composite
 
-**Goal:** Prove actual outlines and original ownership. · **Steps:** 10 · **Source:** [engine/gpu/ssao.rs](../../../../src/engine/gpu/ssao.rs) · [engine/gpu/ssao/pipelines.rs](../../../../src/engine/gpu/ssao/pipelines.rs) · [shaders/ssao.wgsl](../../../../src/shaders/ssao.wgsl) · [shaders/triangle.wgsl](../../../../src/shaders/triangle.wgsl)
+**Steps:** 10 · **Source:** [engine/gpu/ssao.rs](../../../../src/engine/gpu/ssao.rs) · [engine/gpu/ssao/pipelines.rs](../../../../src/engine/gpu/ssao/pipelines.rs) · [shaders/ssao.wgsl](../../../../src/shaders/ssao.wgsl) · [shaders/triangle.wgsl](../../../../src/shaders/triangle.wgsl)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -47,8 +47,6 @@
 ## <a id="checkpoint-91-include-visible-section-coverage"></a>1. Include visible section coverage
 
 ### 1. `src/outline_caps.wgsl`
-
-Add exact visible section coverage without source mutation.
 
 Create the file and type:
 
@@ -113,8 +111,6 @@ struct Coverage{@location(0) value:f32,@builtin(frag_depth) depth:f32}
 </div>
 
 ### 1. `src/outline_caps.rs`
-
-Own the compatible visible section mask pipeline.
 
 Create the file and type:
 
@@ -235,8 +231,6 @@ impl Caps {
 
 ### 2. `src/lib.rs`
 
-Register the completed outline component.
-
 **Locate this existing block:**
 
 ```rust
@@ -314,8 +308,6 @@ pub mod source_mesh_topology;
 
 ### 1. `src/outline_composite.wgsl`
 
-Combine current global and selected alpha in one shader.
-
 Create the file and type:
 
 ```wgsl
@@ -371,8 +363,6 @@ Create the file and type:
 </div>
 
 ### 1. `src/outline_composite.rs`
-
-Own one compatible cached outline composition.
 
 Create the file and type:
 
@@ -492,8 +482,6 @@ impl Composite {
 
 ### 2. `src/lib.rs`
 
-Register the completed outline component.
-
 **Locate this existing block:**
 
 ```rust
@@ -579,8 +567,6 @@ pub mod source_mesh_topology;
 </div>
 
 ### 1. `src/outline_gpu.rs`
-
-Own cap coverage and an explicit independent all-solid scope.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -779,8 +765,6 @@ pub struct Outline {
 </div>
 
 ### 1. `src/outline_gpu.rs`
-
-Separate cached mask preparation from black composition.
 
 **Locate this existing block:**
 
@@ -1024,8 +1008,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 1. `src/renderer.rs`
 
-Own independent global masks and derived cache invalidation.
-
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -1218,8 +1200,6 @@ Replace it with:
 
 ### 1. `src/renderer.rs`
 
-Route visible original and cap masks into one black outline pass.
-
 **Locate this existing block:**
 
 ```rust
@@ -1343,8 +1323,6 @@ Edit the existing block to match this code; keep unchanged lines:
 ## <a id="checkpoint-91h-connect-outline-and-arctic-presentation-commands"></a>9. Connect Outline and Arctic presentation commands
 
 ### 1. `src/editor.rs`
-
-Connect current presentation commands and explicit browser outline diagnostics.
 
 **Locate this existing block:**
 
@@ -7715,8 +7693,6 @@ impl Editor {
 
 ### 2. `src/commands.rs`
 
-Connect current presentation commands and explicit browser outline diagnostics.
-
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -7765,8 +7741,6 @@ pub const ACTIONS: &[(&str, Factory)] = &[
 
 ### 3. `src/browser.rs`
 
-Connect current presentation commands and explicit browser outline diagnostics.
-
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -7811,8 +7785,6 @@ Replace it with:
 ## <a id="checkpoint-91i-prove-actual-outlines-and-original-ownership"></a>10. Prove actual outlines and ownership
 
 ### 1. `src/global_outline_tests.rs`
-
-Copy supplied actual outline width, cap, cache and original-owner fixtures.
 
 Create the file and type:
 
@@ -8066,8 +8038,6 @@ fn actual_global_outline_includes_locked_and_releases_hidden_originals() {
 
 ### 2. `src/renderer.rs`
 
-Register actual renderer-local outline fixtures.
-
 **Locate this existing block:**
 
 ```rust
@@ -8087,8 +8057,6 @@ mod global_outline_tests;
 ```
 
 ### 3. `src/global_outline_command_tests.rs`
-
-Copy supplied strict presentation/history/original fixtures.
 
 Create the file and type:
 
@@ -8164,8 +8132,6 @@ fn outline_and_arctic_strict_presentation_preserves_tool_history_and_originals()
 ```
 
 ### 4. `src/lib.rs`
-
-Register the completed outline component.
 
 **Locate this existing block:**
 
