@@ -1,0 +1,88 @@
+{
+  "date": "2026-10-25T22:04:18.100Z",
+  "status": "PASS: every original reported URL serves its reviewed replacement bytes",
+  "scope": "Actual local HTTP responses at the original version-query URLs. Does not claim remaining image inventory complete.",
+  "images": [
+    {
+      "id": "96zzzzx-retire-empty-arena-ranges-after-tail-trimming",
+      "reportedUrl": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/96zzzzx-retire-empty-arena-ranges-after-tail-trimming.png?v=402ecb37eb29",
+      "currentSha256": "33692b20bbdd38393f5f2f84a3e345e8a6480ac240f26271277f476f67afb414",
+      "width": 1280,
+      "height": 960,
+      "status": 200,
+      "cacheControl": "no-cache"
+    },
+    {
+      "id": "80za-read-original-projection-planes",
+      "reportedUrl": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/80za-read-original-projection-planes.png?v=0ae1c70ef6cd",
+      "currentSha256": "b2654eb3c134c058ed0de8bb5d05e9010311105c63f3935ecd13901e2f752330",
+      "width": 1280,
+      "height": 960,
+      "status": 200,
+      "cacheControl": "no-cache"
+    },
+    {
+      "id": "70za-read-original-sheet-metadata-records",
+      "reportedUrl": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/70za-read-original-sheet-metadata-records.png?v=ce255c58e089",
+      "currentSha256": "05ab144c201e94155f32518ea30f8a1801848e010c2676c874a5c8998f8fb60d",
+      "width": 1280,
+      "height": 960,
+      "status": 200,
+      "cacheControl": "no-cache"
+    },
+    {
+      "id": "68ac-connect-current-pages-to-the-browser-renderer-browser",
+      "reportedUrl": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/68ac-connect-current-pages-to-the-browser-renderer-browser.png?v=9bba02da8e3f",
+      "currentSha256": "f109bb41eea6314097883b37e4989b38f581e6dccf2f93aca49b39bef72ee363",
+      "width": 2200,
+      "height": 1600,
+      "status": 200,
+      "cacheControl": "no-cache"
+    },
+    {
+      "id": "62o-labels",
+      "reportedUrl": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/62o-labels.png?v=0882714a9f25",
+      "currentSha256": "868a3d4786c0484d539ca370075eabe8bcbd0952b99de8f9a7887fdc6ea6b321",
+      "width": 1280,
+      "height": 960,
+      "status": 200,
+      "cacheControl": "no-cache"
+    },
+    {
+      "id": "59f-cad",
+      "reportedUrl": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/59f-cad.png?v=26288361a70a",
+      "currentSha256": "41b22675772fa59c2e6dc3fba609e798f89fdfddca22b2bf8565807c26f6a40b",
+      "width": 1280,
+      "height": 960,
+      "status": 200,
+      "cacheControl": "no-cache"
+    },
+    {
+      "id": "54p-navigation",
+      "reportedUrl": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/54p-navigation.png?v=c3dc51f3c143",
+      "currentSha256": "c5e76ea8992ae69a7682aa4e2cea4af082cc1f8bad6a41fd0300c196df07b7e9",
+      "width": 1280,
+      "height": 960,
+      "status": 200,
+      "cacheControl": "no-cache"
+    },
+    {
+      "id": "51zf-handles",
+      "reportedUrl": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/51zf-handles.png?v=0c63fb5aec4f",
+      "currentSha256": "b9344d6d7c74e153f90ba329649b633625845a5a85ae71061307fd3e878b593e",
+      "width": 1280,
+      "height": 960,
+      "status": 200,
+      "cacheControl": "no-cache"
+    },
+    {
+      "id": "41f-input",
+      "reportedUrl": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/41f-input.png?v=2e6c9135ea15",
+      "currentSha256": "4d71ed6c07bb50dcbf89e23c7baef3c9a5a5f72d1485fe6310315760119a4d63",
+      "width": 1280,
+      "height": 960,
+      "status": 200,
+      "cacheControl": "no-cache"
+    }
+  ]
+}

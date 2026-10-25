@@ -16,6 +16,8 @@ Continue from [Apply semantic view controls](96zzzzzzzp-apply-semantic-view-cont
 
 Validate original wire topology without inventing a face. Draw every valid edge from its original 3D NURBS curve, including straight edges. Split at the projected face-chain parameters; triangles provide only facing and depth tolerance. A chain with foreign ends supplies neither, so retain the curve ribbon without facet facing. Keep flat triangle normals. The kernel numbers ruled-face loops around the boundary so each ruling keeps its own ends.
 
+Keep `points()` for inspecting the original shared mesh vertices. Drawing uses `display()` to obtain the refined curve points and their original chain spans; the inspection API does not supply the visible edge geometry.
+
 <details>
 <summary>Locate the existing block</summary>
 

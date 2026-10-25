@@ -2240,7 +2240,7 @@
     "publicImageCount": 1762,
     "currentReaderReferenceImages": 99,
     "reportedExamples": 9,
-    "completedNewCaptures": 59,
+    "completedNewCaptures": 60,
     "scope": "Focused current exact BRep, NURBS UV and ink-depth regressions and maintained surface-preview pass. 56 native and two early browser images are published and HTTP verified. Remaining captures and final current-source integration remain pending; historical acceptance retains its recorded inputs. Production cloud shader preserved after actual evaluation.",
     "inventory": {
       "native": 1360,
@@ -2277,7 +2277,7 @@
       "finalReferenceFiles": 351,
       "record": "target/course-windows-20261025/latest-commit-audit/early-quality-structure-after-panel.log"
     },
-    "candidateFinalCadFingerprint": "e86ab162ab76e3345a639f944bf082122c956c1c70ab475abb2abceda99dc163",
+    "candidateFinalCadFingerprint": "3efbb602833786d48a46add280c7769351a11850b15914748bfc69889f0f3a32",
     "publishedNewCaptures": 59,
     "earlyBrowser": {
       "status": "PASS DPR1 behavior and personally reviewed genuine DPR2 presentation",
@@ -2329,12 +2329,22 @@
     },
     "remainingPublishedImages": 1703,
     "finalNativeIntegration": {
-      "status": "BUILD_FAILED_BEFORE_TEST_EXECUTION",
+      "status": "RUNNING_UNFILTERED_CURRENT_SOURCE",
       "expectedTests": 1068,
-      "reason": "Late teaching boundary replacement drops the exact-curve display API inherited by cad_display; actual source correction in progress.",
-      "record": "target/course-checks/final-current-native-e44991df3c2c-20261025T213915608Z-build.log"
+      "passedObserved": 805,
+      "observedAt": "2026-10-25T22:09:53.080Z",
+      "sourceFingerprint": "e2887fefd8fda86e580435538466c212ba714389be588a4f5d567c6a71f542c7",
+      "prepared": "target/course-final-current-native-1c675a1041bd7ef637b4/prepared.json",
+      "compiled": true,
+      "compileSeconds": 66.131,
+      "compilePeakJobCommitBytes": 3312017408,
+      "executionLog": "target/course-checks/final-current-native-1c675a1041bd-20261025T214829054Z-full.log",
+      "scope": "All original test modules and assertions retained. Late boundary module preserves original mesh-inspection points() and adds refined exact-curve display(). Full acceptance awaits terminal result.",
+      "earlierFailedBuild": "target/course-checks/final-current-native-e44991df3c2c-20261025T213915608Z-build.log"
     },
     "reportedExamplesPublished": 9,
-    "streamingBrowserPublication": "../release/streaming-browser-image-review.json"
+    "streamingBrowserPublication": "../release/streaming-browser-image-review.json",
+    "candidateFinalCurrentFingerprint": "e2887fefd8fda86e580435538466c212ba714389be588a4f5d567c6a71f542c7",
+    "reportedOriginalUrlsHttpVerified": "../release/reported-image-http-review.json"
   }
 }
