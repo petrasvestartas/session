@@ -2240,8 +2240,8 @@
     "publicImageCount": 1762,
     "currentReaderReferenceImages": 99,
     "reportedExamples": 9,
-    "completedNewCaptures": 60,
-    "scope": "Focused current exact BRep, NURBS UV and ink-depth regressions and maintained surface-preview pass. 56 native and two early browser images are published and HTTP verified. Remaining captures and final current-source integration remain pending; historical acceptance retains its recorded inputs. Production cloud shader preserved after actual evaluation.",
+    "completedNewCaptures": 141,
+    "scope": "Focused early geometry/depth regressions, maintained surface-preview and all 1,068 original unfiltered final native tests pass. Published assets include 141 actual captures and 5 retired-filename aliases; in-flight captures are excluded. Production shaders and Gemini website design/prose are preserved.",
     "inventory": {
       "native": 1360,
       "browser": 379,
@@ -2263,8 +2263,8 @@
       "31 Markdown pages updated only inside 54 Rust code fences; prose and Vue preserved"
     ],
     "pending": [
-      "Remaining high-density native and browser captures and original-resolution review",
-      "Final source-bound integration and documentation desktop/phone verification"
+      "Remaining source-bound high-density captures, original-resolution QA and publication",
+      "Final documentation rebuild and desktop/phone review after image publication"
     ],
     "authoring": {
       "passed": 22,
@@ -2278,7 +2278,7 @@
       "record": "target/course-windows-20261025/latest-commit-audit/early-quality-structure-after-panel.log"
     },
     "candidateFinalCadFingerprint": "3efbb602833786d48a46add280c7769351a11850b15914748bfc69889f0f3a32",
-    "publishedNewCaptures": 59,
+    "publishedNewCaptures": 141,
     "earlyBrowser": {
       "status": "PASS DPR1 behavior and personally reviewed genuine DPR2 presentation",
       "cases": [
@@ -2318,8 +2318,8 @@
         "59f-cad"
       ]
     },
-    "publishedReaderReferenceImages": 54,
-    "remainingReaderReferenceImages": 45,
+    "publishedReaderReferenceImages": 56,
+    "remainingReaderReferenceImages": 43,
     "priorityNativePublication": {
       "record": "../release/priority-native-image-review.json",
       "published": 56,
@@ -2327,24 +2327,54 @@
       "originalResolutionReviews": 42,
       "exactPngDuplicates": 14
     },
-    "remainingPublishedImages": 1703,
+    "remainingPublishedImages": 1616,
     "finalNativeIntegration": {
-      "status": "RUNNING_UNFILTERED_CURRENT_SOURCE",
-      "expectedTests": 1068,
-      "passedObserved": 805,
-      "observedAt": "2026-10-25T22:09:53.080Z",
+      "status": "PASS",
+      "passed": 1068,
+      "failed": 0,
+      "ignored": 0,
+      "filtered": 0,
       "sourceFingerprint": "e2887fefd8fda86e580435538466c212ba714389be588a4f5d567c6a71f542c7",
-      "prepared": "target/course-final-current-native-1c675a1041bd7ef637b4/prepared.json",
-      "compiled": true,
-      "compileSeconds": 66.131,
-      "compilePeakJobCommitBytes": 3312017408,
-      "executionLog": "target/course-checks/final-current-native-1c675a1041bd-20261025T214829054Z-full.log",
-      "scope": "All original test modules and assertions retained. Late boundary module preserves original mesh-inspection points() and adds refined exact-curve display(). Full acceptance awaits terminal result.",
-      "earlierFailedBuild": "target/course-checks/final-current-native-e44991df3c2c-20261025T213915608Z-build.log"
+      "record": "../release/final-native-quality-review.json",
+      "elapsedSeconds": 1428.272
     },
     "reportedExamplesPublished": 9,
     "streamingBrowserPublication": "../release/streaming-browser-image-review.json",
     "candidateFinalCurrentFingerprint": "e2887fefd8fda86e580435538466c212ba714389be588a4f5d567c6a71f542c7",
-    "reportedOriginalUrlsHttpVerified": "../release/reported-image-http-review.json"
+    "reportedOriginalUrlsHttpVerified": "../release/reported-image-http-review.json",
+    "publishedImageAssets": 146,
+    "publishedAliasAssets": 5,
+    "latestImagePublication": "../release/image-quality-checkpoint-67.json",
+    "remainingInventory": {
+      "native": 1224,
+      "browser": 374,
+      "supportingAndVariants": 18
+    },
+    "latestNativeStreamingPublication": "../release/native-streaming-publication-146.json",
+    "nativeBulk": {
+      "status": "RUNNING",
+      "cohort": "target/course-presentation/incremental-batches/23639a9ee49402a71f10",
+      "progress": "target/course-presentation/incremental-batches/23639a9ee49402a71f10/progress.json",
+      "publicationLedger": "target/course-presentation/incremental-batches/23639a9ee49402a71f10/publication",
+      "published": 136,
+      "total": 1360
+    },
+    "stages": {
+      "sourceCorrections": "DONE",
+      "focusedRegressions": "DONE",
+      "finalNativeIntegration": "DONE 1068/1068",
+      "reportedImages": "DONE 9/9",
+      "currentReaderFigures": {
+        "published": 56,
+        "total": 99,
+        "remaining": 43
+      },
+      "imagePublication": {
+        "published": 146,
+        "total": 1762,
+        "remaining": 1616
+      },
+      "finalDocumentationReview": "PENDING_COMPLETE_IMAGE_QUEUE"
+    }
   }
 }
