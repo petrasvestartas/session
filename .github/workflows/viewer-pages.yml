@@ -123,6 +123,9 @@ jobs:
           npm ci
           npm run build
           cd ..
+          mkdir -p session_tests/dist/course/docs/screenshots session_tests/dist/course/docs/journey/release
+          cp -r session_viewer/docs/screenshots/. session_tests/dist/course/docs/screenshots/
+          cp session_viewer/docs/journey/release/*.png session_tests/dist/course/docs/journey/release/
           rm -rf session_viewer/dist/docs
           cp -r session_tests/dist session_viewer/dist/docs
       - uses: actions/upload-pages-artifact@v3
