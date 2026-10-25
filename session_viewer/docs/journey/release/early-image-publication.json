@@ -1,0 +1,67 @@
+{
+  "date": "2026-10-25T20:55:48.923Z",
+  "scope": "Root-reviewed early publication while the serial capture batch continues; progress.json will be reconciled by the normal publisher after the batch stops.",
+  "images": [
+    {
+      "id": "41f-input",
+      "path": "docs/screenshots/journey/41f-input.png",
+      "oldSha256": "2e6c9135ea1536d88801284172b1ed3a47f6e437938491f311e2fb3935a2657d",
+      "sha256": "4d71ed6c07bb50dcbf89e23c7baef3c9a5a5f72d1485fe6310315760119a4d63",
+      "width": 1280,
+      "height": 960,
+      "sourceKey": "a98f8c36eab07af4b5ca6a2d61966298de07127230aa0da41ef71727249864c9",
+      "sourceRecordSha256": "877b221389c0113043071c65c603d923309e47e043752b0744799222f672ba75",
+      "rootPersonallyViewedOriginalResolution": true,
+      "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/41f-input.png?v=4d71ed6c07bb",
+      "httpStatus": 200
+    },
+    {
+      "id": "51zf-handles",
+      "path": "docs/screenshots/journey/51zf-handles.png",
+      "oldSha256": "0c63fb5aec4fa0908c5cc81068241404238c601354994da795e21473d5a51e60",
+      "sha256": "b9344d6d7c74e153f90ba329649b633625845a5a85ae71061307fd3e878b593e",
+      "width": 1280,
+      "height": 960,
+      "sourceKey": "aabd8020c29f0b473c4f9f2756cfacd9480509a60689ca34c8d75c7f8056fcca",
+      "sourceRecordSha256": "88379873aa6045e11cc62438c18b315319a6be941ad7991f93029239861160f8",
+      "rootPersonallyViewedOriginalResolution": true,
+      "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/51zf-handles.png?v=b9344d6d7c74",
+      "httpStatus": 200
+    },
+    {
+      "id": "54p-navigation",
+      "path": "docs/screenshots/journey/54p-navigation.png",
+      "oldSha256": "c3dc51f3c143e3604dbee982ffa6bff43bf5567b9f02096705747328b0793048",
+      "sha256": "c5e76ea8992ae69a7682aa4e2cea4af082cc1f8bad6a41fd0300c196df07b7e9",
+      "width": 1280,
+      "height": 960,
+      "sourceKey": "fac5741b06b98f0b4083cef413dd4a451a0fe642ff1c7ad6275ee1de32c4a14e",
+      "sourceRecordSha256": "2f482b9824c36d79932834d248ca9fcc9d523e7113d732d5ecefc1a5f6ddbb58",
+      "rootPersonallyViewedOriginalResolution": true,
+      "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/54p-navigation.png?v=c5e76ea8992a",
+      "httpStatus": 200
+    },
+    {
+      "id": "59f-cad",
+      "path": "docs/screenshots/journey/59f-cad.png",
+      "oldSha256": "26288361a70a82292efe7eb2f208bb8d6e6b5dbae0c17cc661e46a68ec4e7675",
+      "sha256": "41b22675772fa59c2e6dc3fba609e798f89fdfddca22b2bf8565807c26f6a40b",
+      "width": 1280,
+      "height": 960,
+      "sourceKey": "2a91d634f21442d6aaa62d8b17aaa58a5092d213a2c5e8b654d66495b56954ea",
+      "sourceRecordSha256": "07801cf3e6bc210a0835c22c14810df1a16667d7ce89da7cc83e87e9fb515ee5",
+      "rootPersonallyViewedOriginalResolution": true,
+      "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/59f-cad.png?v=41b22675772f",
+      "httpStatus": 200
+    }
+  ],
+  "browserReview": {
+    "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/59f-cad.png?v=41b22675772f",
+    "image": {
+      "naturalWidth": 1280,
+      "naturalHeight": 960,
+      "complete": true
+    },
+    "ownedNewReviewTab": true
+  }
+}
