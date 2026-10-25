@@ -45541,6 +45541,5149 @@ fn actual_xray_rear_marker_queries_follow_opacity_before_color_and_restore() {
 }
 ```
 
+### 256. `src/ambient_camera.rs`
+
+Keep original geometric contact normals and production pyramid scales consistent through ambient rendering.
+
+**Locate this existing block:**
+
+```rust
+) -> Option<[f32; 80]> {
+    let mvp = session_rust::Xform::from_matrix(matrix.map(f64::from));
+    let inverse = crate::clipping_uniform::inverse(&mvp)?
+        .m
+        .map(|v| v as f32);
+    if inverse.iter().any(|v| !v.is_finite()) {
+        return None;
+    }
+    let mut out = [0.; 80];
+    out[..16].copy_from_slice(&inverse);
+    out[16..32].copy_from_slice(&mvp.m.map(|v| v as f32));
+    out[32..40].copy_from_slice(&[
+        ground[0],
+        ground[1],
+        full[0] as f32,
+        full[1] as f32,
+        size[0] as f32,
+        size[0] as f32,
+        size[1] as f32,
+        size[1] as f32,
+    ]);
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```rust
+) -> Option<[f32; 80]> {
+    uniform_with_ground(
+        matrix,
+        full,
+        size,
+        [size[0].div_ceil(2), size[1].div_ceil(2)],
+        ground,
+    )
+}
+pub fn uniform_with_ground(
+    matrix: [f32; 16],
+    full: [u32; 2],
+    size: [u32; 2],
+    ground_size: [u32; 2],
+    ground: [f32; 2],
+) -> Option<[f32; 80]> {
+    let mvp = session_rust::Xform::from_matrix(matrix.map(f64::from));
+    let inverse = crate::clipping_uniform::inverse(&mvp)?
+        .m
+        .map(|v| v as f32);
+    if inverse.iter().any(|v| !v.is_finite()) {
+        return None;
+    }
+    let mut out = [0.; 80];
+    out[..16].copy_from_slice(&inverse);
+    out[16..32].copy_from_slice(&mvp.m.map(|v| v as f32));
+    out[32..40].copy_from_slice(&[
+        ground[0],
+        ground[1],
+        full[0] as f32,
+        full[1] as f32,
+        ground_size[0] as f32,
+        size[0] as f32,
+        size[1] as f32,
+        ground_size[1] as f32,
+    ]);
+```
+
+### 257. `src/ambient.wgsl`
+
+Keep original geometric contact normals and production pyramid scales consistent through ambient rendering.
+
+Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
+
+**Locate this block:**
+
+```wgsl
+    }
+    if all(values==vec4<f32>(0.0)) { return 0.0; }
+    let center = depth_sample(pixel.xy,0);
+    let primitive=source_primitive(source_at(pixel.xy),0);
+    let first = reconstruct(pixel.xy,0,center,values);
+    if !MSAA { return first; }
+    var ao = vec4<f32>(first);
+    var different = false;
+    for (var i=1; i<4; i++) {
+        let z = depth_sample(pixel.xy,i);
+        if (z>0.0)!=(center>0.0) || abs(z-center)>max(center*0.001,1e-7) || source_primitive(source_at(pixel.xy),i)!=primitive {
+            ao[i] = reconstruct(pixel.xy,i,z,values);
+```
+
+Replace it with:
+
+```wgsl
+    }
+    if all(values==vec4<f32>(0.0)) { return 0.0; }
+    let center = depth_sample(pixel.xy,0);
+    let first = reconstruct(pixel.xy,0,center,values);
+    if !MSAA { return first; }
+    var ao = vec4<f32>(first);
+    var different = false;
+    for (var i=1; i<4; i++) {
+        let z = depth_sample(pixel.xy,i);
+        if (z>0.0)!=(center>0.0) || abs(z-center)>max(center*0.001,1e-7) {
+            ao[i] = reconstruct(pixel.xy,i,z,values);
+```
+
+**Locate this block:**
+
+```wgsl
+}
+fn normal_of(pixel:vec2<f32>,p:vec3<f32>,sample:i32)->vec3<f32>{
+ let at=source_at(pixel);let radius=textureLoad(source_radii,at,sample).x;
+ if(radius>0.0){let n=decode_normal(textureLoad(source_normals,at,sample).xy*2.0-1.0);return select(-n,n,dot(n,-ray_direction(pixel))>0.0);}
+ let primitive=source_primitive(at,sample);
+ if(clip_is_cap(primitive)){
+  let plane=clip_cap_plane(primitive);
+```
+
+Replace it with:
+
+```wgsl
+}
+fn normal_of(pixel:vec2<f32>,p:vec3<f32>,sample:i32)->vec3<f32>{
+ let at=source_at(pixel);let radius=textureLoad(source_radii,at,sample).x;
+ if(radius>0.0){let cross_n=vec3<f32>(textureLoad(source_normals,at,sample).x,textureLoad(source_normal_y,at,sample).x,textureLoad(source_normal_z,at,sample).x);let normal=cross_n/max(length(cross_n),1e-12);return select(-normal,normal,dot(normal,-ray_direction(pixel))>0.0);}
+ let primitive=source_primitive(at,sample);
+ if(clip_is_cap(primitive)){
+  let plane=clip_cap_plane(primitive);
+```
+
+**Locate this block:**
+
+```wgsl
+@group(0) @binding(3) var source_normals:texture_2d<f32>;
+@group(0) @binding(4) var source_primitives:texture_2d<u32>;
+// Geometry access: ambient_geometry.wgsl, appended by ssao.rs
+@group(1) @binding(0) var linear: texture_2d<f32>;
+```
+
+Replace it with:
+
+```wgsl
+@group(0) @binding(3) var source_normals:texture_2d<f32>;
+@group(0) @binding(6) var source_normal_y:texture_2d<f32>;
+@group(0) @binding(7) var source_normal_z:texture_2d<f32>;
+@group(0) @binding(4) var source_primitives:texture_2d<u32>;
+// Geometry access: ambient_geometry.wgsl, appended by ssao.rs
+@group(1) @binding(0) var linear: texture_2d<f32>;
+```
+
+### 258. `src/ambient_sources.wgsl`
+
+Keep original geometric contact normals and production pyramid scales consistent through ambient rendering.
+
+Replace the entire file with:
+
+```wgsl
+struct Vertex{@builtin(position) position:vec4<f32>,@location(0) world:vec3<f32>,@location(2) @interpolate(flat) flags:u32,@location(3) @interpolate(flat) radius:f32,@location(4) @interpolate(flat) face:vec3<f32>}
+fn ambient_vertex(occurrence:u32,object:ObjectSettings)->Vertex {
+ let input=mesh_vertex(occurrence,object.range.x);let output=geometry(input.position,input.colour,input.normal,object);
+ let base=occurrence/3u*3u;let origin=mesh_vertex(base,object.range.x).position;
+ let a=(object.model*vec4<f32>(mesh_vertex(base+1u,object.range.x).position-origin,0.0)).xyz;
+ let b=(object.model*vec4<f32>(mesh_vertex(base+2u,object.range.x).position-origin,0.0)).xyz;
+ return Vertex(output.position,output.world,output.clip_flags,bitcast<f32>(object.range.z),cross(a,b));
+}
+@vertex fn vs_main(@builtin(vertex_index) occurrence:u32)->Vertex{return ambient_vertex(occurrence,object_at(0u));}
+@vertex fn vs_record(@builtin(vertex_index) occurrence:u32,@location(0) row:u32)->Vertex{return ambient_vertex(occurrence,object_at(row));}
+struct Source{@location(0) radius:f32,@location(1) normal_x:f32,@location(2) normal_y:f32,@location(3) normal_z:f32}
+@fragment fn fs_main(in:Vertex)->Source{
+ if((in.flags&32768u)!=0u){discard;}if(clip_active()&&clip_cut(in.flags,in.world)){discard;}
+ return Source(in.radius,in.face.x,in.face.y,in.face.z);
+}
+```
+
+### 259. `src/ambient_source_pipeline.rs`
+
+Keep original geometric contact normals and production pyramid scales consistent through ambient rendering.
+
+**Locate this existing block:**
+
+```rust
+                    label: Some("ambient original source metadata"),
+                    bind_group_layouts: &groups[..if shared {
+                        4
+                    } else {
+                        3
+                    }],
+                    immediate_size: 0,
+                });
+            let source = concat!(
+                include_str!("triangle.wgsl"),
+                "
+",
+                include_str!("ambient_sources.wgsl")
+            );
+            let source = if shared {
+                crate::object_rows::source(source)
+            } else {
+                source.into()
+            };
+            let module = device.create_shader_module(wgpu::ShaderModuleDescriptor {
+                label: Some("ambient original normals and radii"),
+                source: wgpu::ShaderSource::Wgsl(if samples == 4 {
+                    crate::clipping_gpu::source(&source, 2, 0)
+                        .replace(
+                            "@location(0) world:",
+                            "@location(0) @interpolate(perspective,sample) world:",
+                        )
+                        .into()
+                } else {
+                    crate::clipping_gpu::source(&source, 2, 0).into()
+                }),
+            });
+            let attributes = wgpu::vertex_attr_array![0=>Float32x3,1=>Uint32,2=>Uint32];
+            let draw = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+                label: Some("ambient original normals and radii"),
+                layout: Some(&layout),
+                vertex: wgpu::VertexState {
+                    module: &module,
+                    entry_point: Some(if shared {
+                        "vs_record"
+                    } else {
+                        "vs_main"
+                    }),
+                    compilation_options: Default::default(),
+                    buffers: &[if shared {
+                        crate::draw_slots::layout()
+                    } else {
+                        wgpu::VertexBufferLayout {
+                            array_stride: 20,
+                            step_mode: wgpu::VertexStepMode::Vertex,
+                            attributes: &attributes,
+                        }
+                    }],
+                },
+                fragment: Some(wgpu::FragmentState {
+                    module: &module,
+                    entry_point: Some("fs_main"),
+                    compilation_options: Default::default(),
+                    targets: &[
+                        Some(wgpu::ColorTargetState {
+                            format: wgpu::TextureFormat::R32Float,
+                            blend: None,
+                            write_mask: wgpu::ColorWrites::RED,
+                        }),
+                        Some(wgpu::ColorTargetState {
+                            format: wgpu::TextureFormat::Rg8Unorm,
+                            blend: None,
+                            write_mask: wgpu::ColorWrites::ALL,
+                        }),
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```rust
+                    label: Some("ambient original source metadata"),
+                    bind_group_layouts: &groups,
+                    immediate_size: 0,
+                });
+            let source = concat!(
+                include_str!("triangle.wgsl"),
+                "
+",
+                include_str!("ambient_sources.wgsl")
+            );
+            let source = if shared {
+                crate::object_rows::source(source)
+            } else {
+                source.into()
+            };
+            let module = device.create_shader_module(wgpu::ShaderModuleDescriptor {
+                label: Some("ambient original normals and radii"),
+                source: wgpu::ShaderSource::Wgsl(if samples == 4 {
+                    crate::clipping_gpu::source(&source, 2, 0)
+                        .replace(
+                            "@location(0) world:",
+                            "@location(0) @interpolate(perspective,sample) world:",
+                        )
+                        .into()
+                } else {
+                    crate::clipping_gpu::source(&source, 2, 0).into()
+                }),
+            });
+            let shared_buffers = [crate::draw_slots::layout()];
+            let draw = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+                label: Some("ambient original normals and radii"),
+                layout: Some(&layout),
+                vertex: wgpu::VertexState {
+                    module: &module,
+                    entry_point: Some(if shared {
+                        "vs_record"
+                    } else {
+                        "vs_main"
+                    }),
+                    compilation_options: Default::default(),
+                    buffers: if shared {
+                        &shared_buffers
+                    } else {
+                        &[]
+                    },
+                },
+                fragment: Some(wgpu::FragmentState {
+                    module: &module,
+                    entry_point: Some("fs_main"),
+                    compilation_options: Default::default(),
+                    targets: &[
+                        Some(wgpu::ColorTargetState {
+                            format: wgpu::TextureFormat::R32Float,
+                            blend: None,
+                            write_mask: wgpu::ColorWrites::RED,
+                        }),
+                        Some(wgpu::ColorTargetState {
+                            format: wgpu::TextureFormat::R32Float,
+                            blend: None,
+                            write_mask: wgpu::ColorWrites::RED,
+                        }),
+                        Some(wgpu::ColorTargetState {
+                            format: wgpu::TextureFormat::R32Float,
+                            blend: None,
+                            write_mask: wgpu::ColorWrites::RED,
+                        }),
+                        Some(wgpu::ColorTargetState {
+                            format: wgpu::TextureFormat::R32Float,
+                            blend: None,
+                            write_mask: wgpu::ColorWrites::RED,
+                        }),
+```
+
+### 260. `src/ambient_source_gpu.rs`
+
+Keep original geometric contact normals and production pyramid scales consistent through ambient rendering.
+
+**Locate this existing block:**
+
+```rust
+        radius: &wgpu::TextureView,
+        normals: &wgpu::TextureView,
+        depth: &wgpu::TextureView,
+        view: &wgpu::BindGroup,
+        clip: &wgpu::BindGroup,
+        meshes: &[crate::gpu_mesh::GpuMesh],
+        records: Option<&crate::instance_gpu::Lane>,
+    ) {
+        let attachments = [radius, normals].map(|view| {
+            Some(wgpu::RenderPassColorAttachment {
+                view,
+                depth_slice: None,
+                resolve_target: None,
+                ops: wgpu::Operations {
+                    load: wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT),
+                    store: wgpu::StoreOp::Store,
+                },
+            })
+        });
+        let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+            label: Some("original ambient source properties"),
+            color_attachments: &attachments,
+            depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
+                view: depth,
+                depth_ops: Some(wgpu::Operations {
+                    load: wgpu::LoadOp::Load,
+                    store: wgpu::StoreOp::Store,
+                }),
+                stencil_ops: None,
+            }),
+            ..Default::default()
+        });
+        pass.set_pipeline(&self.pipes.active.draw);
+        pass.set_bind_group(0, view, &[]);
+        pass.set_bind_group(2, clip, &[]);
+        for mesh in meshes.iter().filter(|mesh| !mesh.printed()) {
+            if records.is_some_and(|rows| rows.bind_record(&mut pass, mesh)) {
+                pass.set_pipeline(&self.pipes.active.record_draw);
+                mesh.geometry.draw_pulled(&mut pass, 1);
+            } else {
+                pass.set_pipeline(&self.pipes.active.draw);
+                mesh.bind_model(&mut pass);
+                mesh.geometry.draw(&mut pass);
+            }
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```rust
+        radius: &wgpu::TextureView,
+        normals: [&wgpu::TextureView; 3],
+        depth: &wgpu::TextureView,
+        view: &wgpu::BindGroup,
+        clip: &wgpu::BindGroup,
+        meshes: &[crate::gpu_mesh::GpuMesh],
+        records: Option<&crate::instance_gpu::Lane>,
+    ) {
+        let attachments = [radius, normals[0], normals[1], normals[2]].map(|view| {
+            Some(wgpu::RenderPassColorAttachment {
+                view,
+                depth_slice: None,
+                resolve_target: None,
+                ops: wgpu::Operations {
+                    load: wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT),
+                    store: wgpu::StoreOp::Store,
+                },
+            })
+        });
+        let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+            label: Some("original ambient source properties"),
+            color_attachments: &attachments,
+            depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
+                view: depth,
+                depth_ops: Some(wgpu::Operations {
+                    load: wgpu::LoadOp::Load,
+                    store: wgpu::StoreOp::Store,
+                }),
+                stencil_ops: None,
+            }),
+            ..Default::default()
+        });
+        pass.set_pipeline(&self.pipes.active.draw);
+        pass.set_bind_group(0, view, &[]);
+        pass.set_bind_group(2, clip, &[]);
+        for mesh in meshes.iter().filter(|mesh| !mesh.printed()) {
+            if records.is_some_and(|rows| rows.bind_record(&mut pass, mesh)) {
+                pass.set_pipeline(&self.pipes.active.record_draw);
+                mesh.geometry.draw_pulled(&mut pass, 1);
+            } else {
+                pass.set_pipeline(&self.pipes.active.draw);
+                mesh.bind_model(&mut pass);
+                mesh.geometry.draw_pulled(&mut pass, 1);
+            }
+```
+
+### 261. `src/ambient_images.rs`
+
+Keep original geometric contact normals and production pyramid scales consistent through ambient rendering.
+
+Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
+
+**Locate this block:**
+
+```rust
+            wgpu::TextureFormat::R32Float,
+            samples,
+        );
+        self.source_normals = Image::with_samples(
+            device,
+            self.full,
+            wgpu::TextureFormat::Rg8Unorm,
+            samples,
+        );
+    }
+    pub fn bytes(&self) -> u64 {
+        self.source_radius.bytes
+            + self.source_normals.bytes
+            + self.linear.bytes
+```
+
+Replace it with:
+
+```rust
+            wgpu::TextureFormat::R32Float,
+            samples,
+        );
+        self.source_normals = std::array::from_fn(|_| {
+            Image::with_samples(
+                device,
+                self.full,
+                wgpu::TextureFormat::R32Float,
+                samples,
+            )
+        });
+    }
+    pub fn bytes(&self) -> u64 {
+        self.source_radius.bytes
+            + self
+                .source_normals
+                .iter()
+                .map(|image| image.bytes)
+                .sum::<u64>()
+            + self.linear.bytes
+```
+
+**Locate this block:**
+
+```rust
+            wgpu::TextureFormat::R32Float,
+            samples,
+        );
+        let source_normals = Image::with_samples(
+            device,
+            full,
+            wgpu::TextureFormat::Rg8Unorm,
+            samples,
+        );
+        let linear = Pyramid::new(device, size, wgpu::TextureFormat::R32Float);
+        let radii = Pyramid::new(device, size, wgpu::TextureFormat::R16Uint);
+        let normals = image(size, wgpu::TextureFormat::Rg8Unorm);
+        let occupancy = image(size, wgpu::TextureFormat::R8Unorm);
+        let ground = image(size, wgpu::TextureFormat::R8Unorm);
+        let ao = std::array::from_fn(|i| {
+            image(
+                if i == 2 {
+```
+
+Replace it with:
+
+```rust
+            wgpu::TextureFormat::R32Float,
+            samples,
+        );
+        let source_normals = std::array::from_fn(|_| {
+            Image::with_samples(
+                device,
+                full,
+                wgpu::TextureFormat::R32Float,
+                samples,
+            )
+        });
+        let linear = Pyramid::new(device, size, wgpu::TextureFormat::R32Float);
+        let radii = Pyramid::new(device, size, wgpu::TextureFormat::R16Uint);
+        let normals = image(size, wgpu::TextureFormat::Rg8Unorm);
+        let occupancy = image(
+            [(size[0] >> 4).max(1), (size[1] >> 4).max(1)],
+            wgpu::TextureFormat::R8Unorm,
+        );
+        let ground = image(
+            [size[0].div_ceil(2), size[1].div_ceil(2)],
+            wgpu::TextureFormat::R8Unorm,
+        );
+        let ao = std::array::from_fn(|i| {
+            image(
+                if i == 2 {
+```
+
+**Locate this block:**
+
+```rust
+    pub source_radius: Image,
+    pub source_normals: Image,
+    pub linear: Pyramid,
+    pub radii: Pyramid,
+    pub normals: Image,
+```
+
+Replace it with:
+
+```rust
+    pub source_radius: Image,
+    pub source_normals: [Image; 3],
+    pub linear: Pyramid,
+    pub radii: Pyramid,
+    pub normals: Image,
+```
+
+### 262. `src/ambient_pipeline.rs`
+
+Keep original geometric contact normals and production pyramid scales consistent through ambient rendering.
+
+Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
+
+**Locate this block:**
+
+```rust
+            "var source_normals:texture_2d<f32>;",
+            "var source_normals:texture_multisampled_2d<f32>;",
+        )
+```
+
+Replace it with:
+
+```rust
+            "var source_normals:texture_2d<f32>;",
+            "var source_normals:texture_multisampled_2d<f32>;",
+        )
+        .replace(
+            "var source_normal_y:texture_2d<f32>;",
+            "var source_normal_y:texture_multisampled_2d<f32>;",
+        )
+        .replace(
+            "var source_normal_z:texture_2d<f32>;",
+            "var source_normal_z:texture_multisampled_2d<f32>;",
+        )
+```
+
+**Locate this block:**
+
+```rust
+                    uniform(5),
+                ],
+            });
+        let level = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+```
+
+Replace it with:
+
+```rust
+                    uniform(5),
+                    texture_entry(
+                        6,
+                        S::FRAGMENT,
+                        T::Float {
+                            filterable: false,
+                        },
+                        samples == 4,
+                    ),
+                    texture_entry(
+                        7,
+                        S::FRAGMENT,
+                        T::Float {
+                            filterable: false,
+                        },
+                        samples == 4,
+                    ),
+                ],
+            });
+        let level = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+```
+
+### 263. `src/ambient_groups.rs`
+
+Keep original geometric contact normals and production pyramid scales consistent through ambient rendering.
+
+Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
+
+**Locate this block:**
+
+```rust
+                binding: 5,
+                resource: clip.as_entire_binding(),
+            },
+```
+
+Replace it with:
+
+```rust
+                binding: 5,
+                resource: clip.as_entire_binding(),
+            },
+            wgpu::BindGroupEntry {
+                binding: 6,
+                resource: wgpu::BindingResource::TextureView(
+                    &images.source_normals[1].view,
+                ),
+            },
+            wgpu::BindGroupEntry {
+                binding: 7,
+                resource: wgpu::BindingResource::TextureView(
+                    &images.source_normals[2].view,
+                ),
+            },
+```
+
+**Locate this block:**
+
+```rust
+            wgpu::BindGroupEntry {
+                binding: 3,
+                resource: wgpu::BindingResource::TextureView(
+                    &images.source_normals.view,
+                ),
+            },
+            wgpu::BindGroupEntry {
+```
+
+Replace it with:
+
+```rust
+            wgpu::BindGroupEntry {
+                binding: 3,
+                resource: wgpu::BindingResource::TextureView(
+                    &images.source_normals[0].view,
+                ),
+            },
+            wgpu::BindGroupEntry {
+```
+
+**Locate this block:**
+
+```rust
+            ],
+        });
+        Self {
+            levels,
+            occupancy,
+            ground,
+```
+
+Replace it with:
+
+```rust
+            ],
+        });
+        Self {
+            depth,
+            levels,
+            occupancy,
+            ground,
+```
+
+**Locate this block:**
+
+```rust
+                ],
+            })
+        });
+        let sampler = device.create_sampler(&wgpu::SamplerDescriptor {
+            mag_filter: wgpu::FilterMode::Linear,
+            min_filter: wgpu::FilterMode::Linear,
+```
+
+Replace it with:
+
+```rust
+                ],
+            })
+        });
+        let depth = device.create_bind_group(&wgpu::BindGroupDescriptor {
+            label: Some("ambient full depth and radius pyramid"),
+            layout: &pipes.level,
+            entries: &[
+                wgpu::BindGroupEntry {
+                    binding: 0,
+                    resource: wgpu::BindingResource::TextureView(&images.linear.view),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 1,
+                    resource: wgpu::BindingResource::TextureView(&images.radii.view),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 2,
+                    resource: wgpu::BindingResource::TextureView(&images.normals.view),
+                },
+            ],
+        });
+        let sampler = device.create_sampler(&wgpu::SamplerDescriptor {
+            mag_filter: wgpu::FilterMode::Linear,
+            min_filter: wgpu::FilterMode::Linear,
+```
+
+**Locate this block:**
+
+```rust
+pub struct Groups {
+    pub levels: [wgpu::BindGroup; 6],
+    pub occupancy: wgpu::BindGroup,
+    pub ground: wgpu::BindGroup,
+```
+
+Replace it with:
+
+```rust
+pub struct Groups {
+    pub depth: wgpu::BindGroup,
+    pub levels: [wgpu::BindGroup; 6],
+    pub occupancy: wgpu::BindGroup,
+    pub ground: wgpu::BindGroup,
+```
+
+### 264. `src/ambient_gpu.rs`
+
+Keep original geometric contact normals and production pyramid scales consistent through ambient rendering.
+
+Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
+
+**Locate this block:**
+
+```rust
+                &[&images.ao[2].view],
+                &[
+                    (0, source),
+                    (1, &groups.levels[0]),
+                    (2, &groups.ao[0]),
+```
+
+Replace it with:
+
+```rust
+                &[&images.ao[2].view],
+                &[
+                    (0, source),
+                    (1, &groups.depth),
+                    (2, &groups.ao[0]),
+```
+
+**Locate this block:**
+
+```rust
+                &[&images.ao[0].view],
+                &[
+                    (0, source),
+                    (1, &groups.levels[0]),
+                    (2, &groups.ao[1]),
+                    (3, &groups.history),
+                ],
+```
+
+Replace it with:
+
+```rust
+                &[&images.ao[0].view],
+                &[
+                    (0, source),
+                    (1, &groups.depth),
+                    (2, &groups.ao[1]),
+                    (3, &groups.history),
+                ],
+```
+
+**Locate this block:**
+
+```rust
+                &[&images.ao[1].view],
+                &[
+                    (0, source),
+                    (1, &groups.levels[0]),
+                    (2, &groups.ao[0]),
+                    (3, &groups.history),
+                ],
+```
+
+Replace it with:
+
+```rust
+                &[&images.ao[1].view],
+                &[
+                    (0, source),
+                    (1, &groups.depth),
+                    (2, &groups.ao[0]),
+                    (3, &groups.history),
+                ],
+```
+
+**Locate this block:**
+
+```rust
+                &[&images.ao[0].view],
+                &[
+                    (0, source),
+                    (1, &groups.levels[0]),
+                    (2, &groups.ground),
+                    (3, &groups.history),
+                ],
+```
+
+Replace it with:
+
+```rust
+                &[&images.ao[0].view],
+                &[
+                    (0, source),
+                    (1, &groups.depth),
+                    (2, &groups.ground),
+                    (3, &groups.history),
+                ],
+```
+
+**Locate this block:**
+
+```rust
+                &[&images.ground.view],
+                &[
+                    (0, source),
+                    (1, &groups.levels[0]),
+                    (2, &groups.occupancy),
+                    (3, &groups.history),
+                ],
+```
+
+Replace it with:
+
+```rust
+                &[&images.ground.view],
+                &[
+                    (0, source),
+                    (1, &groups.depth),
+                    (2, &groups.occupancy),
+                    (3, &groups.history),
+                ],
+```
+
+**Locate this block:**
+
+```rust
+                encoder,
+                &self.pipes.active.occupancy,
+                &[&images.occupancy.view],
+                &[(0, &groups.levels[0])],
+                true,
+            );
+            draw(
+```
+
+Replace it with:
+
+```rust
+                encoder,
+                &self.pipes.active.occupancy,
+                &[&images.occupancy.view],
+                &[(0, &groups.levels[4])],
+                true,
+            );
+            draw(
+```
+
+**Locate this block:**
+
+```rust
+            self.sources.encode(
+                encoder,
+                &images.source_radius.view,
+                &images.source_normals.view,
+                depth,
+                view,
+                clipping,
+```
+
+Replace it with:
+
+```rust
+            self.sources.encode(
+                encoder,
+                &images.source_radius.view,
+                images
+                    .source_normals
+                    .each_ref()
+                    .map(|image| &image.view),
+                depth,
+                view,
+                clipping,
+```
+
+**Locate this block:**
+
+```rust
+        let state = self.state.as_ref().unwrap();
+        let Some(uniform) =
+            crate::ambient_camera::uniform(matrix, full, state.images.size, ground)
+        else {
+            self.error = Some("Invalid ambient camera inverse");
+            return;
+        };
+```
+
+Replace it with:
+
+```rust
+        let state = self.state.as_ref().unwrap();
+        let Some(uniform) = crate::ambient_camera::uniform_with_ground(
+            matrix,
+            full,
+            state.images.size,
+            state.images.ground.size,
+            ground,
+        ) else {
+            self.error = Some("Invalid ambient camera inverse");
+            return;
+        };
+```
+
+### 265. `src/ambient_input_tests.rs`
+
+Read the full-precision source-normal representation while retaining the existing normal, radius and contact assertions.
+
+**Locate this existing block:**
+
+```rust
+}
+fn properties(
+    g: &super::Renderer,
+    m: [f32; 16],
+    points: &[[f64; 3]],
+) -> Vec<([u8; 2], f32)> {
+    let radius = texture(g, wgpu::TextureFormat::R32Float);
+    let normal = texture(g, wgpu::TextureFormat::Rg8Unorm);
+    let mut source = crate::ambient_source_gpu::Sources::new(&g.device);
+    let mut e = g
+        .device
+        .create_command_encoder(&Default::default());
+    source.encode(
+        &mut e,
+        &radius.create_view(&Default::default()),
+        &normal.create_view(&Default::default()),
+        &g.targets.depth,
+        &g.view_group,
+        &g.clipping.borrow().group,
+        &g.meshes,
+        Some(&g.instances),
+    );
+    g.queue.submit([e.finish()]);
+    let normals = read(g, &normal, 768);
+    let radii = read(g, &radius, 1280);
+    points
+        .iter()
+        .map(|&p| {
+            let [x, y] = pixel(m, p);
+            assert!(x < 320 && y < 240);
+            let at = y * 768 + x * 2;
+            let n = [normals[at], normals[at + 1]];
+            let at = y * 1280 + x * 4;
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```rust
+}
+pub(crate) fn encoded_normal(n: [f32; 3]) -> [u8; 2] {
+    let sum = n.iter().map(|v| v.abs()).sum::<f32>();
+    if sum == 0. {
+        return [0; 2];
+    }
+    let e = [n[0] / sum, n[1] / sum];
+    let e = if n[2] < 0. {
+        [
+            (1. - e[1].abs())
+                * if e[0] >= 0. {
+                    1.
+                } else {
+                    -1.
+                },
+            (1. - e[0].abs())
+                * if e[1] >= 0. {
+                    1.
+                } else {
+                    -1.
+                },
+        ]
+    } else {
+        e
+    };
+    e.map(|v| ((v * 0.5 + 0.5) * 255.).round() as u8)
+}
+fn properties(
+    g: &super::Renderer,
+    m: [f32; 16],
+    points: &[[f64; 3]],
+) -> Vec<([u8; 2], f32)> {
+    let radius = texture(g, wgpu::TextureFormat::R32Float);
+    let normal: [wgpu::Texture; 3] =
+        std::array::from_fn(|_| texture(g, wgpu::TextureFormat::R32Float));
+    let mut source = crate::ambient_source_gpu::Sources::new(&g.device);
+    let mut e = g
+        .device
+        .create_command_encoder(&Default::default());
+    source.encode(
+        &mut e,
+        &radius.create_view(&Default::default()),
+        normal
+            .each_ref()
+            .map(|texture| texture.create_view(&Default::default()))
+            .each_ref(),
+        &g.targets.depth,
+        &g.view_group,
+        &g.clipping.borrow().group,
+        &g.meshes,
+        Some(&g.instances),
+    );
+    g.queue.submit([e.finish()]);
+    let normals = normal
+        .each_ref()
+        .map(|texture| read(g, texture, 1280));
+    let radii = read(g, &radius, 1280);
+    points
+        .iter()
+        .map(|&p| {
+            let [x, y] = pixel(m, p);
+            assert!(x < 320 && y < 240);
+            let at = y * 1280 + x * 4;
+            let n = encoded_normal(normals.each_ref().map(|channel| {
+                f32::from_ne_bytes(channel[at..at + 4].try_into().unwrap())
+            }));
+            let at = y * 1280 + x * 4;
+```
+
+### 266. `src/ambient_contact_tests.rs`
+
+Read the full-precision source-normal representation while retaining the existing normal, radius and contact assertions.
+
+Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
+
+**Locate this block:**
+
+```rust
+                    "Actual contact radius follows its original visual owner"
+                );
+                assert!(
+                    shared.1[index * 2..index * 2 + 2]
+                        .iter()
+                        .all(|v| v.abs_diff(128) <= 1),
+                    "Ambient source normals remain geometric"
+```
+
+Replace it with:
+
+```rust
+                    "Actual contact radius follows its original visual owner"
+                );
+                assert!(
+                    super::ambient_input_tests::encoded_normal(std::array::from_fn(
+                        |j| f32::from_ne_bytes(
+                            shared.1[index * 12 + j * 4..index * 12 + j * 4 + 4]
+                                .try_into()
+                                .unwrap()
+                        )
+                    ))
+                    .iter()
+                    .all(|v| v.abs_diff(128) <= 1),
+                    "Ambient source normals remain geometric"
+```
+
+**Locate this block:**
+
+```rust
+        shared.then_some(&g.instances),
+    );
+    g.queue.submit([e.finish()]);
+    (read(g, &radii, 4), read(g, &normals, 2))
+}
+fn sample(c: &Camera, size: [u32; 2], p: [f64; 3]) -> usize {
+    let ndc = super::contact_feature_tests::project(c.uniform(), p);
+```
+
+Replace it with:
+
+```rust
+        shared.then_some(&g.instances),
+    );
+    g.queue.submit([e.finish()]);
+    let normals = normals
+        .each_ref()
+        .map(|texture| read(g, texture, 4));
+    let normals = (0..size[0] as usize * size[1] as usize)
+        .flat_map(|i| {
+            normals
+                .iter()
+                .flat_map(move |channel| channel[i * 4..i * 4 + 4].iter().copied())
+        })
+        .collect();
+    (read(g, &radii, 4), normals)
+}
+fn sample(c: &Camera, size: [u32; 2], p: [f64; 3]) -> usize {
+    let ndc = super::contact_feature_tests::project(c.uniform(), p);
+```
+
+**Locate this block:**
+
+```rust
+    sources.encode(
+        &mut e,
+        &radii.create_view(&Default::default()),
+        &normals.create_view(&Default::default()),
+        &g.targets.depth,
+        &g.view_group,
+        &g.clipping.borrow().group,
+```
+
+Replace it with:
+
+```rust
+    sources.encode(
+        &mut e,
+        &radii.create_view(&Default::default()),
+        normals
+            .each_ref()
+            .map(|texture| texture.create_view(&Default::default()))
+            .each_ref(),
+        &g.targets.depth,
+        &g.view_group,
+        &g.clipping.borrow().group,
+```
+
+**Locate this block:**
+
+```rust
+    let radii = texture(wgpu::TextureFormat::R32Float);
+    let normals = texture(wgpu::TextureFormat::Rg8Unorm);
+    let mut sources = crate::ambient_source_gpu::Sources::new(&g.device);
+    let mut e = g
+        .device
+```
+
+Replace it with:
+
+```rust
+    let radii = texture(wgpu::TextureFormat::R32Float);
+    let normals: [wgpu::Texture; 3] =
+        std::array::from_fn(|_| texture(wgpu::TextureFormat::R32Float));
+    let mut sources = crate::ambient_source_gpu::Sources::new(&g.device);
+    let mut e = g
+        .device
+```
+
+### 267. `src/sample_surface_tests.rs`
+
+Read the full-precision source-normal representation while retaining the existing normal, radius and contact assertions.
+
+**Locate this existing block:**
+
+```rust
+@group(0) @binding(3) var normals:texture_multisampled_2d<f32>;
+@group(0) @binding(4) var<storage,read_write> output:array<vec4u>;
+@group(0) @binding(5) var<storage,read> corrections:array<u32>;
+@group(0) @binding(6) var<storage,read> flags:array<u32>;
+@group(0) @binding(7) var<storage,read> tiles:array<u32>;
+@group(0) @binding(8) var<storage,read> draw:array<u32>;
+@compute @workgroup_size(64) fn read_samples(@builtin(global_invocation_id) id:vec3u) {
+ let i=id.x;if i>=320u*240u*4u{return;}let p=i/4u;let at=vec2i(i32(p%320u),i32(p/320u));let sample=i%4u;
+ output[i*2u]=vec4u(textureLoad(primitives,at,i32(sample)).xy,bitcast<u32>(textureLoad(depths,at,i32(sample))),bitcast<u32>(textureLoad(radii,at,i32(sample)).x));
+ output[i*2u+1u]=vec4u(bitcast<vec2u>(textureLoad(normals,at,i32(sample)).xy),corrections[p],flags[(p/320u/16u)*20u+(p%320u)/16u]);
+ if i==0u {output[614400u]=vec4u(draw[0],draw[1],arrayLength(&flags),arrayLength(&tiles));output[614401u]=vec4u(draw[2],draw[3],0,0);}
+ if i<300u {let tile=tiles[i];output[614402u+i]=vec4u(tile,flags[min(tile,299u)],0,0);}
+}"#.into())});
+    let pipeline = r
+        .device
+        .create_compute_pipeline(&wgpu::ComputePipelineDescriptor {
+            label: None,
+            layout: None,
+            module: &module,
+            entry_point: Some("read_samples"),
+            compilation_options: Default::default(),
+            cache: None,
+        });
+    let size = (614402 + 300) * 16;
+    let output = r
+        .device
+        .create_buffer(&wgpu::BufferDescriptor {
+            label: None,
+            size,
+            usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
+            mapped_at_creation: false,
+        });
+    let read = r
+        .device
+        .create_buffer(&wgpu::BufferDescriptor {
+            label: None,
+            size,
+            usage: wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::MAP_READ,
+            mapped_at_creation: false,
+        });
+    let views = [
+        &r.targets.depth,
+        &r.targets.primitive.view,
+        &properties[0],
+        &properties[1],
+    ];
+    let mut entries = views
+        .into_iter()
+        .enumerate()
+        .map(|(i, view)| wgpu::BindGroupEntry {
+            binding: i as u32,
+            resource: wgpu::BindingResource::TextureView(view),
+        })
+        .collect::<Vec<_>>();
+    entries.push(wgpu::BindGroupEntry {
+        binding: 4,
+        resource: output.as_entire_binding(),
+    });
+    for (i, buffer) in work.iter().enumerate() {
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```rust
+@group(0) @binding(3) var normals:texture_multisampled_2d<f32>;
+@group(0) @binding(9) var normals_y:texture_multisampled_2d<f32>;
+@group(0) @binding(10) var normals_z:texture_multisampled_2d<f32>;
+@group(0) @binding(4) var<storage,read_write> output:array<vec4u>;
+@group(0) @binding(5) var<storage,read> corrections:array<u32>;
+@group(0) @binding(6) var<storage,read> flags:array<u32>;
+@group(0) @binding(7) var<storage,read> tiles:array<u32>;
+@group(0) @binding(8) var<storage,read> draw:array<u32>;
+@compute @workgroup_size(64) fn read_samples(@builtin(global_invocation_id) id:vec3u) {
+ let i=id.x;if i>=320u*240u*4u{return;}let p=i/4u;let at=vec2i(i32(p%320u),i32(p/320u));let sample=i%4u;
+ output[i*2u]=vec4u(textureLoad(primitives,at,i32(sample)).xy,bitcast<u32>(textureLoad(depths,at,i32(sample))),bitcast<u32>(textureLoad(radii,at,i32(sample)).x));
+ let n=vec3f(textureLoad(normals,at,i32(sample)).x,textureLoad(normals_y,at,i32(sample)).x,textureLoad(normals_z,at,i32(sample)).x);
+ let sum=abs(n.x)+abs(n.y)+abs(n.z);let e=n.xy/max(sum,1e-30);let folded=(1.-abs(e.yx))*select(vec2f(-1.),vec2f(1.),e>=vec2f(0.));let encoded=select(select(folded,e,n.z>=0.)*0.5+0.5,vec2f(0.),sum==0.);
+ output[i*2u+1u]=vec4u(bitcast<vec2u>(encoded),corrections[p],flags[(p/320u/16u)*20u+(p%320u)/16u]);
+ if i==0u {output[614400u]=vec4u(draw[0],draw[1],arrayLength(&flags),arrayLength(&tiles));output[614401u]=vec4u(draw[2],draw[3],0,0);}
+ if i<300u {let tile=tiles[i];output[614402u+i]=vec4u(tile,flags[min(tile,299u)],0,0);}
+}"#.into())});
+    let pipeline = r
+        .device
+        .create_compute_pipeline(&wgpu::ComputePipelineDescriptor {
+            label: None,
+            layout: None,
+            module: &module,
+            entry_point: Some("read_samples"),
+            compilation_options: Default::default(),
+            cache: None,
+        });
+    let size = (614402 + 300) * 16;
+    let output = r
+        .device
+        .create_buffer(&wgpu::BufferDescriptor {
+            label: None,
+            size,
+            usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
+            mapped_at_creation: false,
+        });
+    let read = r
+        .device
+        .create_buffer(&wgpu::BufferDescriptor {
+            label: None,
+            size,
+            usage: wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::MAP_READ,
+            mapped_at_creation: false,
+        });
+    let views = [
+        &r.targets.depth,
+        &r.targets.primitive.view,
+        &properties[0],
+        &properties[1],
+    ];
+    let mut entries = views
+        .into_iter()
+        .enumerate()
+        .map(|(i, view)| wgpu::BindGroupEntry {
+            binding: i as u32,
+            resource: wgpu::BindingResource::TextureView(view),
+        })
+        .collect::<Vec<_>>();
+    entries.push(wgpu::BindGroupEntry {
+        binding: 4,
+        resource: output.as_entire_binding(),
+    });
+    for (binding, view) in [(9, &properties[2]), (10, &properties[3])] {
+        entries.push(wgpu::BindGroupEntry {
+            binding,
+            resource: wgpu::BindingResource::TextureView(view),
+        });
+    }
+    for (i, buffer) in work.iter().enumerate() {
+```
+
+### 268. `src/ambient_sample_inspect.rs`
+
+Keep original geometric contact normals and production pyramid scales consistent through ambient rendering.
+
+**Locate this existing block:**
+
+```rust
+    ) -> (
+        [wgpu::TextureView; 2],
+        [wgpu::Buffer; 4],
+        [wgpu::Texture; 3],
+    ) {
+        let state = self.state.as_ref().unwrap();
+        (
+            [
+                state.images.source_radius.view.clone(),
+                state.images.source_normals.view.clone(),
+            ],
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```rust
+    ) -> (
+        [wgpu::TextureView; 4],
+        [wgpu::Buffer; 4],
+        [wgpu::Texture; 3],
+    ) {
+        let state = self.state.as_ref().unwrap();
+        (
+            [
+                state.images.source_radius.view.clone(),
+                state.images.source_normals[0].view.clone(),
+                state.images.source_normals[1].view.clone(),
+                state.images.source_normals[2].view.clone(),
+            ],
+```
+
+### 269. `src/ambient_gpu_tests.rs`
+
+Check the retained pedestal ground shadow, cache reuse and exact source/history restoration.
+
+**Locate this existing block:**
+
+```rust
+    );
+}
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```rust
+    );
+}
+
+#[test]
+fn actual_retained_pedestal_ambient_reaches_visible_ground_and_preserves_cache_and_sources()
+ {
+    use prost::Message;
+    let bytes = include_bytes!("../assets/pb/course-comparison.pb");
+    assert_eq!(bytes.len(), 18_736);
+    let document = session_rust::proto::Session::decode(bytes.as_slice()).unwrap();
+    assert_eq!(
+        document
+            .objects
+            .as_ref()
+            .unwrap()
+            .breps
+            .len(),
+        4
+    );
+    let mut scene = Scene::empty();
+    crate::scene_document::import(
+        &mut scene,
+        bytes,
+        "original pedestal",
+        &session_rust::Xform::identity(),
+        0.,
+    )
+    .unwrap();
+    assert_eq!(scene.objects().len(), 4);
+    let owners = scene
+        .objects()
+        .iter()
+        .map(|row| (row.id, row.guid.clone(), row.model.m))
+        .collect::<Vec<_>>();
+    let snapshot = |scene: &Scene| {
+        let bundle =
+            crate::archive::Bundle::decode(&crate::scene_archive::save(scene).unwrap())
+                .unwrap();
+        let documents = bundle
+            .documents
+            .iter()
+            .map(|raw| session_rust::proto::Session::decode(raw.as_slice()).unwrap())
+            .collect::<Vec<_>>();
+        (
+            documents,
+            serde_json::to_value(bundle.metadata).unwrap(),
+        )
+    };
+    let original = snapshot(&scene);
+    let mut history = crate::history::History::default();
+    history.edit(&mut scene, |scene| {
+        assert!(scene.remove(owners[0].0));
+    });
+    assert!(history.undo(&mut scene));
+    assert_eq!(snapshot(&scene), original);
+    let retained_history = history
+        .scenes()
+        .map(&snapshot)
+        .collect::<Vec<_>>();
+    assert_eq!(retained_history.len(), 1);
+    let mut camera = crate::camera::Camera::default();
+    camera.isometric();
+    camera.aspect = 4. / 3.;
+    camera.fit(&scene.bounds().unwrap());
+    let matrix = camera.uniform();
+    let adapter = crate::gpu_test_adapter::adapter();
+    let (device, queue) =
+        pollster::block_on(adapter.request_device(&Default::default()))
+            .expect("Actual GPU device");
+    let format = wgpu::TextureFormat::Rgba8UnormSrgb;
+    let mut renderer = super::Renderer::new(device, queue, format, &scene);
+    renderer.resize(crate::viewport::Viewport {
+        width: 640,
+        height: 480,
+    });
+    renderer.set_density(1.);
+    renderer.set_samples(1);
+    renderer.set_opacity(1.);
+    renderer.set_lighting(false, false);
+    renderer.set_outlines(false);
+    renderer.set_ink_visibility(crate::ink_ranges::Visibility {
+        edges: false,
+        lines: false,
+        points: false,
+        vertices: false,
+    });
+    let off =
+        crate::widget_tests::pixels_format(&mut renderer, &matrix, [640, 480], format);
+    let uploads = renderer.stats()[0];
+    renderer.set_ambient(true);
+    let on =
+        crate::widget_tests::pixels_format(&mut renderer, &matrix, [640, 480], format);
+    assert_eq!(renderer.ambient_error(), None);
+    assert_ne!(on, off);
+    let ground = off
+        .chunks_exact(4)
+        .zip(on.chunks_exact(4))
+        .filter(|(plain, shaded)| {
+            plain[..3] == [255, 255, 255]
+                && shaded[..3].iter().all(|value| *value < 235)
+                && shaded[0].abs_diff(shaded[1]) <= 2
+                && shaded[1].abs_diff(shaded[2]) <= 2
+                && shaded[0].abs_diff(shaded[2]) <= 2
+        })
+        .count();
+    assert!(
+        ground > 8_000,
+        "Retained pedestal casts a broad visible gray ground shadow: {ground} pixels"
+    );
+    let usage = renderer.ambient_usage();
+    assert!(usage[2] > 0 && usage[3] > 0);
+    assert_eq!(
+        crate::widget_tests::pixels_format(&mut renderer, &matrix, [640, 480], format),
+        on
+    );
+    assert_eq!(
+        &renderer.ambient_usage()[1..4],
+        &usage[1..4],
+        "Unchanged On frame reuses pipelines, preparation and uniform writes"
+    );
+    assert_eq!(renderer.stats()[0], uploads);
+    renderer.set_ambient(false);
+    assert_eq!(
+        crate::widget_tests::pixels_format(&mut renderer, &matrix, [640, 480], format),
+        off
+    );
+    renderer.set_ambient(true);
+    assert_eq!(
+        crate::widget_tests::pixels_format(&mut renderer, &matrix, [640, 480], format),
+        on
+    );
+    assert_eq!(renderer.ambient_error(), None);
+    assert_eq!(renderer.stats()[0], uploads);
+    assert_eq!(
+        scene
+            .objects()
+            .iter()
+            .map(|row| (row.id, row.guid.clone(), row.model.m))
+            .collect::<Vec<_>>(),
+        owners
+    );
+    assert_eq!(snapshot(&scene), original);
+    assert_eq!(
+        history
+            .scenes()
+            .map(&snapshot)
+            .collect::<Vec<_>>(),
+        retained_history
+    );
+    assert!(history.redo(&mut scene));
+    assert_eq!(scene.objects().len(), 3);
+    assert!(!scene.contains(owners[0].0));
+    assert!(history.undo(&mut scene));
+    assert_eq!(snapshot(&scene), original);
+}
+```
+
+### 270. `src/cad_edges.rs`
+
+Keep exact original BRep curves, matching face-chain parameters and flat facet facing; preserve source ownership and test the original-curve fallback.
+
+**Locate this existing block:**
+
+```rust
+}
+
+pub fn edge_chains(b: &BRep, fms: &[Mesh]) -> Vec<Option<EdgeChain>> {
+    let mut out = Vec::with_capacity(b.m_edges.len());
+
+    for (ei, e) in b.m_edges.iter().enumerate() {
+        if e.degenerated {
+            out.push(None);
+            continue;
+        }
+
+        let uses = b.edge_faces(ei);
+        let mut found: Option<EdgeChain> = None;
+
+        for (k, u) in uses.iter().enumerate() {
+            let eu = EdgeUse {
+                edge: ei,
+                face: u.index as usize,
+                orientation: u.orientation,
+            };
+            let keys = match constrained_chain(&fms[eu.face], ei) {
+                Some(keys) => keys,
+                None => match iso_chain(b, &fms[eu.face], &eu) {
+                    Some(keys) => keys,
+                    None => continue,
+                },
+            };
+            let mut other = None;
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```rust
+}
+
+fn chain_on_edge(b: &BRep, edge: usize, fm: &Mesh, keys: &[usize]) -> bool {
+    let Some(curve) = b
+        .m_edges
+        .get(edge)
+        .filter(|e| e.curve_3d_index >= 0)
+        .and_then(|e| b.m_curves_3d.get(e.curve_3d_index as usize))
+    else {
+        return true;
+    };
+    let (Some(first), Some(last)) = (keys.first(), keys.last()) else {
+        return false;
+    };
+    let start = curve.point_at_start();
+    let end = curve.point_at_end();
+    let (start, end) = (
+        [start[0], start[1], start[2]],
+        [end[0], end[1], end[2]],
+    );
+    let position = |key: usize| {
+        let v = &fm.vertex[&key];
+        [v.x, v.y, v.z]
+    };
+    let (a, z) = (position(*first), position(*last));
+    let scale = start
+        .iter()
+        .chain(end.iter())
+        .fold(1.0f64, |m, v| m.max(v.abs()));
+    let tolerance = 1e-6 * scale;
+    let near = |p: [f64; 3], q: [f64; 3]| {
+        (0..3)
+            .map(|i| (p[i] - q[i]) * (p[i] - q[i]))
+            .sum::<f64>()
+            .sqrt()
+            <= tolerance
+    };
+    (near(a, start) && near(z, end)) || (near(a, end) && near(z, start))
+}
+
+pub fn edge_chains(b: &BRep, fms: &[Mesh]) -> Vec<Option<EdgeChain>> {
+    let mut out = Vec::with_capacity(b.m_edges.len());
+
+    for (ei, e) in b.m_edges.iter().enumerate() {
+        if e.degenerated {
+            out.push(None);
+            continue;
+        }
+
+        let uses = b.edge_faces(ei);
+        let mut found: Option<EdgeChain> = None;
+
+        for (k, u) in uses.iter().enumerate() {
+            let eu = EdgeUse {
+                edge: ei,
+                face: u.index as usize,
+                orientation: u.orientation,
+            };
+            let keys = match constrained_chain(&fms[eu.face], ei) {
+                Some(keys) => keys,
+                None => match iso_chain(b, &fms[eu.face], &eu) {
+                    Some(keys) => keys,
+                    None => continue,
+                },
+            };
+            if !chain_on_edge(b, ei, &fms[eu.face], &keys) {
+                continue;
+            }
+            let mut other = None;
+```
+
+### 271. `src/production_brep_ink.rs`
+
+Keep exact original BRep curves, matching face-chain parameters and flat facet facing; preserve source ownership and test the original-curve fallback.
+
+**Locate this existing block:**
+
+```rust
+/// A BRep edge as it is drawn: points along its exact curve, every display segment mapped to the
+/// chain segment of the face mesh it lies on, with how far it rises off that mesh.
+pub struct DisplayChain {
+    pub points: Vec<[f64; 3]>, // display points; the first and last are the chain's end vertices
+    pub spans: Vec<usize>, // per display segment: the chain segment (keys[k], keys[k+1]) it lies on
+    pub sags: Vec<f32>, // per display segment: its rise off the face mesh, mm; 0 on a straight edge
+}
+
+/// Position of one mesh vertex.
+fn vertex_position(fm: &Mesh, key: usize) -> [f64; 3] {
+    let v = &fm.vertex[&key];
+    [v.x, v.y, v.z]
+}
+
+/// Distance from `p` to the segment `a`-`b`.
+fn segment_distance(p: [f64; 3], a: [f64; 3], b: [f64; 3]) -> f64 {
+    let d = [b[0] - a[0], b[1] - a[1], b[2] - a[2]];
+    let q = [p[0] - a[0], p[1] - a[1], p[2] - a[2]];
+    let length = d[0] * d[0] + d[1] * d[1] + d[2] * d[2];
+    let t = if length > 0.0 {
+        ((q[0] * d[0] + q[1] * d[1] + q[2] * d[2]) / length).clamp(0.0, 1.0)
+    } else {
+        0.0
+    };
+    let r = [
+        q[0] - d[0] * t,
+        q[1] - d[1] * t,
+        q[2] - d[2] * t,
+    ];
+    (r[0] * r[0] + r[1] * r[1] + r[2] * r[2]).sqrt()
+}
+
+/// Squared distance between two points.
+fn distance2(a: [f64; 3], b: [f64; 3]) -> f64 {
+    (0..3)
+        .map(|i| (a[i] - b[i]) * (a[i] - b[i]))
+        .sum()
+}
+
+/// Index of the sample nearest `p`.
+fn nearest_index(samples: &[[f64; 3]], p: [f64; 3]) -> usize {
+    let mut best = 0;
+    let mut best_d = f64::INFINITY;
+
+    for (i, s) in samples.iter().enumerate() {
+        let d = distance2(*s, p);
+
+        if d < best_d {
+            best_d = d;
+            best = i;
+        }
+    }
+
+    best
+}
+
+/// The chain as drawn straight from its mesh vertices: one display segment per chain segment.
+fn coarse_display(coarse: Vec<[f64; 3]>) -> DisplayChain {
+    let segments = coarse.len().saturating_sub(1);
+    DisplayChain {
+        points: coarse,
+        spans: (0..segments).collect(),
+        sags: vec![0.0; segments],
+    }
+}
+
+/// The 3D curve of the chain's edge when its control polygon turns by more than one display
+/// chord; None keeps the mesh chain, which a straight edge draws with its two vertices.
+fn curved_edge<'a>(
+    b: &'a BRep,
+    chain: &EdgeChain,
+) -> Option<&'a session_rust::NurbsCurve> {
+    let edge = b.m_edges.get(chain.edge)?;
+
+    if edge.degenerated || edge.curve_3d_index < 0 || chain.keys.len() < 2 {
+        return None;
+    }
+
+    let curve = b
+        .m_curves_3d
+        .get(edge.curve_3d_index as usize)?;
+
+    if curve.cv_count() < 2
+        || !(turning_degrees(curve) > EDGE_DEGREES)
+        || knobs::coarse_edges()
+    {
+        return None;
+    }
+
+    Some(curve)
+}
+
+/// Display chord count of a curved edge: one per `EDGE_DEGREES` of turning, never fewer than
+/// the mesh chain has, at most `EDGE_CHORDS_MAX`. A full circle gets 90 wherever it lies: the
+/// turning of a moved circle comes out a hair over 360°, which must not round up to 91.
+fn display_chords(curve: &session_rust::NurbsCurve, chain_segments: usize) -> usize {
+    let by_angle = (turning_degrees(curve) / EDGE_DEGREES - 1e-6).ceil() as usize;
+    by_angle
+        .max(curve.span_count())
+        .max(chain_segments)
+        .min(EDGE_CHORDS_MAX.max(chain_segments))
+}
+
+/// The chain's edge drawn from its own curve: dense samples that pass exactly through every
+/// mesh vertex of the chain, so the face mesh and its edge meet at the mesh vertices and the
+/// curve shows between them. A straight edge keeps its mesh vertices.
+pub fn display_chain(b: &BRep, chain: &EdgeChain, fm: &Mesh) -> DisplayChain {
+    let coarse: Vec<[f64; 3]> = chain
+        .keys
+        .iter()
+        .map(|&key| vertex_position(fm, key))
+        .collect();
+    let Some(curve) = curved_edge(b, chain) else {
+        return coarse_display(coarse);
+    };
+    let n = display_chords(curve, coarse.len() - 1);
+    let (t0, t1) = curve.domain();
+    let mut samples: Vec<[f64; 3]> = (0..=n)
+        .map(|i| {
+            let p = curve.point_at(t0 + (t1 - t0) * i as f64 / n as f64);
+            [p[0], p[1], p[2]]
+        })
+        .collect();
+
+    if !samples
+        .iter()
+        .flatten()
+        .all(|v| v.is_finite())
+    {
+        return coarse_display(coarse);
+    }
+
+    // the chain may run the curve backwards: the mesh vertices then meet the samples in reverse
+    let mut at: Vec<usize> = coarse
+        .iter()
+        .map(|&p| nearest_index(&samples, p))
+        .collect();
+    let forward = at.windows(2).filter(|w| w[1] > w[0]).count();
+    let backward = at.windows(2).filter(|w| w[1] < w[0]).count();
+
+    if backward > forward {
+        samples.reverse();
+
+        for index in &mut at {
+            *index = n - *index;
+        }
+    }
+
+    // every mesh vertex replaces its nearest sample, in order; the ends are the ends
+    at[0] = 0;
+    *at.last_mut().unwrap() = n;
+
+    for k in 1..at.len() {
+        at[k] = at[k]
+            .max(at[k - 1] + 1)
+            .min(n - (at.len() - 1 - k));
+    }
+
+    if at.windows(2).any(|w| w[1] <= w[0]) {
+        return coarse_display(coarse); // more mesh vertices than samples
+    }
+
+    for (k, &index) in at.iter().enumerate() {
+        samples[index] = coarse[k];
+    }
+
+    let mut spans = Vec::with_capacity(n);
+    let mut sags = Vec::with_capacity(n);
+
+    for k in 0..at.len() - 1 {
+        let (a, z) = (coarse[k], coarse[k + 1]);
+
+        for j in at[k]..at[k + 1] {
+            let rise = segment_distance(samples[j], a, z).max(segment_distance(
+                samples[j + 1],
+                a,
+                z,
+            ));
+            spans.push(k);
+            sags.push((rise * SAG_MARGIN) as f32);
+        }
+    }
+
+    DisplayChain {
+        points: samples,
+        spans,
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```rust
+/// A BRep edge as it is drawn: points along its exact curve, every display segment mapped to the
+/// chain segment of the face mesh it lies on, for its facing, with how far it rises off that mesh.
+pub struct DisplayChain {
+    pub points: Vec<[f64; 3]>, // display points on the edge's exact curve, in chain order
+    pub spans: Vec<usize>, // per display segment: the chain segment (keys[k], keys[k+1]) it lies on
+    pub sags: Vec<f32>, // per display segment: its rise off the face mesh, mm; 0 on a straight edge
+}
+
+/// Position of one mesh vertex.
+fn vertex_position(fm: &Mesh, key: usize) -> [f64; 3] {
+    let v = &fm.vertex[&key];
+    [v.x, v.y, v.z]
+}
+
+/// Distance from `p` to the segment `a`-`b`.
+fn segment_distance(p: [f64; 3], a: [f64; 3], b: [f64; 3]) -> f64 {
+    let d = [b[0] - a[0], b[1] - a[1], b[2] - a[2]];
+    let q = [p[0] - a[0], p[1] - a[1], p[2] - a[2]];
+    let length = d[0] * d[0] + d[1] * d[1] + d[2] * d[2];
+    let t = if length > 0.0 {
+        ((q[0] * d[0] + q[1] * d[1] + q[2] * d[2]) / length).clamp(0.0, 1.0)
+    } else {
+        0.0
+    };
+    let r = [
+        q[0] - d[0] * t,
+        q[1] - d[1] * t,
+        q[2] - d[2] * t,
+    ];
+    (r[0] * r[0] + r[1] * r[1] + r[2] * r[2]).sqrt()
+}
+
+/// Squared distance between two points.
+fn distance2(a: [f64; 3], b: [f64; 3]) -> f64 {
+    (0..3)
+        .map(|i| (a[i] - b[i]) * (a[i] - b[i]))
+        .sum()
+}
+
+/// Index of the sample nearest `p`.
+#[cfg(test)]
+fn nearest_index(samples: &[[f64; 3]], p: [f64; 3]) -> usize {
+    let mut best = 0;
+    let mut best_d = f64::INFINITY;
+
+    for (i, s) in samples.iter().enumerate() {
+        let d = distance2(*s, p);
+
+        if d < best_d {
+            best_d = d;
+            best = i;
+        }
+    }
+
+    best
+}
+
+/// The chain as drawn straight from its mesh vertices: one display segment per chain segment; only
+/// for an edge with no 3D curve to draw.
+fn coarse_display(coarse: Vec<[f64; 3]>) -> DisplayChain {
+    let segments = coarse.len().saturating_sub(1);
+    DisplayChain {
+        points: coarse,
+        spans: (0..segments).collect(),
+        sags: vec![0.0; segments],
+    }
+}
+
+/// The 3D curve of the chain's edge, the curve its pipes are drawn on; None when it has none.
+fn edge_curve<'a>(
+    b: &'a BRep,
+    chain: &EdgeChain,
+) -> Option<&'a session_rust::NurbsCurve> {
+    let edge = b.m_edges.get(chain.edge)?;
+
+    if edge.degenerated || edge.curve_3d_index < 0 || chain.keys.len() < 2 {
+        return None;
+    }
+
+    let curve = b
+        .m_curves_3d
+        .get(edge.curve_3d_index as usize)?;
+
+    if curve.cv_count() < 2 {
+        return None;
+    }
+
+    Some(curve)
+}
+
+/// Display chord count of a curved edge: one per `EDGE_DEGREES` of turning, never fewer than
+/// the mesh chain has, at most `EDGE_CHORDS_MAX`. A full circle gets 90 wherever it lies: the
+/// turning of a moved circle comes out a hair over 360°, which must not round up to 91.
+fn display_chords(curve: &session_rust::NurbsCurve, chain_segments: usize) -> usize {
+    let by_angle = (turning_degrees(curve) / EDGE_DEGREES - 1e-6).ceil() as usize;
+    by_angle
+        .max(curve.span_count())
+        .max(chain_segments)
+        .min(EDGE_CHORDS_MAX.max(chain_segments))
+}
+
+/// The parameter of the curve's point nearest `p`: the nearest of `count` even samples, refined
+/// by golden section between its two neighbours.
+fn curve_parameter(curve: &session_rust::NurbsCurve, p: [f64; 3], count: usize) -> f64 {
+    let (t0, t1) = curve.domain();
+    let distance = |t: f64| {
+        let q = curve.point_at(t);
+        distance2([q[0], q[1], q[2]], p)
+    };
+    let step = (t1 - t0) / count as f64;
+    let nearest = (0..=count)
+        .min_by(|&i, &j| {
+            distance(t0 + step * i as f64).total_cmp(&distance(t0 + step * j as f64))
+        })
+        .unwrap_or(0);
+    let (mut lo, mut hi) = (
+        (t0 + step * (nearest as f64 - 1.0)).max(t0),
+        (t0 + step * (nearest as f64 + 1.0)).min(t1),
+    );
+    let ratio = 0.5 * (5.0f64.sqrt() - 1.0);
+
+    for _ in 0..60 {
+        let (m1, m2) = (
+            hi - ratio * (hi - lo),
+            lo + ratio * (hi - lo),
+        );
+
+        if distance(m1) < distance(m2) {
+            hi = m2;
+        } else {
+            lo = m1;
+        }
+    }
+
+    0.5 * (lo + hi)
+}
+
+/// The chain's edge drawn from its own exact curve, never from the mesh: every mesh vertex of the
+/// chain at its own parameter on the curve, and the curve between two of them cut into chords, one
+/// for a straight edge and one per few degrees of turning for a curved one, so every display
+/// segment lies on one chain segment of the face mesh, which gives it its facing and its rise off
+/// the mesh, the depth it may sink in.
+pub fn display_chain(b: &BRep, chain: &EdgeChain, fm: &Mesh) -> DisplayChain {
+    let coarse: Vec<[f64; 3]> = chain
+        .keys
+        .iter()
+        .map(|&key| vertex_position(fm, key))
+        .collect();
+    let Some(curve) = edge_curve(b, chain) else {
+        return coarse_display(coarse);
+    };
+    let segments = coarse.len() - 1;
+    let straight = !(turning_degrees(curve) > EDGE_DEGREES) || knobs::coarse_edges();
+    let chords = if straight {
+        segments
+    } else {
+        display_chords(curve, segments)
+    };
+    let (t0, t1) = curve.domain();
+    let period = t1 - t0;
+
+    // every mesh vertex's parameter, unwrapped across the seam of a closed curve so the chain runs on
+    let mut parameters: Vec<f64> = coarse
+        .iter()
+        .map(|&p| curve_parameter(curve, p, 8 * chords))
+        .collect();
+
+    if curve.is_closed() {
+        for k in 1..parameters.len() {
+            while parameters[k] - parameters[k - 1] > 0.5 * period {
+                parameters[k] -= period;
+            }
+
+            while parameters[k] - parameters[k - 1] < -0.5 * period {
+                parameters[k] += period;
+            }
+        }
+
+        // a closed chain ends where it starts, one turn on
+        if chain.keys.first() == chain.keys.last() && segments > 1 {
+            let turn = if parameters[segments - 1] > parameters[0] {
+                period
+            } else {
+                -period
+            };
+            parameters[segments] = parameters[0] + turn;
+        }
+    }
+
+    let wrap = |t: f64| {
+        if curve.is_closed() {
+            t0 + (t - t0).rem_euclid(period)
+        } else {
+            t.clamp(t0, t1)
+        }
+    };
+    let total: f64 = parameters
+        .windows(2)
+        .map(|w| (w[1] - w[0]).abs())
+        .sum();
+    let mut points = vec![coarse[0]];
+    let mut spans = Vec::with_capacity(chords);
+    let mut sags = Vec::with_capacity(chords);
+
+    for k in 0..segments {
+        let (a, z) = (coarse[k], coarse[k + 1]);
+        let share = if total > 0.0 {
+            (parameters[k + 1] - parameters[k]).abs() / total
+        } else {
+            0.0
+        };
+        let steps = if straight {
+            1
+        } else {
+            ((chords as f64 * share).round() as usize).max(1)
+        };
+        let mut previous = a;
+
+        for j in 1..=steps {
+            let p = if j == steps {
+                let q = curve.point_at(wrap(parameters[k + 1]));
+                [q[0], q[1], q[2]]
+            } else {
+                let q = curve.point_at(wrap(
+                    parameters[k]
+                        + (parameters[k + 1] - parameters[k]) * j as f64 / steps as f64,
+                ));
+                [q[0], q[1], q[2]]
+            };
+            let rise = if straight {
+                0.0
+            } else {
+                segment_distance(previous, a, z).max(segment_distance(p, a, z))
+            };
+            points.push(p);
+            spans.push(k);
+            sags.push((rise * SAG_MARGIN) as f32);
+            previous = p;
+        }
+    }
+
+    // the first point the curve's own too
+    let q = curve.point_at(wrap(parameters[0]));
+    points[0] = [q[0], q[1], q[2]];
+
+    if !points
+        .iter()
+        .flatten()
+        .all(|v| v.is_finite())
+    {
+        return coarse_display(coarse);
+    }
+
+    DisplayChain {
+        points,
+        spans,
+```
+
+### 272. `src/cad_boundary.rs`
+
+Keep exact original BRep curves, matching face-chain parameters and flat facet facing; preserve source ownership and test the original-curve fallback.
+
+**Locate this existing block:**
+
+```rust
+                && chain.is_none()
+            {
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```rust
+                && chain.is_none()
+                && edge.curve_3d_index < 0
+            {
+```
+
+### 273. `src/cad_wire_tests.rs`
+
+Keep exact original BRep curves, matching face-chain parameters and flat facet facing; preserve source ownership and test the original-curve fallback.
+
+**Locate this existing block:**
+
+```rust
+    }
+}
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```rust
+    }
+}
+
+fn exact_curve_fixture(
+    controls: Vec<Point>,
+    degree: usize,
+    vertices: Vec<Point>,
+    faces: Vec<Vec<usize>>,
+) -> (
+    BRep,
+    session_rust::Mesh,
+    crate::cad_edges::EdgeChain,
+) {
+    let curve = NurbsCurve::create(false, degree, &controls);
+    let mut source = BRep::new();
+    let a = source.add_vertex(&curve.point_at_start(), 0.);
+    let z = source.add_vertex(&curve.point_at_end(), 0.);
+    let curve = source.add_curve_3d(&curve);
+    let edge = source.add_edge(curve as i32, a as i32, z as i32);
+    source.add_wire(&[session_rust::brep::BRepRef::new(
+        edge as i32,
+        session_rust::brep::BRepOrientation::Forward,
+    )]);
+    let _ = source.guid();
+    let mesh = session_rust::Mesh::from_vertices_and_faces(vertices, faces);
+    let chain = crate::cad_edges::EdgeChain {
+        edge,
+        face: 0,
+        keys: mesh.vertices(),
+        other: None,
+    };
+    (source, mesh, chain)
+}
+
+#[test]
+fn exact_straight_cad_curve_does_not_follow_displaced_mesh_vertices() {
+    let (source, mesh, chain) = exact_curve_fixture(
+        vec![
+            Point::new(0., 0., 0.),
+            Point::new(10., 0., 0.),
+        ],
+        1,
+        vec![
+            Point::new(0., 0.2, 0.),
+            Point::new(4., 0.2, 0.),
+            Point::new(10., 0.2, 0.),
+        ],
+        vec![],
+    );
+    let before = source.to_proto();
+    let display = crate::production_brep_ink::display_chain(&source, &chain, &mesh);
+    assert_eq!(display.points.len(), 3);
+    assert_eq!(display.spans, vec![0, 1]);
+    assert_eq!(display.sags, vec![0., 0.]);
+    for (point, expected_x) in display.points.iter().zip([0., 4., 10.]) {
+        assert!((point[0] - expected_x).abs() < 1e-7);
+        assert!(
+            point[1].abs() < 1e-12 && point[2].abs() < 1e-12,
+            "The curve owns a straight display point; the displaced mesh supplies no coordinates"
+        );
+    }
+    assert_eq!(source.to_proto(), before);
+}
+
+#[test]
+fn exact_curved_cad_anchors_split_at_projected_parameters_and_keep_span_depth() {
+    let parameters = [0., 0.17, 0.63, 1.];
+    let point = |t: f64| Point::new(10. * t, 20. * t * (1. - t), 0.);
+    let vertices = parameters
+        .iter()
+        .enumerate()
+        .map(|(index, &t)| {
+            let p = point(t);
+            if index == 0 || index == 3 {
+                return p;
+            }
+            let (nx, ny) = (-20. * (1. - 2. * t), 10.);
+            let length = (nx * nx + ny * ny).sqrt();
+            Point::new(
+                p[0] + 0.01 * nx / length,
+                p[1] + 0.01 * ny / length,
+                0.,
+            )
+        })
+        .collect();
+    let (source, mesh, chain) = exact_curve_fixture(
+        vec![
+            Point::new(0., 0., 0.),
+            Point::new(5., 10., 0.),
+            Point::new(10., 0., 0.),
+        ],
+        2,
+        vertices,
+        vec![],
+    );
+    let before = source.to_proto();
+    let display = crate::production_brep_ink::display_chain(&source, &chain, &mesh);
+    assert!(display.points.len() > chain.keys.len());
+    assert_eq!(display.points.len(), display.spans.len() + 1);
+    for (j, &span) in display.spans.iter().enumerate() {
+        assert!(span < 3);
+        for p in &display.points[j..=j + 1] {
+            let t = p[0] / 10.;
+            assert!(
+                (p[1] - 20. * t * (1. - t)).abs() < 1e-7 && p[2].abs() < 1e-12,
+                "Every display point belongs to the original quadratic curve"
+            );
+            assert!(
+                t >= parameters[span] - 1e-7 && t <= parameters[span + 1] + 1e-7,
+                "A chord may not borrow facing/depth from a different face-mesh interval"
+            );
+        }
+        if j == 0 || display.spans[j - 1] != span {
+            let expected = point(parameters[span]);
+            assert!(
+                (0..3)
+                    .map(|a| (display.points[j][a] - expected[a]).powi(2))
+                    .sum::<f64>()
+                    .sqrt()
+                    < 1e-7,
+                "The interval starts at its fitted curve parameter, not at the off-curve mesh vertex"
+            );
+        }
+        let a = &mesh.vertex[&chain.keys[span]];
+        let b = &mesh.vertex[&chain.keys[span + 1]];
+        let (a, b) = ([a.x, a.y, a.z], [b.x, b.y, b.z]);
+        let d = [b[0] - a[0], b[1] - a[1], b[2] - a[2]];
+        let length2: f64 = d.iter().map(|v| v * v).sum();
+        for p in &display.points[j..=j + 1] {
+            let t = ((0..3)
+                .map(|i| (p[i] - a[i]) * d[i])
+                .sum::<f64>()
+                / length2)
+                .clamp(0., 1.);
+            let rise = (0..3)
+                .map(|i| (p[i] - a[i] - t * d[i]).powi(2))
+                .sum::<f64>()
+                .sqrt();
+            assert!(
+                f64::from(display.sags[j]) + 1e-6 >= rise,
+                "The permitted depth covers this exact chord's rise from its assigned mesh interval"
+            );
+        }
+    }
+    assert!(display.sags.iter().any(|s| *s > 0.));
+    assert_eq!(source.to_proto(), before);
+}
+
+#[test]
+fn foreign_cad_chain_ends_are_rejected_and_valid_curve_falls_back_without_facing() {
+    let mut source = BRep::create_box(4., 3., 2.);
+    let faces = source.face_meshes_q(Some(crate::cad_boundary::QUALITY));
+    let chains = crate::cad_edges::edge_chains(&source, &faces);
+    let edge = chains
+        .iter()
+        .position(Option::is_some)
+        .unwrap();
+    let ci = source.m_edges[edge].curve_3d_index as usize;
+    let curve = &mut source.m_curves_3d[ci];
+    for i in 0..curve.cv_count() {
+        let p = curve.get_cv(i).unwrap();
+        assert!(curve.set_cv(
+            i,
+            &Point::new(p[0] + 100., p[1] + 30., p[2] + 20.)
+        ));
+    }
+    let _ = source.guid();
+    let before = source.to_proto();
+    assert!(
+        source.is_valid(),
+        "All topology references and original curve remain valid"
+    );
+    assert!(
+        crate::cad_edges::edge_chains(&source, &faces)[edge].is_none(),
+        "A face chain ending on a different curve must lend no facing or depth"
+    );
+    let (prepared, mesh) = cad_display::prepare(Rc::new(source.clone())).unwrap();
+    assert!(
+        prepared
+            .wires
+            .iter()
+            .any(|wire| wire.edge == edge),
+        "A valid original curve survives a missing coherent face chain"
+    );
+    assert!(
+        !mesh.display.indices().is_empty(),
+        "Fallback does not discard the face mesh"
+    );
+    let mut scene = Scene::empty();
+    let owner = scene
+        .insert_prepared_cad((prepared, mesh))
+        .unwrap();
+    let saved = documents(&scene);
+    let sources = crate::pick_sources::Sources::new(&scene).unwrap();
+    let rows = crate::production_joined::rows(&scene, &sources, [0.; 3], &[], u64::MAX)
+        .unwrap();
+    let fallback: Vec<_> = (0..rows.mesh_from)
+        .filter(|&i| rows.owners[i] == owner.value())
+        .collect();
+    assert!(
+        !fallback.is_empty(),
+        "The existing joined path lane actually receives the fallback"
+    );
+    for i in fallback {
+        let segment = &rows.segments[i * 52..(i + 1) * 52];
+        assert_eq!(
+            u32::from_ne_bytes(segment[36..40].try_into().unwrap()),
+            u32::MAX,
+            "Fallback curves have unknown facet facing"
+        );
+        assert_eq!(
+            rows.ids[i][0],
+            owner.value(),
+            "Fallback retains its original owner"
+        );
+    }
+    assert_eq!(source.to_proto(), before);
+    assert_eq!(
+        scene.objects()[0]
+            .cad
+            .as_ref()
+            .unwrap()
+            .source
+            .to_proto(),
+        before
+    );
+    assert_eq!(documents(&scene), saved);
+}
+
+#[test]
+fn cad_curve_facing_stays_with_flat_triangle_normals() {
+    let (source, mut mesh, mut chain) = exact_curve_fixture(
+        vec![
+            Point::new(0., 0., 0.),
+            Point::new(10., 0., 0.),
+        ],
+        1,
+        vec![
+            Point::new(0., 0., 0.),
+            Point::new(10., 0., 0.),
+            Point::new(0., 5., 2.),
+        ],
+        vec![vec![0, 1, 2]],
+    );
+    for v in mesh.vertex.values_mut() {
+        v.attributes.insert("nx".into(), 1.);
+        v.attributes.insert("ny".into(), 0.);
+        v.attributes.insert("nz".into(), 0.);
+    }
+    chain.keys.truncate(2);
+    let faces = [mesh];
+    let signs = [1.];
+    let pen = crate::production_curve_walk::Pen {
+        row: 7,
+        radius: 1.,
+        color: u32::MAX,
+    };
+    let ep = crate::production_brep_ink::EdgePen::new(&faces, &signs, pen).recording();
+    let display = crate::production_brep_ink::display_chain(&source, &chain, &faces[0]);
+    let mut rows = crate::production_mesh_ink::SegRows::default();
+    crate::production_brep_ink::push_edge_pipes(
+        &mut rows,
+        &chain,
+        &display,
+        &ep,
+        &mut session_rust::AABB::empty(),
+    );
+    assert_eq!(rows.pipes.len(), 1);
+    let expected = [0., -2. / 29_f64.sqrt(), 5. / 29_f64.sqrt()];
+    let normals = ep.take_normals();
+    assert_eq!(normals.len(), 1);
+    for (first, second) in normals {
+        for normal in [first.unwrap(), second.unwrap()] {
+            for axis in 0..3 {
+                assert!((normal[axis] - expected[axis]).abs() < 1e-12);
+            }
+        }
+    }
+    assert_eq!(
+        rows.pipes[0].facing,
+        crate::production_mesh_ink::pack_facing(Some(&expected), Some(&expected)),
+        "Silhouette facing uses the flat adjacent triangle, not unrelated vertex or analytic normals"
+    );
+    assert_eq!(rows.pipe_ids, vec![chain.edge as u32]);
+}
+```
+
+### 274. `src/production_mesh_ink_provenance.json`
+
+Keep exact original BRep curves, matching face-chain parameters and flat facet facing; preserve source ownership and test the original-curve fallback.
+
+Replace the entire file with:
+
+```json
+{
+  "source_commit": "30c2b39da1950bb92abcd717aeac2bba296c2e52",
+  "shader": "Existing complete production_joined.wgsl, ownership-only fragment adapter from production ribbon pipeline",
+  "compiled_shader_sha256": "177fcadef6325b5edf384bff97a1cdcc9f209782313ed7d0a251a1e7a9076355",
+  "sources": {
+    "app/walk/mesh_ink.rs": "349f85de9cb23dcb928a80b520468c58e84c4a03a6fd6d60280d2ec10a85cef4",
+    "app/walk/mesh.rs": "a070c4a31a303339687adfffd579446e31f33d44c4a3a5c4ca49cd216265e060",
+    "app/walk/brep.rs": "e49dcc0911686b0f2f4fbd7c9aacc411bb989e45b5c0c1444544f087d886c285",
+    "app/walk/brep_edges.rs": "9f1c26f77f08f487e1d4219f35d07fb1376ed2ba922eba1124c89a1d57442100",
+    "app/walk/brep_shapes.rs": "c1621011e4006473015572ec811300241204838db2b96d4372b84a740e6fae2c",
+    "app/walk/encode.rs": "a925576401ada960e52a28d669f7bee634c5c4213cc74207846c3a5a22af3a83",
+    "engine/gpu/segments.rs": "a152ead3eb15a3e44ceab8f11cb3d804c549d879a4871d1897c9bdeaf760aeb6",
+    "shaders/ribbon.wgsl": "950172d6d383b37009bd9c8d6e1edb63adf835e7b2926e91aba043f6a22f9f3f",
+    "shaders/ink_visibility.wgsl": "17111b9fc09de6d3f344f39f83f31d4dfbb8c57f92fe1763f635f73cb0a3a475"
+  },
+  "extracted_modules": {
+    "production_mesh_ink.rs": "db22d1eed1cc6fd41ea81df3ea4a313ae668faed9ac385fa4690f697e30c29e4",
+    "production_brep_ink.rs": "82887eeacd9f0528c750118ef1d6a11eb9e58259a94ace9bf5c086c49f9a87bc"
+  },
+  "adapters": [
+    "Mesh push_pipes, face-normal packing, coplanar suppression, dense-wire black and radius encoding retain production functions. Default all_edges=false; visibility remains a frame control.",
+    "BRep display_chain, EdgePen, joined pipe chains, sag and silhouette algorithms retain production functions. Default coarse_edges=false. Existing exact boundary face meshes/signs/chains feed them once during preparation.",
+    "NURBS borders use the existing exact production grid samples/indices and boundary chain order.",
+    "Prepared rows retain display data only. BRep shape-cache replay turns retained exact normals before packing, as production brep_shapes does.",
+    "Compact object/edge ownership and buffer offsets adapt to the existing source query registry. No geometry, fragment coverage, depth or width algorithm changes.",
+    "The legacy line lane retains clipping/OBB frames and active control nets; original source query arrays are preserved."
+  ],
+  "exact_curve_reconciliation": {
+    "productionCommit": "30c2b39da1950bb92abcd717aeac2bba296c2e52",
+    "previousProductionCommit": "a391b104",
+    "kernelCommits": {
+      "session_cpp": "5c9b5971974f93a89c0f842ce6bf07b1f905b842",
+      "session_rust": "8445d2149f59c5a1caebb1a3e605833bf21996f2",
+      "session_py": "f5e8d6e205909e9732e39f7636935322743767e1"
+    },
+    "sourceHashConvention": "The new BRep hash identifies immutable Git blob UTF-8/LF bytes. At actual transition refresh working-tree inventory from real bytes; do not equate a commit reference with a clean tree.",
+    "semantics": "Every valid original3DNURBS edge, including straight ones, owns display coordinates. Projected face-chain parameters split chords; assigned flat facets provide facing/depth. Foreign-end chains yield valid originalcurve ribbon fallback with unknown facing.",
+    "silhouetteNormals": "Original flat triangle cross-product normals retained; reverted exactsurface-normal experiment excluded.",
+    "adapter": "End validation lives in cad_edges and display sampling in production_brep_ink because this course splits the maintained module. Existing source-owned ribbon fallback, originalwire dedup, owner IDs and source/archive contracts remain."
+  }
+}
+```
+
+### 275. `src/current_inventory.json`
+
+Record actual transitioned production/kernel source bytes and preserved dirty data; earlier inventories remain historical.
+
+Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
+
+**Locate this block:**
+
+```json
+    {
+      "root": "kernel",
+      "path": "src/primitives.rs",
+      "sha256": "cf102029fc6b3d6f5d05de9f495334e1ccd862b592bb2e70c7c1617103d8d871",
+      "topic": "Original geometry and serialization",
+      "lessons": "source chapters,96"
+    },
+    {
+      "root": "kernel",
+      "path": "src/primitives_test.rs",
+      "sha256": "fd13401c77292c0d9cc62b736e1f43dbf948f1e6d87b8c00d2f11c3f8402e8d5",
+      "topic": "Original geometry and serialization",
+```
+
+Replace it with:
+
+```json
+    {
+      "root": "kernel",
+      "path": "src/primitives.rs",
+      "sha256": "4452e8206a66ee44300c75dac080e9c35b5ce14ccd3ac9d7c398dcb0a2897739",
+      "topic": "Original geometry and serialization",
+      "lessons": "source chapters,96"
+    },
+    {
+      "root": "kernel",
+      "path": "src/primitives_test.rs",
+      "sha256": "8f78f54cd9091d7bd372f2880986b0c7cadb80c0725ddcd1a0aa24fb5c811ef9",
+      "topic": "Original geometry and serialization",
+```
+
+**Locate this block:**
+
+```json
+    {
+      "root": "kernel",
+      "path": "src/nurbssurface.rs",
+      "sha256": "24da855f532214fe06c7c8f48e411b00806a6d7c9e9392b256563cbdf8d0c19a",
+      "topic": "Original geometry and serialization",
+      "lessons": "source chapters,96"
+    },
+    {
+      "root": "kernel",
+      "path": "src/nurbssurface_test.rs",
+      "sha256": "ca096628ab4ea15c65d82de436596220b24d4b8cdd4c92c74df1792ad3a7a622",
+      "topic": "Original geometry and serialization",
+      "lessons": "source chapters,96"
+    },
+```
+
+Replace it with:
+
+```json
+    {
+      "root": "kernel",
+      "path": "src/nurbssurface.rs",
+      "sha256": "683fe64b42b8b894db2a12b8899560f87db77cb01274b8f6c5864e2ffddc88c3",
+      "topic": "Original geometry and serialization",
+      "lessons": "source chapters,96"
+    },
+    {
+      "root": "kernel",
+      "path": "src/nurbssurface_test.rs",
+      "sha256": "8a94dbfaed2c754925bdc40049351903caa027fc44b0df90eef7ae4897b0a827",
+      "topic": "Original geometry and serialization",
+      "lessons": "source chapters,96"
+    },
+```
+
+**Locate this block:**
+
+```json
+    {
+      "root": "kernel",
+      "path": "src/mini_test.rs",
+      "sha256": "4464b762352c7040c47f33eab71627a930fd043921b6eebcced0320fc1d857d6",
+      "topic": "Original geometry and serialization",
+      "lessons": "source chapters,96"
+    },
+```
+
+Replace it with:
+
+```json
+    {
+      "root": "kernel",
+      "path": "src/mini_test.rs",
+      "sha256": "14ec1ddd7890ad17b4d1e7be6b723634031564e3d09a9dab7d5412ccee902ee0",
+      "topic": "Original geometry and serialization",
+      "lessons": "source chapters,96"
+    },
+```
+
+**Locate this block:**
+
+```json
+    {
+      "root": "kernel",
+      "path": "src/brep.rs",
+      "sha256": "2eb96d33e16a294c197a63e8ee5d65759d8320394232b5fcabd49d0b02c5b84a",
+      "topic": "Original geometry and serialization",
+      "lessons": "source chapters,96"
+    },
+    {
+      "root": "kernel",
+      "path": "src/brep_test.rs",
+      "sha256": "f074d549288699afb223a31ce63a4eee05f9270829e40cd860458ff2fd18f3a5",
+      "topic": "Original geometry and serialization",
+      "lessons": "source chapters,96"
+    },
+    {
+      "root": "kernel",
+      "path": "src/closest.rs",
+      "sha256": "95f4e14a0421603076ce8f6bc4ba448a255a63ca46ca461ea6f1e69c52feba4d",
+      "topic": "Original geometry and serialization",
+      "lessons": "source chapters,96"
+    },
+```
+
+Replace it with:
+
+```json
+    {
+      "root": "kernel",
+      "path": "src/brep.rs",
+      "sha256": "eb2e6eaa89ff30b3083e5ca30d6669af9ff25c3540e33dbf87453e453fbd0cad",
+      "topic": "Original geometry and serialization",
+      "lessons": "source chapters,96"
+    },
+    {
+      "root": "kernel",
+      "path": "src/brep_test.rs",
+      "sha256": "97e7d7ca0a4ceee550d1e37692fa31099380e05a88b3a8f191e21f5e76d2589b",
+      "topic": "Original geometry and serialization",
+      "lessons": "source chapters,96"
+    },
+    {
+      "root": "kernel",
+      "path": "src/closest.rs",
+      "sha256": "c4ae1dd242fb53013c8592a3b786ef03bc96b3f828480d9db7b388a55a74dcef",
+      "topic": "Original geometry and serialization",
+      "lessons": "source chapters,96"
+    },
+```
+
+**Locate this block:**
+
+```json
+    {
+      "root": "viewer",
+      "path": "src/selftest/stroke_witness.rs",
+      "sha256": "493e57a9a0a049e906738bfca8072947d022607c3458c4c0b53b2ed5d8b6ad4b",
+      "topic": "Line rendering and current evidence",
+      "lessons": "5,18,22,96"
+    },
+```
+
+Replace it with:
+
+```json
+    {
+      "root": "viewer",
+      "path": "src/selftest/stroke_witness.rs",
+      "sha256": "c87ffcca494f6515836cd34ca764feab5097817e67b025bc5eecd7180db0209e",
+      "topic": "Line rendering and current evidence",
+      "lessons": "5,18,22,96"
+    },
+```
+
+**Locate this block:**
+
+```json
+    {
+      "root": "viewer",
+      "path": "src/selftest.rs",
+      "sha256": "5fde63ff1c457acaf1bf1f7d1a83b7bbd762cdbbef6b77b340fd411945f59ea1",
+      "topic": "Maintained native rendering and correctness reference",
+      "lessons": "94–96"
+    },
+```
+
+Replace it with:
+
+```json
+    {
+      "root": "viewer",
+      "path": "src/selftest.rs",
+      "sha256": "cbc606956962a9687a02cba1f3679f01dea85a5435d94e69fb303e1a030b8838",
+      "topic": "Maintained native rendering and correctness reference",
+      "lessons": "94–96"
+    },
+```
+
+**Locate this block:**
+
+```json
+    {
+      "root": "viewer",
+      "path": "src/app/walk/brep_edges.rs",
+      "sha256": "2a19dd35e93bf62103e9549fc16f9c9d0fe6859a68be424b970d60dea17b5d2d",
+      "topic": "Original source walking and shared display",
+      "lessons": "55–71,92,94,95"
+    },
+```
+
+Replace it with:
+
+```json
+    {
+      "root": "viewer",
+      "path": "src/app/walk/brep_edges.rs",
+      "sha256": "9f1c26f77f08f487e1d4219f35d07fb1376ed2ba922eba1124c89a1d57442100",
+      "topic": "Original source walking and shared display",
+      "lessons": "55–71,92,94,95"
+    },
+```
+
+**Locate this block:**
+
+```json
+          },
+          {
+            "status": " M",
+            "path": "session_tests/README.md"
+          },
+          {
+            "status": " M",
+            "path": "session_tests/plugins/course.ts"
+          },
+          {
+            "status": " M",
+            "path": "session_tests/scripts/build-viewer-docs.sh"
+          },
+          {
+            "status": " M",
+            "path": "session_tests/scripts/course.ts"
+          },
+          {
+            "status": " M",
+            "path": "session_tests/scripts/course/checkpoints.test.ts"
+          },
+          {
+            "status": " M",
+            "path": "session_tests/scripts/course/reference-checks.ts"
+          },
+          {
+            "status": " M",
+            "path": "session_tests/scripts/course/reference.ts"
+          },
+          {
+            "status": " M",
+            "path": "session_tests/scripts/course/verify.ts"
+          },
+          {
+            "status": " M",
+            "path": "session_tests/src/codeTheme.ts"
+          },
+          {
+            "status": " M",
+            "path": "session_tests/src/views/CourseIndex.vue"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/Cargo.lock"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/capture_current.cjs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/capture_journey.cjs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey.md"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/96zzzzzzzq-draw-original-cad-wire-curves.md"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/book.json"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/checks/data/current-grid-physical-256-2026-10-15.ppm"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/checks/data/current-grid-physical-512-2026-10-15.ppm"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/consolidation/96zzc-share-section-addresses-with-outlines-and-ambient.md"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/consolidation/96zzzzzt-share-depth-endpoints-and-comparisons.md"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/consolidation/96zzzzzza-match-physical-camera-defaults-and-limits.md"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/consolidation/96zzzzzzn-respect-original-boundary-pens.md"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/consolidation/96zzzzzzzm-retain-visible-instance-ranges.md"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/consolidation/chapter-19.json"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/consolidation/chapter-20.json"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/consolidation/chapter-21.json"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/consolidation/chapter-22.json"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/consolidation/current-state.json"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/contents.md"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/course.json"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/daily-plan.md"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/frame.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/production-course-map.json"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/production-course-map.md"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/release/15-perspective.lock"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/release/23-import.lock"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/release/29-identity.lock"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/release/92-Cargo.lock"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/release/94-Cargo.lock"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/release/Cargo-publish.lock"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/release/Cargo-text.lock"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/release/source-residency-Cargo.lock"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/src/app/command/verbs/text.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/src/app/cplane.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/src/app/decode.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/src/app/edit.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/src/app/inspection.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/src/app/live.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/src/app/loader.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/src/app/manifest.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/src/app/scene.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/src/app/scene_text.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/src/app/walk/matrix.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/src/app/walk/mod.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/src/camera.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/src/engine/gpu/backdrop.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/src/engine/gpu/buffers.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/src/engine/gpu/frame.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/src/engine/gpu/lane.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/src/engine/gpu/matrices.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/src/engine/gpu/mod.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/src/engine/gpu/segments.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/src/engine/gpu/splat.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/src/engine/gpu/text_plane.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/src/engine/text.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/src/lib.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/src/selftest.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/src/shaders/arrow.wgsl"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/src/shaders/clip.wgsl"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/src/shaders/grid.wgsl"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/src/shaders/ink_visibility.wgsl"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/src/shaders/matrix.wgsl"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/src/shaders/ribbon.wgsl"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/src/shaders/text_plane.wgsl"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/src/state.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/src/state/drawing.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/src/state/features.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/src/state/text.rs"
+          },
+          {
+            "status": "??",
+            "path": "docs/plans/2026-10-18-viewer-course-progress.md"
+          },
+          {
+            "status": "??",
+            "path": "session_tests/scripts/build-viewer-docs.ps1"
+          },
+          {
+            "status": "??",
+            "path": "session_tests/scripts/check-consolidated-course.cjs"
+          },
+          {
+            "status": "??",
+            "path": "session_tests/scripts/check-software-webgpu.cjs"
+          },
+          {
+            "status": "??",
+            "path": "session_tests/scripts/course/cad-witness.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_tests/scripts/course/check-reload-grid.cjs"
+          },
+          {
+            "status": "??",
+            "path": "session_tests/scripts/course/cloud-ink-witness.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_tests/scripts/course/cloud-lod-witness.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_tests/scripts/course/cloud-witness-course.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_tests/scripts/course/cloud-witness.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_tests/scripts/course/glyph-witness.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_tests/scripts/course/grid-witness.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_tests/scripts/course/measure-runtime.cjs"
+          },
+          {
+            "status": "??",
+            "path": "session_tests/scripts/course/plane-witness.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_tests/scripts/course/section-witness.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_tests/scripts/course/sheet-witness.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_tests/scripts/course/stroke-witness.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_tests/scripts/course/vector-witness.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_tests/scripts/run-guarded.cjs"
+          },
+          {
+            "status": "??",
+            "path": "session_tests/scripts/run-guarded.cmd"
+          },
+          {
+            "status": "??",
+            "path": "session_tests/scripts/run-guarded.ps1"
+          },
+          {
+            "status": "??",
+            "path": "session_tests/scripts/run-guarded.test.cjs"
+          },
+          {
+            "status": "??",
+            "path": "session_tests/scripts/warp-adapter.ps1"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/.gitattributes"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/checks/data/current-grid-physical-256-windows-2026-10-23.ppm"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/checks/data/current-grid-physical-512-windows-2026-10-23.ppm"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-active-lane-01-bounded-source.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-active-lane-02-generic-range-fixture.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-active-lane-03-hidden-range-fixture.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-active-lane-04-absolute-range-fixture.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-active-lane-05-sphere-abi.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-active-lane-06-dense-sphere-abi.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-active-lane-07-mesh-ribbon-abi.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-active-lane-08-mesh-family-round-caps.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-active-lane-09-isolated-outline-composite.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-active-lane-10-remove-duplicate-mesh-ink.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-canonical-source-audit.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-cap-test-warp-renderer.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-cap-test-warp-wait.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-clipped-head-source-cap.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-cloud-adapter-01.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-cloud-adapter-02.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-cloud-adapter-03.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-cloud-adapter-04.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-cloud-adapter-05.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-cloud-adapter-06.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-cloud-adapter-07.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-cloud-adapter-08.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-cloud-adapter-09.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-cloud-adapter-10.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-cloud-adapter-11.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-cloud-adapter-12.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-cloud-adapter-13.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-cloud-adapter-14.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-cloud-adapter-15.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-cloud-adapter-16.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-cloud-adapter-17.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-cloud-adapter-18.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-cloud-adapter-19.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-cloud-adapter-20.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-cloud-adapter-21.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-cloud-adapter-22.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-cloud-control-owner-test.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-cloud-placement-register.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-cloud-placement-tests.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-cloud-point-ids.wgsl"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-cloud-production-tests.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-cloud-provenance.json"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-cloud-record.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-cloud-resolve-source.wgsl"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-cloud-source.wgsl"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-dependency-cargo.toml"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-dependency-inventory-example.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-dependency-reference-example.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-dependency-reference-module.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-dependency-registry-module.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-finite-ink-lazy.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-frame-pick-01-frame-ink-class.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-frame-pick-02-frame-colour-order.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-frame-pick-03-frame-query-order.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-frame-pick-04-analytic-filter-support.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-frame-pick-05-contact-diagnostic.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-glyph-bounds_original-01.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-glyph-browser-01.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-glyph-browser_defaults-01.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-glyph-cloud_gpu-01.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-glyph-cloud_gpu-02.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-glyph-cloud_gpu-03.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-glyph-cloud_gpu-04.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-glyph-cloud_gpu-05.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-glyph-cloud_gpu-06.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-glyph-commands-01.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-glyph-commands-02.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-glyph-display_settings.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-glyph-editor-01.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-glyph-editor-02.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-glyph-editor-03.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-glyph-editor-04.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-glyph-editor-05.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-glyph-highlight-01.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-glyph-lib-01.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-glyph-lod-policy-1.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-glyph-lod-policy-2.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-glyph-mesh_parts-01.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-glyph-mesh_parts-02.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-glyph-mesh_parts-03.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-glyph-plane_original-01.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-glyph-point-policy-1.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-glyph-point-policy-2.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-glyph-production_glyph.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-glyph-production_glyph.wgsl"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-glyph-production_glyph_gpu.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-glyph-production_glyph_provenance.json"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-glyph-production_glyph_tests.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-glyph-production_joined-01.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-glyph-production_joined-02.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-glyph-production_joined-03.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-glyph-production_matrix_gpu-01.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-glyph-production_matrix_gpu-02.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-glyph-production_matrix_gpu-03.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-glyph-production_matrix_gpu-04.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-glyph-production_ribbon_gpu-01.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-glyph-production_ribbon_gpu-02.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-glyph-production_ribbon_gpu-03.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-glyph-production_ribbon_gpu-04.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-glyph-production_ribbon_gpu-05.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-glyph-production_ribbon_gpu-06.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-glyph-production_ribbon_gpu-07.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-glyph-production_ribbon_gpu-08.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-glyph-production_ribbon_gpu-09.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-glyph-production_sheet_gpu-01.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-glyph-production_sheet_gpu-02.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-glyph-production_sheet_gpu-03.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-glyph-production_sheet_gpu-04.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-glyph-production_sphere.wgsl"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-glyph-renderer-01.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-glyph-renderer-02.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-glyph-renderer-03.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-glyph-renderer-04.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-glyph-renderer-05.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-glyph-renderer-06.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-glyph-scene-01.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-headed-terminal-coverage.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-hidden-ink-frame.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-hidden-ink-lane-state.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-hidden-ink-state.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-hidden-ink-test.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ink-plane-fallback.wgsl"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-inventory-refresh-01-current_inventory.json"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-inventory-refresh-02-viewer-count.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-inventory-refresh-3-01-current_inventory.json"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-inventory-refresh-4-01-current_inventory.json"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-inventory-refresh-4-02-viewer-count.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-legacy-stroke-lazy.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-line-placement-gpu-register.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-line-placement-gpu-tests.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-adapter-01.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-adapter-02.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-adapter-03.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-adapter-04.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-adapter-05.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-adapter-06.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-adapter-07.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-adapter-08.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-adapter-09.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-adapter-10.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-adapter-11.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-adapter-12.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-adapter-13.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-adapter-14.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-adapter-15.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-adapter-16.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-adapter-17.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-adapter-18.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-adapter-19.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-adapter-20.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-adapter-21.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-adapter-22.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-adapter-23.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-adapter-24.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-adapter-25.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-adapter-26.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-adapter-27.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-adapter-28.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-adapter-29.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-adapter-30.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-adapter-31.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-adapter-32.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-adapter-33.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-adapter-34.wgsl"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-adapter-35.wgsl"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-adapter-36.wgsl"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-adapter-37.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-adapter-38.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-adapter-39.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-adapter-40.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-adapter-41.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-adapter-42.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-adapter-43.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-adapter-44.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-adapter-45.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-adapter-46.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-adapter-47.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-adapter-48.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-adapter-49.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-adapter-50.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-adapter-51.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-adapter-52.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-compact-matrix_compact_tests.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-compact-production_matrix-01.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-compact-production_matrix-01.wgsl"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-compact-production_matrix-02.wgsl"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-compact-production_matrix_gpu-01.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-compact-production_matrix_gpu-02.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-compact-production_matrix_gpu-03.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-compact-production_matrix_gpu-04.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-compact-production_matrix_gpu-05.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-compact-production_matrix_gpu-06.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-compact-production_matrix_provenance-01.json"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-compact-production_matrix_provenance-02.json"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-compact-production_matrix_provenance-03.json"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-compact-scene-01.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-matrix_tests.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-production_matrix.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-production_matrix.wgsl"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-production_matrix_gpu.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-production_matrix_provenance.json"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-production_matrix_walk.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-mesh-ink-bounds_original-01.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-mesh-ink-cad_display-01.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-mesh-ink-cad_shape_cache-01.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-mesh-ink-highlight-01.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-mesh-ink-highlight-02.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-mesh-ink-lib-01.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-mesh-ink-mesh_parts-01.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-mesh-ink-mesh_parts-02.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-mesh-ink-mesh_parts-03.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-mesh-ink-pick_sources-01.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-mesh-ink-pick_sources-02.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-mesh-ink-pick_sources-03.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-mesh-ink-pick_sources-04.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-mesh-ink-plane_original-01.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-mesh-ink-production_brep_ink.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-mesh-ink-production_joined-01.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-mesh-ink-production_joined-02.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-mesh-ink-production_joined-03.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-mesh-ink-production_mesh_ink.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-mesh-ink-production_mesh_ink_provenance.json"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-mesh-ink-production_mesh_ink_tests.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-mesh-ink-production_ribbon_gpu-01.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-mesh-ink-production_ribbon_gpu-02.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-mesh-ink-production_ribbon_gpu-03.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-mesh-ink-production_ribbon_gpu-04.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-mesh-ink-production_ribbon_gpu-05.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-mesh-ink-production_ribbon_gpu-06.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-mesh-ink-production_ribbon_gpu-07.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-mesh-ink-production_ribbon_gpu-08.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-mesh-ink-production_ribbon_gpu-09.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-mesh-ink-renderer-01.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-mesh-ink-renderer-02.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-mesh-ink-renderer-03.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-mesh-ink-scene-01.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-mesh-ink-surface-01.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-native-grid-reference-selection.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-native-reconciliation-01-pick-pass-order.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-native-reconciliation-02-outline-policy.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-native-reconciliation-03-outline-policy.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-native-reconciliation-04-outline-policy.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-native-reconciliation-05-outline-policy.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-performance-browser-check.cjs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-performance-browser-frame.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-performance-browser-install.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-performance-browser-owner.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-performance-browser-pagehide.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-performance-browser-present.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-performance-browser-request.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-performance-frame-schedule-tests.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-performance-frame-schedule.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-performance-lifecycle-change.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-performance-lifecycle-install.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-performance-lifecycle-stop.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-performance-modules.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-performance-runtime.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-pick-priority-production_glyph-01.wgsl"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-pick-priority-production_glyph_provenance-01.json"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-pick-priority-production_glyph_provenance-02.json"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-pick-priority-production_ribbon_gpu-01.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-pick-priority-production_sphere-01.wgsl"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-plane-browser-01.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-plane-commands-01.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-plane-commands-02.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-plane-editor-01.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-plane-editor-02.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-plane-editor-03.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-plane-editor-04.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-plane-editor-05.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-plane-lib-01.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-plane-owner-policy.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-plane-plane_original-01.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-plane-production_joined-01.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-plane-production_joined-02.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-plane-production_joined-03.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-plane-production_plane.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-plane-production_plane.wgsl"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-plane-production_plane_provenance.json"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-plane-production_plane_tests.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-plane-production_ribbon_gpu-01.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-plane-production_ribbon_gpu-02.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-plane-production_ribbon_gpu-03.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-plane-production_ribbon_gpu-04.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-plane-production_ribbon_gpu-05.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-plane-production_ribbon_gpu-06.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-plane-production_ribbon_gpu-07.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-plane-production_vector_gpu-01.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-plane-production_vector_gpu-02.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-plane-production_vector_gpu-03.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-plane-renderer-01.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-plane-scene-01.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-print-04.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-print-05.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-print-06.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-print-07.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-print-08.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-print-09.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-print-10.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-print-11.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-print-12.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-print-13.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-print-14.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-print-15.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-print-16.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-print-17.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-print-18.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-print-19.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-print-20.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-print-21.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-print-22.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-print-23.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-print-24.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-print-25.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-print-26.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-print-27.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-print-28.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-print-29.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-print-30.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-print-31.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-print-32.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-print-alpha-layout.wgsl"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-print-alpha-offset.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-print-alpha-record.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-print-alpha-shader.wgsl"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-print-alpha-tests.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-print-empty-sample-guard.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-print-lane.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-print-shader.wgsl"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-print-tests.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-production-colour-policy-01-unorm-grey.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-production-colour-policy-02-selected-source-edge.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-production-contact-boundary.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-production-outline-policy.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-projection-adapter-01-homogeneous-lens.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-projection-adapter-02-cap-diagnostic.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-projection-adapter-03-plane-fixture-size.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-projection-adapter-04-printed-query-policy.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-projection-adapter-05-precise-origin-owner.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-projection-adapter-06-surface-cache-fixture.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-protobuf-decode.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-protobuf-phase-test.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-protobuf-publication-test.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-reload-grid-01.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-reload-grid-02.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-reload-grid-03.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-reload-grid-04.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-reload-grid-05.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-reload-grid-07.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-reload-grid-tests.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ribbon-adapter-01.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ribbon-adapter-02.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ribbon-adapter-03.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ribbon-adapter-04.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ribbon-adapter-05.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ribbon-adapter-06.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ribbon-adapter-07.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ribbon-adapter-08.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ribbon-adapter-09.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ribbon-adapter-10.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ribbon-adapter-11.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ribbon-adapter-12.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ribbon-adapter-13.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ribbon-adapter-14.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ribbon-adapter-15.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ribbon-adapter-16.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ribbon-adapter-17.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ribbon-adapter-18.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ribbon-adapter-19.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ribbon-adapter-20.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ribbon-adapter-21.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ribbon-adapter-22.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ribbon-adapter-23.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ribbon-gpu.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ribbon-provenance.json"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ribbon-rows.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ribbon-selection-01.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ribbon-selection-02.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ribbon-selection-03.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ribbon-selection-04.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ribbon-selection-05.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ribbon-selection-06.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ribbon-selection-07.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ribbon-selection-08.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ribbon-selection-09.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ribbon-selection-10.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ribbon-selection-11.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ribbon-source.wgsl"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-software-adapter-ambient-contact-tests.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-software-adapter-cap-gpu-tests.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-software-adapter-clipping-gpu-tests.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-software-adapter-command-inventory-tests.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-software-adapter-contact-boundary-tests.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-software-adapter-finite-visibility-tests.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-software-adapter-frame-target-tests.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-software-adapter-grid-hardware-tests.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-software-adapter-helper.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-software-adapter-pick-gpu-tests.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-software-adapter-register.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-software-adapter-sample-composition-tests.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-software-adapter-sample-positions-tests.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-software-adapter-text-atlas-tests.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-software-adapter-tile-gpu-tests.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-software-adapter-widget-tests.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-software-wait-budget.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-source-address-inventory-refresh-01-pick-sources.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-source-address-inventory-refresh-02-scene-origin.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-vector-highlight-01.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-vector-highlight-02.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-vector-highlight-03.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-vector-lib-01.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-vector-pick_encode-01.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-vector-pick_encode-02.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-vector-pick_gpu-01.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-vector-pick_sources-01.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-vector-production_curve_walk.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-vector-production_joined.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-vector-production_joined.wgsl"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-vector-production_ribbon_gpu-01.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-vector-production_ribbon_gpu-02.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-vector-production_ribbon_gpu-03.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-vector-production_ribbon_gpu-04.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-vector-production_ribbon_gpu-05.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-vector-production_ribbon_gpu-06.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-vector-production_ribbon_gpu-07.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-vector-production_ribbon_gpu-08.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-vector-production_ribbon_gpu-09.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-vector-production_ribbon_gpu-10.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-vector-production_ribbon_gpu-11.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-vector-production_ribbon_gpu-12.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-vector-production_ribbon_gpu-13.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-vector-production_ribbon_gpu-14.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-vector-production_ribbon_gpu-15.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-vector-production_ribbon_gpu-16.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-vector-production_ribbon_gpu-17.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-vector-production_ribbon_gpu-18.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-vector-production_sheet.wgsl"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-vector-production_sheet_gpu.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-vector-production_vector.wgsl"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-vector-production_vector_gpu.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-vector-production_vector_provenance.json"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-vector-production_vector_tests.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-vector-renderer-01.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-vector-renderer-02.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-vector-renderer-03.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-vector-renderer-04.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-vector-renderer-05.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-vector-renderer-06.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-vector-renderer-07.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-vector-renderer-08.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-vector-renderer-09.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-vector-scene-tests-register.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-whole-owner-fixture-1.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-whole-owner-fixture-2.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-windows-grid-reference.json"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/consolidation/history/2026-10-17-linux-state.json"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/current-viewer-2026-10-23.json"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/fixtures/Cargo.lock"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/fixtures/Cargo.toml"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/fixtures/README.md"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/fixtures/src/main.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/fixtures/src/ordered_mesh.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/redraft-10-sections/book-10-sections.json"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/redraft-10-sections/old-to-new-coverage-map.json"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/release/grid-native-review.json"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/release/grid-windows-pair-review.json"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/release/matrix-native-review.json"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/release/mesh-native-review.json"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-grid-fractional-native.png"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-grid-zero-native.png"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-matrix-native-1x.png"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-matrix-selected-native-4x.png"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-mesh-selected-native-4x.png"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-mesh-unselected-native-4x.png"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/src/engine/gpu/splat/cloud_witness.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/src/engine/gpu/splat/cloud_witness/lod.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/src/selftest/stroke_witness.rs"
+          }
+        ]
+      },
+      {
+        "name": "wood",
+        "head": "07c57552c0d18c403bab0c16ba858d80561ffc47",
+        "dirty": false,
+        "entries": []
+      },
+      {
+        "name": "kernel",
+        "head": "d814b238cf42102622c34fdff5bced1814418b97",
+        "dirty": true,
+        "entries": [
+          {
+```
+
+Replace it with:
+
+```json
+          },
+          {
+            "status": " M",
+            "path": "session_tests/scripts/course/cad-witness.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/src/selftest/stroke_witness.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_tests/scripts/course/cap-bore-witness.rs"
+          }
+        ]
+      },
+      {
+        "name": "wood",
+        "head": "5318ba20048d6f4996fce2d593ee9560a9de0621",
+        "dirty": false,
+        "entries": []
+      },
+      {
+        "name": "kernel",
+        "head": "8445d2149f59c5a1caebb1a3e605833bf21996f2",
+        "dirty": true,
+        "entries": [
+          {
+```
+
+**Locate this block:**
+
+```json
+{
+  "session_head": "a391b10473d580ef548d2d1ba3ea118986623b52",
+  "wood_head": "07c57552c0d18c403bab0c16ba858d80561ffc47",
+  "kernel_head": "d814b238cf42102622c34fdff5bced1814418b97",
+  "scope": "All files under the three Rust src trees and existing Cargo/build/web entries. Includes the preserved local rational-control change. Assets are separately hashed by the dependency evidence closure; C++ and generated models require their own provenance. Includes preserved October 10 hierarchy-path and parent Element-lamp changes; the original inventory remains historical. October 14 refresh records seven changed kernel/wood inputs and current repository heads; all viewer file hashes and the historical inventories remain unchanged. Checkpoint 1276 separately records regenerated Session protocol documentation comments about LOCAL placement; protocol fields and executable code are unchanged. This final-checkpoint refresh hashes current working-tree bytes. Git HEADs are baseline identifiers, not proof of a clean tree; dirty and untracked paths are recorded separately. It verifies declared file hashes and inventory only, not compilation, runtime behavior or visual acceptance. This final-checkpoint refresh hashes current working-tree bytes. Git HEADs are baseline identifiers, not proof of a clean tree; dirty and untracked paths are recorded separately. It verifies declared file hashes and inventory only, not compilation, runtime behavior or visual acceptance. This final-checkpoint refresh hashes current working-tree bytes. Git HEADs are baseline identifiers, not proof of a clean tree; dirty and untracked paths are recorded separately. It verifies declared file hashes and inventory only, not compilation, runtime behavior or visual acceptance. This final-checkpoint refresh hashes current working-tree bytes. Git HEADs are baseline identifiers, not proof of a clean tree; dirty and untracked paths are recorded separately. It verifies declared file hashes and inventory only, not compilation, runtime behavior or visual acceptance.",
+  "working_tree": {
+    "repositories": [
+      {
+        "name": "session",
+        "head": "a391b10473d580ef548d2d1ba3ea118986623b52",
+        "dirty": true,
+        "entries": [
+          {
+            "status": "M ",
+            "path": "gitattributes"
+          },
+          {
+            "status": " M",
+            "path": ".gitignore"
+          },
+          {
+            "status": " M",
+            "path": "session_data"
+          },
+          {
+            "status": " M",
+            "path": "session_py"
+          },
+          {
+```
+
+Replace it with:
+
+```json
+{
+  "session_head": "9d5a6f65fec1f03ec80a1ccb56cd8f26a59433bf",
+  "wood_head": "5318ba20048d6f4996fce2d593ee9560a9de0621",
+  "kernel_head": "8445d2149f59c5a1caebb1a3e605833bf21996f2",
+  "scope": "All files under the three Rust src trees and existing Cargo/build/web entries. Includes the preserved local rational-control change. Assets are separately hashed by the dependency evidence closure; C++ and generated models require their own provenance. Includes preserved October 10 hierarchy-path and parent Element-lamp changes; the original inventory remains historical. October 14 refresh records seven changed kernel/wood inputs and current repository heads; all viewer file hashes and the historical inventories remain unchanged. Checkpoint 1276 separately records regenerated Session protocol documentation comments about LOCAL placement; protocol fields and executable code are unchanged. This final-checkpoint refresh hashes current working-tree bytes. Git HEADs are baseline identifiers, not proof of a clean tree; dirty and untracked paths are recorded separately. It verifies declared file hashes and inventory only, not compilation, runtime behavior or visual acceptance. This final-checkpoint refresh hashes current working-tree bytes. Git HEADs are baseline identifiers, not proof of a clean tree; dirty and untracked paths are recorded separately. It verifies declared file hashes and inventory only, not compilation, runtime behavior or visual acceptance. This final-checkpoint refresh hashes current working-tree bytes. Git HEADs are baseline identifiers, not proof of a clean tree; dirty and untracked paths are recorded separately. It verifies declared file hashes and inventory only, not compilation, runtime behavior or visual acceptance. This final-checkpoint refresh hashes current working-tree bytes. Git HEADs are baseline identifiers, not proof of a clean tree; dirty and untracked paths are recorded separately. It verifies declared file hashes and inventory only, not compilation, runtime behavior or visual acceptance. This final-checkpoint refresh hashes current working-tree bytes. Git HEADs are baseline identifiers, not proof of a clean tree; dirty and untracked paths are recorded separately. It verifies declared file hashes and inventory only, not compilation, runtime behavior or visual acceptance.",
+  "working_tree": {
+    "repositories": [
+      {
+        "name": "session",
+        "head": "9d5a6f65fec1f03ec80a1ccb56cd8f26a59433bf",
+        "dirty": true,
+        "entries": [
+          {
+            "status": "M ",
+            "path": "ession_data"
+          },
+          {
+            "status": " M",
+            "path": "session_py"
+          },
+          {
+```
+
 ## Build & Run
 
 ![Recorded visual output for Lesson 22.6 (96zzzzzzc)](../../../screenshots/journey/96zzzzzzc-draw-the-construction-grid-as-physical-lines-browser.png)

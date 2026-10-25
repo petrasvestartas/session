@@ -887,7 +887,7 @@ pub mod source_mesh_topology;
 
 ## Build & Run
 
-![Recorded visual output for Lesson 18.7 (95f-prove-cache-invalidation-and-honest-performance-reports)](../../../screenshots/journey/95f-prove-cache-invalidation-and-honest-performance-reports.png)
+![Recorded visual output for Lesson 18.7 (95f-prove-cache-invalidation-and-honest-performance-reports)](../../../screenshots/journey/95f-prove-cache-invalidation-and-honest-performance-reports-browser.png)
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 18.7

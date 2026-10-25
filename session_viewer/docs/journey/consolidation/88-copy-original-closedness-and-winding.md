@@ -4219,7 +4219,7 @@ mod cap_pick_tests;
 
 ## Build & Run
 
-![Recorded visual output for Lesson 17.4 (88ad-exercise-original-sections-bores-and-ink)](../../screenshots/journey/88ad-exercise-original-sections-bores-and-ink.png)
+![Recorded visual output for Lesson 17.4 (88ad-exercise-original-sections-bores-and-ink)](../../screenshots/journey/88ad-exercise-original-sections-bores-and-ink-browser.png)
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 17.4

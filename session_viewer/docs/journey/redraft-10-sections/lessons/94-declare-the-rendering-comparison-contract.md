@@ -467,7 +467,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## Build & Run
 
-![Recorded visual output for Lesson 18.6 (94c-prove-the-original-comparison-and-inspect-differences)](../../../screenshots/journey/94c-prove-the-original-comparison-and-inspect-differences.png)
+![Recorded visual output for Lesson 18.6 (94c-prove-the-original-comparison-and-inspect-differences)](../../../screenshots/journey/94c-prove-the-original-comparison-and-inspect-differences-browser.png)
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 18.6

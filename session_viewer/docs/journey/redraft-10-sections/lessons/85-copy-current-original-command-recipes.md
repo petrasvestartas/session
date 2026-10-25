@@ -9398,7 +9398,7 @@ pub mod source_mesh_topology;
 
 ## Build & Run
 
-![Recorded visual output for Lesson 16.5 (85ay-exercise-current-original-commands-together)](../../../screenshots/journey/85ay-exercise-current-original-commands-together.png)
+![Recorded visual output for Lesson 16.5 (85ay-exercise-current-original-commands-together)](../../../screenshots/journey/85ay-exercise-current-original-commands-together-browser.png)
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 16.5

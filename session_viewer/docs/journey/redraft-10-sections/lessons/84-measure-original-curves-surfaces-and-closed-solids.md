@@ -2468,7 +2468,9 @@ pub struct Renderer {
 
 ## <a id="checkpoint-84m-exercise-original-boxes-and-temporary-distance-annotations"></a>14. Exercise boxes and temporary distance annotations
 
-Exercise original boxes and temporary distance annotations.
+`Measure Distance w-1,0,1 w1,0,1` creates the temporary 2 mm mark above the solid. Zoom out to keep both endpoints and the label visible. Escape removes the mark without changing the original geometry.
+
+![Temporary 2 mm distance annotation above the original solid](../../release/current85ay-visible-two-mm.png)
 
 ### 1. `src/browser.rs`
 
