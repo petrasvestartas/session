@@ -1,15 +1,15 @@
 {
-  "date": "2026-10-25T23:06:54.083Z",
+  "date": "2026-10-25T23:12:48.769Z",
   "status": "PASS: reviewed publication receipts reconciled with exact source and served file hashes",
   "scope": "Only explicitly reviewed publication receipts count; in-flight captures excluded. HTTP verification belongs to each linked publication receipt.",
   "inventory": {
     "path": "target/course-presentation/inventory-d09aa228601224bf4dfe.json",
     "sha256": "d09aa228601224bf4dfe01d6a1009a56357b2eb5e4b3baa5d88566b2c7a66eba"
   },
-  "published": 252,
-  "remaining": 1510,
+  "published": 302,
+  "remaining": 1460,
   "counts": {
-    "native": 218,
+    "native": 268,
     "browser": 29,
     "variants": 0,
     "supporting": 5
@@ -1751,6 +1751,286 @@
       }
     },
     {
+      "path": "docs/screenshots/journey/34ga-timer.png",
+      "sha256": "04a81abb01bb8a1257b7c9e07f9c7f483c7bf37ace2064ef83ac1d5871cd6daf",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-302.json",
+        "sha256": "53ef38835df0dfc8b18493ccb4a21ee9bb1e5ba704a78b87e1ea73767990946f"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/34gb-close.png",
+      "sha256": "b068511de06e104d55e189e2f458cb3af7323375aed4834b75ba563823931b46",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-302.json",
+        "sha256": "53ef38835df0dfc8b18493ccb4a21ee9bb1e5ba704a78b87e1ea73767990946f"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/34gba-lifecycle.png",
+      "sha256": "f4aa24f06a0aec44ce5197fcb9b18792e81e436c317d0dfd2f62913c0adb2147",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-302.json",
+        "sha256": "53ef38835df0dfc8b18493ccb4a21ee9bb1e5ba704a78b87e1ea73767990946f"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/34gbb-suspension.png",
+      "sha256": "f4aa24f06a0aec44ce5197fcb9b18792e81e436c317d0dfd2f62913c0adb2147",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-302.json",
+        "sha256": "53ef38835df0dfc8b18493ccb4a21ee9bb1e5ba704a78b87e1ea73767990946f"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/34gbba-browser.png",
+      "sha256": "f4aa24f06a0aec44ce5197fcb9b18792e81e436c317d0dfd2f62913c0adb2147",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-302.json",
+        "sha256": "53ef38835df0dfc8b18493ccb4a21ee9bb1e5ba704a78b87e1ea73767990946f"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/34gbc-authority.png",
+      "sha256": "f4aa24f06a0aec44ce5197fcb9b18792e81e436c317d0dfd2f62913c0adb2147",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-302.json",
+        "sha256": "53ef38835df0dfc8b18493ccb4a21ee9bb1e5ba704a78b87e1ea73767990946f"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/34gbca-startup.png",
+      "sha256": "f4aa24f06a0aec44ce5197fcb9b18792e81e436c317d0dfd2f62913c0adb2147",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-302.json",
+        "sha256": "53ef38835df0dfc8b18493ccb4a21ee9bb1e5ba704a78b87e1ea73767990946f"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/34gc-messages.png",
+      "sha256": "f4aa24f06a0aec44ce5197fcb9b18792e81e436c317d0dfd2f62913c0adb2147",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-302.json",
+        "sha256": "53ef38835df0dfc8b18493ccb4a21ee9bb1e5ba704a78b87e1ea73767990946f"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/34gca-errors.png",
+      "sha256": "f4aa24f06a0aec44ce5197fcb9b18792e81e436c317d0dfd2f62913c0adb2147",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-302.json",
+        "sha256": "53ef38835df0dfc8b18493ccb4a21ee9bb1e5ba704a78b87e1ea73767990946f"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/34gd-adapter.png",
+      "sha256": "f4aa24f06a0aec44ce5197fcb9b18792e81e436c317d0dfd2f62913c0adb2147",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-302.json",
+        "sha256": "53ef38835df0dfc8b18493ccb4a21ee9bb1e5ba704a78b87e1ea73767990946f"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/34gda-browser.png",
+      "sha256": "f4aa24f06a0aec44ce5197fcb9b18792e81e436c317d0dfd2f62913c0adb2147",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-302.json",
+        "sha256": "53ef38835df0dfc8b18493ccb4a21ee9bb1e5ba704a78b87e1ea73767990946f"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/34gdb-phases.png",
+      "sha256": "f4aa24f06a0aec44ce5197fcb9b18792e81e436c317d0dfd2f62913c0adb2147",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-302.json",
+        "sha256": "53ef38835df0dfc8b18493ccb4a21ee9bb1e5ba704a78b87e1ea73767990946f"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/34gdc-startup.png",
+      "sha256": "f4aa24f06a0aec44ce5197fcb9b18792e81e436c317d0dfd2f62913c0adb2147",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-302.json",
+        "sha256": "53ef38835df0dfc8b18493ccb4a21ee9bb1e5ba704a78b87e1ea73767990946f"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/34gdd-read.png",
+      "sha256": "f4aa24f06a0aec44ce5197fcb9b18792e81e436c317d0dfd2f62913c0adb2147",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-302.json",
+        "sha256": "53ef38835df0dfc8b18493ccb4a21ee9bb1e5ba704a78b87e1ea73767990946f"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/34gde-measure.png",
+      "sha256": "f4aa24f06a0aec44ce5197fcb9b18792e81e436c317d0dfd2f62913c0adb2147",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-302.json",
+        "sha256": "53ef38835df0dfc8b18493ccb4a21ee9bb1e5ba704a78b87e1ea73767990946f"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/34gdea-import.png",
+      "sha256": "f4aa24f06a0aec44ce5197fcb9b18792e81e436c317d0dfd2f62913c0adb2147",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-302.json",
+        "sha256": "53ef38835df0dfc8b18493ccb4a21ee9bb1e5ba704a78b87e1ea73767990946f"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/34gdf-upload.png",
+      "sha256": "f4aa24f06a0aec44ce5197fcb9b18792e81e436c317d0dfd2f62913c0adb2147",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-302.json",
+        "sha256": "53ef38835df0dfc8b18493ccb4a21ee9bb1e5ba704a78b87e1ea73767990946f"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/34gdg-network.png",
+      "sha256": "f4aa24f06a0aec44ce5197fcb9b18792e81e436c317d0dfd2f62913c0adb2147",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-302.json",
+        "sha256": "53ef38835df0dfc8b18493ccb4a21ee9bb1e5ba704a78b87e1ea73767990946f"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/34gdga-revision.png",
+      "sha256": "f4aa24f06a0aec44ce5197fcb9b18792e81e436c317d0dfd2f62913c0adb2147",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-302.json",
+        "sha256": "53ef38835df0dfc8b18493ccb4a21ee9bb1e5ba704a78b87e1ea73767990946f"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/34ge-owner.png",
+      "sha256": "f4aa24f06a0aec44ce5197fcb9b18792e81e436c317d0dfd2f62913c0adb2147",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-302.json",
+        "sha256": "53ef38835df0dfc8b18493ccb4a21ee9bb1e5ba704a78b87e1ea73767990946f"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/34gea-policy.png",
+      "sha256": "f4aa24f06a0aec44ce5197fcb9b18792e81e436c317d0dfd2f62913c0adb2147",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-302.json",
+        "sha256": "53ef38835df0dfc8b18493ccb4a21ee9bb1e5ba704a78b87e1ea73767990946f"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/34geb-reload.png",
+      "sha256": "f4aa24f06a0aec44ce5197fcb9b18792e81e436c317d0dfd2f62913c0adb2147",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-302.json",
+        "sha256": "53ef38835df0dfc8b18493ccb4a21ee9bb1e5ba704a78b87e1ea73767990946f"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/35-stroke.png",
+      "sha256": "f4aa24f06a0aec44ce5197fcb9b18792e81e436c317d0dfd2f62913c0adb2147",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-302.json",
+        "sha256": "53ef38835df0dfc8b18493ccb4a21ee9bb1e5ba704a78b87e1ea73767990946f"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/35a-document.png",
+      "sha256": "f4aa24f06a0aec44ce5197fcb9b18792e81e436c317d0dfd2f62913c0adb2147",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-302.json",
+        "sha256": "53ef38835df0dfc8b18493ccb4a21ee9bb1e5ba704a78b87e1ea73767990946f"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/35b-extrude.png",
+      "sha256": "f4aa24f06a0aec44ce5197fcb9b18792e81e436c317d0dfd2f62913c0adb2147",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-302.json",
+        "sha256": "53ef38835df0dfc8b18493ccb4a21ee9bb1e5ba704a78b87e1ea73767990946f"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/35c-lane.png",
+      "sha256": "f4aa24f06a0aec44ce5197fcb9b18792e81e436c317d0dfd2f62913c0adb2147",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-302.json",
+        "sha256": "53ef38835df0dfc8b18493ccb4a21ee9bb1e5ba704a78b87e1ea73767990946f"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/35ca-sync.png",
+      "sha256": "f4aa24f06a0aec44ce5197fcb9b18792e81e436c317d0dfd2f62913c0adb2147",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-302.json",
+        "sha256": "53ef38835df0dfc8b18493ccb4a21ee9bb1e5ba704a78b87e1ea73767990946f"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/35cb-render.png",
+      "sha256": "aab248afebc602a9ab2571682d42188ecd5f8a4722405f4009973c0afc9bebd6",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-302.json",
+        "sha256": "53ef38835df0dfc8b18493ccb4a21ee9bb1e5ba704a78b87e1ea73767990946f"
+      }
+    },
+    {
       "path": "docs/screenshots/journey/35d-input-browser.png",
       "sha256": "722f2fb3cb2fb34655b6fae315bb480fef865ca42d29b5f502cb4a92082dd7bc",
       "kind": "browser",
@@ -1758,6 +2038,106 @@
       "receipt": {
         "path": "docs/journey/release/browser-scene-image-publication-18.json",
         "sha256": "c1f1c0f724ac7de6ee36bf6439add3668c05741f72be016c962566c8b2ba727c"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/35d-input.png",
+      "sha256": "aab248afebc602a9ab2571682d42188ecd5f8a4722405f4009973c0afc9bebd6",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-302.json",
+        "sha256": "53ef38835df0dfc8b18493ccb4a21ee9bb1e5ba704a78b87e1ea73767990946f"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/36-chain.png",
+      "sha256": "aab248afebc602a9ab2571682d42188ecd5f8a4722405f4009973c0afc9bebd6",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-302.json",
+        "sha256": "53ef38835df0dfc8b18493ccb4a21ee9bb1e5ba704a78b87e1ea73767990946f"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/36a-links.png",
+      "sha256": "aab248afebc602a9ab2571682d42188ecd5f8a4722405f4009973c0afc9bebd6",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-302.json",
+        "sha256": "53ef38835df0dfc8b18493ccb4a21ee9bb1e5ba704a78b87e1ea73767990946f"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/36b-join.png",
+      "sha256": "aab248afebc602a9ab2571682d42188ecd5f8a4722405f4009973c0afc9bebd6",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-302.json",
+        "sha256": "53ef38835df0dfc8b18493ccb4a21ee9bb1e5ba704a78b87e1ea73767990946f"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/36ba-body.png",
+      "sha256": "aab248afebc602a9ab2571682d42188ecd5f8a4722405f4009973c0afc9bebd6",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-302.json",
+        "sha256": "53ef38835df0dfc8b18493ccb4a21ee9bb1e5ba704a78b87e1ea73767990946f"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/36bb-heads.png",
+      "sha256": "aab248afebc602a9ab2571682d42188ecd5f8a4722405f4009973c0afc9bebd6",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-302.json",
+        "sha256": "53ef38835df0dfc8b18493ccb4a21ee9bb1e5ba704a78b87e1ea73767990946f"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/36c-lane.png",
+      "sha256": "aab248afebc602a9ab2571682d42188ecd5f8a4722405f4009973c0afc9bebd6",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-302.json",
+        "sha256": "53ef38835df0dfc8b18493ccb4a21ee9bb1e5ba704a78b87e1ea73767990946f"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/36d-document.png",
+      "sha256": "aab248afebc602a9ab2571682d42188ecd5f8a4722405f4009973c0afc9bebd6",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-302.json",
+        "sha256": "53ef38835df0dfc8b18493ccb4a21ee9bb1e5ba704a78b87e1ea73767990946f"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/36da-render.png",
+      "sha256": "5250c7d3996dad5619a64ed7c57ff015236983b13ff797b8ba4abed001988882",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-302.json",
+        "sha256": "53ef38835df0dfc8b18493ccb4a21ee9bb1e5ba704a78b87e1ea73767990946f"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/36db-placement.png",
+      "sha256": "aab248afebc602a9ab2571682d42188ecd5f8a4722405f4009973c0afc9bebd6",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-302.json",
+        "sha256": "53ef38835df0dfc8b18493ccb4a21ee9bb1e5ba704a78b87e1ea73767990946f"
       }
     },
     {
@@ -1771,6 +2151,76 @@
       }
     },
     {
+      "path": "docs/screenshots/journey/36e-input.png",
+      "sha256": "5250c7d3996dad5619a64ed7c57ff015236983b13ff797b8ba4abed001988882",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-302.json",
+        "sha256": "53ef38835df0dfc8b18493ccb4a21ee9bb1e5ba704a78b87e1ea73767990946f"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/37-point.png",
+      "sha256": "5250c7d3996dad5619a64ed7c57ff015236983b13ff797b8ba4abed001988882",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-302.json",
+        "sha256": "53ef38835df0dfc8b18493ccb4a21ee9bb1e5ba704a78b87e1ea73767990946f"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/37a-disc.png",
+      "sha256": "5250c7d3996dad5619a64ed7c57ff015236983b13ff797b8ba4abed001988882",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-302.json",
+        "sha256": "53ef38835df0dfc8b18493ccb4a21ee9bb1e5ba704a78b87e1ea73767990946f"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/37b-lane.png",
+      "sha256": "5250c7d3996dad5619a64ed7c57ff015236983b13ff797b8ba4abed001988882",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-302.json",
+        "sha256": "53ef38835df0dfc8b18493ccb4a21ee9bb1e5ba704a78b87e1ea73767990946f"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/37c-document.png",
+      "sha256": "5250c7d3996dad5619a64ed7c57ff015236983b13ff797b8ba4abed001988882",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-302.json",
+        "sha256": "53ef38835df0dfc8b18493ccb4a21ee9bb1e5ba704a78b87e1ea73767990946f"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/37d-render.png",
+      "sha256": "03ef29f4b2921ac06059b2523f38fbdb26c53307219ecb333b5f2e936f74991f",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-302.json",
+        "sha256": "53ef38835df0dfc8b18493ccb4a21ee9bb1e5ba704a78b87e1ea73767990946f"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/37da-input.png",
+      "sha256": "03ef29f4b2921ac06059b2523f38fbdb26c53307219ecb333b5f2e936f74991f",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-302.json",
+        "sha256": "53ef38835df0dfc8b18493ccb4a21ee9bb1e5ba704a78b87e1ea73767990946f"
+      }
+    },
+    {
       "path": "docs/screenshots/journey/37e-controls-browser.png",
       "sha256": "e6f88dee3ae2bf1ea8d15bcd0031b672cf16c11ead2aec33e566d7e3e1f5fc42",
       "kind": "browser",
@@ -1778,6 +2228,56 @@
       "receipt": {
         "path": "docs/journey/release/browser-scene-image-publication-18.json",
         "sha256": "c1f1c0f724ac7de6ee36bf6439add3668c05741f72be016c962566c8b2ba727c"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/37e-controls.png",
+      "sha256": "03ef29f4b2921ac06059b2523f38fbdb26c53307219ecb333b5f2e936f74991f",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-302.json",
+        "sha256": "53ef38835df0dfc8b18493ccb4a21ee9bb1e5ba704a78b87e1ea73767990946f"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/38-layout.png",
+      "sha256": "03ef29f4b2921ac06059b2523f38fbdb26c53307219ecb333b5f2e936f74991f",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-302.json",
+        "sha256": "53ef38835df0dfc8b18493ccb4a21ee9bb1e5ba704a78b87e1ea73767990946f"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/38a-samples.png",
+      "sha256": "03ef29f4b2921ac06059b2523f38fbdb26c53307219ecb333b5f2e936f74991f",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-302.json",
+        "sha256": "53ef38835df0dfc8b18493ccb4a21ee9bb1e5ba704a78b87e1ea73767990946f"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/38b-source.png",
+      "sha256": "03ef29f4b2921ac06059b2523f38fbdb26c53307219ecb333b5f2e936f74991f",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-302.json",
+        "sha256": "53ef38835df0dfc8b18493ccb4a21ee9bb1e5ba704a78b87e1ea73767990946f"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/38c-controls.png",
+      "sha256": "03ef29f4b2921ac06059b2523f38fbdb26c53307219ecb333b5f2e936f74991f",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-302.json",
+        "sha256": "53ef38835df0dfc8b18493ccb4a21ee9bb1e5ba704a78b87e1ea73767990946f"
       }
     },
     {
