@@ -47200,6 +47200,8 @@ pub fn edge_chains(b: &BRep, fms: &[Mesh]) -> Vec<Option<EdgeChain>> {
 
 Keep exact original BRep curves, matching face-chain parameters and flat facet facing; preserve source ownership and test the original-curve fallback.
 
+The face mesh shades the BRep, but its ordinary triangle edges must stay hidden. Draw the topological boundary edges from their exact 3D NURBS curves, including straight edges. Give curved boundaries denser sampling than the face mesh, using the viewer's 4-degree turning target and existing chord budget. Split at the fitted face-chain parameters so each added chord retains the correct facing and depth tolerance. Interior triangle edges contribute only where the adjacent flat triangle normals identify a silhouette; they are not a visible mesh wireframe.
+
 **Locate this existing block:**
 
 ```rust
