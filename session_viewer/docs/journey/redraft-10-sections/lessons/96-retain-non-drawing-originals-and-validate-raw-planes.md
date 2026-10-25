@@ -52,6 +52,8 @@
 
 ### 1. `src/source_metadata.rs`
 
+Own exact non drawing source metadata and pre-kernel plane validation.
+
 Create the file and type:
 
 ```rust
@@ -144,6 +146,8 @@ pub fn usage<'a>(
 
 ### 2. `src/lib.rs`
 
+Register the completed audit owner.
+
 **Locate this existing block:**
 
 ```rust
@@ -183,6 +187,8 @@ pub mod source_metadata;
 ## <a id="checkpoint-96a-merge-unused-definitions-with-displayed-instances"></a>2. Merge unused definitions with displayed instances
 
 ### 1. `src/definition_merge.rs`
+
+Merge exact retained definitions without losing unused originals.
 
 Create the file and type:
 
@@ -224,6 +230,8 @@ pub fn merge(
 ```
 
 ### 2. `src/lib.rs`
+
+Register the completed audit owner.
 
 **Locate this existing block:**
 
@@ -267,6 +275,8 @@ pub mod source_mesh_topology;
 
 ### 1. `src/origin.rs`
 
+Connect exact metadata retention, raw validation and complete archive reconstruction.
+
 **Locate this existing block:**
 
 ```rust
@@ -285,6 +295,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 2. `src/document_source.rs`
+
+Connect exact metadata retention, raw validation and complete archive reconstruction.
 
 **Locate this existing block:**
 
@@ -423,6 +435,8 @@ fn supported(source: &proto::Session) -> Result<(), String> {
 
 ### 3. `src/source_validate.rs`
 
+Connect exact metadata retention, raw validation and complete archive reconstruction.
+
 **Locate this existing block:**
 
 ```rust
@@ -462,6 +476,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 4. `src/archive_document.rs`
 
+Connect exact metadata retention, raw validation and complete archive reconstruction.
+
 **Locate this existing block:**
 
 ```rust
@@ -487,6 +503,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ## <a id="checkpoint-96c-keep-current-element-and-frame-definition-families"></a>4. Keep current Element and frame definition families
 
 ### 1. `src/instance_plan.rs`
+
+Retain supported original definition families and per-instance feature records.
 
 **Locate this existing block:**
 
@@ -599,6 +617,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 2. `src/instance_definition.rs`
 
+Retain supported original definition families and per-instance feature records.
+
 **Locate this existing block:**
 
 ```rust
@@ -623,6 +643,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 3. `src/instance_snapshot.rs`
+
+Retain supported original definition families and per-instance feature records.
 
 **Locate this existing block:**
 
@@ -682,6 +704,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 1. `src/registry_audit.rs`
 
+Observe the compiled maintained command registry directly.
+
 Create the file and type:
 
 ```rust
@@ -705,6 +729,8 @@ pub fn snapshot() -> serde_json::Value {
 ```
 
 ### 2. `src/lib.rs`
+
+Register the completed audit owner.
 
 **Locate this existing block:**
 
@@ -742,6 +768,8 @@ pub mod source_mesh_topology;
 
 ### 3. `src/inventory_example.rs`
 
+Copy the supplied native registry observation example.
+
 Create the file and type:
 
 ```rust
@@ -758,6 +786,8 @@ fn main() {}
 ```
 
 ### 4. `Cargo.toml`
+
+Expose the maintained registry observation as a native example.
 
 **Locate this existing block:**
 
@@ -780,6 +810,8 @@ path = "src/inventory_example.rs"
 ## <a id="checkpoint-96e-verify-the-complete-declared-current-source-closure"></a>6. Verify the complete declared current source closure
 
 ### 1. `src/current_inventory.json`
+
+Copy the supplied full current Rust source/build closure and ownership snapshot.
 
 Create the file and type:
 
@@ -3793,6 +3825,8 @@ Create the file and type:
 
 ### 2. `src/source_audit.rs`
 
+Verify actual source bytes and the complete declared file set.
+
 Create the file and type:
 
 ```rust
@@ -3890,6 +3924,8 @@ pub fn verify(viewer: &std::path::Path, snapshot: &Snapshot) -> Result<(), Strin
 
 ### 3. `src/lib.rs`
 
+Register the completed audit owner.
+
 **Locate this existing block:**
 
 ```rust
@@ -3928,6 +3964,8 @@ pub mod source_mesh_topology;
 
 ### 1. `src/browser.rs`
 
+Expose truthful serialized original metadata accounting in the teaching inspector.
+
 **Locate this existing block:**
 
 ```rust
@@ -3952,6 +3990,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ## <a id="checkpoint-96g-prove-exact-metadata-and-definition-round-trips"></a>8. Prove exact metadata and definition round trips
 
 ### 1. `src/metadata_tests.rs`
+
+Copy supplied exact archive, original-family and malformed-input fixtures.
 
 Create the file and type:
 
@@ -4169,6 +4209,8 @@ fn merging_original_definitions_rejects_conflicting_payloads() {
 
 ### 2. `src/lib.rs`
 
+Register supplied metadata fixtures.
+
 **Locate this existing block:**
 
 ```rust
@@ -4207,6 +4249,8 @@ pub mod source_mesh_topology;
 ## <a id="checkpoint-96h-prove-current-source-grammar-and-explicit-differences"></a>9. Prove current source grammar and explicit differences
 
 ### 1. `src/current_registry.json`
+
+Copy real observed current parser outcomes, prompts, aliases and action flags.
 
 Create the file and type:
 
@@ -7551,6 +7595,8 @@ Create the file and type:
 
 ### 2. `src/inventory_tests.rs`
 
+Copy supplied complete source/registry and explicit grammar/shortcut fixtures.
+
 Create the file and type:
 
 ```rust
@@ -7638,6 +7684,8 @@ fn current_command_differences_and_canvas_letters_are_explicit() {
 
 ### 3. `src/lib.rs`
 
+Register supplied complete source and registry fixtures.
+
 **Locate this existing block:**
 
 ```rust
@@ -7672,6 +7720,8 @@ pub mod source_mesh_topology;
 ```
 
 ### 4. `src/current_inventory.json`
+
+Copy the October 23 source inventory: 312 viewer, 109 kernel and 12 Wood source/build entries. Repository heads identify baselines; exact file hashes identify the recorded working tree.
 
 Replace the entire file with:
 
@@ -13090,6 +13140,8 @@ Replace the entire file with:
 ```
 
 ### 5. `src/source_audit.rs`
+
+Verify valid UTF-8 source text with CRLF normalized to LF. Hash invalid UTF-8 as raw bytes; preserve exact file-set and SHA comparisons.
 
 **Locate this existing block:**
 

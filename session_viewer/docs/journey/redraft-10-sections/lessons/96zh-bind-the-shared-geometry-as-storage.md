@@ -92,6 +92,8 @@
 
 ### 1. `src/gpu_geometry.rs`
 
+Keep the vertex-pulling bind group beside the shared buffers. Share explicit storage bindings and one buffer allocation helper; empty storage arrays retain a four-byte safe binding. Prepare one nonindexed invocation per index occurrence without changing existing drawing.
+
 **Locate this existing block:**
 
 ```rust
@@ -309,6 +311,8 @@ impl GpuGeometry {
 
 ### 1. `src/triangle.wgsl`
 
+Give ordinary and instanced vertex functions one object access boundary. Pass one object record explicitly through the existing geometry transform. Type the shared index-to-vertex storage reader; its resources remain inactive until the vertex entry calls it. Use one object lookup for ordinary and instanced vertex invocations.
+
 **Locate this existing block:**
 
 ```wgsl
@@ -431,6 +435,8 @@ fn vertex(@location(0) position: vec3<f32>, @location(1) colour: vec3<f32>, @loc
 
 ### 2. `src/instance_gpu.rs`
 
+Customize only the object storage declaration and lookup; retain one geometry function and one vertex entry.
+
 **Locate this existing block:**
 
 ```rust
@@ -457,6 +463,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 3. `src/triangle_pick.wgsl`
 
+Keep indexed object and source-face picking on the shared explicit object record without activating their storage vertex path.
+
 **Locate this existing block:**
 
 ```wgsl
@@ -474,6 +482,8 @@ struct MeshPickOutput{@builtin(position) position:vec4<f32>,@location(0) world:v
 ```
 
 ### 4. `src/face_pick.wgsl`
+
+Keep indexed object and source-face picking on the shared explicit object record without activating their storage vertex path.
 
 **Locate this existing block:**
 
@@ -552,6 +562,8 @@ fn face_fragment(input: FaceOutput) -> @location(0) vec2<u32> {
 
 ### 1. `src/triangle.wgsl`
 
+Activate the storage reader with the nonindexed occurrence number.
+
 **Locate this existing block:**
 
 ```wgsl
@@ -570,6 +582,8 @@ fn vertex(@builtin(vertex_index) occurrence: u32, @builtin(instance_index) insta
 ```
 
 ### 2. `src/gpu_mesh.rs`
+
+Keep ordinary pulled color draws beside the unchanged indexed picking and mask draw.
 
 **Locate this existing block:**
 
@@ -593,6 +607,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 3. `src/renderer.rs`
+
+Share the explicit storage layout with ordinary color pipelines. The color vertex entry now reads storage instead of vertex attributes. Draw ordinary color triangles through the same shared buffers.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -698,6 +714,8 @@ Replace it with:
 
 ### 4. `src/highlight.rs`
 
+Selection mesh overlays use the same pulled color entry.
+
 **Locate this existing block:**
 
 ```rust
@@ -715,6 +733,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 5. `src/instance_gpu.rs`
+
+Bind the same geometry storage layout for instanced color drawing. Instance vertices use the same storage reader and retain their own object records. Advance occurrences per shared triangle and object records per instance.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -788,6 +808,8 @@ Replace it with:
 ```
 
 ### 6. `src/pick_gpu_tests.rs`
+
+Reuse the supplied pixel readback for the normal diagnostic instead of duplicating GPU setup. Read either color or actual world-normal pixels through one supplied helper. Supply real normal-color pixels, permuted sparse source vertices, reflected shared placements, both pixel densities and original integer owners.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -937,6 +959,8 @@ fn colour_pixels_display(
 ## <a id="checkpoint-96zk-assign-frame-triangle-ranges"></a>4. Assign frame triangle ranges
 
 ### 1. `src/gpu_mesh.rs`
+
+Retain the row’s projected interval across object-style updates. Pack a checked primitive base alongside the existing selection bit. Reserve the low bit for selection. New rows start at zero until the frame assigns intervals. Initialize the retained interval. Preserve the base when placement or presentation changes. Read only selection, not the packed range. Validate and update just the packed base while keeping the selection bit.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -1107,6 +1131,8 @@ Replace it with:
 
 ### 2. `src/triangle.wgsl`
 
+A triangle address must never turn an unselected original yellow.
+
 **Locate this existing block:**
 
 ```wgsl
@@ -1125,6 +1151,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 3. `src/cap_count.wgsl`
 
+Section counting reads the same selection bit.
+
 **Locate this existing block:**
 
 ```wgsl
@@ -1142,6 +1170,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 4. `src/renderer.rs`
+
+Assign the same row-order prefix sums used by projection before copying instance records.
 
 **Locate this existing block:**
 
@@ -1167,6 +1197,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 5. `src/triangle.wgsl`
+
+Carry an integer triangle address without interpolation. The nonindexed occurrence recovers its triangle, and the placed record supplies its frame interval.
 
 **Locate this existing block:**
 
@@ -1296,6 +1328,8 @@ fn vertex(@builtin(vertex_index) occurrence: u32, @builtin(instance_index) insta
 
 ### 6. `src/global_outline_tests.rs`
 
+Supply actual shared placements, frame intervals, low-bit selection, later edits, original integer picks, invalid packing and visibility rebuilding.
+
 **Locate this existing block:**
 
 ```rust
@@ -1388,6 +1422,8 @@ fn actual_triangle_ranges_keep_selection_updates_visibility_and_original_owners(
 
 ### 1. `src/primitive_image.rs`
 
+Own the current integer format and share its explicit no-blend target declaration.
+
 Create the file and type:
 
 ```rust
@@ -1433,6 +1469,8 @@ pub(crate) fn target(write: bool) -> wgpu::ColorTargetState {
 
 ### 2. `src/lib.rs`
 
+Connect the private target owner.
+
 **Locate this existing block:**
 
 ```rust
@@ -1449,6 +1487,8 @@ mod primitive_image;
 ```
 
 ### 3. `src/renderer.rs`
+
+Retain the primitive image with the renderer’s frame targets. Prepare a matching image before moving the device into the renderer. Move both depth and primitive targets into their owner. Keep primitive image dimensions in physical pixels.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -1540,6 +1580,8 @@ Replace it with:
 
 ### 1. `src/triangle.wgsl`
 
+Keep the existing lighting and normal diagnostic in one reusable fragment helper. Write displayed color and the exact triangle address from one depth-tested fragment.
+
 **Locate this existing block:**
 
 ```wgsl
@@ -1603,6 +1645,8 @@ fn fragment(input:VertexOutput,@builtin(front_facing) front:bool)->FragmentOutpu
 ```
 
 ### 2. `src/renderer.rs`
+
+Share both pipeline formats while allowing overlays to retain underlying addresses. Declare the matching integer output without blending. Ordinary triangle fragments own primitive addresses. Selected-face color overlays retain the underlying primitive address.
 
 **Locate this existing block:**
 
@@ -1693,6 +1737,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 3. `src/instance_gpu.rs`
 
+Instance fragments use the same lossless second attachment.
+
 **Locate this existing block:**
 
 ```rust
@@ -1713,6 +1759,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 4. `src/renderer.rs`
+
+Clear uncovered pixels to zero and retain both outputs from the mesh pass.
 
 **Locate this existing block:**
 
@@ -1758,6 +1806,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 5. `src/global_outline_tests.rs`
+
+Supply actual integer attachment readback, placed copies, original source-face overlays, shared definition instances, both densities, resize and empty clearing.
 
 **Locate this existing block:**
 
@@ -1913,6 +1963,8 @@ fn actual_primitive_mrt_keeps_placed_intervals_and_overlay_addresses() {
 ## <a id="checkpoint-96zn-bind-visible-triangle-addresses-for-ink"></a>7. Bind visible triangle addresses for ink
 
 ### 1. `src/finite_ink.rs`
+
+Retain the integer primitive view in the cached bindings. Use the existing shared frame tables for triangle addresses. The lossless primitive format requires an unsigned texture binding. Bind the current physical primitive view without a sampler. Compare every cached frame resource. A replaced primitive image invalidates the cache. Retain the same view identity used by the bind group. Draw with the complete cached frame group.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -2090,6 +2142,8 @@ Replace it with:
 
 ### 2. `src/renderer.rs`
 
+Pass the current primitive view through the existing color or integer-pick tables.
+
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -2132,6 +2186,8 @@ Replace it with:
 
 ### 3. `src/pick_encode.rs`
 
+Keep the primitive resource when the cropped picking pass replaces its section image.
+
 **Locate this existing block:**
 
 ```rust
@@ -2148,6 +2204,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 4. `src/finite_visibility.wgsl`
+
+Declare the lossless texture before activating primitive-aware plane fitting.
 
 **Locate this existing block:**
 
@@ -2167,6 +2225,8 @@ fn finite_section(pixel:vec2<f32>,depth:f32,tolerance:f32)->bool{
 ## <a id="checkpoint-96zo-describe-ink-depth-and-surface-slack"></a>8. Describe ink depth and surface slack
 
 ### 1. `src/ink_plane.wgsl`
+
+Type the current axis and tolerance math once, with the declared forward-depth reader adapter.
 
 Create the file and type:
 
@@ -2197,6 +2257,8 @@ fn ink_carry_visible(predicted: f32, z: f32, depth: f32, tolerance: f32) -> bool
 
 ### 2. `src/finite_visibility.wgsl`
 
+Keep surface fitting as a shared shader helper file.
+
 **Locate this existing block:**
 
 ```wgsl
@@ -2213,6 +2275,8 @@ fn finite_section(pixel:vec2<f32>,depth:f32,tolerance:f32)->bool{
 ```
 
 ### 3. `src/finite_sources.rs`
+
+Expand the helper before compiling either color or integer ink shaders.
 
 **Locate this existing block:**
 
@@ -2244,6 +2308,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ## <a id="checkpoint-96zp-fit-a-neighboring-surface-along-the-stroke"></a>9. Fit a neighboring surface along the stroke
 
 ### 1. `src/ink_plane.wgsl`
+
+Type the current neighbor validation, perpendicular step and axis-plane carry without duplicating the tolerance helpers.
 
 **Locate this existing block:**
 
@@ -2307,6 +2373,8 @@ fn ink_axis_visible(pixel: vec2<f32>, axis: InkAxis, sample: u32) -> bool {
 
 ### 1. `src/pick_image.rs`
 
+Own matching bounded primitive and depth targets. Reuse the primitive image owner at the actual cropped dimensions.
+
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -2359,6 +2427,8 @@ Replace it with:
 
 ### 2. `src/pick_gpu.rs`
 
+Count owner, depth, section and primitive bytes honestly.
+
 **Locate this existing block:**
 
 ```rust
@@ -2376,6 +2446,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 3. `src/pick_gpu_tests.rs`
+
+Include the actual four primitive bytes per cropped pixel while retaining the same bounded readback allocation assertion.
 
 **Locate this existing block:**
 
@@ -2439,6 +2511,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 1. `src/pick_pipeline.rs`
 
+Prepare an explicit shared layout and bind the existing two uniform buffers.
+
 **Locate this existing block:**
 
 ```rust
@@ -2500,6 +2574,8 @@ pub fn mesh(
 ## <a id="checkpoint-96zs-write-first-pick-primitives-from-shared-geometry"></a>12. Write first-pick primitives from shared geometry
 
 ### 1. `src/pick_pipeline.rs`
+
+Reserve group three for the same shared geometry storage. The mesh pick shader now reads clipping from the combined uniform group. The mesh pick vertex entry reads storage attributes. Write original owners and triangle addresses to two integer outputs.
 
 **Locate this existing block:**
 
@@ -2598,6 +2674,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 2. `src/triangle_pick.wgsl`
 
+Reuse source vertex reads and preserve original owners in the first integer frame.
+
 Replace the entire file with:
 
 ```wgsl
@@ -2615,6 +2693,8 @@ struct PickFragment{@location(0) owner:vec2<u32>,@location(1) primitive:vec2<u32
 ```
 
 ### 3. `src/pick_gpu.rs`
+
+Keep the existing fallback clipping buffer alongside its bind group. Pass the existing clipping buffer without a duplicate upload. Build the combined mesh group from the live request buffers.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -2696,6 +2776,8 @@ Replace it with:
 
 ### 4. `src/renderer.rs`
 
+Use the scene’s current clipping buffer for bounded mesh picks.
+
 **Locate this existing block:**
 
 ```rust
@@ -2712,6 +2794,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 5. `src/pick_encode.rs`
+
+Receive both existing uniforms at the encoder boundary. Build only the combined binding, retaining independent crop groups for other owners. Clear and store the bounded primitive image in the same mesh depth test. Geometry owns group three in this mesh pass. Use the combined crop/clipping group only for mesh picking. Match nonindexed occurrences with the shared index reader. Source-face selection moves into its own integer color pass. Retain underlying mesh depth and primitive addresses while replacing the owner payload with a selected source-face ID. The ink predicate receives the bounded primitive image of this exact pick request.
 
 **Locate this existing block:**
 
@@ -2898,6 +2982,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 6. `src/pick_gpu.rs`
 
+Supply read-only access to the actual bounded texture for the GPU fixture.
+
 **Locate this existing block:**
 
 ```rust
@@ -2922,6 +3008,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 7. `src/global_outline_tests.rs`
+
+Reuse one primitive texture readback for color and cropped integer passes. Move the existing reader instead of duplicating its implementation. Keep existing color primitive assertions on the shared reader. Supply actual cropped primitive bytes, first owner picks at both densities, bounded dimensions and scene-visibility rebuilding before any color frame.
 
 **Locate this existing block:**
 
@@ -3297,6 +3385,8 @@ fn actual_first_pick_primitives_match_current_cropped_owners_before_color() {
 
 ### 1. `src/ink_plane.wgsl`
 
+Type the current two-axis disc-plane carry while reusing the existing neighbor and tolerance helpers.
+
 **Locate this existing block:**
 
 ```wgsl
@@ -3339,6 +3429,8 @@ fn ink_disc_fragment_visible(pixel: vec2<f32>, centre: vec2<f32>, depth: f32, sa
 ## <a id="checkpoint-96zu-test-the-disc-center-against-a-surface"></a>14. Test the disc center against a surface
 
 ### 1. `src/ink_plane.wgsl`
+
+Type the current source-center occlusion check and reuse it with fragment visibility.
 
 **Locate this existing block:**
 
@@ -3396,6 +3488,8 @@ fn ink_disc_visible(pixel: vec2<f32>, centre: vec2<f32>, depth: f32, sample: u32
 
 ### 1. `src/ink_plane.wgsl`
 
+Type the current gradient carry with the matching canvas-or-crop primitive reader.
+
 **Locate this existing block:**
 
 ```wgsl
@@ -3442,6 +3536,8 @@ fn ink_visible_plane(pixel: vec2<f32>, axis: InkAxis, sample: u32) -> bool {
 
 ### 1. `src/finite_visibility.wgsl`
 
+Connect the point-specific surface and center tests after clipping and section checks.
+
 **Locate this existing block:**
 
 ```wgsl
@@ -3466,6 +3562,8 @@ fn finite_disc_alpha(pixel:vec2<f32>,centre:vec2<f32>,depth:f32,flags:u32)->f32{
 
 ### 2. `src/finite_marker.wgsl`
 
+Use the same original point predicate for color and cropped integer ownership.
+
 **Locate this existing block:**
 
 ```wgsl
@@ -3488,6 +3586,8 @@ fn fragment(input: Output) -> @location(0) vec4<f32> {let alpha=finite_disc_alph
 
 ### 3. `src/finite_marker_pick.wgsl`
 
+Use the same original point predicate for color and cropped integer ownership.
+
 **Locate this existing block:**
 
 ```wgsl
@@ -3505,6 +3605,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 4. `src/finite_visibility_tests.rs`
+
+Supply an actual point disc pixel and first-pick regression at both physical display scales.
 
 **Locate this existing block:**
 
@@ -3555,6 +3657,8 @@ fn a_point_on_a_sloping_original_face_keeps_its_disc_and_first_pick() {
 
 ### 1. `src/ink_plane.wgsl`
 
+Build a weighted source axis and reuse one exact clipped-triangle predicate for fringe and source neighbors.
+
 **Locate this existing block:**
 
 ```wgsl
@@ -3598,6 +3702,8 @@ fn finite_source_hidden(pixel:vec2<f32>,axis:InkAxis)->bool{
 ## <a id="checkpoint-96zy-connect-fitted-surfaces-and-exact-stroke-occlusion"></a>18. Connect fitted surfaces and exact stroke occlusion
 
 ### 1. `src/finite_visibility.wgsl`
+
+Retain the strict construction-grid rule while original strokes use the current fitted and exact predicates. Connect current surface fitting, exact source neighbors and conservative bounded tile traversal without changing the grid predicate.
 
 **Locate this existing block:**
 
@@ -3701,6 +3807,8 @@ fn finite_visible(pixel:vec2<f32>,ends:vec4<f32>,depths:vec2<f32>,flags:u32)->bo
 
 ### 2. `src/ink_plane.wgsl`
 
+Retain the declared forward-depth rounding allowance in exact source tests until the reversed camera replaces this adapter.
+
 **Locate this existing block:**
 
 ```wgsl
@@ -3720,6 +3828,8 @@ fn ink_exact_floor(axis:InkAxis,triangle:ProjectedTriangle)->f32{
 ## <a id="checkpoint-96zz-separate-hidden-ink-color-from-pick-ownership"></a>19. Separate hidden ink color from pick ownership
 
 ### 1. `src/finite_visibility.wgsl`
+
+Pass an explicit pick mode and reuse the shared hidden-ink alpha rule. Keep one color attenuation rule while integer ownership uses physical visibility alone.
 
 **Locate this existing block:**
 
@@ -3822,6 +3932,8 @@ fn finite_hidden_alpha(hidden:bool,picking:bool)->f32{
 
 ### 2. `src/finite_stroke.wgsl`
 
+Choose color attenuation or integer discard at the fragment call.
+
 **Locate this existing block:**
 
 ```wgsl
@@ -3844,6 +3956,8 @@ fn fragment(input: Output) -> @location(0) vec4<f32> {let alpha=finite_alpha(inp
 
 ### 3. `src/finite_stroke_pick.wgsl`
 
+Choose color attenuation or integer discard at the fragment call.
+
 **Locate this existing block:**
 
 ```wgsl
@@ -3861,6 +3975,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 4. `src/finite_chain.wgsl`
+
+Choose color attenuation or integer discard at the fragment call.
 
 **Locate this existing block:**
 
@@ -3884,6 +4000,8 @@ fn fragment(input: Output) -> @location(0) vec4<f32> {let alpha=finite_alpha(inp
 
 ### 5. `src/finite_chain_pick.wgsl`
 
+Choose color attenuation or integer discard at the fragment call.
+
 **Locate this existing block:**
 
 ```wgsl
@@ -3901,6 +4019,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 6. `src/finite_marker.wgsl`
+
+Choose color attenuation or integer discard at the fragment call.
 
 **Locate this existing block:**
 
@@ -3924,6 +4044,8 @@ fn fragment(input: Output) -> @location(0) vec4<f32> {let alpha=finite_disc_alph
 
 ### 7. `src/finite_marker_pick.wgsl`
 
+Choose color attenuation or integer discard at the fragment call.
+
 **Locate this existing block:**
 
 ```wgsl
@@ -3941,6 +4063,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 8. `src/finite_visibility_tests.rs`
+
+Supply actual color, pre-color and post-color integer ownership checks for all three original ink families at both densities.
 
 **Locate this existing block:**
 
@@ -3985,6 +4109,8 @@ fn translucent_faces_reveal_original_ink_without_giving_it_pick_ownership() {
 ```
 
 ### 9. `src/opacity_gpu_tests.rs`
+
+Update the supplied glass fixture to require the current nearer face owner; retain exact blending, X-ray, restoration and reuse checks.
 
 **Locate this existing block:**
 
@@ -4050,6 +4176,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 1. `src/physical.wgsl`
 
+Own one lossless primitive encoder in the shared physical shader.
+
 Create the file and type:
 
 ```wgsl
@@ -4059,6 +4187,8 @@ fn physical_primitive(primitive:u32)->vec2<u32>{
 ```
 
 ### 2. `src/clipping_gpu.rs`
+
+Assemble physical declarations once alongside clipping in every relevant shader.
 
 **Locate this existing block:**
 
@@ -4082,6 +4212,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 3. `src/triangle.wgsl`
 
+Reuse the shared encoder instead of repeating the bit packing.
+
 **Locate this existing block:**
 
 ```wgsl
@@ -4100,6 +4232,8 @@ fn fragment(input:VertexOutput,@builtin(front_facing) front:bool)->FragmentOutpu
 
 ### 4. `src/triangle_pick.wgsl`
 
+Reuse the shared encoder instead of repeating the bit packing.
+
 **Locate this existing block:**
 
 ```wgsl
@@ -4117,6 +4251,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 5. `src/ink_plane.wgsl`
+
+Decode a cap before any mesh lookup; reject unavailable projected addresses without clamping them to a different triangle.
 
 **Locate this existing block:**
 
@@ -4146,6 +4282,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 6. `src/cap_color.wgsl`
+
+Add the integer output while keeping existing section consumers working. Write low and high words without float conversion.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -4190,6 +4328,8 @@ Replace it with:
 
 ### 7. `src/cap_pipeline.rs`
 
+Reuse the shared unblended integer target.
+
 **Locate this existing block:**
 
 ```rust
@@ -4206,6 +4346,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 8. `src/caps_gpu.rs`
+
+Accept the renderer’s existing primitive view. Load mesh addresses and replace only pixels covered by a visible section.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -4255,6 +4397,8 @@ Replace it with:
 
 ### 9. `src/renderer.rs`
 
+Pass the matching physical primitive image into the section pass.
+
 **Locate this existing block:**
 
 ```rust
@@ -4271,6 +4415,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 10. `src/cap_pick.wgsl`
+
+Keep the original owner and section record beside the primitive output. Use the current pick marker, independently of selection. Store lossless low and high halves in the cropped target.
 
 **Locate this existing block:**
 
@@ -4330,6 +4476,8 @@ fn fs_cap_id(in: CapVertex) -> CapId {
 
 ### 11. `src/cap_pick_pipeline.rs`
 
+Reuse the same integer target format without blending.
+
 **Locate this existing block:**
 
 ```rust
@@ -4346,6 +4494,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 12. `src/cap_pick_gpu.rs`
+
+Attach the existing bounded crop image, loading previous mesh addresses.
 
 **Locate this existing block:**
 
@@ -4371,6 +4521,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 13. `src/global_outline_tests.rs`
+
+Supply actual integer color, selection, clearing and pre-color cropped ownership checks at both physical display scales.
 
 **Locate this existing block:**
 
@@ -4484,6 +4636,8 @@ fn actual_first_cap_pick_has_reserved_primitive_and_exact_original_owner() {
 ## <a id="checkpoint-96zzb-read-section-visibility-from-one-image"></a>21. Read section visibility from one image
 
 ### 1. `src/finite_visibility.wgsl`
+
+Remove the redundant section texture declaration. Decode the exact reserved plane before reconstructing its depth at the source point. Reuse the bounded crop-aware primitive reader for the section source fit.
 
 **Locate this existing block:**
 
@@ -4599,6 +4753,8 @@ fn finite_visible(pixel:vec2<f32>,ends:vec4<f32>,depths:vec2<f32>,flags:u32)->bo
 ```
 
 ### 2. `src/finite_ink.rs`
+
+Retain only physical depth and primitive texture identities in the cache. Remove the redundant table member. Remove only binding 3; stable primitive binding 4 remains valid. Stop binding the duplicate section image. Invalidate cached groups only when their actual resources change. Retain only resources used by this bind group. Match the smaller cached group.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -4776,6 +4932,8 @@ Replace it with:
 
 ### 3. `src/renderer.rs`
 
+Pass only the physical primitive image to finite ink.
+
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -4817,6 +4975,8 @@ Replace it with:
 ```
 
 ### 4. `src/pick_encode.rs`
+
+Use the crop’s own matching primitive image.
 
 **Locate this existing block:**
 

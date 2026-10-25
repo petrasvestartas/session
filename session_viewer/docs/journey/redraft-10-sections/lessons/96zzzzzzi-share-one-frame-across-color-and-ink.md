@@ -94,6 +94,8 @@
 
 ### 1. `src/surface_view.rs`
 
+Give existing ink shaders their unchanged viewport prefix, followed by surface settings and the existing kernel-derived eye.
+
 **Locate this existing block:**
 
 ```rust
@@ -153,6 +155,8 @@ pub fn bytes(
 
 ### 2. `src/triangle.wgsl`
 
+Read surface settings after the shared ink prefix.
+
 **Locate this existing block:**
 
 ```wgsl
@@ -168,6 +172,8 @@ struct ViewSettings { transform: mat4x4<f32>, viewport:vec4<f32>, display: vec4<
 ```
 
 ### 3. `src/renderer.rs`
+
+Encode the correct full physical viewport and density once for this frame owner.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -215,6 +221,8 @@ Replace it with:
 
 ### 4. `src/pick_gpu.rs`
 
+Encode the correct full physical viewport and density once for this frame owner.
+
 **Locate this existing block:**
 
 ```rust
@@ -237,6 +245,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 5. `src/stroke_gpu.rs`
+
+Remove duplicated per-lane presentation state. Borrow a frame group instead of owning another uniform. The renderer and request owners perform the only frame writes. Borrow the color frame at draw time. Use the same borrowed group in the finite path. Use the borrowed frame in the base ink path. Borrow the actual request frame for original IDs. Keep the base integer path on the request frame. Pass the request frame through finite picking. Share the captured frame with finite original IDs. Retain the same request in the base fallback. Use the same explicit layout even when a shader reads only its prefix. Remove the redundant buffer and bind-group allocations. Keep settings in their existing renderer owner. Keep only lane geometry, pipelines and finite bindings.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -603,6 +613,8 @@ pub struct Lane {
 
 ### 6. `src/finite_ink.rs`
 
+Keep finite color and integer pipelines compatible with the same frame.
+
 **Locate this existing block:**
 
 ```rust
@@ -620,6 +632,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 7. `src/pick_gpu.rs`
+
+Stop overwriting individual lane frames for a pick.
 
 **Locate this existing block:**
 
@@ -645,6 +659,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 8. `src/pick_encode.rs`
 
+Draw every ordinary ink ID with the request-owned group.
+
 **Locate this existing block:**
 
 ```rust
@@ -661,6 +677,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 9. `src/highlight.rs`
+
+Remove the wrapper’s redundant frame-update traversal. Borrow the same explicit frame through the wrapper. Forward the borrowed frame without extra state.
 
 **Locate this existing block:**
 
@@ -714,6 +732,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 10. `src/tool_preview.rs`
 
+Remove the wrapper’s redundant frame-update traversal. Borrow the same explicit frame through the wrapper. Forward the borrowed frame without extra state.
+
 **Locate this existing block:**
 
 ```rust
@@ -748,6 +768,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 11. `src/measure_gpu.rs`
 
+Remove the wrapper’s redundant frame-update traversal. Borrow the same explicit frame through the wrapper. Forward the borrowed frame without extra state.
+
 **Locate this existing block:**
 
 ```rust
@@ -777,6 +799,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 12. `src/guide_gpu.rs`
+
+Remove the wrapper’s redundant frame-update traversal. Borrow the same explicit frame through the wrapper. Forward the borrowed frame without extra state.
 
 **Locate this existing block:**
 
@@ -811,6 +835,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 13. `src/highlight.rs`
 
+Selection reads the existing shared opacity.
+
 **Locate this existing block:**
 
 ```rust
@@ -834,6 +860,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 14. `src/renderer.rs`
+
+Keep the single renderer opacity owner. One shared frame replaces this lane or wrapper update. Measurement and guides borrow the same color frame. Borrow the existing color group for this draw.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -1046,6 +1074,8 @@ Replace it with:
 
 ### 15. `src/surface_lighting_tests.rs`
 
+Retain the exact camera/display test and extend its actual viewport-prefix contract.
+
 **Locate this existing block:**
 
 ```rust
@@ -1125,6 +1155,8 @@ fn surface_frame_bytes_preserve_camera_and_display_domains() {
 ```
 
 ### 16. `src/shared_view_tests.rs`
+
+Supply real mixed-original color/request/pick restoration controls.
 
 Create the file and type:
 
@@ -1239,6 +1271,8 @@ fn shared_color_and_request_frames_preserve_actual_original_ink() {
 
 ### 17. `src/renderer.rs`
 
+Register optional native GPU controls outside the browser graph.
+
 **Locate this existing block:**
 
 ```rust
@@ -1309,6 +1343,8 @@ mod shared_view_tests;
 
 ### 1. `src/source_mesh_topology.rs`
 
+Reuse the existing full-ring Newell sum without per-face coordinate allocations. Read either mesh slots or original outline coordinates through one accessor. Keep every existing topology caller on the same normal algorithm.
+
 **Locate this existing block:**
 
 ```rust
@@ -1378,6 +1414,8 @@ fn face_normal(vs: &[usize], vpos: &[[f64; 3]], slots: &SlotMap) -> Option<[f64;
 
 ### 2. `src/feature_display.rs`
 
+Try actual area before the existing float-collapsed point/path fallback.
+
 **Locate this existing block:**
 
 ```rust
@@ -1404,6 +1442,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 3. `src/contact_feature_tests.rs`
+
+Supply actual Element-source, concave perimeter, original-owner GPU and depth/occlusion controls.
 
 Create the file and type:
 
@@ -1884,6 +1924,8 @@ fn actual_contact_depth_is_nearer_without_crossing_an_occluder() {
 
 ### 4. `src/renderer.rs`
 
+Keep optional native GPU validation outside the browser implementation.
+
 **Locate this existing block:**
 
 ```rust
@@ -1903,6 +1945,8 @@ mod contact_feature_tests;
 ```
 
 ### 5. `src/gpu_mesh.rs`
+
+Carry the original integer owner, including zero for an unpickable display. Write the resolved owner into the existing object record. Keep standalone uploaded originals on their own checked identity.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -1978,6 +2022,8 @@ Replace it with:
 
 ### 6. `src/renderer.rs`
 
+Use the existing feature adapter for color and request-specific surface records.
+
 **Locate this existing block:**
 
 ```rust
@@ -1997,6 +2043,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 7. `src/global_outline_tests.rs`
 
+Retain every exact original record/pixel/anchor assertion with the explicit owner field.
+
 **Locate this existing block:**
 
 ```rust
@@ -2014,6 +2062,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 8. `src/contact_depth.wgsl`
+
+Pull the contact toward the eye by the current bounded depth/slope layer, leaving screen position and source coordinates fixed.
 
 Create the file and type:
 
@@ -2039,6 +2089,8 @@ fn contact_layer(clip:vec4<f32>,world:vec3<f32>,normal:vec3<f32>,m:mat4x4<f32>,s
 
 ### 9. `src/clipping_gpu.rs`
 
+Expand the shared helper only in shaders which explicitly include it.
+
 **Locate this existing block:**
 
 ```rust
@@ -2058,6 +2110,8 @@ pub fn source(base: &str, group: u32, binding: u32) -> String {
 ```
 
 ### 10. `src/triangle.wgsl`
+
+Share contact placement between ordinary, pulled and integer surface entries. Use the actual original-facing plane and full physical frame for the layer.
 
 **Locate this existing block:**
 
@@ -2103,6 +2157,8 @@ fn geometry(position: vec3<f32>, colour: vec4<f32>, normal: vec3<f32>, object: O
 
 ### 11. `src/face_pick.wgsl`
 
+Supply the actual normal to the same source-face vertex function.
+
 **Locate this existing block:**
 
 ```wgsl
@@ -2120,6 +2176,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 12. `src/feature_display.rs`
+
+Keep contact display preparation in its existing feature module. Use the original kernel types already owned by feature preparation. Prepare one contact mesh, retaining its full normal, display marker and existing polygon Parts.
 
 Replace the entire file with:
 
@@ -2317,6 +2375,8 @@ pub(crate) fn contact_fill(
 
 ### 1. `src/stroke_gpu.rs`
 
+Keep one metadata mode on the existing lane. Reset only the records actually addressed by the pipeline. Allocate one default flag for a nonempty constant lane. Validate constant and indexed metadata counts. Choose a mode when creating the existing finite pipelines. Keep the selected stride in color and integer pipelines. Initialize the same bounded default. Start with the ordinary constant mode.
+
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -2473,6 +2533,8 @@ Replace it with:
 
 ### 2. `src/finite_ink.rs`
 
+Use one selected layout per existing pipeline. Zero stride broadcasts the complete existing u32 record. Make metadata addressing explicit at construction. Preserve identical color and cropped integer addressing.
+
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -2589,6 +2651,8 @@ Replace it with:
 
 ### 3. `src/renderer.rs`
 
+Mesh borders retain source-dependent clipping flags. Ordinary original lines, paths and points broadcast one record.
+
 **Locate this existing block:**
 
 ```rust
@@ -2621,6 +2685,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 4. `src/highlight.rs`
 
+Mixed selected clipping-plane strokes retain indexed flags. Selected paths and points use constant flags.
+
 **Locate this existing block:**
 
 ```rust
@@ -2646,6 +2712,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 5. `src/ink_metadata_tests.rs`
+
+Supply real zero-stride GPU draws/IDs,8192-instance allocations, mixed indexed flags and complete release controls.
 
 Create the file and type:
 
@@ -2792,6 +2860,8 @@ fn actual_zero_stride_ink_draws_and_picks_every_original() {
 
 ### 6. `src/renderer.rs`
 
+Connect optional native validation outside the browser runtime.
+
 **Locate this existing block:**
 
 ```rust
@@ -2813,6 +2883,8 @@ mod ink_metadata_tests;
 ## <a id="checkpoint-96zzzzzzl-layer-original-contact-boundaries"></a>4. Layer contact boundaries
 
 ### 1. `src/stroke_gpu.rs`
+
+Keep existing flag callers and flatten only indexed [flag,normal] records. Validate both indexed words; constant records stay one word.
 
 **Locate this existing block:**
 
@@ -2854,6 +2926,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 2. `src/finite_ink.rs`
+
+Assemble only the lane’s chosen metadata interface. Use one or two explicit words in the existing attribute. Indexed strokes carry their contact normal; ordinary ink retains zero stride.
 
 **Locate this existing block:**
 
@@ -2957,6 +3031,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 3. `src/finite_sources.rs`
 
+Keep the existing constant shader validation entry meaningful. Declare explicit flag/facing accessors for the actual input type.
+
 **Locate this existing block:**
 
 ```rust
@@ -3048,6 +3124,8 @@ pub fn source_metadata(stride: u64, pick: bool, grid: bool, varying: bool) -> St
 
 ### 4. `src/renderer.rs`
 
+Move metadata to the existing lane without retaining a duplicate CPU table.
+
 **Locate this existing block:**
 
 ```rust
@@ -3089,6 +3167,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 5. `src/pick_sources.rs`
+
+Align explicit numeric records with the existing perimeter batch. Collect clipping owners once per source pass. Reuse the actual contact normal, inverse-transpose placement and existing packed codec. Append one explicit record per existing edge. Control-net edges have no contact facing. Account for actual retained records before upload.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -3243,6 +3323,8 @@ Replace it with:
 
 ### 6. `src/finite_stroke.wgsl`
 
+Read the existing full shared frame. Reuse the surface depth owner; the normal decoder is already assembled. Read flags from the lane’s actual record. Layer both endpoints and retain the bounded depth rise before near clipping. Keep color and integer metadata layouts identical. Share geometry for cropped integer picking. Carry the same flat rise to color and pick fragments. Pass contact rise explicitly into existing visibility.
+
 **Locate this existing block:**
 
 ```wgsl
@@ -3364,6 +3446,8 @@ fn fragment(input: Output) -> @location(0) vec4<f32> {let alpha=finite_alpha(inp
 
 ### 7. `src/finite_stroke_pick.wgsl`
 
+Keep color and integer metadata layouts identical. Share geometry for cropped integer picking. Carry the same flat rise to color and pick fragments. Pass contact rise explicitly into existing visibility.
+
 **Locate this existing block:**
 
 ```wgsl
@@ -3422,6 +3506,8 @@ fn pick_fragment(input: PickOutput) -> @location(0) vec2<u32> {
 ```
 
 ### 8. `src/finite_stroke.wgsl`
+
+Hidden geometry carries no rise. Keep the actual bounded rise with the source axis.
 
 **Locate this existing block:**
 
@@ -3493,6 +3579,8 @@ fn geometry(start: vec3<f32>, end: vec3<f32>, colour: vec4<f32>, width: f32, ind
 
 ### 9. `src/finite_stroke_pick.wgsl`
 
+Copy the geometry’s rise into the cropped output. Preserve the complete shared coverage interface.
+
 **Locate this existing block:**
 
 ```wgsl
@@ -3518,6 +3606,8 @@ fn pick_fragment(input: PickOutput) -> @location(0) vec2<u32> {
 ```
 
 ### 10. `src/finite_visibility.wgsl`
+
+Expose explicit sag only to segment visibility. Forward the existing axis tolerance. Keep grid behavior unchanged. Reuse existing sag-aware plane and projected-triangle predicates.
 
 **Locate this existing block:**
 
@@ -3571,6 +3661,8 @@ fn finite_visible(pixel:vec2<f32>,ends:vec4<f32>,depths:vec2<f32>,flags:u32,sag:
 
 ### 11. `src/finite_chain.wgsl`
 
+Ordinary connected paths have no contact rise.
+
 **Locate this existing block:**
 
 ```wgsl
@@ -3593,6 +3685,8 @@ fn fragment(input: Output) -> @location(0) vec4<f32> {let alpha=finite_alpha(inp
 
 ### 12. `src/finite_chain_pick.wgsl`
 
+Ordinary connected paths have no contact rise.
+
 **Locate this existing block:**
 
 ```wgsl
@@ -3610,6 +3704,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 13. `src/contact_feature_tests.rs`
+
+Expose the unchanged original-source validation fixture. Share the unchanged fixture projection.
 
 **Locate this existing block:**
 
@@ -3717,6 +3813,8 @@ pub(super) fn project(matrix: [f32; 16], p: [f64; 3]) -> [f32; 2] {
 
 ### 14. `src/ink_metadata_tests.rs`
 
+Indexed contact-capable records now carry two words; ordinary8192-instance assertions remain exactly4bytes.
+
 **Locate this existing block:**
 
 ```rust
@@ -3734,6 +3832,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 15. `src/contact_boundary_tests.rs`
+
+Validate actual original contact pixels, complete projected fallback, transformed normals and owner picks.
 
 Create the file and type:
 
@@ -3976,6 +4076,8 @@ fn contact_metadata_follows_original_parent_placement() {
 
 ### 16. `src/renderer.rs`
 
+Connect optional native validation outside the browser runtime.
+
 **Locate this existing block:**
 
 ```rust
@@ -3997,6 +4099,8 @@ mod contact_boundary_tests;
 ## <a id="checkpoint-96zzzzzzm-query-original-faces-under-contact-overlays"></a>5. Query faces under contact overlays
 
 ### 1. `src/gpu_mesh.rs`
+
+Retain source-query eligibility on the existing CPU mesh. Classify original and derived display rows explicitly. Standalone original geometry and the existing highlight adapter remain valid. Keep the flag out of the packed GPU record. Update eligibility without a GPU setting write.
 
 **Locate this existing block:**
 
@@ -4553,6 +4657,8 @@ impl GpuMesh {
 
 ### 2. `src/renderer.rs`
 
+Instances and locked originals are not generated attribute display pieces.
+
 **Locate this existing block:**
 
 ```rust
@@ -4569,6 +4675,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 3. `src/pick_sources.rs`
+
+Classify the source row once, then append only its actual original faces.
 
 **Locate this existing block:**
 
@@ -4606,6 +4714,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 4. `src/face_pick.rs`
 
+Do not allocate generated display-face metadata; preserve one row per mesh.
+
 **Locate this existing block:**
 
 ```rust
@@ -4623,6 +4733,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 5. `src/pick_encode.rs`
+
+Ignore derived depth only for source-face queries; keep all original occluders.
 
 **Locate this existing block:**
 
@@ -4643,6 +4755,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 6. `src/global_outline_tests.rs`
 
+Preserve the unchanged original-source uniform/reference test.
+
 **Locate this existing block:**
 
 ```rust
@@ -4659,6 +4773,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 7. `src/contact_feature_tests.rs`
+
+Reuse the unchanged original contact ring validation fixture.
 
 **Locate this existing block:**
 
@@ -4679,6 +4795,8 @@ pub(super) fn polygon() -> Polyline {
 ```
 
 ### 8. `src/source_face_policy_tests.rs`
+
+Supply actual original face GPU/source/archive, locked occlusion, instance and BRep controls.
 
 Create the file and type:
 
@@ -5262,6 +5380,8 @@ fn actual_brep_contact_queries_the_original_top_face() {
 ```
 
 ### 9. `src/renderer.rs`
+
+Connect optional Native validation outside the browser runtime.
 
 **Locate this existing block:**
 

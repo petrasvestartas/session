@@ -91,6 +91,8 @@
 
 ### 1. `src/mesh_pens.rs`
 
+Prepare only numeric pens using the already-taught topology and original encounter order.
+
 Create the file and type:
 
 ```rust
@@ -182,6 +184,8 @@ pub fn prepare(source: &Mesh, count: usize) -> (Vec<(usize, usize)>, Vec<Pen>) {
 
 ### 2. `src/lib.rs`
 
+Connect the prepared style producer to the independent learner runtime.
+
 **Locate this existing block:**
 
 ```rust
@@ -200,6 +204,8 @@ pub mod mesh_pens;
 ```
 
 ### 3. `src/mesh_parts.rs`
+
+Keep lightweight pens beside the existing shared source-key display. Reuse one topology preparation for styling and coplanar edge omission. Retain pens after the editable source is unloaded. Decode packed original colors only when preparing the existing stroke stream. Count actual retained numeric pen capacity.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -309,6 +315,8 @@ pub struct Parts {
 
 ### 4. `src/bounds_original.rs`
 
+Existing analytic bounds edges retain their default black pen.
+
 **Locate this existing block:**
 
 ```rust
@@ -325,6 +333,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 5. `src/pick_sources.rs`
+
+Keep source endpoint keys, boundary addresses and pen slots aligned. Respect each original geometry’s width semantics before emitting visible ink. Preserve source edge colors unless the existing display override wins. Use the existing CSS-pixel stroke path rather than another render lane.
 
 **Locate this existing block:**
 
@@ -427,6 +437,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 6. `src/source_pen_tests.rs`
+
+Supply real GPU/source/archive, sparse style-order and source-unload controls.
 
 Create the file and type:
 
@@ -1096,6 +1108,8 @@ fn printed_and_dense_originals_keep_faces_without_decoration() {
 
 ### 7. `src/renderer.rs`
 
+Connect Native validation outside the browser runtime.
+
 **Locate this existing block:**
 
 ```rust
@@ -1116,6 +1130,8 @@ mod source_pen_tests;
 
 ### 8. `src/plane_original.rs`
 
+Existing analytic plane boundaries retain their default black pen.
+
 **Locate this existing block:**
 
 ```rust
@@ -1132,6 +1148,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 9. `src/pick_sources.rs`
+
+Resolve immutable mesh-row ownership and explicit display color once. Share the existing source-face eligibility classification. Resolve the original surface/BRep scalar pen once per row, outside its boundary segments. Retain identical original pick addresses without repeated per-segment hierarchy lookups.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -1235,6 +1253,8 @@ Replace it with:
 
 ### 10. `src/mesh_arena_tests.rs`
 
+Keep the supplied stale-binding GPU probe inside its actual bound arrays; preserve all pixel, identity and write-count assertions.
+
 **Locate this existing block:**
 
 ```rust
@@ -1257,6 +1277,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ## <a id="checkpoint-96zzzzzzo-close-original-boundary-joins"></a>2. Close boundary joins
 
 ### 1. `src/stroke_quad.wgsl`
+
+Share near-clipped round-stroke projection without new records or buffers.
 
 Create the file and type:
 
@@ -1288,6 +1310,8 @@ fn stroke_quad(start:vec4f,end:vec4f,width:f32,index:u32)->StrokeQuad {
 
 ### 2. `src/finite_project_source.rs`
 
+Expand the one shared projection helper in both consumers.
+
 **Locate this existing block:**
 
 ```rust
@@ -1307,6 +1331,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 3. `src/stroke.wgsl`
+
+Use one shared stroke shape for ordinary and finite rendering. Distinguish genuine round ends from flat near-plane cuts. Carry only screen coordinates needed by existing fragment coverage. Replace duplicate projection with the shared clipped capsule.
 
 **Locate this existing block:**
 
@@ -1368,6 +1394,8 @@ fn geometry(start:vec3f,end:vec3f,colour:vec4f,width:f32,index:u32)->Output {
 ```
 
 ### 4. `src/finite_stroke.wgsl`
+
+Use one shared stroke shape for ordinary and finite rendering. Distinguish genuine round ends from flat near-plane cuts. Let the shared projection own hidden, near-clipped and end-on cases. Retain contact rise and reuse the shared screen-space shape.
 
 **Locate this existing block:**
 
@@ -1450,6 +1478,8 @@ fn geometry(start: vec3<f32>, end: vec3<f32>, colour: vec4<f32>, width: f32, ind
 
 ### 5. `src/stroke_coverage.wgsl`
 
+Measure distance to the finite segment; keep near cuts flat.
+
 Replace the entire file with:
 
 ```wgsl
@@ -1466,6 +1496,8 @@ fn colour(input:Output)->vec4f {
 ```
 
 ### 6. `src/stroke_pick.wgsl`
+
+Keep color and integer queries on the same end policy. Carry the actual clipping-end policy into the cropped request. Reuse the exact color coverage in integer picking. Use full-viewport pixel coordinates for cropped coverage. Cropping changes clip position, not the original screen-space footprint. Pass the shared footprint to the ordinary pick fragment.
 
 **Locate this existing block:**
 
@@ -1523,6 +1555,8 @@ fn pick_fragment(input: PickOutput) -> @location(0) vec2<u32> {
 ```
 
 ### 7. `src/finite_stroke_pick.wgsl`
+
+Keep color and integer queries on the same end policy. Carry the actual clipping-end policy into the cropped request. Reuse the exact color coverage in integer picking.
 
 **Locate this existing block:**
 
@@ -1591,6 +1625,8 @@ fn pick_fragment(input: PickOutput) -> @location(0) vec2<u32> {
 ```
 
 ### 8. `src/round_caps_tests.rs`
+
+Copy actual GPU validation fixtures.
 
 Create the file and type:
 
@@ -2019,6 +2055,8 @@ fn round_caps_keep_legacy_fallback_source_release_and_shared_geometry() {
 
 ### 9. `src/renderer.rs`
 
+Register Native validation only.
+
 **Locate this existing block:**
 
 ```rust
@@ -2038,6 +2076,8 @@ mod round_caps_tests;
 ```
 
 ### 10. `src/stroke_gpu.rs`
+
+Exercise the actual existing legacy pipeline in Native fixtures.
 
 **Locate this existing block:**
 
@@ -2064,6 +2104,8 @@ impl Lane {
 
 ### 11. `src/cap_gpu_tests.rs`
 
+Sample the unoccluded original back face, away from the now-visible end-on construction-plane marker. Keep the zero section-fill assertion.
+
 **Locate this existing block:**
 
 ```rust
@@ -2081,6 +2123,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 12. `src/finite_visibility_tests.rs`
+
+Retain exact clipped headed-chain comparison; distinguish genuine round source caps with exact body, flat-cut and bounded-cap pixel assertions.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -2244,6 +2288,8 @@ fn frame_pixels(renderer: &Renderer, size: [u32; 2], matrix: [f32; 16]) -> Vec<u
 ## <a id="checkpoint-96zzzzzzp-draw-default-mesh-vertex-dots"></a>3. Draw default mesh vertex dots
 
 ### 1. `src/mesh_pens.rs`
+
+Prepare numeric endpoint references and only authored point colors on the existing display owner. Printed and dense fills have no default vertex decoration. Reuse the same source topology and sparse slot map once. A nonzero authored source edge makes its endpoints eligible, including a removed coplanar seam. Default dark color needs no per-vertex color allocation; common authored colors retain one entry.
 
 **Locate this existing block:**
 
@@ -2448,6 +2494,8 @@ pub fn prepare(
 
 ### 2. `src/mesh_parts.rs`
 
+Retain four-byte references into existing f64 endpoints rather than duplicate positions or original meshes. Carry the prepared numerical decoration through source release. Keep the original shared display owner. Read authored point colors or the maintained default exactly, without byte quantization. Count actual retained numeric decoration capacity.
+
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -2555,6 +2603,8 @@ pub struct Parts {
 
 ### 3. `src/bounds_original.rs`
 
+Bounding frames do not invent mesh vertex markers.
+
 **Locate this existing block:**
 
 ```rust
@@ -2573,6 +2623,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 4. `src/plane_original.rs`
 
+Original planes retain their own frame glyph policy.
+
 **Locate this existing block:**
 
 ```rust
@@ -2590,6 +2642,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 5. `src/pick_sources.rs`
+
+Build ordinary point instances with object ownership and no new editable component domain. Transform numerical endpoints after origin anchoring; BRep, NURBS and derived contact shapes keep their own display policy. Account for temporary marker preparation; move it into the existing upload.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -2673,6 +2727,8 @@ Replace it with:
 
 ### 6. `src/renderer.rs`
 
+Upload through the existing point buffer once, releasing temporary CPU instances. Match default mesh, original point and active control ownership order.
+
 **Locate this existing block:**
 
 ```rust
@@ -2714,6 +2770,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 7. `src/mesh_marker_tests.rs`
+
+Exercise actual GPU dots, source keys, authored colors, incidence and shared source unloading.
 
 Create the file and type:
 
@@ -3230,6 +3288,8 @@ fn prepared_marker_addresses_survive_source_unload_and_shared_placement() {
 
 ### 8. `src/renderer.rs`
 
+Register the three actual mesh marker GPU checks.
+
 **Locate this existing block:**
 
 ```rust
@@ -3250,6 +3310,8 @@ mod mesh_marker_tests;
 ```
 
 ### 9. `src/source_pen_tests.rs`
+
+Extend the existing real 200000-triangle budget case without duplicating its dense fixture.
 
 **Locate this existing block:**
 
@@ -3274,6 +3336,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 10. `src/global_outline_tests.rs`
+
+This existing fixture manually isolates surface-buffer rebasing; suppress both original ink and new default dots while preserving every surface/grid/cap/pick/source assertion. Production complete-lane marker rebasing is separately exercised at a billion units.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -3425,6 +3489,8 @@ Replace it with:
 
 ### 11. `src/scene_origin_tests.rs`
 
+Keep the original point/control count exact after the new eight default Box vertex markers; verify all marker values, owners, ordering and large-origin equality independently.
+
 **Locate this existing block:**
 
 ```rust
@@ -3463,6 +3529,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ## <a id="checkpoint-96zzzzzzq-taper-crowded-original-mesh-vertices"></a>4. Taper crowded mesh vertices
 
 ### 1. `src/mesh.rs`
+
+Retain one prepared mesh spacing scalar after original source release. Only actual original default-dot meshes need a spacing estimate. Use actual render bounds and original vertex count once, matching the maintained per-mesh estimate; skip dense/printed fills without dots.
 
 **Locate this existing block:**
 
@@ -3572,6 +3640,8 @@ impl Mesh {
 
 ### 2. `src/marker.rs`
 
+Name the render-only size mode explicitly; original point widths and editing-control diameters remain unchanged.
+
 **Locate this existing block:**
 
 ```rust
@@ -3600,6 +3670,8 @@ impl Marker {
 ```
 
 ### 3. `src/pick_sources.rs`
+
+Reuse the existing32byte point instance, endpoint addresses and upload; no distance array, extra metadata or buffer.
 
 **Locate this existing block:**
 
@@ -3636,6 +3708,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 4. `src/stroke_gpu.rs`
 
+Accept the explicit finite mesh-spacing size mode while rejecting zero and nonfinite display data.
+
 **Locate this existing block:**
 
 ```rust
@@ -3654,6 +3728,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 5. `src/marker_radius.wgsl`
 
+Project one instance spacing at each vertex depth; retain the actual three-diameter taper and half-physical-pixel minimum.
+
 Create the file and type:
 
 ```wgsl
@@ -3667,6 +3743,8 @@ fn marker_radius(position:vec4f,size:f32)->f32 {
 ```
 
 ### 6. `src/finite_project_source.rs`
+
+Expand one shared radius helper for both color/pick and existing finite/legacy paths.
 
 **Locate this existing block:**
 
@@ -3687,6 +3765,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 7. `src/marker.wgsl`
+
+Use the same radius rule in the existing marker paths. Color and integer picking retain the same projected marker footprint.
 
 **Locate this existing block:**
 
@@ -3721,6 +3801,8 @@ fn geometry(center: vec3<f32>, diameter: f32, colour: vec4<f32>, index: u32) -> 
 
 ### 8. `src/finite_marker.wgsl`
 
+Use the same radius rule in the existing marker paths. Color and integer picking retain the same projected marker footprint.
+
 **Locate this existing block:**
 
 ```wgsl
@@ -3753,6 +3835,8 @@ fn geometry(center: vec3<f32>, diameter: f32, colour: vec4<f32>, index: u32,flag
 ```
 
 ### 9. `src/mesh_density_tests.rs`
+
+Exercise actual dense physical footprints, explicit point/control independence, correct rear-edge visibility, source release and shared geometry.
 
 Create the file and type:
 
@@ -4203,6 +4287,8 @@ fn spacing_survives_source_release_shared_placement_and_camera_updates() {
 
 ### 10. `src/renderer.rs`
 
+Register the three actual source-bound density GPU checks.
+
 **Locate this existing block:**
 
 ```rust
@@ -4222,6 +4308,8 @@ mod mesh_density_tests;
 
 ### 11. `src/marker_coverage.wgsl`
 
+Measure the circle at the actual physical fragment pixel relative to its fixed centre; keep one shared colour/query coverage function.
+
 Replace the entire file with:
 
 ```wgsl
@@ -4232,6 +4320,8 @@ fn colour(rgba:vec4<f32>,radius:f32,delta:vec2<f32>)->vec4<f32> {
 ```
 
 ### 12. `src/marker.wgsl`
+
+Carry a fixed screen centre instead of interpolating the expanded quad offset.
 
 **Locate this existing block:**
 
@@ -4251,6 +4341,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 13. `src/marker_pick.wgsl`
 
+Carry a fixed screen centre instead of interpolating the expanded quad offset.
+
 **Locate this existing block:**
 
 ```wgsl
@@ -4268,6 +4360,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 14. `src/marker.wgsl`
+
+Compute the centre before expanding the existing quad; no new vertex buffer or radius policy. Pass the fixed screen centre through the existing location. Use the fragment built-in pixel rather than interpolated quad coordinates.
 
 **Locate this existing block:**
 
@@ -4306,6 +4400,8 @@ fn fragment(input: Output) -> @location(0) vec4<f32> { return colour(input.colou
 
 ### 15. `src/marker_pick.wgsl`
 
+Give the cropped query the same centre in its local physical-pixel coordinates. Remove the unnecessary reconstructed colour-output record. Apply the same analytic disc coverage to integer queries.
+
 **Locate this existing block:**
 
 ```wgsl
@@ -4339,6 +4435,8 @@ fn pick_fragment(input: PickOutput) -> @location(0) vec2<u32> {
 
 ### 16. `src/finite_marker.wgsl`
 
+Reuse the existing fixed axis centre; drop the redundant interpolated offset. Use the actual fragment pixel and remove the second redundant varying.
+
 **Locate this existing block:**
 
 ```wgsl
@@ -4364,6 +4462,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 17. `src/finite_marker_pick.wgsl`
+
+Reuse the existing fixed axis centre; drop the redundant interpolated offset. Use the actual fragment pixel and remove the second redundant varying.
 
 **Locate this existing block:**
 
@@ -4392,6 +4492,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 18. `src/finite_marker.wgsl`
+
+Keep the rejected-vertex result aligned with the smaller output. Reuse existing fixed source centre/depth fields and omit redundant pixel interpolation. Read visibility at the actual full-frame physical pixel. Evaluate colour coverage from the existing flat centre.
 
 **Locate this existing block:**
 
@@ -4446,6 +4548,8 @@ fn fragment(input: Output) -> @location(0) vec4<f32> {let alpha=finite_disc_alph
 ```
 
 ### 19. `src/finite_marker_pick.wgsl`
+
+Remove the deleted output varying from the query vertex. Keep the existing fixed axis/depth values without another varying. Restore the query fragment to the full physical frame once, then share it with coverage and visibility. Keep the integer-query disc identical to colour coverage. Use the same restored full-frame pixel for depth/section eligibility.
 
 **Locate this existing block:**
 

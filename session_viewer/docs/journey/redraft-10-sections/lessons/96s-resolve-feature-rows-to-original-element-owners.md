@@ -52,6 +52,8 @@
 
 ### 1. `src/feature_owner.rs`
 
+Resolve ownership through bounded hierarchy parent links and collect visible display highlights.
+
 Create the file and type:
 
 ```rust
@@ -123,6 +125,8 @@ pub fn highlighted(scene: &Scene, selected: &[ObjectId]) -> Vec<ObjectId> {
 
 ### 2. `src/lib.rs`
 
+Compile the owner resolver alongside the existing scene and hierarchy.
+
 **Locate this existing block:**
 
 ```rust
@@ -141,6 +145,8 @@ pub mod feature_owner;
 ## <a id="checkpoint-96t-select-and-highlight-original-feature-owners"></a>2. Select and highlight feature owners
 
 ### 1. `src/tree_panel.rs`
+
+Resolve an eligible original owner independently of the displayed feature IDs. Cache the resolved owner with the row’s presentation state. Feature-row selection follows its original owner. Enable eligible feature rows without making their display objects editable. Send the original owner through the existing tree selection/Fit action.
 
 **Locate this existing block:**
 
@@ -406,6 +412,8 @@ struct RowState {
 
 ### 2. `src/editor.rs`
 
+Extend only renderer highlighting; retain the original editing selection.
+
 **Locate this existing block:**
 
 ```rust
@@ -428,6 +436,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 3. `src/feature_owner_tests.rs`
+
+Supply original-owner, child-boundary, hidden/locked and Delete/Undo ownership regressions.
 
 Create the file and type:
 
@@ -606,6 +616,8 @@ fn feature_owner_delete_and_undo_restore_original_and_generated_paths_once() {
 
 ### 4. `src/lib.rs`
 
+Run the supplied regressions in the native suite.
+
 **Locate this existing block:**
 
 ```rust
@@ -623,6 +635,8 @@ mod feature_owner_tests;
 ```
 
 ### 5. `src/editor.rs`
+
+Selection and Fit must invalidate the renderer highlight even though original source data did not change.
 
 **Locate this existing block:**
 
@@ -644,6 +658,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ## <a id="checkpoint-96u-fit-original-box-corners-to-the-free-canvas"></a>3. Fit box corners to the free canvas
 
 ### 1. `src/camera.rs`
+
+Solve the current projected box-corner distance in the existing camera.
 
 **Locate this existing block:**
 
@@ -725,6 +741,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 2. `src/projected_fit_tests.rs`
+
+Supply independent visible-rectangle and thin-part regression witnesses.
 
 Create the file and type:
 
@@ -814,6 +832,8 @@ fn thin_boxes_fill_the_frame_without_a_sphere_margin() {
 
 ### 3. `src/lib.rs`
 
+Run the supplied fit witnesses with the cumulative source.
+
 **Locate this existing block:**
 
 ```rust
@@ -833,6 +853,8 @@ mod projected_fit_tests;
 ## <a id="checkpoint-96v-project-definition-and-per-instance-features"></a>4. Project definition and per-instance features
 
 ### 1. `src/instance_features.rs`
+
+Combine feature data in a temporary projection object; reuse the existing path and tree owner.
 
 Create the file and type:
 
@@ -864,6 +886,8 @@ pub fn append(
 
 ### 2. `src/lib.rs`
 
+Connect the instance adapter to the existing Session ownership types.
+
 **Locate this existing block:**
 
 ```rust
@@ -882,6 +906,8 @@ pub mod instance_plan;
 ```
 
 ### 3. `src/scene_document.rs`
+
+Stop inherited feature read-only classification at each original instance. Append instance feature displays after attaching original owners to their imported tree.
 
 **Locate this existing block:**
 
@@ -947,6 +973,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 4. `src/feature_owner.rs`
 
+Resolve generated paths to the original instance, using the same visible/unlocked pick guard.
+
 **Locate this existing block:**
 
 ```rust
@@ -978,6 +1006,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 5. `src/instance_feature_tests.rs`
+
+Supply original Session input and independent ownership/archive regression witnesses.
 
 Create the file and type:
 
@@ -1182,6 +1212,8 @@ fn saved_instances_regenerate_features_without_archiving_display_paths() {
 
 ### 6. `src/lib.rs`
 
+Register the supplied regression fixtures.
+
 **Locate this existing block:**
 
 ```rust
@@ -1201,6 +1233,8 @@ mod projected_fit_tests;
 ## <a id="checkpoint-96w-detach-copied-original-source-identity"></a>5. Detach copied source identity
 
 ### 1. `src/scene.rs`
+
+Detach copied original ownership without exposing mutable scene storage. Assign fresh original identity after copying the instance reference.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -1275,6 +1309,8 @@ Replace it with:
 ## <a id="checkpoint-96x-regenerate-display-for-copied-feature-owners"></a>6. Regenerate display for copied feature owners
 
 ### 1. `src/layer_edit.rs`
+
+Select direct original attributes and reuse existing projection owners. Exclude generated rows and nested attribute tree descendants before cloning. Regenerate each new original owner after hierarchy and placement adoption.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -1386,6 +1422,8 @@ pub(crate) fn copy_objects(
 ```
 
 ### 2. `src/copy_feature_tests.rs`
+
+Supply independent original-source, placement and archive witnesses.
 
 Create the file and type:
 
@@ -1653,6 +1691,8 @@ fn copied_instances_keep_one_definition_and_separate_reference_identity() {
 
 ### 3. `src/lib.rs`
 
+Register the supplied copy fixtures.
+
 **Locate this existing block:**
 
 ```rust
@@ -1672,6 +1712,8 @@ pub mod feature_owner;
 ## <a id="checkpoint-96y-address-feature-pixels-to-original-cad-owners"></a>7. Address feature pixels to CAD owners
 
 ### 1. `src/feature_owner.rs`
+
+Reuse the existing original-owner traversal for a displayed GPU primitive.
 
 **Locate this existing block:**
 
@@ -1707,6 +1749,8 @@ pub fn row_owner(scene: &Scene, key: &str) -> Option<ObjectId> {
 
 ### 2. `src/pick_sources.rs`
 
+Write an original editing ID and suppress invented subpart tags for derived ink.
+
 **Locate this existing block:**
 
 ```rust
@@ -1733,6 +1777,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 3. `src/feature_pick_tests.rs`
+
+Supply independent original-owner address and guard witnesses.
 
 Create the file and type:
 
@@ -1994,6 +2040,8 @@ fn tree_original_targets_preserve_complete_feature_presentation_membership() {
 
 ### 4. `src/lib.rs`
 
+Register the supplied original-owner address fixture.
+
 **Locate this existing block:**
 
 ```rust
@@ -2011,6 +2059,8 @@ mod instance_feature_tests;
 ```
 
 ### 5. `src/pick_gpu_tests.rs`
+
+Supply a real integer GPU feature-pixel readback witness.
 
 **Locate this existing block:**
 
@@ -2075,6 +2125,8 @@ fn actual_integer_pick_preserves_high_ids_depth_and_locked_occlusion() {
 ```
 
 ### 6. `src/hierarchy.rs`
+
+Keep original editing targets separate from all display members of a tree row. Count and select original descendants in editable rows; retain read-only feature identities and complete display membership. Give ordinary and created rows the same explicit display-membership contract.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -2196,6 +2248,8 @@ pub fn rows(scene: &Scene) -> Vec<Row> {
 
 ### 7. `src/tree_panel.rs`
 
+Read presentation state from every display member while selection eligibility and actions keep original targets.
+
 **Locate this existing block:**
 
 ```rust
@@ -2272,6 +2326,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 8. `src/layer_properties.rs`
 
+Apply visibility, locking and colours to all display members without widening editing selection.
+
 **Locate this existing block:**
 
 ```rust
@@ -2313,6 +2369,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ## <a id="checkpoint-96z-preserve-source-feature-visibility-and-pixel-styles"></a>8. Preserve source feature visibility and pixel styles
 
 ### 1. `src/feature_display.rs`
+
+Respect original feature visibility before generating a display. Reuse marker and path preparation with source colors and current ordinary feature sizes.
 
 **Locate this existing block:**
 
@@ -2375,6 +2433,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 2. `src/feature_style_tests.rs`
+
+Supply original-data style, visibility, placement and ownership witnesses.
 
 Create the file and type:
 
@@ -2502,6 +2562,8 @@ fn original_feature_visibility_colour_and_point_styles_survive_projection() {
 
 ### 3. `src/lib.rs`
 
+Register the independent source-style fixture.
+
 **Locate this existing block:**
 
 ```rust
@@ -2519,6 +2581,8 @@ mod instance_feature_tests;
 ```
 
 ### 4. `src/pick_gpu_tests.rs`
+
+Supply a real GPU marker ownership and CSS-diameter witness at DPR one and two.
 
 **Locate this existing block:**
 

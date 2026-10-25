@@ -94,6 +94,8 @@
 
 ### 1. `src/surface_view.rs`
 
+Encode the existing anchored frame once, on the stack, with its current eye and projection kind.
+
 Create the file and type:
 
 ```rust
@@ -123,6 +125,8 @@ pub fn bytes(matrix: [f32; 16], display: [f32; 4]) -> [u8; 96] {
 
 ### 2. `src/lib.rs`
 
+Keep one internal owner for the shared surface-frame layout.
+
 **Locate this existing block:**
 
 ```rust
@@ -141,6 +145,8 @@ mod draw_slots;
 ```
 
 ### 3. `src/renderer.rs`
+
+Share the frame layout with derived surface pipelines. Allocate the exact shared frame size. Reuse the same frame encoder while preparing original picks. Choose current flat or Arctic sky mode in the shared frame; keep normal inspection and opacity.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -266,6 +272,8 @@ Replace it with:
 
 ### 4. `src/face_pick.rs`
 
+Keep every consumer of the shared frame on the same binding layout.
+
 **Locate this existing block:**
 
 ```rust
@@ -283,6 +291,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 5. `src/ambient_source_pipeline.rs`
+
+Keep every consumer of the shared frame on the same binding layout.
 
 **Locate this existing block:**
 
@@ -302,6 +312,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 6. `src/cap_pipeline.rs`
 
+Keep every consumer of the shared frame on the same binding layout.
+
 **Locate this existing block:**
 
 ```rust
@@ -319,6 +331,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 7. `src/cap_pick_pipeline.rs`
+
+Keep every consumer of the shared frame on the same binding layout.
 
 **Locate this existing block:**
 
@@ -338,6 +352,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 8. `src/outline_gpu.rs`
 
+Keep every consumer of the shared frame on the same binding layout.
+
 **Locate this existing block:**
 
 ```rust
@@ -355,6 +371,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 9. `src/pick_gpu.rs`
+
+Grow only the shared pick view; its crop frame keeps its own size. Share exact frame bytes with the color renderer.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -404,6 +422,8 @@ Replace it with:
 ```
 
 ### 10. `src/triangle.wgsl`
+
+Read the same eye/projection block in both surface-record variants. Use current flat source colors and eye-facing Arctic sky shading in the existing shared shader.
 
 **Locate this existing block:**
 
@@ -520,6 +540,8 @@ fn shade(input: VertexOutput, front: bool) -> vec4<f32> {
 
 ### 11. `src/clipping_uniform.rs`
 
+Share the existing scale-stable inverse and reject invalid inputs.
+
 **Locate this existing block:**
 
 ```rust
@@ -541,6 +563,8 @@ pub(crate) fn inverse(m: &Xform) -> Option<Xform> {
 
 ### 12. `src/ambient_camera.rs`
 
+Keep valid wide orthographic cameras in the real ambient pass.
+
 **Locate this existing block:**
 
 ```rust
@@ -560,6 +584,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 13. `src/pyramid_gpu.rs`
+
+Reuse the same current camera inversion in the optional depth-pyramid path.
 
 **Locate this existing block:**
 
@@ -582,6 +608,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 14. `src/surface_lighting_tests.rs`
+
+Supply real mode pixels, uniform/fallback restoration, current camera bytes and wide ambient/pyramid controls.
 
 Create the file and type:
 
@@ -796,6 +824,8 @@ fn wide_ambient_and_depth_pyramid_keep_real_passes_without_geometry_uploads() {
 
 ### 15. `src/renderer.rs`
 
+Register optional GPU validation outside the required browser graph.
+
 **Locate this existing block:**
 
 ```rust
@@ -817,6 +847,8 @@ mod surface_lighting_tests;
 ## <a id="checkpoint-96zzzzzzh-connect-headlight-and-backface-controls"></a>2. Connect headlight and backface controls
 
 ### 1. `src/renderer.rs`
+
+Store only the two optional presentation settings. Retain current flat defaults. Arctic takes precedence while both settings remain available for restoration. Update presentation without rebuilding source records.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -926,6 +958,8 @@ pub struct Renderer {
 
 ### 2. `src/triangle.wgsl`
 
+Reuse the current wrapped headlight, soft highlight, sky and backface colors in one shader.
+
 **Locate this existing block:**
 
 ```wgsl
@@ -951,6 +985,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 3. `src/editor.rs`
+
+Keep presentation state beside Arctic. Keep the native flat defaults. Use the existing action path. Return before tool cancellation or history changes. Keep the existing action match exhaustive.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -1085,6 +1121,8 @@ Replace it with:
 
 ### 4. `src/commands.rs`
 
+Share registry entries with command completion. Reuse strict optional On/Off parsing.
+
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -1133,6 +1171,8 @@ Replace it with:
 
 ### 5. `src/browser_defaults.rs`
 
+Match current presence-based startup queries.
+
 **Locate this existing block:**
 
 ```rust
@@ -1152,6 +1192,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 6. `src/browser.rs`
+
+Forward presentation through the same renderer. Expose the live view state for actual browser checks.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -1195,6 +1237,8 @@ Replace it with:
 ```
 
 ### 7. `src/surface_controls_tests.rs`
+
+Supply command, draft/history and actual shared/fallback face-pixel controls.
 
 Create the file and type:
 
@@ -1303,6 +1347,8 @@ fn strict_view_options_and_completion_share_existing_registry() {
 
 ### 8. `src/lib.rs`
 
+Register optional command controls.
+
 **Locate this existing block:**
 
 ```rust
@@ -1323,6 +1369,8 @@ pub mod outline_caps;
 
 ### 9. `src/renderer.rs`
 
+Register actual native GPU controls outside the browser graph.
+
 **Locate this existing block:**
 
 ```rust
@@ -1342,6 +1390,8 @@ mod surface_controls_tests;
 ```
 
 ### 10. `src/surface_controls_gpu_tests.rs`
+
+Supply actual headlight/backface, mirrored orientation, projection and exact restoration controls.
 
 Create the file and type:
 

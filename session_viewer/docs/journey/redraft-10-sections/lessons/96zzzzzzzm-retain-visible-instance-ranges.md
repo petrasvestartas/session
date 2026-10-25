@@ -101,6 +101,8 @@
 
 ### 1. `src/ink_ranges.rs`
 
+Retain merged contiguous CPU instance ranges and filter draw submission without copying geometry or rebasing GPU instance indices. Empty metadata preserves the existing whole lane. Retain one complete draw when all populated families remain visible, and skip the metadata scan when no populated family is visible.
+
 Create the file and type:
 
 ```rust
@@ -159,6 +161,8 @@ impl Runs {
 
 ### 2. `src/lib.rs`
 
+Share one allocation-free range iterator between ordinary and finite colour/query drawing.
+
 **Locate this existing block:**
 
 ```rust
@@ -177,6 +181,8 @@ pub mod ink_ranges;
 ```
 
 ### 3. `src/stroke_gpu.rs`
+
+Keep presentation metadata beside the existing lane; it owns no GPU resource. Default to complete retained draws so existing lanes preserve their behaviour. Use the same CPU ranges in finite colour drawing. Use absolute retained ranges for finite integer queries too. Keep full buffer bindings and absolute first-instance values in draw; do not compact source addresses. Keep full buffer bindings and absolute first-instance values in pick; do not compact source addresses.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -330,6 +336,8 @@ pub struct Lane {
 
 ### 4. `src/finite_ink.rs`
 
+Give finite drawing the retained CPU range iterator. Retain one query bind-group preparation before all visible absolute draws. Apply identical visible instance ranges to finite draw without rebinding or copying the original vertex/ID/metadata buffers. Apply identical visible instance ranges to finite pick without rebinding or copying the original vertex/ID/metadata buffers.
+
 **Locate this existing block:**
 
 ```rust
@@ -423,6 +431,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 5. `src/ink_range_gpu_tests.rs`
+
+Actual Native GPU witness: nonzero first-instance ranges retain the original middle colour and original owner, hide both outside owners, restore exact pixels, and retain all source records/uploads in finite and ordinary paths at one/four samples.
 
 Create the file and type:
 
@@ -548,6 +558,8 @@ fn actual_filtered_instances_keep_absolute_colour_and_original_query_addresses()
 
 ### 6. `src/renderer.rs`
 
+Supply the actual GPU range/address regression as a child of the renderer.
+
 **Locate this existing block:**
 
 ```rust
@@ -569,6 +581,8 @@ pub struct Renderer {
 ```
 
 ### 7. `src/ink_pixels_tests.rs`
+
+Adapt the existing supplied actual finite-ink GPU observer to the explicit all-visible range argument, preserving every coverage/owner/pixel assertion.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -616,6 +630,8 @@ Replace it with:
 
 ### 1. `src/ink_ranges.rs`
 
+Account the retained CPU range capacity without adding GPU storage.
+
 **Locate this existing block:**
 
 ```rust
@@ -634,6 +650,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 2. `src/pick_sources.rs`
+
+Retain source-family boundaries beside original query addresses while preparing a changed scene. Remember the absolute start of each original border run. Classify actual original Plane/OBB borders as Lines; mesh, NURBS and CAD borders follow Edges. Merge adjacent equal families once. Retain the existing mesh-vertex, ordinary-point and active-control ordering without copying marker positions. Keep active control-net ranges independent of ordinary line visibility. Close the active control-net run while retaining absolute original buffer offsets. Store three compact original marker-family intervals; active controls keep their existing owners and subaddresses. Include range metadata in source preparation memory accounting.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -851,6 +869,8 @@ pub struct Sources {
 
 ### 3. `src/renderer.rs`
 
+Move prepared CPU ranges into the existing lanes after the unchanged geometry/ID upload. Default whole-lane drawing remains one draw. Keep retained range capacity accounted after ownership moves from source preparation to the lanes.
+
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -897,6 +917,8 @@ Replace it with:
 
 ### 4. `src/ink_range_gpu_tests.rs`
 
+The supplied absolute-range witness deliberately chooses its own synthetic family split after normal source-family preparation.
+
 **Locate this existing block:**
 
 ```rust
@@ -913,6 +935,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 5. `src/pick_sources.rs`
+
+Original Plane/OBB frames answer Object queries without invented proxy MeshEdge keys. Existing wanted() discards zero subaddresses before query depth/output in Edge/Control modes; no extra buffer or mode upload.
 
 **Locate this existing block:**
 
@@ -951,6 +975,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ## <a id="checkpoint-96zzzzzzzo-show-original-ink-families"></a>3. Show ink families
 
 ### 1. `src/ink_ranges.rs`
+
+Keep one presentation value for ordinary families. Mesh vertex markers require Edges and Vertices; active controls remain independent.
 
 **Locate this existing block:**
 
@@ -1005,6 +1031,8 @@ pub struct Runs {
 ```
 
 ### 2. `src/renderer.rs`
+
+Retain current family visibility independently from immutable scene/source ownership. Start with every ordinary family visible. An actual visibility change cancels stale original queries and changes CPU draw masks without uploading geometry, IDs or settings. Repeated values return immediately. Reapply the same presentation masks after an actual source/rebase preparation without changing original sources or absolute addresses. Original drawing-sheet pens follow Lines together with editable line and curve ink. Gate actual sheet owner queries with the same Lines value as colour; cloud visibility remains independent of ordinary point dots.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -1165,6 +1193,8 @@ pub struct Renderer {
 ```
 
 ### 3. `src/highlight.rs`
+
+Retain the selected stroke family once when a target changes, avoiding a scene lookup per frame. Object highlight borders and paths use the ordinary Lines family. Keep mesh/CAD/surface edge highlights under Edges and Plane/OBB border highlights under Lines. Selected ordinary objects retain line-family highlight semantics. Gate retained stroke/path highlights with their source family instead of leaving hidden originals highlighted. Hide selected ordinary point dots with Points while keeping active source and cloud-point editing highlights independent.
 
 **Locate this existing block:**
 
@@ -2095,6 +2125,8 @@ impl Highlight {
 
 ### 4. `src/renderer.rs`
 
+Use the same retained visibility owner for actual ink highlights. Use the same retained visibility owner for actual points highlights.
+
 **Locate this existing block:**
 
 ```rust
@@ -2144,6 +2176,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 5. `src/ink_visibility_gpu_tests.rs`
+
+Supply an actual Native GPU object/query/occlusion/stale-answer witness for original Plane/OBB and the real mesh edge behind, at both colour counts, exact pixel return and source/upload identity. This source-only witness still requires real execution; other family/highlight/control/shared tests remain required.
 
 Create the file and type:
 
@@ -2320,6 +2354,8 @@ fn actual_original_frames_keep_object_only_queries_and_reveal_the_real_edge_behi
 
 ### 6. `src/renderer.rs`
 
+Supply the actual original-frame visibility/query regression as a renderer child module.
+
 **Locate this existing block:**
 
 ```rust
@@ -2341,6 +2377,8 @@ pub struct Renderer {
 ```
 
 ### 7. `src/ink_visibility_gpu_tests.rs`
+
+Supply actual colour/original-owner query/highlight/control regressions for retained shared meshes, ordinary points, lines and sheet pens at both projections/counts. Export six labelled real frames for critical inspection. No acceptance is implied by preparation.
 
 **Locate this existing block:**
 
@@ -2726,6 +2764,8 @@ fn actual_mixed_families_keep_shared_sources_highlights_queries_and_active_contr
 
 ### 8. `src/sub_id.rs`
 
+Name the existing Object-only ink sentinel. It has no decoded subpart but retains ink priority in the bounded query window.
+
 **Locate this existing block:**
 
 ```rust
@@ -2742,6 +2782,8 @@ pub const CONTROL: u32 = 0x4000_0000;
 ```
 
 ### 9. `src/pick_sources.rs`
+
+Visible original Plane/OBB borders keep Object-only ownership and the same ink priority as ordinary original points. Genuine rear edges remain queryable in Edge mode. Reuse the same named existing sentinel for ordinary points instead of duplicating a magic value.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -2789,6 +2831,8 @@ Replace it with:
 
 ### 10. `src/ink_visibility_gpu_tests.rs`
 
+Compare every decoded original Session field and map entry, independent of protobuf map serialization order. Keep exact source, placement, owner, buffer and pixel assertions.
+
 **Locate this existing block:**
 
 ```rust
@@ -2816,6 +2860,8 @@ fn original_documents(scene: &Scene) -> Vec<session_rust::proto::Session> {
 ```
 
 ### 11. `src/highlight.rs`
+
+Keep the yellow CAD-edge fringe wider than its original source pen while retaining the black core and finite occlusion. Use the original surface pen width for its selected boundary fringe. Derive the selected mesh-edge fringe from the actual source pen, rather than assuming a one-pixel edge. Retain the original black-core draw order.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -2893,6 +2939,8 @@ Replace it with:
 
 ### 12. `src/ink_visibility_gpu_tests.rs`
 
+Capture each actual selected wide mesh edge for direct black-core/yellow-fringe inspection, retaining both exact highlight and source/visibility assertions.
+
 **Locate this existing block:**
 
 ```rust
@@ -2922,6 +2970,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 1. `src/ink_ranges.rs`
 
+Use named source families in semantic view commands rather than numeric selectors.
+
 **Locate this existing block:**
 
 ```rust
@@ -2944,6 +2994,8 @@ pub struct Visibility {
 ```
 
 ### 2. `src/editor.rs`
+
+Keep presentation commands distinct from document mutations. Retain global family flags in the editor through normal input and device recovery. Start with all ordinary source families visible. Family flags and Xray return before history/source mutation. Repeating Xray Off preserves an already nonzero opacity, matching the maintained toggle contract. Keep the document-action match exhaustive after early presentation handling.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -3098,6 +3150,8 @@ Replace it with:
 
 ### 3. `src/commands.rs`
 
+Connect explicit Show/Hide family names and reuse existing hide-selected/show-all actions. No invented canvas letter shortcuts. Use the existing optional On/Off parser for Xray.
+
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -3161,6 +3215,8 @@ Replace it with:
 
 ### 4. `src/browser_defaults.rs`
 
+Read mesh-marker and outline presence overrides once alongside existing browser view defaults; ordinary points and controls stay independent.
+
 **Locate this existing block:**
 
 ```rust
@@ -3182,6 +3238,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 5. `src/browser.rs`
+
+Share one presentation update for startup/recovery and subsequent semantic input, retaining the existing grid policy until its separately authorized corrective lesson. Apply the retained editor presentation before the first actual draw, including recovery, rather than waiting for later input. Actual first-frame GPU/default/recovery proof remains required. Apply changed presentation immediately before any resized/requeued query or colour work through the same startup owner.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -3268,6 +3326,8 @@ Replace it with:
 ```
 
 ### 6. `src/view_command_tests.rs`
+
+Supply semantic command/draft/camera/history/source retention and Xray nonzero-opacity boundary regressions.
 
 Create the file and type:
 
@@ -3380,6 +3440,8 @@ fn xray_on_off_and_toggle_preserve_nonzero_opacity_until_an_actual_switch() {
 
 ### 7. `src/lib.rs`
 
+Supply actual editor/command state tests without adding production work.
+
 **Locate this existing block:**
 
 ```rust
@@ -3442,6 +3504,10 @@ mod view_command_tests;
 
 ### 1. `src/cad_boundary.rs`
 
+Validate a face-free original wire without inventing a face. Preserve the general BRep validator and all coherent face-boundary guards.
+
+The face mesh shades the BRep, but its ordinary triangle edges must stay hidden. Draw the topological boundary edges from their exact 3D NURBS curves, including straight edges. Give curved boundaries denser sampling than the face mesh, using the viewer's 4-degree turning target and existing chord budget. Split at the fitted face-chain parameters so each added chord retains the correct facing and depth tolerance. Interior triangle edges contribute only where the adjacent flat triangle normals identify a silhouette; they are not a visible mesh wireframe.
+
 **Locate this existing block:**
 
 ```rust
@@ -3482,6 +3548,8 @@ pub fn validate(source: &BRep) -> Result<(), &'static str> {
 ```
 
 ### 2. `src/cad_display.rs`
+
+Retain original fallback curve samples beside coherent boundaries. Use the existing joined path lane rather than introducing a family buffer or drawing overlapping capsules. Sample original face-free curves without inventing mesh faces or mapped boundary addresses; preserve sampled bounds. Retain the fallback curve source keys and samples. Use one existing joined-stroke helper for ordinary and selected original CAD wires, with precise placed points and no duplicate scene owner.
 
 **Locate this existing block:**
 
@@ -3676,6 +3744,8 @@ pub fn wires(
 
 ### 3. `src/chain.rs`
 
+Share the existing joined-stroke helper, retaining its complete original join and closed-chain body. Use the shared source pen parameters. Retain start arrow semantics. Retain end arrow semantics. Close the shared helper after the unchanged segment iterator.
+
 **Locate this existing block:**
 
 ```rust
@@ -3790,6 +3860,8 @@ pub fn segments(
 
 ### 4. `src/pick_sources.rs`
 
+Prepare fallback path records once alongside their original Object-only query IDs. Append fallback IDs in the same order as their joined path records. They follow Lines and never create BRepEdge subparts.
+
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -3849,6 +3921,8 @@ Replace it with:
 
 ### 5. `src/renderer.rs`
 
+Upload the prepared fallback spans through the existing path buffer and visibility/query policy.
+
 **Locate this existing block:**
 
 ```rust
@@ -3869,6 +3943,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 6. `src/highlight.rs`
+
+Selected mixed and face-free CAD wires use the same joined highlight lane and source pen width, keeping black centers and Lines masks.
 
 **Locate this existing block:**
 
@@ -3897,6 +3973,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 7. `src/cad_shape_cache.rs`
 
+Rigid-source replay must transform fallback curve samples together with mapped edges; retain original source records and precise models.
+
 **Locate this existing block:**
 
 ```rust
@@ -3918,6 +3996,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 8. `src/cap_gpu_tests.rs`
+
+Supply a format-parameterized real GPU readback helper while keeping every existing Unorm fixture unchanged; matched maintained comparisons need actual sRGB targets, not edited pixels.
 
 **Locate this existing block:**
 
@@ -3967,6 +4047,8 @@ pub(crate) fn pixels_format(
 ```
 
 ### 9. `src/cad_wire_tests.rs`
+
+Supply independent original-wire topology validation and actual mixed/family/query/shared-source/selection/archive GPU witnesses.
 
 Create the file and type:
 
@@ -4449,6 +4531,8 @@ fn actual_original_wire_and_mixed_cad_keep_family_queries_shared_sources_selecti
 
 ### 10. `src/lib.rs`
 
+Supply original CAD wire regressions without production code.
+
 **Locate this existing block:**
 
 ```rust
@@ -4468,6 +4552,8 @@ pub mod finite_ink;
 ```
 
 ### 11. `src/production_ribbon.wgsl`
+
+Copy the exact compiled production ribbon source and shared visibility/prelude without substitute coverage math.
 
 Create the file and type:
 
@@ -5586,6 +5672,8 @@ return vec2<u32>(primitive & 0xffffu, primitive >> 16u);
 
 ### 12. `src/production_ribbon_provenance.json`
 
+Record production source hashes, composition and the copied storage ABI.
+
 Create the file and type:
 
 ```json
@@ -5685,6 +5773,8 @@ Create the file and type:
 ```
 
 ### 13. `src/production_ribbon.rs`
+
+Pack original ordinary lines and production frame uniforms in the actual storage layout.
 
 Create the file and type:
 
@@ -5954,6 +6044,8 @@ pub fn pick_frame(
 ```
 
 ### 14. `src/production_ribbon_gpu.rs`
+
+Own production ordinary-line color and independent integer pipelines with the same four bind groups.
 
 Create the file and type:
 
@@ -6600,6 +6692,8 @@ impl Lane {
 
 ### 15. `src/lib.rs`
 
+Register the copied production ordinary-line owner.
+
 **Locate this existing block:**
 
 ```rust
@@ -6617,6 +6711,8 @@ mod render_space;
 ```
 
 ### 16. `src/renderer.rs`
+
+Ordinary lines use the production ribbon owner. Construct the production storage ribbon pipelines once. Keep finite adapters on the ink families that remain staged. Select production color samples independently from its single-sample query pipeline. Retain the selected-object flag in production instance rows. Keep original local coordinates and separate model/translation placement instead of flattening endpoints. The production owner retains the original course ID translation beside its rows. Exclude ordinary lines from the staged integer ink pipelines. Pass the production ordinary-line owner to fresh integer rendering. Translate production segment addresses before nearest-hit selection. Keep Hide Lines synchronized across production ordinary lines and staged paths. Update production object flags and placement with selection state. Account for production object flags stored in instance records. Bind actual frame depths, primitive addresses and tile buffers to the production ribbon path. Draw exact production ribbon coverage and restore staged-family clipping bindings afterward.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -7081,6 +7177,8 @@ Replace it with:
 
 ### 17. `src/pick_gpu.rs`
 
+Legacy picker construction has no production ordinary-line owner. Allow fresh queries to include the production ordinary-line owner. Carry the original matrix and density into production cropped query uniforms. Preserve the existing picker API and adapt production addresses before decoding. Apply original source IDs to every cursor-window pixel before existing tie-breaking and hit selection.
+
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -7217,6 +7315,8 @@ Replace it with:
 
 ### 18. `src/pick_encode.rs`
 
+Supply production ordinary-line resources to the existing bounded query pass. Use exact production coverage and visibility against fresh query depth and primitive addresses.
+
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -7276,6 +7376,8 @@ Replace it with:
 ```
 
 ### 19. `src/finite_ink.rs`
+
+Compile retained finite color variants only when nonempty ink is bound, and integer variants only when a real query draws, preserving the shader recipes and independent single-sample ownership.
 
 **Locate this existing block:**
 
@@ -7839,6 +7941,8 @@ impl Ink {
 
 ### 20. `src/cap_gpu_tests.rs`
 
+On Windows, require the verified CPU DX12 adapter and task-local DXC before opening the GPU test device; preserve all rendering and pixel assertions.
+
 **Locate this existing block:**
 
 ```rust
@@ -7952,6 +8056,8 @@ pub(crate) fn wait(r: &Renderer) {
 ```
 
 ### 21. `src/production_ribbon_gpu.rs`
+
+Keep object selection and the ordinary Curve target separate while sharing production selected coverage. Start ordinary-line selection and subobject targeting empty. Use actual production FLAG_SELECTED for selected ordinary objects and their Curve target. Retain object selection when a Curve target is added or cleared. Ordinary Curve targets use the production selected row; clearing a target retains independently selected objects.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -8085,6 +8191,8 @@ Replace it with:
 
 ### 22. `src/renderer.rs`
 
+Reset the ordinary Curve target when a new scene resets highlight presentation. Route an ordinary-line Curve target through production flags while keeping staged highlights for other families. Match object-selection presentation replacement while preserving a Curve target across the browser call to select_objects([]).
+
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -8152,6 +8260,8 @@ Replace it with:
 ```
 
 ### 23. `src/highlight.rs`
+
+Ordinary-line Curve highlighting is owned by the production ribbon; retain the existing joined-path Curve highlight. Remove the divergent yellow underlay for selected ordinary lines; keep frame and other non-face object highlights. Keep legacy highlight metadata aligned with the remaining non-ordinary-line rows.
 
 **Locate this existing block:**
 
@@ -8443,6 +8553,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 24. `src/cap_gpu_tests.rs`
 
+Keep the pixel and query assertions unchanged while bounding software WARP readback to thirty seconds on Windows; retain the original five-second wait elsewhere.
+
 **Locate this existing block:**
 
 ```rust
@@ -8478,6 +8590,8 @@ pub(crate) fn pixels(r: &Renderer) -> Vec<u8> {
 ```
 
 ### 25. `src/line_placement_gpu_tests.rs`
+
+Fresh native GPU Object and Curve queries follow an original standalone Line through translation, mirrored nonuniform placement and a distant camera-origin rebase; actual color pixels and retained source/archive data are checked independently.
 
 Create the file and type:
 
@@ -8690,6 +8804,8 @@ fn standalone_line_fresh_gpu_picks_follow_placement_and_rebase_without_rewriting
 
 ### 26. `src/lib.rs`
 
+Register the native placed-line GPU regression using the existing guarded CPU renderer without adding a tutorial checkpoint or changing existing assertions.
+
 **Locate this existing block:**
 
 ```rust
@@ -8708,6 +8824,8 @@ mod line_placement_gpu_tests;
 ```
 
 ### 27. `src/production_splat.wgsl`
+
+Reuse the exact compiled production splat projection, world clipping, normals and disc coverage.
 
 Create the file and type:
 
@@ -9063,6 +9181,8 @@ return vec2<u32>(primitive & 0xffffu, primitive >> 16u);
 
 ### 28. `src/production_splat_resolve.wgsl`
 
+Reuse the exact compiled production opaque depth and eye-dome resolve.
+
 Create the file and type:
 
 ```wgsl
@@ -9191,6 +9311,8 @@ return vec2<u32>(primitive & 0xffffu, primitive >> 16u);
 
 ### 29. `src/production_cloud_provenance.json`
 
+Record the production composition hashes, GPU layouts and bounded ownership adapter.
+
 Create the file and type:
 
 ```json
@@ -9309,6 +9431,8 @@ Create the file and type:
 
 ### 30. `src/production_cloud.rs`
 
+Name the production 160-byte record and keep its optional selected point separate from pick ownership.
+
 Create the file and type:
 
 ```rust
@@ -9375,6 +9499,8 @@ impl SplatRecord {
 
 ### 31. `src/cloud_point_ids.wgsl`
 
+Attach the course cached integer ownership output to production disc coverage through its own uniform.
+
 Create the file and type:
 
 ```wgsl
@@ -9397,6 +9523,8 @@ fn fs_cached_point(in: PointOut) -> CachedPoint {
 
 ### 32. `src/lib.rs`
 
+Register the extracted production cloud source and record layout.
+
 **Locate this existing block:**
 
 ```rust
@@ -9415,6 +9543,8 @@ pub mod cloud_pick;
 ```
 
 ### 33. `src/cloud_gpu.rs`
+
+Each draw owns a small page-address uniform independently of its production splat records. Bind production cloud and clipping uniforms together and retain a separate ownership layout. Use the existing anchored clipping buffer with the exact production group-zero binding layout. Share the existing 48-byte cloud settings and 448-byte clipping data with the production shader. Retain the production frame bind group and the independent page-address layout. Retarget the exact production resolve entry points at one or four samples. Retain source columns, record buffers and page ownership across scene refreshes; update addresses when the resident page snapshot changes. Run exact production clipping from the shared frame binding. Bind the current page ownership only for the cached integer output. Resolve color, eye-dome shading and physical depth through the original production bindings. Include retained per-page ownership uniforms in cloud memory accounting. Match production strict reverse-depth comparison so coincident source points preserve their first color and identity. Declare the production frame layout and independent page ownership alongside the retained query layouts. Match production group zero exactly; page addresses use their own 16-byte uniform. Return both production and adapter layouts to the cloud owner. Compile the verbatim production disc and resolve sources; the small output adapter preserves the course cached integer queries. Production applies framebuffer density before both the minimum disc radius and its spacing radius. Upload the production record ABI with physical point size and keep its optional point-selection word independent of streamed ownership.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -10070,6 +10200,8 @@ Replace it with:
 
 ### 34. `src/renderer.rs`
 
+Connect the actual anchored clipping buffer to production cloud projection. Validate the cloud modules actually used by the current renderer.
+
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -10125,6 +10257,8 @@ Replace it with:
 ```
 
 ### 35. `src/cloud_production_gpu_tests.rs`
+
+Supply real GPU regressions for unintended page-dependent highlighting and first-source ownership at equal depth.
 
 Create the file and type:
 
@@ -10274,6 +10408,8 @@ fn equal_depth_cloud_points_keep_the_first_original_colour_and_pick_identity() {
 
 ### 36. `src/lib.rs`
 
+Register focused native ownership and depth regressions without changing existing assertions.
+
 **Locate this existing block:**
 
 ```rust
@@ -10291,6 +10427,8 @@ pub mod production_cloud;
 ```
 
 ### 37. `src/gpu_test_adapter.rs`
+
+Use the existing strict Microsoft CPU DX12 identity and adjacent task-local DXC guard for native Windows GPU tests; retain the original Vulkan/default-adapter path on other platforms. Device descriptors remain owned by each test.
 
 Create the file and type:
 
@@ -10356,6 +10494,8 @@ pub(crate) fn adapter() -> wgpu::Adapter {
 
 ### 38. `src/lib.rs`
 
+Register the shared test-only adapter selector without adding runtime or browser initialization.
+
 **Locate this existing block:**
 
 ```rust
@@ -10376,6 +10516,8 @@ pub mod pyramid_size;
 ```
 
 ### 39. `src/ambient_contact_tests.rs`
+
+Select the guarded software adapter on Windows while preserving this test's exact device request, required limits, error handler, renderer settings, readback deadlines and assertions.
 
 **Locate this existing block:**
 
@@ -10403,6 +10545,8 @@ fn low_renderer(s: &Scene) -> super::Renderer {
 
 ### 40. `src/clipping_gpu_tests.rs`
 
+Select the guarded software adapter on Windows while preserving this test's exact device request, required limits, error handler, renderer settings, readback deadlines and assertions.
+
 **Locate this existing block:**
 
 ```rust
@@ -10428,6 +10572,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 41. `src/command_inventory_tests.rs`
+
+Select the guarded software adapter on Windows while preserving this test's exact device request, required limits, error handler, renderer settings, readback deadlines and assertions.
 
 **Locate this existing block:**
 
@@ -10455,6 +10601,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 42. `src/contact_boundary_tests.rs`
 
+Select the guarded software adapter on Windows while preserving this test's exact device request, required limits, error handler, renderer settings, readback deadlines and assertions.
+
 **Locate this existing block:**
 
 ```rust
@@ -10480,6 +10628,8 @@ fn renderer(scene: &Scene, bounded: bool) -> Renderer {
 ```
 
 ### 43. `src/finite_visibility_tests.rs`
+
+Select the guarded software adapter on Windows while preserving this test's exact device request, required limits, error handler, renderer settings, readback deadlines and assertions.
 
 **Locate this existing block:**
 
@@ -10507,6 +10657,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 44. `src/frame_target_tests.rs`
 
+Select the guarded software adapter on Windows while preserving this test's exact device request, required limits, error handler, renderer settings, readback deadlines and assertions.
+
 **Locate this existing block:**
 
 ```rust
@@ -10532,6 +10684,8 @@ fn actual_samples_keep_depth_and_integer_addresses_and_resolve_only_colour() {
 ```
 
 ### 45. `src/grid_hardware_tests.rs`
+
+Select the guarded software adapter on Windows while preserving this test's exact device request, required limits, error handler, renderer settings, readback deadlines and assertions.
 
 **Locate this existing block:**
 
@@ -10559,6 +10713,8 @@ fn renderer(scene: &Scene, format: wgpu::TextureFormat) -> Renderer {
 
 ### 46. `src/pick_gpu_tests.rs`
 
+Select the guarded software adapter on Windows while preserving this test's exact device request, required limits, error handler, renderer settings, readback deadlines and assertions.
+
 **Locate this existing block:**
 
 ```rust
@@ -10584,6 +10740,8 @@ fn renderer(scene: &Scene) -> Renderer {
 ```
 
 ### 47. `src/sample_composition_tests.rs`
+
+Select the guarded software adapter on Windows while preserving this test's exact device request, required limits, error handler, renderer settings, readback deadlines and assertions.
 
 **Locate this existing block:**
 
@@ -10611,6 +10769,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 48. `src/sample_positions_tests.rs`
 
+Select the guarded software adapter on Windows while preserving this test's exact device request, required limits, error handler, renderer settings, readback deadlines and assertions.
+
 **Locate this existing block:**
 
 ```rust
@@ -10636,6 +10796,8 @@ fn actual_sample_coordinates_are_measured_without_a_fixed_pattern() {
 ```
 
 ### 49. `src/text_atlas_tests.rs`
+
+Select the guarded software adapter on Windows while preserving this test's exact device request, required limits, error handler, renderer settings, readback deadlines and assertions.
 
 **Locate this existing block:**
 
@@ -10663,6 +10825,8 @@ fn device() -> (wgpu::Device, wgpu::Queue) {
 
 ### 50. `src/tile_gpu_tests.rs`
 
+Select the guarded software adapter on Windows while preserving this test's exact device request, required limits, error handler, renderer settings, readback deadlines and assertions.
+
 **Locate this existing block:**
 
 ```rust
@@ -10689,6 +10853,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 51. `src/widget_tests.rs`
 
+Select the guarded software adapter on Windows while preserving this test's exact device request, required limits, error handler, renderer settings, readback deadlines and assertions.
+
 **Locate this existing block:**
 
 ```rust
@@ -10714,6 +10880,8 @@ fn renderer(scene: &Scene) -> Renderer {
 ```
 
 ### 52. `src/cap_gpu_tests.rs`
+
+Select the guarded software adapter on Windows while preserving this test's exact device request, required limits, error handler, renderer settings, readback deadlines and assertions.
 
 **Locate this existing block:**
 
@@ -10785,6 +10953,8 @@ pub(crate) fn renderer(scene: &Scene) -> Renderer {
 ```
 
 ### 53. `src/stroke_gpu.rs`
+
+Keep the existing legacy stroke draw and integer-pick shader recipes in stable lazy handles. Compile only when a visible legacy draw or pick uses the pipeline; finite-enabled lanes no longer compile unused legacy pipelines during construction.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -11216,6 +11386,8 @@ pub struct Lane {
 
 ### 54. `src/lib.rs`
 
+Connect original Matrix component rows and plate-less titles through the existing scene, archive and render owners.
+
 **Locate this existing block:**
 
 ```rust
@@ -11268,6 +11440,8 @@ pub mod production_ribbon;
 ```
 
 ### 55. `src/renderer.rs`
+
+Connect original Matrix component rows and plate-less titles through the existing scene, archive and render owners.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -11514,6 +11688,8 @@ Replace it with:
 ```
 
 ### 56. `src/scene.rs`
+
+Connect original Matrix component rows and plate-less titles through the existing scene, archive and render owners.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -11943,6 +12119,8 @@ Replace it with:
 
 ### 57. `src/pick_gpu.rs`
 
+Connect original Matrix component rows and plate-less titles through the existing scene, archive and render owners.
+
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -12009,6 +12187,8 @@ Replace it with:
 
 ### 58. `src/pick_encode.rs`
 
+Connect original Matrix component rows and plate-less titles through the existing scene, archive and render owners.
+
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -12066,6 +12246,8 @@ Replace it with:
 ```
 
 ### 59. `src/text.rs`
+
+Connect original Matrix component rows and plate-less titles through the existing scene, archive and render owners.
 
 **Locate this existing block:**
 
@@ -12782,6 +12964,8 @@ mod tests {
 
 ### 60. `src/text_example.rs`
 
+Connect original Matrix component rows and plate-less titles through the existing scene, archive and render owners.
+
 **Locate this existing block:**
 
 ```rust
@@ -12798,6 +12982,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 61. `src/text_plane.wgsl`
+
+Connect original Matrix component rows and plate-less titles through the existing scene, archive and render owners.
 
 **Locate this existing block:**
 
@@ -12919,6 +13105,8 @@ fn fs_main(in: Vertex) -> @location(0) vec4<f32> {
 ```
 
 ### 62. `src/scene_text_gpu.rs`
+
+Connect original Matrix component rows and plate-less titles through the existing scene, archive and render owners.
 
 **Locate this existing block:**
 
@@ -13043,6 +13231,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 63. `src/text_plane.rs`
 
+Connect original Matrix component rows and plate-less titles through the existing scene, archive and render owners.
+
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -13140,6 +13330,8 @@ fn append_quad(
 
 ### 64. `src/geometry_snapshot.rs`
 
+Connect original Matrix component rows and plate-less titles through the existing scene, archive and render owners.
+
 **Locate this existing block:**
 
 ```rust
@@ -13168,6 +13360,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 65. `src/scene_archive.rs`
 
+Connect original Matrix component rows and plate-less titles through the existing scene, archive and render owners.
+
 **Locate this existing block:**
 
 ```rust
@@ -13185,6 +13379,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 66. `src/archive_identity.rs`
 
+Connect original Matrix component rows and plate-less titles through the existing scene, archive and render owners.
+
 **Locate this existing block:**
 
 ```rust
@@ -13201,6 +13397,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 67. `src/archive_document.rs`
+
+Connect original Matrix component rows and plate-less titles through the existing scene, archive and render owners.
 
 **Locate this existing block:**
 
@@ -13225,6 +13423,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 68. `src/document_geometry.rs`
+
+Connect original Matrix component rows and plate-less titles through the existing scene, archive and render owners.
 
 **Locate this existing block:**
 
@@ -13257,6 +13457,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 69. `src/scene_document.rs`
+
+Connect original Matrix component rows and plate-less titles through the existing scene, archive and render owners.
 
 **Locate this existing block:**
 
@@ -13352,6 +13554,8 @@ pub fn open(scene: &mut Scene, bytes: &[u8]) -> Result<(), String> {
 
 ### 70. `src/measure_mark.rs`
 
+Connect original Matrix component rows and plate-less titles through the existing scene, archive and render owners.
+
 **Locate this existing block:**
 
 ```rust
@@ -13369,6 +13573,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 71. `src/text_geometry.rs`
 
+Connect original Matrix component rows and plate-less titles through the existing scene, archive and render owners.
+
 **Locate this existing block:**
 
 ```rust
@@ -13385,6 +13591,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 72. `src/production_matrix.wgsl`
+
+Reuse the current Matrix shader, original component packing and explicit source/GPU ownership.
 
 Create the file and type:
 
@@ -14134,6 +14342,8 @@ return ((plane * size.y + at.y) * size.x + at.x) * 4u;
 
 ### 73. `src/production_matrix_walk.rs`
 
+Reuse the current Matrix shader, original component packing and explicit source/GPU ownership.
+
 Create the file and type:
 
 ```rust
@@ -14338,6 +14548,8 @@ fn color_f32(component: &Component, key: &str, default: [f32; 4]) -> [f32; 4] {
 ```
 
 ### 74. `src/production_matrix.rs`
+
+Reuse the current Matrix shader, original component packing and explicit source/GPU ownership.
 
 Create the file and type:
 
@@ -14577,6 +14789,8 @@ pub fn title(
 ```
 
 ### 75. `src/production_matrix_gpu.rs`
+
+Reuse the current Matrix shader, original component packing and explicit source/GPU ownership.
 
 Create the file and type:
 
@@ -15155,6 +15369,8 @@ impl Lane {
 
 ### 76. `src/matrix_tests.rs`
 
+Check original Matrix round trips, packed decimals and actual GPU colors, whole-object picks and sample returns.
+
 Create the file and type:
 
 ```rust
@@ -15477,6 +15693,8 @@ fn old_text_archives_default_to_plated_world_labels() {
 
 ### 77. `src/production_matrix_provenance.json`
 
+Reuse the current Matrix shader, original component packing and explicit source/GPU ownership.
+
 Create the file and type:
 
 ```json
@@ -15518,6 +15736,8 @@ Create the file and type:
 ```
 
 ### 78. `src/ink_plane.wgsl`
+
+Share one unchanged axis-visibility fallback call across invalid-plane and invalid-triangle branches to reduce duplicated browser shader compilation. Rendering decisions and arithmetic remain unchanged; memory improvement requires measurement.
 
 **Locate this existing block:**
 
@@ -15589,6 +15809,8 @@ fn finite_ink_axis(pixel:vec2<f32>,ends:vec4<f32>,depths:vec2<f32>)->InkAxis{
 ```
 
 ### 79. `src/cloud_placement_gpu_tests.rs`
+
+Exercise original cloud placement, mirror/nonuniform scale, exact far rebasing, cached source IDs, archives and real-source LOD resident boundaries.
 
 Create the file and type:
 
@@ -15884,6 +16106,8 @@ fn real_large_cloud_resident_prefixes_obey_the_exact_two_million_boundary_and_bo
 
 ### 80. `src/lib.rs`
 
+Register focused production-cloud placement and boundary validation.
+
 **Locate this existing block:**
 
 ```rust
@@ -15901,6 +16125,8 @@ mod cloud_production_gpu_tests;
 ```
 
 ### 81. `src/highlight.rs`
+
+Bind the actual production joined/vector/sheet algorithms to original source IDs, compact object rows and bounded resident pages.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -16023,6 +16249,8 @@ Replace it with:
 
 ### 82. `src/lib.rs`
 
+Bind the actual production joined/vector/sheet algorithms to original source IDs, compact object rows and bounded resident pages.
+
 **Locate this existing block:**
 
 ```rust
@@ -16052,6 +16280,8 @@ mod render_space;
 ```
 
 ### 83. `src/pick_encode.rs`
+
+Bind the actual production joined/vector/sheet algorithms to original source IDs, compact object rows and bounded resident pages.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -16124,6 +16354,8 @@ Replace it with:
 
 ### 84. `src/pick_gpu.rs`
 
+Bind the actual production joined/vector/sheet algorithms to original source IDs, compact object rows and bounded resident pages.
+
 **Locate this existing block:**
 
 ```rust
@@ -16186,6 +16418,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 85. `src/pick_sources.rs`
 
+Bind the actual production joined/vector/sheet algorithms to original source IDs, compact object rows and bounded resident pages.
+
 **Locate this existing block:**
 
 ```rust
@@ -16225,6 +16459,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 86. `src/production_curve_walk.rs`
+
+Bind the actual production joined/vector/sheet algorithms to original source IDs, compact object rows and bounded resident pages.
 
 Create the file and type:
 
@@ -16631,6 +16867,8 @@ pub fn joined_rows(
 
 ### 87. `src/production_joined.rs`
 
+Bind the actual production joined/vector/sheet algorithms to original source IDs, compact object rows and bounded resident pages.
+
 Create the file and type:
 
 ```rust
@@ -16935,6 +17173,8 @@ pub fn rows(
 ```
 
 ### 88. `src/production_joined.wgsl`
+
+Bind the actual production joined/vector/sheet algorithms to original source IDs, compact object rows and bounded resident pages.
 
 Create the file and type:
 
@@ -18054,6 +18294,8 @@ return vec2<u32>(primitive & 0xffffu, primitive >> 16u);
 ```
 
 ### 89. `src/production_ribbon_gpu.rs`
+
+Bind the actual production joined/vector/sheet algorithms to original source IDs, compact object rows and bounded resident pages.
 
 **Locate this existing block:**
 
@@ -19475,6 +19717,8 @@ impl Lane {
 
 ### 90. `src/production_sheet.wgsl`
 
+Bind the actual production joined/vector/sheet algorithms to original source IDs, compact object rows and bounded resident pages.
+
 Create the file and type:
 
 ```wgsl
@@ -20594,6 +20838,8 @@ return vec2<u32>(primitive & 0xffffu, primitive >> 16u);
 
 ### 91. `src/production_sheet_gpu.rs`
 
+Bind the actual production joined/vector/sheet algorithms to original source IDs, compact object rows and bounded resident pages.
+
 Create the file and type:
 
 ```rust
@@ -21253,6 +21499,8 @@ pub fn chunks(
 ```
 
 ### 92. `src/production_vector.wgsl`
+
+Bind the actual production joined/vector/sheet algorithms to original source IDs, compact object rows and bounded resident pages.
 
 Create the file and type:
 
@@ -22091,6 +22339,8 @@ return vec2<u32>(primitive & 0xffffu, primitive >> 16u);
 
 ### 93. `src/production_vector_gpu.rs`
 
+Bind the actual production joined/vector/sheet algorithms to original source IDs, compact object rows and bounded resident pages.
+
 Create the file and type:
 
 ```rust
@@ -22327,6 +22577,8 @@ fn pipeline(
 
 ### 94. `src/production_vector_provenance.json`
 
+Bind the actual production joined/vector/sheet algorithms to original source IDs, compact object rows and bounded resident pages.
+
 Create the file and type:
 
 ```json
@@ -22396,6 +22648,8 @@ Create the file and type:
 ```
 
 ### 95. `src/production_vector_tests.rs`
+
+Bind the actual production joined/vector/sheet algorithms to original source IDs, compact object rows and bounded resident pages.
 
 Create the file and type:
 
@@ -22866,6 +23120,8 @@ fn actual_production_joined_heads_sheets_and_matrix_keep_mixed_source_picks_and_
 
 ### 96. `src/renderer.rs`
 
+Bind the actual production joined/vector/sheet algorithms to original source IDs, compact object rows and bounded resident pages.
+
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -23172,6 +23428,8 @@ Replace it with:
 
 ### 97. `src/editor.rs`
 
+Keep the displayed world grid separate from the view-following working drawing plane. Resolve explicit View once for the held grid, while preserving view-following tool input.
+
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -23222,6 +23480,8 @@ Replace it with:
 
 ### 98. `src/browser.rs`
 
+Camera navigation and Session replacement retain the displayed grid. Inspect the held world frame without truncating its far-world origin to f32.
+
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -23266,6 +23526,8 @@ Replace it with:
 
 ### 99. `src/camera.rs`
 
+Keep the display-plane depth reach tied to its explicit world snapshot.
+
 **Locate this existing block:**
 
 ```rust
@@ -23283,6 +23545,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 100. `src/reload_grid_tests.rs`
+
+Check shared pending-publication camera adoption and explicit held-grid commands, cancellation, GPU row reuse and exact far rebasing.
 
 Create the file and type:
 
@@ -23544,6 +23808,8 @@ fn repeated_grid_commands_and_camera_changes_reuse_gpu_rows_but_a_rebase_updates
 
 ### 101. `src/lib.rs`
 
+Register focused Session reload and displayed-grid regressions.
+
 **Locate this existing block:**
 
 ```rust
@@ -23561,6 +23827,8 @@ mod render_space;
 ```
 
 ### 102. `src/scene.rs`
+
+Run sparse-ID production ink tests beside the existing scene-owned pick fixtures so they can set the private allocator without exposing a runtime API.
 
 **Locate this existing block:**
 
@@ -23582,6 +23850,8 @@ mod production_vector_tests;
 
 ### 103. `Cargo.toml`
 
+Keep the maintained viewer available to native tests and examples without compiling it into the normal learner library.
+
 **Locate this existing block:**
 
 ```toml
@@ -23601,6 +23871,8 @@ current_viewer = { package = "session_viewer", path = "../.." }
 ```
 
 ### 104. `src/lib.rs`
+
+Compile the maintained frame helper only inside native unit tests; the explicit reference example owns its helper directly. Compile the maintained registry helper only inside native unit tests; the inventory example owns its helper directly.
 
 **Locate this existing block:**
 
@@ -23662,6 +23934,8 @@ pub mod registry_audit;
 ```
 
 ### 105. `src/reference_example.rs`
+
+Keep the existing reference example command and image assertions available with the native development dependency.
 
 **Locate this existing block:**
 
@@ -23745,6 +24019,8 @@ fn main() {
 
 ### 106. `src/inventory_example.rs`
 
+Keep the existing inventory example command available with the native development dependency.
+
 **Locate this existing block:**
 
 ```rust
@@ -23773,6 +24049,8 @@ fn main() {
 ```
 
 ### 107. `src/frame_schedule.rs`
+
+Coalesce presentation behind one owned animation frame and GPU completion fence without delaying ordered input mutations.
 
 Create the file and type:
 
@@ -23865,6 +24143,8 @@ mod tests;
 
 ### 108. `src/frame_schedule_tests.rs`
 
+Coalesce presentation behind one owned animation frame and GPU completion fence without delaying ordered input mutations.
+
 Create the file and type:
 
 ```rust
@@ -23942,6 +24222,8 @@ fn disposal_and_ticket_exhaustion_never_revive_a_frame() {
 ```
 
 ### 109. `src/browser_frame.rs`
+
+Coalesce presentation behind one owned animation frame and GPU completion fence without delaying ordered input mutations.
 
 Create the file and type:
 
@@ -24106,6 +24388,8 @@ impl Frame {
 
 ### 110. `src/lib.rs`
 
+Register the native-testable presentation scheduler and its browser owner.
+
 **Locate this existing block:**
 
 ```rust
@@ -24188,6 +24472,8 @@ pub mod gpu_fault;
 ```
 
 ### 111. `src/browser_runtime.rs`
+
+Cancel pending presentation on runtime replacement or disposal and forward existing lifecycle permission changes.
 
 **Locate this existing block:**
 
@@ -24458,6 +24744,8 @@ pub fn refresh_frame(allowed: bool) {
 
 ### 112. `src/report_lifecycle.rs`
 
+Notify presentation after existing hidden, frozen and cached-state transitions, preserving the listener inventory. Cancel queued presentation when lifecycle ownership ends. Resynchronize presentation permission when lifecycle observation is installed again.
+
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -24512,6 +24800,8 @@ pub fn stop() -> bool {
 ```
 
 ### 113. `src/browser.rs`
+
+Handle the private frame event before input processing, using the latest editor and viewport state. Cancel queued presentation on pagehide; final disposal stops before preview uploads, while cached pages retain cancellation state for resume. Keep ordered input work synchronous while requesting at most one presentation after the previous GPU work completes. Give runtime disposal ownership of pending presentation. Resolve viewport and camera state at presentation without replaying the input event.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -24740,6 +25030,8 @@ Replace it with:
 
 ### 114. `src/document_source.rs`
 
+Preserve the original prost decode diagnostic through measured file preparation and the browser error status.
+
 **Locate this existing block:**
 
 ```rust
@@ -24757,6 +25049,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 115. `src/source_phase_tests.rs`
+
+Require the canonical invalid-varint diagnostic while preserving the failed-decode-only measurement assertion.
 
 **Locate this existing block:**
 
@@ -24776,6 +25070,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 116. `src/publication.rs`
 
+Require the original decode diagnostic while preserving atomic failed publication and all existing source assertions.
+
 **Locate this existing block:**
 
 ```rust
@@ -24793,6 +25089,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 117. `src/production_matrix.rs`
+
+Use exact production display algorithms with compact GPU ownership while retaining original source identity.
 
 **Locate this existing block:**
 
@@ -24889,6 +25187,8 @@ pub fn rows(
 ```
 
 ### 118. `src/production_matrix_gpu.rs`
+
+Use exact production display algorithms with compact GPU ownership while retaining original source identity.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -25043,6 +25343,8 @@ Replace it with:
 
 ### 119. `src/production_matrix.wgsl`
 
+Use exact production display algorithms with compact GPU ownership while retaining original source identity.
+
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -25084,6 +25386,8 @@ return vec2<u32>(course_owners[words[in.block + INSTANCE]], 0u);
 ```
 
 ### 120. `src/production_matrix_provenance.json`
+
+Use exact production display algorithms with compact GPU ownership while retaining original source identity.
 
 **Locate this existing block:**
 
@@ -25150,6 +25454,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 121. `src/matrix_compact_tests.rs`
+
+Use exact production display algorithms with compact GPU ownership while retaining original source identity.
 
 Create the file and type:
 
@@ -25263,6 +25569,8 @@ fn sparse_matrix_color_selection_and_pick_match_the_dense_scene() {
 
 ### 122. `src/scene.rs`
 
+Use exact production display algorithms with compact GPU ownership while retaining original source identity.
+
 **Locate this existing block:**
 
 ```rust
@@ -25282,6 +25590,8 @@ mod matrix_compact_tests;
 ```
 
 ### 123. `src/stroke_gpu.rs`
+
+Prepare finite colour only when a nonempty visible range will be drawn; keep data, IDs and query preparation unchanged.
 
 **Locate this existing block:**
 
@@ -25307,6 +25617,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 124. `src/finite_ink.rs`
 
+Expose actual deferred colour pipeline initialization only to tests.
+
 **Locate this existing block:**
 
 ```rust
@@ -25329,6 +25641,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 125. `src/stroke_gpu.rs`
+
+Let tests inspect actual finite colour pipeline initialization without a production counter or API.
 
 **Locate this existing block:**
 
@@ -25356,6 +25670,8 @@ impl Lane {
 ```
 
 ### 126. `src/ink_range_gpu_tests.rs`
+
+Prove hidden ranges do not initialize colour, then re-enable exact pixels and fresh owner queries without uploads or source/ID changes at both sample counts.
 
 **Locate this existing block:**
 
@@ -25455,6 +25771,8 @@ fn actual_filtered_instances_keep_absolute_colour_and_original_query_addresses()
 
 ### 127. `src/production_plane.rs`
 
+Use exact production display algorithms with compact GPU ownership while retaining original source identity.
+
 Create the file and type:
 
 ```rust
@@ -25533,6 +25851,8 @@ pub fn bytes(row: &PlaneRow, out: &mut Vec<u8>) {
 ```
 
 ### 128. `src/production_plane.wgsl`
+
+Use exact production display algorithms with compact GPU ownership while retaining original source identity.
 
 Create the file and type:
 
@@ -26406,6 +26726,8 @@ return vec2<u32>(primitive & 0xffffu, primitive >> 16u);
 
 ### 129. `src/production_plane_provenance.json`
 
+Use exact production display algorithms with compact GPU ownership while retaining original source identity.
+
 Create the file and type:
 
 ```json
@@ -26443,6 +26765,8 @@ Create the file and type:
 ```
 
 ### 130. `src/production_plane_tests.rs`
+
+Use exact production display algorithms with compact GPU ownership while retaining original source identity.
 
 Create the file and type:
 
@@ -26756,6 +27080,8 @@ fn actual_plane_grid_arrows_size_visibility_selection_and_owner_picking() {
 
 ### 131. `src/production_joined.rs`
 
+Use exact production display algorithms with compact GPU ownership while retaining original source identity.
+
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -26838,6 +27164,8 @@ Replace it with:
 ```
 
 ### 132. `src/production_vector_gpu.rs`
+
+Use exact production display algorithms with compact GPU ownership while retaining original source identity.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -27102,6 +27430,8 @@ pub(crate) struct Heads {
 ```
 
 ### 133. `src/production_ribbon_gpu.rs`
+
+Use exact production display algorithms with compact GPU ownership while retaining original source identity.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -27373,6 +27703,8 @@ Replace it with:
 
 ### 134. `src/plane_original.rs`
 
+Use exact production display algorithms with compact GPU ownership while retaining original source identity.
+
 **Locate this existing block:**
 
 ```rust
@@ -27474,6 +27806,8 @@ pub fn prepared(plane: &Plane) -> Result<crate::prepared::PreparedMesh, &'static
 
 ### 135. `src/renderer.rs`
 
+Use exact production display algorithms with compact GPU ownership while retaining original source identity.
+
 **Locate this existing block:**
 
 ```rust
@@ -27502,6 +27836,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 136. `src/editor.rs`
+
+Use exact production display algorithms with compact GPU ownership while retaining original source identity.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -27622,6 +27958,8 @@ Replace it with:
 
 ### 137. `src/commands.rs`
 
+Use exact production display algorithms with compact GPU ownership while retaining original source identity.
+
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -27674,6 +28012,8 @@ Replace it with:
 
 ### 138. `src/browser.rs`
 
+Use exact production display algorithms with compact GPU ownership while retaining original source identity.
+
 **Locate this existing block:**
 
 ```rust
@@ -27693,6 +28033,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 139. `src/lib.rs`
 
+Use exact production display algorithms with compact GPU ownership while retaining original source identity.
+
 **Locate this existing block:**
 
 ```rust
@@ -27710,6 +28052,8 @@ pub mod production_plane;
 ```
 
 ### 140. `src/scene.rs`
+
+Use exact production display algorithms with compact GPU ownership while retaining original source identity.
 
 **Locate this existing block:**
 
@@ -27730,6 +28074,8 @@ mod production_plane_tests;
 ```
 
 ### 141. `src/cap_gpu_tests.rs`
+
+Allow an explicit bounded per-job software GPU readback budget after measuring 38 seconds of deferred first-use work; preserve default deadlines and all semantic assertions.
 
 **Locate this existing block:**
 
@@ -27766,6 +28112,8 @@ pub(crate) fn wait(r: &Renderer) {
 
 ### 142. `src/bounds_original.rs`
 
+Use exact production display algorithms with compact GPU ownership while retaining original source identity.
+
 **Locate this existing block:**
 
 ```rust
@@ -27784,6 +28132,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 143. `src/browser.rs`
 
+Use exact production display algorithms with compact GPU ownership while retaining original source identity.
+
 **Locate this existing block:**
 
 ```rust
@@ -27800,6 +28150,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 144. `src/browser_defaults.rs`
+
+Use exact production display algorithms with compact GPU ownership while retaining original source identity.
 
 **Locate this existing block:**
 
@@ -27819,6 +28171,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 145. `src/cloud_gpu.rs`
+
+Use exact production display algorithms with compact GPU ownership while retaining original source identity.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -27988,6 +28342,8 @@ impl Default for View {
 
 ### 146. `src/commands.rs`
 
+Use exact production display algorithms with compact GPU ownership while retaining original source identity.
+
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -28037,6 +28393,8 @@ Replace it with:
 ```
 
 ### 147. `src/display_settings.rs`
+
+Use exact production display algorithms with compact GPU ownership while retaining original source identity.
 
 Create the file and type:
 
@@ -28102,6 +28460,8 @@ impl Settings {
 ```
 
 ### 148. `src/editor.rs`
+
+Use exact production display algorithms with compact GPU ownership while retaining original source identity.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -28222,6 +28582,8 @@ Replace it with:
 
 ### 149. `src/highlight.rs`
 
+Use exact production display algorithms with compact GPU ownership while retaining original source identity.
+
 **Locate this existing block:**
 
 ```rust
@@ -28252,6 +28614,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 150. `src/lib.rs`
 
+Use exact production display algorithms with compact GPU ownership while retaining original source identity.
+
 **Locate this existing block:**
 
 ```rust
@@ -28273,6 +28637,8 @@ mod production_glyph_gpu;
 ```
 
 ### 151. `src/mesh_parts.rs`
+
+Use exact production display algorithms with compact GPU ownership while retaining original source identity.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -28355,6 +28721,8 @@ Replace it with:
 
 ### 152. `src/plane_original.rs`
 
+Use exact production display algorithms with compact GPU ownership while retaining original source identity.
+
 **Locate this existing block:**
 
 ```rust
@@ -28372,6 +28740,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 153. `src/production_glyph.rs`
+
+Use exact production display algorithms with compact GPU ownership while retaining original source identity.
 
 Create the file and type:
 
@@ -28818,6 +29188,8 @@ pub fn append(
 ```
 
 ### 154. `src/production_glyph.wgsl`
+
+Use exact production display algorithms with compact GPU ownership while retaining original source identity.
 
 Create the file and type:
 
@@ -29539,6 +29911,8 @@ return vec2<u32>(primitive & 0xffffu, primitive >> 16u);
 
 ### 155. `src/production_glyph_gpu.rs`
 
+Use exact production display algorithms with compact GPU ownership while retaining original source identity.
+
 Create the file and type:
 
 ```rust
@@ -29828,6 +30202,8 @@ fn pipeline(
 
 ### 156. `src/production_glyph_provenance.json`
 
+Use exact production display algorithms with compact GPU ownership while retaining original source identity.
+
 Create the file and type:
 
 ```json
@@ -29880,6 +30256,8 @@ Create the file and type:
 ```
 
 ### 157. `src/production_glyph_tests.rs`
+
+Use exact production display algorithms with compact GPU ownership while retaining original source identity.
 
 Create the file and type:
 
@@ -30209,6 +30587,8 @@ fn production_point_pixels_keep_physical_diameter_and_selection_coverage_at_both
 
 ### 158. `src/production_joined.rs`
 
+Use exact production display algorithms with compact GPU ownership while retaining original source identity.
+
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -30276,6 +30656,8 @@ Replace it with:
 ```
 
 ### 159. `src/production_matrix_gpu.rs`
+
+Use exact production display algorithms with compact GPU ownership while retaining original source identity.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -30368,6 +30750,8 @@ pub(crate) struct Lane {
 ```
 
 ### 160. `src/production_ribbon_gpu.rs`
+
+Use exact production display algorithms with compact GPU ownership while retaining original source identity.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -30724,6 +31108,8 @@ pub(crate) struct Lane {
 
 ### 161. `src/production_sheet_gpu.rs`
 
+Use exact production display algorithms with compact GPU ownership while retaining original source identity.
+
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -30815,6 +31201,8 @@ pub struct Lane {
 ```
 
 ### 162. `src/production_sphere.wgsl`
+
+Use exact production display algorithms with compact GPU ownership while retaining original source identity.
 
 Create the file and type:
 
@@ -31552,6 +31940,8 @@ return vec2<u32>(primitive & 0xffffu, primitive >> 16u);
 
 ### 163. `src/renderer.rs`
 
+Use exact production display algorithms with compact GPU ownership while retaining original source identity.
+
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -31813,6 +32203,8 @@ Replace it with:
 
 ### 164. `src/scene.rs`
 
+Use exact production display algorithms with compact GPU ownership while retaining original source identity.
+
 **Locate this existing block:**
 
 ```rust
@@ -31832,6 +32224,8 @@ mod production_glyph_tests;
 ```
 
 ### 165. `src/pick_gpu_tests.rs`
+
+Explicit production display policy at the final checkpoint; retain source, selection, upload, pick, and tolerance assertions.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -31886,6 +32280,8 @@ Replace it with:
 ```
 
 ### 166. `src/print_fill.rs`
+
+Draw retained print fills with production flat-colour and read-only depth semantics.
 
 Create the file and type:
 
@@ -32052,6 +32448,8 @@ mod tests;
 
 ### 167. `src/print_fill.wgsl`
 
+Adapt production text_outline placement, flat alpha colour, clipping and owner-only picking to existing course buffers.
+
 Create the file and type:
 
 ```wgsl
@@ -32079,6 +32477,8 @@ fn print_cut(input:PrintOutput,origin:vec2f)->bool {
 ```
 
 ### 168. `src/print_fill_tests.rs`
+
+Prove exact print classification and visible ink/fresh owner queries without physical print triangles.
 
 Create the file and type:
 
@@ -32180,6 +32580,8 @@ fn printed_fill_keeps_ink_and_fresh_queries_unoccluded_without_physical_triangle
 
 ### 169. `src/lib.rs`
 
+Publish the printed fill lane.
+
 **Locate this existing block:**
 
 ```rust
@@ -32196,6 +32598,8 @@ pub mod print_fill;
 ```
 
 ### 170. `src/mesh.rs`
+
+Retain authored print classification with prepared geometry across source unloading. Derived sampled geometry starts in the physical lane. Match app/walk/mesh.rs is_print_fill and index_run exactly. Expose retained print lane classification without requiring editable source ownership.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -32289,6 +32693,8 @@ Replace it with:
 
 ### 171. `src/gpu_mesh.rs`
 
+Retain production FLAG_PRINT in the original object record. Printed fills do not produce section caps. Cap updates preserve print classification.
+
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -32372,6 +32778,8 @@ Replace it with:
 ```
 
 ### 172. `src/renderer.rs`
+
+Own lazily prepared print pipelines in the renderer. Initialize the print lane without compiling unused pipelines. Exclude prints from physical instance batches while retaining ordinary object records. Print colour must not write physical scene depth or primitive IDs. Prepare only nonempty printed colour variants for current sample count. Production print fills draw before ordinary scene ink, using read-only Greater depth. After the glyph batch: lettering follows spheres and precedes point dots, matching production scene_list.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -32566,6 +32974,8 @@ Replace it with:
 
 ### 173. `src/tile_gpu.rs`
 
+Build physical projected triangles and tile lists only from nonprinted meshes, retaining primitive addresses.
+
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -32634,6 +33044,8 @@ Replace it with:
 
 ### 174. `src/projection_lookup.rs`
 
+Use bounded per-object physical projection when the shared slot table also contains print triangles.
+
 **Locate this existing block:**
 
 ```rust
@@ -32652,6 +33064,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 175. `src/face_pick.rs`
+
+Printed fills have object identity without fabricated source-face IDs.
 
 **Locate this existing block:**
 
@@ -32673,6 +33087,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 176. `src/outline_gpu.rs`
+
+Printed fills are not physical silhouette sources. Do not add physical outline coverage for printed triangles.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -32724,6 +33140,8 @@ Replace it with:
 
 ### 177. `src/ambient_source_gpu.rs`
 
+Printed fills do not supply physical ambient normals or radii.
+
 **Locate this existing block:**
 
 ```rust
@@ -32741,6 +33159,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 178. `src/pick_gpu.rs`
+
+Cache the separate read-only print owner-query pipeline lazily. Initialize deferred print picking. Print queries use fresh single-sample depth but never write it.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -32826,6 +33246,8 @@ Replace it with:
 ```
 
 ### 179. `src/pick_encode.rs`
+
+Receive the independently cached read-only print query pipeline. Exclude print triangles from physical query depth. Place fill owner IDs after physical geometry and before ink without changing physical query depth. Retain the late lettering owner-ID lane. Use the original geometry and integer owner with zero physical primitive and read-only GreaterEqual depth.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -32976,6 +33398,8 @@ Replace it with:
 
 ### 180. `src/object_record.rs`
 
+Name the unused final record word without changing its 176-byte layout or cap token.
+
 **Locate this existing block:**
 
 ```rust
@@ -32993,6 +33417,8 @@ pub type Record = [u8; BYTES];
 ```
 
 ### 181. `src/gpu_mesh.rs`
+
+Retain actual InstanceRef tint alpha independently of the existing RGB-override boolean.
 
 **Locate this existing block:**
 
@@ -33013,6 +33439,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 182. `src/object_settings.wgsl`
 
+Document the existing record words consumed by printed fill.
+
 **Locate this existing block:**
 
 ```wgsl
@@ -33031,6 +33459,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 183. `src/print_fill.wgsl`
 
+Match production vertex alpha multiplied by instance alpha, including selected fills.
+
 **Locate this existing block:**
 
 ```wgsl
@@ -33048,6 +33478,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 184. `src/print_fill_tests.rs`
+
+Render overlapping shared-definition instances with vertex and instance alpha, selected colour, stable uploads and exact fresh owner queries; prove cap-token and ambient-radius words remain independent.
 
 **Locate this existing block:**
 
@@ -33242,6 +33674,8 @@ fn shared_print_instances_compose_vertex_and_instance_alpha_without_changing_cap
 
 ### 185. `src/bounds_original.rs`
 
+Use exact production display algorithms with compact GPU ownership while retaining original source identity.
+
 **Locate this existing block:**
 
 ```rust
@@ -33258,6 +33692,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 186. `src/cad_display.rs`
+
+Use exact production display algorithms with compact GPU ownership while retaining original source identity.
 
 **Locate this existing block:**
 
@@ -33276,6 +33712,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 187. `src/cad_shape_cache.rs`
 
+Use exact production display algorithms with compact GPU ownership while retaining original source identity.
+
 **Locate this existing block:**
 
 ```rust
@@ -33292,6 +33730,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 188. `src/highlight.rs`
+
+Use exact production display algorithms with compact GPU ownership while retaining original source identity.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -33441,6 +33881,8 @@ Replace it with:
 
 ### 189. `src/lib.rs`
 
+Use exact production display algorithms with compact GPU ownership while retaining original source identity.
+
 **Locate this existing block:**
 
 ```rust
@@ -33459,6 +33901,8 @@ pub mod production_mesh_ink;
 ```
 
 ### 190. `src/mesh_parts.rs`
+
+Use exact production display algorithms with compact GPU ownership while retaining original source identity.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -33526,6 +33970,8 @@ Replace it with:
 ```
 
 ### 191. `src/pick_sources.rs`
+
+Use exact production display algorithms with compact GPU ownership while retaining original source identity.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -33625,6 +34071,8 @@ Replace it with:
 
 ### 192. `src/plane_original.rs`
 
+Use exact production display algorithms with compact GPU ownership while retaining original source identity.
+
 **Locate this existing block:**
 
 ```rust
@@ -33641,6 +34089,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 193. `src/production_brep_ink.rs`
+
+Use exact production display algorithms with compact GPU ownership while retaining original source identity.
 
 Create the file and type:
 
@@ -34154,6 +34604,8 @@ pub fn push_edge_pipes(
 
 ### 194. `src/production_joined.rs`
 
+Use exact production display algorithms with compact GPU ownership while retaining original source identity.
+
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -34235,6 +34687,8 @@ pub fn object(
 ```
 
 ### 195. `src/production_mesh_ink.rs`
+
+Use exact production display algorithms with compact GPU ownership while retaining original source identity.
 
 Create the file and type:
 
@@ -34710,6 +35164,8 @@ pub fn append(
 
 ### 196. `src/production_mesh_ink_provenance.json`
 
+Use exact production display algorithms with compact GPU ownership while retaining original source identity.
+
 Create the file and type:
 
 ```json
@@ -34744,6 +35200,8 @@ Create the file and type:
 ```
 
 ### 197. `src/production_mesh_ink_tests.rs`
+
+Use exact production display algorithms with compact GPU ownership while retaining original source identity.
 
 Create the file and type:
 
@@ -35112,6 +35570,8 @@ fn actual_mesh_edges_use_global_production_pen_aa_selection_and_family_switches(
 
 ### 198. `src/production_ribbon_gpu.rs`
 
+Use exact production display algorithms with compact GPU ownership while retaining original source identity.
+
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -35391,6 +35851,8 @@ Replace it with:
 
 ### 199. `src/renderer.rs`
 
+Use exact production display algorithms with compact GPU ownership while retaining original source identity.
+
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -35505,6 +35967,8 @@ Replace it with:
 
 ### 200. `src/scene.rs`
 
+Use exact production display algorithms with compact GPU ownership while retaining original source identity.
+
 **Locate this existing block:**
 
 ```rust
@@ -35525,6 +35989,8 @@ mod production_mesh_ink_tests;
 
 ### 201. `src/surface.rs`
 
+Use exact production display algorithms with compact GPU ownership while retaining original source identity.
+
 **Locate this existing block:**
 
 ```rust
@@ -35542,6 +36008,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 202. `src/pick_gpu_tests.rs`
+
+Explicit production display policy at the final checkpoint; retain source, selection, upload, pick, and tolerance assertions.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -35587,6 +36055,8 @@ fn actual_feature_point_disc_uses_original_owner_and_production_physical_diamete
 
 ### 203. `src/renderer.rs`
 
+Match the maintained show_outlines setting: selection colours and production ribbons remain active, while disabled outlines do not silently add a second legacy black contour.
+
 **Locate this existing block:**
 
 ```rust
@@ -35629,6 +36099,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 204. `src/print_fill.rs`
 
+Skip an empty printed pass before binding its retained pipeline, so removing all printed sources and changing samples cannot bind an incompatible old sample count.
+
 **Locate this existing block:**
 
 ```rust
@@ -35651,6 +36123,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 205. `src/production_glyph.wgsl`
 
+Use exact production display algorithms with compact GPU ownership while retaining original source identity.
+
 **Locate this existing block:**
 
 ```wgsl
@@ -35669,6 +36143,8 @@ return vec2<u32>(course_owners[in.inst_id], 1u);
 
 ### 206. `src/production_sphere.wgsl`
 
+Use exact production display algorithms with compact GPU ownership while retaining original source identity.
+
 **Locate this existing block:**
 
 ```wgsl
@@ -35686,6 +36162,8 @@ return vec2<u32>(course_owners[in.inst_id], 1u);
 ```
 
 ### 207. `src/production_glyph_provenance.json`
+
+Use exact production display algorithms with compact GPU ownership while retaining original source identity.
 
 **Locate this existing block:**
 
@@ -35746,6 +36224,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 208. `src/production_ribbon_gpu.rs`
 
+Use exact production display algorithms with compact GPU ownership while retaining original source identity.
+
 **Locate this existing block:**
 
 ```rust
@@ -35774,6 +36254,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 209. `src/command_owner_tests.rs`
 
+At the production-integrated endpoint ordinary Plane uses its real whole-object owner and compact PlaneRows, rather than seven invented mesh-edge identities. The existing original-source, archive, trim, undo and redo assertions remain intact; clipping Plane retains its seven edges.
+
 **Locate this existing block:**
 
 ```rust
@@ -35794,6 +36276,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 210. `src/cloud_composite_tests.rs`
+
+Set EDL through its new authoritative presentation-settings owner; draw now reapplies this setting to the cloud lane. Preserve every original complete-frame, independent production compositor, sample-count, EDL-mode, pick and source assertion.
 
 **Locate this existing block:**
 
@@ -35819,6 +36303,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 211. `src/current_inventory.json`
+
+Record the actual pulled and locally corrected production source inventory at the final endpoint; preserve earlier checkpoint inventories and all source-verification assertions.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -39096,6 +39582,8 @@ Replace it with:
 
 ### 212. `src/inventory_tests.rs`
 
+Record the actual pulled and locally corrected production source inventory at the final endpoint; preserve earlier checkpoint inventories and all source-verification assertions.
+
 **Locate this existing block:**
 
 ```rust
@@ -40179,6 +40667,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 234. `src/feature_display.rs`
 
+Use the actual production contact outline walk, joined ribbon, sentinel colour and packed face normal from app/walk/mod.rs; retain original fill/query geometry.
+
 **Locate this existing block:**
 
 ```rust
@@ -40218,6 +40708,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 235. `src/finite_visibility_tests.rs`
+
+Apply the same complete-pixel and analytic-cap-support assertions to plain and headed lines: the explicit cropped source has a real round start cap, while a camera cut of the original start arrow remains flat.
 
 **Locate this existing block:**
 
@@ -40305,6 +40797,8 @@ fn actual_hardware_grid_matches_independent_current_native_frames() {
 ```
 
 ### 238. `src/current_inventory.json`
+
+Record the actual pulled and locally corrected production source inventory at the final endpoint; preserve earlier checkpoint inventories and all source-verification assertions.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -40814,6 +41308,8 @@ Replace it with:
 
 ### 239. `src/finite_visibility_tests.rs`
 
+The actual production ribbon sets terminal style flags for a headed row even at its unheaded far end. Compare every body pixel exactly; restrict plain differences to the true start cap and headed differences to the two analytic terminal supports. Preserve exact flat-cut pixels and all source/query checks.
+
 **Locate this existing block:**
 
 ```rust
@@ -40875,6 +41371,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 240. `src/pick_gpu_tests.rs`
+
+Assert the active whole-owner ink ID and its resolved original Object; preserve physical diameter, cursor reach and no-fake-edge/control checks.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -40980,6 +41478,8 @@ Replace it with:
 ```
 
 ### 241. `src/current_inventory.json`
+
+Record the actual pulled and locally corrected production source inventory at the final endpoint; preserve earlier checkpoint inventories and all source-verification assertions.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -41279,6 +41779,8 @@ Replace it with:
 
 ### 242. `src/inventory_tests.rs`
 
+Record the actual pulled and locally corrected production source inventory at the final endpoint; preserve earlier checkpoint inventories and all source-verification assertions.
+
 **Locate this existing block:**
 
 ```rust
@@ -41295,6 +41797,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 243. `src/source_audit.rs`
 
+Compare canonical UTF-8 source hashes across Windows and Linux line endings; retain exact binary hashing and every source-presence/hash assertion.
+
 **Locate this existing block:**
 
 ```rust
@@ -41310,6 +41814,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 244. `src/current_inventory.json`
+
+Record the actual pulled and locally corrected production source inventory at the final endpoint; preserve earlier checkpoint inventories and all source-verification assertions.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -44029,6 +44535,8 @@ Replace it with:
 
 ### 245. `src/inventory_tests.rs`
 
+Record the actual pulled and locally corrected production source inventory at the final endpoint; preserve earlier checkpoint inventories and all source-verification assertions.
+
 **Locate this existing block:**
 
 ```rust
@@ -44044,6 +44552,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 246. `src/plane_original.rs`
+
+Retain the original clipping-plane width and colour in its display pen. Check custom guide pens, original ownership and explicit display precedence.
 
 **Locate this existing block:**
 
@@ -44395,6 +44905,8 @@ mod guide_pen_tests {
 
 ### 247. `src/production_joined.rs`
 
+Render clipping guides with the production ribbon coverage and section-cap visibility.
+
 **Locate this existing block:**
 
 ```rust
@@ -44443,6 +44955,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 248. `src/pick_sources.rs`
 
+Retain clipping-guide query rows while drawing each guide once in the line family.
+
 **Locate this existing block:**
 
 ```rust
@@ -44476,6 +44990,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 249. `src/global_outline_tests.rs`
+
+Keep the cap-origin fixture isolated from guide Lines through the actual family visibility control.
 
 **Locate this existing block:**
 
@@ -44548,6 +45064,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 250. `src/production_plane_tests.rs`
+
+Validate the unchanged ordinary Plane row alongside its separate production clipping-guide ribbons and real capacity limit.
 
 **Locate this existing block:**
 
@@ -44726,6 +45244,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 251. `src/production_ribbon_gpu.rs`
 
+Keep original ink and vertex owner queries consistent with the active opaque, glass and Xray view.
+
 **Locate this existing block:**
 
 ```rust
@@ -44799,6 +45319,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 252. `src/pick_encode.rs`
 
+Keep original ink and vertex owner queries consistent with the active opaque, glass and Xray view.
+
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -44846,6 +45368,8 @@ Replace it with:
 ```
 
 ### 253. `src/pick_gpu.rs`
+
+Keep original ink and vertex owner queries consistent with the active opaque, glass and Xray view.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -44913,6 +45437,8 @@ Replace it with:
 
 ### 254. `src/renderer.rs`
 
+Keep original ink and vertex owner queries consistent with the active opaque, glass and Xray view.
+
 **Locate this existing block:**
 
 ```rust
@@ -44929,6 +45455,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 255. `src/mesh_marker_tests.rs`
+
+Check first original-owner queries before a color frame through opaque, glass, Xray and restored opaque settings without changing source/history.
 
 **Locate this existing block:**
 
@@ -45007,6 +45535,8 @@ fn actual_xray_rear_marker_queries_follow_opacity_before_color_and_restore() {
 
 ### 256. `src/ambient_camera.rs`
 
+Keep original geometric contact normals and production pyramid scales consistent through ambient rendering.
+
 **Locate this existing block:**
 
 ```rust
@@ -45075,6 +45605,8 @@ pub fn uniform_with_ground(
 ```
 
 ### 257. `src/ambient.wgsl`
+
+Keep original geometric contact normals and production pyramid scales consistent through ambient rendering.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -45157,6 +45689,8 @@ Replace it with:
 
 ### 258. `src/ambient_sources.wgsl`
 
+Keep original geometric contact normals and production pyramid scales consistent through ambient rendering.
+
 Replace the entire file with:
 
 ```wgsl
@@ -45178,6 +45712,8 @@ struct Source{@location(0) radius:f32,@location(1) normal_x:f32,@location(2) nor
 ```
 
 ### 259. `src/ambient_source_pipeline.rs`
+
+Keep original geometric contact normals and production pyramid scales consistent through ambient rendering.
 
 **Locate this existing block:**
 
@@ -45331,6 +45867,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 260. `src/ambient_source_gpu.rs`
 
+Keep original geometric contact normals and production pyramid scales consistent through ambient rendering.
+
 **Locate this existing block:**
 
 ```rust
@@ -45430,6 +45968,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 261. `src/ambient_images.rs`
+
+Keep original geometric contact normals and production pyramid scales consistent through ambient rendering.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -45551,6 +46091,8 @@ Replace it with:
 
 ### 262. `src/ambient_pipeline.rs`
 
+Keep original geometric contact normals and production pyramid scales consistent through ambient rendering.
+
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -45612,6 +46154,8 @@ Replace it with:
 ```
 
 ### 263. `src/ambient_groups.rs`
+
+Keep original geometric contact normals and production pyramid scales consistent through ambient rendering.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -45750,6 +46294,8 @@ pub struct Groups {
 ```
 
 ### 264. `src/ambient_gpu.rs`
+
+Keep original geometric contact normals and production pyramid scales consistent through ambient rendering.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -45950,6 +46496,8 @@ Replace it with:
 
 ### 265. `src/ambient_input_tests.rs`
 
+Read the full-precision source-normal representation while retaining the existing normal, radius and contact assertions.
+
 **Locate this existing block:**
 
 ```rust
@@ -46061,6 +46609,8 @@ fn properties(
 ```
 
 ### 266. `src/ambient_contact_tests.rs`
+
+Read the full-precision source-normal representation while retaining the existing normal, radius and contact assertions.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -46177,6 +46727,8 @@ Replace it with:
 ```
 
 ### 267. `src/sample_surface_tests.rs`
+
+Read the full-precision source-normal representation while retaining the existing normal, radius and contact assertions.
 
 **Locate this existing block:**
 
@@ -46318,6 +46870,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 268. `src/ambient_sample_inspect.rs`
 
+Keep original geometric contact normals and production pyramid scales consistent through ambient rendering.
+
 **Locate this existing block:**
 
 ```rust
@@ -46353,6 +46907,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 269. `src/ambient_gpu_tests.rs`
+
+Check the retained pedestal ground shadow, cache reuse and exact source/history restoration.
 
 **Locate this existing block:**
 
@@ -46523,6 +47079,8 @@ fn actual_retained_pedestal_ambient_reaches_visible_ground_and_preserves_cache_a
 
 ### 270. `src/cad_edges.rs`
 
+Keep exact original BRep curves, matching face-chain parameters and flat facet facing; preserve source ownership and test the original-curve fallback.
+
 **Locate this existing block:**
 
 ```rust
@@ -46631,6 +47189,8 @@ pub fn edge_chains(b: &BRep, fms: &[Mesh]) -> Vec<Option<EdgeChain>> {
 ```
 
 ### 271. `src/production_brep_ink.rs`
+
+Keep exact original BRep curves, matching face-chain parameters and flat facet facing; preserve source ownership and test the original-curve fallback.
 
 **Locate this existing block:**
 
@@ -47086,6 +47646,10 @@ pub fn display_chain(b: &BRep, chain: &EdgeChain, fm: &Mesh) -> DisplayChain {
 
 ### 272. `src/cad_boundary.rs`
 
+Keep exact original BRep curves, matching face-chain parameters and flat facet facing; preserve source ownership and test the original-curve fallback.
+
+The face mesh shades the BRep, but its ordinary triangle edges must stay hidden. Draw the topological boundary edges from their exact 3D NURBS curves, including straight edges. Give curved boundaries denser sampling than the face mesh, using the viewer's 4-degree turning target and existing chord budget. Split at the fitted face-chain parameters so each added chord retains the correct facing and depth tolerance. Interior triangle edges contribute only where the adjacent flat triangle normals identify a silhouette; they are not a visible mesh wireframe.
+
 **Locate this existing block:**
 
 ```rust
@@ -47341,6 +47905,8 @@ pub fn validate(source: &BRep) -> Result<(), &'static str> {
 ```
 
 ### 273. `src/cad_wire_tests.rs`
+
+Keep exact original BRep curves, matching face-chain parameters and flat facet facing; preserve source ownership and test the original-curve fallback.
 
 **Locate this existing block:**
 
@@ -47641,6 +48207,8 @@ fn cad_curve_facing_stays_with_flat_triangle_normals() {
 
 ### 274. `src/production_mesh_ink_provenance.json`
 
+Keep exact original BRep curves, matching face-chain parameters and flat facet facing; preserve source ownership and test the original-curve fallback.
+
 Replace the entire file with:
 
 ```json
@@ -47688,6 +48256,8 @@ Replace the entire file with:
 ```
 
 ### 275. `src/current_inventory.json`
+
+Record actual transitioned production/kernel source bytes and preserved dirty data; earlier inventories remain historical.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 

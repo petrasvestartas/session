@@ -48,6 +48,8 @@
 
 ### 1. `src/camera.rs`
 
+Move the existing measurement Unit and suffix method to the camera; this body was already typed.
+
 **Locate this existing block:**
 
 ```rust
@@ -80,6 +82,8 @@ pub const NEAR_FRACTION: f64 = 1.0e-4;
 ```
 
 ### 2. `src/measure_mark.rs`
+
+Keep the existing measurement name as an alias to the shared unit.
 
 **Locate this existing block:**
 
@@ -119,6 +123,8 @@ use session_rust::{Geometry, Point};
 ```
 
 ### 3. `src/camera.rs`
+
+Add conversion to metres to the moved unit while retaining its existing suffix method. Retain the file unit with camera state; source geometry stays in scene units. Start with the maintained viewer’s millimetre file unit. Build one unit-aware matrix, subtracting the anchor before narrowing any coordinate. Look at the target relative to the shared scene anchor in metres. Keep eye and target in the same physical coordinate space. Scale the near plane with the physical eye distance. Convert the shared scene/grid reach once. Express the orthographic image size in metres. Retain the existing scene-unit minimum reach during this coordinate preparation. Convert incoming anchor-relative scene vertices to metres in the same matrix.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -326,6 +332,8 @@ impl Unit {
 
 ### 4. `src/lib.rs`
 
+Keep the optional coordinate fixtures outside required coding.
+
 **Locate this existing block:**
 
 ```rust
@@ -343,6 +351,8 @@ pub mod chain;
 ```
 
 ### 5. `src/camera_space_tests.rs`
+
+Supply equivalent physical mm/metre projection/rays and distant submillimetre detail after f32 camera upload.
 
 Create the file and type:
 
@@ -439,6 +449,8 @@ fn anchored_camera_keeps_submillimetre_detail_at_a_distant_origin() {
 
 ### 6. `src/camera.rs`
 
+Invert around the precise camera target so large absolute translations cannot spoil ray construction. Compute ray direction and extent locally, then restore the precise scene-space origin.
+
 **Locate this existing block:**
 
 ```rust
@@ -493,6 +505,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 7. `src/editor.rs`
+
+Remove the independent editor unit value. Use the camera’s existing default scene unit. Measure selected originals using the same scene unit as projection. Give distance annotations that same unit interpretation.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -584,6 +598,8 @@ Replace it with:
 
 ### 8. `src/measure_tests.rs`
 
+Retain all existing area, volume, original-face and open-shape assertions under the shared unit owner.
+
 **Locate this existing block:**
 
 ```rust
@@ -652,6 +668,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 1. `src/render_space.rs`
 
+Share double-precision anchor subtraction before GPU narrowing.
+
 Create the file and type:
 
 ```rust
@@ -710,6 +728,8 @@ impl Origin {
 
 ### 2. `src/lib.rs`
 
+Keep anchor-relative GPU conversion under one coordinate owner.
+
 **Locate this existing block:**
 
 ```rust
@@ -726,6 +746,8 @@ pub mod report_recency;
 ```
 
 ### 3. `src/gpu_mesh.rs`
+
+Retain precise placement translation and the anchor used by its GPU mirror. Make the placement anchor explicit at the one record-packing boundary. Narrow translation only after subtracting the precise anchor; retain the original linear transform. New isolated GPU geometry begins in the ordinary zero-anchor frame. Retain source placement independently of its narrowed uniform and shared table. Rebase only the three translation values; an unchanged relative translation writes nothing. Refresh the precise retained translation for ordinary object edits. Keep selection, styles and placement edits in the current anchor frame.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -919,6 +941,8 @@ Replace it with:
 
 ### 4. `src/global_outline_tests.rs`
 
+Supply actual distant/local pixel equality, exact mapped object records, unchanged geometry uploads, original picks and selection, repeated-anchor zero writes and precise placement edits. Derived ink is omitted explicitly in this isolated surface fixture.
+
 **Locate this existing block:**
 
 ```rust
@@ -1066,6 +1090,8 @@ fn actual_precise_object_rebase_matches_local_pixels_records_selection_and_owner
 
 ### 5. `src/render_space.rs`
 
+Supply exact threshold, strict throttle boundary, pending/settled state, upper clamp, invalid-input atomicity and reset coverage for the prepared origin policy.
+
 **Locate this existing block:**
 
 ```rust
@@ -1162,6 +1188,8 @@ mod tests {
 ## <a id="checkpoint-96zzzzza-prepare-anchor-relative-original-ink"></a>3. Prepare anchor-relative ink
 
 ### 1. `src/scene.rs`
+
+Retain the existing line API while making its packing origin explicit. Subtract the anchor from placed precise endpoints before conversion to GPU floats. Reuse one path-neighbour algorithm for zero and explicit origins. Filter local GPU duplicates after the retained precise sample and original placement. Read the original point and placement before subtracting the anchor; retain its current pixel style. Share the existing original control collector under an explicit packing origin. Retain precise collected control positions through the GPU boundary. Keep original parent-only net ownership while packing its links in the chosen frame. Use the same precise conversion for both ends of a control net.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -1351,6 +1379,8 @@ Replace it with:
 
 ### 2. `src/lib.rs`
 
+Keep optional precise source-packing fixtures outside required learner coding.
+
 **Locate this existing block:**
 
 ```rust
@@ -1368,6 +1398,8 @@ pub mod startup;
 ```
 
 ### 3. `src/scene_origin_tests.rs`
+
+Supply actual original line/path/point placement, fractional bytes, chain neighbours, parent/control IDs, net styles and retained original/cache pointers at a large coordinate.
 
 Create the file and type:
 
@@ -1568,6 +1600,8 @@ fn anchored_source_tables_keep_original_edge_and_control_addresses() {
 
 ### 4. `src/pick_sources.rs`
 
+Reuse the original source-table owner in the same coordinate frame as its packed ink. Pack placed precise mesh boundaries relative to the same anchor without changing their original edge keys. Build compact path addresses from the same local duplicate predicate as the drawable chain while retaining each raw original edge index. Keep control-net positions and original parent addresses in one frame. Keep control marker addresses aligned with their anchor-relative original positions.
+
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -1684,6 +1718,8 @@ Replace it with:
 
 ### 1. `src/render_space.rs`
 
+Expose the current origin once, using the existing zero frame before its first update.
+
 **Locate this existing block:**
 
 ```rust
@@ -1702,6 +1738,8 @@ impl Origin {
 ```
 
 ### 2. `src/renderer.rs`
+
+Keep one origin policy under the renderer owner. Begin in the existing zero-origin frame. Let every derived consumer read the same precise origin.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -1769,6 +1807,8 @@ pub struct Renderer {
 
 ### 3. `src/clipping_gpu.rs`
 
+Reuse one clipping conversion with an explicit anchor while retaining zero-origin callers. Use the existing precise plane/hatch conversion relative to the declared frame origin.
+
 **Locate this existing block:**
 
 ```rust
@@ -1824,6 +1864,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 4. `src/renderer.rs`
+
+Prepare pick clipping in the renderer’s current frame. Keep the first-pick crossing preparation on the same origin. Use the same origin for visible clipping and cap inputs. Provide the precise text origin; retain world planes for the text engine’s pre-subtraction CPU visibility test.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -1922,6 +1964,8 @@ Replace it with:
 
 ### 5. `src/ambient_rows.rs`
 
+Retain precise world floor height with the ambient source owner. Subtract the frame origin before narrowing ambient floor height; radius remains a distance. Avoid losing a small floor displacement during source preparation.
+
 **Locate this existing block:**
 
 ```rust
@@ -2002,6 +2046,8 @@ impl Rows {
 
 ### 6. `src/renderer.rs`
 
+Feed ambient preparation the same anchor-relative ground height.
+
 **Locate this existing block:**
 
 ```rust
@@ -2019,6 +2065,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 7. `src/global_outline_tests.rs`
+
+Supply actual local/distant clipped cap pixels, shared object records, world-space text predicates, exact relative ground height, unchanged source uploads and repeated-uniform reuse.
 
 **Locate this existing block:**
 
@@ -2122,6 +2170,8 @@ fn actual_derived_frame_origin_keeps_cap_pixels_world_text_clips_and_precise_gro
 
 ### 1. `src/render_space.rs`
 
+Subtract the origin in double precision before GPU narrowing or matrix composition.
+
 **Locate this existing block:**
 
 ```rust
@@ -2145,6 +2195,8 @@ pub fn placed(place: &session_rust::Xform, anchor: [f64; 3]) -> session_rust::Xf
 
 ### 2. `src/gpu_mesh.rs`
 
+Reuse the same precise model conversion for existing object records.
+
 **Locate this existing block:**
 
 ```rust
@@ -2166,6 +2218,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 3. `src/cloud_gpu.rs`
+
+Carry the declared origin with cloud view inputs. Retain the earlier default cloud frame. Keep zero-origin callers while preparing one explicit camera-relative cloud view. Retain the exact origin alongside the narrowed eye. Subtract the anchor before the eye offset and narrowing, preserving local camera detail. Include origin identity independently of matrix and eye values. Invalidate retained cloud records when only the frame origin changes. Select cloud detail with eye and source placement in the same local frame. Prepare one precise local placement for cloud records and normal/position inputs. Compose projection after subtracting the precise source placement, then narrow once.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -2350,6 +2404,8 @@ pub struct View {
 
 ### 4. `src/sheet_gpu.rs`
 
+Reuse sheet geometry/cache ownership with an explicit placement origin. Build each original sheet placement in its declared frame. Make precise sheet placement conversion explicit without changing original entity addresses. Reuse the same double-precision local model before packing sheet uniforms.
+
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -2438,6 +2494,8 @@ Replace it with:
 ```
 
 ### 5. `src/renderer.rs`
+
+Capture the renderer origin before mutable lane updates. Keep sheet source adoption in the renderer’s current frame. Keep selection updates in the retained frame. Preserve original sheet selection without reverting its local placement. Supply cloud eye, origin and record-cache inputs from one renderer frame.
 
 **Locate this existing block:**
 
@@ -4066,6 +4124,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 6. `src/cap_gpu_tests.rs`
 
+Reuse the existing optional GPU readback fixture with an explicit matrix; retain every earlier cap pixel assertion.
+
 **Locate this existing block:**
 
 ```rust
@@ -4126,6 +4186,8 @@ pub(crate) fn pixels_at(r: &Renderer, transform: [f32; 16]) -> Vec<u8> {
 ```
 
 ### 7. `src/global_outline_tests.rs`
+
+Supply actual local/distant cloud and sheet pixels, unchanged uploads, equal-matrix camera pan/rebase cache invalidation, exact restoration, original picks and empty release while sources remain retained.
 
 **Locate this existing block:**
 
@@ -4338,6 +4400,8 @@ fn actual_cloud_and_sheet_origins_reuse_uploads_and_invalidate_equal_matrix_view
 
 ### 1. `src/tool_preview.rs`
 
+Reuse the draft preview collector with an explicit frame origin. Retain precise draft outline positions until the local GPU boundary. Pack the precise cursor marker in the same frame.
+
 **Locate this existing block:**
 
 ```rust
@@ -4408,6 +4472,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 2. `src/guide_gpu.rs`
 
+Retain the collector origin as part of guide cache identity. Share precise marker packing across trim and extension guides. Narrow guide wires only after subtracting their collector origin.
+
 **Locate this existing block:**
 
 ```rust
@@ -4461,6 +4527,8 @@ impl Overlay {
 ```
 
 ### 3. `src/editor.rs`
+
+Keep the legacy collector and expose the shared frame to guide producers. Route trim guidance through the same origin-aware collector. Collect extension wires under the declared frame. Keep the precise guide point and world label before their separate GPU boundaries.
 
 **Locate this existing block:**
 
@@ -4568,6 +4636,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 4. `src/trim_draft.rs`
+
+Preserve one trim overlay algorithm while making its local origin explicit. Retain precise trim intersection points until guide marker packing.
 
 **Locate this existing block:**
 
@@ -4682,6 +4752,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 5. `src/measure_gpu.rs`
 
+Keep the packing origin beside the retained precise measurement. Begin with the earlier zero-origin measurement cache. Report actual measurement changes while retaining existing zero-origin callers. Observe origin changes even when precise measurement points are unchanged. Pack both precise measurement endpoints in the declared frame. Publish the cache witness only after successful derived-ink adoption.
+
 **Locate this existing block:**
 
 ```rust
@@ -4776,6 +4848,8 @@ impl Measurement {
 
 ### 6. `src/renderer.rs`
 
+Use the renderer origin for temporary draft geometry. Refresh measurement labels only after source or frame changes.
+
 **Locate this existing block:**
 
 ```rust
@@ -4857,6 +4931,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 7. `src/browser.rs`
 
+Collect browser guide coordinates using the renderer’s current origin.
+
 **Locate this existing block:**
 
 ```rust
@@ -4875,6 +4951,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 8. `src/global_outline_tests.rs`
+
+Supply actual local/distant temporary ink and glyph pixels, origin-only invalidation of unchanged measurements, exact restoration, no invented pick ownership and complete temporary GPU release.
 
 **Locate this existing block:**
 
@@ -5033,6 +5111,8 @@ fn actual_temporary_ink_origins_restore_pixels_invalidate_caches_and_release() {
 ## <a id="checkpoint-96zzzzze-preserve-local-precision-before-source-placement"></a>7. Preserve local precision before source placement
 
 ### 1. `src/scene.rs`
+
+Retain world endpoints and expose one precise local endpoint path. Subtract the placement origin before adding original local endpoint coordinates. Narrow already-local precise endpoints once. Use one precise path position owner before GPU duplicate filtering. Reuse retained precise samples through an anchor-relative placement instead of a rounded world intermediate. Keep world point callers while sharing a precise local point transform. Narrow original point markers after their local transform. Make the collected control coordinate frame explicit. Transform controls through the precise local placement. Collect original markers in the declared local frame. Keep original net links in the same local frame. Collected control positions are already local; narrow without subtracting twice. Pack local control links without a second origin subtraction.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -5349,6 +5429,8 @@ Replace it with:
 
 ### 2. `src/pick_sources.rs`
 
+Use one precise local placement for each original boundary owner. Avoid a large intermediate world coordinate for original mesh/CAD/surface pick ink. Keep compact pick addresses on the exact same local sample path as drawn ink.
+
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -5433,6 +5515,8 @@ Replace it with:
 
 ### 3. `src/cloud_pick.rs`
 
+Retain original world control positions and prepare an explicit local lookup. Apply the local placement for streamed original cloud IDs. Use the same placement for resident original cloud IDs.
+
 **Locate this existing block:**
 
 ```rust
@@ -5496,6 +5580,8 @@ pub fn position_at(
 ```
 
 ### 4. `src/scene_origin_tests.rs`
+
+Supply exact nonbinary local line/path/point/control/cloud and pick-table data through large original placements without changing source IDs.
 
 **Locate this existing block:**
 
@@ -5626,6 +5712,8 @@ fn nonbinary_local_sources_and_pick_tables_survive_large_placements() {
 
 ### 1. `src/cplane.rs`
 
+Retain one construction-plane matrix recipe in double precision; existing GPU callers narrow at their boundary.
+
 **Locate this existing block:**
 
 ```rust
@@ -5673,6 +5761,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 2. `src/grid.rs`
 
+Reuse grid generation in a precise declared frame. Apply local grid positions through the origin-relative precise plane matrix before narrowing.
+
 **Locate this existing block:**
 
 ```rust
@@ -5715,6 +5805,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 3. `src/renderer.rs`
+
+Retain the origin used by grid vertices. Begin with the existing grid frame. Include origin changes when deciding whether cached grid data is current. Pack the grid through the current renderer origin. Publish the complete grid witness after successful adoption.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -5805,6 +5897,8 @@ Replace it with:
 
 ### 4. `src/scene_origin_tests.rs`
 
+Supply an exact nonbinary grid comparison under a large independently placed construction plane.
+
 **Locate this existing block:**
 
 ```rust
@@ -5854,6 +5948,8 @@ fn nonbinary_construction_grid_uses_local_plane_before_narrowing() {
 ```
 
 ### 5. `src/global_outline_tests.rs`
+
+Supply actual grid/surface pixels, unchanged source geometry uploads, origin-only cache invalidation under an identical local matrix, exact restoration, original picks and empty release.
 
 **Locate this existing block:**
 
@@ -6076,6 +6172,8 @@ fn actual_source_grid_origin_cache_keeps_surface_pixels_owners_and_release() {
 
 ### 1. `src/gpu_mesh.rs`
 
+Initialize derived geometry records in their actual frame; retain zero-origin callers. Keep a single record initialization path for both shared geometry and derived faces. Retain the frame used by the initialized record.
+
 **Locate this existing block:**
 
 ```rust
@@ -6211,6 +6309,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 2. `src/global_outline_tests.rs`
+
+Supply actual initial local/distant records and pixels, subsequent exact settings writes, shared geometry identity and unchanged sources.
 
 **Locate this existing block:**
 
@@ -6371,6 +6471,8 @@ fn actual_initial_object_records_keep_precise_local_pixels_updates_and_sources()
 ## <a id="checkpoint-96zzzzzh-prepare-anchor-relative-original-highlights"></a>10. Prepare highlights in the shared local frame
 
 ### 1. `src/highlight.rs`
+
+Expose the origin once at highlight preparation. Place derived face records precisely before their first draw. Apply the existing precise local placement before transforming original boundary coordinates. Reuse the already taught precise local source accessor for highlight presentation. Share the declared origin with whole-object ink selection.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -6748,6 +6850,8 @@ Replace it with:
 
 ### 2. `src/renderer.rs`
 
+Prepare original part selection in the renderer frame. Prepare whole-object ink selection in that same frame.
+
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -6799,6 +6903,8 @@ Replace it with:
 ```
 
 ### 3. `src/global_outline_tests.rs`
+
+Supply actual local/distant face/edge/curve/control/high-bit cloud and object-highlight pixel comparisons with exact clearing and unchanged sources.
 
 **Locate this existing block:**
 
@@ -7113,6 +7219,8 @@ fn actual_original_highlights_keep_local_pixels_addresses_and_sources_after_reba
 ## <a id="checkpoint-96zzzzzi-share-one-camera-and-measurement-unit"></a>11. Verify the shared unit through history
 
 ### 1. `src/measure_tests.rs`
+
+Supply one unit/measurement/camera-inverse/original-source and exact Undo/Redo fixture while retaining earlier measurement assertions.
 
 **Locate this existing block:**
 

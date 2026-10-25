@@ -91,6 +91,8 @@
 
 ### 1. `src/physical.wgsl`
 
+Keep one lossless decoder alongside the shared encoder.
+
 **Locate this existing block:**
 
 ```wgsl
@@ -110,6 +112,8 @@ fn physical_address(halves:vec2<u32>)->u32{
 
 ### 2. `src/ink_plane.wgsl`
 
+Reuse the shared physical address decoder.
+
 **Locate this existing block:**
 
 ```wgsl
@@ -127,6 +131,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 3. `src/outline_caps.wgsl`
+
+Bind the existing integer surface address. Recover cap selection and plane depth while retaining occlusion by later depth writers.
 
 Replace the entire file with:
 
@@ -151,6 +157,8 @@ struct Coverage{@location(0) value:f32,@builtin(frag_depth) depth:f32}
 ```
 
 ### 4. `src/outline_caps.rs`
+
+Match the integer texture binding. Assemble the shared clipping helpers once. Reuse the existing clipping uniform layout. Add the shared plane group to the mask pipeline. Accept the current frame’s clipping planes. Bind the same clipping group used by the surface pass.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -243,6 +251,8 @@ Replace it with:
 
 ### 5. `src/outline_gpu.rs`
 
+Supply current plane depth to the cap mask.
+
 **Locate this existing block:**
 
 ```rust
@@ -260,6 +270,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 6. `src/renderer.rs`
+
+Use the full physical primitive image for this outline mask. Remove the unused section-resource borrow.
 
 **Locate this existing block:**
 
@@ -350,6 +362,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 7. `src/ambient.wgsl`
 
+Read integer section identity during ambient preparation. Share one bounded integer reader between ambient radius and normal lookup. Keep the established section radius without a second surface record. Decode and bound the section plane before reading its normal.
+
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -420,6 +434,8 @@ Replace it with:
 
 ### 8. `src/ambient_pipeline.rs`
 
+Match the shared integer source binding.
+
 **Locate this existing block:**
 
 ```rust
@@ -443,6 +459,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 9. `src/renderer.rs`
 
+Bind the same physical primitive image to ambient shading.
+
 **Locate this existing block:**
 
 ```rust
@@ -460,6 +478,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 10. `src/caps_gpu.rs`
+
+Remove the unused float section image owner. Stop allocating its empty placeholder. Resize only the crossing-count image still used by cap rendering. Keep only color and physical primitive attachments. Report only allocated cap resources.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -596,6 +616,8 @@ Replace it with:
 
 ### 11. `src/cap_color.wgsl`
 
+Move the physical address beside color after removing the float output. Keep plane and selection only in the physical primitive marker.
+
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -641,6 +663,8 @@ Replace it with:
 
 ### 12. `src/cap_pipeline.rs`
 
+Match the reduced fragment outputs.
+
 **Locate this existing block:**
 
 ```rust
@@ -662,6 +686,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 13. `src/cap_pick_pipeline.rs`
 
+Match the reduced fragment outputs.
+
 **Locate this existing block:**
 
 ```rust
@@ -682,6 +708,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 14. `src/cap_pick.wgsl`
+
+Keep exact original owner and physical address as the two integer outputs. Remove the unused float pick record.
 
 **Locate this existing block:**
 
@@ -741,6 +769,8 @@ fn fs_cap_id(in: CapVertex) -> CapId {
 
 ### 15. `src/cap_pick_gpu.rs`
 
+Retain the existing crop’s primitive attachment.
+
 **Locate this existing block:**
 
 ```rust
@@ -765,6 +795,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 16. `src/pick_image.rs`
+
+Remove the unused pick-image member. Stop allocating a duplicate eight-byte surface record per cropped pixel. Construct the smaller cropped image.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -843,6 +875,8 @@ Replace it with:
 
 ### 17. `src/pick_encode.rs`
 
+Remove the pass that only cleared the unused attachment.
+
 **Locate this existing block:**
 
 ```rust
@@ -874,6 +908,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 18. `src/pick_gpu.rs`
 
+Account for eight owner bytes, four depth bytes and four primitive bytes.
+
 **Locate this existing block:**
 
 ```rust
@@ -892,6 +928,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 19. `src/pick_gpu_tests.rs`
 
+Tighten the existing bounded-memory assertion to the actual resources.
+
 **Locate this existing block:**
 
 ```rust
@@ -909,6 +947,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 20. `src/cap_gpu_tests.rs`
+
+Require exactly the remaining uniform and crossing-count allocation. Require release down to the retained sixteen-byte frame uniform.
 
 **Locate this existing block:**
 
@@ -988,6 +1028,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 21. `src/global_outline_tests.rs`
 
+Require the reduced inactive cap allocation in the existing mask regression.
+
 **Locate this existing block:**
 
 ```rust
@@ -1024,37 +1066,34 @@ Edit the existing block to match this code; keep unchanged lines:
   </defs>
   <rect x="2" y="2" width="1116" height="184" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
   <rect x="14" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">CPU RAM: #[repr(C)] Structs -&gt; bytemuck::cast_slice</text>
-  <rect x="46" y="54" width="280" height="44" fill="#f8fafc" stroke="#111111" stroke-width="1.75"/>
-  <rect x="52" y="60" width="64" height="32" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="84" y="80" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">v0: 24B</text>
-  <rect x="122" y="60" width="64" height="32" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="154" y="80" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">v1: 24B</text>
-  <rect x="192" y="60" width="64" height="32" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="224" y="80" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">v2: 24B</text>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="290" y="80" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">...</text>
-  <rect x="66" y="112" width="240" height="34" rx="4" fill="#fef08a" stroke="#111111" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="133" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">&amp;[u8] Contiguous Byte Slice</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Contiguous GPU Arena: [Slice 0 (v0..vn)] [Slice 1] [Slice 2]</text>
+  <rect x="48" y="68" width="244" height="56" fill="#f8fafc" stroke="#111111" stroke-width="2"/>
+  <rect x="52" y="72" width="84" height="48" fill="#dbeafe" stroke="#2563eb" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="94" y="100" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Slice 0</text>
+  <rect x="140" y="72" width="72" height="48" fill="#bbf7d0" stroke="#16a34a" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="176" y="100" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Slice 1</text>
+  <rect x="216" y="72" width="72" height="48" fill="#fef08a" stroke="#d97706" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="252" y="100" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Slice 2</text>
   <line x1="358" y1="94" x2="384" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
   <rect x="388" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">CPU -&gt; GPU DMA: queue.write_buffer(buf, 0, bytes)</text>
-  <rect x="424" y="54" width="272" height="92" rx="6" fill="#dcfce7" stroke="#16a34a" stroke-width="1.75"/>
-  <line x1="448" y1="84" x2="672" y2="84" stroke="#16a34a" stroke-width="3" marker-end="url(#arrG)"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="74" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">create_buffer_init / write_buffer</text>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="112" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#16a34a">VERTEX | INDEX | COPY_DST</text>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="132" text-anchor="middle" font-family="monospace" font-size="9" fill="#111111">array_stride = size_of::&lt;Vertex&gt;()</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Vertex Pulling: idx = indices[base + vid]; v = arena[idx]</text>
+  <rect x="424" y="54" width="272" height="40" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="78" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">var&lt;storage, read&gt; vertices: array&lt;GpuVertex&gt;</text>
+  <rect x="454" y="110" width="212" height="36" fill="#dcfce7" stroke="#16a34a" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="132" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">Dirty Sub-Range -> write_buffer()</text>
   <line x1="732" y1="94" x2="758" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
   <rect x="762" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">GPU VRAM Buffer -&gt; @vertex Input Locations</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Single-Bind-Group Multi-Slice Scene Draw</text>
   <rect x="806" y="44" width="256" height="118" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
-  <rect x="822" y="56" width="224" height="40" rx="4" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="80" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">@location(0) pos: vec3&lt;f32&gt;</text>
-  <rect x="822" y="106" width="224" height="40" rx="4" fill="#fce7f3" stroke="#db2777" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="130" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">@location(1) color: vec3&lt;f32&gt;</text>
+  <polygon points="828,138 864,72 900,138" fill="#dbeafe" stroke="#111111" stroke-width="1.75"/>
+  <polygon points="904,138 940,72 976,138" fill="#bbf7d0" stroke="#111111" stroke-width="1.75"/>
+  <polygon points="980,138 1016,72 1052,138" fill="#fef08a" stroke="#111111" stroke-width="1.75"/>
 </svg>
 </div>
 
 ### 1. `src/packed_vertex.rs`
+
+Write the compact derived GPU representation while retaining source ownership.
 
 Create the file and type:
 
@@ -1108,6 +1147,8 @@ pub fn bytes(mesh: &crate::mesh::Mesh) -> Vec<u8> {
 
 ### 2. `src/lib.rs`
 
+Expose the pure encoder before connecting its upload.
+
 **Locate this existing block:**
 
 ```rust
@@ -1126,6 +1167,8 @@ mod packed_vertex_tests;
 ```
 
 ### 3. `src/packed_vertex.wgsl`
+
+Move the oct32 decoder already taught for clouds into the shared shader source.
 
 Create the file and type:
 
@@ -1148,6 +1191,8 @@ fn oct32_decode(p: u32) -> vec3<f32> {
 ```
 
 ### 4. `src/cloud_points.wgsl`
+
+Use the shared decoder without a second implementation.
 
 **Locate this existing block:**
 
@@ -1182,6 +1227,8 @@ fn rec_f(base: u32, w: u32) -> f32 {
 
 ### 5. `src/clipping_gpu.rs`
 
+Make the same decoder available to current cloud and upcoming mesh shaders.
+
 **Locate this existing block:**
 
 ```rust
@@ -1199,6 +1246,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 6. `src/packed_vertex_tests.rs`
+
+Supply independent position-bit, memory-size, quantization, sentinel and directional-error checks.
 
 Create the file and type:
 
@@ -1276,6 +1325,8 @@ fn octahedral_words_reserve_missing_normals_and_bound_direction_error() {
 
 ### 7. `src/packed_vertex.wgsl`
 
+Declare one scalar-aligned twenty-byte shader layout and shared position reader.
+
 **Locate this existing block:**
 
 ```wgsl
@@ -1293,6 +1344,8 @@ fn oct32_decode(p: u32) -> vec3<f32> {
 ```
 
 ### 8. `src/gpu_geometry.rs`
+
+Remove the separate normal buffer owner. Keep stable vertex and index bindings; no normal storage binding remains. Require at least one complete compact vertex or one index in the storage binding. Upload position, encoded normal and color in one buffer. Remove the duplicate upload. Bind the same compact storage used by every surface pass. Retain one source and one compact vertex buffer. Report actual vertex and index allocation. Indexed passes read their normal word from the same vertex buffer.
 
 **Locate this existing block:**
 
@@ -1534,6 +1587,8 @@ impl GpuGeometry {
 
 ### 9. `src/triangle.wgsl`
 
+Read packed words without numeric conversion. Remove the second normal binding. Decode compact vertices through the already shared oct32 helper for color and pulled integer picks.
+
 **Locate this existing block:**
 
 ```wgsl
@@ -1570,6 +1625,8 @@ fn mesh_vertex(occurrence:u32)->MeshInput{
 ```
 
 ### 10. `src/finite_project.wgsl`
+
+Project positions from the actual compact upload. Use the shared vertex layout rather than a separate stride calculation. Preserve position bits when fitting physical triangle planes.
 
 **Locate this existing block:**
 
@@ -1616,6 +1673,8 @@ fn physical_clip_corner(index:u32)->vec4<f32>{
 
 ### 11. `src/finite_project_source.rs`
 
+Assemble physical projection with the same packed layout and position reader.
+
 **Locate this existing block:**
 
 ```rust
@@ -1637,6 +1696,8 @@ pub fn source() -> String {
 ```
 
 ### 12. `src/face_pick.wgsl`
+
+Remove the obsolete source-face layout; use the shared twenty-byte declaration. Read original face positions and colors through the same compact vertex layout.
 
 **Locate this existing block:**
 
@@ -1683,6 +1744,8 @@ fn face_vertex(@builtin(vertex_index) index: u32) -> FaceOutput {
 
 ### 13. `src/cap_pipeline.rs`
 
+Count closed-solid crossings from the compact vertex positions.
+
 **Locate this existing block:**
 
 ```rust
@@ -1701,6 +1764,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 14. `src/outline_gpu.rs`
 
+Use the same position stride for outline masks.
+
 **Locate this existing block:**
 
 ```rust
@@ -1718,6 +1783,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 15. `src/ambient_source_pipeline.rs`
+
+Read position and the normal word from one twenty-byte vertex binding.
 
 **Locate this existing block:**
 
@@ -1772,6 +1839,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 16. `src/ambient_sources.wgsl`
 
+Receive the integer normal word in the ambient property pass. Use the same decoder and preserve the missing-normal derivative fallback.
+
 **Locate this existing block:**
 
 ```wgsl
@@ -1789,6 +1858,8 @@ fn encode_normal(n:vec3<f32>)->vec2<f32>{let p=n.xy/(abs(n.x)+abs(n.y)+abs(n.z))
 ```
 
 ### 17. `src/global_outline_tests.rs`
+
+Supply actual GPU allocation, source retention, reuse and release checks alongside the existing color/primitive/pick fixtures.
 
 **Locate this existing block:**
 
@@ -1847,6 +1918,8 @@ fn actual_compact_surface_upload_uses_twenty_bytes_per_vertex_and_releases() {
 
 ### 18. `src/geometry_cache.rs`
 
+Count the compact vertex and index bytes actually uploaded; no separate float normal upload remains.
+
 **Locate this existing block:**
 
 ```rust
@@ -1869,6 +1942,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ## <a id="checkpoint-96zze-retain-rgba-in-prepared-displays"></a>3. Retain RGBA in prepared displays
 
 ### 1. `src/mesh.rs`
+
+Retain alpha beside the existing derived vertex columns. Keep ordinary RGB-created display vertices opaque by default. Use one validated RenderMesh conversion for ordinary kernel displays and derived feature displays. Keep length and finiteness invariants with the display owner. Account for the retained CPU alpha column.
 
 **Locate this existing block:**
 
@@ -2074,6 +2149,8 @@ impl Mesh {
 
 ### 2. `src/packed_vertex.rs`
 
+Encode the actual display alpha instead of an opaque constant. Use the same clamped RGBA quantization for all four channels. Pack the validated columns together without another encoder.
+
 **Locate this existing block:**
 
 ```rust
@@ -2123,6 +2200,8 @@ pub fn bytes(mesh: &crate::mesh::Mesh) -> Vec<u8> {
 
 ### 3. `src/packed_vertex_tests.rs`
 
+Keep the existing opaque quantization contract explicit.
+
 **Locate this existing block:**
 
 ```rust
@@ -2140,6 +2219,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 4. `src/display_rgba_tests.rs`
+
+Supply ordinary kernel and derived contact conversion, exact RGBA, unchanged source and column-validation fixtures.
 
 Create the file and type:
 
@@ -2210,6 +2291,8 @@ fn alpha_columns_are_validated_and_default_display_vertices_stay_opaque() {
 
 ### 5. `src/lib.rs`
 
+Connect the supplied alpha-retention fixtures to the authoring harness.
+
 **Locate this existing block:**
 
 ```rust
@@ -2227,6 +2310,8 @@ pub mod document;
 ```
 
 ### 6. `src/memory.rs`
+
+Include the three retained alpha values in the exact shared-snapshot memory fixture.
 
 **Locate this existing block:**
 
@@ -2246,50 +2331,9 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-96zzf-start-with-current-browser-display-defaults"></a>4. Start with current browser display defaults
 
-<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
-<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
-  <defs>
-    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
-    </marker>
-    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
-    </marker>
-    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
-    </marker>
-  </defs>
-  <rect x="2" y="2" width="1116" height="184" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
-  <rect x="14" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Contiguous GPU Arena: [Slice 0 (v0..vn)] [Slice 1] [Slice 2]</text>
-  <rect x="48" y="68" width="244" height="56" fill="#f8fafc" stroke="#111111" stroke-width="2"/>
-  <rect x="52" y="72" width="84" height="48" fill="#dbeafe" stroke="#2563eb" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="94" y="100" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Slice 0</text>
-  <rect x="140" y="72" width="72" height="48" fill="#bbf7d0" stroke="#16a34a" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="176" y="100" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Slice 1</text>
-  <rect x="216" y="72" width="72" height="48" fill="#fef08a" stroke="#d97706" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="252" y="100" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Slice 2</text>
-  <line x1="358" y1="94" x2="384" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
-  <rect x="388" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Vertex Pulling: idx = indices[base + vid]; v = arena[idx]</text>
-  <rect x="424" y="54" width="272" height="40" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="78" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">var&lt;storage, read&gt; vertices: array&lt;GpuVertex&gt;</text>
-  <rect x="454" y="110" width="212" height="36" fill="#dcfce7" stroke="#16a34a" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="132" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">Dirty Sub-Range -> write_buffer()</text>
-  <line x1="732" y1="94" x2="758" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
-  <rect x="762" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Single-Bind-Group Multi-Slice Scene Draw</text>
-  <rect x="806" y="44" width="256" height="118" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
-  <polygon points="828,138 864,72 900,138" fill="#dbeafe" stroke="#111111" stroke-width="1.75"/>
-  <polygon points="904,138 940,72 976,138" fill="#bbf7d0" stroke="#111111" stroke-width="1.75"/>
-  <polygon points="980,138 1016,72 1052,138" fill="#fef08a" stroke="#111111" stroke-width="1.75"/>
-</svg>
-</div>
-
 ### 1. `src/browser_defaults.rs`
+
+Reuse existing opacity and grid state; detect pointer capability and read URL defaults once.
 
 Create the file and type:
 
@@ -2346,6 +2390,8 @@ pub fn initialize(editor: &mut crate::editor::Editor) {
 
 ### 2. `src/lib.rs`
 
+Register the startup settings without a second renderer settings owner.
+
 **Locate this existing block:**
 
 ```rust
@@ -2362,6 +2408,8 @@ pub mod browser_defaults;
 ```
 
 ### 3. `Cargo.toml`
+
+Enable the browser media-query return type in the existing pinned web-sys dependency.
 
 **Locate this existing block:**
 
@@ -2380,6 +2428,8 @@ console_error_panic_hook = "=0.1.7"
 ```
 
 ### 4. `src/browser.rs`
+
+Initialize a new browser document once before creating its renderer.
 
 **Locate this existing block:**
 
@@ -2400,6 +2450,8 @@ pub async fn run() -> Result<(), JsValue> {
 ```
 
 ### 5. `src/browser_defaults_tests.rs`
+
+Supply pointer-policy, finite override, clamping and existing-owner fixtures.
 
 Create the file and type:
 
@@ -2426,6 +2478,8 @@ fn pointer_defaults_and_url_overrides_share_existing_editor_state() {
 
 ### 6. `src/lib.rs`
 
+Register the supplied startup policy fixture.
+
 **Locate this existing block:**
 
 ```rust
@@ -2443,6 +2497,8 @@ mod browser_defaults_tests;
 ```
 
 ### 7. `src/browser_defaults.rs`
+
+Use one query reader for startup defaults and viewport scale. Cap requested pixels using the current finite f32 override policy.
 
 **Locate this existing block:**
 
@@ -2516,6 +2572,8 @@ pub fn initialize(editor: &mut crate::editor::Editor) {
 
 ### 8. `src/browser.rs`
 
+Give viewport images and CSS ink the same capped scale before recovery reduction.
+
 **Locate this existing block:**
 
 ```rust
@@ -2535,6 +2593,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 9. `src/browser_defaults_tests.rs`
+
+Supply high-density, finite override, lower-bound and fallback policy cases.
 
 **Locate this existing block:**
 

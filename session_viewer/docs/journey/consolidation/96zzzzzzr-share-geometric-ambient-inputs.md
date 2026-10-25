@@ -94,6 +94,8 @@
 
 ### 1. `src/ambient_sources.wgsl`
 
+Read both source paths from the existing object record instead of a separate radius uniform. Ambient contacts use geometric normals; lighting normals remain in the surface shading path. Use one radius owner and avoid decoding or interpolating a lighting normal for the ambient source pass. A face normal follows the rendered geometry even when the source provides a different lighting normal.
+
 **Locate this existing block:**
 
 ```wgsl
@@ -130,6 +132,8 @@ struct Source{@location(0) radius:f32,@location(1) normal:vec2<f32>}
 ```
 
 ### 2. `src/ambient_source_gpu.rs`
+
+Remove the redundant per-object property cache. The source owner retains only its two existing pipelines. No per-object radius buffers or bind groups are allocated. The existing object records already contain each placed contact radius. Both actual storage and uniform object paths use the same retained radius, without a second per-mesh binding. There is no separate ambient source buffer allocation to report.
 
 **Locate this existing block:**
 
@@ -306,6 +310,8 @@ impl Sources {
 
 ### 3. `src/ambient_source_pipeline.rs`
 
+Keep only the actual render pipelines. Remove the unused radius layout. Shared vertex pulling still needs its geometry storage group; the uniform object path needs only the first three groups. The geometric source pass reads positions only. Cache the existing source pipelines without a radius layout owner.
+
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -428,6 +434,8 @@ impl Pipeline {
 
 ### 4. `src/renderer.rs`
 
+Prepare bounds and object radii once, without maintaining a second property store. Enabling ambient shading reuses the object records already uploaded by set_scene. Disabling ambient shading releases its images without a redundant source reset.
+
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -491,6 +499,8 @@ Replace it with:
 ```
 
 ### 5. `src/ambient_gpu.rs`
+
+Only image and camera state need clearing. Empty scenes release ambient images without per-object GPU properties. Report actual retained frame/image/work allocations.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -563,6 +573,8 @@ Replace it with:
 ```
 
 ### 6. `src/ambient_input_tests.rs`
+
+Check actual production property readbacks, preserved lighting, both object paths, shared placed radii and source release.
 
 Create the file and type:
 
@@ -993,6 +1005,8 @@ fn contact_radii_reuse_records_for_shared_placements_and_released_sources() {
 
 ### 7. `src/renderer.rs`
 
+Register the two actual geometric ambient-input GPU checks.
+
 **Locate this existing block:**
 
 ```rust
@@ -1058,6 +1072,8 @@ mod ambient_input_tests;
 </div>
 
 ### 1. `src/renderer.rs`
+
+Remove ambient multiplication from the end of the completed scene. Finish ambient contacts after face, cap and cloud depth, before authored ink. Remove the widget call from before scene text. Composite the existing independent widget after scene glyphs.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -1168,6 +1184,8 @@ Replace it with:
 ```
 
 ### 2. `src/ambient_order_tests.rs`
+
+Check real ground contacts, authored point/stroke colour, picks, source restoration and independent widget GPU output.
 
 Create the file and type:
 
@@ -1591,6 +1609,8 @@ fn actual_widget_overlay_matches_its_independent_gpu_reference() {
 
 ### 3. `src/renderer.rs`
 
+Register the two actual pass-order GPU checks.
+
 **Locate this existing block:**
 
 ```rust
@@ -1611,6 +1631,8 @@ mod ambient_order_tests;
 ## <a id="checkpoint-96zzzzzzt-keep-contact-ambient-inputs-on-originals"></a>3. Keep contact ambient inputs on originals
 
 ### 1. `src/feature_owner.rs`
+
+Resolve the existing original visual ancestor before applying pickability. A locked original still owns its visible contact shading. Keep existing pick and highlight filtering while exposing raw visual ownership. Use the same original hierarchy for visual shading. Preserve the existing original picking contract.
 
 **Locate this existing block:**
 
@@ -1710,6 +1732,8 @@ pub fn display_owner(scene: &Scene, id: ObjectId) -> Option<ObjectId> {
 
 ### 2. `src/ambient_rows.rs`
 
+Remove the obsolete maximum before visual-owner mapping. Compute the maximum after resolving original visual radii. Map temporary numeric radii to original visual owners, without retaining another source or property cache.
+
 **Locate this existing block:**
 
 ```rust
@@ -1780,6 +1804,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 3. `src/ambient_sources.wgsl`
 
+Reuse the actual geometry function, including contact depth and clipping flags. Read existing packed colour and normal words for the shared contact-depth function. Match contact coverage in the existing shared object path too.
+
 **Locate this existing block:**
 
 ```wgsl
@@ -1806,6 +1832,8 @@ fn encode_normal(n:vec3<f32>)->vec2<f32>{let p=n.xy/(abs(n.x)+abs(n.y)+abs(n.z))
 
 ### 4. `src/ambient_source_pipeline.rs`
 
+Use the existing 20-byte vertex layout; no additional buffer or attribute storage.
+
 **Locate this existing block:**
 
 ```rust
@@ -1823,6 +1851,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 5. `src/ambient_contact_tests.rs`
+
+Check real contact coverage/radius, both object paths and device budgets, locks, original picks, source semantics and placed definitions.
 
 Create the file and type:
 
@@ -2403,6 +2433,8 @@ fn placed_contacts_follow_original_instances_without_changing_pickability_or_geo
 ```
 
 ### 6. `src/renderer.rs`
+
+Register the two actual original contact-input GPU checks.
 
 **Locate this existing block:**
 

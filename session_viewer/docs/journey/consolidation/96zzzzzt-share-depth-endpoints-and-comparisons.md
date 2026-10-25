@@ -93,6 +93,8 @@
 
 ### 1. `src/depth.rs`
 
+Own the endpoints and the two comparison predicates. Reuse the shared strict or equal comparison in this pipeline.
+
 **Locate this existing block:**
 
 ```rust
@@ -137,6 +139,8 @@ pub fn grid() -> wgpu::DepthStencilState {
 
 ### 2. `src/text_plate.rs`
 
+Reuse the shared strict or equal comparison in this pipeline.
+
 **Locate this existing block:**
 
 ```rust
@@ -154,6 +158,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 3. `src/widget_pipelines.rs`
+
+Reuse the shared strict or equal comparison in this pipeline.
 
 **Locate this existing block:**
 
@@ -173,6 +179,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 4. `src/cloud_gpu.rs`
 
+Reuse the shared strict or equal comparison in this pipeline.
+
 **Locate this existing block:**
 
 ```rust
@@ -191,6 +199,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 5. `src/outline_gpu.rs`
 
+Reuse the shared strict or equal comparison in this pipeline.
+
 **Locate this existing block:**
 
 ```rust
@@ -208,6 +218,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 6. `src/scene_text_gpu.rs`
+
+Reuse the shared strict or equal comparison in this pipeline.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -277,6 +289,8 @@ Replace it with:
 
 ### 7. `src/outline_caps.rs`
 
+Reuse the shared strict or equal comparison in this pipeline.
+
 **Locate this existing block:**
 
 ```rust
@@ -294,6 +308,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 8. `src/stroke_gpu.rs`
+
+Reuse the shared strict or equal comparison in this pipeline.
 
 **Locate this existing block:**
 
@@ -313,6 +329,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 9. `src/text_plane.rs`
 
+Reuse the shared strict or equal comparison in this pipeline.
+
 **Locate this existing block:**
 
 ```rust
@@ -330,6 +348,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 10. `src/pick_encode.rs`
+
+Clear to the shared far endpoint.
 
 **Locate this existing block:**
 
@@ -349,6 +369,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 11. `src/widget.rs`
 
+Clear to the shared far endpoint.
+
 **Locate this existing block:**
 
 ```rust
@@ -366,6 +388,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 12. `src/cloud_gpu.rs`
+
+Clear to the shared far endpoint.
 
 **Locate this existing block:**
 
@@ -385,6 +409,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 13. `src/renderer.rs`
 
+Clear to the shared far endpoint.
+
 **Locate this existing block:**
 
 ```rust
@@ -402,6 +428,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 14. `src/camera.rs`
+
+Construct CPU rays from the same near and far endpoints.
 
 **Locate this existing block:**
 
@@ -430,6 +458,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 15. `src/depth.rs`
+
+Supply exact shared-state assertions while retaining every original GPU and camera fixture.
 
 **Locate this existing block:**
 
@@ -468,6 +498,8 @@ mod tests {
 
 ### 1. `src/near_clip.wgsl`
 
+Own the homogeneous distance and intersection once.
+
 Create the file and type:
 
 ```wgsl
@@ -480,6 +512,8 @@ fn near_endpoint(a:vec4<f32>,b:vec4<f32>)->vec4<f32>{
 ```
 
 ### 2. `src/stroke.wgsl`
+
+Reuse the shared near-plane recipe while keeping family-specific eligibility and width.
 
 **Locate this existing block:**
 
@@ -535,6 +569,8 @@ fn geometry(start: vec3<f32>, end: vec3<f32>, colour: vec4<f32>, width: f32, ind
 ```
 
 ### 3. `src/finite_stroke.wgsl`
+
+Reuse the shared near-plane recipe while keeping family-specific eligibility and width.
 
 **Locate this existing block:**
 
@@ -599,6 +635,8 @@ fn geometry(start: vec3<f32>, end: vec3<f32>, colour: vec4<f32>, width: f32, ind
 
 ### 4. `src/guide.wgsl`
 
+Reuse the shared near-plane recipe while keeping family-specific eligibility and width.
+
 **Locate this existing block:**
 
 ```wgsl
@@ -658,6 +696,8 @@ fn geometry(start: vec3<f32>, end: vec3<f32>, colour: vec4<f32>, width: f32, ind
 
 ### 5. `src/sheet.wgsl`
 
+Reuse the shared near-plane recipe while keeping family-specific eligibility and width.
+
 **Locate this existing block:**
 
 ```wgsl
@@ -716,6 +756,8 @@ fn geometry(start: vec3<f32>, end: vec3<f32>, radius: f32, packed: u32, vertex: 
 ```
 
 ### 6. `src/chain.wgsl`
+
+Reuse the shared near-plane recipe while keeping family-specific eligibility and width.
 
 **Locate this existing block:**
 
@@ -795,6 +837,8 @@ fn geometry(start: vec3<f32>, end: vec3<f32>, colour: vec4<f32>, width: f32, pre
 ```
 
 ### 7. `src/finite_chain.wgsl`
+
+Reuse the shared near-plane recipe while keeping family-specific eligibility and width.
 
 **Locate this existing block:**
 
@@ -883,6 +927,8 @@ fn geometry(start: vec3<f32>, end: vec3<f32>, colour: vec4<f32>, width: f32, pre
 
 ### 8. `src/finite_project_source.rs`
 
+Expand the shared shader alongside the existing coverage and triangle helpers.
+
 **Locate this existing block:**
 
 ```rust
@@ -903,6 +949,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 9. `src/stroke_gpu.rs`
 
+Expand the guide helper before both color and pick compilation.
+
 **Locate this existing block:**
 
 ```rust
@@ -920,6 +968,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 10. `src/sheet_pipeline.rs`
+
+Use the same expanded sheet source for color and original picks.
 
 **Locate this existing block:**
 
@@ -939,6 +989,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 11. `src/finite_project_source.rs`
+
+Supply actual assembled shader validation for the original color/pick and grid variants.
 
 **Locate this existing block:**
 
@@ -1037,6 +1089,8 @@ mod near_tests {
 
 ### 1. `src/depth.rs`
 
+Use the same reversed depth in projection, original visibility and reconstruction.
+
 **Locate this existing block:**
 
 ```rust
@@ -1062,6 +1116,8 @@ pub fn surface() -> wgpu::DepthStencilState {
 ```
 
 ### 2. `src/camera.rs`
+
+Map perspective near to one and far to zero. Reverse the orthographic depth interval too.
 
 **Locate this existing block:**
 
@@ -1093,6 +1149,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 3. `src/near_clip.wgsl`
 
+Use the same reversed depth in projection, original visibility and reconstruction.
+
 **Locate this existing block:**
 
 ```wgsl
@@ -1108,6 +1166,8 @@ fn near_endpoint(a:vec4<f32>,b:vec4<f32>)->vec4<f32>{
 ```
 
 ### 4. `src/clipping_gpu.rs`
+
+Prepare section depths and bias in the reversed frame.
 
 **Locate this existing block:**
 
@@ -1126,6 +1186,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 5. `src/ambient_camera.rs`
+
+Use the same reversed depth in projection, original visibility and reconstruction.
 
 **Locate this existing block:**
 
@@ -1149,6 +1211,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 6. `src/ambient.wgsl`
 
+Use the same reversed depth in projection, original visibility and reconstruction.
+
 **Locate this existing block:**
 
 ```wgsl
@@ -1166,6 +1230,8 @@ fn depth_sample(pixel: vec2<f32>, sample: i32) -> f32 {
 ```
 
 ### 7. `src/pyramid_prepare.wgsl`
+
+Use the same reversed depth in projection, original visibility and reconstruction.
 
 **Locate this existing block:**
 
@@ -1187,6 +1253,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 8. `src/finite_project.wgsl`
 
+Use the same reversed depth in projection, original visibility and reconstruction.
+
 **Locate this existing block:**
 
 ```wgsl
@@ -1205,6 +1273,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 9. `src/finite_stroke.wgsl`
 
+Use the same reversed depth in projection, original visibility and reconstruction.
+
 **Locate this existing block:**
 
 ```wgsl
@@ -1222,6 +1292,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 10. `src/finite_chain.wgsl`
+
+Use the same reversed depth in projection, original visibility and reconstruction.
 
 **Locate this existing block:**
 
@@ -1259,6 +1331,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 11. `src/finite_marker.wgsl`
 
+Use the same reversed depth in projection, original visibility and reconstruction.
+
 **Locate this existing block:**
 
 ```wgsl
@@ -1276,6 +1350,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 12. `src/ink_plane.wgsl`
+
+Use the same reversed depth in projection, original visibility and reconstruction.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -1320,6 +1396,8 @@ fn ink_sag_slack(sag: vec2<f32>, gradient: vec2<f32>) -> f32 {
 ```
 
 ### 13. `src/finite_visibility.wgsl`
+
+Use the same reversed depth in projection, original visibility and reconstruction.
 
 **Locate this existing block:**
 
@@ -1442,6 +1520,8 @@ fn finite_visible(pixel:vec2<f32>,ends:vec4<f32>,depths:vec2<f32>,flags:u32)->bo
 
 ### 14. `src/cap_count.wgsl`
 
+Use the same reversed depth in projection, original visibility and reconstruction.
+
 **Locate this existing block:**
 
 ```wgsl
@@ -1486,6 +1566,8 @@ fn fs_pick_owner(in: CountOut, @builtin(front_facing) front: bool) -> @location(
 
 ### 15. `src/cloud_resolve.wgsl`
 
+Use the same reversed depth in projection, original visibility and reconstruction.
+
 **Locate this existing block:**
 
 ```wgsl
@@ -1514,6 +1596,8 @@ struct Pick {@location(0) owner:vec2<u32>,@builtin(frag_depth) depth:f32}
 
 ### 16. `src/depth.rs`
 
+Update the supplied endpoint assertion to the new convention; retain all state checks.
+
 **Locate this existing block:**
 
 ```rust
@@ -1532,6 +1616,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 17. `src/camera.rs`
 
+Keep the same physical near-plane exclusion assertion in reversed NDC.
+
 **Locate this existing block:**
 
 ```rust
@@ -1549,6 +1635,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 18. `src/camera_reverse_tests.rs`
+
+Supply exact unit/projection/depth/ray and distant-origin coverage.
 
 Create the file and type:
 
@@ -1611,6 +1699,8 @@ fn units_projections_and_distant_origins_keep_near_one_far_zero_and_forward_rays
 
 ### 19. `src/lib.rs`
 
+Register the optional native camera fixture.
+
 **Locate this existing block:**
 
 ```rust
@@ -1629,6 +1719,8 @@ mod camera_reverse_tests;
 ```
 
 ### 20. `src/cap_gpu_tests.rs`
+
+Preserve the original cap fixture world pose with reversed depth; supply a shared fixture-only conversion for arbitrary forward matrices.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -1676,6 +1768,8 @@ pub(crate) fn matrix() -> [f32; 16] {
 ```
 
 ### 21. `src/finite_visibility_tests.rs`
+
+Keep every original finite-visibility world fixture, pixel assertion and pick assertion while reversing its arbitrary projection.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -1793,6 +1887,8 @@ fn red_frame(renderer: &Renderer, size: [u32; 2], matrix: [f32; 16]) -> usize {
 
 ### 22. `src/text_plate.rs`
 
+Place overlay nameplates at the shared near endpoint in both color and original-ID passes.
+
 **Locate this existing block:**
 
 ```rust
@@ -1812,6 +1908,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 23. `src/finite_visibility_tests.rs`
+
+Retain all original finite fixtures and additionally compare actual near-clipped line/chain pixels, original picks and source identity against explicitly clipped geometry at DPR1/2.
 
 **Locate this existing block:**
 
@@ -1907,6 +2005,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 24. `src/pick_gpu_tests.rs`
 
+Keep all original picking, cloud, text, sheet, outline, density, cancellation and upload assertions with the same physical fixture poses under reversed projection.
+
 **Locate this existing block:**
 
 ```rust
@@ -1930,6 +2030,8 @@ fn identity() -> [f32; 16] {
 ```
 
 ### 25. `src/grid_source_tests.rs`
+
+Preserve the grid far-plane reach assertion with the same physical range and the reversed far endpoint.
 
 **Locate this existing block:**
 

@@ -52,6 +52,8 @@
 
 ### 1. `src/feature_plan.rs`
 
+Give this operation its own small owner.
+
 Create the file and type:
 
 ```rust
@@ -101,6 +103,8 @@ fn source_name<'a>(session: &'a Session, guid: &'a str) -> &'a str {
 ```
 
 ### 2. `src/lib.rs`
+
+Register the new owner without changing the browser entry point.
 
 **Locate this existing block:**
 
@@ -164,6 +168,8 @@ pub mod feature_plan;
 </div>
 
 ### 1. `src/feature_plan.rs`
+
+Claim each feature once in graph order; retain unknown and orphaned interaction features.
 
 **Locate this existing block:**
 
@@ -245,6 +251,8 @@ pub fn hosted(session: &Session, element: &Element) -> Vec<Hosted> {
 
 ### 1. `src/hierarchy.rs`
 
+Record display provenance explicitly on each tree node. Imported tree nodes initially belong to the source.
+
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -286,6 +294,8 @@ pub struct Node {
 ```
 
 ### 2. `src/layer_edit.rs`
+
+Keep user-created groups and source objects in the saved tree.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -351,6 +361,8 @@ Replace it with:
 ```
 
 ### 3. `src/hierarchy.rs`
+
+Reset read-only inheritance at each real child Element; retain it for feature pieces. Skip projected subtrees when saving originals.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -433,6 +445,8 @@ Replace it with:
 
 ### 4. `src/scene_archive.rs`
 
+Only original tree objects enter each archive namespace. Do not reclassify derived paths as loose original objects.
+
 **Locate this existing block:**
 
 ```rust
@@ -498,6 +512,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ## <a id="checkpoint-96l-attach-a-bounded-derived-feature-tree"></a>4. Attach a bounded feature tree to its host
 
 ### 1. `src/layer_edit.rs`
+
+Reuse the existing branch transaction and node/depth limits for feature rows.
 
 **Locate this existing block:**
 
@@ -604,6 +620,8 @@ pub fn attach_features(
 
 ### 1. `src/feature_display.rs`
 
+Give this operation its own small owner.
+
 Create the file and type:
 
 ```rust
@@ -687,6 +705,8 @@ pub fn append(
 
 ### 2. `src/lib.rs`
 
+Register the new owner without changing the browser entry point.
+
 **Locate this existing block:**
 
 ```rust
@@ -708,6 +728,8 @@ pub mod feature_display;
 ## <a id="checkpoint-96n-connect-imported-interaction-hierarchies"></a>6. Connect imported Elements to their feature hierarchy
 
 ### 1. `src/scene_document.rs`
+
+Connect projections only after original tree placement and source retention are ready.
 
 **Locate this existing block:**
 
@@ -752,6 +774,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ## <a id="checkpoint-96o-reuse-projections-for-created-elements"></a>7. Use the same projection path for created Elements
 
 ### 1. `src/element_adopt.rs`
+
+Replace serialized display copies with the shared feature projection and preserve independent child owners.
 
 **Locate this existing block:**
 
@@ -919,6 +943,8 @@ fn group_ids(scene: &Scene, name: &str) -> Vec<ObjectId> {
 
 ### 1. `src/interaction_example.rs`
 
+Author the original geometry, graph and feature associations used by the exercise.
+
 Create the file and type:
 
 ```rust
@@ -1024,6 +1050,8 @@ pub fn bytes() -> Vec<u8> {
 
 ### 2. `src/lib.rs`
 
+Expose the specimen to native examples and tests.
+
 **Locate this existing block:**
 
 ```rust
@@ -1044,6 +1072,8 @@ pub mod interaction_example;
 
 ### 3. `examples/sample.rs`
 
+Supply this optional course-author fixture generator; browser exercises use the linked data files or recorded comparison.
+
 **Locate this existing block:**
 
 ```rust
@@ -1063,6 +1093,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ## <a id="checkpoint-96q-prove-imported-feature-ownership-and-roundtrips"></a>9. Prove imported feature ownership and round trips
 
 ### 1. `src/interaction_bridge_tests.rs`
+
+Run supplied regression fixtures against original source payloads and the connected import path.
 
 Create the file and type:
 
@@ -1321,6 +1353,8 @@ fn malformed_feature_projection_does_not_replace_the_open_scene() {
 
 ### 2. `src/lib.rs`
 
+Include the ownership and archive proofs in the native suite.
+
 **Locate this existing block:**
 
 ```rust
@@ -1341,6 +1375,8 @@ mod ambient_shader_contract;
 ## <a id="checkpoint-96r-preserve-exact-command-completions"></a>10. Prove exact commands across the expanded vocabulary
 
 ### 1. `src/command_vocabulary.rs`
+
+Move the already-typed private Commands wrapper from panel.rs into this shared module; retain its existing methods. Import the existing dock trait and expose the shared wrapper and its input list to the panel.
 
 **Locate this existing block:**
 
@@ -1379,6 +1415,8 @@ impl command_dock::Commands for Commands {
 ```
 
 ### 2. `src/panel.rs`
+
+Use the exact-first vocabulary in the actual browser panel.
 
 **Locate this existing block:**
 
@@ -1419,6 +1457,8 @@ pub struct Panel {
 ```
 
 ### 3. `src/command_vocabulary.rs`
+
+Feed character-by-character input and Enter through the actual egui command field.
 
 **Locate this existing block:**
 

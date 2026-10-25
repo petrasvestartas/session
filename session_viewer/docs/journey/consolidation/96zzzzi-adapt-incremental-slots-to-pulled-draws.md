@@ -93,6 +93,8 @@
 
 ### 1. `src/slot_space.rs`
 
+Adapt physical bases to local pulled occurrences and report only changed member positions to the existing allocator. Supply local/global occurrence equivalence, exact physical IDs, changed-member reporting, reorder and retired-hole checks while retaining all five original allocator fixtures.
+
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -196,6 +198,8 @@ Replace it with:
 
 ### 1. `src/instance_members.rs`
 
+Group stable object rows by exact shared arena ranges; reject standalone buffers and mixed arenas instead of narrowing pointers into IDs.
+
 Create the file and type:
 
 ```rust
@@ -253,6 +257,8 @@ pub fn collect<'a>(
 
 ### 2. `src/lib.rs`
 
+Declare the preparatory definition adapter.
+
 **Locate this existing block:**
 
 ```rust
@@ -276,6 +282,8 @@ pub mod cad_shape_key;
 
 ### 3. `src/gpu_geometry.rs`
 
+Expose shared arena identity as a borrowed owner without changing range or allocation ownership.
+
 **Locate this existing block:**
 
 ```rust
@@ -297,6 +305,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 4. `src/instance_members.rs`
+
+Supply exact range keys, repeated-definition merging, stable rows, original arena count, standalone/mixed-arena refusal and empty checks.
 
 **Locate this existing block:**
 
@@ -371,6 +381,8 @@ mod tests {
 ## <a id="checkpoint-96zzzzk-retain-live-allocator-member-runs"></a>3. Retain live allocator member runs
 
 ### 1. `src/instance_gpu.rs`
+
+Keep the existing allocator under the surface lane without adding a GPU owner. Begin without retained allocation state. Update retained source runs from exact arena definitions and changed member positions; unsupported or oversized plans retain earlier drawing.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -476,6 +488,8 @@ pub struct Lane {
 ```
 
 ### 2. `src/instance_members.rs`
+
+Keep enough integer headroom for retained runs, growth and free intervals before invoking the existing allocator. Supply small, empty, reserved-arena and overflowing-instance budget checks without allocating large GPU buffers.
 
 **Locate this existing block:**
 
@@ -592,6 +606,8 @@ mod tests {
 ```
 
 ### 3. `src/global_outline_tests.rs`
+
+Supply actual retained allocator locations alongside the existing exact GPU comparisons. Verify a surviving original retains its allocator slot through removal and insertion. Verify complete allocator release with the existing empty-scene GPU release checks.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -736,6 +752,8 @@ Replace it with:
 
 ### 1. `src/draw_slots.rs`
 
+Publish one retained plan through both owners. Merge slot boundary changes with allocator reports and refresh the lookup header after shrinking; reuse the existing range coalescer.
+
 **Locate this existing block:**
 
 ```rust
@@ -788,6 +806,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 2. `src/slot_space.rs`
 
+Expose the range coalescer already written so publication shares its bounds and merging instead of duplicating it.
+
 **Locate this existing block:**
 
 ```rust
@@ -805,6 +825,8 @@ pub(crate) fn coalesce(ranges: Vec<Range<u32>>, end: u32) -> Vec<Range<u32>> {
 ```
 
 ### 3. `src/primitive_slot_table_tests.rs`
+
+Supply exact mapped writes and actual lookup shader results through high IDs, hole splitting/reuse, unchanged neighbours, shrinking headers, arena following and release.
 
 **Locate this existing block:**
 
@@ -1381,6 +1403,8 @@ fn actual_local_slots_and_lookup_share_one_plan_through_changes_holes_growth_and
 
 ### 1. `src/instance_gpu.rs`
 
+Pass the live meshes to their record owner so the next connection can synchronize addresses before preparing consumers. Keep the same instance membership while accepting the complete mesh slice. Retain the existing ordinary-row capacity fallback.
+
 **Locate this existing block:**
 
 ```rust
@@ -1476,6 +1500,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 2. `src/renderer.rs`
 
+Distinguish source membership updates from style changes before preparing projection. Keep style-only updates distinguishable so explicit primitive addresses remain intact.
+
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -1534,6 +1560,8 @@ Replace it with:
 
 ### 3. `src/instance_gpu.rs`
 
+Expose the existing allocation owners individually for the upcoming sparse allocation check. Derive the total from the same measured allocations instead of repeating the accounting.
+
 **Locate this existing block:**
 
 ```rust
@@ -1581,6 +1609,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 4. `src/renderer.rs`
 
+Make the two existing GPU allocation parts available through renderer diagnostics.
+
 **Locate this existing block:**
 
 ```rust
@@ -1599,6 +1629,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 5. `src/browser.rs`
+
+Expose measured allocation parts beside the existing browser GPU diagnostic.
 
 **Locate this existing block:**
 
@@ -1620,6 +1652,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 6. `src/global_outline_tests.rs`
 
+Supply exact allocation parts alongside the unchanged two-definition GPU pixels, slots, selection and release checks.
+
 **Locate this existing block:**
 
 ```rust
@@ -1638,6 +1672,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ## <a id="checkpoint-96zzzzn-adopt-retained-gpu-slots-and-physical-bases"></a>6. Adopt retained GPU slots and physical bases
 
 ### 1. `src/instance_gpu.rs`
+
+Retain the inverse lookup under the same live surface owner. Allocate the lookup only when a complete shared plan is active. Use source versus style updates to preserve explicit primitive addresses. Keep style-only explicit address overrides on the earlier path. Activate inverse lookup only for a complete supported shared table. Retain the allocator change report for the GPU writers. Preserve existing fallback behavior when the complete plan cannot be used. Publish the same retained change that assigned physical intervals. Synchronize final mesh uniforms and shared records before any consumer, using sparse locations or unchanged legacy addresses. Use the existing coherent GPU publication, with full resource release on the legacy or empty path.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -1938,6 +1974,8 @@ pub struct Lane {
 
 ### 2. `src/primitive_slot_table.rs`
 
+Measure actual lookup upload bytes, including padded full writes. Begin with zero lookup upload bytes. Count only validated texture writes. Measure each publication independently.
+
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -2032,6 +2070,8 @@ pub struct Table {
 
 ### 3. `src/instance_gpu.rs`
 
+Include the actual inverse lookup allocation in the same accounting. Count lookup bytes once alongside existing record and slot buffers.
+
 **Locate this existing block:**
 
 ```rust
@@ -2066,6 +2106,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 4. `src/renderer.rs`
+
+Expose all three measured allocation owners. The lane now synchronizes addresses once before record upload and projection.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -2118,6 +2160,8 @@ Replace it with:
 
 ### 5. `src/global_outline_tests.rs`
 
+Include the actual one-row 1024-texel lookup in exact two-definition allocation accounting. Keep the original projection relocation fixture explicitly based at zero, preserving every gap, byte, shrink and fallback assertion.
+
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -2168,6 +2212,8 @@ Replace it with:
 
 ### 6. `src/slot_space.rs`
 
+Report newly active retained members even when their row number is unchanged; inverse lookup counts must refresh after hide/show.
+
 **Locate this existing block:**
 
 ```rust
@@ -2186,6 +2232,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 7. `src/pick_gpu_tests.rs`
+
+Retain all original copied/placed/nested owner, pixel, history and release assertions while adding the actual padded 16384-byte inverse lookup to exact allocation totals.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -2294,6 +2342,8 @@ Replace it with:
 
 ### 8. `src/primitive_slot_table_tests.rs`
 
+Supply actual lookup shader readback for inactive and reactivated retained rows, while checking unchanged draw-slot bytes and all earlier reuse, shrink, high-ID and release assertions.
+
 **Locate this existing block:**
 
 ```rust
@@ -2347,6 +2397,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 9. `src/global_outline_tests.rs`
+
+Retain all original owner, background, selection, overlay, crop, density and reserved-ID guards while testing placed physical intervals after the arena range; compare later placements with their assigned non-overlapping object records.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -2537,6 +2589,8 @@ Replace it with:
 
 ### 10. `src/tile_gpu_tests.rs`
 
+Read the first placed projected polygon after the two original demo arena triangles; retain exact clipping-corner, tile-depth, list bounds, cache and release checks.
+
 **Locate this existing block:**
 
 ```rust
@@ -2559,6 +2613,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 11. `src/instance_gpu.rs`
+
+Assign new record rows in original-ID order instead of geometry pointer order; retained rows and the original scene draw order remain unchanged.
 
 **Locate this existing block:**
 
@@ -2588,6 +2644,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ## <a id="checkpoint-96zzzzo-separate-projection-rows-and-arena-offsets"></a>7. Separate projection rows and arena offsets
 
 ### 1. `src/finite_project.wgsl`
+
+Pass the model row and index offset explicitly instead of closing over one dispatch interval. Read exactly the requested shared record or the unchanged uniform object. Keep arena addressing separate from object-row selection. Let the same projection algorithm accept either local or global arena triangles. Use the same explicit address contract for every triangle corner. Preserve the current local draw behavior while preparing lookup-selected arena inputs.
 
 **Locate this existing block:**
 
@@ -2781,6 +2839,8 @@ fn cs_main(@builtin(global_invocation_id) id: vec3<u32>) {
 
 ### 1. `src/finite_project_source.rs`
 
+Assemble lookup-selected projection from the existing shader and unsigned lookup helper; keep one clipping and projection algorithm. Supply validation of uniform, shared per-mesh and lookup-selected compute interfaces.
+
 **Locate this existing block:**
 
 ```rust
@@ -2825,6 +2885,8 @@ mod tests {
 ## <a id="checkpoint-96zzzzq-prepare-the-lookup-projection-pipeline"></a>9. Prepare the lookup projection pipeline
 
 ### 1. `src/tile_pipelines.rs`
+
+Keep the lookup projection layout beside the two existing resource contracts. Own the lookup state with the existing tile pipelines. Extend the existing binding recipe with one unsigned texture input instead of duplicating the compute descriptor. Select the shared projection algorithm assembled with the inverse lookup. Prepare uniform, shared per-mesh and lookup states through one constructor. Retain the new layout under the existing pipeline lifetime. Retain the prepared compute state without changing dispatches yet.
 
 **Locate this existing block:**
 
@@ -3156,6 +3218,8 @@ impl Pipelines {
 
 ### 1. `src/projection_lookup.rs`
 
+Own immutable current arena/record/lookup bindings and one bounded dispatch interval; replace the group when the output buffer changes.
+
 Create the file and type:
 
 ```rust
@@ -3265,6 +3329,8 @@ impl Bindings {
 
 ### 2. `src/lib.rs`
 
+Declare the binding owner without changing live projection dispatch.
+
 **Locate this existing block:**
 
 ```rust
@@ -3295,6 +3361,8 @@ pub mod source_mesh_topology;
 ```
 
 ### 3. `src/global_outline_tests.rs`
+
+Supply actual mapped dispatch words, exact immutable-group reuse and replacement, missing/current-record refusal and empty checks.
 
 **Locate this existing block:**
 
@@ -3475,6 +3543,8 @@ fn actual_lookup_projection_groups_reuse_current_inputs_and_replace_output_bindi
 
 ### 1. `src/projection_lookup.rs`
 
+Release cached output references when tile resources are replaced or released.
+
 **Locate this existing block:**
 
 ```rust
@@ -3493,6 +3563,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 2. `src/tile_gpu.rs`
+
+Own the current global lookup binding state under the existing tile lifetime. Begin with the existing per-mesh fallback. Drop global inputs when the physical projection interval exceeds the device budget. Include inverse lookup identity in the existing source/model witness without invalidating projection for selection-only bytes. Allocate one global dispatch interval, or retain the existing guarded per-mesh intervals. Keep one active projection resource path. Release stale immutable output groups during resize and hidden-viewport release. Resolve all live physical IDs through the lookup in one dispatch, preserving the earlier projection algorithm and fallback. Count only the active interval owner; geometry, object and lookup allocations remain counted by their existing owners.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -3823,6 +3895,8 @@ pub struct Tiles {
 
 ### 3. `src/renderer.rs`
 
+Observe explicit address overrides after style changes while the unchanged witness retains cached projections for ordinary selection.
+
 **Locate this existing block:**
 
 ```rust
@@ -3843,6 +3917,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 4. `src/global_outline_tests.rs`
+
+Supply exact global/per-mesh projected bytes and pixels across distinct and copied definitions, selection cache reuse, unchanged geometry uploads and full release.
 
 **Locate this existing block:**
 
@@ -3926,6 +4002,8 @@ fn actual_lookup_projection_matches_legacy_bytes_keeps_selection_cache_and_relea
 
 ### 1. `src/arena_spans.rs`
 
+Plan reusable spans before committing either geometry range, and reuse the existing coalescer for retirement.
+
 Create the file and type:
 
 ```rust
@@ -3979,6 +4057,8 @@ pub fn retire(free: &mut Vec<Range<u32>>, range: Range<u32>, mut end: u32) -> u3
 
 ### 2. `src/lib.rs`
 
+Declare the complete preparatory span helper.
+
 **Locate this existing block:**
 
 ```rust
@@ -4003,6 +4083,8 @@ pub mod arena_spans;
 ```
 
 ### 3. `src/arena_spans.rs`
+
+Supply hole reuse, unchanged preflight state, overflow refusal, zero spans, coalescing and free-tail checks.
 
 **Locate this existing block:**
 
@@ -4064,6 +4146,8 @@ mod tests {
 ## <a id="checkpoint-96zzzzu-reuse-retired-arena-record-ranges"></a>13. Reuse retired arena record ranges
 
 ### 1. `src/arena_rows.rs`
+
+Keep free vertex and index spans under the existing arena record owner. Validate both ranges and rebased addresses before taking spans. Retire the old source mapping and trim only a free tail; surviving addresses remain fixed. Reset free-span metadata with the existing logical arena reset.
 
 **Locate this existing block:**
 
@@ -4231,6 +4315,8 @@ impl Rows {
 
 ### 2. `src/arena_rows_tests.rs`
 
+Supply exact packed bytes, rebased indices, surviving offsets, retained CPU history, safe source restoration and coalesced tail retirement.
+
 **Locate this existing block:**
 
 ```rust
@@ -4296,6 +4382,8 @@ fn retired_ranges_reuse_holes_without_pinning_or_moving_surviving_sources() {
 ## <a id="checkpoint-96zzzzv-upload-reused-arena-spans-in-place"></a>14. Upload reused arena spans in place
 
 ### 1. `src/text_gpu_support.rs`
+
+Use the same device-limit calculation for append and bounded overwrite operations. Validate alignment, start and complete end before any write, then reuse existing bounded overwrite and growth operations.
 
 **Locate this existing block:**
 
@@ -4376,6 +4464,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 2. `src/mesh_arena.rs`
+
+Measure real new geometry uploads and written source bytes under the arena owner. Start upload counters with the arena. Write exact reused ranges and count real writes; preserve current groups unless a buffer allocation changes.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -4475,6 +4565,8 @@ Replace it with:
 ```
 
 ### 3. `src/mesh_arena_tests.rs`
+
+Supply mapped reused bytes, exact upload totals, retained CPU source, real blue/green/yellow pixels, old/fresh immutable bindings and refused-write preservation.
 
 **Locate this existing block:**
 
@@ -4583,6 +4675,8 @@ fn actual_gpu_arena_reuses_ranges_preserves_bindings_and_counts_exact_writes() {
 
 ### 1. `src/mesh_arena.rs`
 
+Use weak range tokens independently of CPU source ownership. Keep weak range leases under the existing arena owner. Begin without live range leases. Acquire one shared range token and retire only expired GPU leases; synchronize logical GPU lengths after free-tail trimming. Reset lease metadata with the existing explicit arena reset.
+
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
@@ -4689,6 +4783,8 @@ pub struct Arena {
 ```
 
 ### 2. `src/gpu_geometry.rs`
+
+Keep the range reserved for every shared GPU geometry owner, including direct construction outside the cache. Acquire a range lease before publishing its immutable draw offsets. Hold the range token for the geometry lifetime. Read the same arena buffers/groups through leased storage without changing standalone preview ownership.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -4832,6 +4928,8 @@ impl GpuGeometry {
 
 ### 3. `src/geometry_cache.rs`
 
+Capture real arena upload counters before acquisition, including hole reuse. Count actual new geometry uploads and written bytes once instead of inferring them from arena growth. Retire expired leases after scene replacement and retain the existing empty-owner release.
+
 **Locate this existing block:**
 
 ```rust
@@ -4894,6 +4992,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 4. `src/mesh_arena_tests.rs`
+
+Supply direct shared-construction aliases, last-owner retirement despite retained CPU history, exact reused offsets/bytes, safe restoration and logical empty release.
 
 **Locate this existing block:**
 
@@ -4973,6 +5073,8 @@ fn actual_geometry_leases_reclaim_only_after_the_last_gpu_owner() {
 ```
 
 ### 5. `src/global_outline_tests.rs`
+
+Supply actual scene deletion/addition/Undo with retained precise CPU history, reused GPU ranges, stable survivor pixels/owners, exact uploads, original identity and empty release.
 
 **Locate this existing block:**
 
@@ -5133,6 +5235,8 @@ fn actual_arena_reclaims_history_retained_sources_and_keeps_survivor_pixels_and_
 
 ### 1. `src/arena_spans.rs`
 
+Empty ranges reserve no bytes; a previous free-tail trim cannot invalidate their release.
+
 **Locate this existing block:**
 
 ```rust
@@ -5151,6 +5255,8 @@ pub fn retire(free: &mut Vec<Range<u32>>, range: Range<u32>, mut end: u32) -> u3
 ```
 
 ### 2. `src/arena_rows_tests.rs`
+
+Supply both source retirement orders after tail trimming, exact empty endpoints, retained originals, subsequent zero-based reuse and unchanged rejection of reversed/out-of-bounds nonempty ranges.
 
 **Locate this existing block:**
 

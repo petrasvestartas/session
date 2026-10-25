@@ -48,6 +48,8 @@
 
 ### 1. `src/render_space.rs`
 
+Expose a finite bounded delay beyond the existing strict 200ms throttle.
+
 **Locate this existing block:**
 
 ```rust
@@ -70,6 +72,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ### 2. `src/renderer.rs`
+
+Adopt one origin without source cancellation; reuse existing input owners and skip unchanged data.
 
 **Locate this existing block:**
 
@@ -132,6 +136,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 3. `src/render_space.rs`
 
+Supply deterministic throttle-deadline and invalid-clock checks without requiring native tests in the learner project.
+
 **Locate this existing block:**
 
 ```rust
@@ -176,6 +182,8 @@ mod delay_tests {
 ```
 
 ### 4. `src/global_outline_tests.rs`
+
+Supply aggregate original mesh/ink/point/cloud/sheet/text/grid pixels, precise ground, unchanged records, throttled wake timing, preserved pending flight/retry and exact restoration/source ownership.
 
 **Locate this existing block:**
 
@@ -403,6 +411,8 @@ fn actual_shared_origin_keeps_all_original_lanes_and_pending_picks_coherent() {
 
 ### 1. `src/timer.rs`
 
+Retain the kind of owned browser timer for cancellation. Reuse the existing callback owner for both repeating reports and one-shot wakes. Schedule the requested timer kind through the same owned callback. Keep the callback alive exactly as long as its timer owner. Cancel the matching interval or timeout when its owner exits.
+
 **Locate this existing block:**
 
 ```rust
@@ -497,6 +507,8 @@ impl Drop for Timer {
 ```
 
 ### 2. `src/browser.rs`
+
+Use the matching renderer matrix for every existing browser draw, request and readback path. Expose the actual local frame without replacing the existing precise world-camera diagnostic. Report the matrix after initial viewport layout so it matches the first presented frame.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -792,6 +804,8 @@ Replace it with:
 
 ### 1. `src/browser_rebase.rs`
 
+Connect the existing origin policy and timer owner without retaining an editor or scene in a wake.
+
 Create the file and type:
 
 ```rust
@@ -862,6 +876,8 @@ impl Wake {
 
 ### 2. `src/lib.rs`
 
+Compile the browser-only frame and wake adapter.
+
 **Locate this existing block:**
 
 ```rust
@@ -879,6 +895,8 @@ mod browser_report;
 ```
 
 ### 3. `src/browser.rs`
+
+Prepare actual origin-relative inputs before the initial frame and its diagnostics. Keep the wake owner inside the runtime-owned input closure. Use the current origin before judging or queueing asynchronous picks. Adopt action changes before temporary inputs, avoid duplicate selection uploads, and schedule only a pending origin move. Deliver the owned wake through the existing runtime listener owner. Expose the actual precise camera target used by the origin policy for controlled browser frame checks.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
