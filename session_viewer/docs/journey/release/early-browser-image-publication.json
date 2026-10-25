@@ -1,0 +1,69 @@
+{
+  "date": "2026-10-25T21:42:24.001Z",
+  "status": "PASS: two reviewed early browser images published and HTTP bytes verified",
+  "scope": "Actual NVIDIA browser DPR1 canonical callbacks passed, then genuine DPR2 startup/action presentation; 1800x1520 PNGs personally reviewed. No DPR2 callback acceptance inferred.",
+  "rootPersonallyViewedOriginalResolution": true,
+  "published": 2,
+  "images": [
+    {
+      "id": "03-triangle",
+      "destination": "docs/screenshots/journey/03-triangle-browser.png",
+      "sha256": "e5b6975b01c4754a8d45fab7dda9ab337c86364841fb3beb4f45238583cbbb54",
+      "originalSha256": "8802e220d2ec7a2c0311600e6d5f6f03d0b5143e553182e2a20be563a4afee8b",
+      "sourceRecord": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\browser-03-triangle-f0adb51748a56f0b-dpr2\\prepared.json",
+      "sourceRecordSha256": "76bb6b4130efb99ea80f349c874ffb08ffd3c7da788c678455dcb5c74000ff75",
+      "width": 1800,
+      "height": 1520,
+      "source": {
+        "checkpoint": "03-triangle",
+        "files": "a3229bc879dd109498178023a9c0bfede2ba5b25023ae8c6de2ef4c2dd18cfb6",
+        "lock": "16a4f3d16ccad1cffbcf78d74e15e90faa3f6cd514338dfe4913b1991d87f05e",
+        "assets": {},
+        "dependencies": {},
+        "kernel": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+        "fixture": null,
+        "harness": "cc7b0a195a93c6fde86a62e203c4ecabf74eb76ee256952dfd098796ca9c39a3",
+        "constructor": null,
+        "logicalSize": [
+          640,
+          480
+        ],
+        "helper": "e2c028971ab9cc08c2b951bed543b025ccb6f17c8e0b844d5370e82abb3a7410"
+      },
+      "backup": "target\\course-presentation\\early-browser-publication-originals\\03-triangle-browser.png",
+      "httpStatus": 200
+    },
+    {
+      "id": "10-depth",
+      "destination": "docs/screenshots/journey/10-depth-browser.png",
+      "sha256": "ecca40353b9faab836426f2904c925b90663ce404f2b18a52d03cf87bc974848",
+      "originalSha256": "d6f846dc8130df60a3e7f2c0da10e5d457bf45e24a238fb384efc9279ab40ca5",
+      "sourceRecord": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\browser-10-depth-547cb2e73d60e32e-dpr2\\prepared.json",
+      "sourceRecordSha256": "2590ca109a1d2c87708561678918eff50597c4c0dda6d8d019cfad09ff98fa21",
+      "width": 1800,
+      "height": 1520,
+      "source": {
+        "checkpoint": "10-depth",
+        "files": "806b60aeb8e4e3dc3483bfc466d78c3049d50bafe7d830d2bc589bccf29f552b",
+        "lock": "d94afdf257d0c345e4e3a7ae1596e2cccf5c3e5aa48734a3dbe7468c9c989df8",
+        "assets": {
+          "assets/text/NotoSans-Regular.subset.ttf": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09",
+          "assets/text/NotoSansSymbols2-Regular.subset.ttf": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed",
+          "assets/text/NotoSansSymbols-Regular.subset.ttf": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3"
+        },
+        "dependencies": {},
+        "kernel": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+        "fixture": "6a805c557d4fae524888da7cf938af63253560c10de59a0805693264d33d4021",
+        "harness": "cc7b0a195a93c6fde86a62e203c4ecabf74eb76ee256952dfd098796ca9c39a3",
+        "constructor": null,
+        "logicalSize": [
+          640,
+          480
+        ],
+        "helper": "e2c028971ab9cc08c2b951bed543b025ccb6f17c8e0b844d5370e82abb3a7410"
+      },
+      "backup": "target\\course-presentation\\early-browser-publication-originals\\10-depth-browser.png",
+      "httpStatus": 200
+    }
+  ]
+}

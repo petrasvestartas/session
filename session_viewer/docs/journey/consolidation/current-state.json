@@ -2241,7 +2241,7 @@
     "currentReaderReferenceImages": 99,
     "reportedExamples": 9,
     "completedNewCaptures": 58,
-    "scope": "Earlier behavioral/source-specific acceptance remains at its recorded inputs. Current early geometry corrections have focused regression evidence; maintained surface-preview and all new published image acceptance remain pending. Cloud shader candidate was evaluated and not accepted; real high-density capture and RGB presentation remain to verify.",
+    "scope": "Focused current exact BRep, NURBS UV and ink-depth regressions and maintained surface-preview pass. 56 native and two early browser images are published and HTTP verified. Remaining captures and final current-source integration remain pending; historical acceptance retains its recorded inputs. Production cloud shader preserved after actual evaluation.",
     "inventory": {
       "native": 1360,
       "browser": 379,
@@ -2278,7 +2278,7 @@
       "record": "target/course-windows-20261025/latest-commit-audit/early-quality-structure-after-panel.log"
     },
     "candidateFinalCadFingerprint": "e86ab162ab76e3345a639f944bf082122c956c1c70ab475abb2abceda99dc163",
-    "publishedNewCaptures": 56,
+    "publishedNewCaptures": 58,
     "earlyBrowser": {
       "status": "PASS DPR1 behavior and personally reviewed genuine DPR2 presentation",
       "cases": [
@@ -2290,7 +2290,9 @@
         1520
       ],
       "adapter": "NVIDIA hardware",
-      "record": "target/course-presentation/early-browser-root-review.json"
+      "record": "target/course-presentation/early-browser-root-review.json",
+      "published": 2,
+      "publicationRecord": "../release/early-browser-image-publication.json"
     },
     "maintainedSurfacePreview": {
       "passed": 1,
@@ -2325,6 +2327,12 @@
       "originalResolutionReviews": 42,
       "exactPngDuplicates": 14
     },
-    "remainingPublishedImages": 1706
+    "remainingPublishedImages": 1704,
+    "finalNativeIntegration": {
+      "status": "BUILD_FAILED_BEFORE_TEST_EXECUTION",
+      "expectedTests": 1068,
+      "reason": "Late teaching boundary replacement drops the exact-curve display API inherited by cad_display; actual source correction in progress.",
+      "record": "target/course-checks/final-current-native-e44991df3c2c-20261025T213915608Z-build.log"
+    }
   }
 }
