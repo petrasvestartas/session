@@ -1,23 +1,23 @@
 {
-  "date": "2026-10-25T23:12:48.769Z",
+  "date": "2026-10-25T23:23:03.388Z",
   "status": "PASS: reviewed publication receipts reconciled with exact source and served file hashes",
   "scope": "Only explicitly reviewed publication receipts count; in-flight captures excluded. HTTP verification belongs to each linked publication receipt.",
   "inventory": {
     "path": "target/course-presentation/inventory-d09aa228601224bf4dfe.json",
     "sha256": "d09aa228601224bf4dfe01d6a1009a56357b2eb5e4b3baa5d88566b2c7a66eba"
   },
-  "published": 302,
-  "remaining": 1460,
+  "published": 312,
+  "remaining": 1450,
   "counts": {
     "native": 268,
-    "browser": 29,
+    "browser": 39,
     "variants": 0,
     "supporting": 5
   },
   "reader": {
-    "published": 76,
+    "published": 86,
     "total": 99,
-    "remaining": 23
+    "remaining": 13
   },
   "images": [
     {
@@ -871,6 +871,16 @@
       }
     },
     {
+      "path": "docs/screenshots/journey/26a-keys-browser.png",
+      "sha256": "d3576e498c3b318d8d1a36359b5b874c72c0f7c87262ca27b55f17c20d796a0e",
+      "kind": "browser",
+      "queue": "reader-published",
+      "receipt": {
+        "path": "docs/journey/release/historical-browser-actions-agent-reviewed-publication.json",
+        "sha256": "627c3f196bb428a5b566588f789256fd46dd9b112ec7f0609d0a58de140a796d"
+      }
+    },
+    {
       "path": "docs/screenshots/journey/26a-keys.png",
       "sha256": "e67919bd7a6f49e2b1f412124cada76ca485e9fa8099babd629616985ac871f2",
       "kind": "native",
@@ -958,6 +968,16 @@
       "receipt": {
         "path": "docs/journey/release/native-streaming-publication-211.json",
         "sha256": "93447d806fac2c6fed41c3952c817da2ff69c6c9059e7d05dd8bee49a2f3f42a"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/28c-ownership-browser.png",
+      "sha256": "b89bf8002079d9de7f70ab0f3d940f5a4c803869cb70f6fbfffa74cf4a52c3db",
+      "kind": "browser",
+      "queue": "reader-published",
+      "receipt": {
+        "path": "docs/journey/release/historical-browser-actions-agent-reviewed-publication.json",
+        "sha256": "627c3f196bb428a5b566588f789256fd46dd9b112ec7f0609d0a58de140a796d"
       }
     },
     {
@@ -1068,6 +1088,16 @@
       "receipt": {
         "path": "docs/journey/release/native-streaming-publication-211.json",
         "sha256": "93447d806fac2c6fed41c3952c817da2ff69c6c9059e7d05dd8bee49a2f3f42a"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/30e-recovery-browser.png",
+      "sha256": "790a3e85ddc3f0c4ae2a64426b10e0f890865105b18ba0e7a9891dc6107459d8",
+      "kind": "browser",
+      "queue": "reader-published",
+      "receipt": {
+        "path": "docs/journey/release/historical-browser-actions-agent-reviewed-publication.json",
+        "sha256": "627c3f196bb428a5b566588f789256fd46dd9b112ec7f0609d0a58de140a796d"
       }
     },
     {
@@ -1298,6 +1328,16 @@
       "receipt": {
         "path": "docs/journey/release/native-streaming-publication-211.json",
         "sha256": "93447d806fac2c6fed41c3952c817da2ff69c6c9059e7d05dd8bee49a2f3f42a"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/32fl-guards-browser.png",
+      "sha256": "790a3e85ddc3f0c4ae2a64426b10e0f890865105b18ba0e7a9891dc6107459d8",
+      "kind": "browser",
+      "queue": "reader-published",
+      "receipt": {
+        "path": "docs/journey/release/historical-browser-actions-agent-reviewed-publication.json",
+        "sha256": "627c3f196bb428a5b566588f789256fd46dd9b112ec7f0609d0a58de140a796d"
       }
     },
     {
@@ -1561,6 +1601,16 @@
       }
     },
     {
+      "path": "docs/screenshots/journey/32gja-failures-browser.png",
+      "sha256": "790a3e85ddc3f0c4ae2a64426b10e0f890865105b18ba0e7a9891dc6107459d8",
+      "kind": "browser",
+      "queue": "reader-published",
+      "receipt": {
+        "path": "docs/journey/release/historical-browser-actions-agent-reviewed-publication.json",
+        "sha256": "627c3f196bb428a5b566588f789256fd46dd9b112ec7f0609d0a58de140a796d"
+      }
+    },
+    {
       "path": "docs/screenshots/journey/32gja-failures.png",
       "sha256": "a87b4d9938ddc06f58c391c168d710731a7bc212ee813509515f05725d786431",
       "kind": "native",
@@ -1588,6 +1638,16 @@
       "receipt": {
         "path": "docs/journey/release/native-streaming-publication-250.json",
         "sha256": "f23b893fffea6285f44533e42413c2017d79cca9409cdc48e78bdb9d2d81a5d9"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/33b-cache-browser.png",
+      "sha256": "790a3e85ddc3f0c4ae2a64426b10e0f890865105b18ba0e7a9891dc6107459d8",
+      "kind": "browser",
+      "queue": "reader-published",
+      "receipt": {
+        "path": "docs/journey/release/historical-browser-actions-agent-reviewed-publication.json",
+        "sha256": "627c3f196bb428a5b566588f789256fd46dd9b112ec7f0609d0a58de140a796d"
       }
     },
     {
@@ -1648,6 +1708,16 @@
       "receipt": {
         "path": "docs/journey/release/native-streaming-publication-250.json",
         "sha256": "f23b893fffea6285f44533e42413c2017d79cca9409cdc48e78bdb9d2d81a5d9"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/34d-download-browser.png",
+      "sha256": "790a3e85ddc3f0c4ae2a64426b10e0f890865105b18ba0e7a9891dc6107459d8",
+      "kind": "browser",
+      "queue": "reader-published",
+      "receipt": {
+        "path": "docs/journey/release/historical-browser-actions-agent-reviewed-publication.json",
+        "sha256": "627c3f196bb428a5b566588f789256fd46dd9b112ec7f0609d0a58de140a796d"
       }
     },
     {
@@ -1731,6 +1801,16 @@
       }
     },
     {
+      "path": "docs/screenshots/journey/34fc-retention-browser.png",
+      "sha256": "790a3e85ddc3f0c4ae2a64426b10e0f890865105b18ba0e7a9891dc6107459d8",
+      "kind": "browser",
+      "queue": "reader-published",
+      "receipt": {
+        "path": "docs/journey/release/historical-browser-actions-agent-reviewed-publication.json",
+        "sha256": "627c3f196bb428a5b566588f789256fd46dd9b112ec7f0609d0a58de140a796d"
+      }
+    },
+    {
       "path": "docs/screenshots/journey/34fc-retention.png",
       "sha256": "063769d4629aad5aff5ef4140273fa36d4274aac20f0c8215226caa318889a76",
       "kind": "native",
@@ -1808,6 +1888,16 @@
       "receipt": {
         "path": "docs/journey/release/native-streaming-publication-302.json",
         "sha256": "53ef38835df0dfc8b18493ccb4a21ee9bb1e5ba704a78b87e1ea73767990946f"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/34gbca-startup-browser.png",
+      "sha256": "790a3e85ddc3f0c4ae2a64426b10e0f890865105b18ba0e7a9891dc6107459d8",
+      "kind": "browser",
+      "queue": "reader-published",
+      "receipt": {
+        "path": "docs/journey/release/historical-browser-actions-agent-reviewed-publication.json",
+        "sha256": "627c3f196bb428a5b566588f789256fd46dd9b112ec7f0609d0a58de140a796d"
       }
     },
     {
@@ -1958,6 +2048,16 @@
       "receipt": {
         "path": "docs/journey/release/native-streaming-publication-302.json",
         "sha256": "53ef38835df0dfc8b18493ccb4a21ee9bb1e5ba704a78b87e1ea73767990946f"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/34geb-reload-browser.png",
+      "sha256": "790a3e85ddc3f0c4ae2a64426b10e0f890865105b18ba0e7a9891dc6107459d8",
+      "kind": "browser",
+      "queue": "reader-published",
+      "receipt": {
+        "path": "docs/journey/release/historical-browser-actions-agent-reviewed-publication.json",
+        "sha256": "627c3f196bb428a5b566588f789256fd46dd9b112ec7f0609d0a58de140a796d"
       }
     },
     {

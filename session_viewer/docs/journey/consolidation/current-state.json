@@ -2240,8 +2240,8 @@
     "publicImageCount": 1762,
     "currentReaderReferenceImages": 99,
     "reportedExamples": 9,
-    "completedNewCaptures": 297,
-    "scope": "Focused early geometry/depth regressions, maintained surface-preview and all 1,068 original unfiltered final native tests pass. Published assets include 297 actual captures and 5 retired-filename aliases; in-flight captures are excluded. Production shaders and Gemini website design/prose are preserved.",
+    "completedNewCaptures": 307,
+    "scope": "Focused early geometry/depth regressions, maintained surface-preview and all 1,068 original unfiltered final native tests pass. Published assets include 307 actual captures and 5 retired-filename aliases; in-flight captures are excluded. Production shaders and Gemini website design/prose are preserved.",
     "inventory": {
       "native": 1360,
       "browser": 379,
@@ -2278,7 +2278,7 @@
       "record": "target/course-windows-20261025/latest-commit-audit/early-quality-structure-after-panel.log"
     },
     "candidateFinalCadFingerprint": "3efbb602833786d48a46add280c7769351a11850b15914748bfc69889f0f3a32",
-    "publishedNewCaptures": 297,
+    "publishedNewCaptures": 307,
     "earlyBrowser": {
       "status": "PASS DPR1 behavior and personally reviewed genuine DPR2 presentation",
       "cases": [
@@ -2318,8 +2318,8 @@
         "59f-cad"
       ]
     },
-    "publishedReaderReferenceImages": 76,
-    "remainingReaderReferenceImages": 23,
+    "publishedReaderReferenceImages": 86,
+    "remainingReaderReferenceImages": 13,
     "priorityNativePublication": {
       "record": "../release/priority-native-image-review.json",
       "published": 56,
@@ -2327,7 +2327,7 @@
       "originalResolutionReviews": 42,
       "exactPngDuplicates": 14
     },
-    "remainingPublishedImages": 1460,
+    "remainingPublishedImages": 1450,
     "finalNativeIntegration": {
       "status": "PASS",
       "passed": 1068,
@@ -2342,12 +2342,12 @@
     "streamingBrowserPublication": "../release/streaming-browser-image-review.json",
     "candidateFinalCurrentFingerprint": "e2887fefd8fda86e580435538466c212ba714389be588a4f5d567c6a71f542c7",
     "reportedOriginalUrlsHttpVerified": "../release/reported-image-http-review.json",
-    "publishedImageAssets": 302,
+    "publishedImageAssets": 312,
     "publishedAliasAssets": 5,
     "latestImagePublication": "../release/image-quality-publication-index.json",
     "remainingInventory": {
       "native": 1092,
-      "browser": 350,
+      "browser": 340,
       "supportingAndVariants": 18
     },
     "latestNativeStreamingPublication": "../release/native-streaming-publication-302.json",
@@ -2365,16 +2365,16 @@
       "finalNativeIntegration": "DONE 1068/1068",
       "reportedImages": "DONE 9/9",
       "currentReaderFigures": {
-        "published": 76,
+        "published": 86,
         "total": 99,
-        "remaining": 23,
+        "remaining": 13,
         "byKind": {
           "native": {
             "published": 53,
             "total": 53
           },
           "browser": {
-            "published": 23,
+            "published": 33,
             "total": 36
           },
           "supporting": {
@@ -2384,9 +2384,9 @@
         }
       },
       "imagePublication": {
-        "published": 302,
+        "published": 312,
         "total": 1762,
-        "remaining": 1460
+        "remaining": 1450
       },
       "finalDocumentationReview": "PENDING_COMPLETE_IMAGE_QUEUE"
     },
@@ -2395,6 +2395,7 @@
       "published": 1,
       "record": "../release/cloud65c-unselected-rgb-review.json",
       "scope": "Unselected RGB view of unchanged 1681-point synthetic fixture; original selected-yellow figure retained."
-    }
+    },
+    "completedNewCapturesScope": "Reviewed and published original-inventory captures; excludes in-flight captures and additional supplementary figures."
   }
 }
