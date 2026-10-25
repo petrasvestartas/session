@@ -32,8 +32,10 @@ pub async fn run() -> Result<(), JsValue> {
         .await.map_err(|error| JsValue::from_str(&error.to_string()))?;
     device.on_uncaptured_error(std::sync::Arc::new(|error| report(&error.to_string())));
     let limit = device.limits().max_texture_dimension_2d;
-    let width = (window.inner_width()?.as_f64().ok_or("No window width")? as u32).clamp(1, limit);
-    let height = (window.inner_height()?.as_f64().ok_or("No window height")? as u32).clamp(1, limit);
+    let density = window.device_pixel_ratio();
+    let density = if density.is_finite() && density > 0.0 { density } else { 1.0 };
+    let width = ((window.inner_width()?.as_f64().ok_or("No window width")? * density).round() as u32).clamp(1, limit);
+    let height = ((window.inner_height()?.as_f64().ok_or("No window height")? * density).round() as u32).clamp(1, limit);
     canvas.set_width(width);
     canvas.set_height(height);
     let mut config = surface.get_default_config(&adapter, width, height)

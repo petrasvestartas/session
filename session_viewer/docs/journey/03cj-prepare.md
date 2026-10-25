@@ -133,12 +133,16 @@ Replace it with:
 
     pub fn draw(&mut self, renderer: &Renderer, target: &wgpu::TextureView) {
         let size = [target.texture().width(), target.texture().height()];
-        let screen = egui_wgpu::ScreenDescriptor { size_in_pixels: size, pixels_per_point: 1.0 };
-        let input = egui::RawInput {
+        #[cfg(target_arch="wasm32")]
+        let density=web_sys::window().map_or(1.0,|window|window.device_pixel_ratio() as f32);
+        #[cfg(not(target_arch="wasm32"))]
+        let density=1.0;
+        let screen = egui_wgpu::ScreenDescriptor { size_in_pixels: size, pixels_per_point: density };
+        let mut input = egui::RawInput {
             focused: true,
             events: std::mem::take(&mut self.events),
             screen_rect: Some(egui::Rect::from_min_size(
-                egui::Pos2::ZERO, egui::vec2(size[0] as f32, size[1] as f32),
+                egui::Pos2::ZERO, egui::vec2(size[0] as f32, size[1] as f32) / density,
             )),
             ..Default::default()
         };
@@ -154,7 +158,12 @@ Replace it with:
 
     fn prepare(&mut self) {
         let size = self.screen.size_in_pixels;
-        let input = egui::RawInput {
+        #[cfg(target_arch="wasm32")]
+        let density=web_sys::window().map_or(1.0,|window|window.device_pixel_ratio() as f32);
+        #[cfg(not(target_arch="wasm32"))]
+        let density=1.0;
+        self.screen.pixels_per_point=density;
+        let mut input = egui::RawInput {
             focused: true,
             events: std::mem::take(&mut self.events),
             screen_rect: Some(egui::Rect::from_min_size(
@@ -322,7 +331,12 @@ impl Panel {
 
     fn prepare(&mut self) {
         let size = self.screen.size_in_pixels;
-        let input = egui::RawInput {
+        #[cfg(target_arch="wasm32")]
+        let density=web_sys::window().map_or(1.0,|window|window.device_pixel_ratio() as f32);
+        #[cfg(not(target_arch="wasm32"))]
+        let density=1.0;
+        self.screen.pixels_per_point=density;
+        let mut input = egui::RawInput {
             focused: true,
             events: std::mem::take(&mut self.events),
             screen_rect: Some(egui::Rect::from_min_size(

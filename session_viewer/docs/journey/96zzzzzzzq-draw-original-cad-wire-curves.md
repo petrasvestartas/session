@@ -67,11 +67,22 @@ pub fn prepare(source:Rc<session_rust::BRep>)->Result<(Prepared,crate::prepared:
     let mut display=crate::mesh::Mesh::new(data.vertices,data.indices)?.with_normals(data.normals)?;display.parts.faces=(0..boundary.faces.len()).collect();display.parts.triangles=data.face_ids;
     let (mut edges,mut edge_ids)=(Vec::new(),Vec::new());
     for chain in boundary.chains.iter().flatten() {
-        let points=boundary.points(chain.edge).ok_or("Missing CAD boundary sample")?;
-        for pair in chain.keys.windows(2) {
-            let mesh=&boundary.faces[chain.face];let ends=[pair[0],pair[1]].map(|key|{let v=&mesh.vertex[&key];[v.x,v.y,v.z]});display.parts.edges.push((data.keys[chain.face][&pair[0]] as usize,data.keys[chain.face][&pair[1]] as usize));display.parts.endpoints.push(ends);edge_ids.push(chain.edge);
+        let (points, spans) = boundary
+            .display(chain.edge)
+            .ok_or("Missing CAD boundary sample")?;
+        for (ends, span) in points.windows(2).zip(spans) {
+            let pair = &chain.keys[span..=span + 1];
+            display.parts.edges.push((
+                data.keys[chain.face][&pair[0]] as usize,
+                data.keys[chain.face][&pair[1]] as usize,
+            ));
+            display.parts.endpoints.push([ends[0], ends[1]]);
+            edge_ids.push(chain.edge);
         }
-        edges.push(Boundary {edge:chain.edge,points});
+        edges.push(Boundary {
+            edge: chain.edge,
+            points,
+        });
     }
     let prepared=Prepared {source,edges,samples:data.samples,face_count:boundary.faces.len(),edge_ids};
     let mesh=crate::prepared::PreparedMesh {geometry:Rc::new(proxy),display,source:None,model:Xform::identity()};Ok((prepared,mesh))
@@ -105,11 +116,22 @@ pub fn prepare(source:Rc<session_rust::BRep>)->Result<(Prepared,crate::prepared:
     let mut display=crate::mesh::Mesh::new(data.vertices,data.indices)?.with_normals(data.normals)?;display.parts.faces=(0..boundary.faces.len()).collect();display.parts.triangles=data.face_ids;
     let (mut edges,mut edge_ids)=(Vec::new(),Vec::new());
     for chain in boundary.chains.iter().flatten() {
-        let points=boundary.points(chain.edge).ok_or("Missing CAD boundary sample")?;
-        for pair in chain.keys.windows(2) {
-            let mesh=&boundary.faces[chain.face];let ends=[pair[0],pair[1]].map(|key|{let v=&mesh.vertex[&key];[v.x,v.y,v.z]});display.parts.edges.push((data.keys[chain.face][&pair[0]] as usize,data.keys[chain.face][&pair[1]] as usize));display.parts.endpoints.push(ends);edge_ids.push(chain.edge);
+        let (points, spans) = boundary
+            .display(chain.edge)
+            .ok_or("Missing CAD boundary sample")?;
+        for (ends, span) in points.windows(2).zip(spans) {
+            let pair = &chain.keys[span..=span + 1];
+            display.parts.edges.push((
+                data.keys[chain.face][&pair[0]] as usize,
+                data.keys[chain.face][&pair[1]] as usize,
+            ));
+            display.parts.endpoints.push([ends[0], ends[1]]);
+            edge_ids.push(chain.edge);
         }
-        edges.push(Boundary {edge:chain.edge,points});
+        edges.push(Boundary {
+            edge: chain.edge,
+            points,
+        });
     }
     let prepared=Prepared {source,edges,samples:data.samples,face_count:boundary.faces.len(),edge_ids,wires};
     let mesh=crate::prepared::PreparedMesh {geometry:Rc::new(proxy),display,source:None,model:Xform::identity()};Ok((prepared,mesh))
@@ -2376,14 +2398,103 @@ Compile retained finite color variants only when nonempty ink is bound, and inte
 <summary>Locate the existing block</summary>
 
 ```rust
-fn pipeline(device:&wgpu::Device,format:wgpu::TextureFormat,stride:u64,grid:bool,picking:bool,varying:bool,samples:u32,view:&wgpu::BindGroupLayout,crop:&wgpu::BindGroupLayout,layout:&wgpu::BindGroupLayout,attributes:&[wgpu::VertexAttribute])->wgpu::RenderPipeline{
-   let source=crate::finite_sources::source_with_samples(stride,picking,grid,varying,samples);let shader=device.create_shader_module(wgpu::ShaderModuleDescriptor{label:Some("finite original ink"),source:wgpu::ShaderSource::Wgsl(source.into())});
-   let clipping=crate::clipping_gpu::layout(device);let groups=if picking{vec![Some(view),Some(crop),Some(layout),Some(&clipping)]}else{vec![Some(view),Some(layout),Some(&clipping)]};let pipeline_layout=device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor{label:Some("finite original ink"),bind_group_layouts:&groups,immediate_size:0});
-   let mut buffers=vec![wgpu::VertexBufferLayout{array_stride:stride,step_mode:wgpu::VertexStepMode::Instance,attributes}];let ids=wgpu::vertex_attr_array![7=>Uint32x2];if picking{buffers.push(wgpu::VertexBufferLayout{array_stride:8,step_mode:wgpu::VertexStepMode::Instance,attributes:&ids});}
-   let flags=[wgpu::VertexAttribute{format:if varying{wgpu::VertexFormat::Uint32x2}else{wgpu::VertexFormat::Uint32},offset:0,shader_location:8}];buffers.push(wgpu::VertexBufferLayout{array_stride:if varying{8}else{0},step_mode:wgpu::VertexStepMode::Instance,attributes:&flags});
-   let mut depth=crate::depth::ink();depth.depth_compare=Some(wgpu::CompareFunction::Always);
-   device.create_render_pipeline(&wgpu::RenderPipelineDescriptor{label:Some("finite original ink"),layout:Some(&pipeline_layout),vertex:wgpu::VertexState{module:&shader,entry_point:Some(if picking{"pick_vertex"}else{"vertex"}),compilation_options:Default::default(),buffers:&buffers},fragment:Some(wgpu::FragmentState{module:&shader,entry_point:Some(if picking{"pick_fragment"}else{"fragment"}),compilation_options:Default::default(),targets:&[Some(wgpu::ColorTargetState{format:if picking{wgpu::TextureFormat::Rg32Uint}else{format},blend:if picking{None}else{Some(wgpu::BlendState::ALPHA_BLENDING)},write_mask:wgpu::ColorWrites::ALL})]}),primitive:Default::default(),depth_stencil:Some(depth),multisample:wgpu::MultisampleState{count:samples,..Default::default()},multiview_mask:None,cache:None})
-  }
+fn pipeline(
+    device: &wgpu::Device,
+    format: wgpu::TextureFormat,
+    stride: u64,
+    grid: bool,
+    picking: bool,
+    varying: bool,
+    samples: u32,
+    view: &wgpu::BindGroupLayout,
+    crop: &wgpu::BindGroupLayout,
+    layout: &wgpu::BindGroupLayout,
+    attributes: &[wgpu::VertexAttribute],
+) -> wgpu::RenderPipeline {
+    let source =
+        crate::finite_sources::source_with_samples(stride, picking, grid, varying, samples);
+    let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
+        label: Some("finite original ink"),
+        source: wgpu::ShaderSource::Wgsl(source.into()),
+    });
+    let clipping = crate::clipping_gpu::layout(device);
+    let groups = if picking {
+        vec![Some(view), Some(crop), Some(layout), Some(&clipping)]
+    } else {
+        vec![Some(view), Some(layout), Some(&clipping)]
+    };
+    let pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
+        label: Some("finite original ink"),
+        bind_group_layouts: &groups,
+        immediate_size: 0,
+    });
+    let mut buffers = vec![wgpu::VertexBufferLayout {
+        array_stride: stride,
+        step_mode: wgpu::VertexStepMode::Instance,
+        attributes,
+    }];
+    let ids = wgpu::vertex_attr_array![7=>Uint32x2];
+    if picking {
+        buffers.push(wgpu::VertexBufferLayout {
+            array_stride: 8,
+            step_mode: wgpu::VertexStepMode::Instance,
+            attributes: &ids,
+        });
+    }
+    let flags = [wgpu::VertexAttribute {
+        format: if varying {
+            wgpu::VertexFormat::Uint32x2
+        } else {
+            wgpu::VertexFormat::Uint32
+        },
+        offset: 0,
+        shader_location: 8,
+    }];
+    buffers.push(wgpu::VertexBufferLayout {
+        array_stride: if varying { 8 } else { 0 },
+        step_mode: wgpu::VertexStepMode::Instance,
+        attributes: &flags,
+    });
+    let mut depth = crate::depth::ink();
+    depth.depth_compare = Some(wgpu::CompareFunction::Always);
+    depth.bias = Default::default();
+    device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+        label: Some("finite original ink"),
+        layout: Some(&pipeline_layout),
+        vertex: wgpu::VertexState {
+            module: &shader,
+            entry_point: Some(if picking { "pick_vertex" } else { "vertex" }),
+            compilation_options: Default::default(),
+            buffers: &buffers,
+        },
+        fragment: Some(wgpu::FragmentState {
+            module: &shader,
+            entry_point: Some(if picking { "pick_fragment" } else { "fragment" }),
+            compilation_options: Default::default(),
+            targets: &[Some(wgpu::ColorTargetState {
+                format: if picking {
+                    wgpu::TextureFormat::Rg32Uint
+                } else {
+                    format
+                },
+                blend: if picking {
+                    None
+                } else {
+                    Some(wgpu::BlendState::ALPHA_BLENDING)
+                },
+                write_mask: wgpu::ColorWrites::ALL,
+            })],
+        }),
+        primitive: Default::default(),
+        depth_stencil: Some(depth),
+        multisample: wgpu::MultisampleState {
+            count: samples,
+            ..Default::default()
+        },
+        multiview_mask: None,
+        cache: None,
+    })
+}
 use std::cell::RefCell;
 pub struct Ink{color:crate::sample_pipelines::Variants<(wgpu::RenderPipeline,wgpu::BindGroupLayout)>,pick:wgpu::RenderPipeline,query:wgpu::BindGroupLayout,spec:(wgpu::TextureFormat,u64,bool,bool),bindings:RefCell<Option<(wgpu::Buffer,wgpu::Buffer,wgpu::TextureView,wgpu::TextureView,wgpu::BindGroup)>>}
 #[derive(Clone)]

@@ -363,6 +363,20 @@ test('the compact target-owner lesson preserves its accepted source apart from s
     const fields = step.edits.filter(edit => edit.rename_field);
     assert.equal(fields.length, 2);
     const files = expected(id);
+    const baselineText = read(path.join(viewer, '../session_tests/scripts/course/fixtures/early-quality-compact-owner-799f6af0.json')).replace(/\r\n/g, '\n');
+    assert.equal(hash(baselineText), '6ee946f68bf5d1986059383aa7e861b5515501da11598e2adaf2de6eb8d56fa5');
+    const baseline = JSON.parse(baselineText);
+    assert.equal(baseline.baselineCommit, '799f6af0dd6ca219597f87d52e72037135b3333e');
+    assert.equal(baseline.checkpoint, id);
+    assert.deepEqual(Object.keys(baseline.modules).sort(), [
+        'src/cad_boundary.rs', 'src/cad_display.rs', 'src/finite_ink.rs', 'src/surface.rs',
+    ]);
+    for (const file of Object.keys(baseline.modules)) {
+        const module = baseline.modules[file];
+        assert.equal(hash(files[file]), module.reviewedCurrentSha256, `Reviewed early quality correction: ${file}`);
+        assert.equal(hash(module.baselineText), module.baselineSha256);
+        files[file] = module.baselineText;
+    }
     assert.equal(fingerprint(files), '09db6bbe0f3e74eef99b165db08613800e1a7c4484c15c4b9ef3644f205becf0');
     const currentInputs = course().steps.find(step => step.id === '96zzzzg-own-shared-record-cap-pick-resources')!
         .edits.find(edit => edit.path === 'src/current_inventory.json')!;
@@ -408,7 +422,7 @@ test('the compact target-owner lesson preserves its accepted source apart from s
     files[testPath] = edited(files[testPath], {path: testPath, snippet: '', why: '', before: assertion(currentCount)}, assertion(previousCount));
     assert.equal(fingerprint(files), record.applicationFingerprint);
     assert.equal(fingerprint(expected('96zzzzzzzq-draw-original-cad-wire-curves')),
-        'f339c9ac8c75353caca48e1dba3c537a002f0e62726b19f58dcad7bdb324bf9e');
+        'e86ab162ab76e3345a639f944bf082122c956c1c70ab475abb2abceda99dc163');
     const counted = fields.reduce((sum, edit) => sum + edit.before!.length + read(path.join(viewer, 'docs', edit.snippet)).length, 0);
     assert(counted > 0 && counted < 100);
     assert(typingLoad(step).minutes[1] <= 60);

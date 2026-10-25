@@ -13,8 +13,11 @@ pub async fn run() -> Result<(), JsValue> {
         compatible_surface: Some(&surface), ..Default::default()
     }).await.map_err(error)?;
     let (device, queue) = adapter.request_device(&Default::default()).await.map_err(error)?;
-    let width = window.inner_width()?.as_f64().ok_or("No width")? as u32;
-    let height = window.inner_height()?.as_f64().ok_or("No height")? as u32;
+    let density = window.device_pixel_ratio();
+    let density = if density.is_finite() && density > 0.0 { density } else { 1.0 };
+    let limit = device.limits().max_texture_dimension_2d;
+    let width = ((window.inner_width()?.as_f64().ok_or("No width")? * density).round() as u32).clamp(1, limit);
+    let height = ((window.inner_height()?.as_f64().ok_or("No height")? * density).round() as u32).clamp(1, limit);
     canvas.set_width(width); canvas.set_height(height);
     let config = surface.get_default_config(&adapter, width, height).ok_or("No surface format")?;
     surface.configure(&device, &config);

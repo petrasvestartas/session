@@ -93,6 +93,7 @@ Replace it with:
             )),
             ..Default::default()
         };
+        input.viewports.get_mut(&egui::ViewportId::ROOT).unwrap().native_pixels_per_point=Some(density);
         let output = self.context.run_ui(input, |root| {
             view::panel(root, self.model.command_expanded, 0.0).show_inside(root, |ui| {
                 view::prepare(ui);
@@ -106,6 +107,7 @@ Replace it with:
             )),
             ..Default::default()
         };
+        input.viewports.get_mut(&egui::ViewportId::ROOT).unwrap().native_pixels_per_point=Some(density);
         self.model.completion_rect = None;
         let output = self.context.run_ui(input, |root| {
             view::panel(root, self.model.command_expanded, 0.0).show_inside(root, |ui| {
@@ -221,6 +223,7 @@ impl Panel {
             )),
             ..Default::default()
         };
+        input.viewports.get_mut(&egui::ViewportId::ROOT).unwrap().native_pixels_per_point=Some(density);
         self.model.completion_rect = None;
         let output = self.context.run_ui(input, |root| {
             view::panel(root, self.model.command_expanded, 0.0).show_inside(root, |ui| {

@@ -1312,7 +1312,7 @@
     {
       "root": "viewer",
       "path": "src/app/walk/brep.rs",
-      "sha256": "e49dcc0911686b0f2f4fbd7c9aacc411bb989e45b5c0c1444544f087d886c285",
+      "sha256": "3d710cac554c1cfe9a6f8754ccb1569753cef6dd5e2a13b6b6e0d8fa666626d9",
       "topic": "Original source walking and shared display",
       "lessons": "55–71,92,94,95"
     },

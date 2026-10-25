@@ -1189,7 +1189,7 @@
       "course": "02"
     },
     "src/app/walk/brep.rs": {
-      "sha256": "e49dcc0911686b0f2f4fbd7c9aacc411bb989e45b5c0c1444544f087d886c285",
+      "sha256": "3d710cac554c1cfe9a6f8754ccb1569753cef6dd5e2a13b6b6e0d8fa666626d9",
       "course": "02"
     },
     "src/app/walk/brep_edges.rs": {
@@ -2135,6 +2135,18 @@
       }
     ],
     "sourceScope": "Merged exact production BRep edge reconstruction, native witness registration and its diagnostic implementation. These hashes describe actual current maintained files. Existing course/reference assignments, previous dated changes and sourceInventoryScope values remain historical; no extraction parity or new typed-reference execution is inferred.",
-    "typingScope": "All43 reference histories, typed snippets, checkpoint metadata and source reconstruction remain unchanged. Course inventory pointer and course JSON bytes unchanged."
+    "typingScope": "All43 reference histories, typed snippets, checkpoint metadata and source reconstruction remain unchanged. Course inventory pointer and course JSON bytes unchanged.",
+    "earlyCurveQuality": {
+      "date": "2026-10-25",
+      "historicalInventory": "docs/journey/consolidation/history/current-viewer-before-early-edge-quality-2026-10-25.json",
+      "changes": [
+        {
+          "path": "src/app/walk/brep.rs",
+          "beforeSha256": "e49dcc0911686b0f2f4fbd7c9aacc411bb989e45b5c0c1444544f087d886c285",
+          "sha256": "3d710cac554c1cfe9a6f8754ccb1569753cef6dd5e2a13b6b6e0d8fa666626d9"
+        }
+      ],
+      "scope": "Current exact surface-border sampling and preserved interactive UV/vertex mapping; former source-specific evidence retains original inputs."
+    }
   }
 }

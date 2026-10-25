@@ -1,0 +1,69 @@
+{
+  "date": "2026-10-25T20:46:12.183Z",
+  "status": "PASS focused rendering regressions and two actual browser presentation checks; full image regeneration remains in progress",
+  "scope": "Early exact BRep curve samples, independently refined NURBS borders, early ink depth offsets and genuine device-pixel capture. No whole-course new-source acceptance or Potree parity is implied.",
+  "sources": {
+    "maintainedSurface": "3d710cac554c1cfe9a6f8754ccb1569753cef6dd5e2a13b6b6e0d8fa666626d9",
+    "finalCadCandidateFingerprint": "e86ab162ab76e3345a639f944bf082122c956c1c70ab475abb2abceda99dc163"
+  },
+  "focusedNative": {
+    "record": "target/course-early-quality-984dbca6e3620b5394b7/early-quality-984dbca6e362-20261025T204403371Z/result.json",
+    "sha256": "05858b41636e8e9229201ef931009bbc0103ccbda6c8c905e87e36a782225489",
+    "cases": [
+      "Exact authored cylindrical edges remain exact after triangle vertices are displaced",
+      "Closed seams, curve subdivisions and original CAD owner addresses",
+      "Rational NURBS border samples with unchanged face triangles, source identities and archive",
+      "Unchanged eight-case depth-occlusion GPU regression: both projections, zoom 1/2, DPR 1/2"
+    ],
+    "gpu": "Microsoft WARP, DX12",
+    "resources": {
+      "buildSeconds": 13.476,
+      "buildPeakJobCommitBytes": 1423597568,
+      "boundarySeconds": 1.178,
+      "surfaceSeconds": 0.242,
+      "depthSeconds": 3.505,
+      "depthPeakJobCommitBytes": 560152576
+    },
+    "reproduce": "node --import ../session_tests/scripts/typescript.mjs ../session_tests/scripts/course/early-quality-regression.ts --prepare; run the emitted receipt with --run RECEIPT --dxc ABSOLUTE_DXCOMPILER_PATH"
+  },
+  "maintainedSurfacePreview": {
+    "record": "target/course-windows-20261018/early-exact-boundary-migration/maintained-surface-actual-result.json",
+    "sha256": "88fd56c21fb86182e7e99bebae97ce4d7bce806514623d7c44c463426d5d540d",
+    "passed": 1,
+    "failed": 0,
+    "filtered": 619,
+    "elapsedSeconds": 1109.078,
+    "peakJobCommitBytes": 2551615488
+  },
+  "earlyBrowser": {
+    "record": "target/course-presentation/early-browser-root-review.json",
+    "sha256": "ab37dd212835845e1cb405f9ad1bb1251021db07da9ca8c75af1e09f982e29ab",
+    "cases": [
+      "03-triangle",
+      "10-depth"
+    ],
+    "canonicalBehaviorDpr": 1,
+    "presentationDpr": 2,
+    "physicalImageSize": [
+      1800,
+      1520
+    ],
+    "adapter": "NVIDIA hardware",
+    "rootPersonallyViewedOriginalResolution": true
+  },
+  "preserved": [
+    "Gemini prose and Vue website design",
+    "Existing production cloud renderer; rejected contour-AA candidate was not integrated",
+    "Historical source-specific test and image evidence"
+  ],
+  "remaining": [
+    "Regenerate and review all public image outputs",
+    "Final current-source integration and documentation desktop/phone verification"
+  ],
+  "runnerFormattingQualification": {
+    "testedSha256": "465e389294b168612ef7b5a6cfaa7f56f4bd8d719e0029268dc112606e032ffd",
+    "currentSha256": "38c94909d75832c98f4e570af1c38447e9184dde754adaa12e048ee982916f18",
+    "scope": "One terminal blank line removed after execution for diff-check cleanliness. Assertions, driver source and executable artifacts are unchanged. Recorded run remains bound to its original runner hash.",
+    "retainedTestedRunner": "target/course-windows-20261025/latest-commit-audit/early-quality-regression-before-eof-trim.ts"
+  }
+}

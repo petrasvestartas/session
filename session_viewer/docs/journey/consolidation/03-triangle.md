@@ -1687,7 +1687,7 @@ Replace it with:
 ```rust
             pixels_per_point: 1.0,
         };
-        let input = egui::RawInput {
+        let mut input = egui::RawInput {
             screen_rect: Some(egui::Rect::from_min_size(
                 egui::Pos2::ZERO,
                 egui::vec2(size[0] as f32, size[1] as f32),
@@ -1698,7 +1698,7 @@ Replace it with:
 ```rust
             pixels_per_point: 1.0,
         };
-        let input = egui::RawInput {
+        let mut input = egui::RawInput {
             focused: true,
             events: std::mem::take(&mut self.events),
             screen_rect: Some(egui::Rect::from_min_size(
@@ -3268,6 +3268,7 @@ pub(crate) fn finish(
 
 ```rust
         };
+        input.viewports.get_mut(&egui::ViewportId::ROOT).unwrap().native_pixels_per_point=Some(density);
         let output = self.context.run_ui(input, |root| {
             view::panel(root, self.model.command_expanded, 0.0).show_inside(
                 root,
@@ -3315,6 +3316,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
         };
+        input.viewports.get_mut(&egui::ViewportId::ROOT).unwrap().native_pixels_per_point=Some(density);
         self.model.completion_rect = None;
         let output = self.context.run_ui(input, |root| {
             view::panel(root, self.model.command_expanded, 0.0).show_inside(
@@ -3710,20 +3712,17 @@ Replace it with:
     }
 
     pub fn draw(&mut self, renderer: &Renderer, target: &wgpu::TextureView) {
-        let size = [
-            target.texture().width(),
-            target.texture().height(),
-        ];
-        let screen = egui_wgpu::ScreenDescriptor {
-            size_in_pixels: size,
-            pixels_per_point: 1.0,
-        };
-        let input = egui::RawInput {
+        let size = [target.texture().width(), target.texture().height()];
+        #[cfg(target_arch="wasm32")]
+        let density=web_sys::window().map_or(1.0,|window|window.device_pixel_ratio() as f32);
+        #[cfg(not(target_arch="wasm32"))]
+        let density=1.0;
+        let screen = egui_wgpu::ScreenDescriptor { size_in_pixels: size, pixels_per_point: density };
+        let mut input = egui::RawInput {
             focused: true,
             events: std::mem::take(&mut self.events),
             screen_rect: Some(egui::Rect::from_min_size(
-                egui::Pos2::ZERO,
-                egui::vec2(size[0] as f32, size[1] as f32),
+                egui::Pos2::ZERO, egui::vec2(size[0] as f32, size[1] as f32) / density,
             )),
             ..Default::default()
         };
@@ -3737,7 +3736,12 @@ Replace it with:
 
     fn prepare(&mut self) {
         let size = self.screen.size_in_pixels;
-        let input = egui::RawInput {
+        #[cfg(target_arch="wasm32")]
+        let density=web_sys::window().map_or(1.0,|window|window.device_pixel_ratio() as f32);
+        #[cfg(not(target_arch="wasm32"))]
+        let density=1.0;
+        self.screen.pixels_per_point=density;
+        let mut input = egui::RawInput {
             focused: true,
             events: std::mem::take(&mut self.events),
             screen_rect: Some(egui::Rect::from_min_size(
@@ -4631,6 +4635,7 @@ pub(crate) fn keys(
             )),
             ..Default::default()
         };
+        input.viewports.get_mut(&egui::ViewportId::ROOT).unwrap().native_pixels_per_point=Some(density);
         self.model.completion_rect = None;
         self.controls = Some(Vec::new());
         let output = self.context.run_ui(input, |root| {
@@ -4706,6 +4711,7 @@ Edit the existing block to match this code; keep unchanged lines:
             )),
             ..Default::default()
         };
+        input.viewports.get_mut(&egui::ViewportId::ROOT).unwrap().native_pixels_per_point=Some(density);
         let previous = self.model.completion_rect.take();
         self.controls = Some(Vec::new());
         let output = self.context.run_ui(input, |root| {
@@ -4869,6 +4875,7 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
             )),
             ..Default::default()
         };
+        input.viewports.get_mut(&egui::ViewportId::ROOT).unwrap().native_pixels_per_point=Some(density);
         let previous = self.model.completion_rect.take();
         self.controls = Some(Vec::new());
         let output = self.context.run_ui(input, |root| {
@@ -4947,6 +4954,7 @@ Replace it with:
             )),
             ..Default::default()
         };
+        input.viewports.get_mut(&egui::ViewportId::ROOT).unwrap().native_pixels_per_point=Some(density);
         self.controls = Some(Vec::new());
         let mut line = None;
         let output = self.context.run_ui(input, |root| {
@@ -5684,6 +5692,7 @@ Replace it with:
             )),
             ..Default::default()
         };
+        input.viewports.get_mut(&egui::ViewportId::ROOT).unwrap().native_pixels_per_point=Some(density);
         self.controls = Some(Vec::new());
         let mut line = None;
         let output = self.context.run_ui(input, |root| {
@@ -5713,7 +5722,12 @@ Replace it with:
 
     fn prepare(&mut self) {
         let size = self.screen.size_in_pixels;
-        let input = egui::RawInput {
+        #[cfg(target_arch="wasm32")]
+        let density=web_sys::window().map_or(1.0,|window|window.device_pixel_ratio() as f32);
+        #[cfg(not(target_arch="wasm32"))]
+        let density=1.0;
+        self.screen.pixels_per_point=density;
+        let mut input = egui::RawInput {
             focused: true,
             events: std::mem::take(&mut self.events),
             screen_rect: Some(egui::Rect::from_min_size(

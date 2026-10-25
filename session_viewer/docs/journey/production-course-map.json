@@ -22165,7 +22165,7 @@
     },
     "productionSourceInventory": {
       "path": "current-viewer-2026-10-23.json",
-      "sha256": "5dce24b77ac687f295135f485934f250fe6f5cbfe58cbe385799a843c0abdb48",
+      "sha256": "e5c865174454b32c01faf2ba1da25739194c02b9f1dfa8bfaa3d0cb12764bb26",
       "files": 307,
       "mappedPaths": 307,
       "historicalRowsPreserved": 301,
@@ -22197,6 +22197,13 @@
         ],
         "sourceScope": "Merged exact production BRep edge reconstruction, native witness registration and its diagnostic implementation. These hashes describe actual current maintained files. Existing course/reference assignments, previous dated changes and sourceInventoryScope values remain historical; no extraction parity or new typed-reference execution is inferred.",
         "typingScope": "All43 reference histories, typed snippets, checkpoint metadata and source reconstruction remain unchanged. Course inventory pointer and course JSON bytes unchanged."
+      },
+      "earlyCurveQualityQualification": {
+        "date": "2026-10-25",
+        "status": "Current source inventory accounting; early NURBS border refinement is undergoing separate surface-preview verification",
+        "preservedHistoricalInventory": "consolidation/history/current-viewer-before-early-edge-quality-2026-10-25.json",
+        "changedMaintainedPath": "src/app/walk/brep.rs",
+        "scope": "Exact boundary-only UV samples refine existing NURBS borders independently from unchanged face triangles. Previous recorded source proofs retain their original fingerprints; no full current behavior acceptance is inferred."
       }
     },
     "featureStatusCounts": {

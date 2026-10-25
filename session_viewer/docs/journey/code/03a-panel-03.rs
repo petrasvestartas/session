@@ -1,5 +1,6 @@
             ..Default::default()
         };
+        input.viewports.get_mut(&egui::ViewportId::ROOT).unwrap().native_pixels_per_point=Some(density);
         let output = self.context.run_ui(input, |root| {
             view::panel(root, false, 0.0).show_inside(root, |ui| {
                 view::prepare(ui);

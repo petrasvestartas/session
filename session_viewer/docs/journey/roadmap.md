@@ -1,3 +1,5 @@
+**Visual-quality correction in progress (25 October):** The earlier behavior checks did not establish final visual quality for every historical lesson image. Early BRep boundaries, NURBS border sampling and high-density captures are being corrected; all public tutorial images are queued for regeneration. Earlier completion notes below retain their recorded scope.
+
 **Final runtime status:** 18/18 source-specific callbacks,18/18 bounded finite features,4/4 original fixtures and5/5 release gates accepted. Final tutorial713 `f339c9ac`, maintained714 `40e317cc`; actual native1,068/1,068 and all7 compiler/package/frame phases pass. [Native proof](release/final-brep-final-native-integration-review.json), [build review](release/final-brep-final-runtime-build-gate-review.json), [finite closure](release/final-four-feature-closure-review.json). Historical results retain their original source scopes.
 
 **Documentation:** Final current-source documentation build and desktop/phone/Chapter22.6 review are complete. The preserved 16.4 measurement page and source bodies pass. [Measured final docs review](release/docs-final-brep-visible-review.json).
