@@ -1,0 +1,294 @@
+{
+  "date": "2026-10-25T22:53:31.581Z",
+  "status": "PASS:two root-reviewed original callback image captures published and HTTP bytes verified",
+  "scope": "Unchanged original callback assertions executed at DPR1 under image-purpose8CPU8GiBFF00 resources; original high-density presentation produced DPR2 images. This does not claim original2CPU canonical-validation acceptance.03d and04 have independently bound source receipts and byte-identical PNGs; root original03d view qualifies exact04 bytes.",
+  "rootPersonallyViewedOriginalResolution": true,
+  "canonicalBehaviorExecuted": true,
+  "canonicalValidationProfile": false,
+  "images": [
+    {
+      "id": "03d-input",
+      "destination": "docs/screenshots/journey/03d-input-browser.png",
+      "originalSha256": "30fdfbbcace7a08e2b0aa276178a6fad76616fd2936a93889de90fe05f842652",
+      "image": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\browser-03d-input-991105d98669b0db-dpr2\\workspace\\docs\\screenshots\\journey\\03d-input-browser.png",
+        "sha256": "81c995825a23b2ea5bc7bb293dbd93331de7a41b8eb7f0a43418cefd3a48e05b",
+        "width": 1800,
+        "height": 1520
+      },
+      "source": {
+        "checkpoint": "03d-input",
+        "files": "4016233c246607d2ec50d9640295df885f295fc1107758fdf98962aaf2a85ded",
+        "lock": "d94afdf257d0c345e4e3a7ae1596e2cccf5c3e5aa48734a3dbe7468c9c989df8",
+        "assets": {
+          "assets/text/NotoSans-Regular.subset.ttf": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09",
+          "assets/text/NotoSansSymbols2-Regular.subset.ttf": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed",
+          "assets/text/NotoSansSymbols-Regular.subset.ttf": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3"
+        },
+        "dependencies": {},
+        "kernel": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+        "fixture": "519b5cc891974ce7f242f8239e92d0c00a08cd559addd0df12d089fd867a82bb",
+        "harness": "cc7b0a195a93c6fde86a62e203c4ecabf74eb76ee256952dfd098796ca9c39a3",
+        "constructor": null,
+        "logicalSize": [
+          640,
+          480
+        ],
+        "helper": "e2c028971ab9cc08c2b951bed543b025ccb6f17c8e0b844d5370e82abb3a7410"
+      },
+      "sourceRecord": {
+        "path": "target/course-presentation/image-fallback/03d-input-2145e172f13288bcbef2/capture.json",
+        "sha256": "d71f58c852711cd5718c01b41ddda673186e604e90f3c8584aabe610241ab85f"
+      },
+      "canonicalBehaviorExecuted": true,
+      "canonicalValidationProfile": false,
+      "profile": {
+        "purpose": "Image generation with unchanged original callback assertions",
+        "canonicalBehaviorExecuted": true,
+        "canonicalValidationProfile": false,
+        "processors": 8,
+        "memoryMiB": 8192,
+        "affinityMask": "0xFF00",
+        "helper": {
+          "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\browser-image-fallback.ts",
+          "sha256": "ffdc0015d81d7dbfd0459e02f2eb041da03bf9da80eacb26a63f58b0f21e0876"
+        },
+        "guard": {
+          "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\parallel-image-guard.ps1",
+          "sha256": "ace35ad7068f780447b01bf5ec7d601058b20576f8b395d68d6c2f939c287932"
+        },
+        "worker": {
+          "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\browser-03d-input-991105d98669b0db-dpr2\\worker.cjs",
+          "sha256": "31941ab9a37da26aff429831fabfad415381210bf4ecf4055f6ba099b87ec85e"
+        },
+        "adapted": {
+          "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\browser-03d-input-991105d98669b0db-dpr2\\capture-adapted.cjs",
+          "sha256": "a02a32db2034cff8ea93eda8cc48560e7f20d6dc3b4e7b93efde5c539f368b93"
+        }
+      },
+      "presentation": {
+        "status": "BEHAVIOR_DPR1_PASSED_IMAGE_DPR2_PENDING_ROOT_REVIEW",
+        "checkpoint": "03d-input",
+        "behaviorDpr": 1,
+        "imageDpr": 2,
+        "viewport": {
+          "width": 900,
+          "height": 760
+        },
+        "densityState": {
+          "dpr": 2,
+          "canvas": {
+            "width": 1800,
+            "height": 1520
+          },
+          "adapters": [
+            {
+              "vendor": "nvidia",
+              "description": "",
+              "fallback": false
+            }
+          ],
+          "gpuErrors": []
+        },
+        "presentationStatus": "Type Help in the command field and press Enter.",
+        "recipe": "Fresh high-DPI startup and documented browser_actions only; original full callback verified at DPR1.",
+        "behaviorImage": {
+          "path": "docs\\screenshots\\journey\\03d-input-behavior-dpr1.png",
+          "sha256": "a336389c7e16651a5b63c8de9c98f0773ebb89fd2a400bacd96f6002569db45d"
+        }
+      },
+      "resources": {
+        "platform": "windows-job-object",
+        "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+        "laneMutex": "Local\\SessionViewerCourseImageJob",
+        "affinityOffset": 8,
+        "requiredAffinityMask": "0xFF00",
+        "maximumOtherLaneProcessors": 8,
+        "maximumOtherLaneMemoryMiB": 8192,
+        "maximumAggregateOurProcessors": 16,
+        "maximumAggregateOurMemoryMiB": 16384,
+        "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+        "requestedProcessors": 8,
+        "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+        "startedUtc": "2026-10-25T22:42:24.5986658Z",
+        "executable": "C:\\Program Files\\nodejs\\node.exe",
+        "arguments": [
+          "--require",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\warp-browser-timeout.cjs",
+          "--import",
+          "file:///C:/pc/3_code/code_rust/wood_research/session/session_tests/scripts/typescript.mjs",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\browser-03d-input-991105d98669b0db-dpr2\\worker.cjs"
+        ],
+        "workingDirectory": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\browser-03d-input-991105d98669b0db-dpr2\\workspace",
+        "timeoutSeconds": 2400,
+        "jobCommitLimitBytes": 8589934592,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 0,
+        "timedOut": false,
+        "elapsedSeconds": 2.289,
+        "peakJobCommitBytes": 654364672,
+        "affinityMask": "0xFF00",
+        "processors": 8,
+        "processId": 49508,
+        "descendantsAtCleanup": 1
+      },
+      "backup": {
+        "path": "target/course-presentation/scene-browser-batches/c6146db6063a5c3f9ba4/fallback-original-images/03d-input-browser.png",
+        "sha256": "30fdfbbcace7a08e2b0aa276178a6fad76616fd2936a93889de90fe05f842652"
+      },
+      "http": {
+        "servedPath": "target/docs/vue/course/docs/screenshots/journey/03d-input-browser.png",
+        "servedSha256": "81c995825a23b2ea5bc7bb293dbd93331de7a41b8eb7f0a43418cefd3a48e05b",
+        "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/03d-input-browser.png?v=30fdfbbcace7",
+        "status": 200,
+        "contentType": "image/png",
+        "cacheControl": "no-cache",
+        "sha256": "81c995825a23b2ea5bc7bb293dbd93331de7a41b8eb7f0a43418cefd3a48e05b"
+      }
+    },
+    {
+      "id": "04-input",
+      "destination": "docs/screenshots/journey/04-input-browser.png",
+      "originalSha256": "7c3f9d8b87524db0568d87a09fe7160f881332bb3d635552617bc4decb0e9397",
+      "image": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\browser-04-input-a68ad7c58941ef5c-dpr2\\workspace\\docs\\screenshots\\journey\\04-input-browser.png",
+        "sha256": "81c995825a23b2ea5bc7bb293dbd93331de7a41b8eb7f0a43418cefd3a48e05b",
+        "width": 1800,
+        "height": 1520
+      },
+      "source": {
+        "checkpoint": "04-input",
+        "files": "beb9cad73c561bc52d4bd9213d94ec78b8e926a3ff95fd7b0ad49ada68cf6258",
+        "lock": "d94afdf257d0c345e4e3a7ae1596e2cccf5c3e5aa48734a3dbe7468c9c989df8",
+        "assets": {
+          "assets/text/NotoSans-Regular.subset.ttf": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09",
+          "assets/text/NotoSansSymbols2-Regular.subset.ttf": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed",
+          "assets/text/NotoSansSymbols-Regular.subset.ttf": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3"
+        },
+        "dependencies": {},
+        "kernel": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+        "fixture": null,
+        "harness": "cc7b0a195a93c6fde86a62e203c4ecabf74eb76ee256952dfd098796ca9c39a3",
+        "constructor": null,
+        "logicalSize": [
+          640,
+          480
+        ],
+        "helper": "e2c028971ab9cc08c2b951bed543b025ccb6f17c8e0b844d5370e82abb3a7410"
+      },
+      "sourceRecord": {
+        "path": "target/course-presentation/image-fallback/04-input-3eb7233d9a4de3fded29/capture.json",
+        "sha256": "9d1c506a08bf496607cbf7f9400d2bbe198f5641693de2196bf335e4809f7e02"
+      },
+      "canonicalBehaviorExecuted": true,
+      "canonicalValidationProfile": false,
+      "profile": {
+        "purpose": "Image generation with unchanged original callback assertions",
+        "canonicalBehaviorExecuted": true,
+        "canonicalValidationProfile": false,
+        "processors": 8,
+        "memoryMiB": 8192,
+        "affinityMask": "0xFF00",
+        "helper": {
+          "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\browser-image-fallback.ts",
+          "sha256": "ffdc0015d81d7dbfd0459e02f2eb041da03bf9da80eacb26a63f58b0f21e0876"
+        },
+        "guard": {
+          "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\parallel-image-guard.ps1",
+          "sha256": "ace35ad7068f780447b01bf5ec7d601058b20576f8b395d68d6c2f939c287932"
+        },
+        "worker": {
+          "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\browser-04-input-a68ad7c58941ef5c-dpr2\\worker.cjs",
+          "sha256": "c3f7e777a6282d575ff34b3ccf9f00f2e7974e1f22b5df54ce1817805aa86446"
+        },
+        "adapted": {
+          "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\browser-04-input-a68ad7c58941ef5c-dpr2\\capture-adapted.cjs",
+          "sha256": "a02a32db2034cff8ea93eda8cc48560e7f20d6dc3b4e7b93efde5c539f368b93"
+        }
+      },
+      "presentation": {
+        "status": "BEHAVIOR_DPR1_PASSED_IMAGE_DPR2_PENDING_ROOT_REVIEW",
+        "checkpoint": "04-input",
+        "behaviorDpr": 1,
+        "imageDpr": 2,
+        "viewport": {
+          "width": 900,
+          "height": 760
+        },
+        "densityState": {
+          "dpr": 2,
+          "canvas": {
+            "width": 1800,
+            "height": 1520
+          },
+          "adapters": [
+            {
+              "vendor": "nvidia",
+              "description": "",
+              "fallback": false
+            }
+          ],
+          "gpuErrors": []
+        },
+        "presentationStatus": "Change the background. The triangle keeps its shape and colour.",
+        "recipe": "Fresh high-DPI startup and documented browser_actions only; original full callback verified at DPR1.",
+        "behaviorImage": {
+          "path": "docs\\screenshots\\journey\\04-input-behavior-dpr1.png",
+          "sha256": "8057f78074c61fe6ea8762f0f43c10b5cd015e45669d99715d9b2edd63ab15a4"
+        }
+      },
+      "resources": {
+        "platform": "windows-job-object",
+        "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+        "laneMutex": "Local\\SessionViewerCourseImageJob",
+        "affinityOffset": 8,
+        "requiredAffinityMask": "0xFF00",
+        "maximumOtherLaneProcessors": 8,
+        "maximumOtherLaneMemoryMiB": 8192,
+        "maximumAggregateOurProcessors": 16,
+        "maximumAggregateOurMemoryMiB": 16384,
+        "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+        "requestedProcessors": 8,
+        "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+        "startedUtc": "2026-10-25T22:42:57.6741650Z",
+        "executable": "C:\\Program Files\\nodejs\\node.exe",
+        "arguments": [
+          "--require",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\warp-browser-timeout.cjs",
+          "--import",
+          "file:///C:/pc/3_code/code_rust/wood_research/session/session_tests/scripts/typescript.mjs",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\browser-04-input-a68ad7c58941ef5c-dpr2\\worker.cjs"
+        ],
+        "workingDirectory": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\browser-04-input-a68ad7c58941ef5c-dpr2\\workspace",
+        "timeoutSeconds": 2400,
+        "jobCommitLimitBytes": 8589934592,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 0,
+        "timedOut": false,
+        "elapsedSeconds": 2.821,
+        "peakJobCommitBytes": 681287680,
+        "affinityMask": "0xFF00",
+        "processors": 8,
+        "processId": 52508,
+        "descendantsAtCleanup": 1
+      },
+      "backup": {
+        "path": "target/course-presentation/scene-browser-batches/c6146db6063a5c3f9ba4/fallback-original-images/04-input-browser.png",
+        "sha256": "7c3f9d8b87524db0568d87a09fe7160f881332bb3d635552617bc4decb0e9397"
+      },
+      "http": {
+        "servedPath": "target/docs/vue/course/docs/screenshots/journey/04-input-browser.png",
+        "servedSha256": "81c995825a23b2ea5bc7bb293dbd93331de7a41b8eb7f0a43418cefd3a48e05b",
+        "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/04-input-browser.png?v=7c3f9d8b8752",
+        "status": 200,
+        "contentType": "image/png",
+        "cacheControl": "no-cache",
+        "sha256": "81c995825a23b2ea5bc7bb293dbd93331de7a41b8eb7f0a43418cefd3a48e05b"
+      }
+    }
+  ]
+}

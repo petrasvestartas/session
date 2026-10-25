@@ -1,0 +1,177 @@
+{
+  "status": "APPROVED scoped incremental image-build method after two actual source-distinct exact-image cases",
+  "rootDecision": "Root approved actual35d?36e exact A/B and meaningful warm savings on2026-10-25; no old helper changes.",
+  "canonicalBehaviorExecuted": false,
+  "helper": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\incremental-browser-image-build.ts",
+    "sha256": "58e1dc977bd83f621a8a2ddff7d8c47488b7b308dc903826e0cf12e4d205b1c2"
+  },
+  "originalBuilder": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\image-browser-build.ts",
+    "sha256": "882f90b92841548e922b28be2871fbc15b85e98df033022b5160a78c52391370"
+  },
+  "groupKey": "56672a9dea5b5702d0d5cfc230c01544b940ec782532b849a0c3a4155c19e8e8",
+  "policy": {
+    "purpose": "Image-only stable incremental compiler experiment; no canonical callback acceptance",
+    "processors": 8,
+    "memoryMiB": 8192,
+    "jobs": 8,
+    "affinityMask": "0xFF00",
+    "timeoutSeconds": 1800,
+    "profile": "debug",
+    "incremental": "1"
+  },
+  "cases": [
+    {
+      "id": "35d-input",
+      "source": {
+        "checkpoint": "35d-input",
+        "files": "84c40148f175b1232e44eadc569f86953f41d53a9ea2dde9395504d7018735d9",
+        "lock": "6d600dfe1ba9f55ce4bf0c623576ebfac06e6c180f07568368916387d868adde",
+        "assets": {
+          "assets/text/NotoSans-Regular.subset.ttf": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09",
+          "assets/text/NotoSansSymbols2-Regular.subset.ttf": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed",
+          "assets/text/NotoSansSymbols-Regular.subset.ttf": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3"
+        },
+        "dependencies": {},
+        "kernel": "c0acbde78685d127e98e1d13dd9c1fdff064277c38ce17fd7329a13459558b88",
+        "fixture": "edf0f65e7be65dd8c77df6a6c62d3c28f47dabc3e9eb50fcb49c46d0fb385425",
+        "harness": "cc7b0a195a93c6fde86a62e203c4ecabf74eb76ee256952dfd098796ca9c39a3",
+        "constructor": "make_renderer(device, queue, format)",
+        "logicalSize": [
+          640,
+          480
+        ],
+        "helper": "e2c028971ab9cc08c2b951bed543b025ccb6f17c8e0b844d5370e82abb3a7410"
+      },
+      "comparison": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-builds\\cases\\35d-input-f9c395d8a4dfb5cb3a19\\benchmark-comparison.json",
+        "sha256": "51008c242c29eaa8103937c427b20cff2bc960ccc8f2c4cbf4f31f0a0fe6cba9"
+      },
+      "actualBuild": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-builds\\cases\\35d-input-f9c395d8a4dfb5cb3a19\\built.json",
+        "sha256": "ccddecd6a2af5bebe90ee6c954c4e5bf94e4bd59e7edd87293039d69c2349368"
+      },
+      "actualImageCapture": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\image-lane-scenes\\35d-input-fa28e437df809fc3e262\\result.json",
+        "sha256": "dfc26938ce3dfc03781945ced4080800ce5c044f53e7830901cc9675723a8252"
+      },
+      "image": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\image-lane-scenes\\35d-input-fa28e437df809fc3e262\\presentation.png",
+        "sha256": "722f2fb3cb2fb34655b6fae315bb480fef865ca42d29b5f502cb4a92082dd7bc",
+        "width": 1800,
+        "height": 1520
+      },
+      "exactOriginalPngBytes": true,
+      "differentPixels": 0,
+      "buildWallSeconds": 131.12,
+      "totalWallSeconds": 137.708,
+      "commands": [
+        {
+          "label": "sample",
+          "elapsedSeconds": 69.216,
+          "peakJobCommitBytes": 3804241920
+        },
+        {
+          "label": "wasm",
+          "elapsedSeconds": 48.497,
+          "peakJobCommitBytes": 1857642496
+        },
+        {
+          "label": "bindgen",
+          "elapsedSeconds": 1.058,
+          "peakJobCommitBytes": 1254264832
+        }
+      ]
+    },
+    {
+      "id": "36e-input",
+      "source": {
+        "checkpoint": "36e-input",
+        "files": "26094ef076a7f3b5bc5a03681b695ce013ecc04c22f85d69bdfa1f09d1712a9e",
+        "lock": "6d600dfe1ba9f55ce4bf0c623576ebfac06e6c180f07568368916387d868adde",
+        "assets": {
+          "assets/text/NotoSans-Regular.subset.ttf": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09",
+          "assets/text/NotoSansSymbols2-Regular.subset.ttf": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed",
+          "assets/text/NotoSansSymbols-Regular.subset.ttf": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3"
+        },
+        "dependencies": {},
+        "kernel": "c0acbde78685d127e98e1d13dd9c1fdff064277c38ce17fd7329a13459558b88",
+        "fixture": "40ea4e2bfe8caffb65ddc4c026d59ed2a2ec9c53a6dafe244af1c1f440092ca6",
+        "harness": "cc7b0a195a93c6fde86a62e203c4ecabf74eb76ee256952dfd098796ca9c39a3",
+        "constructor": "make_renderer(device, queue, format)",
+        "logicalSize": [
+          640,
+          480
+        ],
+        "helper": "e2c028971ab9cc08c2b951bed543b025ccb6f17c8e0b844d5370e82abb3a7410"
+      },
+      "comparison": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-builds\\cases\\36e-input-95bd5c78e0da8e6866d1\\benchmark-comparison.json",
+        "sha256": "9929f9c2565197b79cce58005c0677dff5d0217c158814b585fd1beb6f0b12a6"
+      },
+      "actualBuild": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-builds\\cases\\36e-input-95bd5c78e0da8e6866d1\\built.json",
+        "sha256": "f1233ef5af90a6cde28f6825c4964f08046fa3dbff3aae66de63dcf8281dd91f"
+      },
+      "actualImageCapture": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\additional-scenes\\36e-input-bffe4489a2b5d968fbc6\\capture.json",
+        "sha256": "4b4eac081d848bc0e5d32779e0a2fe9744bd860f419f46989f95bc655afacf75"
+      },
+      "image": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\additional-scenes\\36e-input-bffe4489a2b5d968fbc6\\36e-input-dpr2.png",
+        "sha256": "4464e583e027a6cf9903cf7758cb70b75374d618654950e6b779d9e6ad8d0b62",
+        "width": 1800,
+        "height": 1520
+      },
+      "exactOriginalPngBytes": true,
+      "differentPixels": 0,
+      "buildWallSeconds": 24.201,
+      "totalWallSeconds": 29.76,
+      "commands": [
+        {
+          "label": "sample",
+          "elapsedSeconds": 5.501,
+          "peakJobCommitBytes": 1270345728
+        },
+        {
+          "label": "wasm",
+          "elapsedSeconds": 4.791,
+          "peakJobCommitBytes": 787918848
+        },
+        {
+          "label": "bindgen",
+          "elapsedSeconds": 1.045,
+          "peakJobCommitBytes": 1263316992
+        }
+      ]
+    }
+  ],
+  "sameCheckpoint36ePhaseComparison": {
+    "originalMethod": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\image-builds\\14e6ea7b0cc0f113d49c02f9\\built.json",
+      "sha256": "a8a4740f294389ce4cf97e99e16a87f9e8beb3916f4bcea8c17f6fc75c307d0e"
+    },
+    "originalGuardedCommandSeconds": 90.187,
+    "incrementalGuardedCommandSeconds": 11.337000000000002,
+    "reductionFraction": 0.874294521383348,
+    "scope": "Actual sample+WASM+bindgen command sums for36e; original builder used a per-source crate/workspace, incremental candidate reused the exact35d group/path after synchronizing genuinely changed source. This is not a whole-course or canonical performance claim."
+  },
+  "sourceSafety": [
+    "Group-bound manifest, lock, complete dependencies, toolchain and profile; unique per-group package, stable WASM library name",
+    "Actual Cargo invocation at every checkpoint; SHA-only owned source sync and stale removal",
+    "Immutable full source, rawWASM, bundle, own compiler artifacts, command logs and resources before workbench reuse",
+    "Original canonical native/source, callbacks, assertions,882builder, current capture workers and old receipts unchanged"
+  ],
+  "preservedSetupFailure": {
+    "comparison": "target/course-presentation/incremental35d-benchmark.log",
+    "sampleLog": "target/course-presentation/incremental-browser-builds/cases/35d-input-0e924f50512415120c7e/sample.log",
+    "cause": "MSVC LNK1104 long output path before viewer compilation; fixed only by shortening the new private group/cache path. No GPU ran."
+  },
+  "limits": [
+    "First case includes cold dependency compilation; warm benefit applies only within exact compatible groups",
+    "94c real metadata passed but no new94c compile/capture was needed or claimed",
+    "Actual per-ID image/source/GPU checks and imageQA remain required",
+    "WASM debug profile unchanged; no release/optimized claim"
+  ]
+}
