@@ -1,15 +1,15 @@
 {
-  "date": "2026-10-26T03:37:59.040Z",
+  "date": "2026-10-26T03:47:00.811Z",
   "status": "PASS: reviewed publication receipts reconciled with exact source and served file hashes",
   "scope": "Only explicitly reviewed publication receipts count; in-flight captures excluded. HTTP verification belongs to each linked publication receipt.",
   "inventory": {
     "path": "target/course-presentation/inventory-d09aa228601224bf4dfe.json",
     "sha256": "d09aa228601224bf4dfe01d6a1009a56357b2eb5e4b3baa5d88566b2c7a66eba"
   },
-  "published": 1281,
-  "remaining": 481,
+  "published": 1331,
+  "remaining": 431,
   "counts": {
-    "native": 1018,
+    "native": 1068,
     "browser": 243,
     "variants": 0,
     "supporting": 20
@@ -12441,6 +12441,16 @@
       }
     },
     {
+      "path": "docs/screenshots/journey/87aa-observe-actual-clipping-resources-and-errors.png",
+      "sha256": "3b3c76c89354e4725be2322f9109b261da8b92eae34ad1bad2116cecf80b0a4e",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-1331.json",
+        "sha256": "9e11ef8bdf1df5e811f496a0bb267efb89c700365e7e58d70b172947a3323caa"
+      }
+    },
+    {
       "path": "docs/screenshots/journey/87ab-exercise-original-clipping-color-and-picking.png",
       "sha256": "98a07fa37c2c969999d6f7fdcef050281ca2c05abf93a57960ba79265faf5a88",
       "kind": "native",
@@ -12468,6 +12478,226 @@
       "receipt": {
         "path": "docs/journey/release/native-streaming-publication-1280.json",
         "sha256": "5bf8793297bf63b8dc5971671b250629ee0b8a79ae9397db4e7ddd096a7f8152"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/87ca-project-a-stable-hatch-coordinate-onto-a-plane.png",
+      "sha256": "3b3c76c89354e4725be2322f9109b261da8b92eae34ad1bad2116cecf80b0a4e",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-1331.json",
+        "sha256": "9e11ef8bdf1df5e811f496a0bb267efb89c700365e7e58d70b172947a3323caa"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/87cb-fill-one-bounded-clipping-uniform-from-original-planes.png",
+      "sha256": "3b3c76c89354e4725be2322f9109b261da8b92eae34ad1bad2116cecf80b0a4e",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-1331.json",
+        "sha256": "9e11ef8bdf1df5e811f496a0bb267efb89c700365e7e58d70b172947a3323caa"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/87cc-match-the-clipping-uniform-and-sample-conventions.png",
+      "sha256": "3b3c76c89354e4725be2322f9109b261da8b92eae34ad1bad2116cecf80b0a4e",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-1331.json",
+        "sha256": "9e11ef8bdf1df5e811f496a0bb267efb89c700365e7e58d70b172947a3323caa"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/87cd-apply-shared-original-half-space-tests.png",
+      "sha256": "3b3c76c89354e4725be2322f9109b261da8b92eae34ad1bad2116cecf80b0a4e",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-1331.json",
+        "sha256": "9e11ef8bdf1df5e811f496a0bb267efb89c700365e7e58d70b172947a3323caa"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/87ce-compute-clipping-coverage-in-framebuffer-sample-space.png",
+      "sha256": "3b3c76c89354e4725be2322f9109b261da8b92eae34ad1bad2116cecf80b0a4e",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-1331.json",
+        "sha256": "9e11ef8bdf1df5e811f496a0bb267efb89c700365e7e58d70b172947a3323caa"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/87cf-address-section-depth-and-original-cap-records.png",
+      "sha256": "3b3c76c89354e4725be2322f9109b261da8b92eae34ad1bad2116cecf80b0a4e",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-1331.json",
+        "sha256": "9e11ef8bdf1df5e811f496a0bb267efb89c700365e7e58d70b172947a3323caa"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/87d-parse-strict-clipping-modes-and-presentation-switches.png",
+      "sha256": "3b3c76c89354e4725be2322f9109b261da8b92eae34ad1bad2116cecf80b0a4e",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-1331.json",
+        "sha256": "9e11ef8bdf1df5e811f496a0bb267efb89c700365e7e58d70b172947a3323caa"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/87e-preserve-mode-prefixes-in-generic-point-drafts.png",
+      "sha256": "3b3c76c89354e4725be2322f9109b261da8b92eae34ad1bad2116cecf80b0a4e",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-1331.json",
+        "sha256": "9e11ef8bdf1df5e811f496a0bb267efb89c700365e7e58d70b172947a3323caa"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/87f-build-original-clipping-planes-through-the-shared-tool.png",
+      "sha256": "3b3c76c89354e4725be2322f9109b261da8b92eae34ad1bad2116cecf80b0a4e",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-1331.json",
+        "sha256": "9e11ef8bdf1df5e811f496a0bb267efb89c700365e7e58d70b172947a3323caa"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/87g-own-clipping-presentation-and-one-history-transaction.png",
+      "sha256": "3b3c76c89354e4725be2322f9109b261da8b92eae34ad1bad2116cecf80b0a4e",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-1331.json",
+        "sha256": "9e11ef8bdf1df5e811f496a0bb267efb89c700365e7e58d70b172947a3323caa"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/87h-route-clipping-plane-and-preserve-pending-points.png",
+      "sha256": "3b3c76c89354e4725be2322f9109b261da8b92eae34ad1bad2116cecf80b0a4e",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-1331.json",
+        "sha256": "9e11ef8bdf1df5e811f496a0bb267efb89c700365e7e58d70b172947a3323caa"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/87i-own-one-shared-clipping-gpu-uniform.png",
+      "sha256": "3b3c76c89354e4725be2322f9109b261da8b92eae34ad1bad2116cecf80b0a4e",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-1331.json",
+        "sha256": "9e11ef8bdf1df5e811f496a0bb267efb89c700365e7e58d70b172947a3323caa"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/87j-retain-clipping-state-beside-the-renderer.png",
+      "sha256": "3b3c76c89354e4725be2322f9109b261da8b92eae34ad1bad2116cecf80b0a4e",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-1331.json",
+        "sha256": "9e11ef8bdf1df5e811f496a0bb267efb89c700365e7e58d70b172947a3323caa"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/87k-prepare-shared-clipping-shader-declarations.png",
+      "sha256": "3b3c76c89354e4725be2322f9109b261da8b92eae34ad1bad2116cecf80b0a4e",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-1331.json",
+        "sha256": "9e11ef8bdf1df5e811f496a0bb267efb89c700365e7e58d70b172947a3323caa"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/87l-connect-mesh-and-instance-color-half-spaces.png",
+      "sha256": "3b3c76c89354e4725be2322f9109b261da8b92eae34ad1bad2116cecf80b0a4e",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-1331.json",
+        "sha256": "9e11ef8bdf1df5e811f496a0bb267efb89c700365e7e58d70b172947a3323caa"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/87m-prepare-explicit-original-mesh-pick-clipping.png",
+      "sha256": "3b3c76c89354e4725be2322f9109b261da8b92eae34ad1bad2116cecf80b0a4e",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-1331.json",
+        "sha256": "9e11ef8bdf1df5e811f496a0bb267efb89c700365e7e58d70b172947a3323caa"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/87n-bind-shared-clipping-before-the-first-integer-request.png",
+      "sha256": "3b3c76c89354e4725be2322f9109b261da8b92eae34ad1bad2116cecf80b0a4e",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-1331.json",
+        "sha256": "9e11ef8bdf1df5e811f496a0bb267efb89c700365e7e58d70b172947a3323caa"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/87o-preserve-sparse-source-face-ids-across-the-cut.png",
+      "sha256": "3b3c76c89354e4725be2322f9109b261da8b92eae34ad1bad2116cecf80b0a4e",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-1331.json",
+        "sha256": "9e11ef8bdf1df5e811f496a0bb267efb89c700365e7e58d70b172947a3323caa"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/87p-invalidate-selected-masks-on-clipping-changes.png",
+      "sha256": "3b3c76c89354e4725be2322f9109b261da8b92eae34ad1bad2116cecf80b0a4e",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-1331.json",
+        "sha256": "9e11ef8bdf1df5e811f496a0bb267efb89c700365e7e58d70b172947a3323caa"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/87q-share-clipping-at-finite-original-center-lines.png",
+      "sha256": "3b3c76c89354e4725be2322f9109b261da8b92eae34ad1bad2116cecf80b0a4e",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-1331.json",
+        "sha256": "9e11ef8bdf1df5e811f496a0bb267efb89c700365e7e58d70b172947a3323caa"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/87r-cache-explicit-original-plane-ink-flags.png",
+      "sha256": "3b3c76c89354e4725be2322f9109b261da8b92eae34ad1bad2116cecf80b0a4e",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-1331.json",
+        "sha256": "9e11ef8bdf1df5e811f496a0bb267efb89c700365e7e58d70b172947a3323caa"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/87s-bind-original-flags-without-changing-instance-strides.png",
+      "sha256": "3b3c76c89354e4725be2322f9109b261da8b92eae34ad1bad2116cecf80b0a4e",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-1331.json",
+        "sha256": "9e11ef8bdf1df5e811f496a0bb267efb89c700365e7e58d70b172947a3323caa"
       }
     },
     {
@@ -12501,6 +12731,96 @@
       }
     },
     {
+      "path": "docs/screenshots/journey/87t-keep-stroke-color-and-pick-exemptions-aligned.png",
+      "sha256": "3b3c76c89354e4725be2322f9109b261da8b92eae34ad1bad2116cecf80b0a4e",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-1331.json",
+        "sha256": "9e11ef8bdf1df5e811f496a0bb267efb89c700365e7e58d70b172947a3323caa"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/87u-keep-chain-color-and-pick-exemptions-aligned.png",
+      "sha256": "3b3c76c89354e4725be2322f9109b261da8b92eae34ad1bad2116cecf80b0a4e",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-1331.json",
+        "sha256": "9e11ef8bdf1df5e811f496a0bb267efb89c700365e7e58d70b172947a3323caa"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/87v-keep-marker-color-and-pick-exemptions-aligned.png",
+      "sha256": "3b3c76c89354e4725be2322f9109b261da8b92eae34ad1bad2116cecf80b0a4e",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-1331.json",
+        "sha256": "9e11ef8bdf1df5e811f496a0bb267efb89c700365e7e58d70b172947a3323caa"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/87w-resolve-locked-and-selected-original-plane-boundaries.png",
+      "sha256": "3b3c76c89354e4725be2322f9109b261da8b92eae34ad1bad2116cecf80b0a4e",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-1331.json",
+        "sha256": "9e11ef8bdf1df5e811f496a0bb267efb89c700365e7e58d70b172947a3323caa"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/87x-clip-cached-original-point-cloud-discs.png",
+      "sha256": "3b3c76c89354e4725be2322f9109b261da8b92eae34ad1bad2116cecf80b0a4e",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-1331.json",
+        "sha256": "9e11ef8bdf1df5e811f496a0bb267efb89c700365e7e58d70b172947a3323caa"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/87y-clip-original-sheet-pens-and-integer-entities.png",
+      "sha256": "3b3c76c89354e4725be2322f9109b261da8b92eae34ad1bad2116cecf80b0a4e",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-1331.json",
+        "sha256": "9e11ef8bdf1df5e811f496a0bb267efb89c700365e7e58d70b172947a3323caa"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/87z-clip-text-anchors-with-all-six-original-planes.png",
+      "sha256": "3b3c76c89354e4725be2322f9109b261da8b92eae34ad1bad2116cecf80b0a4e",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-1331.json",
+        "sha256": "9e11ef8bdf1df5e811f496a0bb267efb89c700365e7e58d70b172947a3323caa"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/88-copy-original-closedness-and-winding.png",
+      "sha256": "98a07fa37c2c969999d6f7fdcef050281ca2c05abf93a57960ba79265faf5a88",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-1331.json",
+        "sha256": "9e11ef8bdf1df5e811f496a0bb267efb89c700365e7e58d70b172947a3323caa"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/88a-cache-verified-original-solids-weakly.png",
+      "sha256": "98a07fa37c2c969999d6f7fdcef050281ca2c05abf93a57960ba79265faf5a88",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-1331.json",
+        "sha256": "9e11ef8bdf1df5e811f496a0bb267efb89c700365e7e58d70b172947a3323caa"
+      }
+    },
+    {
       "path": "docs/screenshots/journey/88ad-exercise-original-sections-bores-and-ink-browser.png",
       "sha256": "67b726d020571c63a9ef143024a2e43e4c2f7a1954e6e88ac767e23172be5fb4",
       "kind": "browser",
@@ -12508,6 +12828,186 @@
       "receipt": {
         "path": "docs/journey/release/exported88ad-browser-image-review.json",
         "sha256": "f8633d8413d82df925b16180f7c58d14fba780f84a7df8a9df0806f964bf5dc3"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/88b-copy-conservative-plane-crossing-bounds.png",
+      "sha256": "98a07fa37c2c969999d6f7fdcef050281ca2c05abf93a57960ba79265faf5a88",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-1331.json",
+        "sha256": "9e11ef8bdf1df5e811f496a0bb267efb89c700365e7e58d70b172947a3323caa"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/88c-cache-local-bounds-and-apply-placement-once.png",
+      "sha256": "98a07fa37c2c969999d6f7fdcef050281ca2c05abf93a57960ba79265faf5a88",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-1331.json",
+        "sha256": "9e11ef8bdf1df5e811f496a0bb267efb89c700365e7e58d70b172947a3323caa"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/88d-carry-closedness-and-dense-cap-addresses.png",
+      "sha256": "98a07fa37c2c969999d6f7fdcef050281ca2c05abf93a57960ba79265faf5a88",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-1331.json",
+        "sha256": "9e11ef8bdf1df5e811f496a0bb267efb89c700365e7e58d70b172947a3323caa"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/88e-count-original-closed-solid-crossings.png",
+      "sha256": "98a07fa37c2c969999d6f7fdcef050281ca2c05abf93a57960ba79265faf5a88",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-1331.json",
+        "sha256": "9e11ef8bdf1df5e811f496a0bb267efb89c700365e7e58d70b172947a3323caa"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/88f-count-exact-original-cap-pick-candidates.png",
+      "sha256": "98a07fa37c2c969999d6f7fdcef050281ca2c05abf93a57960ba79265faf5a88",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-1331.json",
+        "sha256": "9e11ef8bdf1df5e811f496a0bb267efb89c700365e7e58d70b172947a3323caa"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/88g-copy-section-coverage-and-hatch-filtering.png",
+      "sha256": "98a07fa37c2c969999d6f7fdcef050281ca2c05abf93a57960ba79265faf5a88",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-1331.json",
+        "sha256": "9e11ef8bdf1df5e811f496a0bb267efb89c700365e7e58d70b172947a3323caa"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/88ga-fade-hatch-detail-and-detect-section-boundaries.png",
+      "sha256": "98a07fa37c2c969999d6f7fdcef050281ca2c05abf93a57960ba79265faf5a88",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-1331.json",
+        "sha256": "9e11ef8bdf1df5e811f496a0bb267efb89c700365e7e58d70b172947a3323caa"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/88gb-shade-sections-with-shared-original-depth-and-sample-ownership.png",
+      "sha256": "98a07fa37c2c969999d6f7fdcef050281ca2c05abf93a57960ba79265faf5a88",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-1331.json",
+        "sha256": "9e11ef8bdf1df5e811f496a0bb267efb89c700365e7e58d70b172947a3323caa"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/88h-adapt-color-sections-to-forward-depth.png",
+      "sha256": "98a07fa37c2c969999d6f7fdcef050281ca2c05abf93a57960ba79265faf5a88",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-1331.json",
+        "sha256": "9e11ef8bdf1df5e811f496a0bb267efb89c700365e7e58d70b172947a3323caa"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/88i-return-original-integer-section-owners.png",
+      "sha256": "98a07fa37c2c969999d6f7fdcef050281ca2c05abf93a57960ba79265faf5a88",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-1331.json",
+        "sha256": "9e11ef8bdf1df5e811f496a0bb267efb89c700365e7e58d70b172947a3323caa"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/88j-own-lazy-section-images.png",
+      "sha256": "98a07fa37c2c969999d6f7fdcef050281ca2c05abf93a57960ba79265faf5a88",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-1331.json",
+        "sha256": "9e11ef8bdf1df5e811f496a0bb267efb89c700365e7e58d70b172947a3323caa"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/88k-build-compatible-section-render-pipelines.png",
+      "sha256": "98a07fa37c2c969999d6f7fdcef050281ca2c05abf93a57960ba79265faf5a88",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-1331.json",
+        "sha256": "9e11ef8bdf1df5e811f496a0bb267efb89c700365e7e58d70b172947a3323caa"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/88l-add-signed-counts-and-grey-hatch-color.png",
+      "sha256": "98a07fa37c2c969999d6f7fdcef050281ca2c05abf93a57960ba79265faf5a88",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-1331.json",
+        "sha256": "9e11ef8bdf1df5e811f496a0bb267efb89c700365e7e58d70b172947a3323caa"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/88m-build-bounded-integer-section-pipelines.png",
+      "sha256": "98a07fa37c2c969999d6f7fdcef050281ca2c05abf93a57960ba79265faf5a88",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-1331.json",
+        "sha256": "9e11ef8bdf1df5e811f496a0bb267efb89c700365e7e58d70b172947a3323caa"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/88n-own-bounded-cap-pick-storage.png",
+      "sha256": "98a07fa37c2c969999d6f7fdcef050281ca2c05abf93a57960ba79265faf5a88",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-1331.json",
+        "sha256": "9e11ef8bdf1df5e811f496a0bb267efb89c700365e7e58d70b172947a3323caa"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/88o-prepare-exact-cap-crop-and-owners.png",
+      "sha256": "98a07fa37c2c969999d6f7fdcef050281ca2c05abf93a57960ba79265faf5a88",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-1331.json",
+        "sha256": "9e11ef8bdf1df5e811f496a0bb267efb89c700365e7e58d70b172947a3323caa"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/88p-draw-cap-count-nearest-owner-and-integer-id.png",
+      "sha256": "98a07fa37c2c969999d6f7fdcef050281ca2c05abf93a57960ba79265faf5a88",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-1331.json",
+        "sha256": "9e11ef8bdf1df5e811f496a0bb267efb89c700365e7e58d70b172947a3323caa"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/88q-own-section-caches-and-placeholders.png",
+      "sha256": "98a07fa37c2c969999d6f7fdcef050281ca2c05abf93a57960ba79265faf5a88",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-1331.json",
+        "sha256": "9e11ef8bdf1df5e811f496a0bb267efb89c700365e7e58d70b172947a3323caa"
       }
     },
     {
