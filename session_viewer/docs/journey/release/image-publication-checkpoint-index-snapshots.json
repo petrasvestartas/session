@@ -1,0 +1,71 @@
+{
+  "date": "2026-10-26T01:58:27.504Z",
+  "status": "PASS exact historical checkpoint index bytes retained from immutable Git commits",
+  "scope": "The earlier checkpoint records pinned the then-current mutable index. Each exact recorded hash is now available under an immutable snapshot filename. Old checkpoint/publication/review bytes and all acceptance scopes remain unchanged.",
+  "snapshots": [
+    {
+      "published": 781,
+      "checkpoint": {
+        "path": "docs/journey/release/image-publication-checkpoint-781.json",
+        "sha256": "183ea23f53df51660ba6eeba75c5514f3b3e30d42587ec619c8fb320ca3a2bb6"
+      },
+      "originalMutableIndexPointer": {
+        "path": "docs/journey/release/image-quality-publication-index.json",
+        "sha256": "04b7e99c5b9e5530aa7322441dd6f834ab5210da5448c7e0bbf3db5aa71bfd3f"
+      },
+      "creationCommit": "2331cab52c030c3cc2320481f8a2b2969d4ab5ba",
+      "immutableIndexSnapshot": {
+        "path": "docs/journey/release/image-quality-publication-index-snapshot-781.json",
+        "sha256": "04b7e99c5b9e5530aa7322441dd6f834ab5210da5448c7e0bbf3db5aa71bfd3f"
+      }
+    },
+    {
+      "published": 831,
+      "checkpoint": {
+        "path": "docs/journey/release/image-publication-checkpoint-831.json",
+        "sha256": "e73a11e0508d92bfb3993ebf389b63a805856a05f64246c3f6fc72044881e407"
+      },
+      "originalMutableIndexPointer": {
+        "path": "docs/journey/release/image-quality-publication-index.json",
+        "sha256": "d7e0b9e22a790a62146f383aadf350f821729f8e30bf5e9bb10ccfd3663d6249"
+      },
+      "creationCommit": "7431d683e170078014849e5381ddaad78fcae917",
+      "immutableIndexSnapshot": {
+        "path": "docs/journey/release/image-quality-publication-index-snapshot-831.json",
+        "sha256": "d7e0b9e22a790a62146f383aadf350f821729f8e30bf5e9bb10ccfd3663d6249"
+      }
+    },
+    {
+      "published": 851,
+      "checkpoint": {
+        "path": "docs/journey/release/image-publication-checkpoint-851.json",
+        "sha256": "987d168635782a17c088f3cbe399b0eb4a684d15327cffeac113712793a6b0d1"
+      },
+      "originalMutableIndexPointer": {
+        "path": "docs/journey/release/image-quality-publication-index.json",
+        "sha256": "7a0b20bdf4c98ef132d4a295d1b2ecd9ebc5981203d50209cc004d0d55e45853"
+      },
+      "creationCommit": "92711a42ce237e324aa5b0d4844207d720029657",
+      "immutableIndexSnapshot": {
+        "path": "docs/journey/release/image-quality-publication-index-snapshot-851.json",
+        "sha256": "7a0b20bdf4c98ef132d4a295d1b2ecd9ebc5981203d50209cc004d0d55e45853"
+      }
+    },
+    {
+      "published": 871,
+      "checkpoint": {
+        "path": "docs/journey/release/image-publication-checkpoint-871.json",
+        "sha256": "9db9e9e486a1d10ade3f645b77e22b5ffc6017291980f3689bd0871b7aeaf916"
+      },
+      "originalMutableIndexPointer": {
+        "path": "docs/journey/release/image-quality-publication-index.json",
+        "sha256": "1d06e3065acd0d41fc0bb607df5caddcebede620ba4bb2621d9b78ec50731f44"
+      },
+      "creationCommit": "375b58a94b69f4c7eabfc280a77d31cfe3591951",
+      "immutableIndexSnapshot": {
+        "path": "docs/journey/release/image-quality-publication-index-snapshot-871.json",
+        "sha256": "1d06e3065acd0d41fc0bb607df5caddcebede620ba4bb2621d9b78ec50731f44"
+      }
+    }
+  ]
+}
