@@ -1,16 +1,16 @@
 {
-  "date": "2026-10-26T02:56:40.148Z",
+  "date": "2026-10-26T03:02:04.215Z",
   "status": "PASS: reviewed publication receipts reconciled with exact source and served file hashes",
   "scope": "Only explicitly reviewed publication receipts count; in-flight captures excluded. HTTP verification belongs to each linked publication receipt.",
   "inventory": {
     "path": "target/course-presentation/inventory-d09aa228601224bf4dfe.json",
     "sha256": "d09aa228601224bf4dfe01d6a1009a56357b2eb5e4b3baa5d88566b2c7a66eba"
   },
-  "published": 1172,
-  "remaining": 590,
+  "published": 1180,
+  "remaining": 582,
   "counts": {
     "native": 918,
-    "browser": 234,
+    "browser": 242,
     "variants": 0,
     "supporting": 20
   },
@@ -4371,6 +4371,16 @@
       }
     },
     {
+      "path": "docs/screenshots/journey/41-normals-browser.png",
+      "sha256": "ff294495870b4399b7cc61ce5674c4531e1c82d050a3c932ca5779b6f55417f8",
+      "kind": "browser",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/browser-streaming-publication-200.json",
+        "sha256": "c7da5870c8f1f4aa401da65f99b4355499d4565461ecd4e7ae928885a6ba5f44"
+      }
+    },
+    {
       "path": "docs/screenshots/journey/41-normals.png",
       "sha256": "03ef29f4b2921ac06059b2523f38fbdb26c53307219ecb333b5f2e936f74991f",
       "kind": "native",
@@ -4378,6 +4388,16 @@
       "receipt": {
         "path": "docs/journey/release/native-streaming-publication-362.json",
         "sha256": "41e6eddfc457105d728a286d0c6baf86d564cbcf353e7c712ac0dd06c294af3f"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/41a-placement-browser.png",
+      "sha256": "ff294495870b4399b7cc61ce5674c4531e1c82d050a3c932ca5779b6f55417f8",
+      "kind": "browser",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/browser-streaming-publication-200.json",
+        "sha256": "c7da5870c8f1f4aa401da65f99b4355499d4565461ecd4e7ae928885a6ba5f44"
       }
     },
     {
@@ -4391,6 +4411,16 @@
       }
     },
     {
+      "path": "docs/screenshots/journey/41b-drawing-browser.png",
+      "sha256": "ff294495870b4399b7cc61ce5674c4531e1c82d050a3c932ca5779b6f55417f8",
+      "kind": "browser",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/browser-streaming-publication-200.json",
+        "sha256": "c7da5870c8f1f4aa401da65f99b4355499d4565461ecd4e7ae928885a6ba5f44"
+      }
+    },
+    {
       "path": "docs/screenshots/journey/41b-drawing.png",
       "sha256": "03ef29f4b2921ac06059b2523f38fbdb26c53307219ecb333b5f2e936f74991f",
       "kind": "native",
@@ -4398,6 +4428,16 @@
       "receipt": {
         "path": "docs/journey/release/native-streaming-publication-362.json",
         "sha256": "41e6eddfc457105d728a286d0c6baf86d564cbcf353e7c712ac0dd06c294af3f"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/41c-view-browser.png",
+      "sha256": "fc4fe45ab23311429543b521dcc23a60c251bd362da310c1f30d7c1c662ca86c",
+      "kind": "browser",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/browser-streaming-publication-200.json",
+        "sha256": "c7da5870c8f1f4aa401da65f99b4355499d4565461ecd4e7ae928885a6ba5f44"
       }
     },
     {
@@ -4411,6 +4451,16 @@
       }
     },
     {
+      "path": "docs/screenshots/journey/41ca-input-browser.png",
+      "sha256": "2b60ca6879bf31107d0c31240a47d49cf939404fa2c999615b09338d3d898ebc",
+      "kind": "browser",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/browser-streaming-publication-200.json",
+        "sha256": "c7da5870c8f1f4aa401da65f99b4355499d4565461ecd4e7ae928885a6ba5f44"
+      }
+    },
+    {
       "path": "docs/screenshots/journey/41ca-input.png",
       "sha256": "03ef29f4b2921ac06059b2523f38fbdb26c53307219ecb333b5f2e936f74991f",
       "kind": "native",
@@ -4421,6 +4471,16 @@
       }
     },
     {
+      "path": "docs/screenshots/journey/41d-grid-browser.png",
+      "sha256": "2b60ca6879bf31107d0c31240a47d49cf939404fa2c999615b09338d3d898ebc",
+      "kind": "browser",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/browser-streaming-publication-200.json",
+        "sha256": "c7da5870c8f1f4aa401da65f99b4355499d4565461ecd4e7ae928885a6ba5f44"
+      }
+    },
+    {
       "path": "docs/screenshots/journey/41d-grid.png",
       "sha256": "03ef29f4b2921ac06059b2523f38fbdb26c53307219ecb333b5f2e936f74991f",
       "kind": "native",
@@ -4428,6 +4488,16 @@
       "receipt": {
         "path": "docs/journey/release/native-streaming-publication-362.json",
         "sha256": "41e6eddfc457105d728a286d0c6baf86d564cbcf353e7c712ac0dd06c294af3f"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/41e-drawing-browser.png",
+      "sha256": "2b60ca6879bf31107d0c31240a47d49cf939404fa2c999615b09338d3d898ebc",
+      "kind": "browser",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/browser-streaming-publication-200.json",
+        "sha256": "c7da5870c8f1f4aa401da65f99b4355499d4565461ecd4e7ae928885a6ba5f44"
       }
     },
     {
@@ -7228,6 +7298,16 @@
       "receipt": {
         "path": "docs/journey/release/native-streaming-publication-632.json",
         "sha256": "245b8a4061152a8f9e59ce40b7d7950e3ea7f0041aab92e179da34e5d43fee9c"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/66bd-walk-json-records-within-a-depth-limit-browser.png",
+      "sha256": "78a4b81dccf0032e7f0f587b4222879aaba37bdda941a98bb85f288c9c25b519",
+      "kind": "browser",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/browser-streaming-publication-200.json",
+        "sha256": "c7da5870c8f1f4aa401da65f99b4355499d4565461ecd4e7ae928885a6ba5f44"
       }
     },
     {
