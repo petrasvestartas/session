@@ -1,5 +1,5 @@
 {
-  "updated": "2026-10-26T04:33:59.264Z",
+  "updated": "2026-10-26T04:57:47.391Z",
   "platform": "windows",
   "scope": "Complete the 22-chapter viewer course and production reconciliation plan",
   "chaptersConsolidated": 22,
@@ -2241,8 +2241,8 @@
     "publicImageCount": 1762,
     "currentReaderReferenceImages": 99,
     "reportedExamples": 9,
-    "completedNewCaptures": 1440,
-    "scope": "Focused early geometry/depth regressions, maintained surface-preview and all 1,068 original unfiltered final native tests pass. Published assets include 1440 actual captures and 5 retired-filename aliases; in-flight captures are excluded. Production shaders and Gemini website design/prose are preserved.",
+    "completedNewCaptures": 1490,
+    "scope": "Focused early geometry/depth regressions, maintained surface-preview and all 1,068 original unfiltered final native tests pass. Published assets include 1490 actual captures and 5 retired-filename aliases; in-flight captures are excluded. Production shaders and Gemini website design/prose are preserved.",
     "inventory": {
       "native": 1360,
       "browser": 379,
@@ -2282,7 +2282,7 @@
       "status": "Historical structural pass retained; current final check pending image_same_as and03cf startup metadata refresh after capture freezes end."
     },
     "candidateFinalCadFingerprint": "3efbb602833786d48a46add280c7769351a11850b15914748bfc69889f0f3a32",
-    "publishedNewCaptures": 1440,
+    "publishedNewCaptures": 1490,
     "earlyBrowser": {
       "status": "PASS DPR1 behavior and personally reviewed genuine DPR2 presentation",
       "cases": [
@@ -2331,7 +2331,7 @@
       "originalResolutionReviews": 42,
       "exactPngDuplicates": 14
     },
-    "remainingPublishedImages": 317,
+    "remainingPublishedImages": 267,
     "finalNativeIntegration": {
       "status": "PASS",
       "passed": 1068,
@@ -2346,21 +2346,21 @@
     "streamingBrowserPublication": "../release/streaming-browser-image-review.json",
     "candidateFinalCurrentFingerprint": "e2887fefd8fda86e580435538466c212ba714389be588a4f5d567c6a71f542c7",
     "reportedOriginalUrlsHttpVerified": "../release/reported-image-http-review.json",
-    "publishedImageAssets": 1445,
+    "publishedImageAssets": 1495,
     "publishedAliasAssets": 5,
     "latestImagePublication": "../release/image-quality-publication-index.json",
     "remainingInventory": {
-      "native": 192,
+      "native": 142,
       "browser": 122,
       "supportingAndVariants": 3
     },
-    "latestNativeStreamingPublication": "../release/native-streaming-publication-1445.json",
+    "latestNativeStreamingPublication": "../release/native-streaming-publication-1495.json",
     "nativeBulk": {
       "status": "RUNNING",
       "cohort": "target/course-presentation/incremental-batches/23639a9ee49402a71f10",
       "progress": "target/course-presentation/incremental-batches/23639a9ee49402a71f10/progress.json",
       "publicationLedger": "target/course-presentation/incremental-batches/23639a9ee49402a71f10/publication",
-      "published": 1168,
+      "published": 1218,
       "total": 1360
     },
     "stages": {
@@ -2388,9 +2388,9 @@
         }
       },
       "imagePublication": {
-        "published": 1445,
+        "published": 1495,
         "total": 1762,
-        "remaining": 317
+        "remaining": 267
       },
       "finalDocumentationReview": "PENDING_COMPLETE_IMAGE_QUEUE",
       "reader99DocumentationReview": {
@@ -2414,8 +2414,8 @@
       "status": "BOUNDED_CAPTURE_QUEUE",
       "cohort": "target/course-presentation/incremental-browser-batches/b89b3e3ac4e8a0c91eaf",
       "retainedCompletedAtResume": 257,
-      "captured": 257,
-      "remainingCaptures": 122,
+      "captured": 273,
+      "remainingCaptures": 106,
       "retainedFailureIds": [],
       "published": 257,
       "total": 379,

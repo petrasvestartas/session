@@ -1,15 +1,15 @@
 {
-  "date": "2026-10-26T04:33:59.218Z",
+  "date": "2026-10-26T04:57:47.339Z",
   "status": "PASS: reviewed publication receipts reconciled with exact source and served file hashes",
   "scope": "Only explicitly reviewed publication receipts count; in-flight captures excluded. HTTP verification belongs to each linked publication receipt.",
   "inventory": {
     "path": "target/course-presentation/inventory-d09aa228601224bf4dfe.json",
     "sha256": "d09aa228601224bf4dfe01d6a1009a56357b2eb5e4b3baa5d88566b2c7a66eba"
   },
-  "published": 1445,
-  "remaining": 317,
+  "published": 1495,
+  "remaining": 267,
   "counts": {
-    "native": 1168,
+    "native": 1218,
     "browser": 257,
     "variants": 0,
     "supporting": 20
@@ -14081,6 +14081,46 @@
       }
     },
     {
+      "path": "docs/screenshots/journey/96d-observe-the-real-current-registry-and-parser.png",
+      "sha256": "f0e1190dfe9fdd591b64f899260a2ab72815de8ae39cc63cab0d5d9e72d4987b",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-1495.json",
+        "sha256": "2009d59a8e8cff4e8ec89927d743c2bcb2f823c7b17d3ae89b39f5b7616de3d6"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/96e-verify-the-complete-declared-current-source-closure.png",
+      "sha256": "f0e1190dfe9fdd591b64f899260a2ab72815de8ae39cc63cab0d5d9e72d4987b",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-1495.json",
+        "sha256": "2009d59a8e8cff4e8ec89927d743c2bcb2f823c7b17d3ae89b39f5b7616de3d6"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/96f-report-retained-original-metadata-in-the-real-viewer.png",
+      "sha256": "f0e1190dfe9fdd591b64f899260a2ab72815de8ae39cc63cab0d5d9e72d4987b",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-1495.json",
+        "sha256": "2009d59a8e8cff4e8ec89927d743c2bcb2f823c7b17d3ae89b39f5b7616de3d6"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/96g-prove-exact-metadata-and-definition-round-trips.png",
+      "sha256": "f0e1190dfe9fdd591b64f899260a2ab72815de8ae39cc63cab0d5d9e72d4987b",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-1495.json",
+        "sha256": "2009d59a8e8cff4e8ec89927d743c2bcb2f823c7b17d3ae89b39f5b7616de3d6"
+      }
+    },
+    {
       "path": "docs/screenshots/journey/96h-prove-current-source-grammar-and-explicit-differences-browser.png",
       "sha256": "ab70b518b05d5c0672273aadaf4979ec7b4b203c8a34bc4647c980208e9a3a1f",
       "kind": "browser",
@@ -14088,6 +14128,96 @@
       "receipt": {
         "path": "docs/journey/release/browser-streaming-publication-201.json",
         "sha256": "a37127b6cc555b329cdad34aa52ab04cb98fafd285a7d01d8c7856a52fee001c"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/96h-prove-current-source-grammar-and-explicit-differences.png",
+      "sha256": "f0e1190dfe9fdd591b64f899260a2ab72815de8ae39cc63cab0d5d9e72d4987b",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-1495.json",
+        "sha256": "2009d59a8e8cff4e8ec89927d743c2bcb2f823c7b17d3ae89b39f5b7616de3d6"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/96i-separate-own-and-hosted-element-features.png",
+      "sha256": "f0e1190dfe9fdd591b64f899260a2ab72815de8ae39cc63cab0d5d9e72d4987b",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-1495.json",
+        "sha256": "2009d59a8e8cff4e8ec89927d743c2bcb2f823c7b17d3ae89b39f5b7616de3d6"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/96j-group-features-by-original-interaction.png",
+      "sha256": "f0e1190dfe9fdd591b64f899260a2ab72815de8ae39cc63cab0d5d9e72d4987b",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-1495.json",
+        "sha256": "2009d59a8e8cff4e8ec89927d743c2bcb2f823c7b17d3ae89b39f5b7616de3d6"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/96k-separate-derived-rows-from-editable-elements.png",
+      "sha256": "f0e1190dfe9fdd591b64f899260a2ab72815de8ae39cc63cab0d5d9e72d4987b",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-1495.json",
+        "sha256": "2009d59a8e8cff4e8ec89927d743c2bcb2f823c7b17d3ae89b39f5b7616de3d6"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/96l-attach-a-bounded-derived-feature-tree.png",
+      "sha256": "f0e1190dfe9fdd591b64f899260a2ab72815de8ae39cc63cab0d5d9e72d4987b",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-1495.json",
+        "sha256": "2009d59a8e8cff4e8ec89927d743c2bcb2f823c7b17d3ae89b39f5b7616de3d6"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/96m-project-original-feature-outlines.png",
+      "sha256": "f0e1190dfe9fdd591b64f899260a2ab72815de8ae39cc63cab0d5d9e72d4987b",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-1495.json",
+        "sha256": "2009d59a8e8cff4e8ec89927d743c2bcb2f823c7b17d3ae89b39f5b7616de3d6"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/96n-connect-imported-interaction-hierarchies.png",
+      "sha256": "f0e1190dfe9fdd591b64f899260a2ab72815de8ae39cc63cab0d5d9e72d4987b",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-1495.json",
+        "sha256": "2009d59a8e8cff4e8ec89927d743c2bcb2f823c7b17d3ae89b39f5b7616de3d6"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/96o-reuse-projections-for-created-elements.png",
+      "sha256": "f0e1190dfe9fdd591b64f899260a2ab72815de8ae39cc63cab0d5d9e72d4987b",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-1495.json",
+        "sha256": "2009d59a8e8cff4e8ec89927d743c2bcb2f823c7b17d3ae89b39f5b7616de3d6"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/96p-build-an-imported-interaction-specimen.png",
+      "sha256": "f0e1190dfe9fdd591b64f899260a2ab72815de8ae39cc63cab0d5d9e72d4987b",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-1495.json",
+        "sha256": "2009d59a8e8cff4e8ec89927d743c2bcb2f823c7b17d3ae89b39f5b7616de3d6"
       }
     },
     {
@@ -14101,6 +14231,16 @@
       }
     },
     {
+      "path": "docs/screenshots/journey/96q-prove-imported-feature-ownership-and-roundtrips.png",
+      "sha256": "f0e1190dfe9fdd591b64f899260a2ab72815de8ae39cc63cab0d5d9e72d4987b",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-1495.json",
+        "sha256": "2009d59a8e8cff4e8ec89927d743c2bcb2f823c7b17d3ae89b39f5b7616de3d6"
+      }
+    },
+    {
       "path": "docs/screenshots/journey/96r-preserve-exact-command-completions-browser.png",
       "sha256": "9e08aab68457f534762d75c85ef060ea854417523fadce9365621480eca42193",
       "kind": "browser",
@@ -14108,6 +14248,26 @@
       "receipt": {
         "path": "docs/journey/release/browser-streaming-publication-215.json",
         "sha256": "8361f88d13534d47727c05c107fa6f7bbd260a63962d7ef48b3ae8166d9247ca"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/96r-preserve-exact-command-completions.png",
+      "sha256": "f0e1190dfe9fdd591b64f899260a2ab72815de8ae39cc63cab0d5d9e72d4987b",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-1495.json",
+        "sha256": "2009d59a8e8cff4e8ec89927d743c2bcb2f823c7b17d3ae89b39f5b7616de3d6"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/96s-resolve-feature-rows-to-original-element-owners.png",
+      "sha256": "f0e1190dfe9fdd591b64f899260a2ab72815de8ae39cc63cab0d5d9e72d4987b",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-1495.json",
+        "sha256": "2009d59a8e8cff4e8ec89927d743c2bcb2f823c7b17d3ae89b39f5b7616de3d6"
       }
     },
     {
@@ -14121,6 +14281,16 @@
       }
     },
     {
+      "path": "docs/screenshots/journey/96t-select-and-highlight-original-feature-owners.png",
+      "sha256": "f0e1190dfe9fdd591b64f899260a2ab72815de8ae39cc63cab0d5d9e72d4987b",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-1495.json",
+        "sha256": "2009d59a8e8cff4e8ec89927d743c2bcb2f823c7b17d3ae89b39f5b7616de3d6"
+      }
+    },
+    {
       "path": "docs/screenshots/journey/96u-fit-original-box-corners-to-the-free-canvas-browser.png",
       "sha256": "3ded120e11df059b3a66f2e65582e91d514ce96d1cb72a6bbf46ab1f2756ef3c",
       "kind": "browser",
@@ -14128,6 +14298,16 @@
       "receipt": {
         "path": "docs/journey/release/browser-streaming-publication-215.json",
         "sha256": "8361f88d13534d47727c05c107fa6f7bbd260a63962d7ef48b3ae8166d9247ca"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/96u-fit-original-box-corners-to-the-free-canvas.png",
+      "sha256": "020e396819c8ea0511bf348d15523172ae0e355a559de8a9b84dbb6f39e9f4ef",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-1495.json",
+        "sha256": "2009d59a8e8cff4e8ec89927d743c2bcb2f823c7b17d3ae89b39f5b7616de3d6"
       }
     },
     {
@@ -14141,6 +14321,176 @@
       }
     },
     {
+      "path": "docs/screenshots/journey/96v-project-definition-and-per-instance-features.png",
+      "sha256": "020e396819c8ea0511bf348d15523172ae0e355a559de8a9b84dbb6f39e9f4ef",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-1495.json",
+        "sha256": "2009d59a8e8cff4e8ec89927d743c2bcb2f823c7b17d3ae89b39f5b7616de3d6"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/96w-detach-copied-original-source-identity.png",
+      "sha256": "020e396819c8ea0511bf348d15523172ae0e355a559de8a9b84dbb6f39e9f4ef",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-1495.json",
+        "sha256": "2009d59a8e8cff4e8ec89927d743c2bcb2f823c7b17d3ae89b39f5b7616de3d6"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/96x-regenerate-display-for-copied-feature-owners.png",
+      "sha256": "020e396819c8ea0511bf348d15523172ae0e355a559de8a9b84dbb6f39e9f4ef",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-1495.json",
+        "sha256": "2009d59a8e8cff4e8ec89927d743c2bcb2f823c7b17d3ae89b39f5b7616de3d6"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/96y-address-feature-pixels-to-original-cad-owners.png",
+      "sha256": "020e396819c8ea0511bf348d15523172ae0e355a559de8a9b84dbb6f39e9f4ef",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-1495.json",
+        "sha256": "2009d59a8e8cff4e8ec89927d743c2bcb2f823c7b17d3ae89b39f5b7616de3d6"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/96z-preserve-source-feature-visibility-and-pixel-styles.png",
+      "sha256": "020e396819c8ea0511bf348d15523172ae0e355a559de8a9b84dbb6f39e9f4ef",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-1495.json",
+        "sha256": "2009d59a8e8cff4e8ec89927d743c2bcb2f823c7b17d3ae89b39f5b7616de3d6"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/96za-address-original-controls-with-family-keys.png",
+      "sha256": "020e396819c8ea0511bf348d15523172ae0e355a559de8a9b84dbb6f39e9f4ef",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-1495.json",
+        "sha256": "2009d59a8e8cff4e8ec89927d743c2bcb2f823c7b17d3ae89b39f5b7616de3d6"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/96zb-draw-and-pick-original-cad-control-points.png",
+      "sha256": "020e396819c8ea0511bf348d15523172ae0e355a559de8a9b84dbb6f39e9f4ef",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-1495.json",
+        "sha256": "2009d59a8e8cff4e8ec89927d743c2bcb2f823c7b17d3ae89b39f5b7616de3d6"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/96zc-share-the-current-control-point-style.png",
+      "sha256": "020e396819c8ea0511bf348d15523172ae0e355a559de8a9b84dbb6f39e9f4ef",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-1495.json",
+        "sha256": "2009d59a8e8cff4e8ec89927d743c2bcb2f823c7b17d3ae89b39f5b7616de3d6"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/96zd-reuse-world-controls-for-their-display-nets.png",
+      "sha256": "020e396819c8ea0511bf348d15523172ae0e355a559de8a9b84dbb6f39e9f4ef",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-1495.json",
+        "sha256": "2009d59a8e8cff4e8ec89927d743c2bcb2f823c7b17d3ae89b39f5b7616de3d6"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/96ze-scope-controls-to-the-selected-original.png",
+      "sha256": "020e396819c8ea0511bf348d15523172ae0e355a559de8a9b84dbb6f39e9f4ef",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-1495.json",
+        "sha256": "2009d59a8e8cff4e8ec89927d743c2bcb2f823c7b17d3ae89b39f5b7616de3d6"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/96zf-edit-original-controls-through-the-source-preview.png",
+      "sha256": "020e396819c8ea0511bf348d15523172ae0e355a559de8a9b84dbb6f39e9f4ef",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-1495.json",
+        "sha256": "2009d59a8e8cff4e8ec89927d743c2bcb2f823c7b17d3ae89b39f5b7616de3d6"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/96zg-rebuild-an-edited-element-without-replacing-its-owner.png",
+      "sha256": "020e396819c8ea0511bf348d15523172ae0e355a559de8a9b84dbb6f39e9f4ef",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-1495.json",
+        "sha256": "2009d59a8e8cff4e8ec89927d743c2bcb2f823c7b17d3ae89b39f5b7616de3d6"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/96zh-bind-the-shared-geometry-as-storage.png",
+      "sha256": "020e396819c8ea0511bf348d15523172ae0e355a559de8a9b84dbb6f39e9f4ef",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-1495.json",
+        "sha256": "2009d59a8e8cff4e8ec89927d743c2bcb2f823c7b17d3ae89b39f5b7616de3d6"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/96zi-read-source-vertices-through-one-shader-helper.png",
+      "sha256": "020e396819c8ea0511bf348d15523172ae0e355a559de8a9b84dbb6f39e9f4ef",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-1495.json",
+        "sha256": "2009d59a8e8cff4e8ec89927d743c2bcb2f823c7b17d3ae89b39f5b7616de3d6"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/96zj-activate-shared-vertex-pulling-for-color.png",
+      "sha256": "020e396819c8ea0511bf348d15523172ae0e355a559de8a9b84dbb6f39e9f4ef",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-1495.json",
+        "sha256": "2009d59a8e8cff4e8ec89927d743c2bcb2f823c7b17d3ae89b39f5b7616de3d6"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/96zk-assign-frame-triangle-ranges.png",
+      "sha256": "020e396819c8ea0511bf348d15523172ae0e355a559de8a9b84dbb6f39e9f4ef",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-1495.json",
+        "sha256": "2009d59a8e8cff4e8ec89927d743c2bcb2f823c7b17d3ae89b39f5b7616de3d6"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/96zl-own-the-integer-primitive-image.png",
+      "sha256": "020e396819c8ea0511bf348d15523172ae0e355a559de8a9b84dbb6f39e9f4ef",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-1495.json",
+        "sha256": "2009d59a8e8cff4e8ec89927d743c2bcb2f823c7b17d3ae89b39f5b7616de3d6"
+      }
+    },
+    {
       "path": "docs/screenshots/journey/96zm-write-triangle-addresses-beside-color-browser.png",
       "sha256": "ddba4d2288f7ca5d2b311e6a17880225593ae44660375dd5c52f5ccbe796b16b",
       "kind": "browser",
@@ -14148,6 +14498,136 @@
       "receipt": {
         "path": "docs/journey/release/browser-streaming-publication-211.json",
         "sha256": "424e7e7fc85a8fe6e6d56b64a8e1984bd7ec0f02380f250e1a56aac516cb4096"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/96zm-write-triangle-addresses-beside-color.png",
+      "sha256": "020e396819c8ea0511bf348d15523172ae0e355a559de8a9b84dbb6f39e9f4ef",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-1495.json",
+        "sha256": "2009d59a8e8cff4e8ec89927d743c2bcb2f823c7b17d3ae89b39f5b7616de3d6"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/96zn-bind-visible-triangle-addresses-for-ink.png",
+      "sha256": "020e396819c8ea0511bf348d15523172ae0e355a559de8a9b84dbb6f39e9f4ef",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-1495.json",
+        "sha256": "2009d59a8e8cff4e8ec89927d743c2bcb2f823c7b17d3ae89b39f5b7616de3d6"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/96zo-describe-ink-depth-and-surface-slack.png",
+      "sha256": "020e396819c8ea0511bf348d15523172ae0e355a559de8a9b84dbb6f39e9f4ef",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-1495.json",
+        "sha256": "2009d59a8e8cff4e8ec89927d743c2bcb2f823c7b17d3ae89b39f5b7616de3d6"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/96zp-fit-a-neighboring-surface-along-the-stroke.png",
+      "sha256": "020e396819c8ea0511bf348d15523172ae0e355a559de8a9b84dbb6f39e9f4ef",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-1495.json",
+        "sha256": "2009d59a8e8cff4e8ec89927d743c2bcb2f823c7b17d3ae89b39f5b7616de3d6"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/96zq-own-a-cropped-primitive-image-for-picks.png",
+      "sha256": "020e396819c8ea0511bf348d15523172ae0e355a559de8a9b84dbb6f39e9f4ef",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-1495.json",
+        "sha256": "2009d59a8e8cff4e8ec89927d743c2bcb2f823c7b17d3ae89b39f5b7616de3d6"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/96zr-share-crop-and-clipping-bindings-for-pulled-picks.png",
+      "sha256": "020e396819c8ea0511bf348d15523172ae0e355a559de8a9b84dbb6f39e9f4ef",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-1495.json",
+        "sha256": "2009d59a8e8cff4e8ec89927d743c2bcb2f823c7b17d3ae89b39f5b7616de3d6"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/96zs-write-first-pick-primitives-from-shared-geometry.png",
+      "sha256": "020e396819c8ea0511bf348d15523172ae0e355a559de8a9b84dbb6f39e9f4ef",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-1495.json",
+        "sha256": "2009d59a8e8cff4e8ec89927d743c2bcb2f823c7b17d3ae89b39f5b7616de3d6"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/96zt-fit-surface-depth-beneath-a-point-disc.png",
+      "sha256": "020e396819c8ea0511bf348d15523172ae0e355a559de8a9b84dbb6f39e9f4ef",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-1495.json",
+        "sha256": "2009d59a8e8cff4e8ec89927d743c2bcb2f823c7b17d3ae89b39f5b7616de3d6"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/96zu-test-the-disc-center-against-a-surface.png",
+      "sha256": "020e396819c8ea0511bf348d15523172ae0e355a559de8a9b84dbb6f39e9f4ef",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-1495.json",
+        "sha256": "2009d59a8e8cff4e8ec89927d743c2bcb2f823c7b17d3ae89b39f5b7616de3d6"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/96zv-carry-the-rasterized-triangle-gradient-to-ink.png",
+      "sha256": "020e396819c8ea0511bf348d15523172ae0e355a559de8a9b84dbb6f39e9f4ef",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-1495.json",
+        "sha256": "2009d59a8e8cff4e8ec89927d743c2bcb2f823c7b17d3ae89b39f5b7616de3d6"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/96zw-connect-surface-fitted-point-visibility.png",
+      "sha256": "020e396819c8ea0511bf348d15523172ae0e355a559de8a9b84dbb6f39e9f4ef",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-1495.json",
+        "sha256": "2009d59a8e8cff4e8ec89927d743c2bcb2f823c7b17d3ae89b39f5b7616de3d6"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/96zx-test-the-rasterized-neighbors-at-the-stroke-source.png",
+      "sha256": "020e396819c8ea0511bf348d15523172ae0e355a559de8a9b84dbb6f39e9f4ef",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-1495.json",
+        "sha256": "2009d59a8e8cff4e8ec89927d743c2bcb2f823c7b17d3ae89b39f5b7616de3d6"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/96zy-connect-fitted-surfaces-and-exact-stroke-occlusion.png",
+      "sha256": "a39b4049153ece425486cb9d97a58f58d7937f33d0234be3ce5c9eb8c24d7420",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-1495.json",
+        "sha256": "2009d59a8e8cff4e8ec89927d743c2bcb2f823c7b17d3ae89b39f5b7616de3d6"
       }
     },
     {
@@ -14181,6 +14661,16 @@
       }
     },
     {
+      "path": "docs/screenshots/journey/96zza-connect-section-primitive-images.png",
+      "sha256": "a39b4049153ece425486cb9d97a58f58d7937f33d0234be3ce5c9eb8c24d7420",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-1495.json",
+        "sha256": "2009d59a8e8cff4e8ec89927d743c2bcb2f823c7b17d3ae89b39f5b7616de3d6"
+      }
+    },
+    {
       "path": "docs/screenshots/journey/96zza-read-section-plane-slopes-from-reserved-addresses.png",
       "sha256": "a39b4049153ece425486cb9d97a58f58d7937f33d0234be3ce5c9eb8c24d7420",
       "kind": "supporting",
@@ -14188,6 +14678,16 @@
       "receipt": {
         "path": "docs/journey/release/image-quality-checkpoint-67.json",
         "sha256": "d6fda0c44a84b4a88661db0de9efa5b58122a45c894696abfa8147d6602f343c"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/96zzb-read-section-visibility-from-one-image.png",
+      "sha256": "a39b4049153ece425486cb9d97a58f58d7937f33d0234be3ce5c9eb8c24d7420",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-1495.json",
+        "sha256": "2009d59a8e8cff4e8ec89927d743c2bcb2f823c7b17d3ae89b39f5b7616de3d6"
       }
     },
     {
