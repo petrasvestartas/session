@@ -1,16 +1,16 @@
 {
-  "date": "2026-10-26T02:54:10.545Z",
+  "date": "2026-10-26T02:56:40.148Z",
   "status": "PASS: reviewed publication receipts reconciled with exact source and served file hashes",
   "scope": "Only explicitly reviewed publication receipts count; in-flight captures excluded. HTTP verification belongs to each linked publication receipt.",
   "inventory": {
     "path": "target/course-presentation/inventory-d09aa228601224bf4dfe.json",
     "sha256": "d09aa228601224bf4dfe01d6a1009a56357b2eb5e4b3baa5d88566b2c7a66eba"
   },
-  "published": 1171,
-  "remaining": 591,
+  "published": 1172,
+  "remaining": 590,
   "counts": {
     "native": 918,
-    "browser": 233,
+    "browser": 234,
     "variants": 0,
     "supporting": 20
   },
@@ -8558,6 +8558,16 @@
       "receipt": {
         "path": "docs/journey/release/native-streaming-publication-831.json",
         "sha256": "ebec1b0306253689267f06efe749924c2c97e36fbb8c6163cc71ee7b1621c05f"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/71aj-exercise-complete-and-ranged-original-drawings-browser.png",
+      "sha256": "f73ff609110572f27bd39af4b54c715de3c79178d71d57f4b98794fadbddcb06",
+      "kind": "browser",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/browser-streaming-publication-192.json",
+        "sha256": "d581e9e4d22afcad2e5fbd0ff71c5eb0c2b48fce180860e7f59e64b5cf182818"
       }
     },
     {
