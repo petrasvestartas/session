@@ -1,0 +1,43 @@
+{
+  "date": "2026-10-26T20:49:17.560Z",
+  "status": "PASS final reviewed image publication bytes match committed Git data",
+  "audit": {
+    "record": {
+      "path": "target/course-presentation/final-committed-publication-bytes-v2.json",
+      "sha256": "b001c9897a9501193ce303116b480abd7423b2070895284514a2379f6c27c0b0"
+    },
+    "actual": {
+      "date": "2026-10-26T20:49:00.513Z",
+      "status": "PASS",
+      "committedPublicationFilesChecked": 1841,
+      "originalInventoryImages": 1762,
+      "mismatches": [],
+      "scope": "All1762 reviewed source PNGs, all their unique current receipt JSONs and six current metadata/document/archive files match committed Git blob SHA256. Runtime tests are not repeated."
+    }
+  },
+  "lineEndingQualification": {
+    "record": {
+      "path": "docs/journey/release/final1762-roadmap-line-ending-qualification.json",
+      "sha256": "cb998e0426f96ce6b6f8055a62ea9f017aef853f036c6ccc043cb421028f6770"
+    },
+    "actual": {
+      "date": "2026-10-26T20:48:25.222Z",
+      "status": "PASS canonical Git/LF roadmap has exactly identical Marked token stream",
+      "file": "docs/journey/roadmap.md",
+      "beforeCapturedWorkingSha256": "a3fd4d9ac6a67997a7addab3319d954013ccf2100555f1e9a7da28aaa680f74d",
+      "canonicalWorkingAndCommittedSha256": "c6f9db11e18d52e600a4fa64c864c1b62b1cf9a30c1b3cc8605cd179bddf61d5",
+      "beforeBackup": {
+        "path": "target/course-presentation/roadmap-before-canonical-line-endings.md",
+        "sha256": "a3fd4d9ac6a67997a7addab3319d954013ccf2100555f1e9a7da28aaa680f74d"
+      },
+      "change": "Only CRLF to LF normalization to match the already committed Git blob; no text, code, links or design change.",
+      "parser": "Same installed Marked package used by plugins/course.ts; entire token stream deepEqual, including raw token contents.",
+      "acceptance": "Existing actual completed-progress desktop/phone visual checks and published source-specific image checks remain applicable. Earlier raw capture/input hashes retain their original scope."
+    }
+  },
+  "imageIndex": {
+    "path": "docs/journey/release/image-quality-publication-index.json",
+    "sha256": "6103ffc7d2f23537abda351ba3a16a744550795352fbb4a01806ef7e47168db6"
+  },
+  "scope": "All1762 PNGs and their publication receipt JSONs are byte-identical in the committed repository. The roadmap is canonically LF with identical Marked tokens. The exact-byte base64 source archive retains its pinned original bytes via a filename-specific attribute. No renderer/runtime/site design changes."
+}

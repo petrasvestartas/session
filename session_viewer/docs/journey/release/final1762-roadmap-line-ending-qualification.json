@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-26T20:48:25.222Z",
+  "status": "PASS canonical Git/LF roadmap has exactly identical Marked token stream",
+  "file": "docs/journey/roadmap.md",
+  "beforeCapturedWorkingSha256": "a3fd4d9ac6a67997a7addab3319d954013ccf2100555f1e9a7da28aaa680f74d",
+  "canonicalWorkingAndCommittedSha256": "c6f9db11e18d52e600a4fa64c864c1b62b1cf9a30c1b3cc8605cd179bddf61d5",
+  "beforeBackup": {
+    "path": "target/course-presentation/roadmap-before-canonical-line-endings.md",
+    "sha256": "a3fd4d9ac6a67997a7addab3319d954013ccf2100555f1e9a7da28aaa680f74d"
+  },
+  "change": "Only CRLF to LF normalization to match the already committed Git blob; no text, code, links or design change.",
+  "parser": "Same installed Marked package used by plugins/course.ts; entire token stream deepEqual, including raw token contents.",
+  "acceptance": "Existing actual completed-progress desktop/phone visual checks and published source-specific image checks remain applicable. Earlier raw capture/input hashes retain their original scope."
+}
