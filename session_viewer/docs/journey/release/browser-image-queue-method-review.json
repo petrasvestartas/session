@@ -1,0 +1,110 @@
+{
+  "status": "IN_PROGRESS browser image regeneration, source-specific immutable builds and independently reviewed images",
+  "date": "2026-10-26T00:44:47.863Z",
+  "total": 379,
+  "counts": {
+    "ledgerCapturedOrRetained": 48,
+    "ledgerRemaining": 331,
+    "primaryCapturedOrRetained": 36,
+    "primaryTotal": 36,
+    "newStreamingPublishedRootReviewed": 7
+  },
+  "currentBoundary": "V2 prepared after retained external screenshot-prerequisite failure; waiting for serial NEW image lane and final index refresh",
+  "compilerMethod": "Approved stable incremental image compiler; actual Cargo/WASM every source checkpoint, immutable source/artifact/bundle receipts per ID; original canonical compiler/checkers unchanged",
+  "tools": {
+    "incremental-browser-image-build.ts": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\incremental-browser-image-build.ts",
+      "sha256": "58e1dc977bd83f621a8a2ddff7d8c47488b7b308dc903826e0cf12e4d205b1c2"
+    },
+    "incremental-browser-image-batch.ts": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\incremental-browser-image-batch.ts",
+      "sha256": "75208532705206e2c2d47af0a7d310f7d7b4d888b93edc54436a40b83c192433"
+    },
+    "incremental-browser-image-batch-v2.ts": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\incremental-browser-image-batch-v2.ts",
+      "sha256": "d08250f983968bf65cc52591b41a75ea7179eea6c3658dfbb960b0070bb99234"
+    },
+    "terminal-browser-image-recipes.ts": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\terminal-browser-image-recipes.ts",
+      "sha256": "526b6b3c1fa28b22d0a44f6b8c82b9c968b2b0988e5b9bf72cc1423e22ed6906"
+    },
+    "terminal-browser-image-recipes-v2.ts": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\terminal-browser-image-recipes-v2.ts",
+      "sha256": "4ba62e9659e7f145de26831172e3f5aa8bb0a877247a1271dd5109b9ee972c5a"
+    },
+    "child-context-browser-image-recipes.ts": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\child-context-browser-image-recipes.ts",
+      "sha256": "8a8186c84490830c20c38f906895066f3283a6b9c95dea10acb924882c60cb47"
+    },
+    "early-default-browser-presentation.ts": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\early-default-browser-presentation.ts",
+      "sha256": "5dc2b5a5a464e7fe5c81fdbcf1f31f89ad8f410ac936022d668976d2a60d9eec"
+    },
+    "historical-browser-actions-presentation.ts": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\historical-browser-actions-presentation.ts",
+      "sha256": "d2b0d0404564b08c10420279f67d4e3e9a2185925fd10c3dd43f126196da519a"
+    },
+    "parallel-image-browser-host.ts": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\parallel-image-browser-host.ts",
+      "sha256": "4d5f4c88932380e5ebc8f4304d8ea6e773d2c589150035151d31f7b3047d5bf5"
+    },
+    "parallel-image-guard.ps1": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\parallel-image-guard.ps1",
+      "sha256": "ace35ad7068f780447b01bf5ec7d601058b20576f8b395d68d6c2f939c287932"
+    }
+  },
+  "sourceQualification": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\remaining-source-scene-audit\\reference-input-qualification.json",
+    "sha256": "328e24d7da451a2703fb2a7dce45ec95c0cd5177124897c25272556b123147b8",
+    "exactAll379RuntimeBindingsEqualRetainedBaseline": true,
+    "currentSourceBindingsSha256": "0b7773e24a3e265dade403f9e03b80865605adf2fa9331b5363a34ec30de58e7",
+    "count": 379,
+    "scope": "Archived typing imports/manifest changed and are pinned at current exact bytes. Per-ID runtime source/assets/lock/kernel/fixture/recipe/capture bindings remain exact; old records keep original source/profile identities."
+  },
+  "cohort": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-batches\\858ef0196765b7236e47\\cohort.json",
+    "sha256": "d4cce44cf5b176b964465922517004fd41f37bc3b4bf400d475705d63a081f3e"
+  },
+  "actualQueueStart": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\remaining-source-scene-audit\\actual-browser-queue-start.json",
+    "sha256": "ab6f1fe131a77ecbbe42a1890dffa9fd7bc6acf3a8f3306327f7d552f8cf9386"
+  },
+  "methods": {
+    "historical": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\release\\browser-image-historical-method-review.json",
+      "sha256": "9d38f13f668ef745c925870a99ca82b350437371c632fbd580cffde982f492cb"
+    },
+    "terminal": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\release\\browser-image-terminal-method-review.json",
+      "sha256": "132521b6e512041639ed65998e6f971ba3008dd4baa345cb3d268f72d7ae5b81"
+    },
+    "childContext": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\release\\browser-image-childContext-method-review.json",
+      "sha256": "4d62b4ebdf1d27f620d834db15494c143e779aa45365903a54a0a153a1b5dbc4"
+    },
+    "earlyDefault": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\release\\browser-image-earlyDefault-method-review.json",
+      "sha256": "5f3d9dbf8b35936f2f7fc1291805d75d74853661e14988cf122ab92c0256a5c3"
+    }
+  },
+  "actualRepresentatives": [
+    {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\release\\browser-streaming-publication-2.json",
+      "sha256": "644a3c04b7a82d3f0a56a0119ca7b0ffa41f79d457fed553b09fdf6d8f90e445"
+    },
+    {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\release\\browser-streaming-publication-7.json",
+      "sha256": "61ec5cb2fd9242dcbca6b9d770b9a1ba9684d31844a7be27216f37557e98d64f"
+    }
+  ],
+  "remainingFallbackPrerequisiteAudit": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\remaining-source-scene-audit\\fallback-prerequisites-audit.json",
+    "sha256": "b65020420fa9ee924beff07ffa2ad3620fcf57e6122f80452053c3d19b3e2b2d"
+  },
+  "limits": [
+    "Infrastructure adoption is not blanket acceptance of future images. Each checkpoint requires actual source/build/render/assertions and original-image QA before publication.",
+    "Image-purpose8CPU8GiB NVIDIA/DPR2 is not the original canonical validation resource profile. Native full1068/old18callbacks retain their separate exact records.",
+    "Three late inherited fixed-DPR1 wrappers remain source-audited for separate exact-main-page adapter; no default-scene substitution or assertion deletion.",
+    "Existing failures and old cohort/helper bytes preserved; no runtime,Vue,layout/style or Gemini prose changes."
+  ]
+}

@@ -2240,8 +2240,8 @@
     "publicImageCount": 1762,
     "currentReaderReferenceImages": 99,
     "reportedExamples": 9,
-    "completedNewCaptures": 575,
-    "scope": "Focused early geometry/depth regressions, maintained surface-preview and all 1,068 original unfiltered final native tests pass. Published assets include 575 actual captures and 5 retired-filename aliases; in-flight captures are excluded. Production shaders and Gemini website design/prose are preserved.",
+    "completedNewCaptures": 632,
+    "scope": "Focused early geometry/depth regressions, maintained surface-preview and all 1,068 original unfiltered final native tests pass. Published assets include 632 actual captures and 5 retired-filename aliases; in-flight captures are excluded. Production shaders and Gemini website design/prose are preserved.",
     "inventory": {
       "native": 1360,
       "browser": 379,
@@ -2278,7 +2278,7 @@
       "record": "target/course-windows-20261025/latest-commit-audit/early-quality-structure-after-panel.log"
     },
     "candidateFinalCadFingerprint": "3efbb602833786d48a46add280c7769351a11850b15914748bfc69889f0f3a32",
-    "publishedNewCaptures": 575,
+    "publishedNewCaptures": 632,
     "earlyBrowser": {
       "status": "PASS DPR1 behavior and personally reviewed genuine DPR2 presentation",
       "cases": [
@@ -2327,7 +2327,7 @@
       "originalResolutionReviews": 42,
       "exactPngDuplicates": 14
     },
-    "remainingPublishedImages": 1182,
+    "remainingPublishedImages": 1125,
     "finalNativeIntegration": {
       "status": "PASS",
       "passed": 1068,
@@ -2342,21 +2342,21 @@
     "streamingBrowserPublication": "../release/streaming-browser-image-review.json",
     "candidateFinalCurrentFingerprint": "e2887fefd8fda86e580435538466c212ba714389be588a4f5d567c6a71f542c7",
     "reportedOriginalUrlsHttpVerified": "../release/reported-image-http-review.json",
-    "publishedImageAssets": 580,
+    "publishedImageAssets": 637,
     "publishedAliasAssets": 5,
     "latestImagePublication": "../release/image-quality-publication-index.json",
     "remainingInventory": {
-      "native": 842,
-      "browser": 337,
+      "native": 792,
+      "browser": 330,
       "supportingAndVariants": 3
     },
-    "latestNativeStreamingPublication": "../release/native-streaming-publication-580.json",
+    "latestNativeStreamingPublication": "../release/native-streaming-publication-632.json",
     "nativeBulk": {
       "status": "RUNNING",
       "cohort": "target/course-presentation/incremental-batches/23639a9ee49402a71f10",
       "progress": "target/course-presentation/incremental-batches/23639a9ee49402a71f10/progress.json",
       "publicationLedger": "target/course-presentation/incremental-batches/23639a9ee49402a71f10/publication",
-      "published": 518,
+      "published": 568,
       "total": 1360
     },
     "stages": {
@@ -2384,9 +2384,9 @@
         }
       },
       "imagePublication": {
-        "published": 580,
+        "published": 637,
         "total": 1762,
-        "remaining": 1182
+        "remaining": 1125
       },
       "finalDocumentationReview": "PENDING_COMPLETE_IMAGE_QUEUE",
       "reader99DocumentationReview": {
@@ -2404,6 +2404,16 @@
       "scope": "Unselected RGB view of unchanged 1681-point synthetic fixture; original selected-yellow figure retained."
     },
     "completedNewCapturesScope": "Reviewed and published original-inventory captures; excludes in-flight captures and additional supplementary figures.",
-    "packagingReview": "../release/public-image-packaging-review.json"
+    "packagingReview": "../release/public-image-packaging-review.json",
+    "latestBrowserStreamingPublication": "../release/browser-streaming-publication-7.json",
+    "browserBulk": {
+      "status": "RUNNING",
+      "cohort": "target/course-presentation/incremental-browser-batches/858ef0196765b7236e47",
+      "published": 49,
+      "total": 379,
+      "sourceQualified": 379,
+      "methodReview": "../release/browser-image-queue-method-review.json",
+      "scope": "Current reviewed publication count; the method review preserves its earlier preparation boundary and counts. In-flight captures are excluded."
+    }
   }
 }

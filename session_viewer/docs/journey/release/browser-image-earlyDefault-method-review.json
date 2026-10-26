@@ -1,0 +1,43 @@
+{
+  "status": "APPROVED exact three source-read-only external-screenshot-comparator illustrations",
+  "rootPersonallyViewedOriginalResolution": true,
+  "helperSha256": "5dc2b5a5a464e7fe5c81fdbcf1f31f89ad8f410ac936022d668976d2a60d9eec",
+  "approvedIds": [
+    "03a-paint",
+    "03b-memory",
+    "03b-state"
+  ],
+  "cases": [
+    {
+      "id": "03a-paint",
+      "record": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\early-default-scenes\\03a-paint-00c257dd8f1c23900106\\early-default-capture.json",
+      "sha256": "fcc2a503bc319c822aa18338f1a9ec258b51a51511758b0d61f0357f0ba5420e",
+      "reviewedImageSha256": "a90cfdc0e331227a405addb0d08a95cb1dfc4d9eee3776bc16289441c4578701"
+    }
+  ],
+  "source": {
+    "checkpoint": "03a-paint",
+    "files": "5b665983d42625e428902a800a8e92c32192a4e903a97b541fbd11bdcfcd8e61",
+    "lock": "d96f782e05dab6ab43171bd5ec85141f6e06bf80a774fc18d16e58454ad5dbed",
+    "assets": {
+      "assets/text/NotoSans-Regular.subset.ttf": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09",
+      "assets/text/NotoSansSymbols2-Regular.subset.ttf": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed",
+      "assets/text/NotoSansSymbols-Regular.subset.ttf": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3"
+    },
+    "dependencies": {},
+    "kernel": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+    "fixture": null,
+    "harness": "cc7b0a195a93c6fde86a62e203c4ecabf74eb76ee256952dfd098796ca9c39a3",
+    "constructor": null,
+    "logicalSize": [
+      640,
+      480
+    ],
+    "helper": "e2c028971ab9cc08c2b951bed543b025ccb6f17c8e0b844d5370e82abb3a7410"
+  },
+  "bridge": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\early-default-helper\\dc8f9b6e043821985945\\bridge.json",
+    "sha256": "3503b2dd46bd25cb9249d68a1b8b6411c9eb16806195ea36264b566785cc7034"
+  },
+  "rootDecision": "Root personally viewed 03a-paint original1800×1520 SHA a90cfdc0...: complete centered pink triangle on white canvas with original Command bar, no clipped geometry. Approve exact three audited read-only screenshot-comparator cases using source-bound default render/GPU/DPR checks; preserve original canonical comparators and failed evidence. No inherited comparator/full-behavior acceptance."
+}
