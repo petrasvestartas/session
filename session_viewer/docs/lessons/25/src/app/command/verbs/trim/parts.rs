@@ -2,7 +2,7 @@ use crate::app::command::tool::cut::{Cutter, planar, samples};
 use crate::app::scene::{Scene, sync};
 use session_rust::{
     BRep, BRepRef, Geometry, Line, Mesh, NurbsCurve, NurbsSurface, Plane, Point, Polyline, Vector,
-    intersection, simple_split,
+    intersection, split,
 };
 use std::collections::HashMap;
 use std::rc::Rc;
@@ -159,7 +159,7 @@ fn curve_cuts(curve: &NurbsCurve, blades: &[Blade]) -> Result<Vec<f64>, String> 
 
     // every piece end is a crossing
     if !curves.is_empty() {
-        let pieces = simple_split::split_curve_by_curves(curve, &curves, TOLERANCE)?;
+        let pieces = split::split_curve_by_curves(curve, &curves, TOLERANCE)?;
 
         if pieces.len() > 1 {
             for piece in &pieces {
@@ -347,7 +347,7 @@ fn face_of(surface: &NurbsSurface) -> Result<BRep, String> {
         1,
         &[far.clone(), &far + &Vector::new(size, 0.0, 0.0)],
     );
-    let mut brep = simple_split::split_surface_by_curves(surface, &[away], TOLERANCE)?;
+    let mut brep = split::split_surface_by_curves(surface, &[away], TOLERANCE)?;
     brep.name = surface.name.clone();
     Ok(brep)
 }
@@ -388,7 +388,7 @@ fn faces(brep: &BRep, blades: &[Blade]) -> Result<Parts, String> {
         for face in 0..brep.face_count() {
             let before = brep.face_count();
 
-            match simple_split::split_brep_face_by_curves(
+            match split::split_brep_face_by_curves(
                 &brep,
                 face,
                 std::slice::from_ref(curve),
@@ -534,7 +534,7 @@ fn cut_by_plane(brep: &mut BRep, plane: &Plane) -> Result<Vec<Vec<Point>>, Strin
             continue;
         };
         let before = brep.face_count();
-        let next = simple_split::split_brep_face_by_curves(
+        let next = split::split_brep_face_by_curves(
             brep,
             face,
             &[across(&line, surface)],

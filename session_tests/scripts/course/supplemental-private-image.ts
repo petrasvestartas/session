@@ -18,7 +18,7 @@ export function rebaseReferenceDependencies(cargo:string,id:string,folder:string
         if(/^\s*\[/.test(line))dependency=/dependencies/.test(line);
         if(!dependency||/^\s*#/.test(line))return line;
         return line.replace(/\bpath\s*=\s*"([^"]+)"/g,(before,relative)=>{
-            const target=path.resolve(viewer,'target/course-reference',relative);assert(fs.existsSync(path.join(target,'Cargo.toml')),target);
+            const target=path.resolve(folder,relative);assert(fs.existsSync(path.join(target,'Cargo.toml')),target);
             const replacement=target.split(path.sep).join('/');changes.push({relative,target});return 'path = "'+replacement+'"';
         });
     }).join('\n');
@@ -32,6 +32,14 @@ export function supportCommand(label:string,originalArgs:string[],cwd:string,env
     if(args[0]==='cargo')args=[...args,'-vv','--message-format=json-render-diagnostics'];
     const compiler=process.env.VIEWER_DXC_PATH||path.join(viewer,'target/course-windows-20261018/native-checkpoint/dxcompiler.dll');
     const env={...process.env,...environment,CARGO_TARGET_DIR:supportTarget,CARGO_NET_OFFLINE:'true',VIEWER_DXC_PATH:compiler,WGPU_DX12_COMPILER:'dxc',WGPU_DX12_DXC_PATH:compiler};
+    if(args[0]==='cargo'){
+        const lockFile=path.join(cwd,'Cargo.lock'),before=read(lockFile);write(path.join(folder,'Cargo.lock.before-metadata'),before);
+        const metadata=spawnSync('cargo',['metadata','--offline','--format-version','1'],{cwd,env,windowsHide:true,encoding:'utf8',maxBuffer:64*1024*1024});
+        write(path.join(folder,'metadata.json'),metadata.stdout||'');write(path.join(folder,'metadata.stderr.log'),metadata.stderr||'');assert.equal(metadata.status,0);
+        const registry=(text:string)=>text.split('[[package]]').filter(block=>/source = "registry[+]/.test(block)).map(block=>block.trim()).sort();
+        const after=read(lockFile);assert.deepEqual(registry(after),registry(before),'Preserve every registry package/version/checksum/dependency pin');
+        write(path.join(folder,'lock-qualification.json'),JSON.stringify({beforeSha256:hash(before),afterSha256:hash(after),registryPackages:registry(after).length,registryPackagesByteIdentical:true,scope:'Offline local path-package dependency qualification only; no registry update'},null,2)+'\n');
+    }
     const executable=args.shift()!,commandFile=path.join(folder,'command.json'),resourcesFile=path.join(folder,'resources.json'),log=path.join(folder,'output.log');
     write(commandFile,JSON.stringify({executable,arguments:args})+'\n');const descriptor=fs.openSync(log,'wx');let execution;
     try{execution=spawnSync('powershell.exe',['-NoProfile','-ExecutionPolicy','Bypass','-File',guard,'-ProcessorCount','8','-MemoryLimitMiB','8192','-TimeoutSeconds','1800','-WorkingDirectory',cwd,'-ManifestPath',resourcesFile,'-CommandFile',commandFile],{cwd,env,windowsHide:true,stdio:['ignore',descriptor,descriptor]});}finally{fs.closeSync(descriptor);}
@@ -91,4 +99,4 @@ export async function runPrivateSupport(planFile:string,scope:string,generationF
     write(path.join(plan.folder,'private-result.json'),JSON.stringify(qualified,null,2)+'\n');return qualified;
 }
 
-if(process.argv[1]&&path.resolve(process.argv[1])===self){const[mode,file,scope,generation]=process.argv.slice(2);const result=mode==='prepare'?preparePrivateSupport(file):mode==='run'?await runPrivateSupport(file,scope,generation):null;assert(result,'supplemental-private-image.ts prepare OLD_PLAN | run PRIVATE_PLAN practice|reference|dock|measurement|scenes [ACTUAL_GENERATION_JSON]');console.log(JSON.stringify(result,null,2));}
+if(process.argv[1]&&path.resolve(process.argv[1])===self)void(async()=>{const[mode,file,scope,generation]=process.argv.slice(2);const result=mode==='prepare'?preparePrivateSupport(file):mode==='run'?await runPrivateSupport(file,scope,generation):null;assert(result,'supplemental-private-image.ts prepare OLD_PLAN | run PRIVATE_PLAN practice|reference|dock|measurement|scenes [ACTUAL_GENERATION_JSON]');console.log(JSON.stringify(result,null,2));})().catch(error=>{console.error(error);process.exitCode=1;});

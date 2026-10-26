@@ -1,0 +1,81 @@
+{
+  "status": "PUBLISHED_TWO_ROOT_APPROVED_DELEGATED_REVIEWED_PRACTICE_IMAGES",
+  "scope": "Practice01 two actual higher-resolution GPU readbacks with unchanged practice presentation recipe. No whole historical callback acceptance/publication.",
+  "canonicalBehaviorExecuted": false,
+  "canonicalValidationProfile": false,
+  "sourceRecord": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\private-support-94e3f9d4eeefdb1929a7\\practice-result-frozen.json",
+    "sha256": "9b322fc2dcebbb7bbe8de480f96c06d37a80fc1ba7c72a7ccbfe94e9792bdd7d"
+  },
+  "review": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\private-support-94e3f9d4eeefdb1929a7\\practice-root-approved-review.json",
+    "sha256": "99a4579bcd5e6a349fb0d5ef5a2e98468f125e7df612b91491acf22dd0fc17f0"
+  },
+  "sourcePlan": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\private-support-94e3f9d4eeefdb1929a7\\plan.json",
+    "sha256": "c567d8b2dad3f82f96a1810eadc3a87a03b329695f4232f1f05f72f48be67c22"
+  },
+  "adapterProof": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\private-support-94e3f9d4eeefdb1929a7\\adapter-proof.json",
+    "sha256": "1e70bd25eff8a7a710c94589f37f73a417a411b2d5c3d0dfd3fe354eecc90de6"
+  },
+  "captureProfile": {
+    "processors": 8,
+    "memoryMiB": 8192,
+    "affinityMask": "0xFF00",
+    "cache": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-sup\\native-cache",
+    "canonicalBehaviorExecuted": false,
+    "canonicalValidationProfile": false
+  },
+  "images": [
+    {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\practice\\01-frame.png",
+      "destination": "docs/screenshots/practice/01-frame.png",
+      "sha256": "fbe18ba81783e63581959d90afdbce8d63868d8ca60448f1109c0a9f41f7f1b6",
+      "width": 1380,
+      "height": 1390,
+      "sourceImage": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\private-support-94e3f9d4eeefdb1929a7\\practice\\01-frame.png",
+      "originalBackup": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\private-support-94e3f9d4eeefdb1929a7\\practice-publication-backups\\docs\\screenshots\\practice\\01-frame.png",
+        "sha256": "89051188d78e567419577caa4e9c35cd1befdba8ee3f41a65da847ecdbc940be"
+      },
+      "served": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\docs\\vue\\course\\docs\\screenshots\\practice\\01-frame.png",
+        "sha256": "fbe18ba81783e63581959d90afdbce8d63868d8ca60448f1109c0a9f41f7f1b6",
+        "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/practice/01-frame.png?v=fbe18ba81783",
+        "status": 200,
+        "mime": "image/png",
+        "sha256FromHttp": "fbe18ba81783e63581959d90afdbce8d63868d8ca60448f1109c0a9f41f7f1b6"
+      },
+      "reviewerAgentId": "/root/intro_regeneration_audit",
+      "personallyViewedOriginalResolution": true,
+      "rootPersonallyViewedOriginalResolution": false,
+      "rootApproved": true
+    },
+    {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\practice\\01-frame-grey.png",
+      "destination": "docs/screenshots/practice/01-frame-grey.png",
+      "sha256": "7c2073263ce5e2f9dfe2f67e9da207483d439647634ee962dd8a05a8b77b50af",
+      "width": 1380,
+      "height": 1390,
+      "sourceImage": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\private-support-94e3f9d4eeefdb1929a7\\practice\\01-frame-grey.png",
+      "originalBackup": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\private-support-94e3f9d4eeefdb1929a7\\practice-publication-backups\\docs\\screenshots\\practice\\01-frame-grey.png",
+        "sha256": "54e0bc69fbfe75d6a37a2d4a5563f7e53f44ec6a5a34827b89eecf4136a11230"
+      },
+      "served": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\docs\\vue\\course\\docs\\screenshots\\practice\\01-frame-grey.png",
+        "sha256": "7c2073263ce5e2f9dfe2f67e9da207483d439647634ee962dd8a05a8b77b50af",
+        "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/practice/01-frame-grey.png?v=7c2073263ce5",
+        "status": 200,
+        "mime": "image/png",
+        "sha256FromHttp": "7c2073263ce5e2f9dfe2f67e9da207483d439647634ee962dd8a05a8b77b50af"
+      },
+      "reviewerAgentId": "/root/intro_regeneration_audit",
+      "personallyViewedOriginalResolution": true,
+      "rootPersonallyViewedOriginalResolution": false,
+      "rootApproved": true
+    }
+  ],
+  "prePublicationSnapshot": true
+}

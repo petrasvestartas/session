@@ -1,0 +1,105 @@
+{
+  "status": "PUBLISHED_THREE_ROOT_APPROVED_DELEGATED_REVIEWED_DOCK_AND_MEASUREMENT_IMAGES",
+  "scope": "Actual compact dock completion/history and visible2mm measurement source recipes; image-purpose profile only, no whole historical callback claim.",
+  "canonicalBehaviorExecuted": false,
+  "canonicalValidationProfile": false,
+  "sourceRecord": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\private-support-94e3f9d4eeefdb1929a7/measurement-result-frozen.json",
+    "sha256": "145195489b0091114d5076c3f32496b468e3c5a39ca42e2b5040ff9a23c956bd"
+  },
+  "review": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\private-support-94e3f9d4eeefdb1929a7\\dock-measurement-root-approved-group.json",
+    "sha256": "29a4a53cc75160c9c3854c2daa019078e94235b3b8e997aa20e26754c23a0e86"
+  },
+  "sourcePlan": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\private-support-94e3f9d4eeefdb1929a7\\plan.json",
+    "sha256": "c567d8b2dad3f82f96a1810eadc3a87a03b329695f4232f1f05f72f48be67c22"
+  },
+  "adapterProof": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\private-support-94e3f9d4eeefdb1929a7\\adapter-proof.json",
+    "sha256": "1e70bd25eff8a7a710c94589f37f73a417a411b2d5c3d0dfd3fe354eecc90de6"
+  },
+  "captureProfile": {
+    "processors": 8,
+    "memoryMiB": 8192,
+    "affinityMask": "0xFF00",
+    "cache": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-sup\\native-cache",
+    "canonicalBehaviorExecuted": false,
+    "canonicalValidationProfile": false
+  },
+  "images": [
+    {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\command-dock-preview-completion.png",
+      "destination": "docs/screenshots/journey/command-dock-preview-completion.png",
+      "sha256": "648f7649bf0810d4936d1b8a0db6e4ff0cb83c0e7b964655e6d03cd0c245cd70",
+      "width": 1800,
+      "height": 1520,
+      "sourceImage": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\private-support-94e3f9d4eeefdb1929a7\\dock\\command-dock-preview-completion.png",
+      "originalBackup": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\private-support-94e3f9d4eeefdb1929a7\\dock-measurement-publication-backups\\docs\\screenshots\\journey\\command-dock-preview-completion.png",
+        "sha256": "2b05d6bae91d1b0bb2771f7dfdf235ea7d743fc95b7c69bfe0f6e60f2c2b38ac"
+      },
+      "served": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\docs\\vue\\course\\docs\\screenshots\\journey\\command-dock-preview-completion.png",
+        "sha256": "648f7649bf0810d4936d1b8a0db6e4ff0cb83c0e7b964655e6d03cd0c245cd70",
+        "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/command-dock-preview-completion.png?v=648f7649bf08",
+        "status": 200,
+        "mime": "image/png",
+        "sha256FromHttp": "648f7649bf0810d4936d1b8a0db6e4ff0cb83c0e7b964655e6d03cd0c245cd70"
+      },
+      "reviewerAgentId": "/root/intro_regeneration_audit",
+      "personallyViewedOriginalResolution": true,
+      "rootPersonallyViewedOriginalResolution": false,
+      "rootApproved": true
+    },
+    {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\command-dock-preview-history.png",
+      "destination": "docs/screenshots/journey/command-dock-preview-history.png",
+      "sha256": "588f91b8b33b0703416bb2bd8e61f2f50869f90082bd507e4f06087b455886b1",
+      "width": 1800,
+      "height": 1520,
+      "sourceImage": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\private-support-94e3f9d4eeefdb1929a7\\dock\\command-dock-preview-history.png",
+      "originalBackup": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\private-support-94e3f9d4eeefdb1929a7\\dock-measurement-publication-backups\\docs\\screenshots\\journey\\command-dock-preview-history.png",
+        "sha256": "9b65141e695ce3c8aa9727681a6402cb5fdc50ee09c39bbad74f75e8b71c8b16"
+      },
+      "served": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\docs\\vue\\course\\docs\\screenshots\\journey\\command-dock-preview-history.png",
+        "sha256": "588f91b8b33b0703416bb2bd8e61f2f50869f90082bd507e4f06087b455886b1",
+        "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/command-dock-preview-history.png?v=588f91b8b33b",
+        "status": 200,
+        "mime": "image/png",
+        "sha256FromHttp": "588f91b8b33b0703416bb2bd8e61f2f50869f90082bd507e4f06087b455886b1"
+      },
+      "reviewerAgentId": "/root/intro_regeneration_audit",
+      "personallyViewedOriginalResolution": true,
+      "rootPersonallyViewedOriginalResolution": false,
+      "rootApproved": true
+    },
+    {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\release\\current85ay-visible-two-mm.png",
+      "destination": "docs/journey/release/current85ay-visible-two-mm.png",
+      "sha256": "b38940eafb5b3ad3ffb741d0353bd13ebb06ecf6305283cbe091a98486d186fc",
+      "width": 1800,
+      "height": 1520,
+      "sourceImage": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\private-support-94e3f9d4eeefdb1929a7\\measurement\\current85ay-visible-two-mm.png",
+      "originalBackup": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\private-support-94e3f9d4eeefdb1929a7\\dock-measurement-publication-backups\\docs\\journey\\release\\current85ay-visible-two-mm.png",
+        "sha256": "31b5b714a622595fa2b2c6a499c1d51e0d43b5d134af196ba009938888961e2c"
+      },
+      "served": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\docs\\vue\\course\\docs\\journey\\release\\current85ay-visible-two-mm.png",
+        "sha256": "b38940eafb5b3ad3ffb741d0353bd13ebb06ecf6305283cbe091a98486d186fc",
+        "url": "http://127.0.0.1:8788/docs/course/docs/journey/release/current85ay-visible-two-mm.png?v=b38940eafb5b",
+        "status": 200,
+        "mime": "image/png",
+        "sha256FromHttp": "b38940eafb5b3ad3ffb741d0353bd13ebb06ecf6305283cbe091a98486d186fc"
+      },
+      "reviewerAgentId": "/root/intro_regeneration_audit",
+      "personallyViewedOriginalResolution": true,
+      "rootPersonallyViewedOriginalResolution": false,
+      "rootApproved": true
+    }
+  ],
+  "prePublicationSnapshot": true
+}
