@@ -1,16 +1,16 @@
 {
-  "date": "2026-10-26T00:44:45.760Z",
+  "date": "2026-10-26T01:19:39.356Z",
   "status": "PASS: reviewed publication receipts reconciled with exact source and served file hashes",
   "scope": "Only explicitly reviewed publication receipts count; in-flight captures excluded. HTTP verification belongs to each linked publication receipt.",
   "inventory": {
     "path": "target/course-presentation/inventory-d09aa228601224bf4dfe.json",
     "sha256": "d09aa228601224bf4dfe01d6a1009a56357b2eb5e4b3baa5d88566b2c7a66eba"
   },
-  "published": 637,
-  "remaining": 1125,
+  "published": 747,
+  "remaining": 1015,
   "counts": {
-    "native": 568,
-    "browser": 49,
+    "native": 668,
+    "browser": 59,
     "variants": 0,
     "supporting": 20
   },
@@ -141,6 +141,16 @@
       }
     },
     {
+      "path": "docs/screenshots/journey/03a-panel-browser.png",
+      "sha256": "96e9da064c7dbe6ad9e199833b6841e1ce85559e1ed42a76ef3b4da989cda923",
+      "kind": "browser",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/browser-streaming-publication-17.json",
+        "sha256": "b81e7763582a12e45cd56688a39f603b9a5e987ec145233974150d7d4c69fc0f"
+      }
+    },
+    {
       "path": "docs/screenshots/journey/03a-panel.png",
       "sha256": "4c76ae64c7cc26384b9e951569e7b551ecd6d49843b3b5f6dd7e1d5d8400cfcc",
       "kind": "native",
@@ -148,6 +158,16 @@
       "receipt": {
         "path": "docs/journey/release/native-streaming-publication-96.json",
         "sha256": "02f868c5fa91c460140c41aa3773876df7d15630e24d271fb7e6ff2658015356"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/03b-memory-browser.png",
+      "sha256": "989ed4b7076efd22e2e547e287c5dbd08eb469291e4adfa7378c30ea34b77044",
+      "kind": "browser",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/browser-streaming-publication-17.json",
+        "sha256": "b81e7763582a12e45cd56688a39f603b9a5e987ec145233974150d7d4c69fc0f"
       }
     },
     {
@@ -161,6 +181,16 @@
       }
     },
     {
+      "path": "docs/screenshots/journey/03b-state-browser.png",
+      "sha256": "989ed4b7076efd22e2e547e287c5dbd08eb469291e4adfa7378c30ea34b77044",
+      "kind": "browser",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/browser-streaming-publication-17.json",
+        "sha256": "b81e7763582a12e45cd56688a39f603b9a5e987ec145233974150d7d4c69fc0f"
+      }
+    },
+    {
       "path": "docs/screenshots/journey/03b-state.png",
       "sha256": "4c76ae64c7cc26384b9e951569e7b551ecd6d49843b3b5f6dd7e1d5d8400cfcc",
       "kind": "native",
@@ -168,6 +198,16 @@
       "receipt": {
         "path": "docs/journey/release/native-streaming-publication-96.json",
         "sha256": "02f868c5fa91c460140c41aa3773876df7d15630e24d271fb7e6ff2658015356"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/03c-history-browser.png",
+      "sha256": "b0fbb11c2e7b69911719561da4e7ffae1733ec97511071777bbe268bd6de0f15",
+      "kind": "browser",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/browser-streaming-publication-17.json",
+        "sha256": "b81e7763582a12e45cd56688a39f603b9a5e987ec145233974150d7d4c69fc0f"
       }
     },
     {
@@ -191,6 +231,16 @@
       }
     },
     {
+      "path": "docs/screenshots/journey/03ca-typing-browser.png",
+      "sha256": "b0fbb11c2e7b69911719561da4e7ffae1733ec97511071777bbe268bd6de0f15",
+      "kind": "browser",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/browser-streaming-publication-17.json",
+        "sha256": "b81e7763582a12e45cd56688a39f603b9a5e987ec145233974150d7d4c69fc0f"
+      }
+    },
+    {
       "path": "docs/screenshots/journey/03ca-typing.png",
       "sha256": "4c76ae64c7cc26384b9e951569e7b551ecd6d49843b3b5f6dd7e1d5d8400cfcc",
       "kind": "native",
@@ -198,6 +248,16 @@
       "receipt": {
         "path": "docs/journey/release/native-streaming-publication-96.json",
         "sha256": "02f868c5fa91c460140c41aa3773876df7d15630e24d271fb7e6ff2658015356"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/03cb-submit-browser.png",
+      "sha256": "b0fbb11c2e7b69911719561da4e7ffae1733ec97511071777bbe268bd6de0f15",
+      "kind": "browser",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/browser-streaming-publication-17.json",
+        "sha256": "b81e7763582a12e45cd56688a39f603b9a5e987ec145233974150d7d4c69fc0f"
       }
     },
     {
@@ -211,6 +271,16 @@
       }
     },
     {
+      "path": "docs/screenshots/journey/03cc-edit-browser.png",
+      "sha256": "b0fbb11c2e7b69911719561da4e7ffae1733ec97511071777bbe268bd6de0f15",
+      "kind": "browser",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/browser-streaming-publication-17.json",
+        "sha256": "b81e7763582a12e45cd56688a39f603b9a5e987ec145233974150d7d4c69fc0f"
+      }
+    },
+    {
       "path": "docs/screenshots/journey/03cc-edit.png",
       "sha256": "4c76ae64c7cc26384b9e951569e7b551ecd6d49843b3b5f6dd7e1d5d8400cfcc",
       "kind": "native",
@@ -218,6 +288,16 @@
       "receipt": {
         "path": "docs/journey/release/native-streaming-publication-96.json",
         "sha256": "02f868c5fa91c460140c41aa3773876df7d15630e24d271fb7e6ff2658015356"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/03cd-vocabulary-browser.png",
+      "sha256": "b0fbb11c2e7b69911719561da4e7ffae1733ec97511071777bbe268bd6de0f15",
+      "kind": "browser",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/browser-streaming-publication-17.json",
+        "sha256": "b81e7763582a12e45cd56688a39f603b9a5e987ec145233974150d7d4c69fc0f"
       }
     },
     {
@@ -231,6 +311,16 @@
       }
     },
     {
+      "path": "docs/screenshots/journey/03ce-complete-browser.png",
+      "sha256": "b0fbb11c2e7b69911719561da4e7ffae1733ec97511071777bbe268bd6de0f15",
+      "kind": "browser",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/browser-streaming-publication-17.json",
+        "sha256": "b81e7763582a12e45cd56688a39f603b9a5e987ec145233974150d7d4c69fc0f"
+      }
+    },
+    {
       "path": "docs/screenshots/journey/03ce-complete.png",
       "sha256": "4c76ae64c7cc26384b9e951569e7b551ecd6d49843b3b5f6dd7e1d5d8400cfcc",
       "kind": "native",
@@ -238,6 +328,16 @@
       "receipt": {
         "path": "docs/journey/release/native-streaming-publication-96.json",
         "sha256": "02f868c5fa91c460140c41aa3773876df7d15630e24d271fb7e6ff2658015356"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/03cf-accept-browser.png",
+      "sha256": "b0fbb11c2e7b69911719561da4e7ffae1733ec97511071777bbe268bd6de0f15",
+      "kind": "browser",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/browser-streaming-publication-17.json",
+        "sha256": "b81e7763582a12e45cd56688a39f603b9a5e987ec145233974150d7d4c69fc0f"
       }
     },
     {
@@ -5711,6 +5811,16 @@
       }
     },
     {
+      "path": "docs/screenshots/journey/66za-own-original-range-read-permits.png",
+      "sha256": "a7a6cf58b34450e1705ecff3b7e817612d9d6c44366614ad0405bf6acf5b6a01",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-687.json",
+        "sha256": "818b09b5d752bac43440f723642526b5737450b8c8f098b16db4f26e5683fe07"
+      }
+    },
+    {
       "path": "docs/screenshots/journey/67-supply-checked-array-layout-readers.png",
       "sha256": "a7a6cf58b34450e1705ecff3b7e817612d9d6c44366614ad0405bf6acf5b6a01",
       "kind": "native",
@@ -5718,6 +5828,156 @@
       "receipt": {
         "path": "docs/journey/release/native-streaming-publication-632.json",
         "sha256": "245b8a4061152a8f9e59ce40b7d7950e3ea7f0041aab92e179da34e5d43fee9c"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/67a-queue-range-reads-in-arrival-order.png",
+      "sha256": "a7a6cf58b34450e1705ecff3b7e817612d9d6c44366614ad0405bf6acf5b6a01",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-687.json",
+        "sha256": "818b09b5d752bac43440f723642526b5737450b8c8f098b16db4f26e5683fe07"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/67b-validate-exact-http-range-replies.png",
+      "sha256": "a7a6cf58b34450e1705ecff3b7e817612d9d6c44366614ad0405bf6acf5b6a01",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-687.json",
+        "sha256": "818b09b5d752bac43440f723642526b5737450b8c8f098b16db4f26e5683fe07"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/67c-retain-original-point-page-values.png",
+      "sha256": "a7a6cf58b34450e1705ecff3b7e817612d9d6c44366614ad0405bf6acf5b6a01",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-687.json",
+        "sha256": "818b09b5d752bac43440f723642526b5737450b8c8f098b16db4f26e5683fe07"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/67d-own-cancellable-range-requests.png",
+      "sha256": "a7a6cf58b34450e1705ecff3b7e817612d9d6c44366614ad0405bf6acf5b6a01",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-687.json",
+        "sha256": "818b09b5d752bac43440f723642526b5737450b8c8f098b16db4f26e5683fe07"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/67e-time-out-stalled-source-reads.png",
+      "sha256": "a7a6cf58b34450e1705ecff3b7e817612d9d6c44366614ad0405bf6acf5b6a01",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-687.json",
+        "sha256": "818b09b5d752bac43440f723642526b5737450b8c8f098b16db4f26e5683fe07"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/67f-bound-incoming-range-body-chunks.png",
+      "sha256": "a7a6cf58b34450e1705ecff3b7e817612d9d6c44366614ad0405bf6acf5b6a01",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-687.json",
+        "sha256": "818b09b5d752bac43440f723642526b5737450b8c8f098b16db4f26e5683fe07"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/67g-request-and-accept-one-source-interval.png",
+      "sha256": "a7a6cf58b34450e1705ecff3b7e817612d9d6c44366614ad0405bf6acf5b6a01",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-687.json",
+        "sha256": "818b09b5d752bac43440f723642526b5737450b8c8f098b16db4f26e5683fe07"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/67h-keep-range-revisions-and-background-results.png",
+      "sha256": "a7a6cf58b34450e1705ecff3b7e817612d9d6c44366614ad0405bf6acf5b6a01",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-687.json",
+        "sha256": "818b09b5d752bac43440f723642526b5737450b8c8f098b16db4f26e5683fe07"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/67hza-queue-original-source-range-reads.png",
+      "sha256": "a7a6cf58b34450e1705ecff3b7e817612d9d6c44366614ad0405bf6acf5b6a01",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-687.json",
+        "sha256": "818b09b5d752bac43440f723642526b5737450b8c8f098b16db4f26e5683fe07"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/67hzb-probe-original-source-array-layouts.png",
+      "sha256": "a7a6cf58b34450e1705ecff3b7e817612d9d6c44366614ad0405bf6acf5b6a01",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-687.json",
+        "sha256": "818b09b5d752bac43440f723642526b5737450b8c8f098b16db4f26e5683fe07"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/67hzc-read-original-cloud-node-tables.png",
+      "sha256": "a7a6cf58b34450e1705ecff3b7e817612d9d6c44366614ad0405bf6acf5b6a01",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-687.json",
+        "sha256": "818b09b5d752bac43440f723642526b5737450b8c8f098b16db4f26e5683fe07"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/67i-read-source-arrays-through-the-bounded-queue.png",
+      "sha256": "a7a6cf58b34450e1705ecff3b7e817612d9d6c44366614ad0405bf6acf5b6a01",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-687.json",
+        "sha256": "818b09b5d752bac43440f723642526b5737450b8c8f098b16db4f26e5683fe07"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/67j-keep-original-ranged-source-identity.png",
+      "sha256": "a7a6cf58b34450e1705ecff3b7e817612d9d6c44366614ad0405bf6acf5b6a01",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-687.json",
+        "sha256": "818b09b5d752bac43440f723642526b5737450b8c8f098b16db4f26e5683fe07"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/67k-prepare-a-revision-bound-remote-source.png",
+      "sha256": "a7a6cf58b34450e1705ecff3b7e817612d9d6c44366614ad0405bf6acf5b6a01",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-687.json",
+        "sha256": "818b09b5d752bac43440f723642526b5737450b8c8f098b16db4f26e5683fe07"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/67l-fetch-precise-coordinates-and-original-ids.png",
+      "sha256": "a7a6cf58b34450e1705ecff3b7e817612d9d6c44366614ad0405bf6acf5b6a01",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-687.json",
+        "sha256": "818b09b5d752bac43440f723642526b5737450b8c8f098b16db4f26e5683fe07"
       }
     },
     {
@@ -5801,6 +6061,16 @@
       }
     },
     {
+      "path": "docs/screenshots/journey/67sh-check-octree-bounds-and-unique-child-ownership.png",
+      "sha256": "a7a6cf58b34450e1705ecff3b7e817612d9d6c44366614ad0405bf6acf5b6a01",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-687.json",
+        "sha256": "818b09b5d752bac43440f723642526b5737450b8c8f098b16db4f26e5683fe07"
+      }
+    },
+    {
       "path": "docs/screenshots/journey/67si-validate-complete-octrees-before-range-streaming.png",
       "sha256": "a7a6cf58b34450e1705ecff3b7e817612d9d6c44366614ad0405bf6acf5b6a01",
       "kind": "native",
@@ -5808,6 +6078,46 @@
       "receipt": {
         "path": "docs/journey/release/priority-native-image-review.json",
         "sha256": "914706b6be25305b322efdd21b8a21c950fbcbbec3f9221984df2cc8a07f77e0"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/68-reserve-page-bytes-before-reading.png",
+      "sha256": "a7a6cf58b34450e1705ecff3b7e817612d9d6c44366614ad0405bf6acf5b6a01",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-687.json",
+        "sha256": "818b09b5d752bac43440f723642526b5737450b8c8f098b16db4f26e5683fe07"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/68a-keep-shared-pages-alive-during-eviction.png",
+      "sha256": "a7a6cf58b34450e1705ecff3b7e817612d9d6c44366614ad0405bf6acf5b6a01",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-687.json",
+        "sha256": "818b09b5d752bac43440f723642526b5737450b8c8f098b16db4f26e5683fe07"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/68aa-own-cancellation-for-each-published-source.png",
+      "sha256": "a7a6cf58b34450e1705ecff3b7e817612d9d6c44366614ad0405bf6acf5b6a01",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-687.json",
+        "sha256": "818b09b5d752bac43440f723642526b5737450b8c8f098b16db4f26e5683fe07"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/68ab-choose-bounded-range-loading-for-large-originals.png",
+      "sha256": "a7a6cf58b34450e1705ecff3b7e817612d9d6c44366614ad0405bf6acf5b6a01",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-687.json",
+        "sha256": "818b09b5d752bac43440f723642526b5737450b8c8f098b16db4f26e5683fe07"
       }
     },
     {
@@ -5821,6 +6131,346 @@
       }
     },
     {
+      "path": "docs/screenshots/journey/68ac-connect-current-pages-to-the-browser-renderer.png",
+      "sha256": "daae1ad7fe151abcf937c2d06ab36f8dade3a5059d821b4a050713aeeb62a11d",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-687.json",
+        "sha256": "818b09b5d752bac43440f723642526b5737450b8c8f098b16db4f26e5683fe07"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/68b-evict-unpinned-pages-in-access-order.png",
+      "sha256": "a7a6cf58b34450e1705ecff3b7e817612d9d6c44366614ad0405bf6acf5b6a01",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-687.json",
+        "sha256": "818b09b5d752bac43440f723642526b5737450b8c8f098b16db4f26e5683fe07"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/68c-reject-late-source-generations.png",
+      "sha256": "a7a6cf58b34450e1705ecff3b7e817612d9d6c44366614ad0405bf6acf5b6a01",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-687.json",
+        "sha256": "818b09b5d752bac43440f723642526b5737450b8c8f098b16db4f26e5683fe07"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/68d-bound-source-prefixes-and-decode-work.png",
+      "sha256": "a7a6cf58b34450e1705ecff3b7e817612d9d6c44366614ad0405bf6acf5b6a01",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-687.json",
+        "sha256": "818b09b5d752bac43440f723642526b5737450b8c8f098b16db4f26e5683fe07"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/68e-validate-original-streamed-presentation.png",
+      "sha256": "a7a6cf58b34450e1705ecff3b7e817612d9d6c44366614ad0405bf6acf5b6a01",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-687.json",
+        "sha256": "818b09b5d752bac43440f723642526b5737450b8c8f098b16db4f26e5683fe07"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/68f-reuse-a-checked-source-probe.png",
+      "sha256": "a7a6cf58b34450e1705ecff3b7e817612d9d6c44366614ad0405bf6acf5b6a01",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-687.json",
+        "sha256": "818b09b5d752bac43440f723642526b5737450b8c8f098b16db4f26e5683fe07"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/68fa-validate-complete-source-metadata.png",
+      "sha256": "a7a6cf58b34450e1705ecff3b7e817612d9d6c44366614ad0405bf6acf5b6a01",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-687.json",
+        "sha256": "818b09b5d752bac43440f723642526b5737450b8c8f098b16db4f26e5683fe07"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/68g-slice-original-pages-without-losing-attributes.png",
+      "sha256": "a7a6cf58b34450e1705ecff3b7e817612d9d6c44366614ad0405bf6acf5b6a01",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-687.json",
+        "sha256": "818b09b5d752bac43440f723642526b5737450b8c8f098b16db4f26e5683fe07"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/68h-prepare-shared-remote-source-owners.png",
+      "sha256": "a7a6cf58b34450e1705ecff3b7e817612d9d6c44366614ad0405bf6acf5b6a01",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-687.json",
+        "sha256": "818b09b5d752bac43440f723642526b5737450b8c8f098b16db4f26e5683fe07"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/68i-keep-independent-streamed-placements.png",
+      "sha256": "a7a6cf58b34450e1705ecff3b7e817612d9d6c44366614ad0405bf6acf5b6a01",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-687.json",
+        "sha256": "818b09b5d752bac43440f723642526b5737450b8c8f098b16db4f26e5683fe07"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/68j-pin-coarse-pages-and-adopt-checked-ranges.png",
+      "sha256": "a7a6cf58b34450e1705ecff3b7e817612d9d6c44366614ad0405bf6acf5b6a01",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-687.json",
+        "sha256": "818b09b5d752bac43440f723642526b5737450b8c8f098b16db4f26e5683fe07"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/68k-supply-coarse-and-detailed-page-specimens.png",
+      "sha256": "a7a6cf58b34450e1705ecff3b7e817612d9d6c44366614ad0405bf6acf5b6a01",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-687.json",
+        "sha256": "818b09b5d752bac43440f723642526b5737450b8c8f098b16db4f26e5683fe07"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/68l-insert-streamed-rows-on-the-current-layer.png",
+      "sha256": "a7a6cf58b34450e1705ecff3b7e817612d9d6c44366614ad0405bf6acf5b6a01",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-687.json",
+        "sha256": "818b09b5d752bac43440f723642526b5737450b8c8f098b16db4f26e5683fe07"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/68m-carry-source-placement-through-scene-operations.png",
+      "sha256": "a7a6cf58b34450e1705ecff3b7e817612d9d6c44366614ad0405bf6acf5b6a01",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-687.json",
+        "sha256": "818b09b5d752bac43440f723642526b5737450b8c8f098b16db4f26e5683fe07"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/68n-resolve-compact-picks-to-original-point-ids.png",
+      "sha256": "a7a6cf58b34450e1705ecff3b7e817612d9d6c44366614ad0405bf6acf5b6a01",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-687.json",
+        "sha256": "818b09b5d752bac43440f723642526b5737450b8c8f098b16db4f26e5683fe07"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/68o-account-for-original-and-retained-source-data.png",
+      "sha256": "a7a6cf58b34450e1705ecff3b7e817612d9d6c44366614ad0405bf6acf5b6a01",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-687.json",
+        "sha256": "818b09b5d752bac43440f723642526b5737450b8c8f098b16db4f26e5683fe07"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/68p-keep-original-attributes-in-ranged-pages.png",
+      "sha256": "a7a6cf58b34450e1705ecff3b7e817612d9d6c44366614ad0405bf6acf5b6a01",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-687.json",
+        "sha256": "818b09b5d752bac43440f723642526b5737450b8c8f098b16db4f26e5683fe07"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/68q-retain-page-owners-beside-gpu-buffers.png",
+      "sha256": "a7a6cf58b34450e1705ecff3b7e817612d9d6c44366614ad0405bf6acf5b6a01",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-687.json",
+        "sha256": "818b09b5d752bac43440f723642526b5737450b8c8f098b16db4f26e5683fe07"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/68r-describe-resident-and-streamed-draw-rows.png",
+      "sha256": "a7a6cf58b34450e1705ecff3b7e817612d9d6c44366614ad0405bf6acf5b6a01",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-687.json",
+        "sha256": "818b09b5d752bac43440f723642526b5737450b8c8f098b16db4f26e5683fe07"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/68s-draw-shared-source-pages-at-independent-placements.png",
+      "sha256": "a7a6cf58b34450e1705ecff3b7e817612d9d6c44366614ad0405bf6acf5b6a01",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-687.json",
+        "sha256": "818b09b5d752bac43440f723642526b5737450b8c8f098b16db4f26e5683fe07"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/68t-validate-encoded-source-metadata.png",
+      "sha256": "a7a6cf58b34450e1705ecff3b7e817612d9d6c44366614ad0405bf6acf5b6a01",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-687.json",
+        "sha256": "818b09b5d752bac43440f723642526b5737450b8c8f098b16db4f26e5683fe07"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/68u-decode-bounded-cancellable-source-streams.png",
+      "sha256": "a7a6cf58b34450e1705ecff3b7e817612d9d6c44366614ad0405bf6acf5b6a01",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-687.json",
+        "sha256": "818b09b5d752bac43440f723642526b5737450b8c8f098b16db4f26e5683fe07"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/68v-refuse-conflicting-source-encoding-revisions.png",
+      "sha256": "a7a6cf58b34450e1705ecff3b7e817612d9d6c44366614ad0405bf6acf5b6a01",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-687.json",
+        "sha256": "818b09b5d752bac43440f723642526b5737450b8c8f098b16db4f26e5683fe07"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/68w-adopt-remote-original-revisions-independently.png",
+      "sha256": "a7a6cf58b34450e1705ecff3b7e817612d9d6c44366614ad0405bf6acf5b6a01",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-687.json",
+        "sha256": "818b09b5d752bac43440f723642526b5737450b8c8f098b16db4f26e5683fe07"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/68x-prepare-a-coarse-pin-and-bounded-prefix.png",
+      "sha256": "a7a6cf58b34450e1705ecff3b7e817612d9d6c44366614ad0405bf6acf5b6a01",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-687.json",
+        "sha256": "818b09b5d752bac43440f723642526b5737450b8c8f098b16db4f26e5683fe07"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/68y-redraw-before-reusing-evicted-page-addresses.png",
+      "sha256": "a7a6cf58b34450e1705ecff3b7e817612d9d6c44366614ad0405bf6acf5b6a01",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-687.json",
+        "sha256": "818b09b5d752bac43440f723642526b5737450b8c8f098b16db4f26e5683fe07"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/68z-continue-pages-only-for-current-source-owners.png",
+      "sha256": "a7a6cf58b34450e1705ecff3b7e817612d9d6c44366614ad0405bf6acf5b6a01",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-687.json",
+        "sha256": "818b09b5d752bac43440f723642526b5737450b8c8f098b16db4f26e5683fe07"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/69-validate-original-definition-references.png",
+      "sha256": "daae1ad7fe151abcf937c2d06ab36f8dade3a5059d821b4a050713aeeb62a11d",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-687.json",
+        "sha256": "818b09b5d752bac43440f723642526b5737450b8c8f098b16db4f26e5683fe07"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/69a-describe-a-rigid-frame-and-original-shape-key.png",
+      "sha256": "826b0d8d3a1421b22e60cefe7e983ab337cf6e142d039491da2f6a963d4c751c",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-737.json",
+        "sha256": "c748f30321b3b672add0318becab21e1f0eb4b8df7cbc20ee4444f87d614e91a"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/69aa-retain-cloneable-derived-cad-values.png",
+      "sha256": "826b0d8d3a1421b22e60cefe7e983ab337cf6e142d039491da2f6a963d4c751c",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-737.json",
+        "sha256": "c748f30321b3b672add0318becab21e1f0eb4b8df7cbc20ee4444f87d614e91a"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/69ab-replay-sampled-geometry-in-the-new-rigid-frame.png",
+      "sha256": "826b0d8d3a1421b22e60cefe7e983ab337cf6e142d039491da2f6a963d4c751c",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-737.json",
+        "sha256": "c748f30321b3b672add0318becab21e1f0eb4b8df7cbc20ee4444f87d614e91a"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/69ac-guard-reusable-walks-with-source-validity-and-size.png",
+      "sha256": "826b0d8d3a1421b22e60cefe7e983ab337cf6e142d039491da2f6a963d4c751c",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-737.json",
+        "sha256": "c748f30321b3b672add0318becab21e1f0eb4b8df7cbc20ee4444f87d614e91a"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/69ad-share-recordings-only-during-document-preparation.png",
+      "sha256": "826b0d8d3a1421b22e60cefe7e983ab337cf6e142d039491da2f6a963d4c751c",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-737.json",
+        "sha256": "c748f30321b3b672add0318becab21e1f0eb4b8df7cbc20ee4444f87d614e91a"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/69ae-compare-actual-replay-pixels-and-integer-owners.png",
+      "sha256": "826b0d8d3a1421b22e60cefe7e983ab337cf6e142d039491da2f6a963d4c751c",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-737.json",
+        "sha256": "c748f30321b3b672add0318becab21e1f0eb4b8df7cbc20ee4444f87d614e91a"
+      }
+    },
+    {
       "path": "docs/screenshots/journey/69af-exercise-independent-original-cad-reuse.png",
       "sha256": "2b7289fbe5c2914e0f16e937b652a76fc26651c5ac6d24160f40e7dfcec21010",
       "kind": "native",
@@ -5828,6 +6478,76 @@
       "receipt": {
         "path": "docs/journey/release/priority-native-image-review.json",
         "sha256": "914706b6be25305b322efdd21b8a21c950fbcbbec3f9221984df2cc8a07f77e0"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/69b-prepare-each-used-definition-once.png",
+      "sha256": "daae1ad7fe151abcf937c2d06ab36f8dade3a5059d821b4a050713aeeb62a11d",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-687.json",
+        "sha256": "818b09b5d752bac43440f723642526b5737450b8c8f098b16db4f26e5683fe07"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/69c-keep-instance-bindings-through-scene-history.png",
+      "sha256": "daae1ad7fe151abcf937c2d06ab36f8dade3a5059d821b4a050713aeeb62a11d",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-737.json",
+        "sha256": "c748f30321b3b672add0318becab21e1f0eb4b8df7cbc20ee4444f87d614e91a"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/69d-append-independently-placed-shared-rows.png",
+      "sha256": "daae1ad7fe151abcf937c2d06ab36f8dade3a5059d821b4a050713aeeb62a11d",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-737.json",
+        "sha256": "c748f30321b3b672add0318becab21e1f0eb4b8df7cbc20ee4444f87d614e91a"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/69e-import-canonical-original-instance-placements.png",
+      "sha256": "daae1ad7fe151abcf937c2d06ab36f8dade3a5059d821b4a050713aeeb62a11d",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-737.json",
+        "sha256": "c748f30321b3b672add0318becab21e1f0eb4b8df7cbc20ee4444f87d614e91a"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/69f-protect-shared-originals-during-part-edits.png",
+      "sha256": "daae1ad7fe151abcf937c2d06ab36f8dade3a5059d821b4a050713aeeb62a11d",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-737.json",
+        "sha256": "c748f30321b3b672add0318becab21e1f0eb4b8df7cbc20ee4444f87d614e91a"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/69g-collect-shared-definitions-without-flattening.png",
+      "sha256": "daae1ad7fe151abcf937c2d06ab36f8dade3a5059d821b4a050713aeeb62a11d",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-737.json",
+        "sha256": "c748f30321b3b672add0318becab21e1f0eb4b8df7cbc20ee4444f87d614e91a"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/69h-save-original-instance-references-and-namespaces.png",
+      "sha256": "daae1ad7fe151abcf937c2d06ab36f8dade3a5059d821b4a050713aeeb62a11d",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-737.json",
+        "sha256": "c748f30321b3b672add0318becab21e1f0eb4b8df7cbc20ee4444f87d614e91a"
       }
     },
     {
@@ -5841,6 +6561,126 @@
       }
     },
     {
+      "path": "docs/screenshots/journey/69j-preserve-per-instance-original-colours.png",
+      "sha256": "daae1ad7fe151abcf937c2d06ab36f8dade3a5059d821b4a050713aeeb62a11d",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-737.json",
+        "sha256": "c748f30321b3b672add0318becab21e1f0eb4b8df7cbc20ee4444f87d614e91a"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/69k-create-a-shared-definition-face-pipeline.png",
+      "sha256": "daae1ad7fe151abcf937c2d06ab36f8dade3a5059d821b4a050713aeeb62a11d",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-737.json",
+        "sha256": "c748f30321b3b672add0318becab21e1f0eb4b8df7cbc20ee4444f87d614e91a"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/69l-reuse-bounded-independent-draw-records.png",
+      "sha256": "daae1ad7fe151abcf937c2d06ab36f8dade3a5059d821b4a050713aeeb62a11d",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-737.json",
+        "sha256": "c748f30321b3b672add0318becab21e1f0eb4b8df7cbc20ee4444f87d614e91a"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/69m-draw-batched-faces-with-independent-integer-owners.png",
+      "sha256": "daae1ad7fe151abcf937c2d06ab36f8dade3a5059d821b4a050713aeeb62a11d",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-737.json",
+        "sha256": "c748f30321b3b672add0318becab21e1f0eb4b8df7cbc20ee4444f87d614e91a"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/69n-inspect-and-exercise-original-definition-instances.png",
+      "sha256": "826b0d8d3a1421b22e60cefe7e983ab337cf6e142d039491da2f6a963d4c751c",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-737.json",
+        "sha256": "c748f30321b3b672add0318becab21e1f0eb4b8df7cbc20ee4444f87d614e91a"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/69zza-move-between-original-rigid-frames.png",
+      "sha256": "826b0d8d3a1421b22e60cefe7e983ab337cf6e142d039491da2f6a963d4c751c",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-737.json",
+        "sha256": "c748f30321b3b672add0318becab21e1f0eb4b8df7cbc20ee4444f87d614e91a"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/69zzb-find-an-original-frame-and-pack-key-words.png",
+      "sha256": "826b0d8d3a1421b22e60cefe7e983ab337cf6e142d039491da2f6a963d4c751c",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-737.json",
+        "sha256": "c748f30321b3b672add0318becab21e1f0eb4b8df7cbc20ee4444f87d614e91a"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/69zzc-encode-original-parameters-and-topology.png",
+      "sha256": "826b0d8d3a1421b22e60cefe7e983ab337cf6e142d039491da2f6a963d4c751c",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-737.json",
+        "sha256": "c748f30321b3b672add0318becab21e1f0eb4b8df7cbc20ee4444f87d614e91a"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/70-evaluate-source-ancestry-once-per-document.png",
+      "sha256": "2b7289fbe5c2914e0f16e937b652a76fc26651c5ac6d24160f40e7dfcec21010",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-737.json",
+        "sha256": "c748f30321b3b672add0318becab21e1f0eb4b8df7cbc20ee4444f87d614e91a"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/70a-keep-original-local-parent-and-world-matrices.png",
+      "sha256": "2b7289fbe5c2914e0f16e937b652a76fc26651c5ac6d24160f40e7dfcec21010",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-737.json",
+        "sha256": "c748f30321b3b672add0318becab21e1f0eb4b8df7cbc20ee4444f87d614e91a"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/70b-connect-canonical-cached-models-to-every-source-owner.png",
+      "sha256": "2b7289fbe5c2914e0f16e937b652a76fc26651c5ac6d24160f40e7dfcec21010",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-737.json",
+        "sha256": "c748f30321b3b672add0318becab21e1f0eb4b8df7cbc20ee4444f87d614e91a"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/70c-save-nested-local-frames-without-flattening.png",
+      "sha256": "2b7289fbe5c2914e0f16e937b652a76fc26651c5ac6d24160f40e7dfcec21010",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-737.json",
+        "sha256": "c748f30321b3b672add0318becab21e1f0eb4b8df7cbc20ee4444f87d614e91a"
+      }
+    },
+    {
       "path": "docs/screenshots/journey/70d-exercise-rotated-and-mirrored-original-references-browser.png",
       "sha256": "0fce6516e90826d5085eaee857e64c14f61acb66afde4fd32ad19d87d69c5664",
       "kind": "browser",
@@ -5851,6 +6691,16 @@
       }
     },
     {
+      "path": "docs/screenshots/journey/70d-exercise-rotated-and-mirrored-original-references.png",
+      "sha256": "05ab144c201e94155f32518ea30f8a1801848e010c2676c874a5c8998f8fb60d",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-737.json",
+        "sha256": "c748f30321b3b672add0318becab21e1f0eb4b8df7cbc20ee4444f87d614e91a"
+      }
+    },
+    {
       "path": "docs/screenshots/journey/70za-read-original-sheet-metadata-records.png",
       "sha256": "05ab144c201e94155f32518ea30f8a1801848e010c2676c874a5c8998f8fb60d",
       "kind": "native",
@@ -5858,6 +6708,256 @@
       "receipt": {
         "path": "docs/journey/release/priority-native-image-review.json",
         "sha256": "914706b6be25305b322efdd21b8a21c950fbcbbec3f9221984df2cc8a07f77e0"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/71-read-original-sheet-entity-metadata.png",
+      "sha256": "05ab144c201e94155f32518ea30f8a1801848e010c2676c874a5c8998f8fb60d",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-737.json",
+        "sha256": "c748f30321b3b672add0318becab21e1f0eb4b8df7cbc20ee4444f87d614e91a"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/71a-bound-original-entity-records-before-reading.png",
+      "sha256": "05ab144c201e94155f32518ea30f8a1801848e010c2676c874a5c8998f8fb60d",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-737.json",
+        "sha256": "c748f30321b3b672add0318becab21e1f0eb4b8df7cbc20ee4444f87d614e91a"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/71b-give-metadata-reads-their-own-cancellation-signal.png",
+      "sha256": "05ab144c201e94155f32518ea30f8a1801848e010c2676c874a5c8998f8fb60d",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-737.json",
+        "sha256": "c748f30321b3b672add0318becab21e1f0eb4b8df7cbc20ee4444f87d614e91a"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/71c-fetch-one-revision-matched-metadata-answer.png",
+      "sha256": "05ab144c201e94155f32518ea30f8a1801848e010c2676c874a5c8998f8fb60d",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-737.json",
+        "sha256": "c748f30321b3b672add0318becab21e1f0eb4b8df7cbc20ee4444f87d614e91a"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/71d-decode-precise-original-sheet-columns.png",
+      "sha256": "05ab144c201e94155f32518ea30f8a1801848e010c2676c874a5c8998f8fb60d",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-737.json",
+        "sha256": "c748f30321b3b672add0318becab21e1f0eb4b8df7cbc20ee4444f87d614e91a"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/71e-measure-original-sheet-pages-and-world-pens.png",
+      "sha256": "05ab144c201e94155f32518ea30f8a1801848e010c2676c874a5c8998f8fb60d",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-737.json",
+        "sha256": "c748f30321b3b672add0318becab21e1f0eb4b8df7cbc20ee4444f87d614e91a"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/71f-retain-charged-pages-beside-resident-pages.png",
+      "sha256": "05ab144c201e94155f32518ea30f8a1801848e010c2676c874a5c8998f8fb60d",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-737.json",
+        "sha256": "c748f30321b3b672add0318becab21e1f0eb4b8df7cbc20ee4444f87d614e91a"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/71g-own-the-complete-original-drawing-source.png",
+      "sha256": "05ab144c201e94155f32518ea30f8a1801848e010c2676c874a5c8998f8fb60d",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-737.json",
+        "sha256": "c748f30321b3b672add0318becab21e1f0eb4b8df7cbc20ee4444f87d614e91a"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/71h-place-drawing-rows-without-changing-endpoints.png",
+      "sha256": "05ab144c201e94155f32518ea30f8a1801848e010c2676c874a5c8998f8fb60d",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-737.json",
+        "sha256": "c748f30321b3b672add0318becab21e1f0eb4b8df7cbc20ee4444f87d614e91a"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/71i-register-original-drawing-rows-on-the-current-layer.png",
+      "sha256": "05ab144c201e94155f32518ea30f8a1801848e010c2676c874a5c8998f8fb60d",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-737.json",
+        "sha256": "c748f30321b3b672add0318becab21e1f0eb4b8df7cbc20ee4444f87d614e91a"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/71j-carry-drawing-identity-through-scene-operations.png",
+      "sha256": "05ab144c201e94155f32518ea30f8a1801848e010c2676c874a5c8998f8fb60d",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-737.json",
+        "sha256": "c748f30321b3b672add0318becab21e1f0eb4b8df7cbc20ee4444f87d614e91a"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/71k-save-and-reopen-complete-original-sheets.png",
+      "sha256": "05ab144c201e94155f32518ea30f8a1801848e010c2676c874a5c8998f8fb60d",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-737.json",
+        "sha256": "c748f30321b3b672add0318becab21e1f0eb4b8df7cbc20ee4444f87d614e91a"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/71l-locate-original-drawing-identity-and-fixed-ranges.png",
+      "sha256": "05ab144c201e94155f32518ea30f8a1801848e010c2676c874a5c8998f8fb60d",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-737.json",
+        "sha256": "c748f30321b3b672add0318becab21e1f0eb4b8df7cbc20ee4444f87d614e91a"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/71m-validate-the-bounded-drawing-envelope-tail.png",
+      "sha256": "05ab144c201e94155f32518ea30f8a1801848e010c2676c874a5c8998f8fb60d",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-737.json",
+        "sha256": "c748f30321b3b672add0318becab21e1f0eb4b8df7cbc20ee4444f87d614e91a"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/71n-scan-drawing-columns-under-one-revision.png",
+      "sha256": "05ab144c201e94155f32518ea30f8a1801848e010c2676c874a5c8998f8fb60d",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-737.json",
+        "sha256": "c748f30321b3b672add0318becab21e1f0eb4b8df7cbc20ee4444f87d614e91a"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/71o-read-drawing-page-columns-through-the-shared-queue.png",
+      "sha256": "05ab144c201e94155f32518ea30f8a1801848e010c2676c874a5c8998f8fb60d",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-737.json",
+        "sha256": "c748f30321b3b672add0318becab21e1f0eb4b8df7cbc20ee4444f87d614e91a"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/71p-adopt-nonoverlapping-charged-drawing-pages.png",
+      "sha256": "05ab144c201e94155f32518ea30f8a1801848e010c2676c874a5c8998f8fb60d",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-737.json",
+        "sha256": "c748f30321b3b672add0318becab21e1f0eb4b8df7cbc20ee4444f87d614e91a"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/71q-keep-partial-drawing-sources-explicit.png",
+      "sha256": "05ab144c201e94155f32518ea30f8a1801848e010c2676c874a5c8998f8fb60d",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-737.json",
+        "sha256": "c748f30321b3b672add0318becab21e1f0eb4b8df7cbc20ee4444f87d614e91a"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/71r-reserve-memory-before-the-drawing-prefix.png",
+      "sha256": "05ab144c201e94155f32518ea30f8a1801848e010c2676c874a5c8998f8fb60d",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-737.json",
+        "sha256": "c748f30321b3b672add0318becab21e1f0eb4b8df7cbc20ee4444f87d614e91a"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/71s-continue-drawing-reads-without-reviving-closed-sources.png",
+      "sha256": "05ab144c201e94155f32518ea30f8a1801848e010c2676c874a5c8998f8fb60d",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-737.json",
+        "sha256": "c748f30321b3b672add0318becab21e1f0eb4b8df7cbc20ee4444f87d614e91a"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/71t-resolve-sheet-picks-to-original-entity-ids.png",
+      "sha256": "05ab144c201e94155f32518ea30f8a1801848e010c2676c874a5c8998f8fb60d",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-737.json",
+        "sha256": "c748f30321b3b672add0318becab21e1f0eb4b8df7cbc20ee4444f87d614e91a"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/71u-project-authored-world-pens-into-drawing-quads.png",
+      "sha256": "05ab144c201e94155f32518ea30f8a1801848e010c2676c874a5c8998f8fb60d",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-737.json",
+        "sha256": "c748f30321b3b672add0318becab21e1f0eb4b8df7cbc20ee4444f87d614e91a"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/71v-use-the-same-sheet-coverage-for-color-and-picks.png",
+      "sha256": "05ab144c201e94155f32518ea30f8a1801848e010c2676c874a5c8998f8fb60d",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-737.json",
+        "sha256": "c748f30321b3b672add0318becab21e1f0eb4b8df7cbc20ee4444f87d614e91a"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/71w-build-sheet-color-and-integer-pipelines.png",
+      "sha256": "05ab144c201e94155f32518ea30f8a1801848e010c2676c874a5c8998f8fb60d",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-737.json",
+        "sha256": "c748f30321b3b672add0318becab21e1f0eb4b8df7cbc20ee4444f87d614e91a"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/71x-own-the-shared-drawing-lane-resources.png",
+      "sha256": "05ab144c201e94155f32518ea30f8a1801848e010c2676c874a5c8998f8fb60d",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-737.json",
+        "sha256": "c748f30321b3b672add0318becab21e1f0eb4b8df7cbc20ee4444f87d614e91a"
       }
     },
     {
