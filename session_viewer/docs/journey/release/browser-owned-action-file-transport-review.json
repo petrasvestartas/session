@@ -1,0 +1,136 @@
+{
+  "status": "APPROVED exact source-reversible historical/additional image-only transport",
+  "date": "2026-10-26T04:02:40.531Z",
+  "helper": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\owned-file-action-browser-recipes.ts",
+    "sha256": "b471825f8a332a82fb84613c49ed0b2d63bbb2cd55f69cc188b3ff2363d7567a"
+  },
+  "transport": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\owned-deep-file-buffer-transport.cjs",
+    "sha256": "778cb0766041aadf97508f1ff4f77e961be3d2e2a97cb0edb4a78890abc3d0de"
+  },
+  "rootReview": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\browser-streaming-publication-202-preparation\\root-review.json",
+    "sha256": "f48b93bf8beb1c8d583a648986ce630ef47acba717043e54411e81c5e8010ef3"
+  },
+  "cases": [
+    {
+      "kind": "historical",
+      "record": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\historical-action-scenes\\96q-prove-imported-feature-ownership-and-roundtrips-403f1b4eb01bbc5cde57\\owned-file-capture.json",
+        "sha256": "123818b91cc9a39785211ca799f8f385dd8553ae0787d3fdcd5404ad5da0c6b6"
+      },
+      "bridge": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\owned-action-image-helper\\56c0d97e798666c923ab\\bridge.json",
+        "sha256": "f4c5d083ecd8d16b62e05e5f72cac9b487e6cb4d8ca51fcaf1b6e3e65cce70fa"
+      },
+      "receipt": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\historical-action-scenes\\96q-prove-imported-feature-ownership-and-roundtrips-403f1b4eb01bbc5cde57\\owned-file-transport.jsonl",
+        "sha256": "92db773b546d3476ba5da07e696314c4c841984fe74b1418e72799ebbd68d246"
+      },
+      "actualConversions": 1
+    },
+    {
+      "kind": "additional",
+      "record": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\additional-scenes\\36e-input-98efd7d3bebe6a5c7c32\\owned-file-capture.json",
+        "sha256": "343a10cff3ddeac112947a84fa4e534df03007e9767eac14a080c3d4b447c0a6"
+      },
+      "bridge": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\owned-action-image-helper\\a7992c90baaa1f61f1ef\\bridge.json",
+        "sha256": "693f7eb3f3ab41a155f934916d0a2cf73ba6407b453662d8ba0764120f2074ec"
+      },
+      "actualConversions": 0
+    }
+  ],
+  "sourceSiteAudit": [
+    {
+      "file": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\historical-browser-actions-presentation.ts",
+        "sha256": "d2b0d0404564b08c10420279f67d4e3e9a2185925fd10c3dd43f126196da519a"
+      },
+      "sites": [
+        {
+          "line": 74,
+          "source": "else if(action.file){const file=path.join(prepared.workspace,'target','course-'+prepared.id,action.file);assert(fs.existsSync(file));const chooser=page.waitForEvent('filechooser');await command('Open');await(await chooser).setFiles(file);await page.waitForFunction(()=>/^(File imported|Document replaced)/.test(document.querySelector('#status')!.textContent!));if(action.fit)await command('Fit');}"
+        }
+      ]
+    },
+    {
+      "file": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\additional-browser-image-recipes.ts",
+        "sha256": "d68f4deab8a4f18975e0933969a1883972ebf78504fa927602248bc7da0cee1f"
+      },
+      "sites": [
+        {
+          "line": 89,
+          "source": "else if(action.file){const file=path.join(prepared.workspace,'target','course-'+prepared.id,action.file);assert(fs.existsSync(file));const chooser=page.waitForEvent('filechooser');await command('Open');await(await chooser).setFiles(file);await page.waitForFunction(()=>/^(File imported|Document replaced)/.test(document.querySelector('#status')!.textContent!));if(action.fit)await command('Fit');}"
+        }
+      ]
+    },
+    {
+      "file": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\browser-presentation.ts",
+        "sha256": "0001074990e9de63f5ae19ae55c2ae7320b3ca9ece880d8535b22d216ca5c9e8"
+      },
+      "sites": [
+        {
+          "line": 60,
+          "source": "await (await chooser).setFiles('target/course-' + id + '/' + action.file);"
+        }
+      ]
+    },
+    {
+      "file": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\browser-scene-presentation.ts",
+        "sha256": "9a67885d829510b7dba229dd7aaf0a429535afc8af737b5aae5ad7c71a249b65"
+      },
+      "sites": [
+        {
+          "line": 202,
+          "source": "await (await choosing).setFiles({name: 'comparison.pb', mimeType: 'application/octet-stream', buffer: bytes});"
+        },
+        {
+          "line": 207,
+          "source": "await (await choosing).setFiles({name: 'original-contact-ambient.pb', mimeType: 'application/octet-stream', buffer: bytes});"
+        }
+      ]
+    },
+    {
+      "file": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\exported-browser-image-recipes.ts",
+        "sha256": "183ba75068a721d050fd3c155692a40a07c851b847a52493cf8c337f2113071e"
+      },
+      "sites": [
+        {
+          "line": 117,
+          "source": "await command('Close');const chooser=page.waitForEvent('filechooser');await command('Open');await(await chooser).setFiles({name:'comparison.pb',mimeType:'application/octet-stream',buffer:Buffer.from(raw)});"
+        }
+      ]
+    },
+    {
+      "file": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\capture_journey.cjs",
+        "sha256": "730a2c8618175efe53a93be8f837fc14f91b5422375d8d0e699804d0c17e593a"
+      },
+      "sites": [
+        {
+          "line": 310,
+          "source": "await (await choosing).setFiles(`target/course-${id}/${action.file}`);"
+        }
+      ]
+    }
+  ],
+  "originalAssertionsAndDeclaredActionsUnchanged": true,
+  "fullInheritedCallbacksClaimed": false,
+  "canonicalValidationProfile": false,
+  "knownRouteCoverage": "The two direct raw-path recipe sites are installed through reversible historical/additional workers. Canonical fallback chooser sites use the separately actual-full96h-qualified prototype hook. Generic/exported recipes already submit byte payload objects. No setInputFiles API exists in these audited sources; unrecognized/external/short paths retain normal behavior.",
+  "scope": "Only regular files within each exact private owned workspace and absolute path length>=260 convert to identical named byte payloads. No renderer, shader, fixture, camera, timing or canonical assertion changes. Each future ID requires its own source/build/render checks and image QA.",
+  "retainedFailure": {
+    "queue": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-batches\\26d5565dbcebbd2eadfc\\bounded-queue-2026-10-26T03-39-22-928Z\\receipt.json",
+      "sha256": "ae2c9b03b23d835a39a9a6adb86915fd0d0ef86cb3a0552c937655531f7bcaf4"
+    },
+    "outcome": "Original96q path-based import timeout remains unaccepted. This new actual source-declared action image does not relabel that inherited/transport failure."
+  }
+}

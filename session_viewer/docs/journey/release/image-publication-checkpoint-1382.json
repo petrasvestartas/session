@@ -1,0 +1,53 @@
+{
+  "date": "2026-10-26T04:05:24.091Z",
+  "status": "IN_PROGRESS: reviewed original-inventory publication checkpoint",
+  "published": 1382,
+  "remaining": 380,
+  "counts": {
+    "native": 1118,
+    "browser": 244,
+    "variants": 0,
+    "supporting": 20
+  },
+  "publicationIndex": {
+    "path": "docs/journey/release/image-quality-publication-index-snapshot-1382.json",
+    "sha256": "008f8db8903c2c67d61572d17d78a3d9305cecf6dabf65745c41ed52e6e993e9"
+  },
+  "latestMutableIndexPath": "docs/journey/release/image-quality-publication-index.json",
+  "operationalDriver": {
+    "path": "session_tests/scripts/course/incremental-browser-image-queue-v3.ts",
+    "sha256": "8fd95ae1b7b9a027f390f5296557575c66bee9ab4b98f6139f6afa75a382a329"
+  },
+  "provenanceQualifications": [
+    {
+      "path": "docs/journey/release/browser-streaming-publication-71-provenance-qualification.json",
+      "sha256": "45595229c4e6c0092bf847040a2e45795b422f84a95a7564a671fa973e3f6f4d"
+    },
+    {
+      "path": "docs/journey/release/browser-image-sheets-source-successor-review.json",
+      "sha256": "6bddeaada3c802edd2fdf628c0ea99c518373395bc28461d7b15c39076cbdd3d"
+    },
+    {
+      "path": "docs/journey/release/browser-owned-file-source-successor-review.json",
+      "sha256": "f81b259b070ef68c0db9779671ce38a951fd10c637b5f2f0fd823cc1da90af05"
+    },
+    {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\release\\browser-owned-file-transport-review.json",
+      "sha256": "83db027810a4903e5dc4046a66617f1abdb9d88ed05d0dff887cd000d0bb5849"
+    },
+    {
+      "path": "docs/journey/release/browser-owned-action-file-transport-review.json",
+      "sha256": "c9403cc6561e330cf823d0ee0d68a42f4e608a9ddd47689dc1e5de91aa8cd523"
+    },
+    {
+      "path": "docs/journey/release/native-retained-dll-storage-review.json",
+      "sha256": "1f93d3be1e5a68c56ad441c285d1ca15a353781b776890b3274d7460d8991738"
+    },
+    {
+      "path": "docs/journey/release/browser-retained-wasm-storage-review.json",
+      "sha256": "1c6e5cd9d346df1022ebfa33e3a2cbe933dd3431b1fc7c5a3d33033ff425f252"
+    }
+  ],
+  "scope": "Every counted image has its own reviewed publication record and exact source/served hashes. Native and browser captures continue; final site acceptance is pending. The launcher changes neither capture source nor canonical assertions.",
+  "websiteDesign": "Vue, styling, structure and Gemini prose preserved."
+}
