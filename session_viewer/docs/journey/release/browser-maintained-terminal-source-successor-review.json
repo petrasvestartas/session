@@ -1,0 +1,154 @@
+{
+  "status": "PASS exact379 runtime bindings and378 retained actual identities plus actual maintained97 adopted",
+  "date": "2026-10-26T19:58:51.657Z",
+  "oldCohortRecord": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-batches\\b89b3e3ac4e8a0c91eaf\\cohort.json",
+    "sha256": "3346b35133711f9e4f94f5d99ec558670396013e5efbbea89cf169760a910606"
+  },
+  "newCohortRecord": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-batches\\82f55d3f73a91fcfd7f1\\cohort.json",
+    "sha256": "2d4a601effc1a562a98b22371ca771c11bc12758c26947fd319816bafd185ca5"
+  },
+  "all379RuntimeBindingsEqual": true,
+  "completed": 379,
+  "remaining": 0,
+  "retainedActualRecords": 378,
+  "adoptedActualRecord": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-builds\\cases\\97-finish-with-the-maintained-browser-runtime-913965141748cb9bfc7d\\maintained-command-schema-v2\\capture.json",
+    "sha256": "a73a2f492f5861c144ceccbc6803c237ad55d94d50eefe659e16f142e17c2a4e"
+  },
+  "operationalDriver": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\incremental-browser-image-queue-v5.ts",
+    "sha256": "bc490895869fe7723dd7c822827b71a8633df1fbb56ef2cc2999588ae9c6c069"
+  },
+  "helpers": [
+    {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\incremental-browser-image-batch-v6.ts",
+      "sha256": "d4b974284c5eaf60f69a1d6245d296f082fb19b648320908a45dee820d61f5c8"
+    },
+    {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\incremental-browser-image-queue-v5.ts",
+      "sha256": "bc490895869fe7723dd7c822827b71a8633df1fbb56ef2cc2999588ae9c6c069"
+    },
+    {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\fixture-qualified-browser-fallback-v2.ts",
+      "sha256": "04574642130ee41a5d6a372acc5e2ec6c42db7d5cc045a5837d5bdb63f3aafc9"
+    },
+    {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\owned-file-browser-fallback.ts",
+      "sha256": "9b1e01ace3661ffef2ffba53ff17d3ca2f0439d9466bceba8a3c38be74ef592e"
+    },
+    {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\owned-deep-file-buffer-transport.cjs",
+      "sha256": "778cb0766041aadf97508f1ff4f77e961be3d2e2a97cb0edb4a78890abc3d0de"
+    }
+  ],
+  "course": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\course.json",
+    "sha256": "bb1a76e52d57f873721c27e37f17fbe892a8cae2d086916e6eea328b78e3b06d"
+  },
+  "methodReview": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\release\\maintained-browser-dpr2-variant-image-review.json",
+    "sha256": "4010c5e8fba5c4170f1284856ab4c283eec1ed6e27ad7a27e244f19fff12e632"
+  },
+  "methodReviews": [
+    {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\release\\browser-declared-fixture-runtime-review.json",
+      "sha256": "40ff1d47a3a6066ee307e090277454644f7da18f4cf9626bb0377ec95ee1ad29"
+    },
+    {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\release\\browser-main-page-source-method-review.json",
+      "sha256": "b1ce897a4b59d508aea19c6fa72d2ba8aeb0ac0ea802bfc76ba066fd2efc8ec1"
+    },
+    {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\release\\browser-owned-action-file-transport-review.json",
+      "sha256": "c9403cc6561e330cf823d0ee0d68a42f4e608a9ddd47689dc1e5de91aa8cd523"
+    },
+    {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\release\\maintained-browser-dpr2-variant-image-review.json",
+      "sha256": "4010c5e8fba5c4170f1284856ab4c283eec1ed6e27ad7a27e244f19fff12e632"
+    }
+  ],
+  "imageReview": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\release\\browser-streaming-publication-337.json",
+    "sha256": "a986084655f312102dd3bb95c88aa2361296d5aea6a57df73012c1361d0bff9e"
+  },
+  "previousSourceQualification": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\release\\browser-fixture-source-successor-review.json",
+    "sha256": "5f6aa1780e81db048dd4d97aed59f5d77b2d2d0e326029384820c0a387d195f2"
+  },
+  "commandSchemaQualification": {
+    "record": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-builds\\cases\\97-finish-with-the-maintained-browser-runtime-913965141748cb9bfc7d\\maintained-command-schema-v2\\qualification.json",
+      "sha256": "baf29aa0552425f766118133dcb241fc83c0f8cfa48c29bc877e826ba6e89e6f"
+    },
+    "actual": {
+      "status": "PREPARED exact legacy command metadata transport; no new compilation",
+      "originalAdapter": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-builds\\cases\\97-finish-with-the-maintained-browser-runtime-913965141748cb9bfc7d\\maintained-image-lane-adapter\\adapter.ts",
+        "sha256": "1fcbe3ad57db523750273e2b500778f43f6d08adb988fa5c5ee08c2d250bcf5c"
+      },
+      "adaptedAdapter": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-builds\\cases\\97-finish-with-the-maintained-browser-runtime-913965141748cb9bfc7d\\maintained-command-schema-v2\\adapter.ts",
+        "sha256": "7a58a12a7074a3351dc62d35bcba30b5947c3d020fffef73b22ef914e7ad2680"
+      },
+      "originalBridge": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-builds\\cases\\97-finish-with-the-maintained-browser-runtime-913965141748cb9bfc7d\\maintained-image-lane-adapter\\bridge.json",
+        "sha256": "2fa7e0442e79b051a0a69f98f4eeb6d2c68cb5b5ca61c939ef5f70681a748fb9"
+      },
+      "built": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-builds\\cases\\97-finish-with-the-maintained-browser-runtime-913965141748cb9bfc7d\\built.json",
+        "sha256": "5d4e0b7451ee278ec19a99b4e632f92c64e40dff4693c54e42bce3cf1bd26996"
+      },
+      "before": "    write(path.join(workspace, 'target/course-checks/results.json'), JSON.stringify({[id]: {source: source.files, commands: built.commands}}, null, 2));",
+      "after": "    const qualifiedCommands = built.commands.map((command: any) => {\n        assert.equal(sha(command.log), command.logSha256);\n        assert.equal(sha(command.resourcesFile), command.resourcesSha256);\n        assert.deepEqual(json(command.resourcesFile), command.resources);\n        assert.equal(command.resources.exitCode, 0); assert.equal(command.resources.timedOut, false);\n        return {...command, returncode: command.resources.exitCode};\n    });\n    write(path.join(workspace, 'command-schema-qualification.json'), JSON.stringify({scope: 'Legacy results metadata only; exact actual completed command exitCode maps to returncode. Original endpoint assertion and all capture bodies unchanged.', commands: qualifiedCommands}, null, 2));\n    write(path.join(workspace, 'target/course-checks/results.json'), JSON.stringify({[id]: {source: source.files, commands: qualifiedCommands}}, null, 2));",
+      "reverseExact": true,
+      "commands": [
+        {
+          "label": "sample",
+          "resources": {
+            "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-builds\\cases\\97-finish-with-the-maintained-browser-runtime-913965141748cb9bfc7d\\sample.resources.json",
+            "sha256": "cabcca0e8fbb2ec2fda564451cb42934ab711d9aad67bfb4303b68cb07d2c06e"
+          },
+          "actualExitCode": 0,
+          "legacyReturncode": 0
+        },
+        {
+          "label": "wasm",
+          "resources": {
+            "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-builds\\cases\\97-finish-with-the-maintained-browser-runtime-913965141748cb9bfc7d\\wasm.resources.json",
+            "sha256": "06ad7bffcded6b72a000271ea9f1aca64e5abd5e7cc9bf9364ee83ec754443f0"
+          },
+          "actualExitCode": 0,
+          "legacyReturncode": 0
+        },
+        {
+          "label": "bindgen",
+          "resources": {
+            "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-builds\\cases\\97-finish-with-the-maintained-browser-runtime-913965141748cb9bfc7d\\bindgen.resources.json",
+            "sha256": "733f2876b29622f1670531f46e06c4285db224b1894f483dba2a1a64400d91d3"
+          },
+          "actualExitCode": 0,
+          "legacyReturncode": 0
+        }
+      ],
+      "preservedFailure": {
+        "log": {
+          "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-builds\\cases\\97-finish-with-the-maintained-browser-runtime-913965141748cb9bfc7d\\maintained-b8aca5f86244ff6e\\image-browser.log",
+          "sha256": "98917470f03f609bea22f4de0c58dc0b6cbbcb3895455557a2f89fcd9444ede7"
+        },
+        "resources": {
+          "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-builds\\cases\\97-finish-with-the-maintained-browser-runtime-913965141748cb9bfc7d\\maintained-b8aca5f86244ff6e\\image-resources.json",
+          "sha256": "75ca2a1ee2c7a5db40db8eee106c99dbc045c96a47764fb8da1813af131d82bd"
+        }
+      },
+      "scope": "Only private serialized result-command schema changes. All original maintained DPR1/DPR2 assertions unchanged; current source/dist/WASM/compiler evidence reused exactly."
+    }
+  },
+  "oldFailures": "Original V6 final97 pre-browser failure is retained unchanged. Incremental actual command resources used exitCode0; fresh private adapter maps only hash-verified successful exit codes to legacy returncode metadata. Entire original maintained DPR1/DPR2 assertions passed without rebuild. All378 earlier actual identities and scopes remain unchanged.",
+  "scope": "All379 actual source-specific captures complete. Mixed approved historical/generic/export/terminal/main-page/full-callback scopes retained per ID; no blanket canonical behavior acceptance. Maintained97 entire original behavior and both-density assertions passed under image-only resource profile. Final metadata remains frozen/pending independent qualification.",
+  "privateQualification": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-batches\\82f55d3f73a91fcfd7f1\\terminal-execution-qualification.json",
+    "sha256": "5ac6590527608fff261518fc81afff5fddc413e418ef1e1992d6b00b4eaf2a2c"
+  }
+}
