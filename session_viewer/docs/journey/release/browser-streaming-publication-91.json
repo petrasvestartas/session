@@ -1,0 +1,3713 @@
+{
+  "status": "PASS 20 browser figures regenerated, delegated-reviewed, root-approved and source/served HTTP verified",
+  "date": "2026-10-26T01:52:07.496Z",
+  "rootPersonallyViewedOriginalResolution": false,
+  "rootApprovedDelegatedReview": true,
+  "delegatedReview": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\browser-streaming-publication-91-preparation\\delegated-review.json",
+    "sha256": "68daf997f55e6a25db84d90439e17bf89d570cef55f9dfc2fd7d93d841dec18f"
+  },
+  "rootReview": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\browser-streaming-publication-91-preparation\\root-review.json",
+    "sha256": "ad0c6aaa8042292b1a50a8c9ad557d1e371d29161353af5976b04f2a259dba39"
+  },
+  "canonicalBehaviorExecuted": "Per-image original source record; no new canonical validation-profile execution",
+  "canonicalValidationProfile": false,
+  "scope": "20 independently source-bound historical-action presentations. All10 unique originals inspected by delegated agent; no root personal original viewing claim. Foreground complete;29a source-intended background clipping preserved. Exact-SHA group shares visual review only while each ID retains its own actual build/source/GPU receipt. No inherited full-callback acceptance.",
+  "images": [
+    {
+      "id": "29-identity",
+      "destination": "docs/screenshots/journey/29-identity-browser.png",
+      "sha256": "7f57cd24ac7be3dc3300c3e6c54500954890bc2d7a48b278acdbca180baccff3",
+      "width": 1800,
+      "height": 1520,
+      "originalBackup": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\browser-streaming-publication-91-preparation\\originals\\docs\\screenshots\\journey\\29-identity-browser.png",
+      "originalSha256": "428c3f4108e1da7487f1cdd26245c94362956de9464baff95ee0c334be8c6cda",
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\historical-action-scenes\\29-identity-e29b9740f2b844ef7c4e\\capture.json",
+        "sha256": "65e4e776705b0d2fdbe5c99ab16673d0e328ccca7740f214e297ca06a11124cb"
+      },
+      "source": {
+        "checkpoint": "29-identity",
+        "files": "151354c5f6434ba51cb79dc171b428524d780c86691b8486e8ffce4f0bddf423",
+        "lock": "22e937f52a1b508bdce699b6c06650f4e695346c9915a69286742997d3cc22e4",
+        "assets": {
+          "assets/text/NotoSans-Regular.subset.ttf": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09",
+          "assets/text/NotoSansSymbols2-Regular.subset.ttf": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed",
+          "assets/text/NotoSansSymbols-Regular.subset.ttf": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3"
+        },
+        "dependencies": {},
+        "kernel": "c0acbde78685d127e98e1d13dd9c1fdff064277c38ce17fd7329a13459558b88",
+        "fixture": "ddd20103cbb05c4d8f8ca2492efbea0a1a0d841ce81a23c8422ef1d5b89d7578",
+        "harness": "cc7b0a195a93c6fde86a62e203c4ecabf74eb76ee256952dfd098796ca9c39a3",
+        "constructor": "make_renderer(device, queue, format)",
+        "logicalSize": [
+          640,
+          480
+        ],
+        "helper": "e2c028971ab9cc08c2b951bed543b025ccb6f17c8e0b844d5370e82abb3a7410"
+      },
+      "recipe": {
+        "kind": "source-exact-declared-browser-actions",
+        "actions": [
+          {
+            "command": "Example Box"
+          },
+          {
+            "command": "Select Next"
+          },
+          {
+            "command": "Select Next"
+          },
+          {
+            "command": "Select Next"
+          },
+          {
+            "command": "Move -0.5,-0.5,0.2"
+          },
+          {
+            "command": "View Isometric"
+          },
+          {
+            "command": "Fit"
+          }
+        ],
+        "callback": "journey/checks/browser/placement.cjs",
+        "declaredMetadataStatus": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+        "authority": "Exact browser_actions from this checkpoint. Its documented source illustration is captured; inherited callbacks, current callback terminal scene and whole behavior validation are not executed or claimed."
+      },
+      "canonicalBehaviorExecuted": false,
+      "sourceStartupStatusQualification": null,
+      "scope": "Exact checkpoint browser_actions only, with source-bound observed rendering. Inherited callback terminal state and original behavior checks are not claimed.",
+      "canonicalValidationProfile": false,
+      "semantic": {
+        "attributes": {
+          "data-command-ui": {
+            "command": "",
+            "completion_rect": null,
+            "controls": [
+              {
+                "key": "command/input",
+                "label": "Command",
+                "rect": [
+                  86.375,
+                  734,
+                  840,
+                  756
+                ]
+              },
+              {
+                "key": "command/collapse",
+                "label": "Collapse or expand history",
+                "rect": [
+                  848,
+                  734.5,
+                  864,
+                  755.5
+                ]
+              },
+              {
+                "key": "command/resize",
+                "label": "Drag to resize command history",
+                "rect": [
+                  0,
+                  726,
+                  900,
+                  734
+                ]
+              }
+            ],
+            "focused": true,
+            "history": [
+              "> Example Box\nCommand submitted.",
+              "> Select Next\nCommand submitted.",
+              "> Select Next\nCommand submitted.",
+              "> Select Next\nCommand submitted.",
+              "> Move -0.5,-0.5,0.2\nCommand submitted.",
+              "> View Isometric\nCommand submitted.",
+              "> Fit\nCommand submitted."
+            ],
+            "pointer_owned": false,
+            "top": 726
+          }
+        },
+        "cameraEvidence": {
+          "observed": null,
+          "declaredCameraActions": [
+            {
+              "command": "View Isometric"
+            },
+            {
+              "command": "Fit"
+            }
+          ],
+          "scope": "This source exposes no camera matrix readback; exact declared navigation commands and visible output are retained without claiming internal camera equality."
+        },
+        "visiblePixels": 440971
+      },
+      "resources": {
+        "platform": "windows-job-object",
+        "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+        "laneMutex": "Local\\SessionViewerCourseImageJob",
+        "affinityOffset": 8,
+        "requiredAffinityMask": "0xFF00",
+        "maximumOtherLaneProcessors": 8,
+        "maximumOtherLaneMemoryMiB": 8192,
+        "maximumAggregateOurProcessors": 16,
+        "maximumAggregateOurMemoryMiB": 16384,
+        "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+        "requestedProcessors": 8,
+        "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+        "startedUtc": "2026-10-26T01:42:50.7330869Z",
+        "executable": "C:\\Program Files\\nodejs\\node.exe",
+        "arguments": [
+          "--require",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\warp-browser-timeout.cjs",
+          "--import",
+          "file:///C:/pc/3_code/code_rust/wood_research/session/session_tests/scripts/typescript.mjs",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\historical-browser-actions-presentation.ts",
+          "--worker",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\historical-action-scenes\\29-identity-e29b9740f2b844ef7c4e\\config.json"
+        ],
+        "workingDirectory": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-builds\\cases\\29-identity-cd6996134ceeeaae0267\\workspace",
+        "timeoutSeconds": 2400,
+        "jobCommitLimitBytes": 8589934592,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 0,
+        "timedOut": false,
+        "elapsedSeconds": 4.907,
+        "peakJobCommitBytes": 711036928,
+        "affinityMask": "0xFF00",
+        "processors": 8,
+        "processId": 21320,
+        "descendantsAtCleanup": 0
+      },
+      "rootReview": {
+        "sha256": "7f57cd24ac7be3dc3300c3e6c54500954890bc2d7a48b278acdbca180baccff3",
+        "representative": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\historical-action-scenes\\29-identity-e29b9740f2b844ef7c4e\\29-identity-dpr2.png",
+        "ids": [
+          "29-identity"
+        ],
+        "width": 1800,
+        "height": 1520,
+        "reviewer": "maintained_export_audit delegated original-resolution inspection",
+        "finding": "Complete selected yellow cube and overlapping pink/cyan triangles, generous margins.",
+        "reviewed": true
+      },
+      "http": {
+        "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/29-identity-browser.png?v=7f57cd24ac7b",
+        "status": 200,
+        "sha256": "7f57cd24ac7be3dc3300c3e6c54500954890bc2d7a48b278acdbca180baccff3"
+      }
+    },
+    {
+      "id": "29a-snapshot",
+      "destination": "docs/screenshots/journey/29a-snapshot-browser.png",
+      "sha256": "b4e10e003ba13e70653047872f92233fe2d400c54ad2fa450b8fadb668a5599f",
+      "width": 1800,
+      "height": 1520,
+      "originalBackup": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\browser-streaming-publication-91-preparation\\originals\\docs\\screenshots\\journey\\29a-snapshot-browser.png",
+      "originalSha256": "1f50b0e9d9cb62465e39cb2dca04db615e18fd9ee34164f334ed7fe6710e03f3",
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\historical-action-scenes\\29a-snapshot-caa7e6dd6ea198243959\\capture.json",
+        "sha256": "25cab1d28cf887f3673c705ae3e9574a9b4912eab86b1a5621b9586b69942371"
+      },
+      "source": {
+        "checkpoint": "29a-snapshot",
+        "files": "82377427ae1f78ee0661573745597c0eb587b1317a9977809178fb3e7e1d817e",
+        "lock": "22e937f52a1b508bdce699b6c06650f4e695346c9915a69286742997d3cc22e4",
+        "assets": {
+          "assets/text/NotoSans-Regular.subset.ttf": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09",
+          "assets/text/NotoSansSymbols2-Regular.subset.ttf": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed",
+          "assets/text/NotoSansSymbols-Regular.subset.ttf": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3"
+        },
+        "dependencies": {},
+        "kernel": "c0acbde78685d127e98e1d13dd9c1fdff064277c38ce17fd7329a13459558b88",
+        "fixture": "993919faec66a6434719435078bf3fad178ca447f2f9e7d941f168a4f4d325ed",
+        "harness": "cc7b0a195a93c6fde86a62e203c4ecabf74eb76ee256952dfd098796ca9c39a3",
+        "constructor": "make_renderer(device, queue, format)",
+        "logicalSize": [
+          640,
+          480
+        ],
+        "helper": "e2c028971ab9cc08c2b951bed543b025ccb6f17c8e0b844d5370e82abb3a7410"
+      },
+      "recipe": {
+        "kind": "source-exact-declared-browser-actions",
+        "actions": [
+          {
+            "command": "Example Box"
+          },
+          {
+            "command": "Select Next"
+          },
+          {
+            "command": "Select Next"
+          },
+          {
+            "command": "Select Next"
+          },
+          {
+            "command": "Move 0.2,0.4,0.3"
+          },
+          {
+            "command": "View Isometric"
+          },
+          {
+            "command": "Fit Selected"
+          }
+        ],
+        "callback": "journey/checks/browser/placement.cjs",
+        "declaredMetadataStatus": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+        "authority": "Exact browser_actions from this checkpoint. Its documented source illustration is captured; inherited callbacks, current callback terminal scene and whole behavior validation are not executed or claimed."
+      },
+      "canonicalBehaviorExecuted": false,
+      "sourceStartupStatusQualification": null,
+      "scope": "Exact checkpoint browser_actions only, with source-bound observed rendering. Inherited callback terminal state and original behavior checks are not claimed.",
+      "canonicalValidationProfile": false,
+      "semantic": {
+        "attributes": {
+          "data-command-ui": {
+            "command": "",
+            "completion_rect": null,
+            "controls": [
+              {
+                "key": "command/input",
+                "label": "Command",
+                "rect": [
+                  86.375,
+                  734,
+                  840,
+                  756
+                ]
+              },
+              {
+                "key": "command/collapse",
+                "label": "Collapse or expand history",
+                "rect": [
+                  848,
+                  734.5,
+                  864,
+                  755.5
+                ]
+              },
+              {
+                "key": "command/resize",
+                "label": "Drag to resize command history",
+                "rect": [
+                  0,
+                  726,
+                  900,
+                  734
+                ]
+              }
+            ],
+            "focused": true,
+            "history": [
+              "> Example Box\nCommand submitted.",
+              "> Select Next\nCommand submitted.",
+              "> Select Next\nCommand submitted.",
+              "> Select Next\nCommand submitted.",
+              "> Move 0.2,0.4,0.3\nCommand submitted.",
+              "> View Isometric\nCommand submitted.",
+              "> Fit Selected\nCommand submitted."
+            ],
+            "pointer_owned": false,
+            "top": 726
+          }
+        },
+        "cameraEvidence": {
+          "observed": null,
+          "declaredCameraActions": [
+            {
+              "command": "View Isometric"
+            },
+            {
+              "command": "Fit Selected"
+            }
+          ],
+          "scope": "This source exposes no camera matrix readback; exact declared navigation commands and visible output are retained without claiming internal camera equality."
+        },
+        "visiblePixels": 1142862
+      },
+      "resources": {
+        "platform": "windows-job-object",
+        "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+        "laneMutex": "Local\\SessionViewerCourseImageJob",
+        "affinityOffset": 8,
+        "requiredAffinityMask": "0xFF00",
+        "maximumOtherLaneProcessors": 8,
+        "maximumOtherLaneMemoryMiB": 8192,
+        "maximumAggregateOurProcessors": 16,
+        "maximumAggregateOurMemoryMiB": 16384,
+        "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+        "requestedProcessors": 8,
+        "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+        "startedUtc": "2026-10-26T01:43:09.3608292Z",
+        "executable": "C:\\Program Files\\nodejs\\node.exe",
+        "arguments": [
+          "--require",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\warp-browser-timeout.cjs",
+          "--import",
+          "file:///C:/pc/3_code/code_rust/wood_research/session/session_tests/scripts/typescript.mjs",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\historical-browser-actions-presentation.ts",
+          "--worker",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\historical-action-scenes\\29a-snapshot-caa7e6dd6ea198243959\\config.json"
+        ],
+        "workingDirectory": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-builds\\cases\\29a-snapshot-171478f0122ed9361c92\\workspace",
+        "timeoutSeconds": 2400,
+        "jobCommitLimitBytes": 8589934592,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 0,
+        "timedOut": false,
+        "elapsedSeconds": 4.716,
+        "peakJobCommitBytes": 707371008,
+        "affinityMask": "0xFF00",
+        "processors": 8,
+        "processId": 2752,
+        "descendantsAtCleanup": 0
+      },
+      "rootReview": {
+        "sha256": "b4e10e003ba13e70653047872f92233fe2d400c54ad2fa450b8fadb668a5599f",
+        "representative": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\historical-action-scenes\\29a-snapshot-caa7e6dd6ea198243959\\29a-snapshot-dpr2.png",
+        "ids": [
+          "29a-snapshot"
+        ],
+        "width": 1800,
+        "height": 1520,
+        "reviewer": "maintained_export_audit delegated original-resolution inspection",
+        "finding": "Complete selected yellow cube; cyan background triangle intentionally crosses left/bottom under declared source camera actions.",
+        "reviewed": true
+      },
+      "http": {
+        "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/29a-snapshot-browser.png?v=b4e10e003ba1",
+        "status": 200,
+        "sha256": "b4e10e003ba13e70653047872f92233fe2d400c54ad2fa450b8fadb668a5599f"
+      }
+    },
+    {
+      "id": "29b-placements",
+      "destination": "docs/screenshots/journey/29b-placements-browser.png",
+      "sha256": "e2dcf814283a5d8879137dd0b273a27cb4b4b70d2f9fdd74cda7a17c7ba57523",
+      "width": 1800,
+      "height": 1520,
+      "originalBackup": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\browser-streaming-publication-91-preparation\\originals\\docs\\screenshots\\journey\\29b-placements-browser.png",
+      "originalSha256": "9ef0466cebe1db7c132fc254003886c67d2cbb0dba52d4c96a68691f82835f5e",
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\historical-action-scenes\\29b-placements-f1d2d64188108986040b\\capture.json",
+        "sha256": "19088aa1cb17aedc8d0b7966dd0321ae458122c6b376a9698594d29965337c94"
+      },
+      "source": {
+        "checkpoint": "29b-placements",
+        "files": "d7af3916ae82afad30bb3ef7070f6bef2e85f0d97b0320a8e9af207b2498abdc",
+        "lock": "22e937f52a1b508bdce699b6c06650f4e695346c9915a69286742997d3cc22e4",
+        "assets": {
+          "assets/text/NotoSans-Regular.subset.ttf": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09",
+          "assets/text/NotoSansSymbols2-Regular.subset.ttf": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed",
+          "assets/text/NotoSansSymbols-Regular.subset.ttf": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3"
+        },
+        "dependencies": {},
+        "kernel": "c0acbde78685d127e98e1d13dd9c1fdff064277c38ce17fd7329a13459558b88",
+        "fixture": "8f55fb234498082de011d0f9010ec3eee0c831229b93936eaff2a0d3d96810af",
+        "harness": "cc7b0a195a93c6fde86a62e203c4ecabf74eb76ee256952dfd098796ca9c39a3",
+        "constructor": "make_renderer(device, queue, format)",
+        "logicalSize": [
+          640,
+          480
+        ],
+        "helper": "e2c028971ab9cc08c2b951bed543b025ccb6f17c8e0b844d5370e82abb3a7410"
+      },
+      "recipe": {
+        "kind": "source-exact-declared-browser-actions",
+        "actions": [
+          {
+            "file": "sample.pb"
+          },
+          {
+            "command": "Example Box"
+          },
+          {
+            "command": "Select Next"
+          },
+          {
+            "command": "Select Next"
+          },
+          {
+            "command": "Select Next"
+          },
+          {
+            "command": "Select Next"
+          },
+          {
+            "command": "Select Next"
+          },
+          {
+            "command": "Select Next"
+          },
+          {
+            "command": "Move 1,0.5,0.3"
+          },
+          {
+            "command": "View Isometric"
+          },
+          {
+            "command": "Fit"
+          }
+        ],
+        "callback": "journey/checks/browser/placement.cjs",
+        "declaredMetadataStatus": "File imported. Undo removes the entire import.",
+        "authority": "Exact browser_actions from this checkpoint. Its documented source illustration is captured; inherited callbacks, current callback terminal scene and whole behavior validation are not executed or claimed."
+      },
+      "canonicalBehaviorExecuted": false,
+      "sourceStartupStatusQualification": null,
+      "scope": "Exact checkpoint browser_actions only, with source-bound observed rendering. Inherited callback terminal state and original behavior checks are not claimed.",
+      "canonicalValidationProfile": false,
+      "semantic": {
+        "attributes": {
+          "data-command-ui": {
+            "command": "",
+            "completion_rect": null,
+            "controls": [
+              {
+                "key": "command/input",
+                "label": "Command",
+                "rect": [
+                  86.375,
+                  734,
+                  840,
+                  756
+                ]
+              },
+              {
+                "key": "command/collapse",
+                "label": "Collapse or expand history",
+                "rect": [
+                  848,
+                  734.5,
+                  864,
+                  755.5
+                ]
+              },
+              {
+                "key": "command/resize",
+                "label": "Drag to resize command history",
+                "rect": [
+                  0,
+                  726,
+                  900,
+                  734
+                ]
+              }
+            ],
+            "focused": true,
+            "history": [
+              "> Open\nCommand submitted.",
+              "> Example Box\nCommand submitted.",
+              "> Select Next\nCommand submitted.",
+              "> Select Next\nCommand submitted.",
+              "> Select Next\nCommand submitted.",
+              "> Select Next\nCommand submitted.",
+              "> Select Next\nCommand submitted.",
+              "> Select Next\nCommand submitted.",
+              "> Move 1,0.5,0.3\nCommand submitted.",
+              "> View Isometric\nCommand submitted.",
+              "> Fit\nCommand submitted."
+            ],
+            "pointer_owned": false,
+            "top": 726
+          }
+        },
+        "cameraEvidence": {
+          "observed": null,
+          "declaredCameraActions": [
+            {
+              "command": "View Isometric"
+            },
+            {
+              "command": "Fit"
+            }
+          ],
+          "scope": "This source exposes no camera matrix readback; exact declared navigation commands and visible output are retained without claiming internal camera equality."
+        },
+        "visiblePixels": 331681
+      },
+      "resources": {
+        "platform": "windows-job-object",
+        "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+        "laneMutex": "Local\\SessionViewerCourseImageJob",
+        "affinityOffset": 8,
+        "requiredAffinityMask": "0xFF00",
+        "maximumOtherLaneProcessors": 8,
+        "maximumOtherLaneMemoryMiB": 8192,
+        "maximumAggregateOurProcessors": 16,
+        "maximumAggregateOurMemoryMiB": 16384,
+        "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+        "requestedProcessors": 8,
+        "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+        "startedUtc": "2026-10-26T01:43:29.2496214Z",
+        "executable": "C:\\Program Files\\nodejs\\node.exe",
+        "arguments": [
+          "--require",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\warp-browser-timeout.cjs",
+          "--import",
+          "file:///C:/pc/3_code/code_rust/wood_research/session/session_tests/scripts/typescript.mjs",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\historical-browser-actions-presentation.ts",
+          "--worker",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\historical-action-scenes\\29b-placements-f1d2d64188108986040b\\config.json"
+        ],
+        "workingDirectory": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-builds\\cases\\29b-placements-78cb6872d2ebdabcfcbd\\workspace",
+        "timeoutSeconds": 2400,
+        "jobCommitLimitBytes": 8589934592,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 0,
+        "timedOut": false,
+        "elapsedSeconds": 6.264,
+        "peakJobCommitBytes": 729767936,
+        "affinityMask": "0xFF00",
+        "processors": 8,
+        "processId": 56700,
+        "descendantsAtCleanup": 0
+      },
+      "rootReview": {
+        "sha256": "e2dcf814283a5d8879137dd0b273a27cb4b4b70d2f9fdd74cda7a17c7ba57523",
+        "representative": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\historical-action-scenes\\29b-placements-f1d2d64188108986040b\\29b-placements-dpr2.png",
+        "ids": [
+          "29b-placements"
+        ],
+        "width": 1800,
+        "height": 1520,
+        "reviewer": "maintained_export_audit delegated original-resolution inspection",
+        "finding": "Complete timber portal, separate selected yellow cube and original triangles; generous margins.",
+        "reviewed": true
+      },
+      "http": {
+        "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/29b-placements-browser.png?v=e2dcf814283a",
+        "status": 200,
+        "sha256": "e2dcf814283a5d8879137dd0b273a27cb4b4b70d2f9fdd74cda7a17c7ba57523"
+      }
+    },
+    {
+      "id": "29c-roundtrip",
+      "destination": "docs/screenshots/journey/29c-roundtrip-browser.png",
+      "sha256": "c29c74196f678111ce93ccf2423e7b91ccdcea109bb4b29b2eb65e1f09400f7f",
+      "width": 1800,
+      "height": 1520,
+      "originalBackup": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\browser-streaming-publication-91-preparation\\originals\\docs\\screenshots\\journey\\29c-roundtrip-browser.png",
+      "originalSha256": "0b16dc875a16c80ff3193eea04d5d620d409bc8512182f4b33921fd09e2b9b9d",
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\historical-action-scenes\\29c-roundtrip-d241ac1d24225e6c7627\\capture.json",
+        "sha256": "a73dad6e013f6ac120b89f5eb5f7a0d53a01449c379b68c132392a3e335ba6ca"
+      },
+      "source": {
+        "checkpoint": "29c-roundtrip",
+        "files": "fde0f6559db6842b049f8af6b6a7417cebcecc7aec593642503e37134ff92895",
+        "lock": "22e937f52a1b508bdce699b6c06650f4e695346c9915a69286742997d3cc22e4",
+        "assets": {
+          "assets/text/NotoSans-Regular.subset.ttf": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09",
+          "assets/text/NotoSansSymbols2-Regular.subset.ttf": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed",
+          "assets/text/NotoSansSymbols-Regular.subset.ttf": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3"
+        },
+        "dependencies": {},
+        "kernel": "c0acbde78685d127e98e1d13dd9c1fdff064277c38ce17fd7329a13459558b88",
+        "fixture": "7ae135df6f93051e71fea804e3c8778e0e6782dd3e15cbba9a50791ac4d767d8",
+        "harness": "cc7b0a195a93c6fde86a62e203c4ecabf74eb76ee256952dfd098796ca9c39a3",
+        "constructor": "make_renderer(device, queue, format)",
+        "logicalSize": [
+          640,
+          480
+        ],
+        "helper": "e2c028971ab9cc08c2b951bed543b025ccb6f17c8e0b844d5370e82abb3a7410"
+      },
+      "recipe": {
+        "kind": "source-exact-declared-browser-actions",
+        "actions": [
+          {
+            "file": "sample.pb"
+          },
+          {
+            "command": "Select Next"
+          },
+          {
+            "command": "Select Next"
+          },
+          {
+            "command": "Select Next"
+          },
+          {
+            "command": "Select Next"
+          },
+          {
+            "command": "Select Next"
+          },
+          {
+            "command": "Move -0.6,0,0"
+          },
+          {
+            "file": "sample.pb"
+          },
+          {
+            "command": "Select Next"
+          },
+          {
+            "command": "Select Next"
+          },
+          {
+            "command": "Select Next"
+          },
+          {
+            "command": "Move 0.6,0,0.2"
+          },
+          {
+            "command": "View Isometric"
+          },
+          {
+            "command": "Fit"
+          }
+        ],
+        "callback": "journey/checks/browser/placement.cjs",
+        "declaredMetadataStatus": "File imported. Undo removes the entire import.",
+        "authority": "Exact browser_actions from this checkpoint. Its documented source illustration is captured; inherited callbacks, current callback terminal scene and whole behavior validation are not executed or claimed."
+      },
+      "canonicalBehaviorExecuted": false,
+      "sourceStartupStatusQualification": null,
+      "scope": "Exact checkpoint browser_actions only, with source-bound observed rendering. Inherited callback terminal state and original behavior checks are not claimed.",
+      "canonicalValidationProfile": false,
+      "semantic": {
+        "attributes": {
+          "data-command-ui": {
+            "command": "",
+            "completion_rect": null,
+            "controls": [
+              {
+                "key": "command/input",
+                "label": "Command",
+                "rect": [
+                  86.375,
+                  734,
+                  840,
+                  756
+                ]
+              },
+              {
+                "key": "command/collapse",
+                "label": "Collapse or expand history",
+                "rect": [
+                  848,
+                  734.5,
+                  864,
+                  755.5
+                ]
+              },
+              {
+                "key": "command/resize",
+                "label": "Drag to resize command history",
+                "rect": [
+                  0,
+                  726,
+                  900,
+                  734
+                ]
+              }
+            ],
+            "focused": true,
+            "history": [
+              "> Open\nCommand submitted.",
+              "> Select Next\nCommand submitted.",
+              "> Select Next\nCommand submitted.",
+              "> Select Next\nCommand submitted.",
+              "> Select Next\nCommand submitted.",
+              "> Select Next\nCommand submitted.",
+              "> Move -0.6,0,0\nCommand submitted.",
+              "> Open\nCommand submitted.",
+              "> Select Next\nCommand submitted.",
+              "> Select Next\nCommand submitted.",
+              "> Select Next\nCommand submitted.",
+              "> Move 0.6,0,0.2\nCommand submitted.",
+              "> View Isometric\nCommand submitted.",
+              "> Fit\nCommand submitted."
+            ],
+            "pointer_owned": false,
+            "top": 726
+          }
+        },
+        "cameraEvidence": {
+          "observed": null,
+          "declaredCameraActions": [
+            {
+              "command": "View Isometric"
+            },
+            {
+              "command": "Fit"
+            }
+          ],
+          "scope": "This source exposes no camera matrix readback; exact declared navigation commands and visible output are retained without claiming internal camera equality."
+        },
+        "visiblePixels": 301072
+      },
+      "resources": {
+        "platform": "windows-job-object",
+        "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+        "laneMutex": "Local\\SessionViewerCourseImageJob",
+        "affinityOffset": 8,
+        "requiredAffinityMask": "0xFF00",
+        "maximumOtherLaneProcessors": 8,
+        "maximumOtherLaneMemoryMiB": 8192,
+        "maximumAggregateOurProcessors": 16,
+        "maximumAggregateOurMemoryMiB": 16384,
+        "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+        "requestedProcessors": 8,
+        "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+        "startedUtc": "2026-10-26T01:43:47.9771805Z",
+        "executable": "C:\\Program Files\\nodejs\\node.exe",
+        "arguments": [
+          "--require",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\warp-browser-timeout.cjs",
+          "--import",
+          "file:///C:/pc/3_code/code_rust/wood_research/session/session_tests/scripts/typescript.mjs",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\historical-browser-actions-presentation.ts",
+          "--worker",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\historical-action-scenes\\29c-roundtrip-d241ac1d24225e6c7627\\config.json"
+        ],
+        "workingDirectory": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-builds\\cases\\29c-roundtrip-379b2b95f24f8711f767\\workspace",
+        "timeoutSeconds": 2400,
+        "jobCommitLimitBytes": 8589934592,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 0,
+        "timedOut": false,
+        "elapsedSeconds": 7.658,
+        "peakJobCommitBytes": 709189632,
+        "affinityMask": "0xFF00",
+        "processors": 8,
+        "processId": 41684,
+        "descendantsAtCleanup": 0
+      },
+      "rootReview": {
+        "sha256": "c29c74196f678111ce93ccf2423e7b91ccdcea109bb4b29b2eb65e1f09400f7f",
+        "representative": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\historical-action-scenes\\29c-roundtrip-d241ac1d24225e6c7627\\29c-roundtrip-dpr2.png",
+        "ids": [
+          "29c-roundtrip"
+        ],
+        "width": 1800,
+        "height": 1520,
+        "reviewer": "maintained_export_audit delegated original-resolution inspection",
+        "finding": "Complete timber portal and raised selected yellow beam, original triangles; generous margins.",
+        "reviewed": true
+      },
+      "http": {
+        "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/29c-roundtrip-browser.png?v=c29c74196f67",
+        "status": 200,
+        "sha256": "c29c74196f678111ce93ccf2423e7b91ccdcea109bb4b29b2eb65e1f09400f7f"
+      }
+    },
+    {
+      "id": "29d-save",
+      "destination": "docs/screenshots/journey/29d-save-browser.png",
+      "sha256": "90e027ff971075605472cb09092bc2852356eb3c49a94a9e85cc166540ec1b66",
+      "width": 1800,
+      "height": 1520,
+      "originalBackup": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\browser-streaming-publication-91-preparation\\originals\\docs\\screenshots\\journey\\29d-save-browser.png",
+      "originalSha256": "9bfb5ed050e32b260dbcde6a72da715c3efd6d0a5fe19671e4e91f52fac5b8c9",
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\historical-action-scenes\\29d-save-1478c7b78daf9ae840a9\\capture.json",
+        "sha256": "c1a70f48bd085915bac1b1786c32382f5e67b4682efad577e83579d807ce92e0"
+      },
+      "source": {
+        "checkpoint": "29d-save",
+        "files": "4e5213872e970725bdded332e3dd2cefce675b18a4e8de97aa0910cda78bf5ad",
+        "lock": "22e937f52a1b508bdce699b6c06650f4e695346c9915a69286742997d3cc22e4",
+        "assets": {
+          "assets/text/NotoSans-Regular.subset.ttf": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09",
+          "assets/text/NotoSansSymbols2-Regular.subset.ttf": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed",
+          "assets/text/NotoSansSymbols-Regular.subset.ttf": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3"
+        },
+        "dependencies": {},
+        "kernel": "c0acbde78685d127e98e1d13dd9c1fdff064277c38ce17fd7329a13459558b88",
+        "fixture": "603455d4b2e6e3bfde86af81ebd13bdd78211a84e30f63c9526246a15ad2dd3d",
+        "harness": "cc7b0a195a93c6fde86a62e203c4ecabf74eb76ee256952dfd098796ca9c39a3",
+        "constructor": "make_renderer(device, queue, format)",
+        "logicalSize": [
+          640,
+          480
+        ],
+        "helper": "e2c028971ab9cc08c2b951bed543b025ccb6f17c8e0b844d5370e82abb3a7410"
+      },
+      "recipe": {
+        "kind": "source-exact-declared-browser-actions",
+        "actions": [
+          {
+            "file": "sample.pb"
+          },
+          {
+            "command": "Example Box"
+          },
+          {
+            "command": "Select Next"
+          },
+          {
+            "command": "Select Next"
+          },
+          {
+            "command": "Select Next"
+          },
+          {
+            "command": "Select Next"
+          },
+          {
+            "command": "Select Next"
+          },
+          {
+            "command": "Select Next"
+          },
+          {
+            "command": "Move 0.2,-0.7,0.2"
+          },
+          {
+            "command": "View Isometric"
+          },
+          {
+            "command": "Fit"
+          }
+        ],
+        "callback": "journey/checks/browser/save.cjs",
+        "declaredMetadataStatus": "File imported. Undo removes the entire import.",
+        "authority": "Exact browser_actions from this checkpoint. Its documented source illustration is captured; inherited callbacks, current callback terminal scene and whole behavior validation are not executed or claimed."
+      },
+      "canonicalBehaviorExecuted": false,
+      "sourceStartupStatusQualification": null,
+      "scope": "Exact checkpoint browser_actions only, with source-bound observed rendering. Inherited callback terminal state and original behavior checks are not claimed.",
+      "canonicalValidationProfile": false,
+      "semantic": {
+        "attributes": {
+          "data-command-ui": {
+            "command": "",
+            "completion_rect": null,
+            "controls": [
+              {
+                "key": "command/input",
+                "label": "Command",
+                "rect": [
+                  86.375,
+                  734,
+                  840,
+                  756
+                ]
+              },
+              {
+                "key": "command/collapse",
+                "label": "Collapse or expand history",
+                "rect": [
+                  848,
+                  734.5,
+                  864,
+                  755.5
+                ]
+              },
+              {
+                "key": "command/resize",
+                "label": "Drag to resize command history",
+                "rect": [
+                  0,
+                  726,
+                  900,
+                  734
+                ]
+              }
+            ],
+            "focused": true,
+            "history": [
+              "> Open\nCommand submitted.",
+              "> Example Box\nCommand submitted.",
+              "> Select Next\nCommand submitted.",
+              "> Select Next\nCommand submitted.",
+              "> Select Next\nCommand submitted.",
+              "> Select Next\nCommand submitted.",
+              "> Select Next\nCommand submitted.",
+              "> Select Next\nCommand submitted.",
+              "> Move 0.2,-0.7,0.2\nCommand submitted.",
+              "> View Isometric\nCommand submitted.",
+              "> Fit\nCommand submitted."
+            ],
+            "pointer_owned": false,
+            "top": 726
+          }
+        },
+        "cameraEvidence": {
+          "observed": null,
+          "declaredCameraActions": [
+            {
+              "command": "View Isometric"
+            },
+            {
+              "command": "Fit"
+            }
+          ],
+          "scope": "This source exposes no camera matrix readback; exact declared navigation commands and visible output are retained without claiming internal camera equality."
+        },
+        "visiblePixels": 417208
+      },
+      "resources": {
+        "platform": "windows-job-object",
+        "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+        "laneMutex": "Local\\SessionViewerCourseImageJob",
+        "affinityOffset": 8,
+        "requiredAffinityMask": "0xFF00",
+        "maximumOtherLaneProcessors": 8,
+        "maximumOtherLaneMemoryMiB": 8192,
+        "maximumAggregateOurProcessors": 16,
+        "maximumAggregateOurMemoryMiB": 16384,
+        "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+        "requestedProcessors": 8,
+        "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+        "startedUtc": "2026-10-26T01:44:21.3577187Z",
+        "executable": "C:\\Program Files\\nodejs\\node.exe",
+        "arguments": [
+          "--require",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\warp-browser-timeout.cjs",
+          "--import",
+          "file:///C:/pc/3_code/code_rust/wood_research/session/session_tests/scripts/typescript.mjs",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\historical-browser-actions-presentation.ts",
+          "--worker",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\historical-action-scenes\\29d-save-1478c7b78daf9ae840a9\\config.json"
+        ],
+        "workingDirectory": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-builds\\cases\\29d-save-d327e43cf8c9ed70c13c\\workspace",
+        "timeoutSeconds": 2400,
+        "jobCommitLimitBytes": 8589934592,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 0,
+        "timedOut": false,
+        "elapsedSeconds": 6.418,
+        "peakJobCommitBytes": 731660288,
+        "affinityMask": "0xFF00",
+        "processors": 8,
+        "processId": 48984,
+        "descendantsAtCleanup": 1
+      },
+      "rootReview": {
+        "sha256": "90e027ff971075605472cb09092bc2852356eb3c49a94a9e85cc166540ec1b66",
+        "representative": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\historical-action-scenes\\29d-save-1478c7b78daf9ae840a9\\29d-save-dpr2.png",
+        "ids": [
+          "29d-save"
+        ],
+        "width": 1800,
+        "height": 1520,
+        "reviewer": "maintained_export_audit delegated original-resolution inspection",
+        "finding": "Complete timber portal, separate selected yellow cube and original triangles; generous margins.",
+        "reviewed": true
+      },
+      "http": {
+        "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/29d-save-browser.png?v=90e027ff9710",
+        "status": 200,
+        "sha256": "90e027ff971075605472cb09092bc2852356eb3c49a94a9e85cc166540ec1b66"
+      }
+    },
+    {
+      "id": "30-feedback",
+      "destination": "docs/screenshots/journey/30-feedback-browser.png",
+      "sha256": "f6508e0e7f5815b5ebc366aaef36f2bc84002cc8a9df46eb8130dcd43d965e54",
+      "width": 1800,
+      "height": 1520,
+      "originalBackup": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\browser-streaming-publication-91-preparation\\originals\\docs\\screenshots\\journey\\30-feedback-browser.png",
+      "originalSha256": "aebe23fe240cf4ab839c98008926043ec479e04ddd36585e31a890e0eb2b048f",
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\historical-action-scenes\\30-feedback-ab17d90eb8b9fe7c3086\\capture.json",
+        "sha256": "4ce785e33ee072a276db7484ca1515618e3cfe772973a2e4eb02cfb9a848f480"
+      },
+      "source": {
+        "checkpoint": "30-feedback",
+        "files": "8e1239a97d701f0510429a0d89671b8b9dabd498858653159bee33b4dca601d1",
+        "lock": "22e937f52a1b508bdce699b6c06650f4e695346c9915a69286742997d3cc22e4",
+        "assets": {
+          "assets/text/NotoSans-Regular.subset.ttf": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09",
+          "assets/text/NotoSansSymbols2-Regular.subset.ttf": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed",
+          "assets/text/NotoSansSymbols-Regular.subset.ttf": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3"
+        },
+        "dependencies": {},
+        "kernel": "c0acbde78685d127e98e1d13dd9c1fdff064277c38ce17fd7329a13459558b88",
+        "fixture": "3b8d8cfa6c0235a68d5d8cb6b0c0e5131f939ee2adafa89a77ef0fede754f0b9",
+        "harness": "cc7b0a195a93c6fde86a62e203c4ecabf74eb76ee256952dfd098796ca9c39a3",
+        "constructor": "make_renderer(device, queue, format)",
+        "logicalSize": [
+          640,
+          480
+        ],
+        "helper": "e2c028971ab9cc08c2b951bed543b025ccb6f17c8e0b844d5370e82abb3a7410"
+      },
+      "recipe": {
+        "kind": "source-exact-declared-browser-actions",
+        "actions": [
+          {
+            "file": "sample.pb"
+          },
+          {
+            "command": "Example Box"
+          },
+          {
+            "command": "Select Next"
+          },
+          {
+            "command": "Select Next"
+          },
+          {
+            "command": "Select Next"
+          },
+          {
+            "command": "Select Next"
+          },
+          {
+            "command": "Select Next"
+          },
+          {
+            "command": "Select Next"
+          },
+          {
+            "command": "Move -0.2,-0.8,0.1"
+          },
+          {
+            "command": "View Isometric"
+          },
+          {
+            "command": "Fit"
+          }
+        ],
+        "callback": "journey/checks/browser/load-feedback.cjs",
+        "declaredMetadataStatus": "File imported. Undo removes the entire import.",
+        "authority": "Exact browser_actions from this checkpoint. Its documented source illustration is captured; inherited callbacks, current callback terminal scene and whole behavior validation are not executed or claimed."
+      },
+      "canonicalBehaviorExecuted": false,
+      "sourceStartupStatusQualification": null,
+      "scope": "Exact checkpoint browser_actions only, with source-bound observed rendering. Inherited callback terminal state and original behavior checks are not claimed.",
+      "canonicalValidationProfile": false,
+      "semantic": {
+        "attributes": {
+          "data-command-ui": {
+            "command": "",
+            "completion_rect": null,
+            "controls": [
+              {
+                "key": "command/input",
+                "label": "Command",
+                "rect": [
+                  86.375,
+                  734,
+                  840,
+                  756
+                ]
+              },
+              {
+                "key": "command/collapse",
+                "label": "Collapse or expand history",
+                "rect": [
+                  848,
+                  734.5,
+                  864,
+                  755.5
+                ]
+              },
+              {
+                "key": "command/resize",
+                "label": "Drag to resize command history",
+                "rect": [
+                  0,
+                  726,
+                  900,
+                  734
+                ]
+              }
+            ],
+            "focused": true,
+            "history": [
+              "> Open\nCommand submitted.",
+              "> Example Box\nCommand submitted.",
+              "> Select Next\nCommand submitted.",
+              "> Select Next\nCommand submitted.",
+              "> Select Next\nCommand submitted.",
+              "> Select Next\nCommand submitted.",
+              "> Select Next\nCommand submitted.",
+              "> Select Next\nCommand submitted.",
+              "> Move -0.2,-0.8,0.1\nCommand submitted.",
+              "> View Isometric\nCommand submitted.",
+              "> Fit\nCommand submitted."
+            ],
+            "pointer_owned": false,
+            "top": 726
+          }
+        },
+        "cameraEvidence": {
+          "observed": null,
+          "declaredCameraActions": [
+            {
+              "command": "View Isometric"
+            },
+            {
+              "command": "Fit"
+            }
+          ],
+          "scope": "This source exposes no camera matrix readback; exact declared navigation commands and visible output are retained without claiming internal camera equality."
+        },
+        "visiblePixels": 440554
+      },
+      "resources": {
+        "platform": "windows-job-object",
+        "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+        "laneMutex": "Local\\SessionViewerCourseImageJob",
+        "affinityOffset": 8,
+        "requiredAffinityMask": "0xFF00",
+        "maximumOtherLaneProcessors": 8,
+        "maximumOtherLaneMemoryMiB": 8192,
+        "maximumAggregateOurProcessors": 16,
+        "maximumAggregateOurMemoryMiB": 16384,
+        "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+        "requestedProcessors": 8,
+        "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+        "startedUtc": "2026-10-26T01:44:37.0528195Z",
+        "executable": "C:\\Program Files\\nodejs\\node.exe",
+        "arguments": [
+          "--require",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\warp-browser-timeout.cjs",
+          "--import",
+          "file:///C:/pc/3_code/code_rust/wood_research/session/session_tests/scripts/typescript.mjs",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\historical-browser-actions-presentation.ts",
+          "--worker",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\historical-action-scenes\\30-feedback-ab17d90eb8b9fe7c3086\\config.json"
+        ],
+        "workingDirectory": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-builds\\cases\\30-feedback-8168e417b2a78e900466\\workspace",
+        "timeoutSeconds": 2400,
+        "jobCommitLimitBytes": 8589934592,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 0,
+        "timedOut": false,
+        "elapsedSeconds": 6.349,
+        "peakJobCommitBytes": 737873920,
+        "affinityMask": "0xFF00",
+        "processors": 8,
+        "processId": 64672,
+        "descendantsAtCleanup": 0
+      },
+      "rootReview": {
+        "sha256": "f6508e0e7f5815b5ebc366aaef36f2bc84002cc8a9df46eb8130dcd43d965e54",
+        "representative": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\historical-action-scenes\\30-feedback-ab17d90eb8b9fe7c3086\\30-feedback-dpr2.png",
+        "ids": [
+          "30-feedback"
+        ],
+        "width": 1800,
+        "height": 1520,
+        "reviewer": "maintained_export_audit delegated original-resolution inspection",
+        "finding": "Complete timber portal, selected yellow cube and original triangles; generous margins.",
+        "reviewed": true
+      },
+      "http": {
+        "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/30-feedback-browser.png?v=f6508e0e7f58",
+        "status": 200,
+        "sha256": "f6508e0e7f5815b5ebc366aaef36f2bc84002cc8a9df46eb8130dcd43d965e54"
+      }
+    },
+    {
+      "id": "30a-tickets",
+      "destination": "docs/screenshots/journey/30a-tickets-browser.png",
+      "sha256": "d7818f836c7f4a5c73df06c9f8c9f36254088f643828a647d7d5cd401dabce33",
+      "width": 1800,
+      "height": 1520,
+      "originalBackup": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\browser-streaming-publication-91-preparation\\originals\\docs\\screenshots\\journey\\30a-tickets-browser.png",
+      "originalSha256": "67d5a1f1060ca33e6e07b3102a50852ff0583f59299caf548636edeb3d349c4c",
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\historical-action-scenes\\30a-tickets-c8a9519bcc4ef477cf5d\\capture.json",
+        "sha256": "8746856b742a3c02110543cdda2e22046017034c271b04ea699a97b322c655ba"
+      },
+      "source": {
+        "checkpoint": "30a-tickets",
+        "files": "a05519f7952af7d1805108ec641b3cb9215a3e490b281a070366093d439b5944",
+        "lock": "22e937f52a1b508bdce699b6c06650f4e695346c9915a69286742997d3cc22e4",
+        "assets": {
+          "assets/text/NotoSans-Regular.subset.ttf": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09",
+          "assets/text/NotoSansSymbols2-Regular.subset.ttf": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed",
+          "assets/text/NotoSansSymbols-Regular.subset.ttf": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3"
+        },
+        "dependencies": {},
+        "kernel": "c0acbde78685d127e98e1d13dd9c1fdff064277c38ce17fd7329a13459558b88",
+        "fixture": "3a1da1df06a115028ed97890671d53673bb953a6571fbe31398a75074cc08b9a",
+        "harness": "cc7b0a195a93c6fde86a62e203c4ecabf74eb76ee256952dfd098796ca9c39a3",
+        "constructor": "make_renderer(device, queue, format)",
+        "logicalSize": [
+          640,
+          480
+        ],
+        "helper": "e2c028971ab9cc08c2b951bed543b025ccb6f17c8e0b844d5370e82abb3a7410"
+      },
+      "recipe": {
+        "kind": "source-exact-declared-browser-actions",
+        "actions": [
+          {
+            "file": "sample.pb"
+          },
+          {
+            "command": "Example Box"
+          },
+          {
+            "command": "Select Next"
+          },
+          {
+            "command": "Select Next"
+          },
+          {
+            "command": "Select Next"
+          },
+          {
+            "command": "Select Next"
+          },
+          {
+            "command": "Select Next"
+          },
+          {
+            "command": "Select Next"
+          },
+          {
+            "command": "Move 0.4,-0.5,0.1"
+          },
+          {
+            "command": "View Isometric"
+          },
+          {
+            "command": "Fit"
+          }
+        ],
+        "callback": "journey/checks/browser/load-feedback.cjs",
+        "declaredMetadataStatus": "File imported. Undo removes the entire import.",
+        "authority": "Exact browser_actions from this checkpoint. Its documented source illustration is captured; inherited callbacks, current callback terminal scene and whole behavior validation are not executed or claimed."
+      },
+      "canonicalBehaviorExecuted": false,
+      "sourceStartupStatusQualification": null,
+      "scope": "Exact checkpoint browser_actions only, with source-bound observed rendering. Inherited callback terminal state and original behavior checks are not claimed.",
+      "canonicalValidationProfile": false,
+      "semantic": {
+        "attributes": {
+          "data-command-ui": {
+            "command": "",
+            "completion_rect": null,
+            "controls": [
+              {
+                "key": "command/input",
+                "label": "Command",
+                "rect": [
+                  86.375,
+                  734,
+                  840,
+                  756
+                ]
+              },
+              {
+                "key": "command/collapse",
+                "label": "Collapse or expand history",
+                "rect": [
+                  848,
+                  734.5,
+                  864,
+                  755.5
+                ]
+              },
+              {
+                "key": "command/resize",
+                "label": "Drag to resize command history",
+                "rect": [
+                  0,
+                  726,
+                  900,
+                  734
+                ]
+              }
+            ],
+            "focused": true,
+            "history": [
+              "> Open\nCommand submitted.",
+              "> Example Box\nCommand submitted.",
+              "> Select Next\nCommand submitted.",
+              "> Select Next\nCommand submitted.",
+              "> Select Next\nCommand submitted.",
+              "> Select Next\nCommand submitted.",
+              "> Select Next\nCommand submitted.",
+              "> Select Next\nCommand submitted.",
+              "> Move 0.4,-0.5,0.1\nCommand submitted.",
+              "> View Isometric\nCommand submitted.",
+              "> Fit\nCommand submitted."
+            ],
+            "pointer_owned": false,
+            "top": 726
+          }
+        },
+        "cameraEvidence": {
+          "observed": null,
+          "declaredCameraActions": [
+            {
+              "command": "View Isometric"
+            },
+            {
+              "command": "Fit"
+            }
+          ],
+          "scope": "This source exposes no camera matrix readback; exact declared navigation commands and visible output are retained without claiming internal camera equality."
+        },
+        "visiblePixels": 412926
+      },
+      "resources": {
+        "platform": "windows-job-object",
+        "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+        "laneMutex": "Local\\SessionViewerCourseImageJob",
+        "affinityOffset": 8,
+        "requiredAffinityMask": "0xFF00",
+        "maximumOtherLaneProcessors": 8,
+        "maximumOtherLaneMemoryMiB": 8192,
+        "maximumAggregateOurProcessors": 16,
+        "maximumAggregateOurMemoryMiB": 16384,
+        "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+        "requestedProcessors": 8,
+        "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+        "startedUtc": "2026-10-26T01:44:56.8797964Z",
+        "executable": "C:\\Program Files\\nodejs\\node.exe",
+        "arguments": [
+          "--require",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\warp-browser-timeout.cjs",
+          "--import",
+          "file:///C:/pc/3_code/code_rust/wood_research/session/session_tests/scripts/typescript.mjs",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\historical-browser-actions-presentation.ts",
+          "--worker",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\historical-action-scenes\\30a-tickets-c8a9519bcc4ef477cf5d\\config.json"
+        ],
+        "workingDirectory": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-builds\\cases\\30a-tickets-26c5d30f3f17779e2f1f\\workspace",
+        "timeoutSeconds": 2400,
+        "jobCommitLimitBytes": 8589934592,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 0,
+        "timedOut": false,
+        "elapsedSeconds": 6.232,
+        "peakJobCommitBytes": 733884416,
+        "affinityMask": "0xFF00",
+        "processors": 8,
+        "processId": 23596,
+        "descendantsAtCleanup": 0
+      },
+      "rootReview": {
+        "sha256": "d7818f836c7f4a5c73df06c9f8c9f36254088f643828a647d7d5cd401dabce33",
+        "representative": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\historical-action-scenes\\30a-tickets-c8a9519bcc4ef477cf5d\\30a-tickets-dpr2.png",
+        "ids": [
+          "30a-tickets"
+        ],
+        "width": 1800,
+        "height": 1520,
+        "reviewer": "maintained_export_audit delegated original-resolution inspection",
+        "finding": "Complete timber portal, selected yellow cube and original pink/cyan triangles, generous margins and readable dock.",
+        "reviewed": true
+      },
+      "http": {
+        "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/30a-tickets-browser.png?v=d7818f836c7f",
+        "status": 200,
+        "sha256": "d7818f836c7f4a5c73df06c9f8c9f36254088f643828a647d7d5cd401dabce33"
+      }
+    },
+    {
+      "id": "30b-cancel",
+      "destination": "docs/screenshots/journey/30b-cancel-browser.png",
+      "sha256": "15aa88e67d3d593e936657f3b5fbb1facc8833bab7d0eb14d502da09aa0caf49",
+      "width": 1800,
+      "height": 1520,
+      "originalBackup": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\browser-streaming-publication-91-preparation\\originals\\docs\\screenshots\\journey\\30b-cancel-browser.png",
+      "originalSha256": "60ac86d5cf2189c9fe2e3b9d25d17347621358f74d94671872d2faa51d56bf44",
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\historical-action-scenes\\30b-cancel-648039bd012c3d4fe9ab\\capture.json",
+        "sha256": "ee3187b111c3022b82b5ec99e9b57f368f21bfd38fe65ae39d24545d9d23bfaa"
+      },
+      "source": {
+        "checkpoint": "30b-cancel",
+        "files": "38245f39743b9b947029fd4d949425a93ca55ac3ea7fe8a9adeab02fe60c0a35",
+        "lock": "22e937f52a1b508bdce699b6c06650f4e695346c9915a69286742997d3cc22e4",
+        "assets": {
+          "assets/text/NotoSans-Regular.subset.ttf": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09",
+          "assets/text/NotoSansSymbols2-Regular.subset.ttf": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed",
+          "assets/text/NotoSansSymbols-Regular.subset.ttf": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3"
+        },
+        "dependencies": {},
+        "kernel": "c0acbde78685d127e98e1d13dd9c1fdff064277c38ce17fd7329a13459558b88",
+        "fixture": "f0d276da6d0ca78770412c9df6714f674473c27708503f54f10c1f766be6c725",
+        "harness": "cc7b0a195a93c6fde86a62e203c4ecabf74eb76ee256952dfd098796ca9c39a3",
+        "constructor": "make_renderer(device, queue, format)",
+        "logicalSize": [
+          640,
+          480
+        ],
+        "helper": "e2c028971ab9cc08c2b951bed543b025ccb6f17c8e0b844d5370e82abb3a7410"
+      },
+      "recipe": {
+        "kind": "source-exact-declared-browser-actions",
+        "actions": [
+          {
+            "file": "sample.pb"
+          },
+          {
+            "command": "Example Box"
+          },
+          {
+            "command": "Select Next"
+          },
+          {
+            "command": "Select Next"
+          },
+          {
+            "command": "Select Next"
+          },
+          {
+            "command": "Select Next"
+          },
+          {
+            "command": "Select Next"
+          },
+          {
+            "command": "Select Next"
+          },
+          {
+            "command": "Move 0.5,-0.6,0.3"
+          },
+          {
+            "command": "View Isometric"
+          },
+          {
+            "command": "Fit"
+          }
+        ],
+        "callback": "journey/checks/browser/read-cancel.cjs",
+        "declaredMetadataStatus": "File imported. Undo removes the entire import.",
+        "authority": "Exact browser_actions from this checkpoint. Its documented source illustration is captured; inherited callbacks, current callback terminal scene and whole behavior validation are not executed or claimed."
+      },
+      "canonicalBehaviorExecuted": false,
+      "sourceStartupStatusQualification": null,
+      "scope": "Exact checkpoint browser_actions only, with source-bound observed rendering. Inherited callback terminal state and original behavior checks are not claimed.",
+      "canonicalValidationProfile": false,
+      "semantic": {
+        "attributes": {
+          "data-command-ui": {
+            "command": "",
+            "completion_rect": null,
+            "controls": [
+              {
+                "key": "command/input",
+                "label": "Command",
+                "rect": [
+                  86.375,
+                  734,
+                  840,
+                  756
+                ]
+              },
+              {
+                "key": "command/collapse",
+                "label": "Collapse or expand history",
+                "rect": [
+                  848,
+                  734.5,
+                  864,
+                  755.5
+                ]
+              },
+              {
+                "key": "command/resize",
+                "label": "Drag to resize command history",
+                "rect": [
+                  0,
+                  726,
+                  900,
+                  734
+                ]
+              }
+            ],
+            "focused": true,
+            "history": [
+              "> Open\nCommand submitted.",
+              "> Open\nFile imported. Undo removes the entire import.",
+              "> Example Box\nCommand submitted.",
+              "> Select Next\nCommand submitted.",
+              "> Select Next\nCommand submitted.",
+              "> Select Next\nCommand submitted.",
+              "> Select Next\nCommand submitted.",
+              "> Select Next\nCommand submitted.",
+              "> Select Next\nCommand submitted.",
+              "> Move 0.5,-0.6,0.3\nCommand submitted.",
+              "> View Isometric\nCommand submitted.",
+              "> Fit\nCommand submitted."
+            ],
+            "pointer_owned": false,
+            "top": 726
+          }
+        },
+        "cameraEvidence": {
+          "observed": null,
+          "declaredCameraActions": [
+            {
+              "command": "View Isometric"
+            },
+            {
+              "command": "Fit"
+            }
+          ],
+          "scope": "This source exposes no camera matrix readback; exact declared navigation commands and visible output are retained without claiming internal camera equality."
+        },
+        "visiblePixels": 386788
+      },
+      "resources": {
+        "platform": "windows-job-object",
+        "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+        "laneMutex": "Local\\SessionViewerCourseImageJob",
+        "affinityOffset": 8,
+        "requiredAffinityMask": "0xFF00",
+        "maximumOtherLaneProcessors": 8,
+        "maximumOtherLaneMemoryMiB": 8192,
+        "maximumAggregateOurProcessors": 16,
+        "maximumAggregateOurMemoryMiB": 16384,
+        "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+        "requestedProcessors": 8,
+        "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+        "startedUtc": "2026-10-26T01:45:12.9581495Z",
+        "executable": "C:\\Program Files\\nodejs\\node.exe",
+        "arguments": [
+          "--require",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\warp-browser-timeout.cjs",
+          "--import",
+          "file:///C:/pc/3_code/code_rust/wood_research/session/session_tests/scripts/typescript.mjs",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\historical-browser-actions-presentation.ts",
+          "--worker",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\historical-action-scenes\\30b-cancel-648039bd012c3d4fe9ab\\config.json"
+        ],
+        "workingDirectory": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-builds\\cases\\30b-cancel-4fe385ef2abff2256f73\\workspace",
+        "timeoutSeconds": 2400,
+        "jobCommitLimitBytes": 8589934592,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 0,
+        "timedOut": false,
+        "elapsedSeconds": 6.393,
+        "peakJobCommitBytes": 734998528,
+        "affinityMask": "0xFF00",
+        "processors": 8,
+        "processId": 49428,
+        "descendantsAtCleanup": 0
+      },
+      "rootReview": {
+        "sha256": "15aa88e67d3d593e936657f3b5fbb1facc8833bab7d0eb14d502da09aa0caf49",
+        "representative": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\historical-action-scenes\\30b-cancel-648039bd012c3d4fe9ab\\30b-cancel-dpr2.png",
+        "ids": [
+          "30b-cancel"
+        ],
+        "width": 1800,
+        "height": 1520,
+        "reviewer": "maintained_export_audit delegated original-resolution inspection",
+        "finding": "Complete timber portal, selected yellow cube and original pink/cyan triangles, generous margins and readable dock.",
+        "reviewed": true
+      },
+      "http": {
+        "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/30b-cancel-browser.png?v=15aa88e67d3d",
+        "status": 200,
+        "sha256": "15aa88e67d3d593e936657f3b5fbb1facc8833bab7d0eb14d502da09aa0caf49"
+      }
+    },
+    {
+      "id": "30c-replace",
+      "destination": "docs/screenshots/journey/30c-replace-browser.png",
+      "sha256": "f6d6696b1c5733d07c04d510c6dd7019519ea62e2303637f8ede354296f06405",
+      "width": 1800,
+      "height": 1520,
+      "originalBackup": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\browser-streaming-publication-91-preparation\\originals\\docs\\screenshots\\journey\\30c-replace-browser.png",
+      "originalSha256": "aed418b6e0c539b296589b2b6873145d0a61ade7b322c98d3bffdd01244b8f7a",
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\historical-action-scenes\\30c-replace-70146a6b4af3e3aa4f85\\capture.json",
+        "sha256": "671daf08b4d3278b1d339ad4b0666f5a91b0f317b6408e20256bf98e989a8cfe"
+      },
+      "source": {
+        "checkpoint": "30c-replace",
+        "files": "eb2423f9c44e923d2401144fea8cc413a512b413c736c490fb730486f1428c60",
+        "lock": "22e937f52a1b508bdce699b6c06650f4e695346c9915a69286742997d3cc22e4",
+        "assets": {
+          "assets/text/NotoSans-Regular.subset.ttf": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09",
+          "assets/text/NotoSansSymbols2-Regular.subset.ttf": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed",
+          "assets/text/NotoSansSymbols-Regular.subset.ttf": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3"
+        },
+        "dependencies": {},
+        "kernel": "c0acbde78685d127e98e1d13dd9c1fdff064277c38ce17fd7329a13459558b88",
+        "fixture": "b914168c1ca4d5fbba862957085cf23322375137ff157e2798bdfcee55afb5bf",
+        "harness": "cc7b0a195a93c6fde86a62e203c4ecabf74eb76ee256952dfd098796ca9c39a3",
+        "constructor": "make_renderer(device, queue, format)",
+        "logicalSize": [
+          640,
+          480
+        ],
+        "helper": "e2c028971ab9cc08c2b951bed543b025ccb6f17c8e0b844d5370e82abb3a7410"
+      },
+      "recipe": {
+        "kind": "source-exact-declared-browser-actions",
+        "actions": [
+          {
+            "file": "sample.pb"
+          },
+          {
+            "command": "Example Box"
+          },
+          {
+            "command": "Select Next"
+          },
+          {
+            "command": "Select Next"
+          },
+          {
+            "command": "Select Next"
+          },
+          {
+            "command": "Select Next"
+          },
+          {
+            "command": "Select Next"
+          },
+          {
+            "command": "Select Next"
+          },
+          {
+            "command": "Move -0.8,-0.6,0.2"
+          },
+          {
+            "command": "View Isometric"
+          },
+          {
+            "command": "Fit"
+          }
+        ],
+        "callback": "journey/checks/browser/read-cancel.cjs",
+        "declaredMetadataStatus": "File imported. Undo removes the entire import.",
+        "authority": "Exact browser_actions from this checkpoint. Its documented source illustration is captured; inherited callbacks, current callback terminal scene and whole behavior validation are not executed or claimed."
+      },
+      "canonicalBehaviorExecuted": false,
+      "sourceStartupStatusQualification": null,
+      "scope": "Exact checkpoint browser_actions only, with source-bound observed rendering. Inherited callback terminal state and original behavior checks are not claimed.",
+      "canonicalValidationProfile": false,
+      "semantic": {
+        "attributes": {
+          "data-command-ui": {
+            "command": "",
+            "completion_rect": null,
+            "controls": [
+              {
+                "key": "command/input",
+                "label": "Command",
+                "rect": [
+                  86.375,
+                  734,
+                  840,
+                  756
+                ]
+              },
+              {
+                "key": "command/collapse",
+                "label": "Collapse or expand history",
+                "rect": [
+                  848,
+                  734.5,
+                  864,
+                  755.5
+                ]
+              },
+              {
+                "key": "command/resize",
+                "label": "Drag to resize command history",
+                "rect": [
+                  0,
+                  726,
+                  900,
+                  734
+                ]
+              }
+            ],
+            "focused": true,
+            "history": [
+              "> Open\nCommand submitted.",
+              "> Open\nFile imported. Undo removes the entire import.",
+              "> Example Box\nCommand submitted.",
+              "> Select Next\nCommand submitted.",
+              "> Select Next\nCommand submitted.",
+              "> Select Next\nCommand submitted.",
+              "> Select Next\nCommand submitted.",
+              "> Select Next\nCommand submitted.",
+              "> Select Next\nCommand submitted.",
+              "> Move -0.8,-0.6,0.2\nCommand submitted.",
+              "> View Isometric\nCommand submitted.",
+              "> Fit\nCommand submitted."
+            ],
+            "pointer_owned": false,
+            "top": 726
+          }
+        },
+        "cameraEvidence": {
+          "observed": null,
+          "declaredCameraActions": [
+            {
+              "command": "View Isometric"
+            },
+            {
+              "command": "Fit"
+            }
+          ],
+          "scope": "This source exposes no camera matrix readback; exact declared navigation commands and visible output are retained without claiming internal camera equality."
+        },
+        "visiblePixels": 470948
+      },
+      "resources": {
+        "platform": "windows-job-object",
+        "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+        "laneMutex": "Local\\SessionViewerCourseImageJob",
+        "affinityOffset": 8,
+        "requiredAffinityMask": "0xFF00",
+        "maximumOtherLaneProcessors": 8,
+        "maximumOtherLaneMemoryMiB": 8192,
+        "maximumAggregateOurProcessors": 16,
+        "maximumAggregateOurMemoryMiB": 16384,
+        "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+        "requestedProcessors": 8,
+        "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+        "startedUtc": "2026-10-26T01:45:32.7309318Z",
+        "executable": "C:\\Program Files\\nodejs\\node.exe",
+        "arguments": [
+          "--require",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\warp-browser-timeout.cjs",
+          "--import",
+          "file:///C:/pc/3_code/code_rust/wood_research/session/session_tests/scripts/typescript.mjs",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\historical-browser-actions-presentation.ts",
+          "--worker",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\historical-action-scenes\\30c-replace-70146a6b4af3e3aa4f85\\config.json"
+        ],
+        "workingDirectory": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-builds\\cases\\30c-replace-ba98839467070def20ce\\workspace",
+        "timeoutSeconds": 2400,
+        "jobCommitLimitBytes": 8589934592,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 0,
+        "timedOut": false,
+        "elapsedSeconds": 6.385,
+        "peakJobCommitBytes": 740306944,
+        "affinityMask": "0xFF00",
+        "processors": 8,
+        "processId": 24732,
+        "descendantsAtCleanup": 0
+      },
+      "rootReview": {
+        "sha256": "f6d6696b1c5733d07c04d510c6dd7019519ea62e2303637f8ede354296f06405",
+        "representative": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\historical-action-scenes\\30c-replace-70146a6b4af3e3aa4f85\\30c-replace-dpr2.png",
+        "ids": [
+          "30c-replace"
+        ],
+        "width": 1800,
+        "height": 1520,
+        "reviewer": "maintained_export_audit delegated original-resolution inspection",
+        "finding": "Complete timber portal, selected yellow cube and original pink/cyan triangles, generous margins and readable dock.",
+        "reviewed": true
+      },
+      "http": {
+        "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/30c-replace-browser.png?v=f6d6696b1c57",
+        "status": 200,
+        "sha256": "f6d6696b1c5733d07c04d510c6dd7019519ea62e2303637f8ede354296f06405"
+      }
+    },
+    {
+      "id": "30d-bridge",
+      "destination": "docs/screenshots/journey/30d-bridge-browser.png",
+      "sha256": "790a3e85ddc3f0c4ae2a64426b10e0f890865105b18ba0e7a9891dc6107459d8",
+      "width": 1800,
+      "height": 1520,
+      "originalBackup": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\browser-streaming-publication-91-preparation\\originals\\docs\\screenshots\\journey\\30d-bridge-browser.png",
+      "originalSha256": "0583c628ff202d40b08927a08c274362bbb80f625dea97e193d99987d6440ee2",
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\historical-action-scenes\\30d-bridge-b87048c50e967b4942fb\\capture.json",
+        "sha256": "8e236feac59481727e673a39ee87e349bb539793845c6408188f8a25d4ef3a9b"
+      },
+      "source": {
+        "checkpoint": "30d-bridge",
+        "files": "7ec044b9e131b9d3d377eaee25761437ccec595ee9f4f1deb21d040e4eb2fb49",
+        "lock": "22e937f52a1b508bdce699b6c06650f4e695346c9915a69286742997d3cc22e4",
+        "assets": {
+          "assets/text/NotoSans-Regular.subset.ttf": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09",
+          "assets/text/NotoSansSymbols2-Regular.subset.ttf": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed",
+          "assets/text/NotoSansSymbols-Regular.subset.ttf": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3"
+        },
+        "dependencies": {},
+        "kernel": "c0acbde78685d127e98e1d13dd9c1fdff064277c38ce17fd7329a13459558b88",
+        "fixture": "a2084dc6c762f573fa1e6786a187ee370907f4aace55c41e9324007e8e44cc85",
+        "harness": "cc7b0a195a93c6fde86a62e203c4ecabf74eb76ee256952dfd098796ca9c39a3",
+        "constructor": "make_renderer(device, queue, format)",
+        "logicalSize": [
+          640,
+          480
+        ],
+        "helper": "e2c028971ab9cc08c2b951bed543b025ccb6f17c8e0b844d5370e82abb3a7410"
+      },
+      "recipe": {
+        "kind": "source-exact-declared-browser-actions",
+        "actions": [
+          {
+            "file": "sample.pb"
+          }
+        ],
+        "callback": "journey/checks/browser/replace.cjs",
+        "declaredMetadataStatus": "Document replaced. Undo restores the previous document.",
+        "authority": "Exact browser_actions from this checkpoint. Its documented source illustration is captured; inherited callbacks, current callback terminal scene and whole behavior validation are not executed or claimed."
+      },
+      "canonicalBehaviorExecuted": false,
+      "sourceStartupStatusQualification": null,
+      "scope": "Exact checkpoint browser_actions only, with source-bound observed rendering. Inherited callback terminal state and original behavior checks are not claimed.",
+      "canonicalValidationProfile": false,
+      "semantic": {
+        "attributes": {
+          "data-command-ui": {
+            "command": "",
+            "completion_rect": null,
+            "controls": [
+              {
+                "key": "command/input",
+                "label": "Command",
+                "rect": [
+                  86.375,
+                  734,
+                  840,
+                  756
+                ]
+              },
+              {
+                "key": "command/collapse",
+                "label": "Collapse or expand history",
+                "rect": [
+                  848,
+                  734.5,
+                  864,
+                  755.5
+                ]
+              },
+              {
+                "key": "command/resize",
+                "label": "Drag to resize command history",
+                "rect": [
+                  0,
+                  726,
+                  900,
+                  734
+                ]
+              }
+            ],
+            "focused": true,
+            "history": [
+              "> Open\nCommand submitted.",
+              "> Open\nFile imported. Undo removes the entire import."
+            ],
+            "pointer_owned": false,
+            "top": 726
+          }
+        },
+        "cameraEvidence": {
+          "observed": null,
+          "declaredCameraActions": [],
+          "scope": "This source exposes no camera matrix readback; exact declared navigation commands and visible output are retained without claiming internal camera equality."
+        },
+        "visiblePixels": 508302
+      },
+      "resources": {
+        "platform": "windows-job-object",
+        "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+        "laneMutex": "Local\\SessionViewerCourseImageJob",
+        "affinityOffset": 8,
+        "requiredAffinityMask": "0xFF00",
+        "maximumOtherLaneProcessors": 8,
+        "maximumOtherLaneMemoryMiB": 8192,
+        "maximumAggregateOurProcessors": 16,
+        "maximumAggregateOurMemoryMiB": 16384,
+        "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+        "requestedProcessors": 8,
+        "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+        "startedUtc": "2026-10-26T01:45:48.8923810Z",
+        "executable": "C:\\Program Files\\nodejs\\node.exe",
+        "arguments": [
+          "--require",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\warp-browser-timeout.cjs",
+          "--import",
+          "file:///C:/pc/3_code/code_rust/wood_research/session/session_tests/scripts/typescript.mjs",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\historical-browser-actions-presentation.ts",
+          "--worker",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\historical-action-scenes\\30d-bridge-b87048c50e967b4942fb\\config.json"
+        ],
+        "workingDirectory": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-builds\\cases\\30d-bridge-eae2fd785e8f73009e05\\workspace",
+        "timeoutSeconds": 2400,
+        "jobCommitLimitBytes": 8589934592,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 0,
+        "timedOut": false,
+        "elapsedSeconds": 2.257,
+        "peakJobCommitBytes": 699424768,
+        "affinityMask": "0xFF00",
+        "processors": 8,
+        "processId": 26208,
+        "descendantsAtCleanup": 0
+      },
+      "rootReview": {
+        "sha256": "790a3e85ddc3f0c4ae2a64426b10e0f890865105b18ba0e7a9891dc6107459d8",
+        "representative": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\historical-action-scenes\\30d-bridge-b87048c50e967b4942fb\\30d-bridge-dpr2.png",
+        "ids": [
+          "30d-bridge",
+          "31-settings",
+          "31a-geometry",
+          "31b-cache",
+          "31c-incremental",
+          "32-history",
+          "32a-cpu",
+          "32b-gpu",
+          "32c-close",
+          "32d-command",
+          "32e-release"
+        ],
+        "width": 1800,
+        "height": 1520,
+        "reviewer": "maintained_export_audit delegated original-resolution inspection",
+        "finding": "Complete brown timber beam front-face rectangle over pink/cyan triangles with generous margins, readable file-import status and command dock.",
+        "reviewed": true
+      },
+      "http": {
+        "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/30d-bridge-browser.png?v=790a3e85ddc3",
+        "status": 200,
+        "sha256": "790a3e85ddc3f0c4ae2a64426b10e0f890865105b18ba0e7a9891dc6107459d8"
+      }
+    },
+    {
+      "id": "31-settings",
+      "destination": "docs/screenshots/journey/31-settings-browser.png",
+      "sha256": "790a3e85ddc3f0c4ae2a64426b10e0f890865105b18ba0e7a9891dc6107459d8",
+      "width": 1800,
+      "height": 1520,
+      "originalBackup": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\browser-streaming-publication-91-preparation\\originals\\docs\\screenshots\\journey\\31-settings-browser.png",
+      "originalSha256": "b59d035b239e5e07c42a05109a0b1e6a03313ae47b2f9499ae3d3d27121dc9ed",
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\historical-action-scenes\\31-settings-aff3ed609741cdda974b\\capture.json",
+        "sha256": "7b5f9d180216f1829ff3c1538a4062a142dbbe43cf0d09ad0ea108cbb60a17e9"
+      },
+      "source": {
+        "checkpoint": "31-settings",
+        "files": "3fd4bb8b9f211bbf854010edbd2fefe1e53654c2c4f5fd07be52327a9e97f80e",
+        "lock": "22e937f52a1b508bdce699b6c06650f4e695346c9915a69286742997d3cc22e4",
+        "assets": {
+          "assets/text/NotoSans-Regular.subset.ttf": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09",
+          "assets/text/NotoSansSymbols2-Regular.subset.ttf": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed",
+          "assets/text/NotoSansSymbols-Regular.subset.ttf": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3"
+        },
+        "dependencies": {},
+        "kernel": "c0acbde78685d127e98e1d13dd9c1fdff064277c38ce17fd7329a13459558b88",
+        "fixture": "69be74fa2ed8c084fb176734daae41a458bfa496e7d0f085e5cd434cc8250439",
+        "harness": "cc7b0a195a93c6fde86a62e203c4ecabf74eb76ee256952dfd098796ca9c39a3",
+        "constructor": "make_renderer(device, queue, format)",
+        "logicalSize": [
+          640,
+          480
+        ],
+        "helper": "e2c028971ab9cc08c2b951bed543b025ccb6f17c8e0b844d5370e82abb3a7410"
+      },
+      "recipe": {
+        "kind": "source-exact-declared-browser-actions",
+        "actions": [
+          {
+            "file": "sample.pb"
+          }
+        ],
+        "callback": "journey/checks/browser/gpu-settings.cjs",
+        "declaredMetadataStatus": "Document replaced. Undo restores the previous document.",
+        "authority": "Exact browser_actions from this checkpoint. Its documented source illustration is captured; inherited callbacks, current callback terminal scene and whole behavior validation are not executed or claimed."
+      },
+      "canonicalBehaviorExecuted": false,
+      "sourceStartupStatusQualification": null,
+      "scope": "Exact checkpoint browser_actions only, with source-bound observed rendering. Inherited callback terminal state and original behavior checks are not claimed.",
+      "canonicalValidationProfile": false,
+      "semantic": {
+        "attributes": {
+          "data-command-ui": {
+            "command": "",
+            "completion_rect": null,
+            "controls": [
+              {
+                "key": "command/input",
+                "label": "Command",
+                "rect": [
+                  86.375,
+                  734,
+                  840,
+                  756
+                ]
+              },
+              {
+                "key": "command/collapse",
+                "label": "Collapse or expand history",
+                "rect": [
+                  848,
+                  734.5,
+                  864,
+                  755.5
+                ]
+              },
+              {
+                "key": "command/resize",
+                "label": "Drag to resize command history",
+                "rect": [
+                  0,
+                  726,
+                  900,
+                  734
+                ]
+              }
+            ],
+            "focused": true,
+            "history": [
+              "> Open\nCommand submitted.",
+              "> Open\nFile imported. Undo removes the entire import."
+            ],
+            "pointer_owned": false,
+            "top": 726
+          }
+        },
+        "cameraEvidence": {
+          "observed": null,
+          "declaredCameraActions": [],
+          "scope": "This source exposes no camera matrix readback; exact declared navigation commands and visible output are retained without claiming internal camera equality."
+        },
+        "visiblePixels": 508302
+      },
+      "resources": {
+        "platform": "windows-job-object",
+        "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+        "laneMutex": "Local\\SessionViewerCourseImageJob",
+        "affinityOffset": 8,
+        "requiredAffinityMask": "0xFF00",
+        "maximumOtherLaneProcessors": 8,
+        "maximumOtherLaneMemoryMiB": 8192,
+        "maximumAggregateOurProcessors": 16,
+        "maximumAggregateOurMemoryMiB": 16384,
+        "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+        "requestedProcessors": 8,
+        "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+        "startedUtc": "2026-10-26T01:46:05.9559308Z",
+        "executable": "C:\\Program Files\\nodejs\\node.exe",
+        "arguments": [
+          "--require",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\warp-browser-timeout.cjs",
+          "--import",
+          "file:///C:/pc/3_code/code_rust/wood_research/session/session_tests/scripts/typescript.mjs",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\historical-browser-actions-presentation.ts",
+          "--worker",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\historical-action-scenes\\31-settings-aff3ed609741cdda974b\\config.json"
+        ],
+        "workingDirectory": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-builds\\cases\\31-settings-413f10bd5ebcb900d35b\\workspace",
+        "timeoutSeconds": 2400,
+        "jobCommitLimitBytes": 8589934592,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 0,
+        "timedOut": false,
+        "elapsedSeconds": 2.313,
+        "peakJobCommitBytes": 704925696,
+        "affinityMask": "0xFF00",
+        "processors": 8,
+        "processId": 27008,
+        "descendantsAtCleanup": 0
+      },
+      "rootReview": {
+        "sha256": "790a3e85ddc3f0c4ae2a64426b10e0f890865105b18ba0e7a9891dc6107459d8",
+        "representative": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\historical-action-scenes\\30d-bridge-b87048c50e967b4942fb\\30d-bridge-dpr2.png",
+        "ids": [
+          "30d-bridge",
+          "31-settings",
+          "31a-geometry",
+          "31b-cache",
+          "31c-incremental",
+          "32-history",
+          "32a-cpu",
+          "32b-gpu",
+          "32c-close",
+          "32d-command",
+          "32e-release"
+        ],
+        "width": 1800,
+        "height": 1520,
+        "reviewer": "maintained_export_audit delegated original-resolution inspection",
+        "finding": "Complete brown timber beam front-face rectangle over pink/cyan triangles with generous margins, readable file-import status and command dock.",
+        "reviewed": true
+      },
+      "http": {
+        "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/31-settings-browser.png?v=790a3e85ddc3",
+        "status": 200,
+        "sha256": "790a3e85ddc3f0c4ae2a64426b10e0f890865105b18ba0e7a9891dc6107459d8"
+      }
+    },
+    {
+      "id": "31a-geometry",
+      "destination": "docs/screenshots/journey/31a-geometry-browser.png",
+      "sha256": "790a3e85ddc3f0c4ae2a64426b10e0f890865105b18ba0e7a9891dc6107459d8",
+      "width": 1800,
+      "height": 1520,
+      "originalBackup": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\browser-streaming-publication-91-preparation\\originals\\docs\\screenshots\\journey\\31a-geometry-browser.png",
+      "originalSha256": "181ccaf8eba9f3f7ee184851e2d250fa3cb0a8e76cfe9c54daf3340b077d701b",
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\historical-action-scenes\\31a-geometry-be44c1ed43cc4d01b8c8\\capture.json",
+        "sha256": "564d78f4c4ed18d2d8557ecda0f4d1f2502895b6df5ca4928d1eecf382996e45"
+      },
+      "source": {
+        "checkpoint": "31a-geometry",
+        "files": "4f648b60b1ebcc53875670a5bd71a6f28a3e93fb321ce6fb0cce2fe28e8f309c",
+        "lock": "22e937f52a1b508bdce699b6c06650f4e695346c9915a69286742997d3cc22e4",
+        "assets": {
+          "assets/text/NotoSans-Regular.subset.ttf": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09",
+          "assets/text/NotoSansSymbols2-Regular.subset.ttf": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed",
+          "assets/text/NotoSansSymbols-Regular.subset.ttf": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3"
+        },
+        "dependencies": {},
+        "kernel": "c0acbde78685d127e98e1d13dd9c1fdff064277c38ce17fd7329a13459558b88",
+        "fixture": "5f67e5d796b84ffc2eefb564b6660a6e308c6d313eefee2c21571149cbfde7cc",
+        "harness": "cc7b0a195a93c6fde86a62e203c4ecabf74eb76ee256952dfd098796ca9c39a3",
+        "constructor": "make_renderer(device, queue, format)",
+        "logicalSize": [
+          640,
+          480
+        ],
+        "helper": "e2c028971ab9cc08c2b951bed543b025ccb6f17c8e0b844d5370e82abb3a7410"
+      },
+      "recipe": {
+        "kind": "source-exact-declared-browser-actions",
+        "actions": [
+          {
+            "file": "sample.pb"
+          }
+        ],
+        "callback": "journey/checks/browser/gpu-settings.cjs",
+        "declaredMetadataStatus": "Document replaced. Undo restores the previous document.",
+        "authority": "Exact browser_actions from this checkpoint. Its documented source illustration is captured; inherited callbacks, current callback terminal scene and whole behavior validation are not executed or claimed."
+      },
+      "canonicalBehaviorExecuted": false,
+      "sourceStartupStatusQualification": null,
+      "scope": "Exact checkpoint browser_actions only, with source-bound observed rendering. Inherited callback terminal state and original behavior checks are not claimed.",
+      "canonicalValidationProfile": false,
+      "semantic": {
+        "attributes": {
+          "data-command-ui": {
+            "command": "",
+            "completion_rect": null,
+            "controls": [
+              {
+                "key": "command/input",
+                "label": "Command",
+                "rect": [
+                  86.375,
+                  734,
+                  840,
+                  756
+                ]
+              },
+              {
+                "key": "command/collapse",
+                "label": "Collapse or expand history",
+                "rect": [
+                  848,
+                  734.5,
+                  864,
+                  755.5
+                ]
+              },
+              {
+                "key": "command/resize",
+                "label": "Drag to resize command history",
+                "rect": [
+                  0,
+                  726,
+                  900,
+                  734
+                ]
+              }
+            ],
+            "focused": true,
+            "history": [
+              "> Open\nCommand submitted.",
+              "> Open\nFile imported. Undo removes the entire import."
+            ],
+            "pointer_owned": false,
+            "top": 726
+          }
+        },
+        "cameraEvidence": {
+          "observed": null,
+          "declaredCameraActions": [],
+          "scope": "This source exposes no camera matrix readback; exact declared navigation commands and visible output are retained without claiming internal camera equality."
+        },
+        "visiblePixels": 508302
+      },
+      "resources": {
+        "platform": "windows-job-object",
+        "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+        "laneMutex": "Local\\SessionViewerCourseImageJob",
+        "affinityOffset": 8,
+        "requiredAffinityMask": "0xFF00",
+        "maximumOtherLaneProcessors": 8,
+        "maximumOtherLaneMemoryMiB": 8192,
+        "maximumAggregateOurProcessors": 16,
+        "maximumAggregateOurMemoryMiB": 16384,
+        "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+        "requestedProcessors": 8,
+        "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+        "startedUtc": "2026-10-26T01:46:22.0410812Z",
+        "executable": "C:\\Program Files\\nodejs\\node.exe",
+        "arguments": [
+          "--require",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\warp-browser-timeout.cjs",
+          "--import",
+          "file:///C:/pc/3_code/code_rust/wood_research/session/session_tests/scripts/typescript.mjs",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\historical-browser-actions-presentation.ts",
+          "--worker",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\historical-action-scenes\\31a-geometry-be44c1ed43cc4d01b8c8\\config.json"
+        ],
+        "workingDirectory": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-builds\\cases\\31a-geometry-9b3eaf2e9f3c23bee164\\workspace",
+        "timeoutSeconds": 2400,
+        "jobCommitLimitBytes": 8589934592,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 0,
+        "timedOut": false,
+        "elapsedSeconds": 2.436,
+        "peakJobCommitBytes": 690962432,
+        "affinityMask": "0xFF00",
+        "processors": 8,
+        "processId": 26196,
+        "descendantsAtCleanup": 1
+      },
+      "rootReview": {
+        "sha256": "790a3e85ddc3f0c4ae2a64426b10e0f890865105b18ba0e7a9891dc6107459d8",
+        "representative": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\historical-action-scenes\\30d-bridge-b87048c50e967b4942fb\\30d-bridge-dpr2.png",
+        "ids": [
+          "30d-bridge",
+          "31-settings",
+          "31a-geometry",
+          "31b-cache",
+          "31c-incremental",
+          "32-history",
+          "32a-cpu",
+          "32b-gpu",
+          "32c-close",
+          "32d-command",
+          "32e-release"
+        ],
+        "width": 1800,
+        "height": 1520,
+        "reviewer": "maintained_export_audit delegated original-resolution inspection",
+        "finding": "Complete brown timber beam front-face rectangle over pink/cyan triangles with generous margins, readable file-import status and command dock.",
+        "reviewed": true
+      },
+      "http": {
+        "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/31a-geometry-browser.png?v=790a3e85ddc3",
+        "status": 200,
+        "sha256": "790a3e85ddc3f0c4ae2a64426b10e0f890865105b18ba0e7a9891dc6107459d8"
+      }
+    },
+    {
+      "id": "31b-cache",
+      "destination": "docs/screenshots/journey/31b-cache-browser.png",
+      "sha256": "790a3e85ddc3f0c4ae2a64426b10e0f890865105b18ba0e7a9891dc6107459d8",
+      "width": 1800,
+      "height": 1520,
+      "originalBackup": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\browser-streaming-publication-91-preparation\\originals\\docs\\screenshots\\journey\\31b-cache-browser.png",
+      "originalSha256": "c752937347666976ddfec6dee51f376e59f4bfd91e16322576d9dfc3d80fb92a",
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\historical-action-scenes\\31b-cache-3e25280a8f3a9e435afd\\capture.json",
+        "sha256": "cacef59c9f92a18a90303e80e10ff9bc16a7d1702f199ce85f1afb272861410d"
+      },
+      "source": {
+        "checkpoint": "31b-cache",
+        "files": "959e3663d8091437f16bf8c8473f82c7157e4bcd96a1512565dff89880d7ac79",
+        "lock": "22e937f52a1b508bdce699b6c06650f4e695346c9915a69286742997d3cc22e4",
+        "assets": {
+          "assets/text/NotoSans-Regular.subset.ttf": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09",
+          "assets/text/NotoSansSymbols2-Regular.subset.ttf": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed",
+          "assets/text/NotoSansSymbols-Regular.subset.ttf": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3"
+        },
+        "dependencies": {},
+        "kernel": "c0acbde78685d127e98e1d13dd9c1fdff064277c38ce17fd7329a13459558b88",
+        "fixture": "eab3274a53954cc5cf9f63400ac7953662c91f653077d28cb1ec4cc371e4c4df",
+        "harness": "cc7b0a195a93c6fde86a62e203c4ecabf74eb76ee256952dfd098796ca9c39a3",
+        "constructor": "make_renderer(device, queue, format)",
+        "logicalSize": [
+          640,
+          480
+        ],
+        "helper": "e2c028971ab9cc08c2b951bed543b025ccb6f17c8e0b844d5370e82abb3a7410"
+      },
+      "recipe": {
+        "kind": "source-exact-declared-browser-actions",
+        "actions": [
+          {
+            "file": "sample.pb"
+          }
+        ],
+        "callback": "journey/checks/browser/gpu-settings.cjs",
+        "declaredMetadataStatus": "Document replaced. Undo restores the previous document.",
+        "authority": "Exact browser_actions from this checkpoint. Its documented source illustration is captured; inherited callbacks, current callback terminal scene and whole behavior validation are not executed or claimed."
+      },
+      "canonicalBehaviorExecuted": false,
+      "sourceStartupStatusQualification": null,
+      "scope": "Exact checkpoint browser_actions only, with source-bound observed rendering. Inherited callback terminal state and original behavior checks are not claimed.",
+      "canonicalValidationProfile": false,
+      "semantic": {
+        "attributes": {
+          "data-command-ui": {
+            "command": "",
+            "completion_rect": null,
+            "controls": [
+              {
+                "key": "command/input",
+                "label": "Command",
+                "rect": [
+                  86.375,
+                  734,
+                  840,
+                  756
+                ]
+              },
+              {
+                "key": "command/collapse",
+                "label": "Collapse or expand history",
+                "rect": [
+                  848,
+                  734.5,
+                  864,
+                  755.5
+                ]
+              },
+              {
+                "key": "command/resize",
+                "label": "Drag to resize command history",
+                "rect": [
+                  0,
+                  726,
+                  900,
+                  734
+                ]
+              }
+            ],
+            "focused": true,
+            "history": [
+              "> Open\nCommand submitted.",
+              "> Open\nFile imported. Undo removes the entire import."
+            ],
+            "pointer_owned": false,
+            "top": 726
+          },
+          "data-gpu-stats": [
+            5,
+            7,
+            0,
+            0
+          ]
+        },
+        "cameraEvidence": {
+          "observed": null,
+          "declaredCameraActions": [],
+          "scope": "This source exposes no camera matrix readback; exact declared navigation commands and visible output are retained without claiming internal camera equality."
+        },
+        "visiblePixels": 508302
+      },
+      "resources": {
+        "platform": "windows-job-object",
+        "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+        "laneMutex": "Local\\SessionViewerCourseImageJob",
+        "affinityOffset": 8,
+        "requiredAffinityMask": "0xFF00",
+        "maximumOtherLaneProcessors": 8,
+        "maximumOtherLaneMemoryMiB": 8192,
+        "maximumAggregateOurProcessors": 16,
+        "maximumAggregateOurMemoryMiB": 16384,
+        "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+        "requestedProcessors": 8,
+        "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+        "startedUtc": "2026-10-26T01:46:38.9652969Z",
+        "executable": "C:\\Program Files\\nodejs\\node.exe",
+        "arguments": [
+          "--require",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\warp-browser-timeout.cjs",
+          "--import",
+          "file:///C:/pc/3_code/code_rust/wood_research/session/session_tests/scripts/typescript.mjs",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\historical-browser-actions-presentation.ts",
+          "--worker",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\historical-action-scenes\\31b-cache-3e25280a8f3a9e435afd\\config.json"
+        ],
+        "workingDirectory": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-builds\\cases\\31b-cache-e72edaf88fba098c1dec\\workspace",
+        "timeoutSeconds": 2400,
+        "jobCommitLimitBytes": 8589934592,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 0,
+        "timedOut": false,
+        "elapsedSeconds": 2.237,
+        "peakJobCommitBytes": 698142720,
+        "affinityMask": "0xFF00",
+        "processors": 8,
+        "processId": 59200,
+        "descendantsAtCleanup": 0
+      },
+      "rootReview": {
+        "sha256": "790a3e85ddc3f0c4ae2a64426b10e0f890865105b18ba0e7a9891dc6107459d8",
+        "representative": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\historical-action-scenes\\30d-bridge-b87048c50e967b4942fb\\30d-bridge-dpr2.png",
+        "ids": [
+          "30d-bridge",
+          "31-settings",
+          "31a-geometry",
+          "31b-cache",
+          "31c-incremental",
+          "32-history",
+          "32a-cpu",
+          "32b-gpu",
+          "32c-close",
+          "32d-command",
+          "32e-release"
+        ],
+        "width": 1800,
+        "height": 1520,
+        "reviewer": "maintained_export_audit delegated original-resolution inspection",
+        "finding": "Complete brown timber beam front-face rectangle over pink/cyan triangles with generous margins, readable file-import status and command dock.",
+        "reviewed": true
+      },
+      "http": {
+        "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/31b-cache-browser.png?v=790a3e85ddc3",
+        "status": 200,
+        "sha256": "790a3e85ddc3f0c4ae2a64426b10e0f890865105b18ba0e7a9891dc6107459d8"
+      }
+    },
+    {
+      "id": "31c-incremental",
+      "destination": "docs/screenshots/journey/31c-incremental-browser.png",
+      "sha256": "790a3e85ddc3f0c4ae2a64426b10e0f890865105b18ba0e7a9891dc6107459d8",
+      "width": 1800,
+      "height": 1520,
+      "originalBackup": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\browser-streaming-publication-91-preparation\\originals\\docs\\screenshots\\journey\\31c-incremental-browser.png",
+      "originalSha256": "6a6dd33925b887333adbf264e8b688130cd407a2aac091f1b092556c917bd02a",
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\historical-action-scenes\\31c-incremental-a74f86f62b1b69c8be46\\capture.json",
+        "sha256": "788872889f7d668f3af1ad28daa9bf19984415017aa8882ed2c15ddcf820ea24"
+      },
+      "source": {
+        "checkpoint": "31c-incremental",
+        "files": "40af89e79d12b676bfeea1681b40d7a278f2b483f70ada0691e736a31c993778",
+        "lock": "22e937f52a1b508bdce699b6c06650f4e695346c9915a69286742997d3cc22e4",
+        "assets": {
+          "assets/text/NotoSans-Regular.subset.ttf": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09",
+          "assets/text/NotoSansSymbols2-Regular.subset.ttf": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed",
+          "assets/text/NotoSansSymbols-Regular.subset.ttf": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3"
+        },
+        "dependencies": {},
+        "kernel": "c0acbde78685d127e98e1d13dd9c1fdff064277c38ce17fd7329a13459558b88",
+        "fixture": "c2ec70c2985e39c18bd27882f1c61aef95a86dfbede8f9c0349ea69cc84fd090",
+        "harness": "cc7b0a195a93c6fde86a62e203c4ecabf74eb76ee256952dfd098796ca9c39a3",
+        "constructor": "make_renderer(device, queue, format)",
+        "logicalSize": [
+          640,
+          480
+        ],
+        "helper": "e2c028971ab9cc08c2b951bed543b025ccb6f17c8e0b844d5370e82abb3a7410"
+      },
+      "recipe": {
+        "kind": "source-exact-declared-browser-actions",
+        "actions": [
+          {
+            "file": "sample.pb"
+          }
+        ],
+        "callback": "journey/checks/browser/gpu-settings.cjs",
+        "declaredMetadataStatus": "Document replaced. Undo restores the previous document.",
+        "authority": "Exact browser_actions from this checkpoint. Its documented source illustration is captured; inherited callbacks, current callback terminal scene and whole behavior validation are not executed or claimed."
+      },
+      "canonicalBehaviorExecuted": false,
+      "sourceStartupStatusQualification": null,
+      "scope": "Exact checkpoint browser_actions only, with source-bound observed rendering. Inherited callback terminal state and original behavior checks are not claimed.",
+      "canonicalValidationProfile": false,
+      "semantic": {
+        "attributes": {
+          "data-command-ui": {
+            "command": "",
+            "completion_rect": null,
+            "controls": [
+              {
+                "key": "command/input",
+                "label": "Command",
+                "rect": [
+                  86.375,
+                  734,
+                  840,
+                  756
+                ]
+              },
+              {
+                "key": "command/collapse",
+                "label": "Collapse or expand history",
+                "rect": [
+                  848,
+                  734.5,
+                  864,
+                  755.5
+                ]
+              },
+              {
+                "key": "command/resize",
+                "label": "Drag to resize command history",
+                "rect": [
+                  0,
+                  726,
+                  900,
+                  734
+                ]
+              }
+            ],
+            "focused": true,
+            "history": [
+              "> Open\nCommand submitted.",
+              "> Open\nFile imported. Undo removes the entire import."
+            ],
+            "pointer_owned": false,
+            "top": 726
+          },
+          "data-gpu-stats": [
+            5,
+            5,
+            0,
+            0
+          ]
+        },
+        "cameraEvidence": {
+          "observed": null,
+          "declaredCameraActions": [],
+          "scope": "This source exposes no camera matrix readback; exact declared navigation commands and visible output are retained without claiming internal camera equality."
+        },
+        "visiblePixels": 508302
+      },
+      "resources": {
+        "platform": "windows-job-object",
+        "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+        "laneMutex": "Local\\SessionViewerCourseImageJob",
+        "affinityOffset": 8,
+        "requiredAffinityMask": "0xFF00",
+        "maximumOtherLaneProcessors": 8,
+        "maximumOtherLaneMemoryMiB": 8192,
+        "maximumAggregateOurProcessors": 16,
+        "maximumAggregateOurMemoryMiB": 16384,
+        "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+        "requestedProcessors": 8,
+        "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+        "startedUtc": "2026-10-26T01:46:55.7089550Z",
+        "executable": "C:\\Program Files\\nodejs\\node.exe",
+        "arguments": [
+          "--require",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\warp-browser-timeout.cjs",
+          "--import",
+          "file:///C:/pc/3_code/code_rust/wood_research/session/session_tests/scripts/typescript.mjs",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\historical-browser-actions-presentation.ts",
+          "--worker",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\historical-action-scenes\\31c-incremental-a74f86f62b1b69c8be46\\config.json"
+        ],
+        "workingDirectory": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-builds\\cases\\31c-incremental-0f9f81f93271b11f5c63\\workspace",
+        "timeoutSeconds": 2400,
+        "jobCommitLimitBytes": 8589934592,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 0,
+        "timedOut": false,
+        "elapsedSeconds": 2.316,
+        "peakJobCommitBytes": 711274496,
+        "affinityMask": "0xFF00",
+        "processors": 8,
+        "processId": 38688,
+        "descendantsAtCleanup": 0
+      },
+      "rootReview": {
+        "sha256": "790a3e85ddc3f0c4ae2a64426b10e0f890865105b18ba0e7a9891dc6107459d8",
+        "representative": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\historical-action-scenes\\30d-bridge-b87048c50e967b4942fb\\30d-bridge-dpr2.png",
+        "ids": [
+          "30d-bridge",
+          "31-settings",
+          "31a-geometry",
+          "31b-cache",
+          "31c-incremental",
+          "32-history",
+          "32a-cpu",
+          "32b-gpu",
+          "32c-close",
+          "32d-command",
+          "32e-release"
+        ],
+        "width": 1800,
+        "height": 1520,
+        "reviewer": "maintained_export_audit delegated original-resolution inspection",
+        "finding": "Complete brown timber beam front-face rectangle over pink/cyan triangles with generous margins, readable file-import status and command dock.",
+        "reviewed": true
+      },
+      "http": {
+        "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/31c-incremental-browser.png?v=790a3e85ddc3",
+        "status": 200,
+        "sha256": "790a3e85ddc3f0c4ae2a64426b10e0f890865105b18ba0e7a9891dc6107459d8"
+      }
+    },
+    {
+      "id": "32-history",
+      "destination": "docs/screenshots/journey/32-history-browser.png",
+      "sha256": "790a3e85ddc3f0c4ae2a64426b10e0f890865105b18ba0e7a9891dc6107459d8",
+      "width": 1800,
+      "height": 1520,
+      "originalBackup": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\browser-streaming-publication-91-preparation\\originals\\docs\\screenshots\\journey\\32-history-browser.png",
+      "originalSha256": "82452a555d46f53a14944a2b304822cb6ba5a101b97ff9255232c37b7846fcb1",
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\historical-action-scenes\\32-history-7ef7f2150fe95609f41a\\capture.json",
+        "sha256": "f3ac8865278f931c896bcf454488305d4eb04acb24edcac46cd2c7fa2355d7fe"
+      },
+      "source": {
+        "checkpoint": "32-history",
+        "files": "862da22d5ed1843ba4319fac466d64797e1819bda97e661b4425e5b74cf011db",
+        "lock": "22e937f52a1b508bdce699b6c06650f4e695346c9915a69286742997d3cc22e4",
+        "assets": {
+          "assets/text/NotoSans-Regular.subset.ttf": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09",
+          "assets/text/NotoSansSymbols2-Regular.subset.ttf": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed",
+          "assets/text/NotoSansSymbols-Regular.subset.ttf": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3"
+        },
+        "dependencies": {},
+        "kernel": "c0acbde78685d127e98e1d13dd9c1fdff064277c38ce17fd7329a13459558b88",
+        "fixture": "9b8d5002842aea981cd3d9724897a089b6968b324f3ab259c29cc46812ae0e5f",
+        "harness": "cc7b0a195a93c6fde86a62e203c4ecabf74eb76ee256952dfd098796ca9c39a3",
+        "constructor": "make_renderer(device, queue, format)",
+        "logicalSize": [
+          640,
+          480
+        ],
+        "helper": "e2c028971ab9cc08c2b951bed543b025ccb6f17c8e0b844d5370e82abb3a7410"
+      },
+      "recipe": {
+        "kind": "source-exact-declared-browser-actions",
+        "actions": [
+          {
+            "file": "sample.pb"
+          }
+        ],
+        "callback": "journey/checks/browser/resources.cjs",
+        "declaredMetadataStatus": "Document replaced. Undo restores the previous document.",
+        "authority": "Exact browser_actions from this checkpoint. Its documented source illustration is captured; inherited callbacks, current callback terminal scene and whole behavior validation are not executed or claimed."
+      },
+      "canonicalBehaviorExecuted": false,
+      "sourceStartupStatusQualification": null,
+      "scope": "Exact checkpoint browser_actions only, with source-bound observed rendering. Inherited callback terminal state and original behavior checks are not claimed.",
+      "canonicalValidationProfile": false,
+      "semantic": {
+        "attributes": {
+          "data-command-ui": {
+            "command": "",
+            "completion_rect": null,
+            "controls": [
+              {
+                "key": "command/input",
+                "label": "Command",
+                "rect": [
+                  86.375,
+                  734,
+                  840,
+                  756
+                ]
+              },
+              {
+                "key": "command/collapse",
+                "label": "Collapse or expand history",
+                "rect": [
+                  848,
+                  734.5,
+                  864,
+                  755.5
+                ]
+              },
+              {
+                "key": "command/resize",
+                "label": "Drag to resize command history",
+                "rect": [
+                  0,
+                  726,
+                  900,
+                  734
+                ]
+              }
+            ],
+            "focused": true,
+            "history": [
+              "> Open\nCommand submitted.",
+              "> Open\nFile imported. Undo removes the entire import."
+            ],
+            "pointer_owned": false,
+            "top": 726
+          },
+          "data-gpu-stats": [
+            5,
+            5,
+            0,
+            0
+          ]
+        },
+        "cameraEvidence": {
+          "observed": null,
+          "declaredCameraActions": [],
+          "scope": "This source exposes no camera matrix readback; exact declared navigation commands and visible output are retained without claiming internal camera equality."
+        },
+        "visiblePixels": 508302
+      },
+      "resources": {
+        "platform": "windows-job-object",
+        "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+        "laneMutex": "Local\\SessionViewerCourseImageJob",
+        "affinityOffset": 8,
+        "requiredAffinityMask": "0xFF00",
+        "maximumOtherLaneProcessors": 8,
+        "maximumOtherLaneMemoryMiB": 8192,
+        "maximumAggregateOurProcessors": 16,
+        "maximumAggregateOurMemoryMiB": 16384,
+        "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+        "requestedProcessors": 8,
+        "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+        "startedUtc": "2026-10-26T01:47:10.6031925Z",
+        "executable": "C:\\Program Files\\nodejs\\node.exe",
+        "arguments": [
+          "--require",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\warp-browser-timeout.cjs",
+          "--import",
+          "file:///C:/pc/3_code/code_rust/wood_research/session/session_tests/scripts/typescript.mjs",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\historical-browser-actions-presentation.ts",
+          "--worker",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\historical-action-scenes\\32-history-7ef7f2150fe95609f41a\\config.json"
+        ],
+        "workingDirectory": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-builds\\cases\\32-history-0bb35acbf663544040b0\\workspace",
+        "timeoutSeconds": 2400,
+        "jobCommitLimitBytes": 8589934592,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 0,
+        "timedOut": false,
+        "elapsedSeconds": 2.4,
+        "peakJobCommitBytes": 699944960,
+        "affinityMask": "0xFF00",
+        "processors": 8,
+        "processId": 9096,
+        "descendantsAtCleanup": 0
+      },
+      "rootReview": {
+        "sha256": "790a3e85ddc3f0c4ae2a64426b10e0f890865105b18ba0e7a9891dc6107459d8",
+        "representative": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\historical-action-scenes\\30d-bridge-b87048c50e967b4942fb\\30d-bridge-dpr2.png",
+        "ids": [
+          "30d-bridge",
+          "31-settings",
+          "31a-geometry",
+          "31b-cache",
+          "31c-incremental",
+          "32-history",
+          "32a-cpu",
+          "32b-gpu",
+          "32c-close",
+          "32d-command",
+          "32e-release"
+        ],
+        "width": 1800,
+        "height": 1520,
+        "reviewer": "maintained_export_audit delegated original-resolution inspection",
+        "finding": "Complete brown timber beam front-face rectangle over pink/cyan triangles with generous margins, readable file-import status and command dock.",
+        "reviewed": true
+      },
+      "http": {
+        "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/32-history-browser.png?v=790a3e85ddc3",
+        "status": 200,
+        "sha256": "790a3e85ddc3f0c4ae2a64426b10e0f890865105b18ba0e7a9891dc6107459d8"
+      }
+    },
+    {
+      "id": "32a-cpu",
+      "destination": "docs/screenshots/journey/32a-cpu-browser.png",
+      "sha256": "790a3e85ddc3f0c4ae2a64426b10e0f890865105b18ba0e7a9891dc6107459d8",
+      "width": 1800,
+      "height": 1520,
+      "originalBackup": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\browser-streaming-publication-91-preparation\\originals\\docs\\screenshots\\journey\\32a-cpu-browser.png",
+      "originalSha256": "d1391f52be16bf9c9c6a8fb5225b3720f2d4dc466a884d9907fb3e6202c1fb64",
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\historical-action-scenes\\32a-cpu-2ea1336c91c8c0756d67\\capture.json",
+        "sha256": "5637dfb1c060a88b87f110d33dd620411f6be8ff06fdab3531a48d9b8692bfbd"
+      },
+      "source": {
+        "checkpoint": "32a-cpu",
+        "files": "0d9b3a1ec0bbccea26a2eefba7e3a4bf367aa953ff96f87bd4a0c6cdcc8eb808",
+        "lock": "22e937f52a1b508bdce699b6c06650f4e695346c9915a69286742997d3cc22e4",
+        "assets": {
+          "assets/text/NotoSans-Regular.subset.ttf": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09",
+          "assets/text/NotoSansSymbols2-Regular.subset.ttf": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed",
+          "assets/text/NotoSansSymbols-Regular.subset.ttf": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3"
+        },
+        "dependencies": {},
+        "kernel": "c0acbde78685d127e98e1d13dd9c1fdff064277c38ce17fd7329a13459558b88",
+        "fixture": "453897d709076a56780259e84cd6f6ee2698ce52dd62326929b75f24c93d17f5",
+        "harness": "cc7b0a195a93c6fde86a62e203c4ecabf74eb76ee256952dfd098796ca9c39a3",
+        "constructor": "make_renderer(device, queue, format)",
+        "logicalSize": [
+          640,
+          480
+        ],
+        "helper": "e2c028971ab9cc08c2b951bed543b025ccb6f17c8e0b844d5370e82abb3a7410"
+      },
+      "recipe": {
+        "kind": "source-exact-declared-browser-actions",
+        "actions": [
+          {
+            "file": "sample.pb"
+          }
+        ],
+        "callback": "journey/checks/browser/resources.cjs",
+        "declaredMetadataStatus": "Document replaced. Undo restores the previous document.",
+        "authority": "Exact browser_actions from this checkpoint. Its documented source illustration is captured; inherited callbacks, current callback terminal scene and whole behavior validation are not executed or claimed."
+      },
+      "canonicalBehaviorExecuted": false,
+      "sourceStartupStatusQualification": null,
+      "scope": "Exact checkpoint browser_actions only, with source-bound observed rendering. Inherited callback terminal state and original behavior checks are not claimed.",
+      "canonicalValidationProfile": false,
+      "semantic": {
+        "attributes": {
+          "data-command-ui": {
+            "command": "",
+            "completion_rect": null,
+            "controls": [
+              {
+                "key": "command/input",
+                "label": "Command",
+                "rect": [
+                  86.375,
+                  734,
+                  840,
+                  756
+                ]
+              },
+              {
+                "key": "command/collapse",
+                "label": "Collapse or expand history",
+                "rect": [
+                  848,
+                  734.5,
+                  864,
+                  755.5
+                ]
+              },
+              {
+                "key": "command/resize",
+                "label": "Drag to resize command history",
+                "rect": [
+                  0,
+                  726,
+                  900,
+                  734
+                ]
+              }
+            ],
+            "focused": true,
+            "history": [
+              "> Open\nCommand submitted.",
+              "> Open\nFile imported. Undo removes the entire import."
+            ],
+            "pointer_owned": false,
+            "top": 726
+          },
+          "data-gpu-stats": [
+            5,
+            5,
+            0,
+            0
+          ]
+        },
+        "cameraEvidence": {
+          "observed": null,
+          "declaredCameraActions": [],
+          "scope": "This source exposes no camera matrix readback; exact declared navigation commands and visible output are retained without claiming internal camera equality."
+        },
+        "visiblePixels": 508302
+      },
+      "resources": {
+        "platform": "windows-job-object",
+        "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+        "laneMutex": "Local\\SessionViewerCourseImageJob",
+        "affinityOffset": 8,
+        "requiredAffinityMask": "0xFF00",
+        "maximumOtherLaneProcessors": 8,
+        "maximumOtherLaneMemoryMiB": 8192,
+        "maximumAggregateOurProcessors": 16,
+        "maximumAggregateOurMemoryMiB": 16384,
+        "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+        "requestedProcessors": 8,
+        "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+        "startedUtc": "2026-10-26T01:47:27.3079759Z",
+        "executable": "C:\\Program Files\\nodejs\\node.exe",
+        "arguments": [
+          "--require",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\warp-browser-timeout.cjs",
+          "--import",
+          "file:///C:/pc/3_code/code_rust/wood_research/session/session_tests/scripts/typescript.mjs",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\historical-browser-actions-presentation.ts",
+          "--worker",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\historical-action-scenes\\32a-cpu-2ea1336c91c8c0756d67\\config.json"
+        ],
+        "workingDirectory": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-builds\\cases\\32a-cpu-070a1bef47b2a9106d93\\workspace",
+        "timeoutSeconds": 2400,
+        "jobCommitLimitBytes": 8589934592,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 0,
+        "timedOut": false,
+        "elapsedSeconds": 2.272,
+        "peakJobCommitBytes": 700346368,
+        "affinityMask": "0xFF00",
+        "processors": 8,
+        "processId": 11292,
+        "descendantsAtCleanup": 0
+      },
+      "rootReview": {
+        "sha256": "790a3e85ddc3f0c4ae2a64426b10e0f890865105b18ba0e7a9891dc6107459d8",
+        "representative": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\historical-action-scenes\\30d-bridge-b87048c50e967b4942fb\\30d-bridge-dpr2.png",
+        "ids": [
+          "30d-bridge",
+          "31-settings",
+          "31a-geometry",
+          "31b-cache",
+          "31c-incremental",
+          "32-history",
+          "32a-cpu",
+          "32b-gpu",
+          "32c-close",
+          "32d-command",
+          "32e-release"
+        ],
+        "width": 1800,
+        "height": 1520,
+        "reviewer": "maintained_export_audit delegated original-resolution inspection",
+        "finding": "Complete brown timber beam front-face rectangle over pink/cyan triangles with generous margins, readable file-import status and command dock.",
+        "reviewed": true
+      },
+      "http": {
+        "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/32a-cpu-browser.png?v=790a3e85ddc3",
+        "status": 200,
+        "sha256": "790a3e85ddc3f0c4ae2a64426b10e0f890865105b18ba0e7a9891dc6107459d8"
+      }
+    },
+    {
+      "id": "32b-gpu",
+      "destination": "docs/screenshots/journey/32b-gpu-browser.png",
+      "sha256": "790a3e85ddc3f0c4ae2a64426b10e0f890865105b18ba0e7a9891dc6107459d8",
+      "width": 1800,
+      "height": 1520,
+      "originalBackup": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\browser-streaming-publication-91-preparation\\originals\\docs\\screenshots\\journey\\32b-gpu-browser.png",
+      "originalSha256": "d395372d1186965848cc6058723f6e0d62c4bd4f585b7202ca3c933b351f7979",
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\historical-action-scenes\\32b-gpu-d9fa89ed59b2519d8959\\capture.json",
+        "sha256": "f62cc746d4e1fc06400e8a40fcd7208eeb49fd7c091dc34ca6454c768b6393e2"
+      },
+      "source": {
+        "checkpoint": "32b-gpu",
+        "files": "1c02a8b41cb800efb74332519602f8b2bd961dd558facb66ab4c704f9ae4be3e",
+        "lock": "22e937f52a1b508bdce699b6c06650f4e695346c9915a69286742997d3cc22e4",
+        "assets": {
+          "assets/text/NotoSans-Regular.subset.ttf": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09",
+          "assets/text/NotoSansSymbols2-Regular.subset.ttf": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed",
+          "assets/text/NotoSansSymbols-Regular.subset.ttf": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3"
+        },
+        "dependencies": {},
+        "kernel": "c0acbde78685d127e98e1d13dd9c1fdff064277c38ce17fd7329a13459558b88",
+        "fixture": "15a053c93d7e0110468995f9e8ad58773add6bccedf2f88773d5a8c2a3cd8d7b",
+        "harness": "cc7b0a195a93c6fde86a62e203c4ecabf74eb76ee256952dfd098796ca9c39a3",
+        "constructor": "make_renderer(device, queue, format)",
+        "logicalSize": [
+          640,
+          480
+        ],
+        "helper": "e2c028971ab9cc08c2b951bed543b025ccb6f17c8e0b844d5370e82abb3a7410"
+      },
+      "recipe": {
+        "kind": "source-exact-declared-browser-actions",
+        "actions": [
+          {
+            "file": "sample.pb"
+          }
+        ],
+        "callback": "journey/checks/browser/resources.cjs",
+        "declaredMetadataStatus": "Document replaced. Undo restores the previous document.",
+        "authority": "Exact browser_actions from this checkpoint. Its documented source illustration is captured; inherited callbacks, current callback terminal scene and whole behavior validation are not executed or claimed."
+      },
+      "canonicalBehaviorExecuted": false,
+      "sourceStartupStatusQualification": null,
+      "scope": "Exact checkpoint browser_actions only, with source-bound observed rendering. Inherited callback terminal state and original behavior checks are not claimed.",
+      "canonicalValidationProfile": false,
+      "semantic": {
+        "attributes": {
+          "data-command-ui": {
+            "command": "",
+            "completion_rect": null,
+            "controls": [
+              {
+                "key": "command/input",
+                "label": "Command",
+                "rect": [
+                  86.375,
+                  734,
+                  840,
+                  756
+                ]
+              },
+              {
+                "key": "command/collapse",
+                "label": "Collapse or expand history",
+                "rect": [
+                  848,
+                  734.5,
+                  864,
+                  755.5
+                ]
+              },
+              {
+                "key": "command/resize",
+                "label": "Drag to resize command history",
+                "rect": [
+                  0,
+                  726,
+                  900,
+                  734
+                ]
+              }
+            ],
+            "focused": true,
+            "history": [
+              "> Open\nCommand submitted.",
+              "> Open\nFile imported. Undo removes the entire import."
+            ],
+            "pointer_owned": false,
+            "top": 726
+          },
+          "data-gpu-stats": [
+            5,
+            5,
+            0,
+            0
+          ]
+        },
+        "cameraEvidence": {
+          "observed": null,
+          "declaredCameraActions": [],
+          "scope": "This source exposes no camera matrix readback; exact declared navigation commands and visible output are retained without claiming internal camera equality."
+        },
+        "visiblePixels": 508302
+      },
+      "resources": {
+        "platform": "windows-job-object",
+        "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+        "laneMutex": "Local\\SessionViewerCourseImageJob",
+        "affinityOffset": 8,
+        "requiredAffinityMask": "0xFF00",
+        "maximumOtherLaneProcessors": 8,
+        "maximumOtherLaneMemoryMiB": 8192,
+        "maximumAggregateOurProcessors": 16,
+        "maximumAggregateOurMemoryMiB": 16384,
+        "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+        "requestedProcessors": 8,
+        "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+        "startedUtc": "2026-10-26T01:47:45.2576896Z",
+        "executable": "C:\\Program Files\\nodejs\\node.exe",
+        "arguments": [
+          "--require",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\warp-browser-timeout.cjs",
+          "--import",
+          "file:///C:/pc/3_code/code_rust/wood_research/session/session_tests/scripts/typescript.mjs",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\historical-browser-actions-presentation.ts",
+          "--worker",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\historical-action-scenes\\32b-gpu-d9fa89ed59b2519d8959\\config.json"
+        ],
+        "workingDirectory": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-builds\\cases\\32b-gpu-190a221b4f53bf4ea984\\workspace",
+        "timeoutSeconds": 2400,
+        "jobCommitLimitBytes": 8589934592,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 0,
+        "timedOut": false,
+        "elapsedSeconds": 2.188,
+        "peakJobCommitBytes": 702861312,
+        "affinityMask": "0xFF00",
+        "processors": 8,
+        "processId": 56420,
+        "descendantsAtCleanup": 1
+      },
+      "rootReview": {
+        "sha256": "790a3e85ddc3f0c4ae2a64426b10e0f890865105b18ba0e7a9891dc6107459d8",
+        "representative": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\historical-action-scenes\\30d-bridge-b87048c50e967b4942fb\\30d-bridge-dpr2.png",
+        "ids": [
+          "30d-bridge",
+          "31-settings",
+          "31a-geometry",
+          "31b-cache",
+          "31c-incremental",
+          "32-history",
+          "32a-cpu",
+          "32b-gpu",
+          "32c-close",
+          "32d-command",
+          "32e-release"
+        ],
+        "width": 1800,
+        "height": 1520,
+        "reviewer": "maintained_export_audit delegated original-resolution inspection",
+        "finding": "Complete brown timber beam front-face rectangle over pink/cyan triangles with generous margins, readable file-import status and command dock.",
+        "reviewed": true
+      },
+      "http": {
+        "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/32b-gpu-browser.png?v=790a3e85ddc3",
+        "status": 200,
+        "sha256": "790a3e85ddc3f0c4ae2a64426b10e0f890865105b18ba0e7a9891dc6107459d8"
+      }
+    },
+    {
+      "id": "32c-close",
+      "destination": "docs/screenshots/journey/32c-close-browser.png",
+      "sha256": "790a3e85ddc3f0c4ae2a64426b10e0f890865105b18ba0e7a9891dc6107459d8",
+      "width": 1800,
+      "height": 1520,
+      "originalBackup": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\browser-streaming-publication-91-preparation\\originals\\docs\\screenshots\\journey\\32c-close-browser.png",
+      "originalSha256": "5f617c44e90691f294011cbe027636733a59fb5b1e989a8df28ffa3cfdb255c8",
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\historical-action-scenes\\32c-close-3b8c42016239516bc58a\\capture.json",
+        "sha256": "7dbbc24b2611e95d7d8fd6cc20ce188b884d99207af057d2daf8e733de60661f"
+      },
+      "source": {
+        "checkpoint": "32c-close",
+        "files": "9b8790f343815948facdaf3bb782292933be1b259e176f953a2f0eae79b5c7be",
+        "lock": "22e937f52a1b508bdce699b6c06650f4e695346c9915a69286742997d3cc22e4",
+        "assets": {
+          "assets/text/NotoSans-Regular.subset.ttf": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09",
+          "assets/text/NotoSansSymbols2-Regular.subset.ttf": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed",
+          "assets/text/NotoSansSymbols-Regular.subset.ttf": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3"
+        },
+        "dependencies": {},
+        "kernel": "c0acbde78685d127e98e1d13dd9c1fdff064277c38ce17fd7329a13459558b88",
+        "fixture": "c5bba81ad1893426d741c0e1f565d47cef4ff7c6723abfb17d5ac7bac2f1d03f",
+        "harness": "cc7b0a195a93c6fde86a62e203c4ecabf74eb76ee256952dfd098796ca9c39a3",
+        "constructor": "make_renderer(device, queue, format)",
+        "logicalSize": [
+          640,
+          480
+        ],
+        "helper": "e2c028971ab9cc08c2b951bed543b025ccb6f17c8e0b844d5370e82abb3a7410"
+      },
+      "recipe": {
+        "kind": "source-exact-declared-browser-actions",
+        "actions": [
+          {
+            "file": "sample.pb"
+          }
+        ],
+        "callback": "journey/checks/browser/resources.cjs",
+        "declaredMetadataStatus": "Document replaced. Undo restores the previous document.",
+        "authority": "Exact browser_actions from this checkpoint. Its documented source illustration is captured; inherited callbacks, current callback terminal scene and whole behavior validation are not executed or claimed."
+      },
+      "canonicalBehaviorExecuted": false,
+      "sourceStartupStatusQualification": null,
+      "scope": "Exact checkpoint browser_actions only, with source-bound observed rendering. Inherited callback terminal state and original behavior checks are not claimed.",
+      "canonicalValidationProfile": false,
+      "semantic": {
+        "attributes": {
+          "data-command-ui": {
+            "command": "",
+            "completion_rect": null,
+            "controls": [
+              {
+                "key": "command/input",
+                "label": "Command",
+                "rect": [
+                  86.375,
+                  734,
+                  840,
+                  756
+                ]
+              },
+              {
+                "key": "command/collapse",
+                "label": "Collapse or expand history",
+                "rect": [
+                  848,
+                  734.5,
+                  864,
+                  755.5
+                ]
+              },
+              {
+                "key": "command/resize",
+                "label": "Drag to resize command history",
+                "rect": [
+                  0,
+                  726,
+                  900,
+                  734
+                ]
+              }
+            ],
+            "focused": true,
+            "history": [
+              "> Open\nCommand submitted.",
+              "> Open\nFile imported. Undo removes the entire import."
+            ],
+            "pointer_owned": false,
+            "top": 726
+          },
+          "data-gpu-stats": [
+            5,
+            5,
+            0,
+            0
+          ]
+        },
+        "cameraEvidence": {
+          "observed": null,
+          "declaredCameraActions": [],
+          "scope": "This source exposes no camera matrix readback; exact declared navigation commands and visible output are retained without claiming internal camera equality."
+        },
+        "visiblePixels": 508302
+      },
+      "resources": {
+        "platform": "windows-job-object",
+        "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+        "laneMutex": "Local\\SessionViewerCourseImageJob",
+        "affinityOffset": 8,
+        "requiredAffinityMask": "0xFF00",
+        "maximumOtherLaneProcessors": 8,
+        "maximumOtherLaneMemoryMiB": 8192,
+        "maximumAggregateOurProcessors": 16,
+        "maximumAggregateOurMemoryMiB": 16384,
+        "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+        "requestedProcessors": 8,
+        "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+        "startedUtc": "2026-10-26T01:48:00.7247023Z",
+        "executable": "C:\\Program Files\\nodejs\\node.exe",
+        "arguments": [
+          "--require",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\warp-browser-timeout.cjs",
+          "--import",
+          "file:///C:/pc/3_code/code_rust/wood_research/session/session_tests/scripts/typescript.mjs",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\historical-browser-actions-presentation.ts",
+          "--worker",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\historical-action-scenes\\32c-close-3b8c42016239516bc58a\\config.json"
+        ],
+        "workingDirectory": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-builds\\cases\\32c-close-32482b515f0d9d2bcdca\\workspace",
+        "timeoutSeconds": 2400,
+        "jobCommitLimitBytes": 8589934592,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 0,
+        "timedOut": false,
+        "elapsedSeconds": 2.454,
+        "peakJobCommitBytes": 702742528,
+        "affinityMask": "0xFF00",
+        "processors": 8,
+        "processId": 62868,
+        "descendantsAtCleanup": 1
+      },
+      "rootReview": {
+        "sha256": "790a3e85ddc3f0c4ae2a64426b10e0f890865105b18ba0e7a9891dc6107459d8",
+        "representative": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\historical-action-scenes\\30d-bridge-b87048c50e967b4942fb\\30d-bridge-dpr2.png",
+        "ids": [
+          "30d-bridge",
+          "31-settings",
+          "31a-geometry",
+          "31b-cache",
+          "31c-incremental",
+          "32-history",
+          "32a-cpu",
+          "32b-gpu",
+          "32c-close",
+          "32d-command",
+          "32e-release"
+        ],
+        "width": 1800,
+        "height": 1520,
+        "reviewer": "maintained_export_audit delegated original-resolution inspection",
+        "finding": "Complete brown timber beam front-face rectangle over pink/cyan triangles with generous margins, readable file-import status and command dock.",
+        "reviewed": true
+      },
+      "http": {
+        "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/32c-close-browser.png?v=790a3e85ddc3",
+        "status": 200,
+        "sha256": "790a3e85ddc3f0c4ae2a64426b10e0f890865105b18ba0e7a9891dc6107459d8"
+      }
+    },
+    {
+      "id": "32d-command",
+      "destination": "docs/screenshots/journey/32d-command-browser.png",
+      "sha256": "790a3e85ddc3f0c4ae2a64426b10e0f890865105b18ba0e7a9891dc6107459d8",
+      "width": 1800,
+      "height": 1520,
+      "originalBackup": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\browser-streaming-publication-91-preparation\\originals\\docs\\screenshots\\journey\\32d-command-browser.png",
+      "originalSha256": "bbf2116564c2296f52286a9e348c605772be7d393937d85a8e83b202cedd417e",
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\historical-action-scenes\\32d-command-e74300abbab04e3359d1\\capture.json",
+        "sha256": "a50b4e4cc8b0b8d4a5d72e80d602851915ddd48825452f81678067561208d01f"
+      },
+      "source": {
+        "checkpoint": "32d-command",
+        "files": "6afff93567740ca88e6b7ebcb1fb622015c4e38dcd616dfff35d0ed81f97334f",
+        "lock": "22e937f52a1b508bdce699b6c06650f4e695346c9915a69286742997d3cc22e4",
+        "assets": {
+          "assets/text/NotoSans-Regular.subset.ttf": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09",
+          "assets/text/NotoSansSymbols2-Regular.subset.ttf": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed",
+          "assets/text/NotoSansSymbols-Regular.subset.ttf": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3"
+        },
+        "dependencies": {},
+        "kernel": "c0acbde78685d127e98e1d13dd9c1fdff064277c38ce17fd7329a13459558b88",
+        "fixture": "71af180ebb49945ded3d885d0716f3d0afcc23d481aad967b250b0c297d27403",
+        "harness": "cc7b0a195a93c6fde86a62e203c4ecabf74eb76ee256952dfd098796ca9c39a3",
+        "constructor": "make_renderer(device, queue, format)",
+        "logicalSize": [
+          640,
+          480
+        ],
+        "helper": "e2c028971ab9cc08c2b951bed543b025ccb6f17c8e0b844d5370e82abb3a7410"
+      },
+      "recipe": {
+        "kind": "source-exact-declared-browser-actions",
+        "actions": [
+          {
+            "file": "sample.pb"
+          }
+        ],
+        "callback": "journey/checks/browser/resources.cjs",
+        "declaredMetadataStatus": "File imported. Undo removes the entire import.",
+        "authority": "Exact browser_actions from this checkpoint. Its documented source illustration is captured; inherited callbacks, current callback terminal scene and whole behavior validation are not executed or claimed."
+      },
+      "canonicalBehaviorExecuted": false,
+      "sourceStartupStatusQualification": null,
+      "scope": "Exact checkpoint browser_actions only, with source-bound observed rendering. Inherited callback terminal state and original behavior checks are not claimed.",
+      "canonicalValidationProfile": false,
+      "semantic": {
+        "attributes": {
+          "data-command-ui": {
+            "command": "",
+            "completion_rect": null,
+            "controls": [
+              {
+                "key": "command/input",
+                "label": "Command",
+                "rect": [
+                  86.375,
+                  734,
+                  840,
+                  756
+                ]
+              },
+              {
+                "key": "command/collapse",
+                "label": "Collapse or expand history",
+                "rect": [
+                  848,
+                  734.5,
+                  864,
+                  755.5
+                ]
+              },
+              {
+                "key": "command/resize",
+                "label": "Drag to resize command history",
+                "rect": [
+                  0,
+                  726,
+                  900,
+                  734
+                ]
+              }
+            ],
+            "focused": true,
+            "history": [
+              "> Open\nCommand submitted.",
+              "> Open\nFile imported. Undo removes the entire import."
+            ],
+            "pointer_owned": false,
+            "top": 726
+          },
+          "data-gpu-stats": [
+            5,
+            5,
+            0,
+            0
+          ]
+        },
+        "cameraEvidence": {
+          "observed": null,
+          "declaredCameraActions": [],
+          "scope": "This source exposes no camera matrix readback; exact declared navigation commands and visible output are retained without claiming internal camera equality."
+        },
+        "visiblePixels": 508302
+      },
+      "resources": {
+        "platform": "windows-job-object",
+        "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+        "laneMutex": "Local\\SessionViewerCourseImageJob",
+        "affinityOffset": 8,
+        "requiredAffinityMask": "0xFF00",
+        "maximumOtherLaneProcessors": 8,
+        "maximumOtherLaneMemoryMiB": 8192,
+        "maximumAggregateOurProcessors": 16,
+        "maximumAggregateOurMemoryMiB": 16384,
+        "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+        "requestedProcessors": 8,
+        "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+        "startedUtc": "2026-10-26T01:48:12.5343016Z",
+        "executable": "C:\\Program Files\\nodejs\\node.exe",
+        "arguments": [
+          "--require",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\warp-browser-timeout.cjs",
+          "--import",
+          "file:///C:/pc/3_code/code_rust/wood_research/session/session_tests/scripts/typescript.mjs",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\historical-browser-actions-presentation.ts",
+          "--worker",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\historical-action-scenes\\32d-command-e74300abbab04e3359d1\\config.json"
+        ],
+        "workingDirectory": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-builds\\cases\\32d-command-ff4f45a5e82495273ab6\\workspace",
+        "timeoutSeconds": 2400,
+        "jobCommitLimitBytes": 8589934592,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 0,
+        "timedOut": false,
+        "elapsedSeconds": 2.378,
+        "peakJobCommitBytes": 690733056,
+        "affinityMask": "0xFF00",
+        "processors": 8,
+        "processId": 56452,
+        "descendantsAtCleanup": 1
+      },
+      "rootReview": {
+        "sha256": "790a3e85ddc3f0c4ae2a64426b10e0f890865105b18ba0e7a9891dc6107459d8",
+        "representative": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\historical-action-scenes\\30d-bridge-b87048c50e967b4942fb\\30d-bridge-dpr2.png",
+        "ids": [
+          "30d-bridge",
+          "31-settings",
+          "31a-geometry",
+          "31b-cache",
+          "31c-incremental",
+          "32-history",
+          "32a-cpu",
+          "32b-gpu",
+          "32c-close",
+          "32d-command",
+          "32e-release"
+        ],
+        "width": 1800,
+        "height": 1520,
+        "reviewer": "maintained_export_audit delegated original-resolution inspection",
+        "finding": "Complete brown timber beam front-face rectangle over pink/cyan triangles with generous margins, readable file-import status and command dock.",
+        "reviewed": true
+      },
+      "http": {
+        "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/32d-command-browser.png?v=790a3e85ddc3",
+        "status": 200,
+        "sha256": "790a3e85ddc3f0c4ae2a64426b10e0f890865105b18ba0e7a9891dc6107459d8"
+      }
+    },
+    {
+      "id": "32e-release",
+      "destination": "docs/screenshots/journey/32e-release-browser.png",
+      "sha256": "790a3e85ddc3f0c4ae2a64426b10e0f890865105b18ba0e7a9891dc6107459d8",
+      "width": 1800,
+      "height": 1520,
+      "originalBackup": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\browser-streaming-publication-91-preparation\\originals\\docs\\screenshots\\journey\\32e-release-browser.png",
+      "originalSha256": "e21fbe7da32aa6a5fef966acdd206811173d37a7aa575c54211ec36fa9f44234",
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\historical-action-scenes\\32e-release-8e85eb42f1a68885419d\\capture.json",
+        "sha256": "7b3d1f3f172c0dcc6d7c4cbcb6d87db279c191c8327e97faae1eb068fc9605ea"
+      },
+      "source": {
+        "checkpoint": "32e-release",
+        "files": "4394190ccf2d2e8621849fa3489e49831449c2c1bbdf090378f99dbad65bd654",
+        "lock": "22e937f52a1b508bdce699b6c06650f4e695346c9915a69286742997d3cc22e4",
+        "assets": {
+          "assets/text/NotoSans-Regular.subset.ttf": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09",
+          "assets/text/NotoSansSymbols2-Regular.subset.ttf": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed",
+          "assets/text/NotoSansSymbols-Regular.subset.ttf": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3"
+        },
+        "dependencies": {},
+        "kernel": "c0acbde78685d127e98e1d13dd9c1fdff064277c38ce17fd7329a13459558b88",
+        "fixture": "ab10c6d8bd5189f331cfa7565942c91a653347cb71b660d9615aec81805f54bf",
+        "harness": "cc7b0a195a93c6fde86a62e203c4ecabf74eb76ee256952dfd098796ca9c39a3",
+        "constructor": "make_renderer(device, queue, format)",
+        "logicalSize": [
+          640,
+          480
+        ],
+        "helper": "e2c028971ab9cc08c2b951bed543b025ccb6f17c8e0b844d5370e82abb3a7410"
+      },
+      "recipe": {
+        "kind": "source-exact-declared-browser-actions",
+        "actions": [
+          {
+            "file": "sample.pb"
+          }
+        ],
+        "callback": "journey/checks/browser/resources.cjs",
+        "declaredMetadataStatus": "File imported. Undo removes the entire import.",
+        "authority": "Exact browser_actions from this checkpoint. Its documented source illustration is captured; inherited callbacks, current callback terminal scene and whole behavior validation are not executed or claimed."
+      },
+      "canonicalBehaviorExecuted": false,
+      "sourceStartupStatusQualification": null,
+      "scope": "Exact checkpoint browser_actions only, with source-bound observed rendering. Inherited callback terminal state and original behavior checks are not claimed.",
+      "canonicalValidationProfile": false,
+      "semantic": {
+        "attributes": {
+          "data-command-ui": {
+            "command": "",
+            "completion_rect": null,
+            "controls": [
+              {
+                "key": "command/input",
+                "label": "Command",
+                "rect": [
+                  86.375,
+                  734,
+                  840,
+                  756
+                ]
+              },
+              {
+                "key": "command/collapse",
+                "label": "Collapse or expand history",
+                "rect": [
+                  848,
+                  734.5,
+                  864,
+                  755.5
+                ]
+              },
+              {
+                "key": "command/resize",
+                "label": "Drag to resize command history",
+                "rect": [
+                  0,
+                  726,
+                  900,
+                  734
+                ]
+              }
+            ],
+            "focused": true,
+            "history": [
+              "> Open\nCommand submitted.",
+              "> Open\nFile imported. Undo removes the entire import."
+            ],
+            "pointer_owned": false,
+            "top": 726
+          },
+          "data-gpu-stats": [
+            5,
+            5,
+            0,
+            0
+          ]
+        },
+        "cameraEvidence": {
+          "observed": null,
+          "declaredCameraActions": [],
+          "scope": "This source exposes no camera matrix readback; exact declared navigation commands and visible output are retained without claiming internal camera equality."
+        },
+        "visiblePixels": 508302
+      },
+      "resources": {
+        "platform": "windows-job-object",
+        "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+        "laneMutex": "Local\\SessionViewerCourseImageJob",
+        "affinityOffset": 8,
+        "requiredAffinityMask": "0xFF00",
+        "maximumOtherLaneProcessors": 8,
+        "maximumOtherLaneMemoryMiB": 8192,
+        "maximumAggregateOurProcessors": 16,
+        "maximumAggregateOurMemoryMiB": 16384,
+        "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+        "requestedProcessors": 8,
+        "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+        "startedUtc": "2026-10-26T01:48:28.8859412Z",
+        "executable": "C:\\Program Files\\nodejs\\node.exe",
+        "arguments": [
+          "--require",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\warp-browser-timeout.cjs",
+          "--import",
+          "file:///C:/pc/3_code/code_rust/wood_research/session/session_tests/scripts/typescript.mjs",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\historical-browser-actions-presentation.ts",
+          "--worker",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\historical-action-scenes\\32e-release-8e85eb42f1a68885419d\\config.json"
+        ],
+        "workingDirectory": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-builds\\cases\\32e-release-c2f7c1792a3cd88cdb17\\workspace",
+        "timeoutSeconds": 2400,
+        "jobCommitLimitBytes": 8589934592,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 0,
+        "timedOut": false,
+        "elapsedSeconds": 2.228,
+        "peakJobCommitBytes": 709619712,
+        "affinityMask": "0xFF00",
+        "processors": 8,
+        "processId": 47556,
+        "descendantsAtCleanup": 1
+      },
+      "rootReview": {
+        "sha256": "790a3e85ddc3f0c4ae2a64426b10e0f890865105b18ba0e7a9891dc6107459d8",
+        "representative": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\historical-action-scenes\\30d-bridge-b87048c50e967b4942fb\\30d-bridge-dpr2.png",
+        "ids": [
+          "30d-bridge",
+          "31-settings",
+          "31a-geometry",
+          "31b-cache",
+          "31c-incremental",
+          "32-history",
+          "32a-cpu",
+          "32b-gpu",
+          "32c-close",
+          "32d-command",
+          "32e-release"
+        ],
+        "width": 1800,
+        "height": 1520,
+        "reviewer": "maintained_export_audit delegated original-resolution inspection",
+        "finding": "Complete brown timber beam front-face rectangle over pink/cyan triangles with generous margins, readable file-import status and command dock.",
+        "reviewed": true
+      },
+      "http": {
+        "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/32e-release-browser.png?v=790a3e85ddc3",
+        "status": 200,
+        "sha256": "790a3e85ddc3f0c4ae2a64426b10e0f890865105b18ba0e7a9891dc6107459d8"
+      }
+    }
+  ]
+}

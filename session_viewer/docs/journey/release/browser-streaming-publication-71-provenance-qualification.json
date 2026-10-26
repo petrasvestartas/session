@@ -1,0 +1,25 @@
+{
+  "status": "PASS narrow provenance qualification; no image acceptance change",
+  "created": "2026-10-26T01:50:11.352Z",
+  "rootApproved": true,
+  "publication": {
+    "path": "docs/journey/release/browser-streaming-publication-71.json",
+    "sha256": "9fa4fe22672a52bcb3669aed41190faed998dc113eafa99e3c261554e402774e"
+  },
+  "approvedDelegatedReview": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-batches\\f0e4657eb9fa8a13f59f\\delegated-visual-review-20.json",
+    "sha256": "4a3f9b4f659cea5ac54016cf335b1db9106828844fc1b0bf5d4937fb3217d228"
+  },
+  "staleOptionalWorkingPointer": {
+    "path": "target/course-presentation/incremental-browser-batches/f0e4657eb9fa8a13f59f/pending-next-visual-review.json",
+    "sha256": "72cde6437f2a5f4b90dcab51d883cdf40e10084af477d4dde387504948adefbb"
+  },
+  "currentWorkingBytesRetained": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-batches\\f0e4657eb9fa8a13f59f\\working-manifest-retained-60aeae4c808c81589f70.json",
+    "sha256": "60aeae4c808c81589f70d5320801425de544f3221e1457c60ca1cd9d69873421"
+  },
+  "finding": "The optional working-manifest path was reused for preparing the next group. Original QA20 manifest bytes were not located in a retained backup; no reconstruction or guessed bytes are presented as the old hash.",
+  "intactEvidence": "The unchanged approved delegated review embeds all20 source/image rows and14 exact-SHA group findings. The unchanged publication independently records per-ID original capture/source/image hashes and20 actual served HTTP200 byte hashes. Root approval and image acceptance remain bound to these intact records.",
+  "limits": "Current working-manifest bytes do not satisfy the historical optional pointer. This record does not rerun or relabel any capture, change any image acceptance, or rewrite any old proof.",
+  "prevention": "Future completed-group manifests use unique paths and exclusive wx writes before review/publication."
+}
