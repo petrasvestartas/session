@@ -1,0 +1,2359 @@
+{
+  "status": "PASS 10 browser figures regenerated, delegated-reviewed, root-approved and source/served HTTP verified",
+  "date": "2026-10-26T06:22:25.959Z",
+  "rootPersonallyViewedOriginalResolution": false,
+  "rootApprovedDelegatedReview": true,
+  "delegatedReview": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\browser-streaming-publication-298-preparation\\delegated-review.json",
+    "sha256": "50382af9e740dc1fdfc46c1c8bd4b74e1ebf7cd7829176b121133299667708e7"
+  },
+  "rootReview": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\browser-streaming-publication-298-preparation\\root-review.json",
+    "sha256": "01c27ef14dc69a0cd18d8ff33a753ac9529b8ac25702cfb4b0f0ebbda59bb5bb"
+  },
+  "canonicalBehaviorExecuted": "Per-image original source record; no new canonical validation-profile execution",
+  "canonicalValidationProfile": false,
+  "scope": "Ten source-bound generic image-only recipes retain independent actual source/build/GPU/image receipts and source main-page scene assertions. Two exact previously approved image groups are reused only for visual review; no new root-personal view or inherited full-child-context/full-callback acceptance is claimed.",
+  "images": [
+    {
+      "id": "96zzzzzn-stamp-asynchronous-picks-with-the-origin",
+      "destination": "docs/screenshots/journey/96zzzzzn-stamp-asynchronous-picks-with-the-origin-browser.png",
+      "sha256": "ed44bd71cfb0e7277eb51fea6a2cc01031384743c173989be1006705b0bf231c",
+      "width": 1800,
+      "height": 1520,
+      "originalBackup": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\browser-streaming-publication-298-preparation\\originals\\docs\\screenshots\\journey\\96zzzzzn-stamp-asynchronous-picks-with-the-origin-browser.png",
+      "originalSha256": "c036ce4d9096bc9c8bde3674c650a1deef2a4d6404b6d2b53b0f876e27299ac6",
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\image-lane-scenes\\96zzzzzn-stamp-asynchronous-picks-with-the-origin-4cd586695f3dee8e23c5\\result.json",
+        "sha256": "1f230aacc0befa0619cfb2eb3f9611f4de79213b4ad6a5f331178f2f876dda4e"
+      },
+      "source": {
+        "checkpoint": "96zzzzzn-stamp-asynchronous-picks-with-the-origin",
+        "files": "3f011e012563dc0d78a3e9ccfb7031df64a8c32036d3d2c0b6dd7c42295bc25c",
+        "lock": "1df9f908a4aead0990495bcf505176ab0842191051943e422635b28f23ccab94",
+        "assets": {
+          "assets/text/NotoSans-Regular.subset.ttf": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09",
+          "assets/text/NotoSansSymbols2-Regular.subset.ttf": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed",
+          "assets/text/NotoSansSymbols-Regular.subset.ttf": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3",
+          "assets/text/OFL.txt": "0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb",
+          "assets/text/NotoSansSymbols-Regular.ttf": "8f02f31959bbdf6061547a188248e13f84dc5fdd940326ec494675f453f072bb",
+          "assets/text/NotoSans-Regular.ttf": "b85c38ecea8a7cfb39c24e395a4007474fa5a4fc864f6ee33309eb4948d232d5",
+          "assets/text/NotoSansSymbols2-Regular.ttf": "630846d528dbe4c4981370a4d0a9475a1fd1491a129bb411f8e157cdb5de13c6",
+          "assets/pb/course-comparison.pb": "8d952b0ac17ebf0bb7c20704b45b95acbe5b4395ff809a38baacaad93de4bed5",
+          "assets/pb/course-metadata.pb": "2cfe2ad9becff37d0fcca23f71e47b1c6e674d7934327120a9233efd0c2faf55",
+          "assets/pb/course-instance-features.pb": "3b9a0d162728849ff09fe9b8e77b877a4565e66b77b5c73d09422f362e816500",
+          "assets/pb/course-feature-pick.pb": "e05c864d93c99b700665508eb8ddc630c637cec24b51558de97f26f05762387d"
+        },
+        "dependencies": {
+          "dependencies": "ff3d53262a3d32f3b7f4da5397ec9944d6022d4b9c298e51cdee9a33b5560731",
+          "dependency_checker": "d32c7dbec5fd12dbd68a3adf36bccb60bdf5254cb890f1f8c5bff8a5b7e7d6d5"
+        },
+        "kernel": "c0acbde78685d127e98e1d13dd9c1fdff064277c38ce17fd7329a13459558b88",
+        "fixture": "9f1b3df69021e57f18192c60c60f2577e76a1f466a68b6228b59a363b7e6ac35",
+        "harness": "cc7b0a195a93c6fde86a62e203c4ecabf74eb76ee256952dfd098796ca9c39a3",
+        "constructor": "make_renderer(device, queue, format)",
+        "logicalSize": [
+          640,
+          480
+        ],
+        "helper": "e2c028971ab9cc08c2b951bed543b025ccb6f17c8e0b844d5370e82abb3a7410"
+      },
+      "recipe": {
+        "kind": "ordinary-and-instance-slots",
+        "callback": "journey/checks/browser/arena-empty.cjs",
+        "meaning": "The original page retains its startup originals, the current-command closed triangle, and two original definition instances. Reload, ambient-property and arena exercises run in separate contexts.",
+        "asset": null,
+        "commands": [
+          "Layers Off",
+          "View Grid Off",
+          "Snap Off",
+          "Grid Snap Off",
+          "CPlane XY",
+          "Polyline",
+          "w0,0,0",
+          "w1,0,0",
+          "w1,1,0",
+          "Close",
+          "Opacity 1",
+          "Fit",
+          "Example Instances",
+          "Fit",
+          "View Isometric",
+          "Select None",
+          "Opacity 1",
+          "Close"
+        ]
+      },
+      "canonicalBehaviorExecuted": false,
+      "sourceStartupStatusQualification": null,
+      "scope": "Presentation only; no canonical callback, historical behavior revalidation, or full verify execution is claimed.",
+      "canonicalValidationProfile": false,
+      "semantic": {
+        "camera": [
+          0.6564734563979487,
+          0.22441685137531578,
+          0.0470839681526497,
+          0,
+          -0.3790151267672,
+          0.38870138865668025,
+          0.08155182506234418,
+          0,
+          2.1039566020908387e-17,
+          0.7774027773133604,
+          -0.05436788337489615,
+          0,
+          0.07580302083522744,
+          -0.3245294724849015,
+          0.7138834417597639,
+          1
+        ],
+        "frame": [
+          0,
+          0,
+          1,
+          0.9552631578947368
+        ],
+        "projection": "Orthographic",
+        "grid": "false",
+        "pickMode": "Object",
+        "selectedCount": 0,
+        "cads": [],
+        "surfaces": [],
+        "instances": [
+          {
+            "definition_guid": "fd362767-e3eb-4c46-9ff9-ea022fbad874",
+            "model": [
+              1,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0.6,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "definition_guid": "fd362767-e3eb-4c46-9ff9-ea022fbad874",
+            "model": [
+              1,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              -0.6,
+              0,
+              0,
+              1
+            ]
+          }
+        ],
+        "drawing": {
+          "lines": [],
+          "points": [],
+          "polylines": [
+            [
+              [
+                0,
+                0,
+                0
+              ],
+              [
+                1,
+                0,
+                0
+              ],
+              [
+                1,
+                1,
+                0
+              ],
+              [
+                0,
+                0,
+                0
+              ]
+            ]
+          ]
+        },
+        "clouds": [],
+        "settings": {
+          "opacity": 1,
+          "outlines": false,
+          "arctic": false
+        }
+      },
+      "resources": {
+        "platform": "windows-job-object",
+        "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+        "laneMutex": "Local\\SessionViewerCourseImageJob",
+        "affinityOffset": 8,
+        "requiredAffinityMask": "0xFF00",
+        "maximumOtherLaneProcessors": 8,
+        "maximumOtherLaneMemoryMiB": 8192,
+        "maximumAggregateOurProcessors": 16,
+        "maximumAggregateOurMemoryMiB": 16384,
+        "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+        "requestedProcessors": 8,
+        "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+        "startedUtc": "2026-10-26T06:10:25.5327970Z",
+        "executable": "C:\\Program Files\\nodejs\\node.exe",
+        "arguments": [
+          "--require",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\warp-browser-timeout.cjs",
+          "--import",
+          "file:///C:/pc/3_code/code_rust/wood_research/session/session_tests/scripts/typescript.mjs",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\browser-scene-presentation.ts",
+          "worker",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\image-lane-scenes\\96zzzzzn-stamp-asynchronous-picks-with-the-origin-4cd586695f3dee8e23c5\\prepared.json",
+          "http://127.0.0.1:60354/96zzzzzn-stamp-asynchronous-picks-with-the-origin/dist/"
+        ],
+        "workingDirectory": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-builds\\cases\\96zzzzzn-stamp-asynchronous-picks-with-the-origin-e1892f6be0baf6860f70\\workspace",
+        "timeoutSeconds": 2400,
+        "jobCommitLimitBytes": 8589934592,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 0,
+        "timedOut": false,
+        "elapsedSeconds": 7.617,
+        "peakJobCommitBytes": 1019305984,
+        "affinityMask": "0xFF00",
+        "processors": 8,
+        "processId": 35808,
+        "descendantsAtCleanup": 0
+      },
+      "rootReview": {
+        "sha256": "ed44bd71cfb0e7277eb51fea6a2cc01031384743c173989be1006705b0bf231c",
+        "exactPreviouslyApprovedImage": true,
+        "finding": "Nine independent captures match the original-resolution reviewed/root-approved ordinary/instance scene: complete teal/pink and two blue placed triangles, intended partly occluded wire triangle, white margins and readable command field."
+      },
+      "http": {
+        "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/96zzzzzn-stamp-asynchronous-picks-with-the-origin-browser.png?v=ed44bd71cfb0",
+        "status": 200,
+        "sha256": "ed44bd71cfb0e7277eb51fea6a2cc01031384743c173989be1006705b0bf231c"
+      }
+    },
+    {
+      "id": "96zzzzzo-retry-rebased-picks-with-the-latest-cursor",
+      "destination": "docs/screenshots/journey/96zzzzzo-retry-rebased-picks-with-the-latest-cursor-browser.png",
+      "sha256": "ed44bd71cfb0e7277eb51fea6a2cc01031384743c173989be1006705b0bf231c",
+      "width": 1800,
+      "height": 1520,
+      "originalBackup": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\browser-streaming-publication-298-preparation\\originals\\docs\\screenshots\\journey\\96zzzzzo-retry-rebased-picks-with-the-latest-cursor-browser.png",
+      "originalSha256": "c036ce4d9096bc9c8bde3674c650a1deef2a4d6404b6d2b53b0f876e27299ac6",
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\image-lane-scenes\\96zzzzzo-retry-rebased-picks-with-the-latest-cursor-edeb668310a7c98fc6d7\\result.json",
+        "sha256": "ca98879c6040d925884b71a0b353ce60f9b585647eaeeac0b928003535ba58c3"
+      },
+      "source": {
+        "checkpoint": "96zzzzzo-retry-rebased-picks-with-the-latest-cursor",
+        "files": "6626423f464cf40f19d2550b2f90921b584649babed1c6d57f06339058728e1a",
+        "lock": "1df9f908a4aead0990495bcf505176ab0842191051943e422635b28f23ccab94",
+        "assets": {
+          "assets/text/NotoSans-Regular.subset.ttf": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09",
+          "assets/text/NotoSansSymbols2-Regular.subset.ttf": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed",
+          "assets/text/NotoSansSymbols-Regular.subset.ttf": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3",
+          "assets/text/OFL.txt": "0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb",
+          "assets/text/NotoSansSymbols-Regular.ttf": "8f02f31959bbdf6061547a188248e13f84dc5fdd940326ec494675f453f072bb",
+          "assets/text/NotoSans-Regular.ttf": "b85c38ecea8a7cfb39c24e395a4007474fa5a4fc864f6ee33309eb4948d232d5",
+          "assets/text/NotoSansSymbols2-Regular.ttf": "630846d528dbe4c4981370a4d0a9475a1fd1491a129bb411f8e157cdb5de13c6",
+          "assets/pb/course-comparison.pb": "8d952b0ac17ebf0bb7c20704b45b95acbe5b4395ff809a38baacaad93de4bed5",
+          "assets/pb/course-metadata.pb": "2cfe2ad9becff37d0fcca23f71e47b1c6e674d7934327120a9233efd0c2faf55",
+          "assets/pb/course-instance-features.pb": "3b9a0d162728849ff09fe9b8e77b877a4565e66b77b5c73d09422f362e816500",
+          "assets/pb/course-feature-pick.pb": "e05c864d93c99b700665508eb8ddc630c637cec24b51558de97f26f05762387d"
+        },
+        "dependencies": {
+          "dependencies": "ff3d53262a3d32f3b7f4da5397ec9944d6022d4b9c298e51cdee9a33b5560731",
+          "dependency_checker": "d32c7dbec5fd12dbd68a3adf36bccb60bdf5254cb890f1f8c5bff8a5b7e7d6d5"
+        },
+        "kernel": "c0acbde78685d127e98e1d13dd9c1fdff064277c38ce17fd7329a13459558b88",
+        "fixture": "9f1b3df69021e57f18192c60c60f2577e76a1f466a68b6228b59a363b7e6ac35",
+        "harness": "cc7b0a195a93c6fde86a62e203c4ecabf74eb76ee256952dfd098796ca9c39a3",
+        "constructor": "make_renderer(device, queue, format)",
+        "logicalSize": [
+          640,
+          480
+        ],
+        "helper": "e2c028971ab9cc08c2b951bed543b025ccb6f17c8e0b844d5370e82abb3a7410"
+      },
+      "recipe": {
+        "kind": "ordinary-and-instance-slots",
+        "callback": "journey/checks/browser/arena-empty.cjs",
+        "meaning": "The original page retains its startup originals, the current-command closed triangle, and two original definition instances. Reload, ambient-property and arena exercises run in separate contexts.",
+        "asset": null,
+        "commands": [
+          "Layers Off",
+          "View Grid Off",
+          "Snap Off",
+          "Grid Snap Off",
+          "CPlane XY",
+          "Polyline",
+          "w0,0,0",
+          "w1,0,0",
+          "w1,1,0",
+          "Close",
+          "Opacity 1",
+          "Fit",
+          "Example Instances",
+          "Fit",
+          "View Isometric",
+          "Select None",
+          "Opacity 1",
+          "Close"
+        ]
+      },
+      "canonicalBehaviorExecuted": false,
+      "sourceStartupStatusQualification": null,
+      "scope": "Presentation only; no canonical callback, historical behavior revalidation, or full verify execution is claimed.",
+      "canonicalValidationProfile": false,
+      "semantic": {
+        "camera": [
+          0.6564734563979487,
+          0.22441685137531578,
+          0.0470839681526497,
+          0,
+          -0.3790151267672,
+          0.38870138865668025,
+          0.08155182506234418,
+          0,
+          2.1039566020908387e-17,
+          0.7774027773133604,
+          -0.05436788337489615,
+          0,
+          0.07580302083522744,
+          -0.3245294724849015,
+          0.7138834417597639,
+          1
+        ],
+        "frame": [
+          0,
+          0,
+          1,
+          0.9552631578947368
+        ],
+        "projection": "Orthographic",
+        "grid": "false",
+        "pickMode": "Object",
+        "selectedCount": 0,
+        "cads": [],
+        "surfaces": [],
+        "instances": [
+          {
+            "definition_guid": "9a435e96-8941-4b9f-91ba-07c621caa4ae",
+            "model": [
+              1,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0.6,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "definition_guid": "9a435e96-8941-4b9f-91ba-07c621caa4ae",
+            "model": [
+              1,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              -0.6,
+              0,
+              0,
+              1
+            ]
+          }
+        ],
+        "drawing": {
+          "lines": [],
+          "points": [],
+          "polylines": [
+            [
+              [
+                0,
+                0,
+                0
+              ],
+              [
+                1,
+                0,
+                0
+              ],
+              [
+                1,
+                1,
+                0
+              ],
+              [
+                0,
+                0,
+                0
+              ]
+            ]
+          ]
+        },
+        "clouds": [],
+        "settings": {
+          "opacity": 1,
+          "outlines": false,
+          "arctic": false
+        }
+      },
+      "resources": {
+        "platform": "windows-job-object",
+        "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+        "laneMutex": "Local\\SessionViewerCourseImageJob",
+        "affinityOffset": 8,
+        "requiredAffinityMask": "0xFF00",
+        "maximumOtherLaneProcessors": 8,
+        "maximumOtherLaneMemoryMiB": 8192,
+        "maximumAggregateOurProcessors": 16,
+        "maximumAggregateOurMemoryMiB": 16384,
+        "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+        "requestedProcessors": 8,
+        "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+        "startedUtc": "2026-10-26T06:11:19.1418478Z",
+        "executable": "C:\\Program Files\\nodejs\\node.exe",
+        "arguments": [
+          "--require",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\warp-browser-timeout.cjs",
+          "--import",
+          "file:///C:/pc/3_code/code_rust/wood_research/session/session_tests/scripts/typescript.mjs",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\browser-scene-presentation.ts",
+          "worker",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\image-lane-scenes\\96zzzzzo-retry-rebased-picks-with-the-latest-cursor-edeb668310a7c98fc6d7\\prepared.json",
+          "http://127.0.0.1:64353/96zzzzzo-retry-rebased-picks-with-the-latest-cursor/dist/"
+        ],
+        "workingDirectory": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-builds\\cases\\96zzzzzo-retry-rebased-picks-with-the-latest-cursor-65ba9d0e72ce158e359a\\workspace",
+        "timeoutSeconds": 2400,
+        "jobCommitLimitBytes": 8589934592,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 0,
+        "timedOut": false,
+        "elapsedSeconds": 7.726,
+        "peakJobCommitBytes": 1048473600,
+        "affinityMask": "0xFF00",
+        "processors": 8,
+        "processId": 36256,
+        "descendantsAtCleanup": 0
+      },
+      "rootReview": {
+        "sha256": "ed44bd71cfb0e7277eb51fea6a2cc01031384743c173989be1006705b0bf231c",
+        "exactPreviouslyApprovedImage": true,
+        "finding": "Nine independent captures match the original-resolution reviewed/root-approved ordinary/instance scene: complete teal/pink and two blue placed triangles, intended partly occluded wire triangle, white margins and readable command field."
+      },
+      "http": {
+        "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/96zzzzzo-retry-rebased-picks-with-the-latest-cursor-browser.png?v=ed44bd71cfb0",
+        "status": 200,
+        "sha256": "ed44bd71cfb0e7277eb51fea6a2cc01031384743c173989be1006705b0bf231c"
+      }
+    },
+    {
+      "id": "96zzzzzp-share-derived-inputs-for-origin-refresh",
+      "destination": "docs/screenshots/journey/96zzzzzp-share-derived-inputs-for-origin-refresh-browser.png",
+      "sha256": "ed44bd71cfb0e7277eb51fea6a2cc01031384743c173989be1006705b0bf231c",
+      "width": 1800,
+      "height": 1520,
+      "originalBackup": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\browser-streaming-publication-298-preparation\\originals\\docs\\screenshots\\journey\\96zzzzzp-share-derived-inputs-for-origin-refresh-browser.png",
+      "originalSha256": "c036ce4d9096bc9c8bde3674c650a1deef2a4d6404b6d2b53b0f876e27299ac6",
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\image-lane-scenes\\96zzzzzp-share-derived-inputs-for-origin-refresh-75c40d2ac03351564db8\\result.json",
+        "sha256": "82189488832d6a5c23744fa4d61abbfc51a3b115b869a93885d60845f9a6453c"
+      },
+      "source": {
+        "checkpoint": "96zzzzzp-share-derived-inputs-for-origin-refresh",
+        "files": "7ffc933c58be099f5cd4ad8d345d71ff6c02af3bedf6139b11acae3492b87d6f",
+        "lock": "1df9f908a4aead0990495bcf505176ab0842191051943e422635b28f23ccab94",
+        "assets": {
+          "assets/text/NotoSans-Regular.subset.ttf": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09",
+          "assets/text/NotoSansSymbols2-Regular.subset.ttf": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed",
+          "assets/text/NotoSansSymbols-Regular.subset.ttf": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3",
+          "assets/text/OFL.txt": "0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb",
+          "assets/text/NotoSansSymbols-Regular.ttf": "8f02f31959bbdf6061547a188248e13f84dc5fdd940326ec494675f453f072bb",
+          "assets/text/NotoSans-Regular.ttf": "b85c38ecea8a7cfb39c24e395a4007474fa5a4fc864f6ee33309eb4948d232d5",
+          "assets/text/NotoSansSymbols2-Regular.ttf": "630846d528dbe4c4981370a4d0a9475a1fd1491a129bb411f8e157cdb5de13c6",
+          "assets/pb/course-comparison.pb": "8d952b0ac17ebf0bb7c20704b45b95acbe5b4395ff809a38baacaad93de4bed5",
+          "assets/pb/course-metadata.pb": "2cfe2ad9becff37d0fcca23f71e47b1c6e674d7934327120a9233efd0c2faf55",
+          "assets/pb/course-instance-features.pb": "3b9a0d162728849ff09fe9b8e77b877a4565e66b77b5c73d09422f362e816500",
+          "assets/pb/course-feature-pick.pb": "e05c864d93c99b700665508eb8ddc630c637cec24b51558de97f26f05762387d"
+        },
+        "dependencies": {
+          "dependencies": "ff3d53262a3d32f3b7f4da5397ec9944d6022d4b9c298e51cdee9a33b5560731",
+          "dependency_checker": "d32c7dbec5fd12dbd68a3adf36bccb60bdf5254cb890f1f8c5bff8a5b7e7d6d5"
+        },
+        "kernel": "c0acbde78685d127e98e1d13dd9c1fdff064277c38ce17fd7329a13459558b88",
+        "fixture": "9f1b3df69021e57f18192c60c60f2577e76a1f466a68b6228b59a363b7e6ac35",
+        "harness": "cc7b0a195a93c6fde86a62e203c4ecabf74eb76ee256952dfd098796ca9c39a3",
+        "constructor": "make_renderer(device, queue, format)",
+        "logicalSize": [
+          640,
+          480
+        ],
+        "helper": "e2c028971ab9cc08c2b951bed543b025ccb6f17c8e0b844d5370e82abb3a7410"
+      },
+      "recipe": {
+        "kind": "ordinary-and-instance-slots",
+        "callback": "journey/checks/browser/arena-empty.cjs",
+        "meaning": "The original page retains its startup originals, the current-command closed triangle, and two original definition instances. Reload, ambient-property and arena exercises run in separate contexts.",
+        "asset": null,
+        "commands": [
+          "Layers Off",
+          "View Grid Off",
+          "Snap Off",
+          "Grid Snap Off",
+          "CPlane XY",
+          "Polyline",
+          "w0,0,0",
+          "w1,0,0",
+          "w1,1,0",
+          "Close",
+          "Opacity 1",
+          "Fit",
+          "Example Instances",
+          "Fit",
+          "View Isometric",
+          "Select None",
+          "Opacity 1",
+          "Close"
+        ]
+      },
+      "canonicalBehaviorExecuted": false,
+      "sourceStartupStatusQualification": null,
+      "scope": "Presentation only; no canonical callback, historical behavior revalidation, or full verify execution is claimed.",
+      "canonicalValidationProfile": false,
+      "semantic": {
+        "camera": [
+          0.6564734563979487,
+          0.22441685137531578,
+          0.0470839681526497,
+          0,
+          -0.3790151267672,
+          0.38870138865668025,
+          0.08155182506234418,
+          0,
+          2.1039566020908387e-17,
+          0.7774027773133604,
+          -0.05436788337489615,
+          0,
+          0.07580302083522744,
+          -0.3245294724849015,
+          0.7138834417597639,
+          1
+        ],
+        "frame": [
+          0,
+          0,
+          1,
+          0.9552631578947368
+        ],
+        "projection": "Orthographic",
+        "grid": "false",
+        "pickMode": "Object",
+        "selectedCount": 0,
+        "cads": [],
+        "surfaces": [],
+        "instances": [
+          {
+            "definition_guid": "e75a51c1-edfd-4dc8-97fe-a56751832893",
+            "model": [
+              1,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0.6,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "definition_guid": "e75a51c1-edfd-4dc8-97fe-a56751832893",
+            "model": [
+              1,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              -0.6,
+              0,
+              0,
+              1
+            ]
+          }
+        ],
+        "drawing": {
+          "lines": [],
+          "points": [],
+          "polylines": [
+            [
+              [
+                0,
+                0,
+                0
+              ],
+              [
+                1,
+                0,
+                0
+              ],
+              [
+                1,
+                1,
+                0
+              ],
+              [
+                0,
+                0,
+                0
+              ]
+            ]
+          ]
+        },
+        "clouds": [],
+        "settings": {
+          "opacity": 1,
+          "outlines": false,
+          "arctic": false
+        }
+      },
+      "resources": {
+        "platform": "windows-job-object",
+        "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+        "laneMutex": "Local\\SessionViewerCourseImageJob",
+        "affinityOffset": 8,
+        "requiredAffinityMask": "0xFF00",
+        "maximumOtherLaneProcessors": 8,
+        "maximumOtherLaneMemoryMiB": 8192,
+        "maximumAggregateOurProcessors": 16,
+        "maximumAggregateOurMemoryMiB": 16384,
+        "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+        "requestedProcessors": 8,
+        "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+        "startedUtc": "2026-10-26T06:12:14.4693296Z",
+        "executable": "C:\\Program Files\\nodejs\\node.exe",
+        "arguments": [
+          "--require",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\warp-browser-timeout.cjs",
+          "--import",
+          "file:///C:/pc/3_code/code_rust/wood_research/session/session_tests/scripts/typescript.mjs",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\browser-scene-presentation.ts",
+          "worker",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\image-lane-scenes\\96zzzzzp-share-derived-inputs-for-origin-refresh-75c40d2ac03351564db8\\prepared.json",
+          "http://127.0.0.1:54139/96zzzzzp-share-derived-inputs-for-origin-refresh/dist/"
+        ],
+        "workingDirectory": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-builds\\cases\\96zzzzzp-share-derived-inputs-for-origin-refresh-b48a4d4a0a90e791e6f6\\workspace",
+        "timeoutSeconds": 2400,
+        "jobCommitLimitBytes": 8589934592,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 0,
+        "timedOut": false,
+        "elapsedSeconds": 7.483,
+        "peakJobCommitBytes": 1111257088,
+        "affinityMask": "0xFF00",
+        "processors": 8,
+        "processId": 65728,
+        "descendantsAtCleanup": 0
+      },
+      "rootReview": {
+        "sha256": "ed44bd71cfb0e7277eb51fea6a2cc01031384743c173989be1006705b0bf231c",
+        "exactPreviouslyApprovedImage": true,
+        "finding": "Nine independent captures match the original-resolution reviewed/root-approved ordinary/instance scene: complete teal/pink and two blue placed triangles, intended partly occluded wire triangle, white margins and readable command field."
+      },
+      "http": {
+        "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/96zzzzzp-share-derived-inputs-for-origin-refresh-browser.png?v=ed44bd71cfb0",
+        "status": 200,
+        "sha256": "ed44bd71cfb0e7277eb51fea6a2cc01031384743c173989be1006705b0bf231c"
+      }
+    },
+    {
+      "id": "96zzzzzq-prepare-one-shared-render-origin",
+      "destination": "docs/screenshots/journey/96zzzzzq-prepare-one-shared-render-origin-browser.png",
+      "sha256": "ed44bd71cfb0e7277eb51fea6a2cc01031384743c173989be1006705b0bf231c",
+      "width": 1800,
+      "height": 1520,
+      "originalBackup": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\browser-streaming-publication-298-preparation\\originals\\docs\\screenshots\\journey\\96zzzzzq-prepare-one-shared-render-origin-browser.png",
+      "originalSha256": "c036ce4d9096bc9c8bde3674c650a1deef2a4d6404b6d2b53b0f876e27299ac6",
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\image-lane-scenes\\96zzzzzq-prepare-one-shared-render-origin-002c8053e08b1be68704\\result.json",
+        "sha256": "e0e7bc2ed8d4290e9f27b0d652962447976799f826771f1fc50a93813dae5481"
+      },
+      "source": {
+        "checkpoint": "96zzzzzq-prepare-one-shared-render-origin",
+        "files": "4d880138b7ec3d00844ba872a30e623e72ee0b5e69eb4dcd87e9997bca69b7f3",
+        "lock": "1df9f908a4aead0990495bcf505176ab0842191051943e422635b28f23ccab94",
+        "assets": {
+          "assets/text/NotoSans-Regular.subset.ttf": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09",
+          "assets/text/NotoSansSymbols2-Regular.subset.ttf": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed",
+          "assets/text/NotoSansSymbols-Regular.subset.ttf": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3",
+          "assets/text/OFL.txt": "0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb",
+          "assets/text/NotoSansSymbols-Regular.ttf": "8f02f31959bbdf6061547a188248e13f84dc5fdd940326ec494675f453f072bb",
+          "assets/text/NotoSans-Regular.ttf": "b85c38ecea8a7cfb39c24e395a4007474fa5a4fc864f6ee33309eb4948d232d5",
+          "assets/text/NotoSansSymbols2-Regular.ttf": "630846d528dbe4c4981370a4d0a9475a1fd1491a129bb411f8e157cdb5de13c6",
+          "assets/pb/course-comparison.pb": "8d952b0ac17ebf0bb7c20704b45b95acbe5b4395ff809a38baacaad93de4bed5",
+          "assets/pb/course-metadata.pb": "2cfe2ad9becff37d0fcca23f71e47b1c6e674d7934327120a9233efd0c2faf55",
+          "assets/pb/course-instance-features.pb": "3b9a0d162728849ff09fe9b8e77b877a4565e66b77b5c73d09422f362e816500",
+          "assets/pb/course-feature-pick.pb": "e05c864d93c99b700665508eb8ddc630c637cec24b51558de97f26f05762387d"
+        },
+        "dependencies": {
+          "dependencies": "ff3d53262a3d32f3b7f4da5397ec9944d6022d4b9c298e51cdee9a33b5560731",
+          "dependency_checker": "d32c7dbec5fd12dbd68a3adf36bccb60bdf5254cb890f1f8c5bff8a5b7e7d6d5"
+        },
+        "kernel": "c0acbde78685d127e98e1d13dd9c1fdff064277c38ce17fd7329a13459558b88",
+        "fixture": "9f1b3df69021e57f18192c60c60f2577e76a1f466a68b6228b59a363b7e6ac35",
+        "harness": "cc7b0a195a93c6fde86a62e203c4ecabf74eb76ee256952dfd098796ca9c39a3",
+        "constructor": "make_renderer(device, queue, format)",
+        "logicalSize": [
+          640,
+          480
+        ],
+        "helper": "e2c028971ab9cc08c2b951bed543b025ccb6f17c8e0b844d5370e82abb3a7410"
+      },
+      "recipe": {
+        "kind": "ordinary-and-instance-slots",
+        "callback": "journey/checks/browser/arena-empty.cjs",
+        "meaning": "The original page retains its startup originals, the current-command closed triangle, and two original definition instances. Reload, ambient-property and arena exercises run in separate contexts.",
+        "asset": null,
+        "commands": [
+          "Layers Off",
+          "View Grid Off",
+          "Snap Off",
+          "Grid Snap Off",
+          "CPlane XY",
+          "Polyline",
+          "w0,0,0",
+          "w1,0,0",
+          "w1,1,0",
+          "Close",
+          "Opacity 1",
+          "Fit",
+          "Example Instances",
+          "Fit",
+          "View Isometric",
+          "Select None",
+          "Opacity 1",
+          "Close"
+        ]
+      },
+      "canonicalBehaviorExecuted": false,
+      "sourceStartupStatusQualification": null,
+      "scope": "Presentation only; no canonical callback, historical behavior revalidation, or full verify execution is claimed.",
+      "canonicalValidationProfile": false,
+      "semantic": {
+        "camera": [
+          0.6564734563979487,
+          0.22441685137531578,
+          0.0470839681526497,
+          0,
+          -0.3790151267672,
+          0.38870138865668025,
+          0.08155182506234418,
+          0,
+          2.1039566020908387e-17,
+          0.7774027773133604,
+          -0.05436788337489615,
+          0,
+          0.07580302083522744,
+          -0.3245294724849015,
+          0.7138834417597639,
+          1
+        ],
+        "frame": [
+          0,
+          0,
+          1,
+          0.9552631578947368
+        ],
+        "projection": "Orthographic",
+        "grid": "false",
+        "pickMode": "Object",
+        "selectedCount": 0,
+        "cads": [],
+        "surfaces": [],
+        "instances": [
+          {
+            "definition_guid": "527e3d12-d6d3-47fc-852c-503e594c7a02",
+            "model": [
+              1,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0.6,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "definition_guid": "527e3d12-d6d3-47fc-852c-503e594c7a02",
+            "model": [
+              1,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              -0.6,
+              0,
+              0,
+              1
+            ]
+          }
+        ],
+        "drawing": {
+          "lines": [],
+          "points": [],
+          "polylines": [
+            [
+              [
+                0,
+                0,
+                0
+              ],
+              [
+                1,
+                0,
+                0
+              ],
+              [
+                1,
+                1,
+                0
+              ],
+              [
+                0,
+                0,
+                0
+              ]
+            ]
+          ]
+        },
+        "clouds": [],
+        "settings": {
+          "opacity": 1,
+          "outlines": false,
+          "arctic": false
+        }
+      },
+      "resources": {
+        "platform": "windows-job-object",
+        "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+        "laneMutex": "Local\\SessionViewerCourseImageJob",
+        "affinityOffset": 8,
+        "requiredAffinityMask": "0xFF00",
+        "maximumOtherLaneProcessors": 8,
+        "maximumOtherLaneMemoryMiB": 8192,
+        "maximumAggregateOurProcessors": 16,
+        "maximumAggregateOurMemoryMiB": 16384,
+        "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+        "requestedProcessors": 8,
+        "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+        "startedUtc": "2026-10-26T06:13:05.6346704Z",
+        "executable": "C:\\Program Files\\nodejs\\node.exe",
+        "arguments": [
+          "--require",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\warp-browser-timeout.cjs",
+          "--import",
+          "file:///C:/pc/3_code/code_rust/wood_research/session/session_tests/scripts/typescript.mjs",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\browser-scene-presentation.ts",
+          "worker",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\image-lane-scenes\\96zzzzzq-prepare-one-shared-render-origin-002c8053e08b1be68704\\prepared.json",
+          "http://127.0.0.1:64919/96zzzzzq-prepare-one-shared-render-origin/dist/"
+        ],
+        "workingDirectory": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-builds\\cases\\96zzzzzq-prepare-one-shared-render-origin-70a68f850730ce4c4837\\workspace",
+        "timeoutSeconds": 2400,
+        "jobCommitLimitBytes": 8589934592,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 0,
+        "timedOut": false,
+        "elapsedSeconds": 7.046,
+        "peakJobCommitBytes": 1117282304,
+        "affinityMask": "0xFF00",
+        "processors": 8,
+        "processId": 30788,
+        "descendantsAtCleanup": 1
+      },
+      "rootReview": {
+        "sha256": "ed44bd71cfb0e7277eb51fea6a2cc01031384743c173989be1006705b0bf231c",
+        "exactPreviouslyApprovedImage": true,
+        "finding": "Nine independent captures match the original-resolution reviewed/root-approved ordinary/instance scene: complete teal/pink and two blue placed triangles, intended partly occluded wire triangle, white margins and readable command field."
+      },
+      "http": {
+        "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/96zzzzzq-prepare-one-shared-render-origin-browser.png?v=ed44bd71cfb0",
+        "status": 200,
+        "sha256": "ed44bd71cfb0e7277eb51fea6a2cc01031384743c173989be1006705b0bf231c"
+      }
+    },
+    {
+      "id": "96zzzzzr-prepare-browser-frame-matrices-and-owned-wakes",
+      "destination": "docs/screenshots/journey/96zzzzzr-prepare-browser-frame-matrices-and-owned-wakes-browser.png",
+      "sha256": "ed44bd71cfb0e7277eb51fea6a2cc01031384743c173989be1006705b0bf231c",
+      "width": 1800,
+      "height": 1520,
+      "originalBackup": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\browser-streaming-publication-298-preparation\\originals\\docs\\screenshots\\journey\\96zzzzzr-prepare-browser-frame-matrices-and-owned-wakes-browser.png",
+      "originalSha256": "c036ce4d9096bc9c8bde3674c650a1deef2a4d6404b6d2b53b0f876e27299ac6",
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\image-lane-scenes\\96zzzzzr-prepare-browser-frame-matrices-and-owned-wakes-706795a5a764a5041fed\\result.json",
+        "sha256": "d8aa018cec71d54a49eacabfdf257c5d6dcee4a8ae70b310f947c38e743b7bfe"
+      },
+      "source": {
+        "checkpoint": "96zzzzzr-prepare-browser-frame-matrices-and-owned-wakes",
+        "files": "e3a4b23f78ce2678c1816ac0b12d3ab6f52bf3b26f3b6e8fd3812ea041111940",
+        "lock": "1df9f908a4aead0990495bcf505176ab0842191051943e422635b28f23ccab94",
+        "assets": {
+          "assets/text/NotoSans-Regular.subset.ttf": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09",
+          "assets/text/NotoSansSymbols2-Regular.subset.ttf": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed",
+          "assets/text/NotoSansSymbols-Regular.subset.ttf": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3",
+          "assets/text/OFL.txt": "0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb",
+          "assets/text/NotoSansSymbols-Regular.ttf": "8f02f31959bbdf6061547a188248e13f84dc5fdd940326ec494675f453f072bb",
+          "assets/text/NotoSans-Regular.ttf": "b85c38ecea8a7cfb39c24e395a4007474fa5a4fc864f6ee33309eb4948d232d5",
+          "assets/text/NotoSansSymbols2-Regular.ttf": "630846d528dbe4c4981370a4d0a9475a1fd1491a129bb411f8e157cdb5de13c6",
+          "assets/pb/course-comparison.pb": "8d952b0ac17ebf0bb7c20704b45b95acbe5b4395ff809a38baacaad93de4bed5",
+          "assets/pb/course-metadata.pb": "2cfe2ad9becff37d0fcca23f71e47b1c6e674d7934327120a9233efd0c2faf55",
+          "assets/pb/course-instance-features.pb": "3b9a0d162728849ff09fe9b8e77b877a4565e66b77b5c73d09422f362e816500",
+          "assets/pb/course-feature-pick.pb": "e05c864d93c99b700665508eb8ddc630c637cec24b51558de97f26f05762387d"
+        },
+        "dependencies": {
+          "dependencies": "ff3d53262a3d32f3b7f4da5397ec9944d6022d4b9c298e51cdee9a33b5560731",
+          "dependency_checker": "d32c7dbec5fd12dbd68a3adf36bccb60bdf5254cb890f1f8c5bff8a5b7e7d6d5"
+        },
+        "kernel": "c0acbde78685d127e98e1d13dd9c1fdff064277c38ce17fd7329a13459558b88",
+        "fixture": "9f1b3df69021e57f18192c60c60f2577e76a1f466a68b6228b59a363b7e6ac35",
+        "harness": "cc7b0a195a93c6fde86a62e203c4ecabf74eb76ee256952dfd098796ca9c39a3",
+        "constructor": "make_renderer(device, queue, format)",
+        "logicalSize": [
+          640,
+          480
+        ],
+        "helper": "e2c028971ab9cc08c2b951bed543b025ccb6f17c8e0b844d5370e82abb3a7410"
+      },
+      "recipe": {
+        "kind": "ordinary-and-instance-slots",
+        "callback": "journey/checks/browser/arena-empty.cjs",
+        "meaning": "The original page retains its startup originals, the current-command closed triangle, and two original definition instances. Reload, ambient-property and arena exercises run in separate contexts.",
+        "asset": null,
+        "commands": [
+          "Layers Off",
+          "View Grid Off",
+          "Snap Off",
+          "Grid Snap Off",
+          "CPlane XY",
+          "Polyline",
+          "w0,0,0",
+          "w1,0,0",
+          "w1,1,0",
+          "Close",
+          "Opacity 1",
+          "Fit",
+          "Example Instances",
+          "Fit",
+          "View Isometric",
+          "Select None",
+          "Opacity 1",
+          "Close"
+        ]
+      },
+      "canonicalBehaviorExecuted": false,
+      "sourceStartupStatusQualification": null,
+      "scope": "Presentation only; no canonical callback, historical behavior revalidation, or full verify execution is claimed.",
+      "canonicalValidationProfile": false,
+      "semantic": {
+        "camera": [
+          0.6564734563979487,
+          0.22441685137531578,
+          0.0470839681526497,
+          0,
+          -0.3790151267672,
+          0.38870138865668025,
+          0.08155182506234418,
+          0,
+          2.1039566020908387e-17,
+          0.7774027773133604,
+          -0.05436788337489615,
+          0,
+          0.07580302083522744,
+          -0.3245294724849015,
+          0.7138834417597639,
+          1
+        ],
+        "frame": [
+          0,
+          0,
+          1,
+          0.9552631578947368
+        ],
+        "projection": "Orthographic",
+        "grid": "false",
+        "pickMode": "Object",
+        "selectedCount": 0,
+        "cads": [],
+        "surfaces": [],
+        "instances": [
+          {
+            "definition_guid": "214b7ccc-a1a1-441f-8072-2978814c1c87",
+            "model": [
+              1,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0.6,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "definition_guid": "214b7ccc-a1a1-441f-8072-2978814c1c87",
+            "model": [
+              1,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              -0.6,
+              0,
+              0,
+              1
+            ]
+          }
+        ],
+        "drawing": {
+          "lines": [],
+          "points": [],
+          "polylines": [
+            [
+              [
+                0,
+                0,
+                0
+              ],
+              [
+                1,
+                0,
+                0
+              ],
+              [
+                1,
+                1,
+                0
+              ],
+              [
+                0,
+                0,
+                0
+              ]
+            ]
+          ]
+        },
+        "clouds": [],
+        "settings": {
+          "opacity": 1,
+          "outlines": false,
+          "arctic": false
+        }
+      },
+      "resources": {
+        "platform": "windows-job-object",
+        "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+        "laneMutex": "Local\\SessionViewerCourseImageJob",
+        "affinityOffset": 8,
+        "requiredAffinityMask": "0xFF00",
+        "maximumOtherLaneProcessors": 8,
+        "maximumOtherLaneMemoryMiB": 8192,
+        "maximumAggregateOurProcessors": 16,
+        "maximumAggregateOurMemoryMiB": 16384,
+        "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+        "requestedProcessors": 8,
+        "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+        "startedUtc": "2026-10-26T06:16:00.8065667Z",
+        "executable": "C:\\Program Files\\nodejs\\node.exe",
+        "arguments": [
+          "--require",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\warp-browser-timeout.cjs",
+          "--import",
+          "file:///C:/pc/3_code/code_rust/wood_research/session/session_tests/scripts/typescript.mjs",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\browser-scene-presentation.ts",
+          "worker",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\image-lane-scenes\\96zzzzzr-prepare-browser-frame-matrices-and-owned-wakes-706795a5a764a5041fed\\prepared.json",
+          "http://127.0.0.1:55539/96zzzzzr-prepare-browser-frame-matrices-and-owned-wakes/dist/"
+        ],
+        "workingDirectory": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-builds\\cases\\96zzzzzr-prepare-browser-frame-matrices-and-owned-wakes-3aa6238b6228ff1b6ae3\\workspace",
+        "timeoutSeconds": 2400,
+        "jobCommitLimitBytes": 8589934592,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 0,
+        "timedOut": false,
+        "elapsedSeconds": 7.206,
+        "peakJobCommitBytes": 1033981952,
+        "affinityMask": "0xFF00",
+        "processors": 8,
+        "processId": 41392,
+        "descendantsAtCleanup": 0
+      },
+      "rootReview": {
+        "sha256": "ed44bd71cfb0e7277eb51fea6a2cc01031384743c173989be1006705b0bf231c",
+        "exactPreviouslyApprovedImage": true,
+        "finding": "Nine independent captures match the original-resolution reviewed/root-approved ordinary/instance scene: complete teal/pink and two blue placed triangles, intended partly occluded wire triangle, white margins and readable command field."
+      },
+      "http": {
+        "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/96zzzzzr-prepare-browser-frame-matrices-and-owned-wakes-browser.png?v=ed44bd71cfb0",
+        "status": 200,
+        "sha256": "ed44bd71cfb0e7277eb51fea6a2cc01031384743c173989be1006705b0bf231c"
+      }
+    },
+    {
+      "id": "96zzzzzs-adopt-the-shared-origin-in-the-browser",
+      "destination": "docs/screenshots/journey/96zzzzzs-adopt-the-shared-origin-in-the-browser-browser.png",
+      "sha256": "ed44bd71cfb0e7277eb51fea6a2cc01031384743c173989be1006705b0bf231c",
+      "width": 1800,
+      "height": 1520,
+      "originalBackup": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\browser-streaming-publication-298-preparation\\originals\\docs\\screenshots\\journey\\96zzzzzs-adopt-the-shared-origin-in-the-browser-browser.png",
+      "originalSha256": "c036ce4d9096bc9c8bde3674c650a1deef2a4d6404b6d2b53b0f876e27299ac6",
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\image-lane-scenes\\96zzzzzs-adopt-the-shared-origin-in-the-browser-c0bf71523ec8a1513b90\\child-context-capture.json",
+        "sha256": "222d646f53ef55bb7cdbcbab30c450733351a2ea7336e1b83892a04e18572d15"
+      },
+      "source": {
+        "checkpoint": "96zzzzzs-adopt-the-shared-origin-in-the-browser",
+        "files": "c849935473ca1e49e7463a30f416ed4579948506625a25aa4efb29a267af1713",
+        "lock": "1df9f908a4aead0990495bcf505176ab0842191051943e422635b28f23ccab94",
+        "assets": {
+          "assets/text/NotoSans-Regular.subset.ttf": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09",
+          "assets/text/NotoSansSymbols2-Regular.subset.ttf": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed",
+          "assets/text/NotoSansSymbols-Regular.subset.ttf": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3",
+          "assets/text/OFL.txt": "0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb",
+          "assets/text/NotoSansSymbols-Regular.ttf": "8f02f31959bbdf6061547a188248e13f84dc5fdd940326ec494675f453f072bb",
+          "assets/text/NotoSans-Regular.ttf": "b85c38ecea8a7cfb39c24e395a4007474fa5a4fc864f6ee33309eb4948d232d5",
+          "assets/text/NotoSansSymbols2-Regular.ttf": "630846d528dbe4c4981370a4d0a9475a1fd1491a129bb411f8e157cdb5de13c6",
+          "assets/pb/course-comparison.pb": "8d952b0ac17ebf0bb7c20704b45b95acbe5b4395ff809a38baacaad93de4bed5",
+          "assets/pb/course-metadata.pb": "2cfe2ad9becff37d0fcca23f71e47b1c6e674d7934327120a9233efd0c2faf55",
+          "assets/pb/course-instance-features.pb": "3b9a0d162728849ff09fe9b8e77b877a4565e66b77b5c73d09422f362e816500",
+          "assets/pb/course-feature-pick.pb": "e05c864d93c99b700665508eb8ddc630c637cec24b51558de97f26f05762387d"
+        },
+        "dependencies": {
+          "dependencies": "ff3d53262a3d32f3b7f4da5397ec9944d6022d4b9c298e51cdee9a33b5560731",
+          "dependency_checker": "d32c7dbec5fd12dbd68a3adf36bccb60bdf5254cb890f1f8c5bff8a5b7e7d6d5"
+        },
+        "kernel": "c0acbde78685d127e98e1d13dd9c1fdff064277c38ce17fd7329a13459558b88",
+        "fixture": "9f1b3df69021e57f18192c60c60f2577e76a1f466a68b6228b59a363b7e6ac35",
+        "harness": "cc7b0a195a93c6fde86a62e203c4ecabf74eb76ee256952dfd098796ca9c39a3",
+        "constructor": "make_renderer(device, queue, format)",
+        "logicalSize": [
+          640,
+          480
+        ],
+        "helper": "e2c028971ab9cc08c2b951bed543b025ccb6f17c8e0b844d5370e82abb3a7410"
+      },
+      "recipe": {
+        "kind": "ordinary-and-instance-slots",
+        "callback": "journey/checks/browser/precise-origin.cjs",
+        "meaning": "The original page retains its startup originals, the current-command closed triangle, and two original definition instances. Reload, ambient-property and arena exercises run in separate contexts.",
+        "asset": null,
+        "commands": [
+          "Layers Off",
+          "View Grid Off",
+          "Snap Off",
+          "Grid Snap Off",
+          "CPlane XY",
+          "Polyline",
+          "w0,0,0",
+          "w1,0,0",
+          "w1,1,0",
+          "Close",
+          "Opacity 1",
+          "Fit",
+          "Example Instances",
+          "Fit",
+          "View Isometric",
+          "Select None",
+          "Opacity 1",
+          "Close"
+        ]
+      },
+      "canonicalBehaviorExecuted": false,
+      "sourceStartupStatusQualification": null,
+      "scope": "Actual source-exact original-main-page illustration; later inherited feature assertions execute on separate child contexts and were not replayed.",
+      "canonicalValidationProfile": false,
+      "semantic": {
+        "camera": [
+          0.6564734563979487,
+          0.22441685137531578,
+          0.0470839681526497,
+          0,
+          -0.3790151267672,
+          0.38870138865668025,
+          0.08155182506234418,
+          0,
+          2.1039566020908387e-17,
+          0.7774027773133604,
+          -0.05436788337489615,
+          0,
+          0.07580302083522744,
+          -0.3245294724849015,
+          0.7138834417597639,
+          1
+        ],
+        "frame": [
+          0,
+          0,
+          1,
+          0.9552631578947368
+        ],
+        "projection": "Orthographic",
+        "grid": "false",
+        "pickMode": "Object",
+        "selectedCount": 0,
+        "cads": [],
+        "surfaces": [],
+        "instances": [
+          {
+            "definition_guid": "2237f27e-5dea-42c6-8393-5ccc8d78210b",
+            "model": [
+              1,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0.6,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "definition_guid": "2237f27e-5dea-42c6-8393-5ccc8d78210b",
+            "model": [
+              1,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              -0.6,
+              0,
+              0,
+              1
+            ]
+          }
+        ],
+        "drawing": {
+          "lines": [],
+          "points": [],
+          "polylines": [
+            [
+              [
+                0,
+                0,
+                0
+              ],
+              [
+                1,
+                0,
+                0
+              ],
+              [
+                1,
+                1,
+                0
+              ],
+              [
+                0,
+                0,
+                0
+              ]
+            ]
+          ]
+        },
+        "clouds": [],
+        "settings": {
+          "opacity": 1,
+          "outlines": false,
+          "arctic": false
+        }
+      },
+      "resources": {
+        "platform": "windows-job-object",
+        "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+        "laneMutex": "Local\\SessionViewerCourseImageJob",
+        "affinityOffset": 8,
+        "requiredAffinityMask": "0xFF00",
+        "maximumOtherLaneProcessors": 8,
+        "maximumOtherLaneMemoryMiB": 8192,
+        "maximumAggregateOurProcessors": 16,
+        "maximumAggregateOurMemoryMiB": 16384,
+        "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+        "requestedProcessors": 8,
+        "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+        "startedUtc": "2026-10-26T06:16:46.0783667Z",
+        "executable": "C:\\Program Files\\nodejs\\node.exe",
+        "arguments": [
+          "--require",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\warp-browser-timeout.cjs",
+          "--import",
+          "file:///C:/pc/3_code/code_rust/wood_research/session/session_tests/scripts/typescript.mjs",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\child-context-scene-helper\\34f0767d377f02a59fe7\\worker.ts",
+          "worker",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\image-lane-scenes\\96zzzzzs-adopt-the-shared-origin-in-the-browser-c0bf71523ec8a1513b90\\prepared.json",
+          "http://127.0.0.1:60936/96zzzzzs-adopt-the-shared-origin-in-the-browser/dist/"
+        ],
+        "workingDirectory": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-builds\\cases\\96zzzzzs-adopt-the-shared-origin-in-the-browser-f70a75a906c963e3f961\\workspace",
+        "timeoutSeconds": 2400,
+        "jobCommitLimitBytes": 8589934592,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 0,
+        "timedOut": false,
+        "elapsedSeconds": 7.267,
+        "peakJobCommitBytes": 1066643456,
+        "affinityMask": "0xFF00",
+        "processors": 8,
+        "processId": 45688,
+        "descendantsAtCleanup": 0
+      },
+      "rootReview": {
+        "sha256": "ed44bd71cfb0e7277eb51fea6a2cc01031384743c173989be1006705b0bf231c",
+        "exactPreviouslyApprovedImage": true,
+        "finding": "Nine independent captures match the original-resolution reviewed/root-approved ordinary/instance scene: complete teal/pink and two blue placed triangles, intended partly occluded wire triangle, white margins and readable command field."
+      },
+      "http": {
+        "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/96zzzzzs-adopt-the-shared-origin-in-the-browser-browser.png?v=ed44bd71cfb0",
+        "status": 200,
+        "sha256": "ed44bd71cfb0e7277eb51fea6a2cc01031384743c173989be1006705b0bf231c"
+      }
+    },
+    {
+      "id": "96zzzzzt-share-depth-endpoints-and-comparisons",
+      "destination": "docs/screenshots/journey/96zzzzzt-share-depth-endpoints-and-comparisons-browser.png",
+      "sha256": "ed44bd71cfb0e7277eb51fea6a2cc01031384743c173989be1006705b0bf231c",
+      "width": 1800,
+      "height": 1520,
+      "originalBackup": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\browser-streaming-publication-298-preparation\\originals\\docs\\screenshots\\journey\\96zzzzzt-share-depth-endpoints-and-comparisons-browser.png",
+      "originalSha256": "c036ce4d9096bc9c8bde3674c650a1deef2a4d6404b6d2b53b0f876e27299ac6",
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\image-lane-scenes\\96zzzzzt-share-depth-endpoints-and-comparisons-758cc50c22b7c9f7b7fc\\child-context-capture.json",
+        "sha256": "21614d7f6015a66cb0a9cd7cd7462887f51c66eda085d6cb587e76f3415d4683"
+      },
+      "source": {
+        "checkpoint": "96zzzzzt-share-depth-endpoints-and-comparisons",
+        "files": "e06e355bfd0e57068e85d53b5bce8747e1181b0264b57ec5bd03d1ddc2175736",
+        "lock": "1df9f908a4aead0990495bcf505176ab0842191051943e422635b28f23ccab94",
+        "assets": {
+          "assets/text/NotoSans-Regular.subset.ttf": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09",
+          "assets/text/NotoSansSymbols2-Regular.subset.ttf": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed",
+          "assets/text/NotoSansSymbols-Regular.subset.ttf": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3",
+          "assets/text/OFL.txt": "0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb",
+          "assets/text/NotoSansSymbols-Regular.ttf": "8f02f31959bbdf6061547a188248e13f84dc5fdd940326ec494675f453f072bb",
+          "assets/text/NotoSans-Regular.ttf": "b85c38ecea8a7cfb39c24e395a4007474fa5a4fc864f6ee33309eb4948d232d5",
+          "assets/text/NotoSansSymbols2-Regular.ttf": "630846d528dbe4c4981370a4d0a9475a1fd1491a129bb411f8e157cdb5de13c6",
+          "assets/pb/course-comparison.pb": "8d952b0ac17ebf0bb7c20704b45b95acbe5b4395ff809a38baacaad93de4bed5",
+          "assets/pb/course-metadata.pb": "2cfe2ad9becff37d0fcca23f71e47b1c6e674d7934327120a9233efd0c2faf55",
+          "assets/pb/course-instance-features.pb": "3b9a0d162728849ff09fe9b8e77b877a4565e66b77b5c73d09422f362e816500",
+          "assets/pb/course-feature-pick.pb": "e05c864d93c99b700665508eb8ddc630c637cec24b51558de97f26f05762387d"
+        },
+        "dependencies": {
+          "dependencies": "ff3d53262a3d32f3b7f4da5397ec9944d6022d4b9c298e51cdee9a33b5560731",
+          "dependency_checker": "d32c7dbec5fd12dbd68a3adf36bccb60bdf5254cb890f1f8c5bff8a5b7e7d6d5"
+        },
+        "kernel": "c0acbde78685d127e98e1d13dd9c1fdff064277c38ce17fd7329a13459558b88",
+        "fixture": "9f1b3df69021e57f18192c60c60f2577e76a1f466a68b6228b59a363b7e6ac35",
+        "harness": "cc7b0a195a93c6fde86a62e203c4ecabf74eb76ee256952dfd098796ca9c39a3",
+        "constructor": "make_renderer(device, queue, format)",
+        "logicalSize": [
+          640,
+          480
+        ],
+        "helper": "e2c028971ab9cc08c2b951bed543b025ccb6f17c8e0b844d5370e82abb3a7410"
+      },
+      "recipe": {
+        "kind": "ordinary-and-instance-slots",
+        "callback": "journey/checks/browser/precise-origin.cjs",
+        "meaning": "The original page retains its startup originals, the current-command closed triangle, and two original definition instances. Reload, ambient-property and arena exercises run in separate contexts.",
+        "asset": null,
+        "commands": [
+          "Layers Off",
+          "View Grid Off",
+          "Snap Off",
+          "Grid Snap Off",
+          "CPlane XY",
+          "Polyline",
+          "w0,0,0",
+          "w1,0,0",
+          "w1,1,0",
+          "Close",
+          "Opacity 1",
+          "Fit",
+          "Example Instances",
+          "Fit",
+          "View Isometric",
+          "Select None",
+          "Opacity 1",
+          "Close"
+        ]
+      },
+      "canonicalBehaviorExecuted": false,
+      "sourceStartupStatusQualification": null,
+      "scope": "Actual source-exact original-main-page illustration; later inherited feature assertions execute on separate child contexts and were not replayed.",
+      "canonicalValidationProfile": false,
+      "semantic": {
+        "camera": [
+          0.6564734563979487,
+          0.22441685137531578,
+          0.0470839681526497,
+          0,
+          -0.3790151267672,
+          0.38870138865668025,
+          0.08155182506234418,
+          0,
+          2.1039566020908387e-17,
+          0.7774027773133604,
+          -0.05436788337489615,
+          0,
+          0.07580302083522744,
+          -0.3245294724849015,
+          0.7138834417597639,
+          1
+        ],
+        "frame": [
+          0,
+          0,
+          1,
+          0.9552631578947368
+        ],
+        "projection": "Orthographic",
+        "grid": "false",
+        "pickMode": "Object",
+        "selectedCount": 0,
+        "cads": [],
+        "surfaces": [],
+        "instances": [
+          {
+            "definition_guid": "890d2481-0074-42b7-9eb3-674f944d69ef",
+            "model": [
+              1,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0.6,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "definition_guid": "890d2481-0074-42b7-9eb3-674f944d69ef",
+            "model": [
+              1,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              -0.6,
+              0,
+              0,
+              1
+            ]
+          }
+        ],
+        "drawing": {
+          "lines": [],
+          "points": [],
+          "polylines": [
+            [
+              [
+                0,
+                0,
+                0
+              ],
+              [
+                1,
+                0,
+                0
+              ],
+              [
+                1,
+                1,
+                0
+              ],
+              [
+                0,
+                0,
+                0
+              ]
+            ]
+          ]
+        },
+        "clouds": [],
+        "settings": {
+          "opacity": 1,
+          "outlines": false,
+          "arctic": false
+        }
+      },
+      "resources": {
+        "platform": "windows-job-object",
+        "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+        "laneMutex": "Local\\SessionViewerCourseImageJob",
+        "affinityOffset": 8,
+        "requiredAffinityMask": "0xFF00",
+        "maximumOtherLaneProcessors": 8,
+        "maximumOtherLaneMemoryMiB": 8192,
+        "maximumAggregateOurProcessors": 16,
+        "maximumAggregateOurMemoryMiB": 16384,
+        "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+        "requestedProcessors": 8,
+        "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+        "startedUtc": "2026-10-26T06:17:35.1548927Z",
+        "executable": "C:\\Program Files\\nodejs\\node.exe",
+        "arguments": [
+          "--require",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\warp-browser-timeout.cjs",
+          "--import",
+          "file:///C:/pc/3_code/code_rust/wood_research/session/session_tests/scripts/typescript.mjs",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\child-context-scene-helper\\34f0767d377f02a59fe7\\worker.ts",
+          "worker",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\image-lane-scenes\\96zzzzzt-share-depth-endpoints-and-comparisons-758cc50c22b7c9f7b7fc\\prepared.json",
+          "http://127.0.0.1:53817/96zzzzzt-share-depth-endpoints-and-comparisons/dist/"
+        ],
+        "workingDirectory": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-builds\\cases\\96zzzzzt-share-depth-endpoints-and-comparisons-010d2263110ed87488b6\\workspace",
+        "timeoutSeconds": 2400,
+        "jobCommitLimitBytes": 8589934592,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 0,
+        "timedOut": false,
+        "elapsedSeconds": 7.029,
+        "peakJobCommitBytes": 1028861952,
+        "affinityMask": "0xFF00",
+        "processors": 8,
+        "processId": 2892,
+        "descendantsAtCleanup": 0
+      },
+      "rootReview": {
+        "sha256": "ed44bd71cfb0e7277eb51fea6a2cc01031384743c173989be1006705b0bf231c",
+        "exactPreviouslyApprovedImage": true,
+        "finding": "Nine independent captures match the original-resolution reviewed/root-approved ordinary/instance scene: complete teal/pink and two blue placed triangles, intended partly occluded wire triangle, white margins and readable command field."
+      },
+      "http": {
+        "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/96zzzzzt-share-depth-endpoints-and-comparisons-browser.png?v=ed44bd71cfb0",
+        "status": 200,
+        "sha256": "ed44bd71cfb0e7277eb51fea6a2cc01031384743c173989be1006705b0bf231c"
+      }
+    },
+    {
+      "id": "96zzzzzu-share-homogeneous-near-plane-ink-clipping",
+      "destination": "docs/screenshots/journey/96zzzzzu-share-homogeneous-near-plane-ink-clipping-browser.png",
+      "sha256": "ed44bd71cfb0e7277eb51fea6a2cc01031384743c173989be1006705b0bf231c",
+      "width": 1800,
+      "height": 1520,
+      "originalBackup": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\browser-streaming-publication-298-preparation\\originals\\docs\\screenshots\\journey\\96zzzzzu-share-homogeneous-near-plane-ink-clipping-browser.png",
+      "originalSha256": "c036ce4d9096bc9c8bde3674c650a1deef2a4d6404b6d2b53b0f876e27299ac6",
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\image-lane-scenes\\96zzzzzu-share-homogeneous-near-plane-ink-clipping-6790f12b2f89c247d365\\child-context-capture.json",
+        "sha256": "5d3732b2d4864eaad32b4f71ffcdddc08eb61e7dbb88e4ee44bad00a77448ef4"
+      },
+      "source": {
+        "checkpoint": "96zzzzzu-share-homogeneous-near-plane-ink-clipping",
+        "files": "61c13231c1207384d81c20054398766dd0da51b996ec989954c62c68f8b42a90",
+        "lock": "1df9f908a4aead0990495bcf505176ab0842191051943e422635b28f23ccab94",
+        "assets": {
+          "assets/text/NotoSans-Regular.subset.ttf": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09",
+          "assets/text/NotoSansSymbols2-Regular.subset.ttf": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed",
+          "assets/text/NotoSansSymbols-Regular.subset.ttf": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3",
+          "assets/text/OFL.txt": "0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb",
+          "assets/text/NotoSansSymbols-Regular.ttf": "8f02f31959bbdf6061547a188248e13f84dc5fdd940326ec494675f453f072bb",
+          "assets/text/NotoSans-Regular.ttf": "b85c38ecea8a7cfb39c24e395a4007474fa5a4fc864f6ee33309eb4948d232d5",
+          "assets/text/NotoSansSymbols2-Regular.ttf": "630846d528dbe4c4981370a4d0a9475a1fd1491a129bb411f8e157cdb5de13c6",
+          "assets/pb/course-comparison.pb": "8d952b0ac17ebf0bb7c20704b45b95acbe5b4395ff809a38baacaad93de4bed5",
+          "assets/pb/course-metadata.pb": "2cfe2ad9becff37d0fcca23f71e47b1c6e674d7934327120a9233efd0c2faf55",
+          "assets/pb/course-instance-features.pb": "3b9a0d162728849ff09fe9b8e77b877a4565e66b77b5c73d09422f362e816500",
+          "assets/pb/course-feature-pick.pb": "e05c864d93c99b700665508eb8ddc630c637cec24b51558de97f26f05762387d"
+        },
+        "dependencies": {
+          "dependencies": "ff3d53262a3d32f3b7f4da5397ec9944d6022d4b9c298e51cdee9a33b5560731",
+          "dependency_checker": "d32c7dbec5fd12dbd68a3adf36bccb60bdf5254cb890f1f8c5bff8a5b7e7d6d5"
+        },
+        "kernel": "c0acbde78685d127e98e1d13dd9c1fdff064277c38ce17fd7329a13459558b88",
+        "fixture": "9f1b3df69021e57f18192c60c60f2577e76a1f466a68b6228b59a363b7e6ac35",
+        "harness": "cc7b0a195a93c6fde86a62e203c4ecabf74eb76ee256952dfd098796ca9c39a3",
+        "constructor": "make_renderer(device, queue, format)",
+        "logicalSize": [
+          640,
+          480
+        ],
+        "helper": "e2c028971ab9cc08c2b951bed543b025ccb6f17c8e0b844d5370e82abb3a7410"
+      },
+      "recipe": {
+        "kind": "ordinary-and-instance-slots",
+        "callback": "journey/checks/browser/precise-origin.cjs",
+        "meaning": "The original page retains its startup originals, the current-command closed triangle, and two original definition instances. Reload, ambient-property and arena exercises run in separate contexts.",
+        "asset": null,
+        "commands": [
+          "Layers Off",
+          "View Grid Off",
+          "Snap Off",
+          "Grid Snap Off",
+          "CPlane XY",
+          "Polyline",
+          "w0,0,0",
+          "w1,0,0",
+          "w1,1,0",
+          "Close",
+          "Opacity 1",
+          "Fit",
+          "Example Instances",
+          "Fit",
+          "View Isometric",
+          "Select None",
+          "Opacity 1",
+          "Close"
+        ]
+      },
+      "canonicalBehaviorExecuted": false,
+      "sourceStartupStatusQualification": null,
+      "scope": "Actual source-exact original-main-page illustration; later inherited feature assertions execute on separate child contexts and were not replayed.",
+      "canonicalValidationProfile": false,
+      "semantic": {
+        "camera": [
+          0.6564734563979487,
+          0.22441685137531578,
+          0.0470839681526497,
+          0,
+          -0.3790151267672,
+          0.38870138865668025,
+          0.08155182506234418,
+          0,
+          2.1039566020908387e-17,
+          0.7774027773133604,
+          -0.05436788337489615,
+          0,
+          0.07580302083522744,
+          -0.3245294724849015,
+          0.7138834417597639,
+          1
+        ],
+        "frame": [
+          0,
+          0,
+          1,
+          0.9552631578947368
+        ],
+        "projection": "Orthographic",
+        "grid": "false",
+        "pickMode": "Object",
+        "selectedCount": 0,
+        "cads": [],
+        "surfaces": [],
+        "instances": [
+          {
+            "definition_guid": "fd4d58c9-a708-4662-94ab-973b6f7251b3",
+            "model": [
+              1,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0.6,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "definition_guid": "fd4d58c9-a708-4662-94ab-973b6f7251b3",
+            "model": [
+              1,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              -0.6,
+              0,
+              0,
+              1
+            ]
+          }
+        ],
+        "drawing": {
+          "lines": [],
+          "points": [],
+          "polylines": [
+            [
+              [
+                0,
+                0,
+                0
+              ],
+              [
+                1,
+                0,
+                0
+              ],
+              [
+                1,
+                1,
+                0
+              ],
+              [
+                0,
+                0,
+                0
+              ]
+            ]
+          ]
+        },
+        "clouds": [],
+        "settings": {
+          "opacity": 1,
+          "outlines": false,
+          "arctic": false
+        }
+      },
+      "resources": {
+        "platform": "windows-job-object",
+        "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+        "laneMutex": "Local\\SessionViewerCourseImageJob",
+        "affinityOffset": 8,
+        "requiredAffinityMask": "0xFF00",
+        "maximumOtherLaneProcessors": 8,
+        "maximumOtherLaneMemoryMiB": 8192,
+        "maximumAggregateOurProcessors": 16,
+        "maximumAggregateOurMemoryMiB": 16384,
+        "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+        "requestedProcessors": 8,
+        "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+        "startedUtc": "2026-10-26T06:18:22.4780934Z",
+        "executable": "C:\\Program Files\\nodejs\\node.exe",
+        "arguments": [
+          "--require",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\warp-browser-timeout.cjs",
+          "--import",
+          "file:///C:/pc/3_code/code_rust/wood_research/session/session_tests/scripts/typescript.mjs",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\child-context-scene-helper\\34f0767d377f02a59fe7\\worker.ts",
+          "worker",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\image-lane-scenes\\96zzzzzu-share-homogeneous-near-plane-ink-clipping-6790f12b2f89c247d365\\prepared.json",
+          "http://127.0.0.1:62027/96zzzzzu-share-homogeneous-near-plane-ink-clipping/dist/"
+        ],
+        "workingDirectory": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-builds\\cases\\96zzzzzu-share-homogeneous-near-plane-ink-clipping-966c34384d166441190a\\workspace",
+        "timeoutSeconds": 2400,
+        "jobCommitLimitBytes": 8589934592,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 0,
+        "timedOut": false,
+        "elapsedSeconds": 7.301,
+        "peakJobCommitBytes": 1028907008,
+        "affinityMask": "0xFF00",
+        "processors": 8,
+        "processId": 59760,
+        "descendantsAtCleanup": 0
+      },
+      "rootReview": {
+        "sha256": "ed44bd71cfb0e7277eb51fea6a2cc01031384743c173989be1006705b0bf231c",
+        "exactPreviouslyApprovedImage": true,
+        "finding": "Nine independent captures match the original-resolution reviewed/root-approved ordinary/instance scene: complete teal/pink and two blue placed triangles, intended partly occluded wire triangle, white margins and readable command field."
+      },
+      "http": {
+        "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/96zzzzzu-share-homogeneous-near-plane-ink-clipping-browser.png?v=ed44bd71cfb0",
+        "status": 200,
+        "sha256": "ed44bd71cfb0e7277eb51fea6a2cc01031384743c173989be1006705b0bf231c"
+      }
+    },
+    {
+      "id": "96zzzzzz-use-reversed-depth-across-the-frame",
+      "destination": "docs/screenshots/journey/96zzzzzz-use-reversed-depth-across-the-frame-browser.png",
+      "sha256": "ed44bd71cfb0e7277eb51fea6a2cc01031384743c173989be1006705b0bf231c",
+      "width": 1800,
+      "height": 1520,
+      "originalBackup": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\browser-streaming-publication-298-preparation\\originals\\docs\\screenshots\\journey\\96zzzzzz-use-reversed-depth-across-the-frame-browser.png",
+      "originalSha256": "c036ce4d9096bc9c8bde3674c650a1deef2a4d6404b6d2b53b0f876e27299ac6",
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\image-lane-scenes\\96zzzzzz-use-reversed-depth-across-the-frame-ae2d3f5cae0441b349c3\\child-context-capture.json",
+        "sha256": "f427862bb75a35f134ea0160fd9015f1c24dae013937f64adb7693c1f5dcb28a"
+      },
+      "source": {
+        "checkpoint": "96zzzzzz-use-reversed-depth-across-the-frame",
+        "files": "008b6f410b2274d03ca212912890ecec77e54b6acd683059a911f93975a2b407",
+        "lock": "1df9f908a4aead0990495bcf505176ab0842191051943e422635b28f23ccab94",
+        "assets": {
+          "assets/text/NotoSans-Regular.subset.ttf": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09",
+          "assets/text/NotoSansSymbols2-Regular.subset.ttf": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed",
+          "assets/text/NotoSansSymbols-Regular.subset.ttf": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3",
+          "assets/text/OFL.txt": "0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb",
+          "assets/text/NotoSansSymbols-Regular.ttf": "8f02f31959bbdf6061547a188248e13f84dc5fdd940326ec494675f453f072bb",
+          "assets/text/NotoSans-Regular.ttf": "b85c38ecea8a7cfb39c24e395a4007474fa5a4fc864f6ee33309eb4948d232d5",
+          "assets/text/NotoSansSymbols2-Regular.ttf": "630846d528dbe4c4981370a4d0a9475a1fd1491a129bb411f8e157cdb5de13c6",
+          "assets/pb/course-comparison.pb": "8d952b0ac17ebf0bb7c20704b45b95acbe5b4395ff809a38baacaad93de4bed5",
+          "assets/pb/course-metadata.pb": "2cfe2ad9becff37d0fcca23f71e47b1c6e674d7934327120a9233efd0c2faf55",
+          "assets/pb/course-instance-features.pb": "3b9a0d162728849ff09fe9b8e77b877a4565e66b77b5c73d09422f362e816500",
+          "assets/pb/course-feature-pick.pb": "e05c864d93c99b700665508eb8ddc630c637cec24b51558de97f26f05762387d"
+        },
+        "dependencies": {
+          "dependencies": "ff3d53262a3d32f3b7f4da5397ec9944d6022d4b9c298e51cdee9a33b5560731",
+          "dependency_checker": "d32c7dbec5fd12dbd68a3adf36bccb60bdf5254cb890f1f8c5bff8a5b7e7d6d5"
+        },
+        "kernel": "c0acbde78685d127e98e1d13dd9c1fdff064277c38ce17fd7329a13459558b88",
+        "fixture": "9f1b3df69021e57f18192c60c60f2577e76a1f466a68b6228b59a363b7e6ac35",
+        "harness": "cc7b0a195a93c6fde86a62e203c4ecabf74eb76ee256952dfd098796ca9c39a3",
+        "constructor": "make_renderer(device, queue, format)",
+        "logicalSize": [
+          640,
+          480
+        ],
+        "helper": "e2c028971ab9cc08c2b951bed543b025ccb6f17c8e0b844d5370e82abb3a7410"
+      },
+      "recipe": {
+        "kind": "ordinary-and-instance-slots",
+        "callback": "journey/checks/browser/reversed-depth.cjs",
+        "meaning": "The original page retains its startup originals, the current-command closed triangle, and two original definition instances. Reload, ambient-property and arena exercises run in separate contexts.",
+        "asset": null,
+        "commands": [
+          "Layers Off",
+          "View Grid Off",
+          "Snap Off",
+          "Grid Snap Off",
+          "CPlane XY",
+          "Polyline",
+          "w0,0,0",
+          "w1,0,0",
+          "w1,1,0",
+          "Close",
+          "Opacity 1",
+          "Fit",
+          "Example Instances",
+          "Fit",
+          "View Isometric",
+          "Select None",
+          "Opacity 1",
+          "Close"
+        ]
+      },
+      "canonicalBehaviorExecuted": false,
+      "sourceStartupStatusQualification": null,
+      "scope": "Actual source-exact original-main-page illustration; later inherited feature assertions execute on separate child contexts and were not replayed.",
+      "canonicalValidationProfile": false,
+      "semantic": {
+        "camera": [
+          0.6564734563979487,
+          0.22441685137531578,
+          -0.0470839681526497,
+          0,
+          -0.3790151267672,
+          0.38870138865668025,
+          -0.08155182506234418,
+          0,
+          2.1039566020908387e-17,
+          0.7774027773133604,
+          0.05436788337489615,
+          0,
+          0.07580302083522744,
+          -0.3245294724849015,
+          0.28611655824023613,
+          1
+        ],
+        "frame": [
+          0,
+          0,
+          1,
+          0.9552631578947368
+        ],
+        "projection": "Orthographic",
+        "grid": "false",
+        "pickMode": "Object",
+        "selectedCount": 0,
+        "cads": [],
+        "surfaces": [],
+        "instances": [
+          {
+            "definition_guid": "dd02363b-b4e2-41db-92fc-1d1c556f35fc",
+            "model": [
+              1,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0.6,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "definition_guid": "dd02363b-b4e2-41db-92fc-1d1c556f35fc",
+            "model": [
+              1,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              -0.6,
+              0,
+              0,
+              1
+            ]
+          }
+        ],
+        "drawing": {
+          "lines": [],
+          "points": [],
+          "polylines": [
+            [
+              [
+                0,
+                0,
+                0
+              ],
+              [
+                1,
+                0,
+                0
+              ],
+              [
+                1,
+                1,
+                0
+              ],
+              [
+                0,
+                0,
+                0
+              ]
+            ]
+          ]
+        },
+        "clouds": [],
+        "settings": {
+          "opacity": 1,
+          "outlines": false,
+          "arctic": false
+        }
+      },
+      "resources": {
+        "platform": "windows-job-object",
+        "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+        "laneMutex": "Local\\SessionViewerCourseImageJob",
+        "affinityOffset": 8,
+        "requiredAffinityMask": "0xFF00",
+        "maximumOtherLaneProcessors": 8,
+        "maximumOtherLaneMemoryMiB": 8192,
+        "maximumAggregateOurProcessors": 16,
+        "maximumAggregateOurMemoryMiB": 16384,
+        "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+        "requestedProcessors": 8,
+        "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+        "startedUtc": "2026-10-26T06:19:11.0407545Z",
+        "executable": "C:\\Program Files\\nodejs\\node.exe",
+        "arguments": [
+          "--require",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\warp-browser-timeout.cjs",
+          "--import",
+          "file:///C:/pc/3_code/code_rust/wood_research/session/session_tests/scripts/typescript.mjs",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\child-context-scene-helper\\34f0767d377f02a59fe7\\worker.ts",
+          "worker",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\image-lane-scenes\\96zzzzzz-use-reversed-depth-across-the-frame-ae2d3f5cae0441b349c3\\prepared.json",
+          "http://127.0.0.1:53661/96zzzzzz-use-reversed-depth-across-the-frame/dist/"
+        ],
+        "workingDirectory": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-builds\\cases\\96zzzzzz-use-reversed-depth-across-the-frame-dc9ebae4509d2d47338b\\workspace",
+        "timeoutSeconds": 2400,
+        "jobCommitLimitBytes": 8589934592,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 0,
+        "timedOut": false,
+        "elapsedSeconds": 7.158,
+        "peakJobCommitBytes": 1077575680,
+        "affinityMask": "0xFF00",
+        "processors": 8,
+        "processId": 24380,
+        "descendantsAtCleanup": 0
+      },
+      "rootReview": {
+        "sha256": "ed44bd71cfb0e7277eb51fea6a2cc01031384743c173989be1006705b0bf231c",
+        "exactPreviouslyApprovedImage": true,
+        "finding": "Nine independent captures match the original-resolution reviewed/root-approved ordinary/instance scene: complete teal/pink and two blue placed triangles, intended partly occluded wire triangle, white margins and readable command field."
+      },
+      "http": {
+        "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/96zzzzzz-use-reversed-depth-across-the-frame-browser.png?v=ed44bd71cfb0",
+        "status": 200,
+        "sha256": "ed44bd71cfb0e7277eb51fea6a2cc01031384743c173989be1006705b0bf231c"
+      }
+    },
+    {
+      "id": "96zzzzzzb-omit-unused-background-pick-pipelines",
+      "destination": "docs/screenshots/journey/96zzzzzzb-omit-unused-background-pick-pipelines-browser.png",
+      "sha256": "a410f9be025c1370b29d96d40d3cf729d38b7ce32f95c6e7f3ad507f9b21fef8",
+      "width": 1800,
+      "height": 1520,
+      "originalBackup": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\browser-streaming-publication-298-preparation\\originals\\docs\\screenshots\\journey\\96zzzzzzb-omit-unused-background-pick-pipelines-browser.png",
+      "originalSha256": "ac0b4bf86a3dc47511734365c6116c33f180b61bee490134933a7a611aecfeaf",
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\image-lane-scenes\\96zzzzzzb-omit-unused-background-pick-pipelines-83f60543758dce4daff7\\child-context-capture.json",
+        "sha256": "892f937f667a0c32b41da79aa44081b5eefb5401835d982145a2d6313630a932"
+      },
+      "source": {
+        "checkpoint": "96zzzzzzb-omit-unused-background-pick-pipelines",
+        "files": "f8f6cb6d524c4e7d73bc9c0826f29727aa86e661cb536617cc3f055b767f5595",
+        "lock": "1df9f908a4aead0990495bcf505176ab0842191051943e422635b28f23ccab94",
+        "assets": {
+          "assets/text/NotoSans-Regular.subset.ttf": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09",
+          "assets/text/NotoSansSymbols2-Regular.subset.ttf": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed",
+          "assets/text/NotoSansSymbols-Regular.subset.ttf": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3",
+          "assets/text/OFL.txt": "0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb",
+          "assets/text/NotoSansSymbols-Regular.ttf": "8f02f31959bbdf6061547a188248e13f84dc5fdd940326ec494675f453f072bb",
+          "assets/text/NotoSans-Regular.ttf": "b85c38ecea8a7cfb39c24e395a4007474fa5a4fc864f6ee33309eb4948d232d5",
+          "assets/text/NotoSansSymbols2-Regular.ttf": "630846d528dbe4c4981370a4d0a9475a1fd1491a129bb411f8e157cdb5de13c6",
+          "assets/pb/course-comparison.pb": "8d952b0ac17ebf0bb7c20704b45b95acbe5b4395ff809a38baacaad93de4bed5",
+          "assets/pb/course-metadata.pb": "2cfe2ad9becff37d0fcca23f71e47b1c6e674d7934327120a9233efd0c2faf55",
+          "assets/pb/course-instance-features.pb": "3b9a0d162728849ff09fe9b8e77b877a4565e66b77b5c73d09422f362e816500",
+          "assets/pb/course-feature-pick.pb": "e05c864d93c99b700665508eb8ddc630c637cec24b51558de97f26f05762387d"
+        },
+        "dependencies": {
+          "dependencies": "ff3d53262a3d32f3b7f4da5397ec9944d6022d4b9c298e51cdee9a33b5560731",
+          "dependency_checker": "d32c7dbec5fd12dbd68a3adf36bccb60bdf5254cb890f1f8c5bff8a5b7e7d6d5"
+        },
+        "kernel": "c0acbde78685d127e98e1d13dd9c1fdff064277c38ce17fd7329a13459558b88",
+        "fixture": "9f1b3df69021e57f18192c60c60f2577e76a1f466a68b6228b59a363b7e6ac35",
+        "harness": "cc7b0a195a93c6fde86a62e203c4ecabf74eb76ee256952dfd098796ca9c39a3",
+        "constructor": "make_renderer(device, queue, format)",
+        "logicalSize": [
+          640,
+          480
+        ],
+        "helper": "e2c028971ab9cc08c2b951bed543b025ccb6f17c8e0b844d5370e82abb3a7410"
+      },
+      "recipe": {
+        "kind": "ordinary-and-instance-slots",
+        "callback": "journey/checks/browser/camera-defaults.cjs",
+        "meaning": "The original page retains its startup originals, the current-command closed triangle, and two original definition instances. Reload, ambient-property and arena exercises run in separate contexts.",
+        "asset": null,
+        "commands": [
+          "Layers Off",
+          "View Grid Off",
+          "Snap Off",
+          "Grid Snap Off",
+          "CPlane XY",
+          "Polyline",
+          "w0,0,0",
+          "w1,0,0",
+          "w1,1,0",
+          "Close",
+          "Opacity 1",
+          "Fit",
+          "Example Instances",
+          "Fit",
+          "View Isometric",
+          "Select None",
+          "Opacity 1",
+          "Close"
+        ]
+      },
+      "canonicalBehaviorExecuted": false,
+      "sourceStartupStatusQualification": null,
+      "scope": "Actual source-exact original-main-page illustration; later inherited feature assertions execute on separate child contexts and were not replayed.",
+      "canonicalValidationProfile": false,
+      "semantic": {
+        "camera": [
+          0.4795193993172674,
+          0.16392472950639797,
+          -0.04077075207867324,
+          0,
+          -0.2768506542774721,
+          0.2839259601220662,
+          -0.07061701406305644,
+          0,
+          0,
+          0.5678519202441324,
+          0.04707800937537097,
+          0,
+          0.05537012755517741,
+          -0.22499281662603843,
+          0.24775284920329016,
+          1
+        ],
+        "frame": [
+          0,
+          0,
+          1,
+          0.9552631578947368
+        ],
+        "projection": "Orthographic",
+        "grid": "false",
+        "pickMode": "Object",
+        "selectedCount": 0,
+        "cads": [],
+        "surfaces": [],
+        "instances": [
+          {
+            "definition_guid": "5b4eaa1b-e38f-4251-bb00-a620352d5510",
+            "model": [
+              1,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0.6,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "definition_guid": "5b4eaa1b-e38f-4251-bb00-a620352d5510",
+            "model": [
+              1,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              -0.6,
+              0,
+              0,
+              1
+            ]
+          }
+        ],
+        "drawing": {
+          "lines": [],
+          "points": [],
+          "polylines": [
+            [
+              [
+                0,
+                0,
+                0
+              ],
+              [
+                1,
+                0,
+                0
+              ],
+              [
+                1,
+                1,
+                0
+              ],
+              [
+                0,
+                0,
+                0
+              ]
+            ]
+          ]
+        },
+        "clouds": [],
+        "settings": {
+          "opacity": 1,
+          "outlines": false,
+          "arctic": false
+        }
+      },
+      "resources": {
+        "platform": "windows-job-object",
+        "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+        "laneMutex": "Local\\SessionViewerCourseImageJob",
+        "affinityOffset": 8,
+        "requiredAffinityMask": "0xFF00",
+        "maximumOtherLaneProcessors": 8,
+        "maximumOtherLaneMemoryMiB": 8192,
+        "maximumAggregateOurProcessors": 16,
+        "maximumAggregateOurMemoryMiB": 16384,
+        "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+        "requestedProcessors": 8,
+        "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+        "startedUtc": "2026-10-26T06:20:03.2003519Z",
+        "executable": "C:\\Program Files\\nodejs\\node.exe",
+        "arguments": [
+          "--require",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\warp-browser-timeout.cjs",
+          "--import",
+          "file:///C:/pc/3_code/code_rust/wood_research/session/session_tests/scripts/typescript.mjs",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\child-context-scene-helper\\34f0767d377f02a59fe7\\worker.ts",
+          "worker",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\image-lane-scenes\\96zzzzzzb-omit-unused-background-pick-pipelines-83f60543758dce4daff7\\prepared.json",
+          "http://127.0.0.1:64287/96zzzzzzb-omit-unused-background-pick-pipelines/dist/"
+        ],
+        "workingDirectory": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-builds\\cases\\96zzzzzzb-omit-unused-background-pick-pipelines-0471cc351b08d77b3438\\workspace",
+        "timeoutSeconds": 2400,
+        "jobCommitLimitBytes": 8589934592,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 0,
+        "timedOut": false,
+        "elapsedSeconds": 7.359,
+        "peakJobCommitBytes": 1027088384,
+        "affinityMask": "0xFF00",
+        "processors": 8,
+        "processId": 3260,
+        "descendantsAtCleanup": 0
+      },
+      "rootReview": {
+        "sha256": "a410f9be025c1370b29d96d40d3cf729d38b7ce32f95c6e7f3ad507f9b21fef8",
+        "exactPreviouslyApprovedImage": true,
+        "finding": "96zzzzzzb independently captured exact root-original-reviewed child-camera image bytes: complete teal/pink/blue triangle group and intended wire triangle, readable command bar, generous margins, no clipping. Prior visual approval only is reused; this checkpoint retains its own source/build/GPU/semantic receipts."
+      },
+      "http": {
+        "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/96zzzzzzb-omit-unused-background-pick-pipelines-browser.png?v=a410f9be025c",
+        "status": 200,
+        "sha256": "a410f9be025c1370b29d96d40d3cf729d38b7ce32f95c6e7f3ad507f9b21fef8"
+      }
+    }
+  ]
+}
