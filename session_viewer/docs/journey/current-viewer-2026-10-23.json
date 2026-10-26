@@ -1728,7 +1728,7 @@
     "index.html": "fd308bc334190d76723135c1c82b4cd0d0343f3dff0dda573bf338aa5d3961b0",
     "Trunk.toml": "b597b1d06c7d8bbfcdf80a16d71de27bc3aa2f20c10a57742ac58d3cb027742a",
     "docs/lessons/37/assets/course-boxes.pb": "13c1284574a097d81baf11a467b6287b05e58def99e5de8042ed4a4ae2b742c7",
-    "docs/screenshots/steps/37-native.png": "612c7f1a958f3647da22fe0d6a7519d27d6b3e7462f8883476d9ba5237524cd0"
+    "docs/screenshots/steps/37-native.png": "a3e34833c4a1c10b0076a42496a5e20f230d605cea57a4ef9a81c17974f084ca"
   },
   "commands": [
     "src/app/command/verbs/add_edge.rs",

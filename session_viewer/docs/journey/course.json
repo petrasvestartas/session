@@ -830,7 +830,7 @@
       "answer": "The field and command dispatcher must not both submit the same event.",
       "experiment": "Type He and press Tab. Check that history stays unchanged until you press Enter.",
       "production": "This step connects one responsibility of the production command dock. Scene commands are added in the following lessons.",
-      "browser_status": "Tab accepts the completion.",
+      "browser_status": "The field completes known names.",
       "browser_check": "journey/checks/browser/dock-steps.cjs",
       "frame": "journey/checks/03b-state-frame.rs",
       "edits": [
@@ -4556,7 +4556,8 @@
         }
       ],
       "browser_caption": "The orange frame and both triangles are centred together after three pans and Fit scene. Chrome also checks that a second Fit leaves the drawing unchanged, that Fit recovers after another pan, and that the imported file remains one undoable action.",
-      "image_result": "The native check imports the three-piece frame, chooses Isometric, pans three times, then fits. It checks every vertex against the view and verifies the visible orange beam. Browser command delivery needs the separate Chrome run."
+      "image_result": "The native check imports the three-piece frame, chooses Isometric, pans three times, then fits. It checks every vertex against the view and verifies the visible orange beam. Browser command delivery needs the separate Chrome run.",
+      "image_same_as": "23b-fit-camera"
     },
     {
       "tests": true,
@@ -15492,7 +15493,8 @@
           "why": "Cover enabled grid corners in the same orthographic depth interval."
         }
       ],
-      "image_result": "This checkpoint was rendered independently and has the same native comparison frame as [Inspect smooth normals and face winding through commands](41ca-input.md). Use its state checks and browser exercise to assess the changed behavior."
+      "image_result": "This checkpoint was rendered independently and has the same native comparison frame as [Inspect smooth normals and face winding through commands](41ca-input.md). Use its state checks and browser exercise to assess the changed behavior.",
+      "image_same_as": "37d-render"
     },
     {
       "id": "41e-drawing",
@@ -15598,7 +15600,7 @@
         }
       ],
       "image_result": "This checkpoint was rendered independently and has the same native comparison frame as [Bound the ground grid and its camera depth range](41d-grid.md). Use its state checks and browser exercise to assess the changed behavior.",
-      "image_same_as": "37d-render"
+      "image_same_as": "41d-grid"
     },
     {
       "id": "41f-input",
@@ -18167,7 +18169,8 @@
           "why": "Refresh cached selection settings after Select All, even when the editor returns a view-only change."
         }
       ],
-      "image_result": "The earlier box has one original face highlighted. This preparation adds selection or batch-edit infrastructure without changing that exercise."
+      "image_result": "The earlier box has one original face highlighted. This preparation adds selection or batch-edit infrastructure without changing that exercise.",
+      "image_same_as": "44l-input"
     },
     {
       "id": "45bb-cycle",
@@ -18229,7 +18232,7 @@
         }
       ],
       "image_result": "The earlier box has one original face highlighted. This preparation adds selection or batch-edit infrastructure without changing that exercise.",
-      "image_same_as": "44l-input"
+      "image_same_as": "45b-membership"
     },
     {
       "id": "45c-input",
@@ -20136,7 +20139,8 @@
           "snippet": "journey/code/51ez-pack-and-sample-local-handle-vertices-2.rs",
           "why": "Register the local widget mesh helpers."
         }
-      ]
+      ],
+      "image_same_as": "50d-ownership"
     },
     {
       "id": "51f-mesh",
@@ -20212,7 +20216,7 @@
         }
       ],
       "image_result": "The earlier two gold boxes and temporary Move band remain.",
-      "image_same_as": "50d-ownership"
+      "image_same_as": "51ez-pack-and-sample-local-handle-vertices"
     },
     {
       "id": "51h-shader",
@@ -21033,7 +21037,8 @@
           "why": "Route Escape to cancellation for an active handle drag as well as numeric entry."
         }
       ],
-      "image_result": "The earlier two selected boxes and temporary Move band remain."
+      "image_result": "The earlier two selected boxes and temporary Move band remain.",
+      "image_same_as": "50d-ownership"
     },
     {
       "id": "51za-panel",
@@ -21116,7 +21121,7 @@
         }
       ],
       "image_result": "The earlier two selected boxes and temporary Move band remain.",
-      "image_same_as": "50d-ownership"
+      "image_same_as": "51z-number-submit"
     },
     {
       "id": "51zb-presentation",
@@ -21434,7 +21439,8 @@
           "why": "Register the new source component."
         }
       ],
-      "image_result": "Two selected boxes and their source-independent handles remain."
+      "image_result": "Two selected boxes and their source-independent handles remain.",
+      "image_same_as": "51zf-handles"
     },
     {
       "id": "52a-records",
@@ -23434,7 +23440,8 @@
           "copy": true
         }
       ],
-      "image_result": "Blue Posts retain original black boundaries and the independent brown source beam."
+      "image_result": "Blue Posts retain original black boundaries and the independent brown source beam.",
+      "image_same_as": "53u-layers"
     },
     {
       "id": "54aa-view-actions",
@@ -24705,7 +24712,8 @@
           "snippet": "journey/code/55za-read-original-edge-use-samples-2.rs",
           "why": "Register the original CAD edge records and lookup helpers."
         }
-      ]
+      ],
+      "image_same_as": "55g-surface"
     },
     {
       "id": "55zb-follow-original-isoparametric-boundaries",
@@ -24841,7 +24849,7 @@
         }
       ],
       "image_result": "The blue parametric roof and black domain boundaries remain visible.",
-      "image_same_as": "55g-surface"
+      "image_same_as": "55za-read-original-edge-use-samples"
     },
     {
       "id": "56b-boundaries",
@@ -25084,7 +25092,7 @@
           "why": "Compile the one original face-orientation owner."
         }
       ],
-      "image_same_as": "55za-read-original-edge-use-samples"
+      "image_same_as": "55g-surface"
     },
     {
       "id": "59-orientation",
@@ -25158,7 +25166,7 @@
         }
       ],
       "image_result": "The blue parametric roof and black domain boundaries remain visible.",
-      "image_same_as": "55g-surface"
+      "image_same_as": "55za-read-original-edge-use-samples"
     },
     {
       "id": "59b-display",
@@ -26746,7 +26754,8 @@
         "assets/text/NotoSans-Regular.subset.ttf",
         "assets/text/NotoSansSymbols2-Regular.ttf"
       ],
-      "lock": "journey/release/Cargo-text.lock"
+      "lock": "journey/release/Cargo-text.lock",
+      "image_same_as": "61d-glyphs"
     },
     {
       "id": "62ia-project-an-original-label-into-framebuffer-coordinates",
@@ -27813,7 +27822,7 @@
         "assets/text/NotoSansSymbols2-Regular.ttf"
       ],
       "lock": "journey/release/Cargo-text.lock",
-      "image_same_as": "61d-glyphs"
+      "image_same_as": "62i-coverage"
     },
     {
       "id": "62l-picking",
@@ -28143,7 +28152,8 @@
         "assets/text/NotoSans-Regular.subset.ttf",
         "assets/text/NotoSansSymbols2-Regular.ttf"
       ],
-      "lock": "journey/release/Cargo-text.lock"
+      "lock": "journey/release/Cargo-text.lock",
+      "image_same_as": "62o-labels"
     },
     {
       "id": "63a-coverage",
@@ -28193,7 +28203,7 @@
         "assets/text/NotoSansSymbols2-Regular.ttf"
       ],
       "lock": "journey/release/Cargo-text.lock",
-      "image_same_as": "62o-labels"
+      "image_same_as": "63-radius"
     },
     {
       "id": "63aa-pool-and-dilate-a-conservative-outline-mask",
@@ -28287,7 +28297,7 @@
         "assets/text/NotoSansSymbols2-Regular.ttf"
       ],
       "lock": "journey/release/Cargo-text.lock",
-      "image_same_as": "63-radius"
+      "image_same_as": "62o-labels"
     },
     {
       "id": "63c-pipelines",
@@ -28678,7 +28688,8 @@
         "assets/text/NotoSans-Regular.subset.ttf",
         "assets/text/NotoSansSymbols2-Regular.ttf"
       ],
-      "lock": "journey/release/Cargo-text.lock"
+      "lock": "journey/release/Cargo-text.lock",
+      "image_same_as": "63h-outline"
     },
     {
       "id": "64a-tree",
@@ -29140,7 +29151,7 @@
         "assets/text/NotoSansSymbols2-Regular.ttf"
       ],
       "lock": "journey/release/Cargo-text.lock",
-      "image_same_as": "63h-outline"
+      "image_same_as": "64-nodes"
     },
     {
       "id": "64ha-project-original-cloud-rows-to-bounded-point-splats",
@@ -29410,7 +29421,7 @@
         "assets/text/NotoSansSymbols2-Regular.ttf"
       ],
       "lock": "journey/release/Cargo-text.lock",
-      "image_same_as": "64-nodes"
+      "image_same_as": "63h-outline"
     },
     {
       "id": "64j-targets",
@@ -30171,7 +30182,8 @@
         "assets/text/NotoSans-Regular.subset.ttf",
         "assets/text/NotoSansSymbols2-Regular.ttf"
       ],
-      "lock": "journey/release/Cargo-text.lock"
+      "lock": "journey/release/Cargo-text.lock",
+      "image_same_as": "64t-clouds"
     },
     {
       "id": "65a-addresses",
@@ -30431,7 +30443,8 @@
         "assets/text/NotoSans-Regular.subset.ttf",
         "assets/text/NotoSansSymbols2-Regular.ttf"
       ],
-      "lock": "journey/release/Cargo-publish.lock"
+      "lock": "journey/release/Cargo-publish.lock",
+      "image_same_as": "65c-cloud-point"
     },
     {
       "id": "65zb-validate-original-manifest-text-and-source-keys",
@@ -30579,7 +30592,8 @@
         "assets/text/NotoSans-Regular.subset.ttf",
         "assets/text/NotoSansSymbols2-Regular.ttf"
       ],
-      "lock": "journey/release/Cargo-publish.lock"
+      "lock": "journey/release/Cargo-publish.lock",
+      "image_same_as": "65za-read-original-manifest-records-and-placements"
     },
     {
       "id": "66b-validate-source-records-before-allocation",
@@ -30628,7 +30642,7 @@
         "assets/text/NotoSansSymbols2-Regular.ttf"
       ],
       "lock": "journey/release/Cargo-publish.lock",
-      "image_same_as": "65za-read-original-manifest-records-and-placements"
+      "image_same_as": "66a-compare-live-byte-revisions"
     },
     {
       "id": "66ba-validate-one-nurbs-knot-axis",
@@ -31165,7 +31179,7 @@
         "assets/text/NotoSansSymbols2-Regular.ttf"
       ],
       "lock": "journey/release/Cargo-publish.lock",
-      "image_same_as": "65c-cloud-point"
+      "image_same_as": "65za-read-original-manifest-records-and-placements"
     },
     {
       "id": "66d-encode-decode-the-viewer-file",
@@ -32861,7 +32875,8 @@
         "assets/text/NotoSans-Regular.subset.ttf",
         "assets/text/NotoSansSymbols2-Regular.ttf"
       ],
-      "lock": "journey/release/Cargo-publish.lock"
+      "lock": "journey/release/Cargo-publish.lock",
+      "image_same_as": "66af-connect-browser-save-open-url-adoption"
     },
     {
       "id": "67sa-locate-original-cloud-and-sheet-array-fields",
@@ -33301,7 +33316,8 @@
         "assets/text/NotoSans-Regular.subset.ttf",
         "assets/text/NotoSansSymbols2-Regular.ttf"
       ],
-      "lock": "journey/release/Cargo-publish.lock"
+      "lock": "journey/release/Cargo-publish.lock",
+      "image_same_as": "67-supply-checked-array-layout-readers"
     },
     {
       "id": "67a-queue-range-reads-in-arrival-order",
@@ -33411,7 +33427,7 @@
       ],
       "lock": "journey/release/Cargo-publish.lock",
       "browser_result_status": "Command submitted.",
-      "image_same_as": "66af-connect-browser-save-open-url-adoption"
+      "image_same_as": "66za-own-original-range-read-permits"
     },
     {
       "id": "67c-retain-original-point-page-values",
@@ -33746,7 +33762,8 @@
         "assets/text/NotoSans-Regular.subset.ttf",
         "assets/text/NotoSansSymbols2-Regular.ttf"
       ],
-      "lock": "journey/release/Cargo-publish.lock"
+      "lock": "journey/release/Cargo-publish.lock",
+      "image_same_as": "66af-connect-browser-save-open-url-adoption"
     },
     {
       "id": "67hzb-probe-original-source-array-layouts",
@@ -33918,7 +33935,7 @@
       ],
       "lock": "journey/release/Cargo-publish.lock",
       "browser_result_status": "Command submitted.",
-      "image_same_as": "66af-connect-browser-save-open-url-adoption"
+      "image_same_as": "67hza-queue-original-source-range-reads"
     },
     {
       "id": "67k-prepare-a-revision-bound-remote-source",
@@ -35143,7 +35160,7 @@
       ],
       "lock": "journey/release/Cargo-publish.lock",
       "browser_result_status": "Command submitted.",
-      "image_same_as": "67-supply-checked-array-layout-readers"
+      "image_same_as": "66af-connect-browser-save-open-url-adoption"
     },
     {
       "id": "68p-keep-original-attributes-in-ranged-pages",
@@ -35206,7 +35223,7 @@
       ],
       "lock": "journey/release/Cargo-publish.lock",
       "browser_result_status": "Command submitted.",
-      "image_same_as": "66af-connect-browser-save-open-url-adoption"
+      "image_same_as": "67-supply-checked-array-layout-readers"
     },
     {
       "id": "68q-retain-page-owners-beside-gpu-buffers",
@@ -36870,7 +36887,8 @@
         "assets/text/NotoSansSymbols2-Regular.ttf"
       ],
       "lock": "journey/release/Cargo-publish.lock",
-      "frame": "journey/checks/69-instances.rs"
+      "frame": "journey/checks/69-instances.rs",
+      "image_same_as": "69n-inspect-and-exercise-original-definition-instances"
     },
     {
       "id": "69zzb-find-an-original-frame-and-pack-key-words",
@@ -37070,7 +37088,7 @@
       ],
       "lock": "journey/release/Cargo-publish.lock",
       "frame": "journey/checks/69-instances.rs",
-      "image_same_as": "69n-inspect-and-exercise-original-definition-instances"
+      "image_same_as": "69zza-move-between-original-rigid-frames"
     },
     {
       "id": "69ab-replay-sampled-geometry-in-the-new-rigid-frame",
@@ -37774,7 +37792,8 @@
         "assets/text/NotoSansSymbols2-Regular.ttf"
       ],
       "lock": "journey/release/Cargo-publish.lock",
-      "frame": "journey/checks/70-nested-placements.rs"
+      "frame": "journey/checks/70-nested-placements.rs",
+      "image_same_as": "70d-exercise-rotated-and-mirrored-original-references"
     },
     {
       "id": "71-read-original-sheet-entity-metadata",
@@ -37896,7 +37915,7 @@
       ],
       "lock": "journey/release/Cargo-publish.lock",
       "frame": "journey/checks/70-nested-placements.rs",
-      "image_same_as": "70d-exercise-rotated-and-mirrored-original-references"
+      "image_same_as": "70za-read-original-sheet-metadata-records"
     },
     {
       "id": "71b-give-metadata-reads-their-own-cancellation-signal",
@@ -41757,7 +41776,8 @@
         "assets/text/NotoSansSymbols2-Regular.ttf"
       ],
       "lock": "journey/release/Cargo-publish.lock",
-      "frame": "journey/checks/73-planar.rs"
+      "frame": "journey/checks/73-planar.rs",
+      "image_same_as": "73g-exercise-oriented-original-planar-constructions"
     },
     {
       "id": "73i-describe-solid-command-questions",
@@ -42459,7 +42479,7 @@
       ],
       "lock": "journey/release/Cargo-publish.lock",
       "frame": "journey/checks/73-planar.rs",
-      "image_same_as": "73g-exercise-oriented-original-planar-constructions"
+      "image_same_as": "73h-match-solid-command-options"
     },
     {
       "id": "74b-validate-a-new-answer-before-changing-its-original-state",
@@ -43318,7 +43338,8 @@
         "assets/text/NotoSansSymbols2-Regular.ttf"
       ],
       "lock": "journey/release/Cargo-publish.lock",
-      "frame": "journey/checks/74-primitives.rs"
+      "frame": "journey/checks/74-primitives.rs",
+      "image_same_as": "74p-exercise-current-solid-input-and-original-persistence"
     },
     {
       "id": "74zb-build-original-cones-and-spheres",
@@ -43603,7 +43624,7 @@
       ],
       "lock": "journey/release/Cargo-publish.lock",
       "frame": "journey/checks/74-primitives.rs",
-      "image_same_as": "74p-exercise-current-solid-input-and-original-persistence"
+      "image_same_as": "74za-build-original-cylinders-with-signed-height"
     },
     {
       "id": "75c-exercise-round-originals-and-one-transaction",
@@ -43707,7 +43728,8 @@
         "assets/text/NotoSansSymbols2-Regular.ttf"
       ],
       "lock": "journey/release/Cargo-publish.lock",
-      "frame": "journey/checks/75-round.rs"
+      "frame": "journey/checks/75-round.rs",
+      "image_same_as": "75c-exercise-round-originals-and-one-transaction"
     },
     {
       "id": "75zb-build-original-planar-ellipses",
@@ -44039,7 +44061,7 @@
       ],
       "lock": "journey/release/Cargo-publish.lock",
       "frame": "journey/checks/75-round.rs",
-      "image_same_as": "75c-exercise-round-originals-and-one-transaction"
+      "image_same_as": "75za-build-original-planar-circles"
     },
     {
       "id": "76b-retain-editable-freeform-controls-in-the-point-collector",
@@ -44126,7 +44148,7 @@
       ],
       "lock": "journey/release/Cargo-publish.lock",
       "frame": "journey/checks/75-round.rs",
-      "image_same_as": "75za-build-original-planar-circles"
+      "image_same_as": "75c-exercise-round-originals-and-one-transaction"
     },
     {
       "id": "76c-inspect-original-curve-data-through-the-browser-contract",
@@ -44170,7 +44192,7 @@
       ],
       "lock": "journey/release/Cargo-publish.lock",
       "frame": "journey/checks/75-round.rs",
-      "image_same_as": "75c-exercise-round-originals-and-one-transaction"
+      "image_same_as": "75za-build-original-planar-circles"
     },
     {
       "id": "76d-exercise-exact-curves-and-rational-control-edits",
@@ -44277,7 +44299,8 @@
         "assets/text/NotoSansSymbols2-Regular.ttf"
       ],
       "lock": "journey/release/Cargo-publish.lock",
-      "frame": "journey/checks/76-freeform.rs"
+      "frame": "journey/checks/76-freeform.rs",
+      "image_same_as": "76d-exercise-exact-curves-and-rational-control-edits"
     },
     {
       "id": "77sa-compute-signed-construction-plane-rotation",
@@ -45159,7 +45182,7 @@
       ],
       "lock": "journey/release/Cargo-publish.lock",
       "frame": "journey/checks/76-freeform.rs",
-      "image_same_as": "76d-exercise-exact-curves-and-rational-control-edits"
+      "image_same_as": "77-copy-current-transformation-and-source-edit-algorithms"
     },
     {
       "id": "77b-validate-point-and-number-transformation-answers",
@@ -45999,7 +46022,8 @@
         "assets/text/NotoSansSymbols2-Regular.ttf"
       ],
       "lock": "journey/release/Cargo-publish.lock",
-      "frame": "journey/checks/77-transform.rs"
+      "frame": "journey/checks/77-transform.rs",
+      "image_same_as": "77o-exercise-original-copy-transforms-history-and-exact-persistence"
     },
     {
       "id": "77zzb-read-curve-gathering-values",
@@ -46692,7 +46716,8 @@
         "assets/text/NotoSansSymbols2-Regular.ttf"
       ],
       "lock": "journey/release/Cargo-publish.lock",
-      "frame": "journey/checks/77-transform.rs"
+      "frame": "journey/checks/77-transform.rs",
+      "image_same_as": "77zza-describe-curve-gathering-answers"
     },
     {
       "id": "78a-own-picked-originals-and-world-profile-copies",
@@ -47507,7 +47532,8 @@
         "assets/text/NotoSansSymbols2-Regular.ttf"
       ],
       "lock": "journey/release/Cargo-publish.lock",
-      "frame": "journey/checks/78-gather.rs"
+      "frame": "journey/checks/78-gather.rs",
+      "image_same_as": "78m-exercise-profiles-exact-surfaces-and-one-undo-transaction"
     },
     {
       "id": "79aa-frame-original-profiles-on-their-rail",
@@ -47759,7 +47785,7 @@
       ],
       "lock": "journey/release/Cargo-publish.lock",
       "frame": "journey/checks/78-gather.rs",
-      "image_same_as": "78m-exercise-profiles-exact-surfaces-and-one-undo-transaction"
+      "image_same_as": "79-retain-current-loft-section-order-and-degree-options"
     },
     {
       "id": "79d-exercise-original-sections-rail-groups-and-exact-persistence",
@@ -47856,7 +47882,8 @@
         "assets/text/NotoSansSymbols2-Regular.ttf"
       ],
       "lock": "journey/release/Cargo-publish.lock",
-      "frame": "journey/checks/79-loft.rs"
+      "frame": "journey/checks/79-loft.rs",
+      "image_same_as": "79d-exercise-original-sections-rail-groups-and-exact-persistence"
     },
     {
       "id": "79zzb-classify-two-original-network-directions",
@@ -48178,7 +48205,7 @@
       ],
       "lock": "journey/release/Cargo-publish.lock",
       "frame": "journey/checks/79-loft.rs",
-      "image_same_as": "79d-exercise-original-sections-rail-groups-and-exact-persistence"
+      "image_same_as": "79zza-sample-original-network-curve-stations"
     },
     {
       "id": "80c-register-network-patch-aliases-and-initial-corner-arity",
@@ -48326,7 +48353,8 @@
         "assets/text/NotoSansSymbols2-Regular.ttf"
       ],
       "lock": "journey/release/Cargo-publish.lock",
-      "frame": "journey/checks/80-network.rs"
+      "frame": "journey/checks/80-network.rs",
+      "image_same_as": "80d-exercise-networks-corner-retries-and-exact-original-archives"
     },
     {
       "id": "81-project-originals-through-the-current-plane-algorithms",
@@ -48797,7 +48825,7 @@
       ],
       "lock": "journey/release/Cargo-publish.lock",
       "frame": "journey/checks/80-network.rs",
-      "image_same_as": "80d-exercise-networks-corner-retries-and-exact-original-archives"
+      "image_same_as": "80za-read-original-projection-planes"
     },
     {
       "id": "81c-replace-an-original-without-replacing-its-row",
@@ -49974,7 +50002,8 @@
         "assets/text/NotoSansSymbols2-Regular.ttf"
       ],
       "lock": "journey/release/Cargo-publish.lock",
-      "frame": "journey/checks/81-editing.rs"
+      "frame": "journey/checks/81-editing.rs",
+      "image_same_as": "81v-exercise-original-projection-retry-and-repeated-extension"
     },
     {
       "id": "82b-transform-cutters-into-the-target-frame-before-dividing",
@@ -50450,7 +50479,8 @@
         "assets/text/NotoSansSymbols2-Regular.ttf"
       ],
       "lock": "journey/release/Cargo-publish.lock",
-      "frame": "journey/checks/83-split-face.rs"
+      "frame": "journey/checks/83-split-face.rs",
+      "image_same_as": "83-split-original-faces-without-separating-the-solid"
     },
     {
       "id": "83zb-compute-original-mesh-measures-and-curve-length",
@@ -50697,7 +50727,7 @@
       ],
       "lock": "journey/release/Cargo-publish.lock",
       "frame": "journey/checks/83-split-face.rs",
-      "image_same_as": "83-split-original-faces-without-separating-the-solid"
+      "image_same_as": "83za-visit-original-mesh-triangles-and-format-measures"
     },
     {
       "id": "84b-adopt-original-boxes-and-retain-precise-placed-bounds",
@@ -51506,7 +51536,8 @@
         "assets/text/NotoSansSymbols2-Regular.ttf"
       ],
       "lock": "journey/release/Cargo-publish.lock",
-      "frame": "journey/checks/84-measure.rs"
+      "frame": "journey/checks/84-measure.rs",
+      "image_same_as": "84m-exercise-original-boxes-and-temporary-distance-annotations"
     },
     {
       "id": "84zzb-read-trim-part-previews",
@@ -52590,7 +52621,7 @@
       ],
       "lock": "journey/release/Cargo-publish.lock",
       "frame": "journey/checks/84-measure.rs",
-      "image_same_as": "84m-exercise-original-boxes-and-temporary-distance-annotations"
+      "image_same_as": "84zza-describe-removable-cad-parts"
     },
     {
       "id": "85b-retain-original-plane-and-text-edit-eligibility",
@@ -53858,7 +53889,7 @@
       ],
       "lock": "journey/release/Cargo-publish.lock",
       "frame": "journey/checks/84-measure.rs",
-      "image_same_as": "84zza-describe-removable-cad-parts"
+      "image_same_as": "84m-exercise-original-boxes-and-temporary-distance-annotations"
     },
     {
       "id": "85z-connect-cached-guide-and-placed-grid-lanes",
@@ -53938,7 +53969,7 @@
       ],
       "lock": "journey/release/Cargo-publish.lock",
       "frame": "journey/checks/84-measure.rs",
-      "image_same_as": "84m-exercise-original-boxes-and-temporary-distance-annotations"
+      "image_same_as": "84zza-describe-removable-cad-parts"
     },
     {
       "id": "85aa-expose-graph-links-and-the-lasso-overlay",
@@ -55435,7 +55466,8 @@
         "assets/text/NotoSansSymbols2-Regular.ttf"
       ],
       "lock": "journey/release/Cargo-publish.lock",
-      "frame": "journey/checks/85-commands.rs"
+      "frame": "journey/checks/85-commands.rs",
+      "image_same_as": "85ay-exercise-current-original-commands-together"
     },
     {
       "id": "86ma-grow-projection-and-reference-pools-from-demand",
@@ -56163,7 +56195,7 @@
       ],
       "lock": "journey/release/Cargo-publish.lock",
       "frame": "journey/checks/85-commands.rs",
-      "image_same_as": "85ay-exercise-current-original-commands-together"
+      "image_same_as": "86-copy-finite-tile-allocation-rules"
     },
     {
       "id": "86h-read-actual-pool-demand-asynchronously",
@@ -56219,7 +56251,7 @@
       ],
       "lock": "journey/release/Cargo-publish.lock",
       "frame": "journey/checks/85-commands.rs",
-      "image_same_as": "86-copy-finite-tile-allocation-rules"
+      "image_same_as": "85ay-exercise-current-original-commands-together"
     },
     {
       "id": "86i-describe-explicit-finite-gpu-layouts",
@@ -56269,7 +56301,7 @@
       ],
       "lock": "journey/release/Cargo-publish.lock",
       "frame": "journey/checks/85-commands.rs",
-      "image_same_as": "85ay-exercise-current-original-commands-together"
+      "image_same_as": "86-copy-finite-tile-allocation-rules"
     },
     {
       "id": "86j-build-compute-and-count-pipeline-helpers",
@@ -56879,7 +56911,7 @@
       ],
       "lock": "journey/release/Cargo-publish.lock",
       "frame": "journey/checks/85-commands.rs",
-      "image_same_as": "86-copy-finite-tile-allocation-rules"
+      "image_same_as": "85ay-exercise-current-original-commands-together"
     },
     {
       "id": "86v-reuse-original-stroke-integer-coverage",
@@ -56925,7 +56957,7 @@
       ],
       "lock": "journey/release/Cargo-publish.lock",
       "frame": "journey/checks/85-commands.rs",
-      "image_same_as": "85ay-exercise-current-original-commands-together"
+      "image_same_as": "86-copy-finite-tile-allocation-rules"
     },
     {
       "id": "86w-keep-stroke-crop-ownership-aligned",
@@ -57115,7 +57147,7 @@
       ],
       "lock": "journey/release/Cargo-publish.lock",
       "frame": "journey/checks/85-commands.rs",
-      "image_same_as": "86-copy-finite-tile-allocation-rules"
+      "image_same_as": "85ay-exercise-current-original-commands-together"
     },
     {
       "id": "86z-reuse-original-chain-integer-coverage",
@@ -57161,7 +57193,7 @@
       ],
       "lock": "journey/release/Cargo-publish.lock",
       "frame": "journey/checks/85-commands.rs",
-      "image_same_as": "85ay-exercise-current-original-commands-together"
+      "image_same_as": "86-copy-finite-tile-allocation-rules"
     },
     {
       "id": "86aa-keep-chain-crop-ownership-aligned",
@@ -57345,7 +57377,7 @@
       ],
       "lock": "journey/release/Cargo-publish.lock",
       "frame": "journey/checks/85-commands.rs",
-      "image_same_as": "86-copy-finite-tile-allocation-rules"
+      "image_same_as": "85ay-exercise-current-original-commands-together"
     },
     {
       "id": "86ad-reuse-original-marker-integer-coverage",
@@ -57391,7 +57423,7 @@
       ],
       "lock": "journey/release/Cargo-publish.lock",
       "frame": "journey/checks/85-commands.rs",
-      "image_same_as": "85ay-exercise-current-original-commands-together"
+      "image_same_as": "86-copy-finite-tile-allocation-rules"
     },
     {
       "id": "86ae-keep-marker-crop-ownership-aligned",
@@ -58371,7 +58403,8 @@
         "assets/text/NotoSansSymbols2-Regular.ttf"
       ],
       "lock": "journey/release/Cargo-publish.lock",
-      "frame": "journey/checks/86-finite-ink.rs"
+      "frame": "journey/checks/86-finite-ink.rs",
+      "image_same_as": "86aq-exercise-finite-color-and-original-picking"
     },
     {
       "id": "87b-copy-the-maintained-clipping-uniform-layout",
@@ -58470,7 +58503,7 @@
       ],
       "lock": "journey/release/Cargo-publish.lock",
       "frame": "journey/checks/86-finite-ink.rs",
-      "image_same_as": "86aq-exercise-finite-color-and-original-picking"
+      "image_same_as": "87a-gather-six-visible-original-world-planes"
     },
     {
       "id": "87ca-project-a-stable-hatch-coordinate-onto-a-plane",
@@ -58778,7 +58811,7 @@
       ],
       "lock": "journey/release/Cargo-publish.lock",
       "frame": "journey/checks/86-finite-ink.rs",
-      "image_same_as": "87a-gather-six-visible-original-world-planes"
+      "image_same_as": "86aq-exercise-finite-color-and-original-picking"
     },
     {
       "id": "87e-preserve-mode-prefixes-in-generic-point-drafts",
@@ -60248,7 +60281,7 @@
       ],
       "lock": "journey/release/Cargo-publish.lock",
       "frame": "journey/checks/86-finite-ink.rs",
-      "image_same_as": "86aq-exercise-finite-color-and-original-picking"
+      "image_same_as": "87a-gather-six-visible-original-world-planes"
     },
     {
       "id": "87y-clip-original-sheet-pens-and-integer-entities",
@@ -60328,7 +60361,7 @@
       ],
       "lock": "journey/release/Cargo-publish.lock",
       "frame": "journey/checks/86-finite-ink.rs",
-      "image_same_as": "87a-gather-six-visible-original-world-planes"
+      "image_same_as": "86aq-exercise-finite-color-and-original-picking"
     },
     {
       "id": "87z-clip-text-anchors-with-all-six-original-planes",
@@ -60575,7 +60608,8 @@
         "assets/text/NotoSansSymbols2-Regular.ttf"
       ],
       "lock": "journey/release/Cargo-publish.lock",
-      "frame": "journey/checks/87-clipping.rs"
+      "frame": "journey/checks/87-clipping.rs",
+      "image_same_as": "87ab-exercise-original-clipping-color-and-picking"
     },
     {
       "id": "88a-cache-verified-original-solids-weakly",
@@ -60625,7 +60659,7 @@
       ],
       "lock": "journey/release/Cargo-publish.lock",
       "frame": "journey/checks/87-clipping.rs",
-      "image_same_as": "87ab-exercise-original-clipping-color-and-picking"
+      "image_same_as": "88-copy-original-closedness-and-winding"
     },
     {
       "id": "88b-copy-conservative-plane-crossing-bounds",
@@ -60682,7 +60716,7 @@
       ],
       "lock": "journey/release/Cargo-publish.lock",
       "frame": "journey/checks/87-clipping.rs",
-      "image_same_as": "88-copy-original-closedness-and-winding"
+      "image_same_as": "87ab-exercise-original-clipping-color-and-picking"
     },
     {
       "id": "88c-cache-local-bounds-and-apply-placement-once",
@@ -60732,7 +60766,7 @@
       ],
       "lock": "journey/release/Cargo-publish.lock",
       "frame": "journey/checks/87-clipping.rs",
-      "image_same_as": "87ab-exercise-original-clipping-color-and-picking"
+      "image_same_as": "88-copy-original-closedness-and-winding"
     },
     {
       "id": "88d-carry-closedness-and-dense-cap-addresses",
@@ -60937,7 +60971,7 @@
       ],
       "lock": "journey/release/Cargo-publish.lock",
       "frame": "journey/checks/87-clipping.rs",
-      "image_same_as": "88-copy-original-closedness-and-winding"
+      "image_same_as": "87ab-exercise-original-clipping-color-and-picking"
     },
     {
       "id": "88ga-fade-hatch-detail-and-detect-section-boundaries",
@@ -61085,7 +61119,7 @@
       ],
       "lock": "journey/release/Cargo-publish.lock",
       "frame": "journey/checks/87-clipping.rs",
-      "image_same_as": "87ab-exercise-original-clipping-color-and-picking"
+      "image_same_as": "88-copy-original-closedness-and-winding"
     },
     {
       "id": "88i-return-original-integer-section-owners",
@@ -62218,7 +62252,8 @@
         "assets/text/NotoSansSymbols2-Regular.ttf"
       ],
       "lock": "journey/release/Cargo-publish.lock",
-      "frame": "journey/checks/88-caps.rs"
+      "frame": "journey/checks/88-caps.rs",
+      "image_same_as": "88ad-exercise-original-sections-bores-and-ink"
     },
     {
       "id": "89a-prepare-linear-original-depth-and-radius-addresses",
@@ -62675,7 +62710,7 @@
       ],
       "lock": "journey/release/Cargo-publish.lock",
       "frame": "journey/checks/89-pyramid.rs",
-      "image_same_as": "88ad-exercise-original-sections-bores-and-ink"
+      "image_same_as": "89-copy-density-scaled-depth-reduction"
     },
     {
       "id": "90a-copy-current-viewing-rays",
@@ -62769,7 +62804,7 @@
       ],
       "lock": "journey/release/Cargo-publish.lock",
       "frame": "journey/checks/89-pyramid.rs",
-      "image_same_as": "89-copy-density-scaled-depth-reduction"
+      "image_same_as": "88ad-exercise-original-sections-bores-and-ink"
     },
     {
       "id": "90c-gather-weak-original-ambient-properties",
@@ -62863,7 +62898,7 @@
       ],
       "lock": "journey/release/Cargo-publish.lock",
       "frame": "journey/checks/89-pyramid.rs",
-      "image_same_as": "88ad-exercise-original-sections-bores-and-ink"
+      "image_same_as": "89-copy-density-scaled-depth-reduction"
     },
     {
       "id": "90da-reconstruct-original-surfaces-from-depth",
@@ -63401,7 +63436,7 @@
       ],
       "lock": "journey/release/Cargo-publish.lock",
       "frame": "journey/checks/89-pyramid.rs",
-      "image_same_as": "89-copy-density-scaled-depth-reduction"
+      "image_same_as": "88ad-exercise-original-sections-bores-and-ink"
     },
     {
       "id": "90g-build-the-depth-equal-original-property-pass",
@@ -64296,7 +64331,8 @@
         "assets/text/NotoSansSymbols2-Regular.ttf"
       ],
       "lock": "journey/release/Cargo-publish.lock",
-      "frame": "journey/checks/90-ambient.rs"
+      "frame": "journey/checks/90-ambient.rs",
+      "image_same_as": "90v-exercise-actual-contacts-cache-and-source-ownership"
     },
     {
       "id": "91a-cache-visible-section-bindings",
@@ -64972,7 +65008,8 @@
         "assets/text/NotoSansSymbols2-Regular.ttf"
       ],
       "lock": "journey/release/92-Cargo.lock",
-      "frame": "journey/checks/91-outlines.rs"
+      "frame": "journey/checks/91-outlines.rs",
+      "image_same_as": "91i-prove-actual-outlines-and-original-ownership"
     },
     {
       "id": "92a-retain-current-positive-lengths-and-six-builders",
@@ -65096,7 +65133,7 @@
       ],
       "lock": "journey/release/92-Cargo.lock",
       "frame": "journey/checks/91-outlines.rs",
-      "image_same_as": "91i-prove-actual-outlines-and-original-ownership"
+      "image_same_as": "91zza-write-original-beam-column-and-plate-builders"
     },
     {
       "id": "92c-read-current-element-command-defaults",
@@ -65904,7 +65941,8 @@
         "assets/text/NotoSansSymbols2-Regular.ttf"
       ],
       "lock": "journey/release/92-Cargo.lock",
-      "frame": "journey/checks/92-elements.rs"
+      "frame": "journey/checks/92-elements.rs",
+      "image_same_as": "92o-prove-element-recipes-source-history-and-archives"
     },
     {
       "id": "93a-own-opacity-in-the-existing-surface-frame",
@@ -67489,7 +67527,8 @@
       "tests": true,
       "frame": "journey/checks/94-comparison.rs",
       "frame_constructor": "make_renderer(device, queue, format)",
-      "image_result": "The existing original comparison scene is unchanged; this step prepares imported Element ownership."
+      "image_result": "The existing original comparison scene is unchanged; this step prepares imported Element ownership.",
+      "image_same_as": "96h-prove-current-source-grammar-and-explicit-differences"
     },
     {
       "id": "96j-group-features-by-original-interaction",
@@ -68428,7 +68467,7 @@
       ],
       "lock": "journey/release/94-Cargo.lock",
       "image_result": "This supporting frame has no instances; use the supplied original Session specimen for the browser exercise.",
-      "image_same_as": "96u-fit-original-box-corners-to-the-free-canvas"
+      "image_same_as": "96y-address-feature-pixels-to-original-cad-owners"
     },
     {
       "id": "96za-address-original-controls-with-family-keys",
@@ -70460,7 +70499,8 @@
       "lock": "journey/release/94-Cargo.lock",
       "image_result": "This supporting frame has no instances; use the supplied original Session specimen for the browser exercise.",
       "browser_check": "journey/checks/browser/cap-primitives.cjs",
-      "browser_result_status": "Document closed."
+      "browser_result_status": "Document closed.",
+      "image_same_as": "96zy-connect-fitted-surfaces-and-exact-stroke-occlusion"
     },
     {
       "id": "96zzb-read-section-visibility-from-one-image",
@@ -85864,8 +85904,7 @@
       "browser_check": "journey/checks/browser/target-resize.cjs",
       "browser_actions": [],
       "browser_result_status": "Document replaced. Undo restores the previous document.",
-      "browser_caption": "Actual single-sample contact browser fixture after cached text colour recipes. Separate labelled Native pictures show actual world text, nameplates and screen glyphs at both counts. Complete browser multisampling and whole-course feature review remain pending.",
-      "image_same_as": "96zzzzzzt-keep-contact-ambient-inputs-on-originals"
+      "browser_caption": "Actual single-sample contact browser fixture after cached text colour recipes. Separate labelled Native pictures show actual world text, nameplates and screen glyphs at both counts. Complete browser multisampling and whole-course feature review remain pending."
     },
     {
       "id": "96zzzzzzze-cache-outline-section-recipes",

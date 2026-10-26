@@ -1,5 +1,5 @@
 {
-  "updated": "2026-10-26T19:59:33.628Z",
+  "updated": "2026-10-26T20:05:23.563Z",
   "platform": "windows",
   "scope": "Complete the 22-chapter viewer course and production reconciliation plan",
   "chaptersConsolidated": 22,
@@ -655,7 +655,7 @@
     "processors": 16,
     "scope": "Combined configured ceilings for at most two image jobs:8CPUs/8GiB each on disjoint affinity masks. The original two-CPU validation guard remains unchanged."
   },
-  "next": "Finish source-bound image captures and reviews, validate the remaining floor output and variants, refresh metadata after capture freezes end, then rebuild and inspect the complete site.",
+  "next": "Correct the remaining generated floor coplanar BRep splits, review/publish its final image, then rebuild and inspect the complete1762-image documentation site.",
   "currentDocsReview": {
     "status": "PASS final current-source docs and3root-reviewed original images; completed desktop/phone progress sync also passes; original V10 measured scope retained.",
     "record": "docs/journey/release/docs-final-brep-visible-review.json",
@@ -2265,8 +2265,7 @@
     ],
     "pending": [
       "1 remaining original-inventory images: source-bound capture, original-resolution QA and publication",
-      "Remaining floor output generation and strict physical/export/reload acceptance",
-      "Final duplicate-image/startup metadata refresh with unchanged runtime bindings",
+      "Generated floor BRep coplanar-split correction and strict physical/export/reload acceptance",
       "Final documentation rebuild and desktop/phone review after complete image publication"
     ],
     "authoring": {
@@ -2278,8 +2277,8 @@
       "checkpoints": 1361,
       "referenceCheckpoints": 43,
       "finalReferenceFiles": 351,
-      "record": "target/course-windows-20261025/latest-commit-audit/early-quality-structure-after-panel.log",
-      "status": "Historical structural pass retained; current final check pending image_same_as and03cf startup metadata refresh after capture freezes end."
+      "record": "../release/final-image-metadata-and-structure-review.json",
+      "status": "PASS original full1361 lesson/43 reference structural checks after99 exact metadata corrections and reviewed reference37 image hash refresh."
     },
     "candidateFinalCadFingerprint": "3efbb602833786d48a46add280c7769351a11850b15914748bfc69889f0f3a32",
     "publishedNewCaptures": 1756,
@@ -2413,8 +2412,8 @@
     "packagingReview": "../release/public-image-packaging-review.json",
     "latestBrowserStreamingPublication": "../release/browser-streaming-publication-337.json",
     "browserBulk": {
-      "status": "ALL_BROWSER_CAPTURED",
-      "cohort": "target/course-presentation/incremental-browser-batches/82f55d3f73a91fcfd7f1",
+      "status": "ALL_BROWSER_CAPTURED_AND_FINAL_METADATA_QUALIFIED",
+      "cohort": "target/course-presentation/incremental-browser-batches/03e98650cb7155fcaa43",
       "retainedCompletedAtResume": 379,
       "captured": 379,
       "remainingCaptures": 0,
@@ -2423,8 +2422,15 @@
       "total": 379,
       "sourceQualified": 379,
       "methodReview": "../release/maintained-browser-dpr2-variant-image-review.json",
-      "sourceSuccessorReview": "../release/browser-maintained-terminal-source-successor-review.json",
-      "scope": "All379 actual source-specific captures complete. Mixed approved historical/generic/export/terminal/main-page/full-callback scopes retained per ID; no blanket canonical behavior acceptance. Maintained97 entire original behavior and both-density assertions passed under image-only resource profile. Final metadata remains frozen/pending independent qualification. Retained prior actual identities: 378. Original import timeout failures remain unaccepted."
+      "sourceSuccessorReview": "../release/browser-final-metadata-source-successor-review.json",
+      "scope": "Only99 approved course metadata fields changed: source-declared03cf startup status and actual image_same_as relationships, including one obsolete alias deletion. Exact entire course reconstruction after restoring ONLY these fields equals the frozen before-course object. All379 runtime/source/assets/lock/kernel/fixture/recipe bindings are deep-equal; all379 sourceRecord/image SHA identities and actual successful resource receipts remain unchanged. No browser callback, renderer, GPU capture, compiler or native test rerun is claimed. Every retained original execution keeps its distinct historical/generic/export/terminal/main-page/full-callback scope and failed ancestors remain immutable. All379 actual records retained; earlier failed attempts remain in immutable ancestor cohorts."
+    },
+    "finalMetadataQualification": {
+      "status": "PASS",
+      "nativeRuntimeBindings": 1360,
+      "browserRuntimeBindings": 379,
+      "scope": "All actual capture identities retained; metadata qualification does not rerun callbacks or accept unresolved floor geometry.",
+      "record": "../release/final-image-metadata-and-structure-review.json"
     }
   }
 }
