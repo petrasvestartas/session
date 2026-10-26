@@ -1,16 +1,16 @@
 {
-  "date": "2026-10-26T03:29:49.547Z",
+  "date": "2026-10-26T03:37:59.040Z",
   "status": "PASS: reviewed publication receipts reconciled with exact source and served file hashes",
   "scope": "Only explicitly reviewed publication receipts count; in-flight captures excluded. HTTP verification belongs to each linked publication receipt.",
   "inventory": {
     "path": "target/course-presentation/inventory-d09aa228601224bf4dfe.json",
     "sha256": "d09aa228601224bf4dfe01d6a1009a56357b2eb5e4b3baa5d88566b2c7a66eba"
   },
-  "published": 1280,
-  "remaining": 482,
+  "published": 1281,
+  "remaining": 481,
   "counts": {
     "native": 1018,
-    "browser": 242,
+    "browser": 243,
     "variants": 0,
     "supporting": 20
   },
@@ -12578,6 +12578,16 @@
       "receipt": {
         "path": "docs/journey/release/exported-primary-three-browser-image-review.json",
         "sha256": "8404f029f728012b9c2c87ab70379bef903e83ef1223f861004ab5d3fc32de0f"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/96h-prove-current-source-grammar-and-explicit-differences-browser.png",
+      "sha256": "ab70b518b05d5c0672273aadaf4979ec7b4b203c8a34bc4647c980208e9a3a1f",
+      "kind": "browser",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/browser-streaming-publication-201.json",
+        "sha256": "a37127b6cc555b329cdad34aa52ab04cb98fafd285a7d01d8c7856a52fee001c"
       }
     },
     {

@@ -1,0 +1,60 @@
+{
+  "status": "PASS scoped379 runtime-source equivalence,242 retained actual identities and one actual full96h callback with exact-byte file transport adopted",
+  "date": "2026-10-26T03:37:25.041Z",
+  "oldCohortRecord": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-batches\\5fabf35c08d614a39488\\cohort.json",
+    "sha256": "37dadb4d70409397bef47026b1e71a485ef21ca646a3de1dc776ca32e24e34d5"
+  },
+  "newCohortRecord": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-batches\\26d5565dbcebbd2eadfc\\cohort.json",
+    "sha256": "3821eaf2f51e7379c7dff7bdcf2b44345888dc52d0af3aa10589f4b4541acca3"
+  },
+  "all379RuntimeBindingsEqual": true,
+  "completed": 243,
+  "remaining": 136,
+  "retainedActualRecords": 242,
+  "adoptedActualRecord": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\owned-file-fallback\\96h-prove-current-source-grammar-and-explicit-differences-034f63586a6b373539dc\\capture.json",
+    "sha256": "e9d82237a90f10c05db049754898d2685129865a31083df6d211867e2f8e2647"
+  },
+  "operationalDriver": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\incremental-browser-image-queue-v3.ts",
+    "sha256": "8fd95ae1b7b9a027f390f5296557575c66bee9ab4b98f6139f6afa75a382a329"
+  },
+  "helpers": [
+    {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\incremental-browser-image-batch-v4.ts",
+      "sha256": "950d200830312db6dba3c83cfe697b546ae4b907a33d4d627a619c4adfaecf35"
+    },
+    {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\incremental-browser-image-queue-v3.ts",
+      "sha256": "8fd95ae1b7b9a027f390f5296557575c66bee9ab4b98f6139f6afa75a382a329"
+    },
+    {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\owned-file-browser-fallback.ts",
+      "sha256": "9b1e01ace3661ffef2ffba53ff17d3ca2f0439d9466bceba8a3c38be74ef592e"
+    },
+    {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\owned-deep-file-buffer-transport.cjs",
+      "sha256": "778cb0766041aadf97508f1ff4f77e961be3d2e2a97cb0edb4a78890abc3d0de"
+    }
+  ],
+  "course": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\course.json",
+    "sha256": "bb1a76e52d57f873721c27e37f17fbe892a8cae2d086916e6eea328b78e3b06d"
+  },
+  "methodReview": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\release\\browser-owned-file-transport-review.json",
+    "sha256": "83db027810a4903e5dc4046a66617f1abdb9d88ed05d0dff887cd000d0bb5849"
+  },
+  "imageReview": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\release\\browser-streaming-publication-201.json",
+    "sha256": "a37127b6cc555b329cdad34aa52ab04cb98fafd285a7d01d8c7856a52fee001c"
+  },
+  "oldFailures": "Original inherited import timeouts and passive diagnostics retained without acceptance relabeling. New full96h actually passed all inherited assertions under image-only8CPU8GiB profile.",
+  "scope": "No runtime/source/assets/lock/kernel/fixture changes and no rerender/rebuild of retained records. Every remaining checkpoint still requires its own source-bound build/checks/actual image and review.",
+  "privateQualification": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-batches\\26d5565dbcebbd2eadfc\\owned-file-successor-qualification.json",
+    "sha256": "a63f422c3f4e1d4eb39ea1c9050d7f5e9a4919b40ea8fb6a837469a6953ef02f"
+  }
+}

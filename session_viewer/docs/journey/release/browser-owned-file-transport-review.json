@@ -1,0 +1,85 @@
+{
+  "status": "APPROVED owned deep file exact-byte transport for image-only canonical fallback",
+  "date": "2026-10-26T03:34:33.321Z",
+  "rootPersonallyViewedOriginalResolution": true,
+  "rootReview": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\browser-streaming-publication-201-preparation\\root-review.json",
+    "sha256": "044b23e935ee881db3812c7b75e93ccdde69de30b085d5fe607a8b7d7e2337d9"
+  },
+  "helper": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\owned-file-browser-fallback.ts",
+    "sha256": "9b1e01ace3661ffef2ffba53ff17d3ca2f0439d9466bceba8a3c38be74ef592e"
+  },
+  "transport": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\owned-deep-file-buffer-transport.cjs",
+    "sha256": "778cb0766041aadf97508f1ff4f77e961be3d2e2a97cb0edb4a78890abc3d0de"
+  },
+  "case": {
+    "id": "96h-prove-current-source-grammar-and-explicit-differences",
+    "record": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\owned-file-fallback\\96h-prove-current-source-grammar-and-explicit-differences-034f63586a6b373539dc\\capture.json",
+      "sha256": "e9d82237a90f10c05db049754898d2685129865a31083df6d211867e2f8e2647"
+    },
+    "reviewedImageSha256": "ab70b518b05d5c0672273aadaf4979ec7b4b203c8a34bc4647c980208e9a3a1f"
+  },
+  "fullOriginalCallbackExecuted": true,
+  "canonicalValidationProfile": false,
+  "source": {
+    "checkpoint": "96h-prove-current-source-grammar-and-explicit-differences",
+    "files": "162aef67e8b03c7a8d097eae06562f33f5c2f912221235217f8ac10ae91bd124",
+    "lock": "1df9f908a4aead0990495bcf505176ab0842191051943e422635b28f23ccab94",
+    "assets": {
+      "assets/text/NotoSans-Regular.subset.ttf": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09",
+      "assets/text/NotoSansSymbols2-Regular.subset.ttf": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed",
+      "assets/text/NotoSansSymbols-Regular.subset.ttf": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3",
+      "assets/text/OFL.txt": "0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb",
+      "assets/text/NotoSansSymbols-Regular.ttf": "8f02f31959bbdf6061547a188248e13f84dc5fdd940326ec494675f453f072bb",
+      "assets/text/NotoSans-Regular.ttf": "b85c38ecea8a7cfb39c24e395a4007474fa5a4fc864f6ee33309eb4948d232d5",
+      "assets/text/NotoSansSymbols2-Regular.ttf": "630846d528dbe4c4981370a4d0a9475a1fd1491a129bb411f8e157cdb5de13c6",
+      "assets/pb/course-comparison.pb": "8d952b0ac17ebf0bb7c20704b45b95acbe5b4395ff809a38baacaad93de4bed5",
+      "assets/pb/course-metadata.pb": "2cfe2ad9becff37d0fcca23f71e47b1c6e674d7934327120a9233efd0c2faf55"
+    },
+    "dependencies": {
+      "dependencies": "ff3d53262a3d32f3b7f4da5397ec9944d6022d4b9c298e51cdee9a33b5560731",
+      "dependency_checker": "d32c7dbec5fd12dbd68a3adf36bccb60bdf5254cb890f1f8c5bff8a5b7e7d6d5"
+    },
+    "kernel": "c0acbde78685d127e98e1d13dd9c1fdff064277c38ce17fd7329a13459558b88",
+    "fixture": "9f1b3df69021e57f18192c60c60f2577e76a1f466a68b6228b59a363b7e6ac35",
+    "harness": "cc7b0a195a93c6fde86a62e203c4ecabf74eb76ee256952dfd098796ca9c39a3",
+    "constructor": "make_renderer(device, queue, format)",
+    "logicalSize": [
+      640,
+      480
+    ],
+    "helper": "e2c028971ab9cc08c2b951bed543b025ccb6f17c8e0b844d5370e82abb3a7410"
+  },
+  "originalAssertionsUnchanged": true,
+  "prefixExcluded": false,
+  "ownedTransport": {
+    "bridge": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\owned-file-fallback\\96h-prove-current-source-grammar-and-explicit-differences-034f63586a6b373539dc\\bridge.json",
+      "sha256": "c8785483ed5f7fc05eb8765b6d1600b74837f2ef2b9ba9623c3c68a25b1a9d51"
+    },
+    "receipt": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\owned-file-fallback\\96h-prove-current-source-grammar-and-explicit-differences-034f63586a6b373539dc\\transport.jsonl",
+      "sha256": "4a13a3d7cd4cc13755923dae611b274a1a93ea53bc65ad65a4fb276feadb27ab"
+    },
+    "actualConversions": 12,
+    "allFileAndBufferDigestsEqual": true,
+    "originalFilenamePreserved": true,
+    "mimeType": "application/octet-stream",
+    "scope": "Only regular files under this exact private workspace with absolute pathname length >=260. Unknown/external/short paths and byte payloads retain original transport. Browser file input uses source bytes/name; no renderer/shader/geometry source changes."
+  },
+  "failure": {
+    "actualChildSnapshot": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\exported-scenes\\96h-prove-current-source-grammar-and-explicit-differences-373527f461b09d09737c\\actual-import-timeout.json",
+      "sha256": "d3cb2a59b1172e475cfbfde6a0c2282b996c63c98f111b62a60e2f1fe3aa2d2b"
+    },
+    "statusAtFailure": "Cannot read file: JsValue(NotFoundError: A requested file or directory could not be found at the time an operation was processed.\nundefined)",
+    "originalPrefixOutcome": "UNACCEPTED timeout preserved",
+    "cause": "Actual browser File read NotFoundError on deep private file path. Exact named byte payload transport passed original focused and full inherited checks. Specific Win32 MAX_PATH attribution is an inference, not a measured OS trace.",
+    "historicalInputPath": "Diagnostic input paths may later be reused by same-source full runs; original diagnostic JSON/digest/screenshot remain immutable, no current-byte identity claim for old generated archive paths."
+  },
+  "scope": "Transport qualification for source-bound image-only original callback executions. Does not establish original2CPU canonical validation-profile acceptance or accept any future image without its own actual source/build/checks and visual review.",
+  "framingLimit": "Root personally viewed: top circle/column readable, crisp intended boundaries, no mesh diagonals. Front base corner cut by bottom dock accepted as original performance pan+wheel framing. Explicit cropping limitation; no generous margin/artifact-free claim. Full inherited original callback PASS, no prefix exclusion."
+}
