@@ -1,0 +1,355 @@
+{
+  "status": "PASS actual source-bound native light variant, root-reviewed and source/served HTTP verified",
+  "date": "2026-10-26T06:14:06.794Z",
+  "canonicalValidationProfile": false,
+  "rootPersonallyViewedOriginalResolution": true,
+  "limits": [
+    "Original single-sample coverage retained; no BRep or NVIDIA quality claim.",
+    "Actual elapsed182.793s and peak1177411584B are private cold-build-plus-capture measurements.",
+    "Actual descendantsAtCleanup2 retained; guard and helper subsequently returned terminal0. No zero-swap claim.",
+    "Original NEW-lane helper/config remain unexecuted and are comparator history only."
+  ],
+  "releaseQualification": {
+    "record": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\native-terminal-and-old-lane-release.json",
+      "sha256": "df28d04b05c81055e8e87ea2ccaaa797029c79bcfe99cc9ed2442df990ac73af"
+    },
+    "actual": {
+      "status": "ALL1360_NATIVE_ACTUALLY_CAPTURED_DELEGATED_QA_COMPLETE_OLD_LANE_RELEASED",
+      "terminalSession": 4073,
+      "terminalExitCode": 0,
+      "cohort": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\cohort.json",
+        "sha256": "88aa1ffaa2f65fbde912b6a825c489bf9a1df6bd9a6cdb63f0a82e748fc1ca90"
+      },
+      "progress": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\progress.json",
+        "sha256": "19f6f07e318a13727a2692b6a21b05a8d9d6130878f87774cd9af64a4de86181",
+        "status": "ALL_NATIVE_CAPTURED_REVIEW_PENDING",
+        "completed": 1360,
+        "remaining": 0,
+        "canonicalCaptured": 57,
+        "incrementalCaptured": 1303
+      },
+      "finalGlobalSourceCheck": "Original frozen runIncrementalBatch completed check(cohort,true) before terminal status; final42 stageGroups reverified actual source-specific records and images.",
+      "delegatedReviewedIncrementalIDs": 1303,
+      "retainedRootReviewedCaptures": 57,
+      "finalReview": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication-delegated-review-final42.json",
+        "sha256": "966f585ce4d5a4f98c0e0f0706f0e5086f4b29b1385d375c8d425be7f7338dea"
+      },
+      "locks": [
+        {
+          "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\running.lock",
+          "exists": false
+        },
+        {
+          "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native-running.lock",
+          "exists": false
+        }
+      ],
+      "finalSourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\97-finish-with-the-maintained-browser-runtime-d6357ad217a234d8812b\\result.json",
+        "sha256": "89571348a8a6ba2a2e4ef800c451bc2ca7217b8772990fdf0d9ab9a9e5ccf73d"
+      },
+      "finalExecute": {
+        "resources": {
+          "platform": "windows-job-object",
+          "scope": "Image-only capture profile; canonical test guard unchanged",
+          "requestedProcessors": 8,
+          "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+          "startedUtc": "2026-10-26T06:04:16.2193471Z",
+          "executable": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\97-finish-with-the-maintained-browser-runtime-d6357ad217a234d8812b\\bin\\presentation.exe",
+          "arguments": [],
+          "workingDirectory": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\97-finish-with-the-maintained-browser-runtime-d6357ad217a234d8812b\\runtime",
+          "timeoutSeconds": 1800,
+          "jobCommitLimitBytes": 8589934592,
+          "swapCapSupported": false,
+          "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+          "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+          "exitCode": 0,
+          "timedOut": false,
+          "elapsedSeconds": 8.364,
+          "peakJobCommitBytes": 670461952,
+          "affinityMask": "0xFF",
+          "processors": 8,
+          "processId": 29692,
+          "descendantsAtCleanup": 0
+        },
+        "log": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\incremental-97-finish-with-the-maintained-browser-runtime-d6357ad217a234d8-execute.log",
+        "logSha256": "006b6efc092c4460b18638e4fcae67b745269d58cced1eeecf577cbdce9e5aec"
+      },
+      "oldLaneReleased": true,
+      "sharedWorkbenchAndCacheMutationAfterTerminal": false,
+      "cacheQualification": "Exact copied executable/source/log/resource bindings verified by frozen capture verifier; no fresh whole-Cargo-cache hash claim.",
+      "rootPublicationApprovalPendingForFinal42": true,
+      "createdAt": "2026-10-26T06:06:31.147Z"
+    }
+  },
+  "helper": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\native-light-variant-original-lane.ts",
+    "sha256": "cb4a14d521deeee28db64096783e0280b7a0c8e0415f40d51fcd348bc552a8ee",
+    "source": "import fs from 'node:fs';\nimport path from 'node:path';\nimport assert from 'node:assert/strict';\nimport {spawnSync} from 'node:child_process';\nimport {fileURLToPath} from 'node:url';\nimport {prepare, bindings} from './presentation.ts';\nimport {filesIn, hash, json, viewer, write} from './model.ts';\nimport {nativeTarget} from './verify.ts';\nimport {png, ppm} from './png.ts';\n\nconst self=fileURLToPath(import.meta.url),guard=fileURLToPath(new URL('./capture-guard.ps1',import.meta.url));\nconst sha=(file:string)=>hash(fs.readFileSync(file));\nconst tree=(folder:string)=>Object.fromEntries(filesIn(folder).filter(f=>!path.relative(folder,f).split(path.sep).includes('target')&&path.relative(folder,f)!=='frame.ppm').map(f=>[path.relative(folder,f).replaceAll('\\\\','/'),sha(f)]));\n\nexport function prepareNativeLightVariant(){\n    const original=prepare('04-input-light',2),source=bindings('04-input');\n    assert.deepEqual(original.source,source);\n    const identity={source,driver:original.driver.sha256,helper:sha(self),guard:sha(guard),profile:{processors:8,memoryMiB:8192,affinity:'0xFF',adapter:'original Microsoft WARP DX12'}};\n    const folder=path.join(viewer,'target/course-presentation/native-light-private-'+hash(JSON.stringify(identity)).slice(0,20)),file=path.join(folder,'prepared.json');\n    if(fs.existsSync(file)){const p=json(file);check(p);return p;}\n    assert(!fs.existsSync(folder));fs.mkdirSync(folder,{recursive:true});\n    const workspace=path.join(folder,'workspace');\n    fs.cpSync(original.directory,workspace,{recursive:true,filter:f=>!path.relative(original.directory,f).split(path.sep).includes('target')&&!['frame.ppm','presentation.json'].includes(path.basename(f))});\n    const sourceFiles=tree(workspace);assert.equal(sourceFiles['examples/presentation.rs'],original.driver.sha256);\n    const dxc=path.join(viewer,'target/course-windows-20261018/native-checkpoint/dxcompiler.dll'),dxil=path.join(path.dirname(dxc),'dxil.dll');\n    const p={status:'PREPARED_PRIVATE_SOURCE_ONLY',id:'04-input-light',folder,workspace,target:path.join(folder,'target'),source,identity,sourceFiles,original:{path:path.join(original.directory,'presentation.json'),sha256:sha(path.join(original.directory,'presentation.json'))},pins:Object.fromEntries([self,guard,dxc,dxil].map(f=>[f,sha(f)])),dxc,driver:original.driver,width:1280,height:960};\n    write(file,JSON.stringify(p,null,2)+'\\n');check(p);return p;\n}\n\nfunction check(p:any){\n    assert.deepEqual(bindings('04-input'),p.source);\n    for(const[f,h]of Object.entries(p.pins))assert.equal(sha(f),h,f);\n    assert.deepEqual(tree(p.workspace),p.sourceFiles);\n    assert.equal(sha(p.original.path),p.original.sha256);\n    assert(path.resolve(p.target).startsWith(path.resolve(p.folder)+path.sep));\n}\n\nexport function runNativeLightVariant(file:string){\n    const p=json(file);check(p);assert(!fs.existsSync(path.join(p.folder,'resources.json')),'Preserve prior execution');\n    const commandFile=path.join(p.folder,'command.json'),resourcesFile=path.join(p.folder,'resources.json');\n    write(commandFile,JSON.stringify({executable:'cargo',arguments:['run','--example','presentation','--locked','--offline','--target',nativeTarget(),'-j1','-vv','--message-format=json-render-diagnostics']},null,2)+'\\n');\n    const env={...process.env,CARGO_TARGET_DIR:p.target,CARGO_NET_OFFLINE:'true',RUSTC_WRAPPER:'',VIEWER_DXC_PATH:p.dxc,NO_COLOR:'true'};\n    const result=spawnSync('powershell.exe',['-NoProfile','-ExecutionPolicy','Bypass','-File',guard,'-ProcessorCount','8','-MemoryLimitMiB','8192','-TimeoutSeconds','1800','-ManifestPath',resourcesFile,'-WorkingDirectory',p.workspace,'-CommandFile',commandFile],{cwd:viewer,env,encoding:'utf8',windowsHide:true,maxBuffer:64*1024*1024});\n    write(path.join(p.folder,'stdout.log'),result.stdout||'');write(path.join(p.folder,'stderr.log'),result.stderr||'');\n    check(p);assert.equal(result.status,0);const resources=json(resourcesFile);assert.equal(resources.exitCode,0);assert.equal(resources.timedOut,false);\n    const messages=(result.stdout||'').split(/\\r?\\n/).flatMap(line=>{try{return[JSON.parse(line)];}catch{return[];}});\n    const artifact=messages.find(r=>r.reason==='compiler-artifact'&&r.target?.name==='presentation'&&r.executable);assert(artifact,'Actual private example artifact required');assert.equal(artifact.fresh,false);assert.equal(path.resolve(artifact.target.src_path),path.join(p.workspace,'examples/presentation.rs'));\n    const library=messages.find(r=>r.reason==='compiler-artifact'&&r.target?.name==='viewer_journey'&&path.resolve(r.target.src_path)===path.join(p.workspace,'src/lib.rs'));assert(library,'Actual private library source required');assert.equal(library.fresh,false);\n    assert((result.stderr||'').includes('vendor: 5140')&&(result.stderr||'').includes('device: 140')&&(result.stderr||'').includes('device_type: Cpu'),'Actual original WARP adapter required');\n    const frame=path.join(p.workspace,'frame.ppm'),pixels=ppm(frame);assert.equal(pixels.width,1280);assert.equal(pixels.height,960);\n    const near=(at:number,wanted:number[])=>wanted.every((value,i)=>Math.abs(pixels.pixels[at+i]-value)<=2);\n    assert(near(0,[243,243,243]));assert(near((480*1280+640)*3,[243,137,179]));let changed=0;for(let at=0;at<pixels.pixels.length;at+=3)if(!near(at,[243,243,243]))changed++;assert(changed>=196000&&changed<208000,'Original triangle coverage scaled to DPR2');\n    const image=path.join(p.folder,'04-input-light-dpr2.png');write(image,png(frame));\n    const record={...p,status:'CAPTURED_AWAITING_ROOT_VISUAL_REVIEW',canonicalValidationProfile:false,scope:'Exact original source/driver/Background.toggle light variant, wholly private target and workspace. Original WARP algorithm retained; no shared active native workbench or target copied.',resources,artifact:{path:artifact.executable,sha256:sha(artifact.executable),compilerMessage:artifact},library,image:{path:image,sha256:sha(image),width:1280,height:960},semantic:{background:[243,243,243],triangleCentre:[243,137,179],changedPixels:changed},destinations:['docs/screenshots/journey/04-input-light.png']};\n    write(path.join(p.folder,'capture.json'),JSON.stringify(record,null,2)+'\\n');return record;\n}\n\nif(process.argv[1]&&path.resolve(process.argv[1])===self){const mode=process.argv[2];assert(['prepare','run'].includes(mode));console.log(JSON.stringify(mode==='prepare'?prepareNativeLightVariant():runNativeLightVariant(path.resolve(process.argv[3])),null,2));}\n"
+  },
+  "sourceProfileQualification": {
+    "record": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\native-light-original-lane-source-proof.json",
+      "sha256": "8df9014603bd5ae9a18478d6ffd0163605e68e18f95338f92aaede1e9d05829b"
+    },
+    "actual": {
+      "status": "SOURCE_ONLY_ORIGINAL_LANE_SUCCESSOR_NOT_EXECUTED",
+      "original": {
+        "path": "../session_tests/scripts/course/native-light-variant-presentation.ts",
+        "sha256": "be4ee01990c529d46065cc576fb27e57a4a03376813c571840e923c864f1337e"
+      },
+      "successor": {
+        "path": "../session_tests/scripts/course/native-light-variant-original-lane.ts",
+        "sha256": "cb4a14d521deeee28db64096783e0280b7a0c8e0415f40d51fcd348bc552a8ee"
+      },
+      "edits": [
+        [
+          "./parallel-image-guard.ps1",
+          "./capture-guard.ps1"
+        ],
+        [
+          "affinity:'0xFF00'",
+          "affinity:'0xFF'"
+        ]
+      ],
+      "reverseExact": true,
+      "limits": "Run only after original native1360 terminal/cache verification and capture-agent explicit OLD lane release. Wholly private target/workspace; original WARP, fixture, DPR2 and semantic assertions unchanged. Original8CPU8192MiB guard maskFF; NEW browser FF00 remains independent."
+    },
+    "originalHelperSource": "import fs from 'node:fs';\nimport path from 'node:path';\nimport assert from 'node:assert/strict';\nimport {spawnSync} from 'node:child_process';\nimport {fileURLToPath} from 'node:url';\nimport {prepare, bindings} from './presentation.ts';\nimport {filesIn, hash, json, viewer, write} from './model.ts';\nimport {nativeTarget} from './verify.ts';\nimport {png, ppm} from './png.ts';\n\nconst self=fileURLToPath(import.meta.url),guard=fileURLToPath(new URL('./parallel-image-guard.ps1',import.meta.url));\nconst sha=(file:string)=>hash(fs.readFileSync(file));\nconst tree=(folder:string)=>Object.fromEntries(filesIn(folder).filter(f=>!path.relative(folder,f).split(path.sep).includes('target')&&path.relative(folder,f)!=='frame.ppm').map(f=>[path.relative(folder,f).replaceAll('\\\\','/'),sha(f)]));\n\nexport function prepareNativeLightVariant(){\n    const original=prepare('04-input-light',2),source=bindings('04-input');\n    assert.deepEqual(original.source,source);\n    const identity={source,driver:original.driver.sha256,helper:sha(self),guard:sha(guard),profile:{processors:8,memoryMiB:8192,affinity:'0xFF00',adapter:'original Microsoft WARP DX12'}};\n    const folder=path.join(viewer,'target/course-presentation/native-light-private-'+hash(JSON.stringify(identity)).slice(0,20)),file=path.join(folder,'prepared.json');\n    if(fs.existsSync(file)){const p=json(file);check(p);return p;}\n    assert(!fs.existsSync(folder));fs.mkdirSync(folder,{recursive:true});\n    const workspace=path.join(folder,'workspace');\n    fs.cpSync(original.directory,workspace,{recursive:true,filter:f=>!path.relative(original.directory,f).split(path.sep).includes('target')&&!['frame.ppm','presentation.json'].includes(path.basename(f))});\n    const sourceFiles=tree(workspace);assert.equal(sourceFiles['examples/presentation.rs'],original.driver.sha256);\n    const dxc=path.join(viewer,'target/course-windows-20261018/native-checkpoint/dxcompiler.dll'),dxil=path.join(path.dirname(dxc),'dxil.dll');\n    const p={status:'PREPARED_PRIVATE_SOURCE_ONLY',id:'04-input-light',folder,workspace,target:path.join(folder,'target'),source,identity,sourceFiles,original:{path:path.join(original.directory,'presentation.json'),sha256:sha(path.join(original.directory,'presentation.json'))},pins:Object.fromEntries([self,guard,dxc,dxil].map(f=>[f,sha(f)])),dxc,driver:original.driver,width:1280,height:960};\n    write(file,JSON.stringify(p,null,2)+'\\n');check(p);return p;\n}\n\nfunction check(p:any){\n    assert.deepEqual(bindings('04-input'),p.source);\n    for(const[f,h]of Object.entries(p.pins))assert.equal(sha(f),h,f);\n    assert.deepEqual(tree(p.workspace),p.sourceFiles);\n    assert.equal(sha(p.original.path),p.original.sha256);\n    assert(path.resolve(p.target).startsWith(path.resolve(p.folder)+path.sep));\n}\n\nexport function runNativeLightVariant(file:string){\n    const p=json(file);check(p);assert(!fs.existsSync(path.join(p.folder,'resources.json')),'Preserve prior execution');\n    const commandFile=path.join(p.folder,'command.json'),resourcesFile=path.join(p.folder,'resources.json');\n    write(commandFile,JSON.stringify({executable:'cargo',arguments:['run','--example','presentation','--locked','--offline','--target',nativeTarget(),'-j1','-vv','--message-format=json-render-diagnostics']},null,2)+'\\n');\n    const env={...process.env,CARGO_TARGET_DIR:p.target,CARGO_NET_OFFLINE:'true',RUSTC_WRAPPER:'',VIEWER_DXC_PATH:p.dxc,NO_COLOR:'true'};\n    const result=spawnSync('powershell.exe',['-NoProfile','-ExecutionPolicy','Bypass','-File',guard,'-ProcessorCount','8','-MemoryLimitMiB','8192','-TimeoutSeconds','1800','-ManifestPath',resourcesFile,'-WorkingDirectory',p.workspace,'-CommandFile',commandFile],{cwd:viewer,env,encoding:'utf8',windowsHide:true,maxBuffer:64*1024*1024});\n    write(path.join(p.folder,'stdout.log'),result.stdout||'');write(path.join(p.folder,'stderr.log'),result.stderr||'');\n    check(p);assert.equal(result.status,0);const resources=json(resourcesFile);assert.equal(resources.exitCode,0);assert.equal(resources.timedOut,false);\n    const messages=(result.stdout||'').split(/\\r?\\n/).flatMap(line=>{try{return[JSON.parse(line)];}catch{return[];}});\n    const artifact=messages.find(r=>r.reason==='compiler-artifact'&&r.target?.name==='presentation'&&r.executable);assert(artifact,'Actual private example artifact required');assert.equal(artifact.fresh,false);assert.equal(path.resolve(artifact.target.src_path),path.join(p.workspace,'examples/presentation.rs'));\n    const library=messages.find(r=>r.reason==='compiler-artifact'&&r.target?.name==='viewer_journey'&&path.resolve(r.target.src_path)===path.join(p.workspace,'src/lib.rs'));assert(library,'Actual private library source required');assert.equal(library.fresh,false);\n    assert((result.stderr||'').includes('vendor: 5140')&&(result.stderr||'').includes('device: 140')&&(result.stderr||'').includes('device_type: Cpu'),'Actual original WARP adapter required');\n    const frame=path.join(p.workspace,'frame.ppm'),pixels=ppm(frame);assert.equal(pixels.width,1280);assert.equal(pixels.height,960);\n    const near=(at:number,wanted:number[])=>wanted.every((value,i)=>Math.abs(pixels.pixels[at+i]-value)<=2);\n    assert(near(0,[243,243,243]));assert(near((480*1280+640)*3,[243,137,179]));let changed=0;for(let at=0;at<pixels.pixels.length;at+=3)if(!near(at,[243,243,243]))changed++;assert(changed>=196000&&changed<208000,'Original triangle coverage scaled to DPR2');\n    const image=path.join(p.folder,'04-input-light-dpr2.png');write(image,png(frame));\n    const record={...p,status:'CAPTURED_AWAITING_ROOT_VISUAL_REVIEW',canonicalValidationProfile:false,scope:'Exact original source/driver/Background.toggle light variant, wholly private target and workspace. Original WARP algorithm retained; no shared active native workbench or target copied.',resources,artifact:{path:artifact.executable,sha256:sha(artifact.executable),compilerMessage:artifact},library,image:{path:image,sha256:sha(image),width:1280,height:960},semantic:{background:[243,243,243],triangleCentre:[243,137,179],changedPixels:changed},destinations:['docs/screenshots/journey/04-input-light.png']};\n    write(path.join(p.folder,'capture.json'),JSON.stringify(record,null,2)+'\\n');return record;\n}\n\nif(process.argv[1]&&path.resolve(process.argv[1])===self){const mode=process.argv[2];assert(['prepare','run'].includes(mode));console.log(JSON.stringify(mode==='prepare'?prepareNativeLightVariant():runNativeLightVariant(path.resolve(process.argv[3])),null,2));}\n"
+  },
+  "launchQualification": {
+    "record": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\native-light-private-b40e5d5aebb937c877be\\launch-policy.json",
+      "sha256": "61db5ac17fc7a5282a8e50840755033597e3612a653b32f04477566ead751bad"
+    },
+    "actual": {
+      "status": "ACTUAL_PRIVATE_OLD_LANE_JOB_LAUNCHED_NOT_TERMINAL_PROOF",
+      "session": 48226,
+      "recorded": "2026-10-26T06:08:21.898Z",
+      "release": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\native-terminal-and-old-lane-release.json",
+        "sha256": "df28d04b05c81055e8e87ea2ccaaa797029c79bcfe99cc9ed2442df990ac73af"
+      },
+      "helper": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\native-light-variant-original-lane.ts",
+        "sha256": "cb4a14d521deeee28db64096783e0280b7a0c8e0415f40d51fcd348bc552a8ee"
+      },
+      "prepared": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\native-light-private-b40e5d5aebb937c877be\\prepared.json",
+        "sha256": "1700d2714162507ad0ea677fbeffae85161b33c9a811635a2de29eb9b30f7f68"
+      },
+      "sourceProfileProof": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\native-light-original-lane-source-proof.json",
+        "sha256": "8df9014603bd5ae9a18478d6ffd0163605e68e18f95338f92aaede1e9d05829b"
+      },
+      "environment": {
+        "SESSION_REGEN_PROTO": "0"
+      },
+      "profile": {
+        "processors": 8,
+        "memoryMiB": 8192,
+        "affinityMask": "0xFF",
+        "lane": "original shared image-only guard",
+        "adapter": "original WARP required by unchanged assertions"
+      },
+      "scope": "Fresh private workspace/target; original shared native cache/workbench are neither copied nor mutated. Actual resources and image acceptance remain contingent on terminal receipt."
+    }
+  },
+  "compiler": {
+    "example": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\native-light-private-b40e5d5aebb937c877be\\target\\x86_64-pc-windows-msvc\\debug\\examples\\presentation.exe",
+      "sha256": "99767845c3a94c66c13b77719683274936d6ebcc7cd0c75214f90b8bbd73cf92",
+      "compilerMessage": {
+        "reason": "compiler-artifact",
+        "package_id": "path+file:///C:/pc/3_code/code_rust/wood_research/session/session_viewer/target/course-presentation/native-light-private-b40e5d5aebb937c877be/workspace#viewer_journey@0.1.0",
+        "manifest_path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\native-light-private-b40e5d5aebb937c877be\\workspace\\Cargo.toml",
+        "target": {
+          "kind": [
+            "example"
+          ],
+          "crate_types": [
+            "bin"
+          ],
+          "name": "presentation",
+          "src_path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\native-light-private-b40e5d5aebb937c877be\\workspace\\examples\\presentation.rs",
+          "edition": "2024",
+          "doc": false,
+          "doctest": false,
+          "test": false
+        },
+        "profile": {
+          "opt_level": "0",
+          "debuginfo": 2,
+          "debug_assertions": true,
+          "overflow_checks": true,
+          "test": false
+        },
+        "features": [],
+        "filenames": [
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\native-light-private-b40e5d5aebb937c877be\\target\\x86_64-pc-windows-msvc\\debug\\examples\\presentation.exe",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\native-light-private-b40e5d5aebb937c877be\\target\\x86_64-pc-windows-msvc\\debug\\examples\\presentation.pdb"
+        ],
+        "executable": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\native-light-private-b40e5d5aebb937c877be\\target\\x86_64-pc-windows-msvc\\debug\\examples\\presentation.exe",
+        "fresh": false
+      }
+    },
+    "library": {
+      "reason": "compiler-artifact",
+      "package_id": "path+file:///C:/pc/3_code/code_rust/wood_research/session/session_viewer/target/course-presentation/native-light-private-b40e5d5aebb937c877be/workspace#viewer_journey@0.1.0",
+      "manifest_path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\native-light-private-b40e5d5aebb937c877be\\workspace\\Cargo.toml",
+      "target": {
+        "kind": [
+          "cdylib",
+          "rlib"
+        ],
+        "crate_types": [
+          "cdylib",
+          "rlib"
+        ],
+        "name": "viewer_journey",
+        "src_path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\native-light-private-b40e5d5aebb937c877be\\workspace\\src\\lib.rs",
+        "edition": "2024",
+        "doc": true,
+        "doctest": true,
+        "test": true
+      },
+      "profile": {
+        "opt_level": "0",
+        "debuginfo": 2,
+        "debug_assertions": true,
+        "overflow_checks": true,
+        "test": false
+      },
+      "features": [],
+      "filenames": [
+        "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\native-light-private-b40e5d5aebb937c877be\\target\\x86_64-pc-windows-msvc\\debug\\deps\\viewer_journey.dll",
+        "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\native-light-private-b40e5d5aebb937c877be\\target\\x86_64-pc-windows-msvc\\debug\\deps\\viewer_journey.dll.lib",
+        "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\native-light-private-b40e5d5aebb937c877be\\target\\x86_64-pc-windows-msvc\\debug\\deps\\viewer_journey.dll.exp",
+        "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\native-light-private-b40e5d5aebb937c877be\\target\\x86_64-pc-windows-msvc\\debug\\deps\\viewer_journey.pdb",
+        "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\native-light-private-b40e5d5aebb937c877be\\target\\x86_64-pc-windows-msvc\\debug\\deps\\libviewer_journey.rlib"
+      ],
+      "executable": null,
+      "fresh": false
+    }
+  },
+  "privateSourceFiles": {
+    "assets/text/NotoSans-Regular.subset.ttf": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09",
+    "assets/text/NotoSansSymbols-Regular.subset.ttf": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3",
+    "assets/text/NotoSansSymbols2-Regular.subset.ttf": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed",
+    "Cargo.lock": "d94afdf257d0c345e4e3a7ae1596e2cccf5c3e5aa48734a3dbe7468c9c989df8",
+    "Cargo.toml": "838acdab79152eacd5ddad915bb464827a3cf03a694d45d926205cb91bfc5e1d",
+    "examples/presentation.rs": "61b5d794a6ea39bab1f7634dcb0d75c39c0ec07db9f16c0adac52cfbd04ae01a",
+    "index.html": "daa142b38bf182cc444b91d8cdb3d661a62093d0d189ad583620bc3f26493245",
+    "src/background.rs": "623554228529e4aa4733c0560c01dce13b3962227618eaa31bb64ee2cdb8ac6c",
+    "src/browser.rs": "ecefd92fc29b159ffa74820e91c5acaac2adcaee31e0ecd8281ae42b2d014b21",
+    "src/command_dock/mod.rs": "c41184b767cb4947bf33bfe8ded268a6d3c7185870a6fa71054a588c002a90d4",
+    "src/command_dock/theme.rs": "2064473cf413d0be10ca1f71440db34e11912c30893a360f11e446a5ffa2099d",
+    "src/command_dock/tool_buttons_tests.rs": "1c5b4b55c80e3d8a630d415fa33af9b5d81bbd05ac69b47199c0c9caab27e53b",
+    "src/command_dock/view.rs": "2b6c7b55d1257a7be5736edd22e69194655b6e14d4dfbffe5c1c01e86456f204",
+    "src/command_vocabulary.rs": "f2b4da3dbcd6c3390b5729c6ee775bb4fa132bf0e866f4a99dc913569abce486",
+    "src/lib.rs": "002485f1ee47b89ec34255b27e81615b5c15321a0d2dd3e8081afa979406e781",
+    "src/panel.rs": "af5b722c06c45cc58ddafb47bae32da3c8694312a9bee53521f351f7a19b04c5",
+    "src/renderer.rs": "9ec45ef41a0ff57472dcca2a6117370f154a9d860c232b9797fdc10f2178b7ff",
+    "src/triangle.wgsl": "48a49853c6696bb7c1ff4742a2d78055da511a2422f8feb93b280b923b349980"
+  },
+  "images": [
+    {
+      "id": "04-input-light",
+      "kind": "variant",
+      "destination": "docs/screenshots/journey/04-input-light.png",
+      "sha256": "e3b77f2c4d697b9f671909e0b7e0e395d019a1bfd574f84e5bf45255246e2e4e",
+      "width": 1280,
+      "height": 960,
+      "originalBackup": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\native-light-variant-publication-preparation\\originals\\docs\\screenshots\\journey\\04-input-light.png",
+      "originalSha256": "2d5ee2905a750ba2bd7e5117203729c8c5556d7b84b98832c9764039ca7e6777",
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\native-light-private-b40e5d5aebb937c877be\\capture.json",
+        "sha256": "2298a3c05967e89e5b6489b5dfea06845ec304855e0af041f3dadadf65fa0891"
+      },
+      "source": {
+        "checkpoint": "04-input",
+        "files": "beb9cad73c561bc52d4bd9213d94ec78b8e926a3ff95fd7b0ad49ada68cf6258",
+        "lock": "d94afdf257d0c345e4e3a7ae1596e2cccf5c3e5aa48734a3dbe7468c9c989df8",
+        "assets": {
+          "assets/text/NotoSans-Regular.subset.ttf": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09",
+          "assets/text/NotoSansSymbols2-Regular.subset.ttf": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed",
+          "assets/text/NotoSansSymbols-Regular.subset.ttf": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3"
+        },
+        "dependencies": {},
+        "kernel": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+        "fixture": null,
+        "harness": "cc7b0a195a93c6fde86a62e203c4ecabf74eb76ee256952dfd098796ca9c39a3",
+        "constructor": null,
+        "logicalSize": [
+          640,
+          480
+        ],
+        "helper": "e2c028971ab9cc08c2b951bed543b025ccb6f17c8e0b844d5370e82abb3a7410"
+      },
+      "driver": {
+        "path": "target/course-presentation-04-input-light-cef5a07dd9badf1a-dpr2/examples/presentation.rs",
+        "sha256": "61b5d794a6ea39bab1f7634dcb0d75c39c0ec07db9f16c0adac52cfbd04ae01a"
+      },
+      "canonicalValidationProfile": false,
+      "scope": "Exact original early source and Background.toggle fixture at DPR2, original Microsoft WARP adapter and rendering pipeline; fresh private workspace and target. Original eight-CPU image-only resource profile, not the canonical validation profile.",
+      "resources": {
+        "platform": "windows-job-object",
+        "scope": "Image-only capture profile; canonical test guard unchanged",
+        "requestedProcessors": 8,
+        "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+        "startedUtc": "2026-10-26T06:07:19.7126512Z",
+        "executable": "C:\\Users\\Petras\\.cargo\\bin\\cargo.exe",
+        "arguments": [
+          "run",
+          "--example",
+          "presentation",
+          "--locked",
+          "--offline",
+          "--target",
+          "x86_64-pc-windows-msvc",
+          "-j1",
+          "-vv",
+          "--message-format=json-render-diagnostics"
+        ],
+        "workingDirectory": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\native-light-private-b40e5d5aebb937c877be\\workspace",
+        "timeoutSeconds": 1800,
+        "jobCommitLimitBytes": 8589934592,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 0,
+        "timedOut": false,
+        "elapsedSeconds": 182.793,
+        "peakJobCommitBytes": 1177411584,
+        "affinityMask": "0xFF",
+        "processors": 8,
+        "processId": 62972,
+        "descendantsAtCleanup": 2
+      },
+      "semantic": {
+        "background": [
+          243,
+          243,
+          243
+        ],
+        "triangleCentre": [
+          243,
+          137,
+          179
+        ],
+        "changedPixels": 202752
+      },
+      "rootPersonallyViewedOriginalResolution": true,
+      "rootReview": "Root personally viewed the complete centered pink triangle on gray243 with generous margins. Ordinary one-pixel coverage steps accepted as honest DPR2 original-source output.",
+      "http": {
+        "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/04-input-light.png?v=e3b77f2c4d69",
+        "status": 200,
+        "sha256": "e3b77f2c4d697b9f671909e0b7e0e395d019a1bfd574f84e5bf45255246e2e4e"
+      }
+    }
+  ]
+}
