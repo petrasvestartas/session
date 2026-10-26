@@ -1,5 +1,5 @@
 {
-  "updated": "2026-10-26T20:34:47.095Z",
+  "updated": "2026-10-26T20:42:32.107Z",
   "platform": "windows",
   "scope": "Complete the 22-chapter viewer course and production reconciliation plan",
   "chaptersConsolidated": 22,
@@ -637,6 +637,12 @@
           "sha256": "ab805098dee4e2841efd344f87d99b989110c83e3516c503e7bb3b0fb7153be1"
         }
       }
+    },
+    "imageQualityFinalSite": {
+      "status": "PASS final complete1762 build, exact HTTP image hashes and desktop/phone original screenshot review",
+      "record": "../release/final1762-image-quality-completion-review.json",
+      "recordSha256": "c3c0fdc0af9fb331444403984f291a8bda3977857bc354bc2803c34adefcd5cf",
+      "nativeTestRecord": "../release/final-native-quality-review.json"
     }
   },
   "resourceGuard": {
@@ -649,13 +655,11 @@
   },
   "currentDefects": [],
   "onlyHeavy": {
-    "status": "ACTIVE_IMAGE_REGENERATION_WORKFLOW",
-    "task": "Native image publication is complete. Remaining browser publication and private floor recovery are tracked separately; final documentation acceptance is pending.",
-    "memoryLimitMiB": 16384,
-    "processors": 16,
-    "scope": "Combined configured ceilings for at most two image jobs:8CPUs/8GiB each on disjoint affinity masks. The original two-CPU validation guard remains unchanged."
+    "status": "COMPLETE_IMAGE_QUALITY_WORKFLOW",
+    "task": "All1762 original-inventory images and final documentation visual acceptance complete. Private floor geometry recovery remains unpromoted.",
+    "scope": "No further image regeneration or canonical behavior replay is pending. Separate floor geometry limitations retain their source-specific failures."
   },
-  "next": "Finish source-bound image captures and reviews, validate the remaining floor output and variants, refresh metadata after capture freezes end, then rebuild and inspect the complete site.",
+  "next": "Image-quality work is complete. The separate unpromoted floor generator retains87 strict member failures; it is not a production geometry acceptance.",
   "currentDocsReview": {
     "status": "PASS final current-source docs and3root-reviewed original images; completed desktop/phone progress sync also passes; original V10 measured scope retained.",
     "record": "docs/journey/release/docs-final-brep-visible-review.json",
@@ -2236,7 +2240,7 @@
     "scope": "Original V10 full chapter/16.4 proof retained. Subsequent build changes only completion metadata/headlines; no source/frontend/chapter rerender mandate."
   },
   "imageQualityCorrection": {
-    "status": "IN PROGRESS user-requested early rendering corrections and complete public image regeneration",
+    "status": "COMPLETE_IMAGE_PUBLICATION_AND_FINAL_SITE_ACCEPTANCE_WITH_DOCUMENTED_MODEL_LIMITS",
     "plan": "../../../../docs/plans/2026-10-25-viewer-image-quality.md",
     "publicImageCount": 1762,
     "currentReaderReferenceImages": 99,
@@ -2263,10 +2267,7 @@
       "Early ink depth occlusion across both projections, zoom 1/2 and DPR 1/2",
       "31 Markdown pages updated only inside 54 Rust code fences; prose and Vue preserved"
     ],
-    "pending": [
-      "Generated floor BRep coplanar-split correction and strict physical/export/reload acceptance",
-      "Final documentation rebuild and desktop/phone review after complete image publication"
-    ],
+    "pending": [],
     "authoring": {
       "passed": 22,
       "failed": 0,
@@ -2411,7 +2412,7 @@
     "packagingReview": "../release/public-image-packaging-review.json",
     "latestBrowserStreamingPublication": "../release/browser-streaming-publication-337.json",
     "browserBulk": {
-      "status": "ALL_BROWSER_CAPTURED",
+      "status": "ALL_BROWSER_PUBLISHED_AND_FINAL_METADATA_QUALIFIED",
       "cohort": "target/course-presentation/incremental-browser-batches/03e98650cb7155fcaa43",
       "retainedCompletedAtResume": 379,
       "captured": 379,
@@ -2430,6 +2431,29 @@
       "browserRuntimeBindings": 379,
       "scope": "All actual capture identities retained; metadata qualification does not rerun callbacks or accept unresolved floor geometry.",
       "record": "../release/final-image-metadata-and-structure-review.json"
+    },
+    "completed": true,
+    "finalSite": {
+      "status": "PASS final complete1762 build, exact HTTP image hashes and desktop/phone original screenshot review",
+      "record": "../release/final1762-image-quality-completion-review.json",
+      "recordSha256": "c3c0fdc0af9fb331444403984f291a8bda3977857bc354bc2803c34adefcd5cf",
+      "nativeTestRecord": "../release/final-native-quality-review.json"
+    },
+    "separateGeometryLimitations": {
+      "record": {
+        "path": "docs/journey/release/current-native-floor-output-v67-presentation.json",
+        "sha256": "abbc427c817117e9ff692d5056bb91b7f1ccb5cc9f1f94ded8bce56c4592ce83"
+      },
+      "privateCandidateUnpromoted": true,
+      "strictMembers": {
+        "passed": 66,
+        "failed": 87,
+        "total": 153
+      },
+      "remainingCoplanarPatchEdges": 536,
+      "wholeModelPhysicalAccepted": false,
+      "scope": "The regenerated floor output is an explicitly documented source-bound illustration. Export and fresh reload completed; unresolved strict geometry failures do not become a model-wide acceptance or production promotion."
     }
-  }
+  },
+  "imageQualityComplete": true
 }
