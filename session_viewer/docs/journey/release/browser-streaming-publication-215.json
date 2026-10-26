@@ -1,0 +1,754 @@
+{
+  "status": "PASS 4 browser figures regenerated, delegated-reviewed, root-approved and source/served HTTP verified",
+  "date": "2026-10-26T04:32:00.576Z",
+  "rootPersonallyViewedOriginalResolution": false,
+  "rootApprovedDelegatedReview": true,
+  "delegatedReview": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\browser-streaming-publication-215-preparation\\delegated-review.json",
+    "sha256": "2040977fcc28df5e14566bc08975c34e55e6719cc26db6d62658b53a0507cbde"
+  },
+  "rootReview": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\browser-streaming-publication-215-preparation\\root-review.json",
+    "sha256": "6df2773abbb72efb31f694368c340c0f5aa832b7f4185cb7577f13b511484d5f"
+  },
+  "canonicalBehaviorExecuted": "Per-image original source record; no new canonical validation-profile execution",
+  "canonicalValidationProfile": false,
+  "scope": "Two historical own-actions images and two actual original full-callback images under image-only resource profile; original canonical validation profile not rerun. One new thin-box original delegated-reviewed;96v personally root-reviewed;96r/t exact approved96q bytes.",
+  "fixtureMethod": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\release\\browser-declared-fixture-runtime-review.json",
+    "sha256": "40ff1d47a3a6066ee307e090277454644f7da18f4cf9626bb0377ec95ee1ad29"
+  },
+  "images": [
+    {
+      "id": "96r-preserve-exact-command-completions",
+      "destination": "docs/screenshots/journey/96r-preserve-exact-command-completions-browser.png",
+      "sha256": "9e08aab68457f534762d75c85ef060ea854417523fadce9365621480eca42193",
+      "width": 1800,
+      "height": 1520,
+      "originalBackup": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\browser-streaming-publication-215-preparation\\originals\\docs\\screenshots\\journey\\96r-preserve-exact-command-completions-browser.png",
+      "originalSha256": "a16874919b4848137865597bd6c2ce294d95b2533cf89ee025cbb558f99a8cf7",
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\historical-action-scenes\\96r-preserve-exact-command-completions-27d8a2705e27f47370fe\\owned-file-capture.json",
+        "sha256": "d8ff701194c59e9155f3bfbe4c1bc7ac1997d38260db2c81ff4b18cc2af99b82"
+      },
+      "source": {
+        "checkpoint": "96r-preserve-exact-command-completions",
+        "files": "38c861751d91db3864015cb1b7d5eb9ab08d74adff16c45e5fd588d8925bb049",
+        "lock": "1df9f908a4aead0990495bcf505176ab0842191051943e422635b28f23ccab94",
+        "assets": {
+          "assets/text/NotoSans-Regular.subset.ttf": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09",
+          "assets/text/NotoSansSymbols2-Regular.subset.ttf": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed",
+          "assets/text/NotoSansSymbols-Regular.subset.ttf": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3",
+          "assets/text/OFL.txt": "0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb",
+          "assets/text/NotoSansSymbols-Regular.ttf": "8f02f31959bbdf6061547a188248e13f84dc5fdd940326ec494675f453f072bb",
+          "assets/text/NotoSans-Regular.ttf": "b85c38ecea8a7cfb39c24e395a4007474fa5a4fc864f6ee33309eb4948d232d5",
+          "assets/text/NotoSansSymbols2-Regular.ttf": "630846d528dbe4c4981370a4d0a9475a1fd1491a129bb411f8e157cdb5de13c6",
+          "assets/pb/course-comparison.pb": "8d952b0ac17ebf0bb7c20704b45b95acbe5b4395ff809a38baacaad93de4bed5",
+          "assets/pb/course-metadata.pb": "2cfe2ad9becff37d0fcca23f71e47b1c6e674d7934327120a9233efd0c2faf55"
+        },
+        "dependencies": {
+          "dependencies": "ff3d53262a3d32f3b7f4da5397ec9944d6022d4b9c298e51cdee9a33b5560731",
+          "dependency_checker": "d32c7dbec5fd12dbd68a3adf36bccb60bdf5254cb890f1f8c5bff8a5b7e7d6d5"
+        },
+        "kernel": "c0acbde78685d127e98e1d13dd9c1fdff064277c38ce17fd7329a13459558b88",
+        "fixture": "9f1b3df69021e57f18192c60c60f2577e76a1f466a68b6228b59a363b7e6ac35",
+        "harness": "cc7b0a195a93c6fde86a62e203c4ecabf74eb76ee256952dfd098796ca9c39a3",
+        "constructor": "make_renderer(device, queue, format)",
+        "logicalSize": [
+          640,
+          480
+        ],
+        "helper": "e2c028971ab9cc08c2b951bed543b025ccb6f17c8e0b844d5370e82abb3a7410"
+      },
+      "recipe": {
+        "kind": "source-exact-declared-browser-actions",
+        "actions": [
+          {
+            "command": "Close"
+          },
+          {
+            "file": "sample.pb",
+            "fit": true
+          }
+        ],
+        "callback": "journey/checks/browser/exact-completion.cjs",
+        "declaredMetadataStatus": "Document replaced. Undo restores the previous document.",
+        "authority": "Exact browser_actions from this checkpoint. Its documented source illustration is captured; inherited callbacks, current callback terminal scene and whole behavior validation are not executed or claimed."
+      },
+      "canonicalBehaviorExecuted": false,
+      "sourceStartupStatusQualification": null,
+      "scope": "Exact checkpoint browser_actions only, with source-bound observed rendering. Inherited callback terminal state and original behavior checks are not claimed.",
+      "canonicalValidationProfile": false,
+      "semantic": {
+        "attributes": {
+          "data-command-ui": {
+            "command": "",
+            "completion_rect": null,
+            "controls": [
+              {
+                "key": "command/input",
+                "label": "Command",
+                "rect": [
+                  86.375,
+                  734,
+                  840,
+                  756
+                ]
+              },
+              {
+                "key": "command/collapse",
+                "label": "Collapse or expand history",
+                "rect": [
+                  848,
+                  734.5,
+                  864,
+                  755.5
+                ]
+              },
+              {
+                "key": "command/resize",
+                "label": "Drag to resize command history",
+                "rect": [
+                  0,
+                  726,
+                  900,
+                  734
+                ]
+              }
+            ],
+            "focused": true,
+            "history": [
+              "> Close\nDocument closed.",
+              "> Open\nCommand submitted.",
+              "> Open\nFile imported. Undo removes the entire import.",
+              "> Fit\nCommand submitted."
+            ],
+            "number": "",
+            "number_error": "",
+            "number_rect": null,
+            "options": [],
+            "options_rect": null,
+            "pointer_owned": false,
+            "status": "Command submitted.",
+            "top": 726,
+            "tree_open": false,
+            "tree_rect": null
+          },
+          "data-camera-matrix": [
+            1.4626206819470517,
+            0,
+            0,
+            0,
+            0,
+            1.732050807568877,
+            2.1804720117155878e-16,
+            2.1804502069954708e-16,
+            0,
+            -0.04473684210526281,
+            -1.000010000100001,
+            -1,
+            -73.13103409735258,
+            -21.63620450702968,
+            290.67262684448616,
+            290.6957896971875
+          ],
+          "data-row-placements": [
+            [
+              "ObjectId(4)",
+              [
+                1,
+                0,
+                0,
+                0,
+                0,
+                1,
+                0,
+                0,
+                0,
+                0,
+                1,
+                0,
+                10,
+                20,
+                30,
+                1
+              ]
+            ],
+            [
+              "ObjectId(5)",
+              [
+                1,
+                0,
+                0,
+                0,
+                0,
+                1,
+                0,
+                0,
+                0,
+                0,
+                1,
+                0,
+                12,
+                23,
+                34,
+                1
+              ]
+            ],
+            [
+              "ObjectId(6)",
+              [
+                1,
+                0,
+                0,
+                0,
+                0,
+                1,
+                0,
+                0,
+                0,
+                0,
+                1,
+                0,
+                130,
+                20,
+                30,
+                1
+              ]
+            ]
+          ],
+          "data-selected-ids": [],
+          "data-gpu-stats": [
+            5,
+            5,
+            0,
+            0
+          ]
+        },
+        "cameraEvidence": {
+          "observed": [
+            1.4626206819470517,
+            0,
+            0,
+            0,
+            0,
+            1.732050807568877,
+            2.1804720117155878e-16,
+            2.1804502069954708e-16,
+            0,
+            -0.04473684210526281,
+            -1.000010000100001,
+            -1,
+            -73.13103409735258,
+            -21.63620450702968,
+            290.67262684448616,
+            290.6957896971875
+          ],
+          "declaredCameraActions": [],
+          "scope": "Actual finite16-value camera export read from this source."
+        },
+        "visiblePixels": 409296
+      },
+      "resources": {
+        "platform": "windows-job-object",
+        "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+        "laneMutex": "Local\\SessionViewerCourseImageJob",
+        "affinityOffset": 8,
+        "requiredAffinityMask": "0xFF00",
+        "maximumOtherLaneProcessors": 8,
+        "maximumOtherLaneMemoryMiB": 8192,
+        "maximumAggregateOurProcessors": 16,
+        "maximumAggregateOurMemoryMiB": 16384,
+        "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+        "requestedProcessors": 8,
+        "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+        "startedUtc": "2026-10-26T04:17:24.0167812Z",
+        "executable": "C:\\Program Files\\nodejs\\node.exe",
+        "arguments": [
+          "--require",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\warp-browser-timeout.cjs",
+          "--import",
+          "file:///C:/pc/3_code/code_rust/wood_research/session/session_tests/scripts/typescript.mjs",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\owned-action-image-helper\\56c0d97e798666c923ab\\worker.ts",
+          "--worker",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\historical-action-scenes\\96r-preserve-exact-command-completions-27d8a2705e27f47370fe\\config.json"
+        ],
+        "workingDirectory": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-builds\\cases\\96r-preserve-exact-command-completions-ff91248a90e997b91e45\\workspace",
+        "timeoutSeconds": 2400,
+        "jobCommitLimitBytes": 8589934592,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 0,
+        "timedOut": false,
+        "elapsedSeconds": 3.563,
+        "peakJobCommitBytes": 734314496,
+        "affinityMask": "0xFF00",
+        "processors": 8,
+        "processId": 12720,
+        "descendantsAtCleanup": 0
+      },
+      "rootReview": "Exact SHA9e08aab6 root-personally-reviewed96q image reused only for visual QA: complete gray face, connecting line and small right solid. Independent actual source/build/GPU/own-actions receipts retained; no inherited callback claim.",
+      "http": {
+        "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/96r-preserve-exact-command-completions-browser.png?v=9e08aab68457",
+        "status": 200,
+        "sha256": "9e08aab68457f534762d75c85ef060ea854417523fadce9365621480eca42193"
+      }
+    },
+    {
+      "id": "96t-select-and-highlight-original-feature-owners",
+      "destination": "docs/screenshots/journey/96t-select-and-highlight-original-feature-owners-browser.png",
+      "sha256": "9e08aab68457f534762d75c85ef060ea854417523fadce9365621480eca42193",
+      "width": 1800,
+      "height": 1520,
+      "originalBackup": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\browser-streaming-publication-215-preparation\\originals\\docs\\screenshots\\journey\\96t-select-and-highlight-original-feature-owners-browser.png",
+      "originalSha256": "8dfb3ff2c4205e00760a5f017c945ce1187eeefef7398589ebf839eb1abdabbc",
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\historical-action-scenes\\96t-select-and-highlight-original-feature-owners-e0547b0e1beefbad1e2a\\owned-file-capture.json",
+        "sha256": "c1ada448de2414b0c32b6c697963ae45c1662870a35dc0d08a0a93599a6b7119"
+      },
+      "source": {
+        "checkpoint": "96t-select-and-highlight-original-feature-owners",
+        "files": "042eaad3a59e8dcdb51d59042d11ab9cfb61e298f57a6a78e55e6815bfa92e16",
+        "lock": "1df9f908a4aead0990495bcf505176ab0842191051943e422635b28f23ccab94",
+        "assets": {
+          "assets/text/NotoSans-Regular.subset.ttf": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09",
+          "assets/text/NotoSansSymbols2-Regular.subset.ttf": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed",
+          "assets/text/NotoSansSymbols-Regular.subset.ttf": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3",
+          "assets/text/OFL.txt": "0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb",
+          "assets/text/NotoSansSymbols-Regular.ttf": "8f02f31959bbdf6061547a188248e13f84dc5fdd940326ec494675f453f072bb",
+          "assets/text/NotoSans-Regular.ttf": "b85c38ecea8a7cfb39c24e395a4007474fa5a4fc864f6ee33309eb4948d232d5",
+          "assets/text/NotoSansSymbols2-Regular.ttf": "630846d528dbe4c4981370a4d0a9475a1fd1491a129bb411f8e157cdb5de13c6",
+          "assets/pb/course-comparison.pb": "8d952b0ac17ebf0bb7c20704b45b95acbe5b4395ff809a38baacaad93de4bed5",
+          "assets/pb/course-metadata.pb": "2cfe2ad9becff37d0fcca23f71e47b1c6e674d7934327120a9233efd0c2faf55"
+        },
+        "dependencies": {
+          "dependencies": "ff3d53262a3d32f3b7f4da5397ec9944d6022d4b9c298e51cdee9a33b5560731",
+          "dependency_checker": "d32c7dbec5fd12dbd68a3adf36bccb60bdf5254cb890f1f8c5bff8a5b7e7d6d5"
+        },
+        "kernel": "c0acbde78685d127e98e1d13dd9c1fdff064277c38ce17fd7329a13459558b88",
+        "fixture": "9f1b3df69021e57f18192c60c60f2577e76a1f466a68b6228b59a363b7e6ac35",
+        "harness": "cc7b0a195a93c6fde86a62e203c4ecabf74eb76ee256952dfd098796ca9c39a3",
+        "constructor": "make_renderer(device, queue, format)",
+        "logicalSize": [
+          640,
+          480
+        ],
+        "helper": "e2c028971ab9cc08c2b951bed543b025ccb6f17c8e0b844d5370e82abb3a7410"
+      },
+      "recipe": {
+        "kind": "source-exact-declared-browser-actions",
+        "actions": [
+          {
+            "command": "Close"
+          },
+          {
+            "file": "sample.pb",
+            "fit": true
+          }
+        ],
+        "callback": "journey/checks/browser/feature-owner-selection.cjs",
+        "declaredMetadataStatus": "Document replaced. Undo restores the previous document.",
+        "authority": "Exact browser_actions from this checkpoint. Its documented source illustration is captured; inherited callbacks, current callback terminal scene and whole behavior validation are not executed or claimed."
+      },
+      "canonicalBehaviorExecuted": false,
+      "sourceStartupStatusQualification": null,
+      "scope": "Exact checkpoint browser_actions only, with source-bound observed rendering. Inherited callback terminal state and original behavior checks are not claimed.",
+      "canonicalValidationProfile": false,
+      "semantic": {
+        "attributes": {
+          "data-command-ui": {
+            "command": "",
+            "completion_rect": null,
+            "controls": [
+              {
+                "key": "command/input",
+                "label": "Command",
+                "rect": [
+                  86.375,
+                  734,
+                  840,
+                  756
+                ]
+              },
+              {
+                "key": "command/collapse",
+                "label": "Collapse or expand history",
+                "rect": [
+                  848,
+                  734.5,
+                  864,
+                  755.5
+                ]
+              },
+              {
+                "key": "command/resize",
+                "label": "Drag to resize command history",
+                "rect": [
+                  0,
+                  726,
+                  900,
+                  734
+                ]
+              }
+            ],
+            "focused": true,
+            "history": [
+              "> Close\nDocument closed.",
+              "> Open\nCommand submitted.",
+              "> Open\nFile imported. Undo removes the entire import.",
+              "> Fit\nCommand submitted."
+            ],
+            "number": "",
+            "number_error": "",
+            "number_rect": null,
+            "options": [],
+            "options_rect": null,
+            "pointer_owned": false,
+            "status": "Command submitted.",
+            "top": 726,
+            "tree_open": false,
+            "tree_rect": null
+          },
+          "data-camera-matrix": [
+            1.4626206819470517,
+            0,
+            0,
+            0,
+            0,
+            1.732050807568877,
+            2.1804720117155878e-16,
+            2.1804502069954708e-16,
+            0,
+            -0.04473684210526281,
+            -1.000010000100001,
+            -1,
+            -73.13103409735258,
+            -21.63620450702968,
+            290.67262684448616,
+            290.6957896971875
+          ],
+          "data-row-placements": [
+            [
+              "ObjectId(4)",
+              [
+                1,
+                0,
+                0,
+                0,
+                0,
+                1,
+                0,
+                0,
+                0,
+                0,
+                1,
+                0,
+                10,
+                20,
+                30,
+                1
+              ]
+            ],
+            [
+              "ObjectId(5)",
+              [
+                1,
+                0,
+                0,
+                0,
+                0,
+                1,
+                0,
+                0,
+                0,
+                0,
+                1,
+                0,
+                12,
+                23,
+                34,
+                1
+              ]
+            ],
+            [
+              "ObjectId(6)",
+              [
+                1,
+                0,
+                0,
+                0,
+                0,
+                1,
+                0,
+                0,
+                0,
+                0,
+                1,
+                0,
+                130,
+                20,
+                30,
+                1
+              ]
+            ]
+          ],
+          "data-selected-ids": [],
+          "data-gpu-stats": [
+            5,
+            5,
+            0,
+            0
+          ]
+        },
+        "cameraEvidence": {
+          "observed": [
+            1.4626206819470517,
+            0,
+            0,
+            0,
+            0,
+            1.732050807568877,
+            2.1804720117155878e-16,
+            2.1804502069954708e-16,
+            0,
+            -0.04473684210526281,
+            -1.000010000100001,
+            -1,
+            -73.13103409735258,
+            -21.63620450702968,
+            290.67262684448616,
+            290.6957896971875
+          ],
+          "declaredCameraActions": [],
+          "scope": "Actual finite16-value camera export read from this source."
+        },
+        "visiblePixels": 409296
+      },
+      "resources": {
+        "platform": "windows-job-object",
+        "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+        "laneMutex": "Local\\SessionViewerCourseImageJob",
+        "affinityOffset": 8,
+        "requiredAffinityMask": "0xFF00",
+        "maximumOtherLaneProcessors": 8,
+        "maximumOtherLaneMemoryMiB": 8192,
+        "maximumAggregateOurProcessors": 16,
+        "maximumAggregateOurMemoryMiB": 16384,
+        "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+        "requestedProcessors": 8,
+        "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+        "startedUtc": "2026-10-26T04:18:17.3493063Z",
+        "executable": "C:\\Program Files\\nodejs\\node.exe",
+        "arguments": [
+          "--require",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\warp-browser-timeout.cjs",
+          "--import",
+          "file:///C:/pc/3_code/code_rust/wood_research/session/session_tests/scripts/typescript.mjs",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\owned-action-image-helper\\56c0d97e798666c923ab\\worker.ts",
+          "--worker",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\historical-action-scenes\\96t-select-and-highlight-original-feature-owners-e0547b0e1beefbad1e2a\\config.json"
+        ],
+        "workingDirectory": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-builds\\cases\\96t-select-and-highlight-original-feature-owners-0f4c38acc7f2f0e7b0b0\\workspace",
+        "timeoutSeconds": 2400,
+        "jobCommitLimitBytes": 8589934592,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 0,
+        "timedOut": false,
+        "elapsedSeconds": 3.075,
+        "peakJobCommitBytes": 727781376,
+        "affinityMask": "0xFF00",
+        "processors": 8,
+        "processId": 27488,
+        "descendantsAtCleanup": 0
+      },
+      "rootReview": "Exact SHA9e08aab6 root-personally-reviewed96q image reused only for visual QA: complete gray face, connecting line and small right solid. Independent actual source/build/GPU/own-actions receipts retained; no inherited callback claim.",
+      "http": {
+        "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/96t-select-and-highlight-original-feature-owners-browser.png?v=9e08aab68457",
+        "status": 200,
+        "sha256": "9e08aab68457f534762d75c85ef060ea854417523fadce9365621480eca42193"
+      }
+    },
+    {
+      "id": "96u-fit-original-box-corners-to-the-free-canvas",
+      "destination": "docs/screenshots/journey/96u-fit-original-box-corners-to-the-free-canvas-browser.png",
+      "sha256": "3ded120e11df059b3a66f2e65582e91d514ce96d1cb72a6bbf46ab1f2756ef3c",
+      "width": 1800,
+      "height": 1520,
+      "originalBackup": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\browser-streaming-publication-215-preparation\\originals\\docs\\screenshots\\journey\\96u-fit-original-box-corners-to-the-free-canvas-browser.png",
+      "originalSha256": "6d06b172e0bfb4200551235c6191eae88b4beb6854a80d0d7e2e246df2fc0d5f",
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\owned-file-fallback\\96u-fit-original-box-corners-to-the-free-canvas-1615be61b2307acdd033\\capture.json",
+        "sha256": "ec2fd0d50e6134fbfc30dfd6f99fcd26901b434f62e9f7997f35e100a00e71df"
+      },
+      "source": {
+        "checkpoint": "96u-fit-original-box-corners-to-the-free-canvas",
+        "files": "a49b27d6f1a707d090312d6c0e55437fe705a96712597fe25deae6bc048d2e58",
+        "lock": "1df9f908a4aead0990495bcf505176ab0842191051943e422635b28f23ccab94",
+        "assets": {
+          "assets/text/NotoSans-Regular.subset.ttf": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09",
+          "assets/text/NotoSansSymbols2-Regular.subset.ttf": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed",
+          "assets/text/NotoSansSymbols-Regular.subset.ttf": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3",
+          "assets/text/OFL.txt": "0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb",
+          "assets/text/NotoSansSymbols-Regular.ttf": "8f02f31959bbdf6061547a188248e13f84dc5fdd940326ec494675f453f072bb",
+          "assets/text/NotoSans-Regular.ttf": "b85c38ecea8a7cfb39c24e395a4007474fa5a4fc864f6ee33309eb4948d232d5",
+          "assets/text/NotoSansSymbols2-Regular.ttf": "630846d528dbe4c4981370a4d0a9475a1fd1491a129bb411f8e157cdb5de13c6",
+          "assets/pb/course-comparison.pb": "8d952b0ac17ebf0bb7c20704b45b95acbe5b4395ff809a38baacaad93de4bed5",
+          "assets/pb/course-metadata.pb": "2cfe2ad9becff37d0fcca23f71e47b1c6e674d7934327120a9233efd0c2faf55"
+        },
+        "dependencies": {
+          "dependencies": "ff3d53262a3d32f3b7f4da5397ec9944d6022d4b9c298e51cdee9a33b5560731",
+          "dependency_checker": "d32c7dbec5fd12dbd68a3adf36bccb60bdf5254cb890f1f8c5bff8a5b7e7d6d5"
+        },
+        "kernel": "c0acbde78685d127e98e1d13dd9c1fdff064277c38ce17fd7329a13459558b88",
+        "fixture": "9f1b3df69021e57f18192c60c60f2577e76a1f466a68b6228b59a363b7e6ac35",
+        "harness": "cc7b0a195a93c6fde86a62e203c4ecabf74eb76ee256952dfd098796ca9c39a3",
+        "constructor": "make_renderer(device, queue, format)",
+        "logicalSize": [
+          640,
+          480
+        ],
+        "helper": "e2c028971ab9cc08c2b951bed543b025ccb6f17c8e0b844d5370e82abb3a7410"
+      },
+      "canonicalBehaviorExecuted": true,
+      "sourceStartupStatusQualification": null,
+      "scope": "Original fallback/canonical callback source and every assertion unchanged. Only source-bound actual build handoff and owned Windows-deep-file path to exact named byte payload transport differ. External/short paths unchanged; each conversion recorded with exact file/buffer SHA.",
+      "canonicalValidationProfile": false,
+      "resources": {
+        "platform": "windows-job-object",
+        "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+        "laneMutex": "Local\\SessionViewerCourseImageJob",
+        "affinityOffset": 8,
+        "requiredAffinityMask": "0xFF00",
+        "maximumOtherLaneProcessors": 8,
+        "maximumOtherLaneMemoryMiB": 8192,
+        "maximumAggregateOurProcessors": 16,
+        "maximumAggregateOurMemoryMiB": 16384,
+        "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+        "requestedProcessors": 8,
+        "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+        "startedUtc": "2026-10-26T04:19:07.7430079Z",
+        "executable": "C:\\Program Files\\nodejs\\node.exe",
+        "arguments": [
+          "--require",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\warp-browser-timeout.cjs",
+          "--import",
+          "file:///C:/pc/3_code/code_rust/wood_research/session/session_tests/scripts/typescript.mjs",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\owned-file-fallback\\96u-fit-original-box-corners-to-the-free-canvas-1615be61b2307acdd033\\worker.cjs"
+        ],
+        "workingDirectory": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-builds\\cases\\96u-fit-original-box-corners-to-the-free-canvas-221261c5b221753c3864\\workspace",
+        "timeoutSeconds": 2400,
+        "jobCommitLimitBytes": 8589934592,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 0,
+        "timedOut": false,
+        "elapsedSeconds": 21.294,
+        "peakJobCommitBytes": 638689280,
+        "affinityMask": "0xFF00",
+        "processors": 8,
+        "processId": 64588,
+        "descendantsAtCleanup": 0
+      },
+      "rootReview": "Delegated detail-original review: complete long thin gray box with black perimeter fits free canvas left of Layers panel; original Front Orthographic view intentionally compresses aspect1000:20. Not blank/missing geometry. Original projected-fit corner and unchanged geometry assertions passed.",
+      "http": {
+        "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/96u-fit-original-box-corners-to-the-free-canvas-browser.png?v=3ded120e11df",
+        "status": 200,
+        "sha256": "3ded120e11df059b3a66f2e65582e91d514ce96d1cb72a6bbf46ab1f2756ef3c"
+      }
+    },
+    {
+      "id": "96v-project-definition-and-per-instance-features",
+      "destination": "docs/screenshots/journey/96v-project-definition-and-per-instance-features-browser.png",
+      "sha256": "909c9064348e89c4de5d09fdfd0b343069e1bdde471f2e0cb175b6be744f2241",
+      "width": 1800,
+      "height": 1520,
+      "originalBackup": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\browser-streaming-publication-215-preparation\\originals\\docs\\screenshots\\journey\\96v-project-definition-and-per-instance-features-browser.png",
+      "originalSha256": "e0027afa1f164ee8ff73f96495d89881d3b624e159218cd4155dd213d83e8642",
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\fixture-qualified-fallback\\96v-project-definition-and-per-instance-features-bfb9368c065bbe82fc4e\\capture.json",
+        "sha256": "103c7224eb4e2ebff8516ddb82c1069e7148fa7b316bc7edfe9e3f6f179dcaed"
+      },
+      "source": {
+        "checkpoint": "96v-project-definition-and-per-instance-features",
+        "files": "d1b8e363f3ac1cf8e7bdff0c2d896ca5cd5898dd5f0cd62cb019aaee51eb3a3d",
+        "lock": "1df9f908a4aead0990495bcf505176ab0842191051943e422635b28f23ccab94",
+        "assets": {
+          "assets/text/NotoSans-Regular.subset.ttf": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09",
+          "assets/text/NotoSansSymbols2-Regular.subset.ttf": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed",
+          "assets/text/NotoSansSymbols-Regular.subset.ttf": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3",
+          "assets/text/OFL.txt": "0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb",
+          "assets/text/NotoSansSymbols-Regular.ttf": "8f02f31959bbdf6061547a188248e13f84dc5fdd940326ec494675f453f072bb",
+          "assets/text/NotoSans-Regular.ttf": "b85c38ecea8a7cfb39c24e395a4007474fa5a4fc864f6ee33309eb4948d232d5",
+          "assets/text/NotoSansSymbols2-Regular.ttf": "630846d528dbe4c4981370a4d0a9475a1fd1491a129bb411f8e157cdb5de13c6",
+          "assets/pb/course-comparison.pb": "8d952b0ac17ebf0bb7c20704b45b95acbe5b4395ff809a38baacaad93de4bed5",
+          "assets/pb/course-metadata.pb": "2cfe2ad9becff37d0fcca23f71e47b1c6e674d7934327120a9233efd0c2faf55",
+          "assets/pb/course-instance-features.pb": "3b9a0d162728849ff09fe9b8e77b877a4565e66b77b5c73d09422f362e816500"
+        },
+        "dependencies": {
+          "dependencies": "ff3d53262a3d32f3b7f4da5397ec9944d6022d4b9c298e51cdee9a33b5560731",
+          "dependency_checker": "d32c7dbec5fd12dbd68a3adf36bccb60bdf5254cb890f1f8c5bff8a5b7e7d6d5"
+        },
+        "kernel": "c0acbde78685d127e98e1d13dd9c1fdff064277c38ce17fd7329a13459558b88",
+        "fixture": "9f1b3df69021e57f18192c60c60f2577e76a1f466a68b6228b59a363b7e6ac35",
+        "harness": "cc7b0a195a93c6fde86a62e203c4ecabf74eb76ee256952dfd098796ca9c39a3",
+        "constructor": "make_renderer(device, queue, format)",
+        "logicalSize": [
+          640,
+          480
+        ],
+        "helper": "e2c028971ab9cc08c2b951bed543b025ccb6f17c8e0b844d5370e82abb3a7410"
+      },
+      "canonicalBehaviorExecuted": true,
+      "sourceStartupStatusQualification": null,
+      "scope": "Original fallback/canonical callback source and every assertion unchanged. Only source-bound actual build handoff and owned Windows-deep-file path to exact named byte payload transport differ. External/short paths unchanged; each conversion recorded with exact file/buffer SHA. Exact already-declared PB/text assets materialized in a fresh runtime clone; original missing-file failure workspace remains untouched.",
+      "canonicalValidationProfile": false,
+      "resources": {
+        "platform": "windows-job-object",
+        "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+        "laneMutex": "Local\\SessionViewerCourseImageJob",
+        "affinityOffset": 8,
+        "requiredAffinityMask": "0xFF00",
+        "maximumOtherLaneProcessors": 8,
+        "maximumOtherLaneMemoryMiB": 8192,
+        "maximumAggregateOurProcessors": 16,
+        "maximumAggregateOurMemoryMiB": 16384,
+        "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+        "requestedProcessors": 8,
+        "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+        "startedUtc": "2026-10-26T04:28:16.5943762Z",
+        "executable": "C:\\Program Files\\nodejs\\node.exe",
+        "arguments": [
+          "--require",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\warp-browser-timeout.cjs",
+          "--import",
+          "file:///C:/pc/3_code/code_rust/wood_research/session/session_tests/scripts/typescript.mjs",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\owned-file-fallback\\96v-project-definition-and-per-instance-features-c0b24515c986edf9b35e\\worker.cjs"
+        ],
+        "workingDirectory": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-builds\\cases\\96v-project-definition-and-per-instance-features-fixture-runtime-bfb9368c065bbe82fc4e\\workspace",
+        "timeoutSeconds": 2400,
+        "jobCommitLimitBytes": 8589934592,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 0,
+        "timedOut": false,
+        "elapsedSeconds": 26.715,
+        "peakJobCommitBytes": 675381248,
+        "affinityMask": "0xFF00",
+        "processors": 8,
+        "processId": 54932,
+        "descendantsAtCleanup": 0
+      },
+      "rootReview": "Root personally viewed original909c: two complete horizontal feature lines, readable First/Second hierarchy and gray locked Second descendants; no clipping of tested lines. Full original inherited/own locking/selection/history/archive assertions passed with exact declared fixture materialization, no rebuild.",
+      "http": {
+        "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/96v-project-definition-and-per-instance-features-browser.png?v=909c9064348e",
+        "status": 200,
+        "sha256": "909c9064348e89c4de5d09fdfd0b343069e1bdde471f2e0cb175b6be744f2241"
+      }
+    }
+  ]
+}
