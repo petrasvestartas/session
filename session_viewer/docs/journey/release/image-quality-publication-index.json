@@ -1,16 +1,16 @@
 {
-  "date": "2026-10-26T19:52:33.754Z",
+  "date": "2026-10-26T19:56:33.207Z",
   "status": "PASS: reviewed publication receipts reconciled with exact source and served file hashes",
   "scope": "Only explicitly reviewed publication receipts count; in-flight captures excluded. HTTP verification belongs to each linked publication receipt.",
   "inventory": {
     "path": "target/course-presentation/inventory-d09aa228601224bf4dfe.json",
     "sha256": "d09aa228601224bf4dfe01d6a1009a56357b2eb5e4b3baa5d88566b2c7a66eba"
   },
-  "published": 1751,
-  "remaining": 11,
+  "published": 1759,
+  "remaining": 3,
   "counts": {
     "native": 1360,
-    "browser": 370,
+    "browser": 378,
     "variants": 1,
     "supporting": 20
   },
@@ -17301,6 +17301,16 @@
       }
     },
     {
+      "path": "docs/screenshots/journey/96zzzzzzzj-cache-physical-depth-pyramid-inputs-browser.png",
+      "sha256": "89ae355f5ed5345db9de089b136ab20efe381805bbbbd990f89531f396347186",
+      "kind": "browser",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/browser-streaming-publication-336.json",
+        "sha256": "d69e9a1ff3e847c92dc62afe74873aa3b58b78d9e1e68776954c622a6fc39992"
+      }
+    },
+    {
       "path": "docs/screenshots/journey/96zzzzzzzj-cache-physical-depth-pyramid-inputs.png",
       "sha256": "cbf2a1648b5bf8a3be525b84efe879b7470c77e1b07fcb37259cad0b830ca051",
       "kind": "native",
@@ -17308,6 +17318,16 @@
       "receipt": {
         "path": "docs/journey/release/native-streaming-publication-1711.json",
         "sha256": "42376dfe759a035d450a89b4ca5fbf577621295a7dbbf9317484100db5c7ac53"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/96zzzzzzzk-retarget-the-complete-colour-frame-browser.png",
+      "sha256": "89ae355f5ed5345db9de089b136ab20efe381805bbbbd990f89531f396347186",
+      "kind": "browser",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/browser-streaming-publication-336.json",
+        "sha256": "d69e9a1ff3e847c92dc62afe74873aa3b58b78d9e1e68776954c622a6fc39992"
       }
     },
     {
@@ -17321,6 +17341,16 @@
       }
     },
     {
+      "path": "docs/screenshots/journey/96zzzzzzzl-choose-bounded-frame-quality-browser.png",
+      "sha256": "89ae355f5ed5345db9de089b136ab20efe381805bbbbd990f89531f396347186",
+      "kind": "browser",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/browser-streaming-publication-336.json",
+        "sha256": "d69e9a1ff3e847c92dc62afe74873aa3b58b78d9e1e68776954c622a6fc39992"
+      }
+    },
+    {
       "path": "docs/screenshots/journey/96zzzzzzzl-choose-bounded-frame-quality.png",
       "sha256": "cbf2a1648b5bf8a3be525b84efe879b7470c77e1b07fcb37259cad0b830ca051",
       "kind": "native",
@@ -17328,6 +17358,16 @@
       "receipt": {
         "path": "docs/journey/release/native-streaming-publication-1711.json",
         "sha256": "42376dfe759a035d450a89b4ca5fbf577621295a7dbbf9317484100db5c7ac53"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/96zzzzzzzm-retain-visible-instance-ranges-browser.png",
+      "sha256": "89ae355f5ed5345db9de089b136ab20efe381805bbbbd990f89531f396347186",
+      "kind": "browser",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/browser-streaming-publication-336.json",
+        "sha256": "d69e9a1ff3e847c92dc62afe74873aa3b58b78d9e1e68776954c622a6fc39992"
       }
     },
     {
@@ -17341,6 +17381,16 @@
       }
     },
     {
+      "path": "docs/screenshots/journey/96zzzzzzzn-prepare-original-ink-families-browser.png",
+      "sha256": "89ae355f5ed5345db9de089b136ab20efe381805bbbbd990f89531f396347186",
+      "kind": "browser",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/browser-streaming-publication-336.json",
+        "sha256": "d69e9a1ff3e847c92dc62afe74873aa3b58b78d9e1e68776954c622a6fc39992"
+      }
+    },
+    {
       "path": "docs/screenshots/journey/96zzzzzzzn-prepare-original-ink-families.png",
       "sha256": "cbf2a1648b5bf8a3be525b84efe879b7470c77e1b07fcb37259cad0b830ca051",
       "kind": "native",
@@ -17348,6 +17398,16 @@
       "receipt": {
         "path": "docs/journey/release/native-streaming-publication-1711.json",
         "sha256": "42376dfe759a035d450a89b4ca5fbf577621295a7dbbf9317484100db5c7ac53"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/96zzzzzzzo-show-original-ink-families-browser.png",
+      "sha256": "89ae355f5ed5345db9de089b136ab20efe381805bbbbd990f89531f396347186",
+      "kind": "browser",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/browser-streaming-publication-336.json",
+        "sha256": "d69e9a1ff3e847c92dc62afe74873aa3b58b78d9e1e68776954c622a6fc39992"
       }
     },
     {
@@ -17361,6 +17421,16 @@
       }
     },
     {
+      "path": "docs/screenshots/journey/96zzzzzzzp-apply-semantic-view-controls-browser.png",
+      "sha256": "89ae355f5ed5345db9de089b136ab20efe381805bbbbd990f89531f396347186",
+      "kind": "browser",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/browser-streaming-publication-336.json",
+        "sha256": "d69e9a1ff3e847c92dc62afe74873aa3b58b78d9e1e68776954c622a6fc39992"
+      }
+    },
+    {
       "path": "docs/screenshots/journey/96zzzzzzzp-apply-semantic-view-controls.png",
       "sha256": "cbf2a1648b5bf8a3be525b84efe879b7470c77e1b07fcb37259cad0b830ca051",
       "kind": "native",
@@ -17368,6 +17438,16 @@
       "receipt": {
         "path": "docs/journey/release/native-streaming-publication-1711.json",
         "sha256": "42376dfe759a035d450a89b4ca5fbf577621295a7dbbf9317484100db5c7ac53"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/96zzzzzzzq-draw-original-cad-wire-curves-browser.png",
+      "sha256": "1563da605ee66df05e0e7a36eadaac26e66e89dd19e0e841aecff4bd8ec44889",
+      "kind": "browser",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/browser-streaming-publication-336.json",
+        "sha256": "d69e9a1ff3e847c92dc62afe74873aa3b58b78d9e1e68776954c622a6fc39992"
       }
     },
     {
