@@ -1,0 +1,84 @@
+{
+  "status": "PASS import/source-onlyprepare/exactreversal; no newentrypoint compiler/GPU execution",
+  "scope": "Versioned exact tested presentation recipes. Only import-safe function/CLI wrapping and explicit source-stage/receipt argument. No new entrypoint execution acceptance.",
+  "promotions": [
+    {
+      "predecessor": "session_viewer/target/course-sup/practice-viewer-private.mjs",
+      "predecessorSha256": "8086153a5118bdf4a77e3e98f6628206fd6e6ca0c5d7eb10729d1b01b9e17aa2",
+      "file": "session_tests\\scripts\\course\\practice-viewer-image.ts",
+      "sha256": "a62e96a9a96b03854c259d445b72d33d6c4d04dccaa25c1d3b7e101981f1a2dc",
+      "reversesExactlyToExecutedPredecessor": true,
+      "changes": [
+        [
+          "const native=path.join(viewer,'target/course-presentation/private-support-d4dea55c2d7da7ea6efa/reference-37-scene');",
+          "const defaultNative=path.join(viewer,'target/course-presentation/private-support-d4dea55c2d7da7ea6efa/reference-37-scene');"
+        ],
+        [
+          "const snapshot=()=>",
+          "const snapshot=(native)=>"
+        ],
+        [
+          "const [mode,file]=process.argv.slice(2);",
+          "export async function practiceViewerImages(mode, file, nativeSource=defaultNative){\nconst native=path.resolve(nativeSource);"
+        ],
+        [
+          "const inputs=snapshot(),key=",
+          "const inputs=snapshot(native),key="
+        ],
+        [
+          "}else throw Error('practice-viewer-private.mjs prepare | run PLAN');",
+          "}else throw Error('practice-viewer-image.ts prepare [SOURCE_STAGE] | run PLAN');\n}\nif(process.argv[1]&&path.resolve(process.argv[1])===self){const[mode,arg]=process.argv.slice(2);await practiceViewerImages(mode,mode==='run'?arg:undefined,mode==='prepare'&&arg?arg:defaultNative);}"
+        ]
+      ],
+      "newEntrypointExecuted": false
+    },
+    {
+      "predecessor": "session_viewer/target/course-sup/current-scenes-four-sample.mjs",
+      "predecessorSha256": "bc4e41df8bf00e4222e70524bfc0a8890ee2c0c410b3aef14a9d18ca5ab146c4",
+      "file": "session_tests\\scripts\\course\\current-scenes-four-sample-image.ts",
+      "sha256": "f044b44414bb78b00528a41e1b1011d9a2b2a18fbc2f559e1e9a367243541b77",
+      "reversesExactlyToExecutedPredecessor": true,
+      "changes": [
+        [
+          "const oldFile=path.join(viewer,'target/course-presentation/private-scenes-551f30129d3b22b2681d/qualified-three-scene-result.json'),old=json(oldFile);",
+          "export async function captureFourSampleScenes(oldFile=path.join(viewer,'target/course-presentation/private-scenes-551f30129d3b22b2681d/qualified-three-scene-result.json')){\noldFile=path.resolve(oldFile);const old=json(oldFile);"
+        ],
+        [
+          "console.log(path.join(folder,'capture.json'));",
+          "console.log(path.join(folder,'capture.json'));\nreturn path.join(folder,'capture.json');\n}\nif(process.argv[1]&&path.resolve(process.argv[1])===self)await captureFourSampleScenes(process.argv[2]);"
+        ]
+      ],
+      "newEntrypointExecuted": false
+    }
+  ],
+  "actualPredecessorReceipts": [
+    "session_viewer/target/course-presentation/practice-viewer-193326adf95b99be54a2/capture.json",
+    "session_viewer/target/course-presentation/current-scenes-four-sample-c286bad5cccd9a3a4fc9/capture.json"
+  ],
+  "publicRecords": [
+    "session_viewer/docs/journey/release/practice-viewer-dpr2-image-review.json",
+    "session_viewer/docs/journey/release/current-native-four-sample-image-review.json"
+  ],
+  "actualReceiptHashes": {
+    "session_viewer/target/course-presentation/practice-viewer-193326adf95b99be54a2/capture.json": "a99c8cc586a991de6249bf5c97c8bac06b1f8ff3718207991c4bfb6162ecc6f7",
+    "session_viewer/target/course-presentation/current-scenes-four-sample-c286bad5cccd9a3a4fc9/capture.json": "8220ff4c9b01cfdd7bfee7b676fa3a16c599d41520e5f51f2a64571731518dcb",
+    "session_viewer/docs/journey/release/practice-viewer-dpr2-image-review.json": "575da9084b1cb95ffe0efc3d752586411ab3c1f364dabea6e02c5d2d7c1421a0",
+    "session_viewer/docs/journey/release/current-native-four-sample-image-review.json": "2b3cce4ea72780cdf68c7fd418fbeeb7d683673f09c784d568fb0c97c59e35eb"
+  },
+  "sourceOnlyValidation": {
+    "imports": true,
+    "exportedFunctions": [
+      "practiceViewerImages",
+      "captureFourSampleScenes"
+    ],
+    "exactReverseToExecutedPredecessors": true,
+    "practicePrepare": "\u00ff\u00feC\u0000:\u0000\\\u0000p\u0000c\u0000\\\u00003\u0000_\u0000c\u0000o\u0000d\u0000e\u0000\\\u0000c\u0000o\u0000d\u0000e\u0000_\u0000r\u0000u\u0000s\u0000t\u0000\\\u0000w\u0000o\u0000o\u0000d\u0000_\u0000r\u0000e\u0000s\u0000e\u0000a\u0000r\u0000c\u0000h\u0000\\\u0000s\u0000e\u0000s\u0000s\u0000i\u0000o\u0000n\u0000\\\u0000s\u0000e\u0000s\u0000s\u0000i\u0000o\u0000n\u0000_\u0000v\u0000i\u0000e\u0000w\u0000e\u0000r\u0000\\\u0000t\u0000a\u0000r\u0000g\u0000e\u0000t\u0000\\\u0000c\u0000o\u0000u\u0000r\u0000s\u0000e\u0000-\u0000p\u0000r\u0000e\u0000s\u0000e\u0000n\u0000t\u0000a\u0000t\u0000i\u0000o\u0000n\u0000\\\u0000p\u0000r\u0000a\u0000c\u0000t\u0000i\u0000c\u0000e\u0000-\u0000v\u0000i\u0000e\u0000w\u0000e\u0000r\u0000-\u00001\u00003\u0000c\u00007\u0000a\u00009\u00004\u0000e\u00003\u00006\u0000b\u0000e\u0000f\u0000a\u00008\u00004\u00006\u00005\u00001\u0000d\u0000\\\u0000p\u0000l\u0000a\u0000n\u0000.\u0000j\u0000s\u0000o\u0000n\u0000\n\u0000\n\u0000",
+    "practicePrepareExecuted": true,
+    "newEntrypointCompilerOrGpuExecuted": false
+  },
+  "commands": {
+    "practicePrepare": "node --import ./session_tests/scripts/typescript.mjs ./session_tests/scripts/course/practice-viewer-image.ts prepare [ACTUAL_REFERENCE37_NATIVE_STAGE]",
+    "practiceCapture": "node --import ./session_tests/scripts/typescript.mjs ./session_tests/scripts/course/practice-viewer-image.ts run PLAN_JSON",
+    "threeSceneAA4": "node --import ./session_tests/scripts/typescript.mjs ./session_tests/scripts/course/current-scenes-four-sample-image.ts ACTUAL_QUALIFIED_THREE_SCENE_RECEIPT_JSON"
+  }
+}

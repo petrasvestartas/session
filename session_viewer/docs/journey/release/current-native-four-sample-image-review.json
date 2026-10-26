@@ -1,0 +1,353 @@
+{
+  "status": "PUBLISHED_ROOT_APPROVED_SOURCE_BOUND_PRESENTATION_IMAGES",
+  "scope": "Explicitimagequalitysuccessor; old1ximages andoriginalsourcepostflightfailure retained. Floor-output ungenerated/unaccepted.",
+  "limits": "Floor source contains original Plate/model-mesh representation; finite native resolution and existing edge geometry remain visible. OnlyMSAA1to4 changed; no smoothing/renderer/source/camera alterations. Original1xfailedpostflight preserved.",
+  "canonicalBehaviorExecuted": false,
+  "canonicalValidationProfile": false,
+  "sourceRecord": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\current-scenes-four-sample-c286bad5cccd9a3a4fc9/capture.json",
+    "sha256": "8220ff4c9b01cfdd7bfee7b676fa3a16c599d41520e5f51f2a64571731518dcb"
+  },
+  "review": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\current-scenes-four-sample-c286bad5cccd9a3a4fc9\\root-approved-review.json",
+    "sha256": "ffc9785cbe9bf5a5fc89f21957ae392904b635771155f197e76e24bfcc5a7788"
+  },
+  "sourceFingerprint": null,
+  "images": [
+    {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\current-native-comparison.png",
+      "destination": "docs/screenshots/journey/current-native-comparison.png",
+      "sha256": "3fbffce5183943fe38257cb82cb2438d63f6d6774e563938c22d2369f441a898",
+      "width": 1280,
+      "height": 960,
+      "raw": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\current-scenes-four-sample-c286bad5cccd9a3a4fc9\\current-native-comparison.ppm",
+        "sha256": "c260cdf00f7af6e05f8a5cad910177eaea5c943133fe1ef89ec33ae6e05bb995"
+      },
+      "input": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\assets\\pb\\course-comparison.pb",
+        "sha256": "8d952b0ac17ebf0bb7c20704b45b95acbe5b4395ff809a38baacaad93de4bed5"
+      },
+      "settings": {
+        "VIEWER_NO_GRID": "1",
+        "VIEWER_OPACITY": "1",
+        "VIEWER_LIT": "1",
+        "VIEWER_MSAA": "4",
+        "VIEWER_AO": "1",
+        "VIEWER_OUTLINES": "1",
+        "VIEWER_FRAMES": "8",
+        "VIEWER_FRAMES_ORBIT": "2",
+        "VIEWER_GPU_TIMING": "1",
+        "VIEWER_W": "1280",
+        "VIEWER_H": "960",
+        "VIEWER_DPR": "2",
+        "VIEWER_ADAPTER": "Microsoft"
+      },
+      "execution": {
+        "name": "current-scenes-four-sample-c286bad5cccd-comparison",
+        "returncode": 0,
+        "scope": "Private image8CPU8GiB transport; original image algorithm/assertions retained",
+        "command": {
+          "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-sup\\executions\\current-scenes-four-sample-c286bad5cccd-comparison\\command.json",
+          "sha256": "e06a9f2a4304ab3b852adce31e85f8baa70580353de47f2f12274e60c8606637"
+        },
+        "log": {
+          "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-sup\\executions\\current-scenes-four-sample-c286bad5cccd-comparison\\output.log",
+          "sha256": "002e4b472f16c23a7819b54d1c8f253fdcbdfa84e9a72bc812da991a69d67d9e"
+        },
+        "resourcesFile": {
+          "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-sup\\executions\\current-scenes-four-sample-c286bad5cccd-comparison\\resources.json",
+          "sha256": "ec4a9803bb045bcd57aeae8e38e228c0a30b0edc849c523a8c8134f1e6162aa1"
+        },
+        "resources": {
+          "platform": "windows-job-object",
+          "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+          "laneMutex": "Local\\SessionViewerCourseImageJob",
+          "affinityOffset": 8,
+          "requiredAffinityMask": "0xFF00",
+          "maximumOtherLaneProcessors": 8,
+          "maximumOtherLaneMemoryMiB": 8192,
+          "maximumAggregateOurProcessors": 16,
+          "maximumAggregateOurMemoryMiB": 16384,
+          "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+          "requestedProcessors": 8,
+          "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+          "startedUtc": "2026-10-26T00:16:42.6131805Z",
+          "executable": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-sup\\retained\\supplemental-scene-comparison-551f30129d3b\\selftest.exe",
+          "arguments": [
+            "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\current-scenes-four-sample-c286bad5cccd9a3a4fc9\\current-native-comparison.ppm",
+            "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\assets\\pb\\course-comparison.pb"
+          ],
+          "workingDirectory": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer",
+          "timeoutSeconds": 1800,
+          "jobCommitLimitBytes": 8589934592,
+          "swapCapSupported": false,
+          "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+          "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+          "exitCode": 0,
+          "timedOut": false,
+          "elapsedSeconds": 5.819,
+          "peakJobCommitBytes": 745840640,
+          "affinityMask": "0xFF00",
+          "processors": 8,
+          "processId": 64828,
+          "descendantsAtCleanup": 0
+        },
+        "environment": {
+          "CARGO_TARGET_DIR": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-sup\\native-cache",
+          "CARGO_NET_OFFLINE": "true",
+          "VIEWER_DXC_PATH": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\native-checkpoint\\dxcompiler.dll",
+          "WGPU_DX12_COMPILER": "dxc",
+          "WGPU_DX12_DXC_PATH": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\native-checkpoint\\dxcompiler.dll"
+        },
+        "artifacts": []
+      },
+      "originalOneSampleImage": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\private-scenes-551f30129d3b22b2681d\\current-native-comparison.png",
+        "sha256": "72e974ac9e02b6233f0fd9ebeb0bab434175b7196eb998612dfef5644c2d7e3a"
+      },
+      "scope": "Same original maintained scene/PB/pose/eightframe recipe at1280x960/logical640x480; ONLY intendedqualitysetting change:forcedMSAA1to4. No geometry smoothing or source edit.",
+      "sourceImage": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\current-scenes-four-sample-c286bad5cccd9a3a4fc9\\current-native-comparison.png",
+      "originalBackup": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\current-scenes-four-sample-c286bad5cccd9a3a4fc9\\publication-backups\\docs\\screenshots\\journey\\current-native-comparison.png",
+        "sha256": "8f9adc536ed56a386f685bb505e6ea108e82d93123e31605d3c1b10014e26047"
+      },
+      "served": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\docs\\vue\\course\\docs\\screenshots\\journey\\current-native-comparison.png",
+        "sha256": "3fbffce5183943fe38257cb82cb2438d63f6d6774e563938c22d2369f441a898",
+        "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/current-native-comparison.png?v=3fbffce51839",
+        "status": 200,
+        "mime": "image/png",
+        "sha256FromHttp": "3fbffce5183943fe38257cb82cb2438d63f6d6774e563938c22d2369f441a898"
+      },
+      "reviewerAgentId": "/root/intro_regeneration_audit",
+      "personallyViewedOriginalResolution": true,
+      "rootPersonallyViewedOriginalResolution": false,
+      "rootApproved": true
+    },
+    {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\current-native-floor-input.png",
+      "destination": "docs/screenshots/journey/current-native-floor-input.png",
+      "sha256": "ff62e6e88581d07019b4d05084fca7a5574f41aec3036e9f50ec47ecf908492c",
+      "width": 1280,
+      "height": 960,
+      "raw": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\current-scenes-four-sample-c286bad5cccd9a3a4fc9\\current-native-floor-input.ppm",
+        "sha256": "776851463ab45a51e29f6a200a0d7d8b96737581791a77416a10b654c3bdd161"
+      },
+      "input": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\wood\\data\\floor_model.pb",
+        "sha256": "75e2de99b16ea1de9ac01691d3561a657ac4aa93f153e329ae94ea8c5e4ebd69"
+      },
+      "settings": {
+        "VIEWER_NO_GRID": "1",
+        "VIEWER_OPACITY": "1",
+        "VIEWER_LIT": "1",
+        "VIEWER_MSAA": "4",
+        "VIEWER_AO": "1",
+        "VIEWER_OUTLINES": "1",
+        "VIEWER_FRAMES": "8",
+        "VIEWER_FRAMES_ORBIT": "2",
+        "VIEWER_GPU_TIMING": "1",
+        "VIEWER_W": "1280",
+        "VIEWER_H": "960",
+        "VIEWER_DPR": "2",
+        "VIEWER_ADAPTER": "Microsoft"
+      },
+      "execution": {
+        "name": "current-scenes-four-sample-c286bad5cccd-floor-input",
+        "returncode": 0,
+        "scope": "Private image8CPU8GiB transport; original image algorithm/assertions retained",
+        "command": {
+          "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-sup\\executions\\current-scenes-four-sample-c286bad5cccd-floor-input\\command.json",
+          "sha256": "348c2cd875649f13f20fc3200fd42da245e1f27e5e7040d5dcb028b9b178bd94"
+        },
+        "log": {
+          "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-sup\\executions\\current-scenes-four-sample-c286bad5cccd-floor-input\\output.log",
+          "sha256": "0d26b4eb35f85fcac898bccdfed7586577482152fa323bbdfe05174abd69c538"
+        },
+        "resourcesFile": {
+          "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-sup\\executions\\current-scenes-four-sample-c286bad5cccd-floor-input\\resources.json",
+          "sha256": "3e7765d599709f4b6e332abd5b72207404ea537eb2e9918ba1a6c4877f1decfe"
+        },
+        "resources": {
+          "platform": "windows-job-object",
+          "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+          "laneMutex": "Local\\SessionViewerCourseImageJob",
+          "affinityOffset": 8,
+          "requiredAffinityMask": "0xFF00",
+          "maximumOtherLaneProcessors": 8,
+          "maximumOtherLaneMemoryMiB": 8192,
+          "maximumAggregateOurProcessors": 16,
+          "maximumAggregateOurMemoryMiB": 16384,
+          "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+          "requestedProcessors": 8,
+          "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+          "startedUtc": "2026-10-26T00:16:48.9221651Z",
+          "executable": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-sup\\retained\\supplemental-scene-comparison-551f30129d3b\\selftest.exe",
+          "arguments": [
+            "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\current-scenes-four-sample-c286bad5cccd9a3a4fc9\\current-native-floor-input.ppm",
+            "C:\\pc\\3_code\\code_rust\\wood_research\\wood\\data\\floor_model.pb"
+          ],
+          "workingDirectory": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer",
+          "timeoutSeconds": 1800,
+          "jobCommitLimitBytes": 8589934592,
+          "swapCapSupported": false,
+          "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+          "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+          "exitCode": 0,
+          "timedOut": false,
+          "elapsedSeconds": 9.601,
+          "peakJobCommitBytes": 786292736,
+          "affinityMask": "0xFF00",
+          "processors": 8,
+          "processId": 58200,
+          "descendantsAtCleanup": 0
+        },
+        "environment": {
+          "CARGO_TARGET_DIR": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-sup\\native-cache",
+          "CARGO_NET_OFFLINE": "true",
+          "VIEWER_DXC_PATH": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\native-checkpoint\\dxcompiler.dll",
+          "WGPU_DX12_COMPILER": "dxc",
+          "WGPU_DX12_DXC_PATH": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\native-checkpoint\\dxcompiler.dll"
+        },
+        "artifacts": []
+      },
+      "originalOneSampleImage": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\private-scenes-551f30129d3b22b2681d\\current-native-floor-input.png",
+        "sha256": "1f1f59ba0774d30573388b3102c644e48df7d81cb06654aad1087e823c6c7da5"
+      },
+      "scope": "Same original maintained scene/PB/pose/eightframe recipe at1280x960/logical640x480; ONLY intendedqualitysetting change:forcedMSAA1to4. No geometry smoothing or source edit.",
+      "sourceImage": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\current-scenes-four-sample-c286bad5cccd9a3a4fc9\\current-native-floor-input.png",
+      "originalBackup": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\current-scenes-four-sample-c286bad5cccd9a3a4fc9\\publication-backups\\docs\\screenshots\\journey\\current-native-floor-input.png",
+        "sha256": "541a25706d40484a03df1185a7750272dfa8104c0ce5b47187a11cec7cb81a85"
+      },
+      "served": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\docs\\vue\\course\\docs\\screenshots\\journey\\current-native-floor-input.png",
+        "sha256": "ff62e6e88581d07019b4d05084fca7a5574f41aec3036e9f50ec47ecf908492c",
+        "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/current-native-floor-input.png?v=ff62e6e88581",
+        "status": 200,
+        "mime": "image/png",
+        "sha256FromHttp": "ff62e6e88581d07019b4d05084fca7a5574f41aec3036e9f50ec47ecf908492c"
+      },
+      "reviewerAgentId": "/root/intro_regeneration_audit",
+      "personallyViewedOriginalResolution": true,
+      "rootPersonallyViewedOriginalResolution": true,
+      "rootApproved": true,
+      "rootAdditionalReview": "Root explicitly personally viewed this exact AA4floorinput original and approved visibly reduced aliasing versus1x; scope retained in root review basis."
+    },
+    {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\current-native-dome.png",
+      "destination": "docs/screenshots/journey/current-native-dome.png",
+      "sha256": "5129ff5cb265c38e16aaeabe73145530caa4773fe8ea00591bb118c5d72818d5",
+      "width": 1280,
+      "height": 960,
+      "raw": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\current-scenes-four-sample-c286bad5cccd9a3a4fc9\\current-native-dome.ppm",
+        "sha256": "ecf06450bdc04a429ed1f0059027f0cdc009d69d9a4844907a6578791eec8464"
+      },
+      "input": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-sup\\scene-inputs\\dome.pb",
+        "sha256": "21c491e4f319a55a2dc45f2bb9d5f1fe123dfc2858a8f8f65bc82f59edd805c4"
+      },
+      "settings": {
+        "VIEWER_NO_GRID": "1",
+        "VIEWER_OPACITY": "1",
+        "VIEWER_LIT": "1",
+        "VIEWER_MSAA": "4",
+        "VIEWER_AO": "1",
+        "VIEWER_OUTLINES": "1",
+        "VIEWER_FRAMES": "8",
+        "VIEWER_FRAMES_ORBIT": "2",
+        "VIEWER_GPU_TIMING": "1",
+        "VIEWER_W": "1280",
+        "VIEWER_H": "960",
+        "VIEWER_DPR": "2",
+        "VIEWER_ADAPTER": "Microsoft"
+      },
+      "execution": {
+        "name": "current-scenes-four-sample-c286bad5cccd-dome",
+        "returncode": 0,
+        "scope": "Private image8CPU8GiB transport; original image algorithm/assertions retained",
+        "command": {
+          "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-sup\\executions\\current-scenes-four-sample-c286bad5cccd-dome\\command.json",
+          "sha256": "13e7b016724185afdbf754b727a10927275d1c3189588ff482bb22acc434a23f"
+        },
+        "log": {
+          "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-sup\\executions\\current-scenes-four-sample-c286bad5cccd-dome\\output.log",
+          "sha256": "cc5c75170a2413a12d0a4d4c8e4eef5920f363861930bc2c79497da366405014"
+        },
+        "resourcesFile": {
+          "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-sup\\executions\\current-scenes-four-sample-c286bad5cccd-dome\\resources.json",
+          "sha256": "93bf6956564d371ce098850faa4589fb310b3202f7e840f172896e7c6fad73c4"
+        },
+        "resources": {
+          "platform": "windows-job-object",
+          "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+          "laneMutex": "Local\\SessionViewerCourseImageJob",
+          "affinityOffset": 8,
+          "requiredAffinityMask": "0xFF00",
+          "maximumOtherLaneProcessors": 8,
+          "maximumOtherLaneMemoryMiB": 8192,
+          "maximumAggregateOurProcessors": 16,
+          "maximumAggregateOurMemoryMiB": 16384,
+          "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+          "requestedProcessors": 8,
+          "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+          "startedUtc": "2026-10-26T00:16:59.0000092Z",
+          "executable": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-sup\\retained\\supplemental-scene-comparison-551f30129d3b\\selftest.exe",
+          "arguments": [
+            "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\current-scenes-four-sample-c286bad5cccd9a3a4fc9\\current-native-dome.ppm",
+            "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-sup\\scene-inputs\\dome.pb"
+          ],
+          "workingDirectory": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer",
+          "timeoutSeconds": 1800,
+          "jobCommitLimitBytes": 8589934592,
+          "swapCapSupported": false,
+          "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+          "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+          "exitCode": 0,
+          "timedOut": false,
+          "elapsedSeconds": 18.056,
+          "peakJobCommitBytes": 886308864,
+          "affinityMask": "0xFF00",
+          "processors": 8,
+          "processId": 38764,
+          "descendantsAtCleanup": 0
+        },
+        "environment": {
+          "CARGO_TARGET_DIR": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-sup\\native-cache",
+          "CARGO_NET_OFFLINE": "true",
+          "VIEWER_DXC_PATH": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\native-checkpoint\\dxcompiler.dll",
+          "WGPU_DX12_COMPILER": "dxc",
+          "WGPU_DX12_DXC_PATH": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\native-checkpoint\\dxcompiler.dll"
+        },
+        "artifacts": []
+      },
+      "originalOneSampleImage": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\private-scenes-551f30129d3b22b2681d\\current-native-dome.png",
+        "sha256": "956fc07cce659b60b49f135ac17efb9ebe0ad748721084019df3c0db1bada89e"
+      },
+      "scope": "Same original maintained scene/PB/pose/eightframe recipe at1280x960/logical640x480; ONLY intendedqualitysetting change:forcedMSAA1to4. No geometry smoothing or source edit.",
+      "sourceImage": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\current-scenes-four-sample-c286bad5cccd9a3a4fc9\\current-native-dome.png",
+      "originalBackup": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\current-scenes-four-sample-c286bad5cccd9a3a4fc9\\publication-backups\\docs\\screenshots\\journey\\current-native-dome.png",
+        "sha256": "f300114c8417c563dbfb5464459fada6217c5155c7c95cc7f19ac79a2485f0f7"
+      },
+      "served": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\docs\\vue\\course\\docs\\screenshots\\journey\\current-native-dome.png",
+        "sha256": "5129ff5cb265c38e16aaeabe73145530caa4773fe8ea00591bb118c5d72818d5",
+        "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/current-native-dome.png?v=5129ff5cb265",
+        "status": 200,
+        "mime": "image/png",
+        "sha256FromHttp": "5129ff5cb265c38e16aaeabe73145530caa4773fe8ea00591bb118c5d72818d5"
+      },
+      "reviewerAgentId": "/root/intro_regeneration_audit",
+      "personallyViewedOriginalResolution": true,
+      "rootPersonallyViewedOriginalResolution": false,
+      "rootApproved": true
+    }
+  ],
+  "originalSourcePostflightAndGenerationAcceptance": "Original1xwholepostflightFAIL remains; normalizedsourceequivalence separatelyqualified; floor-output absent/unaccepted; no whole C++generation acceptance."
+}
