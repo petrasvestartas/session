@@ -1,5 +1,5 @@
 {
-  "updated": "2026-10-26T20:05:23.563Z",
+  "updated": "2026-10-26T20:34:47.095Z",
   "platform": "windows",
   "scope": "Complete the 22-chapter viewer course and production reconciliation plan",
   "chaptersConsolidated": 22,
@@ -655,7 +655,7 @@
     "processors": 16,
     "scope": "Combined configured ceilings for at most two image jobs:8CPUs/8GiB each on disjoint affinity masks. The original two-CPU validation guard remains unchanged."
   },
-  "next": "Correct the remaining generated floor coplanar BRep splits, review/publish its final image, then rebuild and inspect the complete1762-image documentation site.",
+  "next": "Finish source-bound image captures and reviews, validate the remaining floor output and variants, refresh metadata after capture freezes end, then rebuild and inspect the complete site.",
   "currentDocsReview": {
     "status": "PASS final current-source docs and3root-reviewed original images; completed desktop/phone progress sync also passes; original V10 measured scope retained.",
     "record": "docs/journey/release/docs-final-brep-visible-review.json",
@@ -2241,8 +2241,8 @@
     "publicImageCount": 1762,
     "currentReaderReferenceImages": 99,
     "reportedExamples": 9,
-    "completedNewCaptures": 1756,
-    "scope": "Focused early geometry/depth regressions, maintained surface-preview and all 1,068 original unfiltered final native tests pass. Published assets include 1756 assets backed by actual capture records and 5 retired-filename aliases; separate filenames do not imply separate GPU executions, and in-flight captures are excluded. Production shaders and Gemini website design/prose are preserved.",
+    "completedNewCaptures": 1757,
+    "scope": "Focused early geometry/depth regressions, maintained surface-preview and all 1,068 original unfiltered final native tests pass. Published assets include 1757 assets backed by actual capture records and 5 retired-filename aliases; separate filenames do not imply separate GPU executions, and in-flight captures are excluded. Production shaders and Gemini website design/prose are preserved.",
     "inventory": {
       "native": 1360,
       "browser": 379,
@@ -2264,7 +2264,6 @@
       "31 Markdown pages updated only inside 54 Rust code fences; prose and Vue preserved"
     ],
     "pending": [
-      "1 remaining original-inventory images: source-bound capture, original-resolution QA and publication",
       "Generated floor BRep coplanar-split correction and strict physical/export/reload acceptance",
       "Final documentation rebuild and desktop/phone review after complete image publication"
     ],
@@ -2281,7 +2280,7 @@
       "status": "PASS original full1361 lesson/43 reference structural checks after99 exact metadata corrections and reviewed reference37 image hash refresh."
     },
     "candidateFinalCadFingerprint": "3efbb602833786d48a46add280c7769351a11850b15914748bfc69889f0f3a32",
-    "publishedNewCaptures": 1756,
+    "publishedNewCaptures": 1757,
     "earlyBrowser": {
       "status": "PASS DPR1 behavior and personally reviewed genuine DPR2 presentation",
       "cases": [
@@ -2330,7 +2329,7 @@
       "originalResolutionReviews": 42,
       "exactPngDuplicates": 14
     },
-    "remainingPublishedImages": 1,
+    "remainingPublishedImages": 0,
     "finalNativeIntegration": {
       "status": "PASS",
       "passed": 1068,
@@ -2345,13 +2344,13 @@
     "streamingBrowserPublication": "../release/streaming-browser-image-review.json",
     "candidateFinalCurrentFingerprint": "e2887fefd8fda86e580435538466c212ba714389be588a4f5d567c6a71f542c7",
     "reportedOriginalUrlsHttpVerified": "../release/reported-image-http-review.json",
-    "publishedImageAssets": 1761,
+    "publishedImageAssets": 1762,
     "publishedAliasAssets": 5,
     "latestImagePublication": "../release/image-quality-publication-index.json",
     "remainingInventory": {
       "native": 0,
       "browser": 0,
-      "supportingAndVariants": 1
+      "supportingAndVariants": 0
     },
     "latestNativeStreamingPublication": "../release/native-streaming-publication-1711.json",
     "nativeBulk": {
@@ -2389,9 +2388,9 @@
         }
       },
       "imagePublication": {
-        "published": 1761,
+        "published": 1762,
         "total": 1762,
-        "remaining": 1
+        "remaining": 0
       },
       "finalDocumentationReview": "PENDING_COMPLETE_IMAGE_QUEUE",
       "reader99DocumentationReview": {
@@ -2412,7 +2411,7 @@
     "packagingReview": "../release/public-image-packaging-review.json",
     "latestBrowserStreamingPublication": "../release/browser-streaming-publication-337.json",
     "browserBulk": {
-      "status": "ALL_BROWSER_CAPTURED_AND_FINAL_METADATA_QUALIFIED",
+      "status": "ALL_BROWSER_CAPTURED",
       "cohort": "target/course-presentation/incremental-browser-batches/03e98650cb7155fcaa43",
       "retainedCompletedAtResume": 379,
       "captured": 379,
@@ -2423,7 +2422,7 @@
       "sourceQualified": 379,
       "methodReview": "../release/maintained-browser-dpr2-variant-image-review.json",
       "sourceSuccessorReview": "../release/browser-final-metadata-source-successor-review.json",
-      "scope": "Only99 approved course metadata fields changed: source-declared03cf startup status and actual image_same_as relationships, including one obsolete alias deletion. Exact entire course reconstruction after restoring ONLY these fields equals the frozen before-course object. All379 runtime/source/assets/lock/kernel/fixture/recipe bindings are deep-equal; all379 sourceRecord/image SHA identities and actual successful resource receipts remain unchanged. No browser callback, renderer, GPU capture, compiler or native test rerun is claimed. Every retained original execution keeps its distinct historical/generic/export/terminal/main-page/full-callback scope and failed ancestors remain immutable. All379 actual records retained; earlier failed attempts remain in immutable ancestor cohorts."
+      "scope": "Only99 approved course metadata fields changed: source-declared03cf startup status and actual image_same_as relationships, including one obsolete alias deletion. Exact entire course reconstruction after restoring ONLY these fields equals the frozen before-course object. All379 runtime/source/assets/lock/kernel/fixture/recipe bindings are deep-equal; all379 sourceRecord/image SHA identities and actual successful resource receipts remain unchanged. No browser callback, renderer, GPU capture, compiler or native test rerun is claimed. Every retained original execution keeps its distinct historical/generic/export/terminal/main-page/full-callback scope and failed ancestors remain immutable. Retained prior actual identities: 379. Original import timeout failures remain unaccepted."
     },
     "finalMetadataQualification": {
       "status": "PASS",

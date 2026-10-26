@@ -1,18 +1,18 @@
 {
-  "date": "2026-10-26T19:59:33.584Z",
+  "date": "2026-10-26T20:34:47.050Z",
   "status": "PASS: reviewed publication receipts reconciled with exact source and served file hashes",
   "scope": "Only explicitly reviewed publication receipts count; in-flight captures excluded. HTTP verification belongs to each linked publication receipt.",
   "inventory": {
     "path": "target/course-presentation/inventory-d09aa228601224bf4dfe.json",
     "sha256": "d09aa228601224bf4dfe01d6a1009a56357b2eb5e4b3baa5d88566b2c7a66eba"
   },
-  "published": 1761,
-  "remaining": 1,
+  "published": 1762,
+  "remaining": 0,
   "counts": {
     "native": 1360,
     "browser": 379,
     "variants": 2,
-    "supporting": 20
+    "supporting": 21
   },
   "reader": {
     "published": 99,
@@ -17538,6 +17538,16 @@
       "receipt": {
         "path": "docs/journey/release/current-native-four-sample-image-review.json",
         "sha256": "2b3cce4ea72780cdf68c7fd418fbeeb7d683673f09c784d568fb0c97c59e35eb"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/current-native-floor-output.png",
+      "sha256": "67217e5e18903c9979b15a32c12db8253e21a357517d2699805036c7b5397d76",
+      "kind": "supporting",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/current-native-floor-output-v67-presentation.json",
+        "sha256": "abbc427c817117e9ff692d5056bb91b7f1ccb5cc9f1f94ded8bce56c4592ce83"
       }
     },
     {
