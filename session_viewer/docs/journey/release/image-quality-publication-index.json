@@ -1,15 +1,15 @@
 {
-  "date": "2026-10-26T01:59:14.001Z",
+  "date": "2026-10-26T01:59:55.190Z",
   "status": "PASS: reviewed publication receipts reconciled with exact source and served file hashes",
   "scope": "Only explicitly reviewed publication receipts count; in-flight captures excluded. HTTP verification belongs to each linked publication receipt.",
   "inventory": {
     "path": "target/course-presentation/inventory-d09aa228601224bf4dfe.json",
     "sha256": "d09aa228601224bf4dfe01d6a1009a56357b2eb5e4b3baa5d88566b2c7a66eba"
   },
-  "published": 891,
-  "remaining": 871,
+  "published": 941,
+  "remaining": 821,
   "counts": {
-    "native": 718,
+    "native": 768,
     "browser": 153,
     "variants": 0,
     "supporting": 20
@@ -8421,6 +8421,56 @@
       }
     },
     {
+      "path": "docs/screenshots/journey/73o-scale-and-cache-polyhedron-faces.png",
+      "sha256": "4a754b71e53c0c09fc954b347c361d1cd6df58049c40352f383168dd3e15b821",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-941.json",
+        "sha256": "82dd17908f57b801f4f640526b468f445b2167337a772b5688f7bf5a599002cb"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/73p-build-a-placed-kernel-box.png",
+      "sha256": "4a754b71e53c0c09fc954b347c361d1cd6df58049c40352f383168dd3e15b821",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-941.json",
+        "sha256": "82dd17908f57b801f4f640526b468f445b2167337a772b5688f7bf5a599002cb"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/73q-read-box-questions-and-corner-clicks.png",
+      "sha256": "4a754b71e53c0c09fc954b347c361d1cd6df58049c40352f383168dd3e15b821",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-941.json",
+        "sha256": "82dd17908f57b801f4f640526b468f445b2167337a772b5688f7bf5a599002cb"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/73r-build-an-oriented-kernel-pyramid.png",
+      "sha256": "4a754b71e53c0c09fc954b347c361d1cd6df58049c40352f383168dd3e15b821",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-941.json",
+        "sha256": "82dd17908f57b801f4f640526b468f445b2167337a772b5688f7bf5a599002cb"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/73s-build-a-block-with-a-kernel-hole.png",
+      "sha256": "4a754b71e53c0c09fc954b347c361d1cd6df58049c40352f383168dd3e15b821",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-941.json",
+        "sha256": "82dd17908f57b801f4f640526b468f445b2167337a772b5688f7bf5a599002cb"
+      }
+    },
+    {
       "path": "docs/screenshots/journey/73t-build-regular-kernel-polyhedra.png",
       "sha256": "4a754b71e53c0c09fc954b347c361d1cd6df58049c40352f383168dd3e15b821",
       "kind": "native",
@@ -8428,6 +8478,186 @@
       "receipt": {
         "path": "docs/journey/release/priority-native-image-review.json",
         "sha256": "914706b6be25305b322efdd21b8a21c950fbcbbec3f9221984df2cc8a07f77e0"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/74-copy-current-solid-geometry-and-question-definitions.png",
+      "sha256": "4a754b71e53c0c09fc954b347c361d1cd6df58049c40352f383168dd3e15b821",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-941.json",
+        "sha256": "82dd17908f57b801f4f640526b468f445b2167337a772b5688f7bf5a599002cb"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/74a-own-current-shape-questions-and-answer-state.png",
+      "sha256": "4a754b71e53c0c09fc954b347c361d1cd6df58049c40352f383168dd3e15b821",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-941.json",
+        "sha256": "82dd17908f57b801f4f640526b468f445b2167337a772b5688f7bf5a599002cb"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/74b-validate-a-new-answer-before-changing-its-original-state.png",
+      "sha256": "4a754b71e53c0c09fc954b347c361d1cd6df58049c40352f383168dd3e15b821",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-941.json",
+        "sha256": "82dd17908f57b801f4f640526b468f445b2167337a772b5688f7bf5a599002cb"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/74c-build-only-after-the-last-shape-question.png",
+      "sha256": "4a754b71e53c0c09fc954b347c361d1cd6df58049c40352f383168dd3e15b821",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-941.json",
+        "sha256": "82dd17908f57b801f4f640526b468f445b2167337a772b5688f7bf5a599002cb"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/74d-answer-shape-dimensions-with-atomic-typed-batches.png",
+      "sha256": "4a754b71e53c0c09fc954b347c361d1cd6df58049c40352f383168dd3e15b821",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-941.json",
+        "sha256": "82dd17908f57b801f4f640526b468f445b2167337a772b5688f7bf5a599002cb"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/74e-preview-solid-wires-and-measure-normal-axis-clicks.png",
+      "sha256": "4a754b71e53c0c09fc954b347c361d1cd6df58049c40352f383168dd3e15b821",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-941.json",
+        "sha256": "82dd17908f57b801f4f640526b468f445b2167337a772b5688f7bf5a599002cb"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/74f-adopt-original-primitive-geometry-through-existing-rows.png",
+      "sha256": "4a754b71e53c0c09fc954b347c361d1cd6df58049c40352f383168dd3e15b821",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-941.json",
+        "sha256": "82dd17908f57b801f4f640526b468f445b2167337a772b5688f7bf5a599002cb"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/74g-keep-primitive-answers-beside-the-existing-drawing-draft.png",
+      "sha256": "4a754b71e53c0c09fc954b347c361d1cd6df58049c40352f383168dd3e15b821",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-941.json",
+        "sha256": "82dd17908f57b801f4f640526b468f445b2167337a772b5688f7bf5a599002cb"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/74h-route-clicked-points-to-the-current-shape-question.png",
+      "sha256": "4a754b71e53c0c09fc954b347c361d1cd6df58049c40352f383168dd3e15b821",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-941.json",
+        "sha256": "82dd17908f57b801f4f640526b468f445b2167337a772b5688f7bf5a599002cb"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/74i-route-typed-shape-input-and-preserve-detailed-errors.png",
+      "sha256": "4a754b71e53c0c09fc954b347c361d1cd6df58049c40352f383168dd3e15b821",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-941.json",
+        "sha256": "82dd17908f57b801f4f640526b468f445b2167337a772b5688f7bf5a599002cb"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/74j-synchronize-shape-frames-before-accepting-plane-changes.png",
+      "sha256": "4a754b71e53c0c09fc954b347c361d1cd6df58049c40352f383168dd3e15b821",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-941.json",
+        "sha256": "82dd17908f57b801f4f640526b468f445b2167337a772b5688f7bf5a599002cb"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/74k-resolve-height-clicks-without-closing-an-open-shape-collector.png",
+      "sha256": "4a754b71e53c0c09fc954b347c361d1cd6df58049c40352f383168dd3e15b821",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-941.json",
+        "sha256": "82dd17908f57b801f4f640526b468f445b2167337a772b5688f7bf5a599002cb"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/74l-prepare-complete-solid-commands-before-replacing-a-draft.png",
+      "sha256": "4a754b71e53c0c09fc954b347c361d1cd6df58049c40352f383168dd3e15b821",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-941.json",
+        "sha256": "82dd17908f57b801f4f640526b468f445b2167337a772b5688f7bf5a599002cb"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/74m-register-every-current-solid-name-and-representation.png",
+      "sha256": "4a754b71e53c0c09fc954b347c361d1cd6df58049c40352f383168dd3e15b821",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-941.json",
+        "sha256": "82dd17908f57b801f4f640526b468f445b2167337a772b5688f7bf5a599002cb"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/74n-draw-temporary-solid-wire-sets-and-report-current-input-failures.png",
+      "sha256": "4a754b71e53c0c09fc954b347c361d1cd6df58049c40352f383168dd3e15b821",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-941.json",
+        "sha256": "82dd17908f57b801f4f640526b468f445b2167337a772b5688f7bf5a599002cb"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/74o-keep-quick-mouse-drift-as-a-click-using-current-event-time.png",
+      "sha256": "4a754b71e53c0c09fc954b347c361d1cd6df58049c40352f383168dd3e15b821",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-941.json",
+        "sha256": "82dd17908f57b801f4f640526b468f445b2167337a772b5688f7bf5a599002cb"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/74p-exercise-current-solid-input-and-original-persistence.png",
+      "sha256": "6a513859b63e0b7075cec83d4bf524fe3e15006722215ffa2954feba797d0e22",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-941.json",
+        "sha256": "82dd17908f57b801f4f640526b468f445b2167337a772b5688f7bf5a599002cb"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/74za-build-original-cylinders-with-signed-height.png",
+      "sha256": "6a513859b63e0b7075cec83d4bf524fe3e15006722215ffa2954feba797d0e22",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-941.json",
+        "sha256": "82dd17908f57b801f4f640526b468f445b2167337a772b5688f7bf5a599002cb"
       }
     },
     {
@@ -8441,6 +8671,106 @@
       }
     },
     {
+      "path": "docs/screenshots/journey/75-reuse-current-round-solid-builders.png",
+      "sha256": "6a513859b63e0b7075cec83d4bf524fe3e15006722215ffa2954feba797d0e22",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-941.json",
+        "sha256": "82dd17908f57b801f4f640526b468f445b2167337a772b5688f7bf5a599002cb"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/75a-retain-mesh-only-round-families.png",
+      "sha256": "6a513859b63e0b7075cec83d4bf524fe3e15006722215ffa2954feba797d0e22",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-941.json",
+        "sha256": "82dd17908f57b801f4f640526b468f445b2167337a772b5688f7bf5a599002cb"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/75aa-build-original-capsules-with-shared-dimensions.png",
+      "sha256": "6a513859b63e0b7075cec83d4bf524fe3e15006722215ffa2954feba797d0e22",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-941.json",
+        "sha256": "82dd17908f57b801f4f640526b468f445b2167337a772b5688f7bf5a599002cb"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/75b-register-current-round-names-and-choices.png",
+      "sha256": "6a513859b63e0b7075cec83d4bf524fe3e15006722215ffa2954feba797d0e22",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-941.json",
+        "sha256": "82dd17908f57b801f4f640526b468f445b2167337a772b5688f7bf5a599002cb"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/75c-exercise-round-originals-and-one-transaction.png",
+      "sha256": "43f29863a1c06b6789bd217f981d059358247504efb5276a03cf094e948759b8",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-941.json",
+        "sha256": "82dd17908f57b801f4f640526b468f445b2167337a772b5688f7bf5a599002cb"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/75za-build-original-planar-circles.png",
+      "sha256": "43f29863a1c06b6789bd217f981d059358247504efb5276a03cf094e948759b8",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-941.json",
+        "sha256": "82dd17908f57b801f4f640526b468f445b2167337a772b5688f7bf5a599002cb"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/75zb-build-original-planar-ellipses.png",
+      "sha256": "43f29863a1c06b6789bd217f981d059358247504efb5276a03cf094e948759b8",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-941.json",
+        "sha256": "82dd17908f57b801f4f640526b468f445b2167337a772b5688f7bf5a599002cb"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/75zc-build-exact-rational-arc-spans.png",
+      "sha256": "43f29863a1c06b6789bd217f981d059358247504efb5276a03cf094e948759b8",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-941.json",
+        "sha256": "82dd17908f57b801f4f640526b468f445b2167337a772b5688f7bf5a599002cb"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/75zd-read-original-arcs-from-center-and-angle.png",
+      "sha256": "43f29863a1c06b6789bd217f981d059358247504efb5276a03cf094e948759b8",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-941.json",
+        "sha256": "82dd17908f57b801f4f640526b468f445b2167337a772b5688f7bf5a599002cb"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/75ze-read-three-point-arcs-and-connect-the-recipe.png",
+      "sha256": "43f29863a1c06b6789bd217f981d059358247504efb5276a03cf094e948759b8",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-941.json",
+        "sha256": "82dd17908f57b801f4f640526b468f445b2167337a772b5688f7bf5a599002cb"
+      }
+    },
+    {
       "path": "docs/screenshots/journey/75zf-build-original-parabola-previews-and-sources.png",
       "sha256": "43f29863a1c06b6789bd217f981d059358247504efb5276a03cf094e948759b8",
       "kind": "native",
@@ -8451,6 +8781,46 @@
       }
     },
     {
+      "path": "docs/screenshots/journey/76-copy-exact-planar-curve-definitions.png",
+      "sha256": "43f29863a1c06b6789bd217f981d059358247504efb5276a03cf094e948759b8",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-941.json",
+        "sha256": "82dd17908f57b801f4f640526b468f445b2167337a772b5688f7bf5a599002cb"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/76a-expose-exact-curve-choices-in-the-existing-registry.png",
+      "sha256": "43f29863a1c06b6789bd217f981d059358247504efb5276a03cf094e948759b8",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-941.json",
+        "sha256": "82dd17908f57b801f4f640526b468f445b2167337a772b5688f7bf5a599002cb"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/76b-retain-editable-freeform-controls-in-the-point-collector.png",
+      "sha256": "43f29863a1c06b6789bd217f981d059358247504efb5276a03cf094e948759b8",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-941.json",
+        "sha256": "82dd17908f57b801f4f640526b468f445b2167337a772b5688f7bf5a599002cb"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/76c-inspect-original-curve-data-through-the-browser-contract.png",
+      "sha256": "43f29863a1c06b6789bd217f981d059358247504efb5276a03cf094e948759b8",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-941.json",
+        "sha256": "82dd17908f57b801f4f640526b468f445b2167337a772b5688f7bf5a599002cb"
+      }
+    },
+    {
       "path": "docs/screenshots/journey/76d-exercise-exact-curves-and-rational-control-edits-browser.png",
       "sha256": "e4d54d01e83aca393ec5b153cf4d017ccf819c4be49035323f448484d45692a0",
       "kind": "browser",
@@ -8458,6 +8828,136 @@
       "receipt": {
         "path": "docs/journey/release/browser-scene-image-publication-18.json",
         "sha256": "c1f1c0f724ac7de6ee36bf6439add3668c05741f72be016c962566c8b2ba727c"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/76d-exercise-exact-curves-and-rational-control-edits.png",
+      "sha256": "d78e69332dd6f52b93b614448158ea5b5cd864bb5a8a2d8589ebfc4dae01fe65",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-941.json",
+        "sha256": "82dd17908f57b801f4f640526b468f445b2167337a772b5688f7bf5a599002cb"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/77-copy-current-transformation-and-source-edit-algorithms.png",
+      "sha256": "d78e69332dd6f52b93b614448158ea5b5cd864bb5a8a2d8589ebfc4dae01fe65",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-941.json",
+        "sha256": "82dd17908f57b801f4f640526b468f445b2167337a772b5688f7bf5a599002cb"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/77sa-compute-signed-construction-plane-rotation.png",
+      "sha256": "d78e69332dd6f52b93b614448158ea5b5cd864bb5a8a2d8589ebfc4dae01fe65",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-941.json",
+        "sha256": "82dd17908f57b801f4f640526b468f445b2167337a772b5688f7bf5a599002cb"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/77sb-address-original-controls-and-exclusive-part-selections.png",
+      "sha256": "d78e69332dd6f52b93b614448158ea5b5cd864bb5a8a2d8589ebfc4dae01fe65",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-941.json",
+        "sha256": "82dd17908f57b801f4f640526b468f445b2167337a772b5688f7bf5a599002cb"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/77sc-collect-finite-original-controls-and-mesh-vertices.png",
+      "sha256": "d78e69332dd6f52b93b614448158ea5b5cd864bb5a8a2d8589ebfc4dae01fe65",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-941.json",
+        "sha256": "82dd17908f57b801f4f640526b468f445b2167337a772b5688f7bf5a599002cb"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/77sd-connect-curve-polygons-and-surface-control-nets.png",
+      "sha256": "d78e69332dd6f52b93b614448158ea5b5cd864bb5a8a2d8589ebfc4dae01fe65",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-941.json",
+        "sha256": "82dd17908f57b801f4f640526b468f445b2167337a772b5688f7bf5a599002cb"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/77se-reuse-control-collectors-across-original-geometry-families.png",
+      "sha256": "d78e69332dd6f52b93b614448158ea5b5cd864bb5a8a2d8589ebfc4dae01fe65",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-941.json",
+        "sha256": "82dd17908f57b801f4f640526b468f445b2167337a772b5688f7bf5a599002cb"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/77sf-represent-original-geometry-edit-targets.png",
+      "sha256": "d78e69332dd6f52b93b614448158ea5b5cd864bb5a8a2d8589ebfc4dae01fe65",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-941.json",
+        "sha256": "82dd17908f57b801f4f640526b468f445b2167337a772b5688f7bf5a599002cb"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/77sg-resolve-original-mesh-vertices-for-part-edits.png",
+      "sha256": "d78e69332dd6f52b93b614448158ea5b5cd864bb5a8a2d8589ebfc4dae01fe65",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-941.json",
+        "sha256": "82dd17908f57b801f4f640526b468f445b2167337a772b5688f7bf5a599002cb"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/77sh-resolve-surface-grids-and-individual-source-controls.png",
+      "sha256": "d78e69332dd6f52b93b614448158ea5b5cd864bb5a8a2d8589ebfc4dae01fe65",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-941.json",
+        "sha256": "82dd17908f57b801f4f640526b468f445b2167337a772b5688f7bf5a599002cb"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/77si-collect-affected-points-across-cad-geometry-families.png",
+      "sha256": "d78e69332dd6f52b93b614448158ea5b5cd864bb5a8a2d8589ebfc4dae01fe65",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-941.json",
+        "sha256": "82dd17908f57b801f4f640526b468f445b2167337a772b5688f7bf5a599002cb"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/77sj-preserve-rational-weights-and-validate-brep-boundaries.png",
+      "sha256": "d78e69332dd6f52b93b614448158ea5b5cd864bb5a8a2d8589ebfc4dae01fe65",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-941.json",
+        "sha256": "82dd17908f57b801f4f640526b468f445b2167337a772b5688f7bf5a599002cb"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/77sk-transform-original-mesh-and-surface-controls.png",
+      "sha256": "d78e69332dd6f52b93b614448158ea5b5cd864bb5a8a2d8589ebfc4dae01fe65",
+      "kind": "native",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/native-streaming-publication-941.json",
+        "sha256": "82dd17908f57b801f4f640526b468f445b2167337a772b5688f7bf5a599002cb"
       }
     },
     {
