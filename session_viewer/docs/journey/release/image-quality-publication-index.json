@@ -1,16 +1,16 @@
 {
-  "date": "2026-10-26T05:18:29.482Z",
+  "date": "2026-10-26T05:21:50.323Z",
   "status": "PASS: reviewed publication receipts reconciled with exact source and served file hashes",
   "scope": "Only explicitly reviewed publication receipts count; in-flight captures excluded. HTTP verification belongs to each linked publication receipt.",
   "inventory": {
     "path": "target/course-presentation/inventory-d09aa228601224bf4dfe.json",
     "sha256": "d09aa228601224bf4dfe01d6a1009a56357b2eb5e4b3baa5d88566b2c7a66eba"
   },
-  "published": 1564,
-  "remaining": 198,
+  "published": 1576,
+  "remaining": 186,
   "counts": {
     "native": 1268,
-    "browser": 276,
+    "browser": 288,
     "variants": 0,
     "supporting": 20
   },
@@ -15311,6 +15311,16 @@
       }
     },
     {
+      "path": "docs/screenshots/journey/96zzzl-publish-allocator-texels-through-the-integer-table-browser.png",
+      "sha256": "ed44bd71cfb0e7277eb51fea6a2cc01031384743c173989be1006705b0bf231c",
+      "kind": "browser",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/browser-streaming-publication-246.json",
+        "sha256": "bc48bb69b91a1f019c629c73eef4ea64122d3e2a1d19d48fcde785e3841e7b20"
+      }
+    },
+    {
       "path": "docs/screenshots/journey/96zzzl-publish-allocator-texels-through-the-integer-table.png",
       "sha256": "33692b20bbdd38393f5f2f84a3e345e8a6480ac240f26271277f476f67afb414",
       "kind": "native",
@@ -15318,6 +15328,16 @@
       "receipt": {
         "path": "docs/journey/release/native-streaming-publication-1564.json",
         "sha256": "09fcd6b9ec575c2451db34fbbb5f68dd01cb54f6e81dd903b851f0f4088a5011"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/96zzzm-resolve-physical-triangles-with-integer-slots-browser.png",
+      "sha256": "ed44bd71cfb0e7277eb51fea6a2cc01031384743c173989be1006705b0bf231c",
+      "kind": "browser",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/browser-streaming-publication-246.json",
+        "sha256": "bc48bb69b91a1f019c629c73eef4ea64122d3e2a1d19d48fcde785e3841e7b20"
       }
     },
     {
@@ -15331,6 +15351,16 @@
       }
     },
     {
+      "path": "docs/screenshots/journey/96zzzn-batch-shared-geometry-with-original-ownership-browser.png",
+      "sha256": "ed44bd71cfb0e7277eb51fea6a2cc01031384743c173989be1006705b0bf231c",
+      "kind": "browser",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/browser-streaming-publication-246.json",
+        "sha256": "bc48bb69b91a1f019c629c73eef4ea64122d3e2a1d19d48fcde785e3841e7b20"
+      }
+    },
+    {
       "path": "docs/screenshots/journey/96zzzn-batch-shared-geometry-with-original-ownership.png",
       "sha256": "33692b20bbdd38393f5f2f84a3e345e8a6480ac240f26271277f476f67afb414",
       "kind": "native",
@@ -15338,6 +15368,16 @@
       "receipt": {
         "path": "docs/journey/release/native-streaming-publication-1564.json",
         "sha256": "09fcd6b9ec575c2451db34fbbb5f68dd01cb54f6e81dd903b851f0f4088a5011"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/96zzzo-shrink-record-ranges-without-rewriting-live-prefixes-browser.png",
+      "sha256": "ed44bd71cfb0e7277eb51fea6a2cc01031384743c173989be1006705b0bf231c",
+      "kind": "browser",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/browser-streaming-publication-246.json",
+        "sha256": "bc48bb69b91a1f019c629c73eef4ea64122d3e2a1d19d48fcde785e3841e7b20"
       }
     },
     {
@@ -15351,6 +15391,16 @@
       }
     },
     {
+      "path": "docs/screenshots/journey/96zzzp-share-opaque-ordinary-surface-records-browser.png",
+      "sha256": "ed44bd71cfb0e7277eb51fea6a2cc01031384743c173989be1006705b0bf231c",
+      "kind": "browser",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/browser-streaming-publication-246.json",
+        "sha256": "bc48bb69b91a1f019c629c73eef4ea64122d3e2a1d19d48fcde785e3841e7b20"
+      }
+    },
+    {
       "path": "docs/screenshots/journey/96zzzp-share-opaque-ordinary-surface-records.png",
       "sha256": "33692b20bbdd38393f5f2f84a3e345e8a6480ac240f26271277f476f67afb414",
       "kind": "native",
@@ -15358,6 +15408,16 @@
       "receipt": {
         "path": "docs/journey/release/native-streaming-publication-1564.json",
         "sha256": "09fcd6b9ec575c2451db34fbbb5f68dd01cb54f6e81dd903b851f0f4088a5011"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/96zzzq-blend-ordinary-surface-records-browser.png",
+      "sha256": "ed44bd71cfb0e7277eb51fea6a2cc01031384743c173989be1006705b0bf231c",
+      "kind": "browser",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/browser-streaming-publication-246.json",
+        "sha256": "bc48bb69b91a1f019c629c73eef4ea64122d3e2a1d19d48fcde785e3841e7b20"
       }
     },
     {
@@ -15371,6 +15431,16 @@
       }
     },
     {
+      "path": "docs/screenshots/journey/96zzzr-share-transparent-instance-records-browser.png",
+      "sha256": "ed44bd71cfb0e7277eb51fea6a2cc01031384743c173989be1006705b0bf231c",
+      "kind": "browser",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/browser-streaming-publication-246.json",
+        "sha256": "bc48bb69b91a1f019c629c73eef4ea64122d3e2a1d19d48fcde785e3841e7b20"
+      }
+    },
+    {
       "path": "docs/screenshots/journey/96zzzr-share-transparent-instance-records.png",
       "sha256": "33692b20bbdd38393f5f2f84a3e345e8a6480ac240f26271277f476f67afb414",
       "kind": "native",
@@ -15378,6 +15448,16 @@
       "receipt": {
         "path": "docs/journey/release/native-streaming-publication-1564.json",
         "sha256": "09fcd6b9ec575c2451db34fbbb5f68dd01cb54f6e81dd903b851f0f4088a5011"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/96zzzs-allocate-stable-object-record-rows-browser.png",
+      "sha256": "ed44bd71cfb0e7277eb51fea6a2cc01031384743c173989be1006705b0bf231c",
+      "kind": "browser",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/browser-streaming-publication-246.json",
+        "sha256": "bc48bb69b91a1f019c629c73eef4ea64122d3e2a1d19d48fcde785e3841e7b20"
       }
     },
     {
@@ -15391,6 +15471,16 @@
       }
     },
     {
+      "path": "docs/screenshots/journey/96zzzt-retain-live-surface-record-rows-browser.png",
+      "sha256": "ed44bd71cfb0e7277eb51fea6a2cc01031384743c173989be1006705b0bf231c",
+      "kind": "browser",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/browser-streaming-publication-246.json",
+        "sha256": "bc48bb69b91a1f019c629c73eef4ea64122d3e2a1d19d48fcde785e3841e7b20"
+      }
+    },
+    {
       "path": "docs/screenshots/journey/96zzzt-retain-live-surface-record-rows.png",
       "sha256": "33692b20bbdd38393f5f2f84a3e345e8a6480ac240f26271277f476f67afb414",
       "kind": "native",
@@ -15398,6 +15488,16 @@
       "receipt": {
         "path": "docs/journey/release/native-streaming-publication-1564.json",
         "sha256": "09fcd6b9ec575c2451db34fbbb5f68dd01cb54f6e81dd903b851f0f4088a5011"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/96zzzu-prepare-shared-record-pick-consumers-browser.png",
+      "sha256": "ed44bd71cfb0e7277eb51fea6a2cc01031384743c173989be1006705b0bf231c",
+      "kind": "browser",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/browser-streaming-publication-246.json",
+        "sha256": "bc48bb69b91a1f019c629c73eef4ea64122d3e2a1d19d48fcde785e3841e7b20"
       }
     },
     {
@@ -15411,6 +15511,16 @@
       }
     },
     {
+      "path": "docs/screenshots/journey/96zzzv-pick-originals-through-shared-records-browser.png",
+      "sha256": "ed44bd71cfb0e7277eb51fea6a2cc01031384743c173989be1006705b0bf231c",
+      "kind": "browser",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/browser-streaming-publication-246.json",
+        "sha256": "bc48bb69b91a1f019c629c73eef4ea64122d3e2a1d19d48fcde785e3841e7b20"
+      }
+    },
+    {
       "path": "docs/screenshots/journey/96zzzv-pick-originals-through-shared-records.png",
       "sha256": "33692b20bbdd38393f5f2f84a3e345e8a6480ac240f26271277f476f67afb414",
       "kind": "native",
@@ -15418,6 +15528,16 @@
       "receipt": {
         "path": "docs/journey/release/native-streaming-publication-1564.json",
         "sha256": "09fcd6b9ec575c2451db34fbbb5f68dd01cb54f6e81dd903b851f0f4088a5011"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/96zzzw-read-source-faces-through-shared-records-browser.png",
+      "sha256": "ed44bd71cfb0e7277eb51fea6a2cc01031384743c173989be1006705b0bf231c",
+      "kind": "browser",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/browser-streaming-publication-246.json",
+        "sha256": "bc48bb69b91a1f019c629c73eef4ea64122d3e2a1d19d48fcde785e3841e7b20"
       }
     },
     {
