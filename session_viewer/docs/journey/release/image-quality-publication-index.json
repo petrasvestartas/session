@@ -1,16 +1,16 @@
 {
-  "date": "2026-10-26T04:57:47.339Z",
+  "date": "2026-10-26T05:05:54.623Z",
   "status": "PASS: reviewed publication receipts reconciled with exact source and served file hashes",
   "scope": "Only explicitly reviewed publication receipts count; in-flight captures excluded. HTTP verification belongs to each linked publication receipt.",
   "inventory": {
     "path": "target/course-presentation/inventory-d09aa228601224bf4dfe.json",
     "sha256": "d09aa228601224bf4dfe01d6a1009a56357b2eb5e4b3baa5d88566b2c7a66eba"
   },
-  "published": 1495,
-  "remaining": 267,
+  "published": 1514,
+  "remaining": 248,
   "counts": {
     "native": 1218,
-    "browser": 257,
+    "browser": 276,
     "variants": 0,
     "supporting": 20
   },
@@ -14351,6 +14351,16 @@
       }
     },
     {
+      "path": "docs/screenshots/journey/96y-address-feature-pixels-to-original-cad-owners-browser.png",
+      "sha256": "2d933e47e210fbbd0450fc728510f0123fb1c7417bc27a39c60b89a33f1027f9",
+      "kind": "browser",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/browser-streaming-publication-234.json",
+        "sha256": "45fcd1ef1eb8119e901ed821a836d67841350d26181398e4a4f987ae6f207694"
+      }
+    },
+    {
       "path": "docs/screenshots/journey/96y-address-feature-pixels-to-original-cad-owners.png",
       "sha256": "020e396819c8ea0511bf348d15523172ae0e355a559de8a9b84dbb6f39e9f4ef",
       "kind": "native",
@@ -14441,6 +14451,16 @@
       }
     },
     {
+      "path": "docs/screenshots/journey/96zh-bind-the-shared-geometry-as-storage-browser.png",
+      "sha256": "d987911641e7f2681ecb25dec8278cb13fd5b6c97b37ae36e3f9a8881111b367",
+      "kind": "browser",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/browser-streaming-publication-234.json",
+        "sha256": "45fcd1ef1eb8119e901ed821a836d67841350d26181398e4a4f987ae6f207694"
+      }
+    },
+    {
       "path": "docs/screenshots/journey/96zh-bind-the-shared-geometry-as-storage.png",
       "sha256": "020e396819c8ea0511bf348d15523172ae0e355a559de8a9b84dbb6f39e9f4ef",
       "kind": "native",
@@ -14448,6 +14468,16 @@
       "receipt": {
         "path": "docs/journey/release/native-streaming-publication-1495.json",
         "sha256": "2009d59a8e8cff4e8ec89927d743c2bcb2f823c7b17d3ae89b39f5b7616de3d6"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/96zi-read-source-vertices-through-one-shader-helper-browser.png",
+      "sha256": "d987911641e7f2681ecb25dec8278cb13fd5b6c97b37ae36e3f9a8881111b367",
+      "kind": "browser",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/browser-streaming-publication-234.json",
+        "sha256": "45fcd1ef1eb8119e901ed821a836d67841350d26181398e4a4f987ae6f207694"
       }
     },
     {
@@ -14461,6 +14491,16 @@
       }
     },
     {
+      "path": "docs/screenshots/journey/96zj-activate-shared-vertex-pulling-for-color-browser.png",
+      "sha256": "d987911641e7f2681ecb25dec8278cb13fd5b6c97b37ae36e3f9a8881111b367",
+      "kind": "browser",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/browser-streaming-publication-234.json",
+        "sha256": "45fcd1ef1eb8119e901ed821a836d67841350d26181398e4a4f987ae6f207694"
+      }
+    },
+    {
       "path": "docs/screenshots/journey/96zj-activate-shared-vertex-pulling-for-color.png",
       "sha256": "020e396819c8ea0511bf348d15523172ae0e355a559de8a9b84dbb6f39e9f4ef",
       "kind": "native",
@@ -14471,6 +14511,16 @@
       }
     },
     {
+      "path": "docs/screenshots/journey/96zk-assign-frame-triangle-ranges-browser.png",
+      "sha256": "d987911641e7f2681ecb25dec8278cb13fd5b6c97b37ae36e3f9a8881111b367",
+      "kind": "browser",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/browser-streaming-publication-234.json",
+        "sha256": "45fcd1ef1eb8119e901ed821a836d67841350d26181398e4a4f987ae6f207694"
+      }
+    },
+    {
       "path": "docs/screenshots/journey/96zk-assign-frame-triangle-ranges.png",
       "sha256": "020e396819c8ea0511bf348d15523172ae0e355a559de8a9b84dbb6f39e9f4ef",
       "kind": "native",
@@ -14478,6 +14528,16 @@
       "receipt": {
         "path": "docs/journey/release/native-streaming-publication-1495.json",
         "sha256": "2009d59a8e8cff4e8ec89927d743c2bcb2f823c7b17d3ae89b39f5b7616de3d6"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/96zl-own-the-integer-primitive-image-browser.png",
+      "sha256": "d987911641e7f2681ecb25dec8278cb13fd5b6c97b37ae36e3f9a8881111b367",
+      "kind": "browser",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/browser-streaming-publication-234.json",
+        "sha256": "45fcd1ef1eb8119e901ed821a836d67841350d26181398e4a4f987ae6f207694"
       }
     },
     {
@@ -14558,6 +14618,16 @@
       "receipt": {
         "path": "docs/journey/release/native-streaming-publication-1495.json",
         "sha256": "2009d59a8e8cff4e8ec89927d743c2bcb2f823c7b17d3ae89b39f5b7616de3d6"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/96zs-write-first-pick-primitives-from-shared-geometry-browser.png",
+      "sha256": "ddba4d2288f7ca5d2b311e6a17880225593ae44660375dd5c52f5ccbe796b16b",
+      "kind": "browser",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/browser-streaming-publication-234.json",
+        "sha256": "45fcd1ef1eb8119e901ed821a836d67841350d26181398e4a4f987ae6f207694"
       }
     },
     {
@@ -14721,6 +14791,16 @@
       }
     },
     {
+      "path": "docs/screenshots/journey/96zzd-pack-surface-position-normal-and-color-browser.png",
+      "sha256": "0816e418db8c729361d223a8fb322c4174c803724d42be7882ef828a908651eb",
+      "kind": "browser",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/browser-streaming-publication-234.json",
+        "sha256": "45fcd1ef1eb8119e901ed821a836d67841350d26181398e4a4f987ae6f207694"
+      }
+    },
+    {
       "path": "docs/screenshots/journey/96zzf-start-with-current-browser-display-defaults-browser.png",
       "sha256": "90dd1626727fb82df066f0af3585ce5f27b7fcace7f4d30291a45c0c2d4e3be7",
       "kind": "browser",
@@ -14761,6 +14841,46 @@
       }
     },
     {
+      "path": "docs/screenshots/journey/96zzq-open-files-through-one-measured-session-reader-browser.png",
+      "sha256": "adbcecf4b2f7e7634707f3e74b4210ad19f8fc4de4205496312dd06aad47a311",
+      "kind": "browser",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/browser-streaming-publication-234.json",
+        "sha256": "45fcd1ef1eb8119e901ed821a836d67841350d26181398e4a4f987ae6f207694"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/96zzr-route-current-close-and-opacity-commands-browser.png",
+      "sha256": "88e39bbe60e333fd57317a703f869e8e8eb3762ea559f36638d200205c07d6db",
+      "kind": "browser",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/browser-streaming-publication-234.json",
+        "sha256": "45fcd1ef1eb8119e901ed821a836d67841350d26181398e4a4f987ae6f207694"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/96zzt-share-the-current-selection-yellow-browser.png",
+      "sha256": "88e39bbe60e333fd57317a703f869e8e8eb3762ea559f36638d200205c07d6db",
+      "kind": "browser",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/browser-streaming-publication-234.json",
+        "sha256": "45fcd1ef1eb8119e901ed821a836d67841350d26181398e4a4f987ae6f207694"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/96zzv-bind-the-own-row-slot-for-ordinary-surfaces-browser.png",
+      "sha256": "ed44bd71cfb0e7277eb51fea6a2cc01031384743c173989be1006705b0bf231c",
+      "kind": "browser",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/browser-streaming-publication-234.json",
+        "sha256": "45fcd1ef1eb8119e901ed821a836d67841350d26181398e4a4f987ae6f207694"
+      }
+    },
+    {
       "path": "docs/screenshots/journey/96zzw-reload-scenes-through-the-existing-publication-owner-browser.png",
       "sha256": "ed44bd71cfb0e7277eb51fea6a2cc01031384743c173989be1006705b0bf231c",
       "kind": "browser",
@@ -14768,6 +14888,76 @@
       "receipt": {
         "path": "docs/journey/release/browser-scene-image-publication-18.json",
         "sha256": "c1f1c0f724ac7de6ee36bf6439add3668c05741f72be016c962566c8b2ba727c"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/96zzy-share-one-slot-buffer-across-surface-draws-browser.png",
+      "sha256": "ed44bd71cfb0e7277eb51fea6a2cc01031384743c173989be1006705b0bf231c",
+      "kind": "browser",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/browser-streaming-publication-234.json",
+        "sha256": "45fcd1ef1eb8119e901ed821a836d67841350d26181398e4a4f987ae6f207694"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/96zzzf-project-triangles-at-their-physical-addresses-browser.png",
+      "sha256": "ed44bd71cfb0e7277eb51fea6a2cc01031384743c173989be1006705b0bf231c",
+      "kind": "browser",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/browser-streaming-publication-234.json",
+        "sha256": "45fcd1ef1eb8119e901ed821a836d67841350d26181398e4a4f987ae6f207694"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/96zzzg-clear-the-current-arctic-background-browser.png",
+      "sha256": "8e5435468eb9b78efd7c2f640ca8aa1bde252b2cb178dfa4cf6023d841b8bf22",
+      "kind": "browser",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/browser-streaming-publication-234.json",
+        "sha256": "45fcd1ef1eb8119e901ed821a836d67841350d26181398e4a4f987ae6f207694"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/96zzzh-share-changed-record-runs-browser.png",
+      "sha256": "8e5435468eb9b78efd7c2f640ca8aa1bde252b2cb178dfa4cf6023d841b8bf22",
+      "kind": "browser",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/browser-streaming-publication-234.json",
+        "sha256": "45fcd1ef1eb8119e901ed821a836d67841350d26181398e4a4f987ae6f207694"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/96zzzi-prepare-one-shared-object-record-table-browser.png",
+      "sha256": "8e5435468eb9b78efd7c2f640ca8aa1bde252b2cb178dfa4cf6023d841b8bf22",
+      "kind": "browser",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/browser-streaming-publication-234.json",
+        "sha256": "45fcd1ef1eb8119e901ed821a836d67841350d26181398e4a4f987ae6f207694"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/96zzzj-share-instance-object-records-across-definitions-browser.png",
+      "sha256": "ed44bd71cfb0e7277eb51fea6a2cc01031384743c173989be1006705b0bf231c",
+      "kind": "browser",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/browser-streaming-publication-234.json",
+        "sha256": "45fcd1ef1eb8119e901ed821a836d67841350d26181398e4a4f987ae6f207694"
+      }
+    },
+    {
+      "path": "docs/screenshots/journey/96zzzk-reuse-checked-curve-control-coordinates-browser.png",
+      "sha256": "ed44bd71cfb0e7277eb51fea6a2cc01031384743c173989be1006705b0bf231c",
+      "kind": "browser",
+      "queue": "direct-public",
+      "receipt": {
+        "path": "docs/journey/release/browser-streaming-publication-234.json",
+        "sha256": "45fcd1ef1eb8119e901ed821a836d67841350d26181398e4a4f987ae6f207694"
       }
     },
     {
